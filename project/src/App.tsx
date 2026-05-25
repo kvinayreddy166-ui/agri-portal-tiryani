@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { Login } from './components/Login';
@@ -13,6 +13,7 @@ import { ExcelUploads } from './pages/ExcelUploads';
 import { Analytics } from './pages/Analytics';
 import { Settings } from './pages/Settings';
 import { QualityControl } from './pages/QualityControl';
+import { FarmMechanization } from './pages/FarmMechanization';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -58,6 +59,8 @@ function AppContent() {
         return <QualityControl category="pesticides" />;
       case 'quality-fertilizers':
         return <QualityControl category="fertilizers" />;
+      case 'farm-mechanization':
+        return <FarmMechanization />;
       case 'excel':
         return <ExcelUploads />;
       case 'analytics':

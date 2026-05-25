@@ -1,7 +1,7 @@
-import { useState, ReactNode } from 'react';
+import React, { useState, ReactNode } from 'react';
 import {
   Menu, X, LayoutDashboard, Package, Users, Leaf, FileDown,
-  Upload, BarChart3, Settings, LogOut, ChevronDown, TrendingUp, Globe2, ShieldCheck
+  Upload, BarChart3, Settings, LogOut, ChevronDown, TrendingUp, Globe2, ShieldCheck, Tractor
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -40,6 +40,7 @@ const menuItems = [
       { id: 'fertilizers', label: 'Fertilizers' },
     ]
   },
+  { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor },
   { id: 'excel', label: 'Excel Uploads', icon: Upload },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
@@ -215,6 +216,7 @@ function translateMenu(label: string) {
     'Crop Management': 'పంట నిర్వహణ',
     'Forms & Downloads': 'ఫారాలు & డౌన్లోడ్లు',
     'Quality Control': 'నాణ్యత నియంత్రణ',
+    'Farm Mechanization': 'వ్యవసాయ యాంత్రీకరణ',
     Seeds: 'విత్తనాలు',
     Pesticides: 'పురుగుమందులు',
     Fertilizers: 'ఎరువులు',

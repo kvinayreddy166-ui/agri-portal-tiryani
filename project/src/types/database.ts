@@ -94,6 +94,17 @@ export interface QualityControlTarget {
   updated_at: string;
 }
 
+export interface FarmMechanizationDocument {
+  id: string;
+  document_type: 'applications_received' | 'proceedings_generated';
+  financial_year: string;
+  title: string;
+  file_name: string;
+  file_url: string;
+  created_at: string;
+  created_by: string;
+}
+
 export interface Settings {
   id: string;
   setting_key: string;
