@@ -36,8 +36,9 @@ export function ExcelUploads() {
 
     setUploading(true);
     try {
-      const fileName = `${Date.now()}_${file.name}`;
-      const filePath = `excel/${fileName}`;
+      const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const fileName = `${Date.now()}_${cleanName}`;
+      const filePath = `office-files/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('uploads')
@@ -63,7 +64,7 @@ export function ExcelUploads() {
       fetchUploads();
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('Failed to upload file. Please make sure the storage bucket exists.');
+      alert('Failed to upload file. Please make sure the Supabase uploads bucket and storage policies are applied.');
     } finally {
       setUploading(false);
     }
@@ -117,8 +118,8 @@ export function ExcelUploads() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Excel Uploads</h1>
-        <p className="text-gray-600">Upload and manage Excel data files</p>
+        <h1 className="text-2xl font-bold text-gray-900">File Uploads</h1>
+        <p className="text-gray-600">Upload PDF, Word, and Excel files for users to download</p>
       </div>
 
       {/* Upload Area */}
@@ -141,14 +142,14 @@ export function ExcelUploads() {
               <Upload className={`w-8 h-8 ${dragActive ? 'text-emerald-600' : 'text-gray-400'}`} />
             </div>
             <p className="text-lg font-medium text-gray-700 mb-2">
-              {uploading ? 'Uploading...' : 'Drag and drop Excel files here'}
+              {uploading ? 'Uploading...' : 'Drag and drop PDF, Word, or Excel files here'}
             </p>
             <p className="text-sm text-gray-500 mb-4">or click to browse</p>
             <label className="cursor-pointer">
               <input
                 type="file"
                 className="hidden"
-                accept=".xlsx,.xls,.csv"
+                accept=".pdf,.doc,.docx,.xlsx,.xls,.csv"
                 onChange={(e) => e.target.files && handleUpload(e.target.files[0])}
                 disabled={uploading}
               />
@@ -163,7 +164,7 @@ export function ExcelUploads() {
                 {uploading ? 'Uploading...' : 'Select File'}
               </span>
             </label>
-            <p className="text-xs text-gray-400 mt-4">Supported formats: XLSX, XLS, CSV</p>
+            <p className="text-xs text-gray-400 mt-4">Supported formats: PDF, DOC, DOCX, XLSX, XLS, CSV</p>
           </div>
         </div>
       )}

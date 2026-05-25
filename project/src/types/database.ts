@@ -20,6 +20,17 @@ export interface FertilizerStock {
   created_at: string;
 }
 
+export interface DealerStockAllocation {
+  id: string;
+  dealer_id: string;
+  fertilizer_type: string;
+  quantity_mts: number;
+  last_updated: string;
+  created_at: string;
+  dealer_name?: string;
+  dealer_location?: string;
+}
+
 export interface Crop {
   id: string;
   crop_name: string;
