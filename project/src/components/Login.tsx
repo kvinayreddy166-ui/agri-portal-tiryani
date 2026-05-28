@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   AlertCircle,
+  Eye,
   Globe2,
   LockKeyhole,
   LogIn,
@@ -10,12 +11,10 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { supabase } from '../lib/supabase';
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
-const TEST_EMAIL = 'test@123.com';
-const TEST_PASSWORD = 'test';
-const TEST_AUTH_PASSWORD = 'test123';
+const TEST_EMAIL = 'test@gmail.com';
+const TEST_PASSWORD = 'Test@123';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -31,30 +30,9 @@ export function Login() {
     setLoading(true);
 
     const normalizedEmail = email.trim().toLowerCase();
-    const isTestLogin =
-      normalizedEmail === TEST_EMAIL && (password === TEST_PASSWORD || password === TEST_AUTH_PASSWORD);
-    const authPassword = isTestLogin ? TEST_AUTH_PASSWORD : password;
-    const { error: signInError } = await signIn(normalizedEmail, authPassword);
+    const { error: signInError } = await signIn(normalizedEmail, password);
 
     if (signInError) {
-      if (isTestLogin) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email: TEST_EMAIL,
-          password: TEST_AUTH_PASSWORD,
-          options: {
-            data: { full_name: 'Test User' },
-          },
-        });
-
-        if (!signUpError) {
-          const { error: retryError } = await signIn(TEST_EMAIL, TEST_AUTH_PASSWORD);
-          if (!retryError) {
-            setLoading(false);
-            return;
-          }
-        }
-      }
-
       setError(
         normalizedEmail === ADMIN_EMAIL
           ? t(
@@ -72,127 +50,119 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f8ef] flex items-center justify-center p-4 sm:p-6">
-      <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(34,197,94,0.12),transparent_35%),linear-gradient(300deg,rgba(234,179,8,0.12),transparent_30%)]" />
-      <div className="relative w-full max-w-6xl grid overflow-hidden rounded-[28px] bg-white shadow-2xl lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="relative hidden min-h-[680px] overflow-hidden bg-emerald-950 p-10 text-white lg:flex lg:flex-col lg:justify-between">
-          <img
-            src="/images/rice.jpg"
-            alt=""
-            className="absolute inset-x-0 top-0 h-1/2 w-full object-cover opacity-90"
-          />
-          <img
-            src="/images/cotton.jpg"
-            alt=""
-            className="absolute inset-x-0 bottom-0 h-1/2 w-full object-cover opacity-85"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/95 via-emerald-900/64 to-amber-950/35" />
-          <div className="absolute inset-x-0 top-1/2 h-24 -translate-y-1/2 bg-gradient-to-b from-transparent via-emerald-950/70 to-transparent" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#eef6f0] p-4 sm:p-6">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(16,185,129,0.18),transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(14,165,233,0.12),transparent_45%)]" />
+      <div className="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 bottom-20 h-72 w-72 rounded-full bg-teal-300/20 blur-3xl" />
+
+      <div className="relative grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="relative hidden min-h-[720px] flex-col justify-between overflow-hidden bg-emerald-950 p-10 text-white lg:flex">
+          <img src="/images/rice.jpg" alt="" className="absolute inset-x-0 top-0 h-[52%] w-full object-cover opacity-80" />
+          <img src="/images/cotton.jpg" alt="" className="absolute inset-x-0 bottom-0 h-[52%] w-full object-cover opacity-75" />
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/96 via-emerald-900/75 to-slate-900/50" />
 
           <div className="relative">
-            <div className="mb-10 inline-flex items-center gap-3 rounded-full bg-white/14 px-4 py-2 text-sm font-semibold backdrop-blur-sm">
-              <img src="/images/agri-emblem.png" alt="" className="h-8 w-8 rounded-full bg-white" />
+            <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur-md">
+              <img src="/images/agri-emblem.png" alt="" className="h-9 w-9 rounded-full bg-white p-0.5" />
               {t('Department of Agriculture', 'వ్యవసాయ శాఖ')}
             </div>
-            <h1 className="max-w-md text-5xl font-black leading-tight tracking-tight">
+            <h1 className="max-w-lg text-4xl font-black leading-[1.1] tracking-tight xl:text-5xl">
               {t('Tiryani Agriculture Portal', 'తిర్యాని వ్యవసాయ పోర్టల్')}
             </h1>
-            <p className="mt-5 max-w-md text-base leading-7 text-emerald-50">
+            <p className="mt-3 text-lg font-semibold text-emerald-100">
+              {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
+            </p>
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-emerald-50/95">
               {t(
-                'A secure workspace for stock, dealer, crop, upload, and analytics management across Tiryani Mandal.',
-                'తిర్యాని మండలంలో స్టాక్, డీలర్, పంట, అప్లోడ్ మరియు విశ్లేషణల నిర్వహణ కోసం సురక్షిత వేదిక.'
+                'A secure workspace for Fertilizer, dealer, crop management system for Tiryani Mandal.',
+                'తిర్యాని మండలానికి ఎరువులు, డీలర్, పంట నిర్వహణ వ్యవస్థ కోసం సురక్షిత వేదిక.'
               )}
             </p>
           </div>
 
-          <div className="relative grid gap-4">
-            <div className="rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
-              <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+          <div className="relative grid gap-3">
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-md">
+              <div className="mb-2 flex items-center gap-2 font-semibold">
                 <ShieldCheck className="h-5 w-5 text-emerald-200" />
                 {t('Admin access', 'అడ్మిన్ ప్రవేశం')}
               </div>
-              <p className="text-sm text-emerald-50">
-                {t(
-                  'The administrator signs in with the approved admin account.',
-                  'నిర్వాహకుడు ఆమోదించబడిన అడ్మిన్ ఖాతాతో లాగిన్ అవుతారు.'
-                )}
+              <p className="text-sm text-emerald-50/90">
+                {t('Full access to manage stock, dealers, crops, and uploads.', 'స్టాక్, డీలర్లు, పంటలు మరియు అప్లోడ్లను నిర్వహించే పూర్తి ప్రవేశం.')}
               </p>
             </div>
-            <div className="rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
-              <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
-                <UserRoundCheck className="h-5 w-5 text-cyan-200" />
-                {t('Test user access', 'టెస్ట్ వినియోగదారు ప్రవేశం')}
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-md">
+              <div className="mb-2 flex items-center gap-2 font-semibold">
+                <Eye className="h-5 w-5 text-cyan-200" />
+                {t('Test user — view documents', 'టెస్ట్ వినియోగదారు — పత్రాలు చూడండి')}
               </div>
-              <p className="text-sm text-emerald-50">
+              <p className="text-sm text-emerald-50/90">
                 {t(
-                  'Other users can sign in with the assigned test login credentials.',
-                  'ఇతర వినియోగదారులు ఇచ్చిన టెస్ట్ లాగిన్ వివరాలతో ప్రవేశించవచ్చు.'
+                  'Sign in to view and download all uploaded files and reports.',
+                  'అప్లోడ్ చేసిన అన్ని ఫైళ్లు మరియు నివేదికలను చూడటానికి మరియు డౌన్లోడ్ చేసుకోవడానికి లాగిన్ అవండి.'
                 )}
               </p>
             </div>
           </div>
         </section>
 
-        <section className="p-6 sm:p-8 lg:p-10">
-          <div className="mx-auto flex min-h-[560px] w-full max-w-md flex-col justify-center">
+        <section className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
+          <div className="mx-auto w-full max-w-md">
             <div className="mb-8 flex items-start justify-between gap-4">
               <div>
                 <img
                   src="/images/agri-emblem.png"
                   alt="Agriculture emblem"
-                  className="mb-4 h-20 w-20 rounded-full border border-emerald-100 bg-white p-1 shadow-md"
+                  className="mb-4 h-20 w-20 rounded-2xl border border-emerald-100 bg-white p-1.5 shadow-lg"
                 />
-                <h1 className="text-3xl font-black tracking-tight text-gray-950">
-                  {t('Tiryani Portal', 'తిర్యాని పోర్టల్')}
-                </h1>
-                <p className="mt-2 text-sm font-medium text-gray-600">
-                  {t('Agriculture Management System', 'వ్యవసాయ నిర్వహణ వ్యవస్థ')}
+                <h2 className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+                  {t('Tiryani Agriculture Portal', 'తిర్యాని వ్యవసాయ పోర్టల్')}
+                </h2>
+                <p className="mt-1 text-sm font-bold text-emerald-700">
+                  {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-slate-600 lg:hidden">
+                  {t(
+                    'A secure workspace for Fertilizer, dealer, crop management system for Tiryani Mandal.',
+                    'తిర్యాని మండలానికి ఎరువులు, డీలర్, పంట నిర్వహణ వ్యవస్థ కోసం సురక్షిత వేదిక.'
+                  )}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={toggleLanguage}
-                className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
+                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
               >
                 <Globe2 className="h-4 w-4" />
                 {language === 'en' ? 'తెలుగు' : 'English'}
               </button>
             </div>
 
-            <div className="mb-8">
-              <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+            <div className="mb-6">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
                 {t('Secure sign in', 'సురక్షిత లాగిన్')}
               </p>
-              <h2 className="mt-2 text-3xl font-black tracking-tight text-gray-950">
-                {t('Welcome back', 'స్వాగతం')}
-              </h2>
-              <p className="mt-2 text-sm text-gray-600">
-                {t(
-                  'Enter your admin or assigned test credentials to continue.',
-                  'కొనసాగడానికి మీ అడ్మిన్ లేదా ఇచ్చిన టెస్ట్ లాగిన్ వివరాలు నమోదు చేయండి.'
-                )}
-              </p>
+              <h3 className="mt-2 text-2xl font-black text-slate-950">{t('Welcome', 'స్వాగతం')}</h3>
             </div>
 
             {error && (
-              <div className="mb-6 flex gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                <AlertCircle className="mt-0.5 h-5 w-5 flex-none" />
+              <div className="mb-5 flex gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
                   {t('Email Address', 'ఇమెయిల్ చిరునామా')}
                 </label>
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                  <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-12 pr-4 text-gray-950 outline-none transition-all placeholder:text-gray-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     placeholder={t('Enter email address', 'ఇమెయిల్ నమోదు చేయండి')}
                     autoComplete="email"
                     required
@@ -201,16 +171,16 @@ export function Login() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
                   {t('Password', 'పాస్వర్డ్')}
                 </label>
                 <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-12 pr-4 text-gray-950 outline-none transition-all placeholder:text-gray-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')}
                     autoComplete="current-password"
                     required
@@ -221,33 +191,34 @@ export function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 py-3 font-semibold text-white shadow-lg shadow-emerald-900/15 transition-all hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3.5 font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:from-emerald-800 hover:to-teal-800 disabled:opacity-60"
               >
                 <LogIn className="h-5 w-5" />
                 {loading ? t('Signing in...', 'లాగిన్ అవుతోంది...') : t('Sign In', 'లాగిన్')}
               </button>
             </form>
 
-            <div className="mt-5 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-sky-900">
-              <p className="font-bold">{t('Test login', 'టెస్ట్ లాగిన్')}</p>
-              <p className="mt-1">
-                <span className="font-semibold">Email:</span> test@123.com
-                <span className="mx-2 text-sky-400">|</span>
-                <span className="font-semibold">Password:</span> test
+            <div className="mt-5 rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950">
+              <p className="flex items-center gap-2 font-bold">
+                <UserRoundCheck className="h-4 w-4" />
+                {t('Test login', 'టెస్ట్ లాగిన్')}
+              </p>
+              <p className="mt-2">
+                <span className="font-semibold">Email:</span> {TEST_EMAIL}
+              </p>
+              <p>
+                <span className="font-semibold">Password:</span> {TEST_PASSWORD}
               </p>
             </div>
 
-            <div className="mt-8 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-4 text-center text-xs leading-5 text-emerald-900">
+            <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/80 px-4 py-4 text-center text-xs leading-5 text-emerald-900">
               <p>
                 <span className="font-semibold">{t('Tiryani Mandal', 'తిర్యాని మండలం')}</span>
-                <span className="mx-2 text-emerald-500">|</span>
+                <span className="mx-2 text-emerald-400">·</span>
                 <span>{t('Asifabad Division', 'ఆసిఫాబాద్ డివిజన్')}</span>
               </p>
-              <p className="mt-2 font-semibold text-emerald-800">
-                {t(
-                  'Developed and maintained by K. Vinay Reddy, MAO, Tiryani',
-                  'అభివృద్ధి మరియు నిర్వహణ: కె. వినయ్ రెడ్డి, ఎం.ఏ.ఓ, తిర్యాని'
-                )}
+              <p className="mt-2 font-semibold">
+                {t('K. Vinay Reddy, MAO, Tiryani', 'కె. వినయ్ రెడ్డి, ఎం.ఏ.ఓ, తిర్యాని')}
               </p>
             </div>
           </div>

@@ -1,14 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 
-const FALLBACK_SUPABASE_URL = 'https://fnectdrqwimetlgjbjtr.supabase.co';
-const FALLBACK_SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZuZWN0ZHJxd2ltZXRsZ2pianRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2Mjg4ODIsImV4cCI6MjA5NTIwNDg4Mn0.wQbha1ErJyXEXPqsoE8UwT3ElsAd_a6qJp1VH4Tns2I';
+const FALLBACK_SUPABASE_URL = 'https://szxtfeiswxugxukztnst.supabase.co';
+const FALLBACK_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6eHRmZWlzd3h1Z3h1a3p0bnN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTM0MDcsImV4cCI6MjA5NTM4OTQwN30.tWylZO0WSSLmfWJ8o0R5Rmw16Dh5KRlrWKcshomhL7c';
 
 const cleanEnvValue = (value: unknown) => {
   return String(value ?? '')
     .trim()
     .replace(/^['"]|['"]$/g, '')
     .replace(/\s+/g, '');
+};
+
+const normalizeSupabaseUrl = (value: string) => {
+  try {
+    const url = new URL(value);
+    return `${url.protocol}//${url.hostname}`;
+  } catch {
+    return value.replace(/\/$/, '');
+  }
 };
 
 const isValidSupabaseUrl = (value: string) => {
@@ -24,7 +32,7 @@ const isValidAnonKey = (value: string) => {
   return value.split('.').length === 3 && value.startsWith('eyJ');
 };
 
-const envSupabaseUrl = cleanEnvValue(import.meta.env.VITE_SUPABASE_URL).replace(/\/$/, '');
+const envSupabaseUrl = normalizeSupabaseUrl(cleanEnvValue(import.meta.env.VITE_SUPABASE_URL));
 const envSupabaseAnonKey = cleanEnvValue(import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 const supabaseUrl = isValidSupabaseUrl(envSupabaseUrl) ? envSupabaseUrl : FALLBACK_SUPABASE_URL;

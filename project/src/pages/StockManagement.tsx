@@ -3,8 +3,10 @@ import { Edit2, Package, Plus, Save, Search, Trash2, TrendingUp, X } from 'lucid
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Dealer, DealerStockAllocation } from '../types/database';
+import { FERTILIZER_TYPES } from '../lib/constants';
+import { syncFertilizerStockTable } from '../lib/fertilizerStock';
 
-const fertilizers = ['Urea', 'DAP', 'Potash', 'SSP', 'Complex'];
+const fertilizers = [...FERTILIZER_TYPES];
 
 export function StockManagement() {
   const { isAdminUser } = useAuth();
@@ -74,6 +76,7 @@ export function StockManagement() {
         }]);
 
       if (error) throw error;
+      await syncFertilizerStockTable();
       setShowAddForm(false);
       setFormData({ dealer_id: '', fertilizer_type: 'Urea', quantity_mts: 0 });
       fetchData();
@@ -98,6 +101,7 @@ export function StockManagement() {
         .eq('id', id);
 
       if (error) throw error;
+      await syncFertilizerStockTable();
       setEditingId(null);
       fetchData();
     } catch (error) {
@@ -116,6 +120,7 @@ export function StockManagement() {
         .eq('id', id);
 
       if (error) throw error;
+      await syncFertilizerStockTable();
       fetchData();
     } catch (error) {
       console.error('Error deleting dealer-wise stock:', error);

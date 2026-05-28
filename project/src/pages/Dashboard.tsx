@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { fetchAggregatedFertilizerStock } from '../lib/fertilizerStock';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Crop, FertilizerStock, Scheme, MandalOverview } from '../types/database';
@@ -22,15 +23,16 @@ export function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const [cropsRes, fertilizersRes, schemesRes, contentRes] = await Promise.all([
+      const [cropsRes, schemesRes, contentRes] = await Promise.all([
         supabase.from('crops').select('*'),
-        supabase.from('fertilizer_stock').select('*'),
         supabase.from('schemes').select('*'),
         supabase.from('site_content').select('*').eq('section_name', 'mandal_overview').maybeSingle(),
       ]);
 
+      const aggregatedFertilizers = await fetchAggregatedFertilizerStock();
+
       if (cropsRes.data) setCrops(cropsRes.data);
-      if (fertilizersRes.data) setFertilizers(fertilizersRes.data);
+      setFertilizers(aggregatedFertilizers);
       if (schemesRes.data) setSchemes(schemesRes.data);
       if (contentRes.data) setMandalData(contentRes.data.content);
     } catch (error) {
@@ -196,7 +198,10 @@ export function Dashboard() {
               {t('Fertilizer Availability', 'ఎరువుల లభ్యత')}
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              {t('Live stock position in metric tonnes', 'మెట్రిక్ టన్నులలో ప్రస్తుత స్టాక్ వివరాలు')}
+              {t(
+                'Totals from Stock Management (dealer-wise entries in MTS)',
+                'స్టాక్ నిర్వహణ నుండి మొత్తాలు (డీలర్ వారీగా MTS)'
+              )}
             </p>
           </div>
           <div className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700">
@@ -205,6 +210,14 @@ export function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {fertilizers.length === 0 && (
+            <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-600">
+              {t(
+                'No fertilizer stock entered yet. Add dealer-wise stock in Stock Management.',
+                'ఇంకా ఎరువుల స్టాక్ నమోదు కాలేదు. స్టాక్ నిర్వహణలో డీలర్ వారీగా స్టాక్ జోడించండి.'
+              )}
+            </div>
+          )}
           {fertilizers.map((fertilizer) => {
             const percentage = Math.max(
               8,

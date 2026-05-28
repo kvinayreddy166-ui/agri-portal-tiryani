@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Download,
   File,
   FileImage,
   FileText,
@@ -16,6 +15,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { FormDownload } from '../types/database';
+import { FileActionButtons } from '../components/ui/FileActionButtons';
 
 const folders = [
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
@@ -41,12 +41,14 @@ export function FormsDownloads() {
   const [selectedFolder, setSelectedFolder] = useState('seed');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newForm, setNewForm] = useState(emptyForm);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchForms();
   }, []);
 
   const fetchForms = async () => {
+    setFetchError(null);
     try {
       const { data, error } = await supabase
         .from('forms_downloads')
@@ -58,6 +60,11 @@ export function FormsDownloads() {
       setForms(data || []);
     } catch (error) {
       console.error('Error fetching forms:', error);
+      setFetchError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to load downloads. Please sign in again and retry.'
+      );
     } finally {
       setLoading(false);
     }
@@ -104,7 +111,7 @@ export function FormsDownloads() {
 
         const { error: uploadError } = await supabase.storage
           .from('uploads')
-          .upload(filePath, selectedFile);
+          .upload(filePath, selectedFile, { upsert: true });
 
         if (uploadError) throw uploadError;
 
@@ -131,7 +138,11 @@ export function FormsDownloads() {
       fetchForms();
     } catch (error) {
       console.error('Error adding document:', error);
-      alert('Failed to add document. Please make sure the uploads storage bucket exists.');
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Failed to add document. Please make sure the uploads storage bucket exists.';
+      alert(message);
     } finally {
       setUploading(false);
     }
@@ -196,6 +207,12 @@ export function FormsDownloads() {
           </button>
         )}
       </div>
+
+      {fetchError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {fetchError}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {folders.map((folder) => (
@@ -379,18 +396,7 @@ export function FormsDownloads() {
                     <span className="text-xs font-medium text-gray-400">
                       {new Date(form.created_at).toLocaleDateString()}
                     </span>
-                    {form.file_url && (
-                      <a
-                        href={form.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download
-                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white transition hover:bg-emerald-800"
-                      >
-                        <Download className="h-4 w-4" />
-                        {t('Download', 'డౌన్లోడ్')}
-                      </a>
-                    )}
+                    {form.file_url && <FileActionButtons fileUrl={form.file_url} size="sm" />}
                   </div>
                 </div>
               </article>

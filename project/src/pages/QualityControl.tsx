@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   CalendarDays,
   ClipboardCheck,
-  Download,
   FileUp,
   MapPin,
   Phone,
@@ -14,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { FileActionButtons } from '../components/ui/FileActionButtons';
 import { useAuth } from '../context/AuthContext';
 import { QualityControlSample, QualityControlTarget } from '../types/database';
 
@@ -136,7 +136,7 @@ export function QualityControl({ category }: QualityControlProps) {
 
         const { error: uploadError } = await supabase.storage
           .from('uploads')
-          .upload(filePath, sampleFile);
+          .upload(filePath, sampleFile, { upsert: true });
 
         if (uploadError) throw uploadError;
 
@@ -313,18 +313,7 @@ export function QualityControl({ category }: QualityControlProps) {
                     {sample.remarks && <p className="mt-1 line-clamp-1">{sample.remarks}</p>}
                   </div>
                   <div className="flex items-center gap-2">
-                    {sample.form_url && (
-                      <a
-                        href={sample.form_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download
-                        className="rounded-lg bg-emerald-50 p-2 text-emerald-700 hover:bg-emerald-100"
-                        aria-label="Download sample form"
-                      >
-                        <Download className="h-5 w-5" />
-                      </a>
-                    )}
+                    {sample.form_url && <FileActionButtons fileUrl={sample.form_url} />}
                     {isAdminUser && (
                       <button
                         onClick={() => deleteSample(sample.id)}

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Leaf, FileText, MapPin, Save } from 'lucide-react';
+import { Plus, Edit2, Trash2, Leaf, FileText, MapPin, Save, Upload } from 'lucide-react';
+import { FileActionButtons } from '../components/ui/FileActionButtons';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { uploadPortalFile } from '../lib/uploadFile';
 import { Crop, CropData } from '../types/database';
 
 interface CropPageProps {
@@ -15,6 +17,8 @@ export function CropPage({ cropType }: CropPageProps) {
   const [loading, setLoading] = useState(true);
   const [editingCrop, setEditingCrop] = useState(false);
   const [showAddDataForm, setShowAddDataForm] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newData, setNewData] = useState({
     title: '',
     description: '',
@@ -80,22 +84,50 @@ export function CropPage({ cropType }: CropPageProps) {
 
   const handleAddCropData = async () => {
     if (!crop) return;
+
+    if (!newData.title.trim()) {
+      alert('Please enter a document title');
+      return;
+    }
+
+    if (!selectedFile && !newData.file_url.trim()) {
+      alert('Please upload a file or enter a file URL');
+      return;
+    }
+
+    setUploading(true);
     try {
+      let fileUrl = newData.file_url.trim();
+      let fileType = newData.file_type;
+
+      if (selectedFile) {
+        const uploaded = await uploadPortalFile(selectedFile, `crops/${cropType}`);
+        fileUrl = uploaded.publicUrl;
+        fileType = uploaded.fileType;
+      }
+
       const { error } = await supabase
         .from('crop_data')
         .insert([{
-          ...newData,
+          title: newData.title.trim(),
+          description: newData.description.trim(),
+          file_url: fileUrl,
+          file_type: fileType,
           crop_id: crop.id,
           created_by: 'admin',
         }]);
 
       if (error) throw error;
       setShowAddDataForm(false);
+      setSelectedFile(null);
       setNewData({ title: '', description: '', file_url: '', file_type: 'document' });
       fetchCropData();
     } catch (error) {
       console.error('Error adding crop data:', error);
-      alert('Failed to add data');
+      const message = error instanceof Error ? error.message : 'Failed to add document';
+      alert(message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -262,7 +294,7 @@ export function CropPage({ cropType }: CropPageProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">File URL</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">File URL (optional)</label>
                   <input
                     type="url"
                     value={newData.file_url}
@@ -272,31 +304,37 @@ export function CropPage({ cropType }: CropPageProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">File Type</label>
-                  <select
-                    value={newData.file_type}
-                    onChange={(e) => setNewData({ ...newData, file_type: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                  >
-                    <option value="document">Document</option>
-                    <option value="pdf">PDF</option>
-                    <option value="video">Video</option>
-                    <option value="image">Image</option>
-                  </select>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">Upload file</label>
+                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center transition hover:border-emerald-400 hover:bg-emerald-50">
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                    />
+                    <Upload className="mb-2 h-6 w-6 text-emerald-700" />
+                    <p className="text-sm font-semibold text-gray-800">
+                      {selectedFile ? selectedFile.name : 'Choose PDF, Word, Excel, or image'}
+                    </p>
+                  </label>
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
                 <button
-                  onClick={() => setShowAddDataForm(false)}
+                  onClick={() => {
+                    setShowAddDataForm(false);
+                    setSelectedFile(null);
+                  }}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddCropData}
-                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                  disabled={uploading}
+                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
                 >
-                  Add
+                  {uploading ? 'Uploading...' : 'Add'}
                 </button>
               </div>
             </div>
@@ -327,14 +365,9 @@ export function CropPage({ cropType }: CropPageProps) {
                   )}
                 </div>
                 {item.file_url && (
-                  <a
-                    href={item.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 block text-center text-emerald-600 hover:underline text-sm"
-                  >
-                    View / Download
-                  </a>
+                  <div className="mt-3 flex justify-end border-t border-gray-200 pt-3">
+                    <FileActionButtons fileUrl={item.file_url} size="sm" />
+                  </div>
                 )}
               </div>
             ))}

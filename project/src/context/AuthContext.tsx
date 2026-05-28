@@ -38,13 +38,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !password) {
+      return { error: new Error('Email and password are required') };
+    }
+
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
         password,
       });
-      return { error: error as Error | null };
+
+      if (error) {
+        console.error('Supabase signIn error:', error.message);
+        if (error.message === 'Email not confirmed') {
+          return { error: new Error('Email not confirmed. Please contact the administrator.') };
+        }
+        if (error.message === 'Invalid login credentials') {
+          return { error: new Error('Invalid email or password.') };
+        }
+        return { error };
+      }
+
+      const newSession = data.session ?? null;
+      const newUser = newSession?.user ?? null;
+      setSession(newSession);
+      setUser(newUser);
+      setIsAdminUser(isAdmin(newUser?.email));
+
+      return { error: null };
     } catch (error) {
+      console.error('Auth signIn exception:', error);
       return { error: error as Error };
     }
   };

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CalendarDays,
-  Download,
   FileText,
   FileUp,
   Plus,
@@ -10,6 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { FileActionButtons } from '../components/ui/FileActionButtons';
 import { useAuth } from '../context/AuthContext';
 import { FarmMechanizationDocument } from '../types/database';
 
@@ -74,7 +74,7 @@ export function FarmMechanization() {
 
       const { error: uploadError } = await supabase.storage
         .from('uploads')
-        .upload(filePath, file);
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
@@ -203,16 +203,7 @@ export function FarmMechanization() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <a
-                      href={document.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download
-                      className="rounded-lg bg-emerald-50 p-2 text-emerald-700 hover:bg-emerald-100"
-                      aria-label="Download document"
-                    >
-                      <Download className="h-5 w-5" />
-                    </a>
+                    <FileActionButtons fileUrl={document.file_url} />
                     {isAdminUser && (
                       <button
                         onClick={() => deleteDocument(document.id)}

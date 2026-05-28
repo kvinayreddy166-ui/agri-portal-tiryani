@@ -14,6 +14,7 @@ import { Analytics } from './pages/Analytics';
 import { Settings } from './pages/Settings';
 import { QualityControl } from './pages/QualityControl';
 import { FarmMechanization } from './pages/FarmMechanization';
+import { GosCirculars } from './pages/GosCirculars';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -21,8 +22,9 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#eef6f0]">
+        <img src="/images/agri-emblem.png" alt="" className="h-16 w-16 rounded-2xl bg-white p-1 shadow-lg" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
       </div>
     );
   }
@@ -53,6 +55,8 @@ function AppContent() {
         return <CropPage cropType="oilseeds" />;
       case 'forms':
         return <FormsDownloads />;
+      case 'gos-circulars':
+        return <GosCirculars />;
       case 'quality-seeds':
         return <QualityControl category="seeds" />;
       case 'quality-pesticides':

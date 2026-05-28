@@ -4,10 +4,21 @@
 
 body {
   font-family: Inter, "Noto Sans Telugu", "Nirmala UI", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #111827;
-  background: #f6faf7;
+  color: #0f172a;
+  background: #eef6f0;
   font-synthesis-weight: none;
   text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .portal-card {
+    @apply rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/50;
+  }
+
+  .portal-section-title {
+    @apply text-2xl font-black tracking-tight text-slate-950;
+  }
 }
 
 /* Custom scrollbar */

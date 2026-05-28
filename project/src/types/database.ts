@@ -81,6 +81,18 @@ export interface ExcelUpload {
   created_by: string;
 }
 
+export interface GosCircular {
+  id: string;
+  title: string;
+  description: string;
+  file_url: string;
+  file_name: string;
+  file_type: string;
+  issued_date: string | null;
+  created_at: string;
+  created_by: string;
+}
+
 export interface QualityControlSample {
   id: string;
   category: string;

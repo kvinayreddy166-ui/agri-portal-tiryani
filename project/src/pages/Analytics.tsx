@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Users, Leaf, Package, PieChart, BarChart3 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { fetchAggregatedFertilizerStock } from '../lib/fertilizerStock';
 import { Crop, FertilizerStock, Dealer } from '../types/database';
 
 export function Analytics() {
@@ -15,14 +16,14 @@ export function Analytics() {
 
   const fetchAnalyticsData = async () => {
     try {
-      const [cropsRes, fertilizersRes, dealersRes] = await Promise.all([
+      const [cropsRes, dealersRes, aggregatedFertilizers] = await Promise.all([
         supabase.from('crops').select('*'),
-        supabase.from('fertilizer_stock').select('*'),
         supabase.from('dealers').select('*'),
+        fetchAggregatedFertilizerStock(),
       ]);
 
       if (cropsRes.data) setCrops(cropsRes.data);
-      if (fertilizersRes.data) setFertilizers(fertilizersRes.data);
+      setFertilizers(aggregatedFertilizers);
       if (dealersRes.data) setDealers(dealersRes.data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
