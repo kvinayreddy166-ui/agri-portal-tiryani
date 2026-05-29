@@ -58,6 +58,10 @@ export function CropDiagnosis() {
   };
 
   const handleFileUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a crop photo.');
+      return;
+    }
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
     const img = new Image();
@@ -150,9 +154,11 @@ export function CropDiagnosis() {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              capture="environment"
               className="hidden"
-              onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
+              onChange={(e) => {
+                if (e.target.files?.[0]) handleFileUpload(e.target.files[0]);
+                e.target.value = '';
+              }}
             />
             {previewUrl && (
               <button

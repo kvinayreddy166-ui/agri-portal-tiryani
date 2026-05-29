@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/ui/PageHeader';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { getFileTypeIcon, getFileTypeLabel, inferFileTypeFromName } from '../lib/fileTypes';
+import { getFileTypeIcon, getFileTypeLabel, getFileTypeTone, inferFileTypeFromName } from '../lib/fileTypes';
 
 interface UnifiedFile {
   id: string;
@@ -219,27 +219,27 @@ export function FileDirectory() {
         </select>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[20rem_1fr]">
-        <aside className="space-y-3">
+      <div className="grid gap-5 lg:grid-cols-[17rem_1fr]">
+        <aside className="space-y-2">
           {folderCards.map((folder) => (
-            <div key={folder.name} className="portal-card p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="rounded-xl bg-emerald-50 p-2 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
-                    <FolderOpen className="h-5 w-5" />
+            <div key={folder.name} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="rounded-md bg-slate-100 p-1.5 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                    <FolderOpen className="h-4 w-4" />
                   </div>
-                  <p className="truncate font-black text-slate-900 dark:text-white">{folder.name}</p>
+                  <p className="truncate text-sm font-bold text-slate-900 dark:text-white">{folder.name}</p>
                 </div>
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                   {folder.total}
                 </span>
               </div>
               {Object.keys(folder.subfolders).length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-wrap gap-1.5">
                   {Object.entries(folder.subfolders).map(([name, count]) => (
                     <span
                       key={name}
-                      className="rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300"
+                      className="rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                     >
                       {name}: {count}
                     </span>
@@ -259,14 +259,15 @@ export function FileDirectory() {
           ) : (
             filtered.map((file) => {
               const Icon = getFileTypeIcon(file.fileType);
+              const tone = getFileTypeTone(file.fileType);
               return (
                 <div
                   key={file.id}
-                  className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                 >
-                  <div className="flex min-w-0 flex-1 items-center gap-4">
-                    <div className="rounded-xl bg-emerald-50 p-3 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
-                      <Icon className="h-6 w-6" />
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className={`rounded-lg border p-2 ${tone.bg} ${tone.text} ${tone.ring}`}>
+                      <Icon className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">
                       <p className="truncate font-bold text-slate-900 dark:text-white">{file.title}</p>

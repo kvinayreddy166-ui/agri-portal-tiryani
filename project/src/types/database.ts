@@ -63,6 +63,16 @@ export interface Scheme {
   updated_at: string;
 }
 
+export interface SchemeBeneficiary {
+  id: string;
+  scheme_id: string;
+  financial_year: string;
+  beneficiaries_count: number;
+  notes: string;
+  created_at: string;
+  created_by: string;
+}
+
 export interface FormDownload {
   id: string;
   title: string;

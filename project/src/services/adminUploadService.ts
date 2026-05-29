@@ -16,7 +16,7 @@ export const adminUploadService = {
    */
   uploadFile: async (
     file: File,
-    adminEmail: string | undefined,
+    _adminEmail: string | undefined,
     uploadType: 'data' | 'report' = 'data'
   ): Promise<AdminUploadResult> => {
     // Verify admin access
@@ -57,7 +57,7 @@ export const adminUploadService = {
       const filePath = `office-files/${uploadType}/${fileName}`;
 
       // Upload to storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('uploads')
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -119,7 +119,7 @@ export const adminUploadService = {
   /**
    * Delete file (admin only)
    */
-  deleteFile: async (fileId: string, adminEmail: string | undefined): Promise<AdminUploadResult> => {
+  deleteFile: async (fileId: string, _adminEmail: string | undefined): Promise<AdminUploadResult> => {
     const isAdminRes = await supabase.auth.getSession();
     const userEmail = isAdminRes.data.session?.user?.email;
 

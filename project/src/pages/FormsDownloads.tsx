@@ -192,30 +192,30 @@ export function FormsDownloads() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {folders.map((folder) => (
           <button
             key={folder.id}
             type="button"
             onClick={() => setSelectedFolder(folder.id)}
-            className={`rounded-2xl border p-5 text-left transition ${
+            className={`rounded-lg border p-3 text-left transition ${
               selectedFolder === folder.id
-                ? 'border-emerald-300 bg-emerald-700 text-white shadow-lg shadow-emerald-900/10'
+                ? 'border-emerald-300 bg-emerald-700 text-white shadow-md shadow-emerald-900/10'
                 : 'border-gray-100 bg-white text-gray-900 shadow-sm hover:border-emerald-200'
             }`}
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className={`rounded-xl p-3 ${selectedFolder === folder.id ? 'bg-white/15' : 'bg-emerald-50'}`}>
-                <Folder className={`h-6 w-6 ${selectedFolder === folder.id ? 'text-white' : 'text-emerald-700'}`} />
+            <div className="flex items-center justify-between gap-2">
+              <div className={`rounded-md p-2 ${selectedFolder === folder.id ? 'bg-white/15' : 'bg-slate-100'}`}>
+                <Folder className={`h-4 w-4 ${selectedFolder === folder.id ? 'text-white' : 'text-slate-600'}`} />
               </div>
-              <span className={`rounded-full px-3 py-1 text-sm font-bold ${
+              <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${
                 selectedFolder === folder.id ? 'bg-white/15 text-white' : 'bg-gray-100 text-gray-700'
               }`}>
                 {folderCounts[folder.id] || 0}
               </span>
             </div>
-            <h2 className="mt-4 text-xl font-black">{t(folder.label, folder.telugu)}</h2>
-            <p className={`mt-1 text-sm ${selectedFolder === folder.id ? 'text-emerald-50' : 'text-gray-500'}`}>
+            <h2 className="mt-2 truncate text-base font-black">{t(folder.label, folder.telugu)}</h2>
+            <p className={`mt-0.5 text-xs ${selectedFolder === folder.id ? 'text-emerald-50' : 'text-gray-500'}`}>
               {t('Folder', 'ఫోల్డర్')}
             </p>
           </button>

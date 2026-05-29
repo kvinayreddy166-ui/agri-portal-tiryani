@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/images/agri-emblem.svg" />
+    <link rel="apple-touch-icon" href="/images/agri-emblem-192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#047857" />
     <title>Tiryani Agriculture Portal</title>
     <meta name="description" content="Tiryani Agriculture Portal - Information Management System for fertilizer, dealer, and crop management in Tiryani Mandal." />
     <meta property="og:image" content="https://bolt.new/static/og_default.png" />
@@ -12,8 +15,9 @@
   </head>
   <body>
     <div id="root">
-      <div style="display:flex;min-height:100vh;align-items:center;justify-content:center;font-family:system-ui,sans-serif;color:#0f172a;background:#eef6f0">
-        Loading Tiryani Agriculture Portal…
+      <div style="display:flex;min-height:100vh;flex-direction:column;gap:16px;align-items:center;justify-content:center;font-family:system-ui,sans-serif;color:#0f172a;background:#eef6f0">
+        <img src="/images/agri-emblem-192.png" alt="Tiryani Agriculture Portal" style="height:96px;width:96px;border-radius:24px;background:white;padding:6px;box-shadow:0 18px 40px rgba(15,23,42,.16)" />
+        <div style="font-size:14px;font-weight:700">Loading Tiryani Agriculture Portal...</div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

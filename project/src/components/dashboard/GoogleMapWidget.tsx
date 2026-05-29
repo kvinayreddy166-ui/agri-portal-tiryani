@@ -3,7 +3,8 @@ import { MapPin, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 /** Tiryani Mandal, Kumram Bheem Asifabad */
-const TIRYANI_CENTER = { lat: 19.4167, lng: 79.3333 };
+const TIRYANI_CENTER = { lat: 19.17631, lng: 79.27137 };
+const TIRYANI_QUERY = 'Tiryani Mandal, Kumuram Bheem Asifabad, Telangana, India';
 
 declare global {
   interface Window {
@@ -33,7 +34,7 @@ export function GoogleMapWidget() {
       if (!window.google?.maps || !mapRef.current) return;
       const map = new window.google.maps.Map(mapRef.current, {
         center: TIRYANI_CENTER,
-        zoom: 14,
+        zoom: 16,
         mapTypeId: 'hybrid',
         tilt: 67,
         heading: 25,
@@ -86,7 +87,7 @@ export function GoogleMapWidget() {
   }, [loadError, apiKey]);
 
   if (!apiKey || loadError) {
-    const embedUrl = `https://maps.google.com/maps?q=${TIRYANI_CENTER.lat},${TIRYANI_CENTER.lng}&z=15&t=k&output=embed`;
+    const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(TIRYANI_QUERY)}&ll=${TIRYANI_CENTER.lat},${TIRYANI_CENTER.lng}&z=16&t=k&output=embed`;
     return (
       <div className="portal-card overflow-hidden">
         <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3 dark:border-slate-700">

@@ -1,0 +1,36 @@
+{
+  "name": "Tiryani Agriculture Portal",
+  "short_name": "Tiryani Agri",
+  "description": "Information Management System for Tiryani Agriculture Office.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#eef6f0",
+  "theme_color": "#047857",
+  "icons": [
+    {
+      "src": "/images/agri-emblem.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/agri-emblem.png",
+      "sizes": "225x225",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/agri-emblem-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/agri-emblem-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

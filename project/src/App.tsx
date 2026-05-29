@@ -36,12 +36,18 @@ function AppContent() {
   const { user, loading, isAdminUser } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
 
+  const navigateToPage = (page: string) => {
+    setCurrentPage(page);
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-700 text-2xl font-black text-white shadow-lg">
-          TA
-        </div>
+        <img
+          src="/images/agri-emblem-192.png"
+          alt="Tiryani Agriculture Portal"
+          className="h-24 w-24 rounded-3xl bg-white p-1.5 shadow-xl"
+        />
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
         <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading portal…</p>
       </div>
@@ -89,13 +95,13 @@ function AppContent() {
       case 'farm-mechanization':
         return <FarmMechanization />;
       case 'excel':
-        return <ExcelUploads />;
+        return isAdminUser ? <ExcelUploads /> : <Dashboard />;
       case 'file-directory':
         return isAdminUser ? <FileDirectory /> : <Dashboard />;
       case 'subsidy-nfsm':
-        return <SubsidyTracking program="nfsm" onProgramChange={(program) => setCurrentPage(program === 'nfsm' ? 'subsidy-nfsm' : 'subsidy-state-seed')} />;
+        return <SubsidyTracking program="nfsm" onProgramChange={(program) => navigateToPage(program === 'nfsm' ? 'subsidy-nfsm' : 'subsidy-state-seed')} />;
       case 'subsidy-state-seed':
-        return <SubsidyTracking program="state_seed_cell" onProgramChange={(program) => setCurrentPage(program === 'nfsm' ? 'subsidy-nfsm' : 'subsidy-state-seed')} />;
+        return <SubsidyTracking program="state_seed_cell" onProgramChange={(program) => navigateToPage(program === 'nfsm' ? 'subsidy-nfsm' : 'subsidy-state-seed')} />;
       case 'crop-diagnosis':
         return (
           <Suspense fallback={<PageLoader />}>
@@ -112,7 +118,7 @@ function AppContent() {
   };
 
   return (
-    <Layout currentPage={currentPage} onNavigate={setCurrentPage}>
+    <Layout currentPage={currentPage} onNavigate={navigateToPage}>
       {renderPage()}
     </Layout>
   );

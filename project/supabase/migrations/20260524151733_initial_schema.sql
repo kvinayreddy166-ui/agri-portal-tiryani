@@ -324,7 +324,7 @@ ON CONFLICT DO NOTHING;
 -- Insert initial schemes
 INSERT INTO schemes (scheme_name, description, beneficiary_details, eligibility, benefits) VALUES
   ('Rythu Bharosa', 'Financial support scheme for farmers', 'Small and marginal farmers', 'Landholding farmers with valid documents', 'Rs. 10,000 per acre per year'),
-  ('Rythu Bhima', 'Life insurance scheme for farmers', 'All registered farmers', 'Age between 18-70 years', 'Rs. 5 lakh coverage'),
+  ('Rythu Bhima', 'Life insurance scheme for farmers', 'All registered farmers', 'Age between 18-59 years', 'Rs. 5 lakh coverage'),
   ('Crop Booking System', 'Online system for crop registration', 'All farmers', 'Valid land documents required', 'Access to MSP and procurement'),
   ('PM Kisan', 'Central government farmer support scheme', 'All farmer families', 'Landholding farmers', 'Rs. 6000 per year in 3 installments')
 ON CONFLICT DO NOTHING;

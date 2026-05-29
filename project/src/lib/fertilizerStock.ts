@@ -14,7 +14,7 @@ export function aggregateFertilizerStock(
 
   const now = new Date().toISOString();
 
-  return FERTILIZER_TYPES.map((fertilizer_type, index) => ({
+  return FERTILIZER_TYPES.map((fertilizer_type) => ({
     id: `aggregate-${fertilizer_type}`,
     fertilizer_type,
     quantity_available: totals[fertilizer_type],

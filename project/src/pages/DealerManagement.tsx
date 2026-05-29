@@ -313,7 +313,6 @@ export function DealerManagement() {
                       showIfms={showIfms}
                       activeTab={activeTab}
                       isAdminUser={isAdminUser}
-                      validityLabel={validityLabel}
                       onEdit={() => setEditingId(dealer.id)}
                       onDelete={() => handleDelete(dealer.id)}
                     />
@@ -444,7 +443,6 @@ function DisplayRow({
   showIfms,
   activeTab,
   isAdminUser,
-  validityLabel,
   onEdit,
   onDelete,
 }: {
@@ -452,7 +450,6 @@ function DisplayRow({
   showIfms: boolean;
   activeTab: DealerCategory;
   isAdminUser: boolean;
-  validityLabel: string;
   onEdit: () => void;
   onDelete: () => void;
 }) {

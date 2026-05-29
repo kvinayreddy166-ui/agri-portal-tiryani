@@ -319,6 +319,17 @@ export function Login() {
           </div>
         </section>
       </div>
+      <button
+        type="button"
+        onClick={() => {
+          setActiveTab('grievance');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-black text-white shadow-xl shadow-emerald-950/20 transition hover:bg-emerald-800"
+      >
+        <MessageSquareText className="h-5 w-5" />
+        {t('Grievances', 'ఫిర్యాదులు')}
+      </button>
     </div>
   );
 }

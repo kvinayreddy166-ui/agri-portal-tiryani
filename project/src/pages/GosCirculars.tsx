@@ -13,6 +13,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { uploadPortalFile } from '../lib/uploadFile';
 import { GosCircular } from '../types/database';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
+import { FileTypeBadge } from '../components/ui/FileTypeBadge';
 
 const emptyForm = {
   title: '',
@@ -249,7 +250,7 @@ export function GosCirculars() {
                 className="group rounded-2xl border border-gray-100 bg-gray-50 p-5 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
               >
                 <div className="mb-4 flex items-start justify-between gap-3">
-                  <div className="rounded-xl bg-emerald-100 p-3 text-emerald-700">
+                  <div className="rounded-xl bg-slate-100 p-3 text-slate-700">
                     <ScrollText className="h-6 w-6" />
                   </div>
                   {isAdminUser && (
@@ -267,9 +268,7 @@ export function GosCirculars() {
                   <p className="mt-2 line-clamp-3 text-sm text-gray-600">{doc.description}</p>
                 )}
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
-                  <span className="rounded-full bg-white px-2 py-1 font-semibold uppercase">
-                    {doc.file_type}
-                  </span>
+                  <FileTypeBadge fileName={doc.file_name || doc.title} fileType={doc.file_type} />
                   {doc.issued_date && (
                     <span className="rounded-full bg-white px-2 py-1">
                       {t('Issued', 'జారీ')}: {new Date(doc.issued_date).toLocaleDateString()}

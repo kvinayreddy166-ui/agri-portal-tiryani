@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { Upload, FileSpreadsheet } from 'lucide-react';
+import { Edit2, FileSpreadsheet, Save, Upload, X } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
 
@@ -14,7 +14,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 
 import { FileActionButtons } from '../components/ui/FileActionButtons';
 
-import { getContentType, getFileTypeIcon, getFileTypeLabel, inferFileTypeFromName, validateUploadFile } from '../lib/fileTypes';
+import { getContentType, getFileTypeIcon, getFileTypeLabel, getFileTypeTone, inferFileTypeFromName, validateUploadFile } from '../lib/fileTypes';
 
 import { parseExcelAndImportDealers } from '../lib/excelParser';
 
@@ -43,6 +43,8 @@ export function ExcelUploads() {
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
 
 
 
@@ -284,6 +286,30 @@ export function ExcelUploads() {
 
   };
 
+  const startRename = (upload: ExcelUpload) => {
+    setRenamingId(upload.id);
+    setRenameValue(upload.file_name);
+  };
+
+  const handleRename = async () => {
+    if (!renamingId || !renameValue.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('excel_uploads')
+        .update({ file_name: renameValue.trim() })
+        .eq('id', renamingId);
+
+      if (error) throw error;
+      setRenamingId(null);
+      setRenameValue('');
+      fetchUploads();
+    } catch (error) {
+      console.error('Error renaming upload:', error);
+      alert(error instanceof Error ? error.message : 'Failed to rename file');
+    }
+  };
+
 
 
   if (loading) {
@@ -298,6 +324,10 @@ export function ExcelUploads() {
 
     );
 
+  }
+
+  if (!isAdminUser) {
+    return null;
   }
 
 
@@ -425,17 +455,35 @@ export function ExcelUploads() {
           {uploads.map((upload) => {
             const fileType = upload.upload_type || inferFileTypeFromName(upload.file_name);
             const Icon = getFileTypeIcon(fileType);
+            const tone = getFileTypeTone(fileType);
             return (
               <div
                 key={upload.id}
-                className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50"
               >
-                <div className="flex min-w-0 flex-1 items-center gap-4">
-                  <div className="rounded-xl bg-emerald-50 p-3 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
-                    <Icon className="h-6 w-6" />
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className={`rounded-lg border p-2 ${tone.bg} ${tone.text} ${tone.ring}`}>
+                    <Icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate font-bold text-slate-900 dark:text-white">{upload.file_name}</p>
+                    {renamingId === upload.id ? (
+                      <div className="flex min-w-0 items-center gap-2">
+                        <input
+                          type="text"
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          className="min-w-0 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-bold text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        />
+                        <button type="button" onClick={handleRename} className="rounded-lg bg-emerald-700 p-1.5 text-white">
+                          <Save className="h-4 w-4" />
+                        </button>
+                        <button type="button" onClick={() => setRenamingId(null)} className="rounded-lg border border-slate-300 p-1.5 text-slate-600 dark:border-slate-600 dark:text-slate-300">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="truncate font-bold text-slate-900 dark:text-white">{upload.file_name}</p>
+                    )}
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       {getFileTypeLabel(fileType)} · {t('Uploaded by', 'అప్లోడ్')}: {upload.created_by} ·{' '}
                       {new Date(upload.created_at).toLocaleString()}
@@ -449,6 +497,16 @@ export function ExcelUploads() {
                     fileType={fileType}
                     size="sm"
                   />
+                  {isAdminUser && (
+                    <button
+                      type="button"
+                      onClick={() => startRename(upload)}
+                      className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                      title={t('Rename', 'పేరు మార్చండి')}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                  )}
                   {isAdminUser && (
                     <button
                       type="button"

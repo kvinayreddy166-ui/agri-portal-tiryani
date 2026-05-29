@@ -17,7 +17,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
   const isPdf = type === 'pdf' || /\.pdf(\?|$)/i.test(fileUrl);
   const isOfficeFile = type === 'doc' || type === 'excel';
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
-  const [loadingPreview, setLoadingPreview] = useState(canPreview && (isImage || isPdf));
+  const [loadingPreview, setLoadingPreview] = useState(canPreview && isImage);
   const [previewError, setPreviewError] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
@@ -30,7 +30,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
   }, [onClose]);
 
   useEffect(() => {
-    if (!canPreview || (!isImage && !isPdf)) return;
+    if (!canPreview || !isImage) return;
 
     let cancelled = false;
     setLoadingPreview(true);
@@ -53,7 +53,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
     return () => {
       cancelled = true;
     };
-  }, [fileUrl, canPreview, isImage, isPdf]);
+  }, [fileUrl, canPreview, isImage]);
 
   useEffect(() => {
     return () => revokeBlobUrl(previewSrc);
@@ -72,7 +72,8 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
   };
 
   const displaySrc = previewSrc || fileUrl;
-  const officeViewerSrc = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(fileUrl)}`;
+  const officeViewerSrc = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+  const googleViewerSrc = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(fileUrl)}`;
 
   const handleOpen = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -145,20 +146,60 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
             />
           )}
 
-          {!loadingPreview && canPreview && isPdf && !isImage && (
-            <iframe
-              src={displaySrc}
-              title={fileName || 'PDF preview'}
-              className="h-[75vh] w-full rounded-lg border-0 bg-white shadow-lg"
-            />
+          {!loadingPreview && isPdf && !isImage && (
+            <div className="flex h-[75vh] w-full flex-col gap-3">
+              <iframe
+                src={fileUrl}
+                title={fileName || 'PDF preview'}
+                className="min-h-0 flex-1 rounded-lg border-0 bg-white shadow-lg"
+              />
+              <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
+                <span>PDF preview opens directly in the browser.</span>
+                <a
+                  href={googleViewerSrc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-emerald-700 hover:underline"
+                >
+                  Try Google preview
+                </a>
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  className="font-bold text-sky-700 hover:underline"
+                >
+                  Download
+                </button>
+              </div>
+            </div>
           )}
 
           {!loadingPreview && isOfficeFile && (
-            <iframe
-              src={officeViewerSrc}
-              title={fileName || 'Document preview'}
-              className="h-[75vh] w-full rounded-lg border-0 bg-white shadow-lg"
-            />
+            <div className="flex h-[75vh] w-full flex-col gap-3">
+              <iframe
+                src={officeViewerSrc}
+                title={fileName || 'Document preview'}
+                className="min-h-0 flex-1 rounded-lg border-0 bg-white shadow-lg"
+              />
+              <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
+                <span>Preview uses the online Office viewer.</span>
+                <a
+                  href={googleViewerSrc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-emerald-700 hover:underline"
+                >
+                  Try Google preview
+                </a>
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  className="font-bold text-sky-700 hover:underline"
+                >
+                  Download
+                </button>
+              </div>
+            </div>
           )}
 
           {!loadingPreview && previewError && canPreview && (
@@ -178,7 +219,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
             </div>
           )}
 
-          {!loadingPreview && !canPreview && !isOfficeFile && (
+          {!loadingPreview && !canPreview && !isOfficeFile && !isPdf && (
             <div className="text-center">
               <p className="text-slate-600 dark:text-slate-400">
                 Inline preview is not available for this file type. Use Download.

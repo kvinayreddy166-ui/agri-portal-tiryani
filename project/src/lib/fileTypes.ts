@@ -55,6 +55,37 @@ export function getFileTypeLabel(fileType: string): string {
   return labels[fileType] || fileType.toUpperCase();
 }
 
+export function getFileTypeTone(fileType: string): { bg: string; text: string; ring: string } {
+  const tones: Record<string, { bg: string; text: string; ring: string }> = {
+    pdf: {
+      bg: 'bg-red-50 dark:bg-red-950/40',
+      text: 'text-red-700 dark:text-red-300',
+      ring: 'border-red-100 dark:border-red-900/70',
+    },
+    doc: {
+      bg: 'bg-sky-50 dark:bg-sky-950/40',
+      text: 'text-sky-700 dark:text-sky-300',
+      ring: 'border-sky-100 dark:border-sky-900/70',
+    },
+    excel: {
+      bg: 'bg-emerald-50 dark:bg-emerald-950/40',
+      text: 'text-emerald-700 dark:text-emerald-300',
+      ring: 'border-emerald-100 dark:border-emerald-900/70',
+    },
+    image: {
+      bg: 'bg-violet-50 dark:bg-violet-950/40',
+      text: 'text-violet-700 dark:text-violet-300',
+      ring: 'border-violet-100 dark:border-violet-900/70',
+    },
+    file: {
+      bg: 'bg-slate-100 dark:bg-slate-800',
+      text: 'text-slate-700 dark:text-slate-300',
+      ring: 'border-slate-200 dark:border-slate-700',
+    },
+  };
+  return tones[fileType] || tones.file;
+}
+
 const ALLOWED_IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const ALLOWED_UPLOAD_EXT = [
   ...ALLOWED_IMAGE_EXT,

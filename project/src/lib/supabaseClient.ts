@@ -55,7 +55,7 @@ export const checkSupabaseHealth = async (): Promise<{
   message: string;
 }> => {
   try {
-    const { data, error } = await supabase.auth.getSession();
+    const { error } = await supabase.auth.getSession();
     if (error) {
       return { status: 'error', message: `Auth error: ${error.message}` };
     }

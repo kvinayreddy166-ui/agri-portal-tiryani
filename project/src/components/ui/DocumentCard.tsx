@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { FileActionButtons } from './FileActionButtons';
 import { FilePreviewModal } from './FilePreviewModal';
-import { getFileTypeIcon, getFileTypeLabel } from '../../lib/fileTypes';
+import { getFileTypeIcon, getFileTypeLabel, getFileTypeTone } from '../../lib/fileTypes';
 
 interface DocumentCardProps {
   title: string;
@@ -25,6 +25,7 @@ export function DocumentCard({
 }: DocumentCardProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const Icon = getFileTypeIcon(fileType || 'file');
+  const tone = getFileTypeTone(fileType || 'file');
   const isImage = fileType === 'image';
 
   return (
@@ -39,14 +40,15 @@ export function DocumentCard({
           <img src={fileUrl} alt="" className="h-36 w-full object-cover" />
         </button>
       ) : (
-        <div className="flex h-28 items-center justify-center bg-gradient-to-br from-emerald-100 to-teal-50 dark:from-emerald-950/50 dark:to-slate-900">
-          <Icon className="h-12 w-12 text-emerald-700 dark:text-emerald-400" />
+        <div className={`flex h-24 items-center justify-center border-b ${tone.bg} ${tone.ring}`}>
+          <Icon className={`h-11 w-11 ${tone.text}`} />
         </div>
       )}
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-2 flex items-start justify-between gap-3">
           {fileType && (
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${tone.bg} ${tone.text} ${tone.ring}`}>
+              <Icon className="h-3.5 w-3.5" />
               {getFileTypeLabel(fileType)}
             </span>
           )}

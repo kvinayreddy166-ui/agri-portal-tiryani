@@ -13,7 +13,7 @@ export interface ParsedDealerRow {
 }
 
 function normalizeHeader(h: string): string {
-  return h.trim().toLowerCase().replace(/\s+/g, '_');
+  return h.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 }
 
 function parseDate(value: unknown): string {
@@ -21,6 +21,11 @@ function parseDate(value: unknown): string {
   if (value instanceof Date) return value.toISOString().slice(0, 10);
   const str = String(value).trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  const dayFirst = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (dayFirst) {
+    const [, day, month, year] = dayFirst;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
   const excelDate = Number(value);
   if (!Number.isNaN(excelDate) && excelDate > 30000) {
     const date = new Date((excelDate - 25569) * 86400 * 1000);
@@ -46,14 +51,38 @@ function rowToDealer(
 
   return {
     dealer_name: String(name).trim(),
-    ifms_id: category === 'fertilizer' ? String(row.ifms_id || row.ifms || '').trim() : '',
+    ifms_id: category === 'fertilizer' ? String(row.ifms_id || row.ifms || row.ifmsid || '').trim() : '',
     phone_number: String(row.phone_number || row.phone || row.mobile || '').trim() || 'N/A',
     license_number: String(row.license_number || row.license || '').trim() || 'N/A',
-    issue_date: parseDate(row.issue_date || row.issued),
+    issue_date: parseDate(row.issue_date || row.license_issue_date || row.issued),
     expiry_date: expiry,
     location: String(row.location || row.address || row.village || '').trim() || 'Tiryani',
     dealer_category: category,
   };
+}
+
+function rowsFromFirstHeaderSheet(sheet: XLSX.WorkSheet): Record<string, unknown>[] {
+  const grid = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+    header: 1,
+    defval: '',
+    raw: true,
+  });
+  const headerIndex = grid.findIndex((row) =>
+    row.some((cell) => normalizeHeader(String(cell)).includes('dealer'))
+  );
+
+  if (headerIndex === -1) {
+    return XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
+  }
+
+  const headers = grid[headerIndex].map((cell) => normalizeHeader(String(cell)));
+  return grid.slice(headerIndex + 1).map((row) => {
+    const record: Record<string, unknown> = {};
+    headers.forEach((header, index) => {
+      if (header) record[header] = row[index] ?? '';
+    });
+    return record;
+  });
 }
 
 export async function parseExcelAndImportDealers(
@@ -63,7 +92,7 @@ export async function parseExcelAndImportDealers(
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
+  const raw = rowsFromFirstHeaderSheet(sheet);
 
   const dealers: ParsedDealerRow[] = [];
   const errors: string[] = [];
@@ -81,13 +110,29 @@ export async function parseExcelAndImportDealers(
     return { imported: 0, errors: ['No valid dealer rows found in the spreadsheet.'] };
   }
 
-  const { error } = await supabase.from('dealers').insert(dealers);
+  const { data: existing } = await supabase
+    .from('dealers')
+    .select('license_number, ifms_id')
+    .eq('dealer_category', category);
+
+  const existingKeys = new Set(
+    (existing || []).flatMap((dealer) => [dealer.license_number, dealer.ifms_id].filter(Boolean))
+  );
+  const newDealers = dealers.filter(
+    (dealer) => !existingKeys.has(dealer.license_number) && (!dealer.ifms_id || !existingKeys.has(dealer.ifms_id))
+  );
+
+  if (newDealers.length === 0) {
+    return { imported: 0, errors: ['All dealer rows already exist.'] };
+  }
+
+  const { error } = await supabase.from('dealers').insert(newDealers);
   if (error) {
     errors.push(error.message);
     return { imported: 0, errors };
   }
 
-  return { imported: dealers.length, errors };
+  return { imported: newDealers.length, errors };
 }
 
 export function readExcelPreview(file: File): Promise<Record<string, unknown>[]> {

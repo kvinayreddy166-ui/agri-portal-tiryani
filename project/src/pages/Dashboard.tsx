@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck } from 'lucide-react';
+import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { fetchAggregatedFertilizerStock } from '../lib/fertilizerStock';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Crop, FertilizerStock, Scheme, MandalOverview } from '../types/database';
+import { Crop, FertilizerStock, Scheme, SchemeBeneficiary, MandalOverview } from '../types/database';
 import { GoogleMapWidget } from '../components/dashboard/GoogleMapWidget';
 import { WeatherWidget } from '../components/dashboard/WeatherWidget';
 
@@ -14,10 +14,17 @@ export function Dashboard() {
   const [crops, setCrops] = useState<Crop[]>([]);
   const [fertilizers, setFertilizers] = useState<FertilizerStock[]>([]);
   const [schemes, setSchemes] = useState<Scheme[]>([]);
+  const [schemeBeneficiaries, setSchemeBeneficiaries] = useState<SchemeBeneficiary[]>([]);
   const [mandalData, setMandalData] = useState<MandalOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingCrop, setEditingCrop] = useState<string | null>(null);
   const [editingScheme, setEditingScheme] = useState<string | null>(null);
+  const [beneficiaryForm, setBeneficiaryForm] = useState({
+    scheme_id: '',
+    financial_year: '2025-26',
+    beneficiaries_count: '',
+    notes: '',
+  });
 
   useEffect(() => {
     fetchDashboardData();
@@ -30,12 +37,17 @@ export function Dashboard() {
         supabase.from('schemes').select('*'),
         supabase.from('site_content').select('*').eq('section_name', 'mandal_overview').maybeSingle(),
       ]);
+      const beneficiariesRes = await supabase
+        .from('scheme_beneficiaries')
+        .select('*')
+        .order('financial_year', { ascending: false });
 
       const aggregatedFertilizers = await fetchAggregatedFertilizerStock();
 
       if (cropsRes.data) setCrops(cropsRes.data);
       setFertilizers(aggregatedFertilizers);
       if (schemesRes.data) setSchemes(schemesRes.data);
+      if (beneficiariesRes.data) setSchemeBeneficiaries(beneficiariesRes.data);
       if (contentRes.data) setMandalData(contentRes.data.content);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -46,6 +58,41 @@ export function Dashboard() {
 
   const totalAcreage = crops.reduce((sum, crop) => sum + crop.acreage, 0);
   const highestFertilizerStock = Math.max(...fertilizers.map((item) => item.quantity_available), 1);
+
+  const openBeneficiaryForm = (schemeId: string) => {
+    setEditingScheme(schemeId);
+    setBeneficiaryForm({
+      scheme_id: schemeId,
+      financial_year: '2025-26',
+      beneficiaries_count: '',
+      notes: '',
+    });
+  };
+
+  const saveBeneficiaryRecord = async () => {
+    if (!beneficiaryForm.scheme_id || !beneficiaryForm.financial_year.trim()) return;
+    const count = Number(beneficiaryForm.beneficiaries_count);
+    if (!Number.isFinite(count) || count < 0) {
+      alert('Please enter a valid beneficiary count');
+      return;
+    }
+
+    const { error } = await supabase.from('scheme_beneficiaries').insert([{
+      scheme_id: beneficiaryForm.scheme_id,
+      financial_year: beneficiaryForm.financial_year.trim(),
+      beneficiaries_count: count,
+      notes: beneficiaryForm.notes.trim(),
+    }]);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setEditingScheme(null);
+    setBeneficiaryForm({ scheme_id: '', financial_year: '2025-26', beneficiaries_count: '', notes: '' });
+    fetchDashboardData();
+  };
 
   if (loading) {
     return (
@@ -293,16 +340,21 @@ export function Dashboard() {
               'border-l-4 border-l-orange-500',
               'border-l-4 border-l-purple-500'
             ];
+            const eligibility =
+              scheme.scheme_name.trim().toLowerCase() === 'rythu bhima'
+                ? 'Age between 18-59 years'
+                : scheme.eligibility;
             return (
               <div key={scheme.id} className={`${schemeColors[idx % 4]} bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 hover:shadow-lg transition-all group`}>
                 <div className="flex justify-between items-start">
                   <h3 className="font-bold text-lg text-gray-900 dark:text-white">{scheme.scheme_name}</h3>
                   {isAdminUser && (
                     <button
-                      onClick={() => setEditingScheme(editingScheme === scheme.id ? null : scheme.id)}
+                      onClick={() => openBeneficiaryForm(scheme.id)}
                       className="opacity-0 group-hover:opacity-100 text-blue-600 hover:bg-blue-50 p-2 rounded transition-all"
+                      title={t('Add beneficiaries', 'లబ్ధిదారులను జోడించండి')}
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Plus className="w-4 h-4" />
                     </button>
                   )}
                 </div>
@@ -314,8 +366,65 @@ export function Dashboard() {
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="font-semibold text-emerald-600 min-w-fit">{t('Eligibility:', 'అర్హత:')}</span>
-                    <span className="text-gray-700 dark:text-slate-300">{scheme.eligibility}</span>
+                    <span className="text-gray-700 dark:text-slate-300">{eligibility}</span>
                   </div>
+                </div>
+                <div className="mt-4 rounded-lg border border-white bg-white/70 p-3 dark:border-slate-700 dark:bg-slate-800/70">
+                  <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">
+                    {t('Financial year beneficiaries', 'ఆర్థిక సంవత్సరం లబ్ధిదారులు')}
+                  </p>
+                  <div className="space-y-2">
+                    {schemeBeneficiaries.filter((row) => row.scheme_id === scheme.id).length === 0 && (
+                      <p className="text-xs text-slate-500">{t('No beneficiary records yet', 'ఇంకా లబ్ధిదారుల రికార్డులు లేవు')}</p>
+                    )}
+                    {schemeBeneficiaries
+                      .filter((row) => row.scheme_id === scheme.id)
+                      .map((row) => (
+                        <div key={row.id} className="flex items-start justify-between gap-3 rounded-md bg-slate-50 px-3 py-2 dark:bg-slate-900">
+                          <div>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">{row.financial_year}</p>
+                            {row.notes && <p className="text-xs text-slate-500">{row.notes}</p>}
+                          </div>
+                          <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-700">
+                            {row.beneficiaries_count.toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                  {isAdminUser && editingScheme === scheme.id && (
+                    <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                      <input
+                        type="text"
+                        value={beneficiaryForm.financial_year}
+                        onChange={(e) => setBeneficiaryForm({ ...beneficiaryForm, financial_year: e.target.value })}
+                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                        placeholder={t('Financial year', 'ఆర్థిక సంవత్సరం')}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        value={beneficiaryForm.beneficiaries_count}
+                        onChange={(e) => setBeneficiaryForm({ ...beneficiaryForm, beneficiaries_count: e.target.value })}
+                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                        placeholder={t('Beneficiaries', 'లబ్ధిదారులు')}
+                      />
+                      <div className="flex gap-1">
+                        <button type="button" onClick={saveBeneficiaryRecord} className="rounded-lg bg-emerald-700 p-2 text-white">
+                          <Save className="h-4 w-4" />
+                        </button>
+                        <button type="button" onClick={() => setEditingScheme(null)} className="rounded-lg border border-slate-300 p-2 text-slate-600">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={beneficiaryForm.notes}
+                        onChange={(e) => setBeneficiaryForm({ ...beneficiaryForm, notes: e.target.value })}
+                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-3 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                        placeholder={t('Notes / village / category', 'గమనికలు / గ్రామం / వర్గం')}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             );
