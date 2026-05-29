@@ -20,21 +20,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdminUser, setIsAdminUser] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let mounted = true;
+
+    const finishLoading = (session: Session | null) => {
+      if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       setIsAdminUser(isAdmin(session?.user?.email));
       setLoading(false);
-    });
+    };
+
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => finishLoading(session))
+      .catch((err) => {
+        console.error('Auth session error:', err);
+        finishLoading(null);
+      });
+
+    const timeout = window.setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 8000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsAdminUser(isAdmin(session?.user?.email));
-      setLoading(false);
+      finishLoading(session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      window.clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {

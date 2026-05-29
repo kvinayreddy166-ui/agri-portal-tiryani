@@ -63,7 +63,7 @@ export function Login() {
 
           <div className="relative">
             <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur-md">
-              <img src="/images/agri-emblem.png" alt="" className="h-9 w-9 rounded-full bg-white p-0.5" />
+              <img src="/images/agri-emblem.svg" alt="" className="h-9 w-9 rounded-full bg-white p-0.5" />
               {t('Department of Agriculture', 'వ్యవసాయ శాఖ')}
             </div>
             <h1 className="max-w-lg text-4xl font-black leading-[1.1] tracking-tight xl:text-5xl">
@@ -110,7 +110,7 @@ export function Login() {
             <div className="mb-8 flex items-start justify-between gap-4">
               <div>
                 <img
-                  src="/images/agri-emblem.png"
+                  src="/images/agri-emblem.svg"
                   alt="Agriculture emblem"
                   className="mb-4 h-20 w-20 rounded-2xl border border-emerald-100 bg-white p-1.5 shadow-lg"
                 />

@@ -2,9 +2,11 @@ import React, { useState, ReactNode } from 'react';
 import {
   Menu, X, LayoutDashboard, Package, Users, Leaf, FileDown,
   Upload, BarChart3, Settings, LogOut, ChevronDown, TrendingUp, Globe2, ShieldCheck, Tractor, ScrollText,
+  FolderOpen, Moon, Sun, Landmark, Camera,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 
 interface LayoutProps {
   children: ReactNode;
@@ -30,6 +32,17 @@ const menuItems = [
     ],
   },
   { id: 'forms', label: 'Forms & Downloads', icon: FileDown },
+  { id: 'file-directory', label: 'File Directory', icon: FolderOpen },
+  {
+    id: 'subsidy',
+    label: 'Subsidy Cell',
+    icon: Landmark,
+    submenu: [
+      { id: 'nfsm', label: 'NFSM' },
+      { id: 'state-seed', label: 'State Seed Cell' },
+    ],
+  },
+  { id: 'crop-diagnosis', label: 'Crop Disease AI', icon: Camera },
   { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText },
   {
     id: 'quality',
@@ -52,6 +65,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const { user, signOut, isAdminUser } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
+  const { isDark, toggleTheme } = useTheme();
 
   const handleNavigation = (page: string) => {
     onNavigate(page);
@@ -61,7 +75,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const visibleMenuItems = menuItems.filter((item) => !item.adminOnly || isAdminUser);
 
   return (
-    <div className="min-h-screen bg-[#eef6f0]">
+    <div className="min-h-screen bg-[#eef6f0] dark:bg-slate-950">
       <header className="sticky top-0 z-50 border-b border-emerald-800/20 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-700 text-white shadow-lg">
         <div className="flex items-center justify-between px-4 py-3 lg:px-6">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -76,7 +90,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             </button>
             <div className="flex items-center gap-3">
               <div className="rounded-xl bg-white p-1 shadow-md">
-                <img src="/images/agri-emblem.png" alt="" className="h-9 w-9 rounded-lg" />
+                <img src="/images/agri-emblem.svg" alt="" className="h-9 w-9 rounded-lg" />
               </div>
               <div className="min-w-0">
                 <h1 className="truncate text-sm font-black tracking-tight sm:text-base">
@@ -90,6 +104,15 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
+              aria-label={isDark ? 'Light mode' : 'Dark mode'}
+              title={isDark ? t('Light mode', 'లైట్ మోడ్') : t('Dark mode', 'డార్క్ మోడ్')}
+            >
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             <button
               type="button"
               onClick={toggleLanguage}
@@ -226,6 +249,11 @@ function translateMenu(label: string) {
     'Quality Control': 'నాణ్యత నియంత్రణ',
     'Farm Mechanization': 'వ్యవసాయ యాంత్రీకరణ',
     'Office Files': 'కార్యాలయ ఫైళ్లు',
+    'File Directory': 'ఫైల్ డైరెక్టరీ',
+    'Subsidy Cell': 'సబ్సిడీ సెల్',
+    NFSM: 'ఎన్.ఎఫ్.ఎస్.ఎం',
+    'State Seed Cell': 'రాష్ట్ర విత్తన కార్యాలయం',
+    'Crop Disease AI': 'పంట వ్యాధి ఏఐ',
     Seeds: 'విత్తనాలు',
     Pesticides: 'పురుగుమందులు',
     Fertilizers: 'ఎరువులు',
@@ -243,5 +271,9 @@ function translateMenu(label: string) {
 function getSubmenuPageId(menuId: string, subitemId: string) {
   if (menuId === 'crops') return `crop-${subitemId}`;
   if (menuId === 'quality') return `quality-${subitemId}`;
+  if (menuId === 'subsidy') {
+    if (subitemId === 'nfsm') return 'subsidy-nfsm';
+    if (subitemId === 'state-seed') return 'subsidy-state-seed';
+  }
   return `${menuId}-${subitemId}`;
 }

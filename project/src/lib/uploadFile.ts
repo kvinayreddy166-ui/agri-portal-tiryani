@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { getContentType, inferFileTypeFromName, validateUploadFile } from './fileTypes';
 
 export function getPublicStorageUrl(filePath: string) {
   const { data } = supabase.storage.from('uploads').getPublicUrl(filePath);
@@ -6,18 +7,23 @@ export function getPublicStorageUrl(filePath: string) {
 }
 
 export function inferFileType(file: File) {
-  if (file.type.startsWith('image/')) return 'image';
-  const extension = file.name.split('.').pop()?.toLowerCase() || 'file';
-  return extension;
+  return inferFileTypeFromName(file.name, file.type);
 }
 
 export async function uploadPortalFile(file: File, folder: string) {
+  const validationError = validateUploadFile(file);
+  if (validationError) throw new Error(validationError);
+
   const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const filePath = `${folder}/${Date.now()}_${cleanName}`;
+  const contentType = getContentType(file);
 
   const { error: uploadError } = await supabase.storage
     .from('uploads')
-    .upload(filePath, file, { upsert: true });
+    .upload(filePath, file, {
+      upsert: true,
+      contentType,
+    });
 
   if (uploadError) throw uploadError;
 
@@ -26,4 +32,12 @@ export async function uploadPortalFile(file: File, folder: string) {
     publicUrl: getPublicStorageUrl(filePath),
     fileType: inferFileType(file),
   };
+}
+
+export async function uploadPortalFiles(files: File[], folder: string) {
+  const results = [];
+  for (const file of files) {
+    results.push(await uploadPortalFile(file, folder));
+  }
+  return results;
 }

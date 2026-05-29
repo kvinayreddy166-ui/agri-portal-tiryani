@@ -16,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { FormDownload } from '../types/database';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
+import { getContentType } from '../lib/fileTypes';
 
 const folders = [
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
@@ -111,7 +112,10 @@ export function FormsDownloads() {
 
         const { error: uploadError } = await supabase.storage
           .from('uploads')
-          .upload(filePath, selectedFile, { upsert: true });
+          .upload(filePath, selectedFile, {
+            upsert: true,
+            contentType: getContentType(selectedFile),
+          });
 
         if (uploadError) throw uploadError;
 

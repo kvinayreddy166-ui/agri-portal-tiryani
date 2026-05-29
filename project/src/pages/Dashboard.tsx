@@ -5,6 +5,8 @@ import { fetchAggregatedFertilizerStock } from '../lib/fertilizerStock';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Crop, FertilizerStock, Scheme, MandalOverview } from '../types/database';
+import { GoogleMapWidget } from '../components/dashboard/GoogleMapWidget';
+import { WeatherWidget } from '../components/dashboard/WeatherWidget';
 
 export function Dashboard() {
   const { isAdminUser } = useAuth();
@@ -58,7 +60,7 @@ export function Dashboard() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-8 text-white shadow-lg">
         <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-[url('/images/rice.jpg')] bg-cover bg-center opacity-20 md:block" />
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
-          <img src="/images/agri-emblem.png" alt="" className="h-20 w-20 rounded-full bg-white p-1 shadow-lg" />
+          <img src="/images/agri-emblem.svg" alt="" className="h-20 w-20 rounded-full bg-white p-1 shadow-lg" />
           <div>
             <h1 className="text-4xl font-black tracking-tight">
               {t('Tiryani Agriculture Portal', 'తిర్యాని వ్యవసాయ పోర్టల్')}
@@ -79,10 +81,15 @@ export function Dashboard() {
         </div>
       </div>
 
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <GoogleMapWidget />
+        <WeatherWidget />
+      </div>
+
       {/* Mandal Overview */}
       {mandalData && (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <div className="portal-card p-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
             <MapPin className="w-7 h-7 text-emerald-600" />
             {t('Mandal Overview', 'మండల వివరాలు')}
           </h2>
@@ -121,9 +128,9 @@ export function Dashboard() {
               <div className="flex items-center gap-3">
                 <MapPin className="w-6 h-6 text-slate-700" />
                 <div>
-                  <p className="text-sm text-gray-600">{t('Geographical Area', 'భౌగోళిక విస్తీర్ణం')}</p>
-                  <p className="text-2xl font-bold text-gray-900">{mandalData.geographical_area.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500">{mandalData.area_unit}</p>
+                  <p className="text-sm text-gray-600 dark:text-slate-400">{t('Geographical Area', 'భౌగోళిక విస్తీర్ణం')}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{mandalData.geographical_area.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{mandalData.area_unit}</p>
                 </div>
               </div>
             </div>
@@ -131,9 +138,9 @@ export function Dashboard() {
               <div className="flex items-center gap-3">
                 <CloudRain className="w-6 h-6 text-cyan-700" />
                 <div>
-                  <p className="text-sm text-gray-600">{t('Normal Rainfall', 'సాధారణ వర్షపాతం')}</p>
-                  <p className="text-2xl font-bold text-gray-900">{mandalData.normal_rainfall}</p>
-                  <p className="text-xs text-gray-500">{mandalData.rainfall_unit}</p>
+                  <p className="text-sm text-gray-600 dark:text-slate-400">{t('Normal Rainfall', 'సాధారణ వర్షపాతం')}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{mandalData.normal_rainfall}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{mandalData.rainfall_unit}</p>
                 </div>
               </div>
             </div>
@@ -141,7 +148,7 @@ export function Dashboard() {
               <div className="flex items-center gap-3">
                 <Droplets className="w-6 h-6 text-stone-700" />
                 <div>
-                  <p className="text-sm text-gray-600">{t('Soil Types', 'నేల రకాలు')}</p>
+                  <p className="text-sm text-gray-600 dark:text-slate-400">{t('Soil Types', 'నేల రకాలు')}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {mandalData.soil_types.map((soil, i) => (
                       <span key={i} className="bg-white text-stone-700 px-2 py-1 rounded text-xs font-medium">
@@ -157,8 +164,8 @@ export function Dashboard() {
       )}
 
       {/* Crop Statistics */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+      <div className="portal-card p-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
           <TrendingUp className="w-7 h-7 text-emerald-600" />
           {t('Major Crops', 'ప్రధాన పంటలు')} - {t('Total', 'మొత్తం')}: {totalAcreage.toLocaleString()} {t('acres', 'ఎకరాలు')}
         </h2>
@@ -190,14 +197,14 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-lg">
+      <div className="portal-card p-6">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-2xl font-black tracking-tight text-gray-900">
+            <h2 className="flex items-center gap-2 text-2xl font-black tracking-tight text-gray-900 dark:text-white">
               <PackageCheck className="w-7 h-7 text-emerald-600" />
               {t('Fertilizer Availability', 'ఎరువుల లభ్యత')}
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
               {t(
                 'Totals from Stock Management (dealer-wise entries in MTS)',
                 'స్టాక్ నిర్వహణ నుండి మొత్తాలు (డీలర్ వారీగా MTS)'
@@ -211,7 +218,7 @@ export function Dashboard() {
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {fertilizers.length === 0 && (
-            <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-600">
+            <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-600 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-400">
               {t(
                 'No fertilizer stock entered yet. Add dealer-wise stock in Stock Management.',
                 'ఇంకా ఎరువుల స్టాక్ నమోదు కాలేదు. స్టాక్ నిర్వహణలో డీలర్ వారీగా స్టాక్ జోడించండి.'
@@ -243,10 +250,10 @@ export function Dashboard() {
               >
                 <div className="mb-5 flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                       {t('Fertilizer', 'ఎరువు')}
                     </p>
-                    <h3 className="mt-1 text-xl font-black text-gray-950">
+                    <h3 className="mt-1 text-xl font-black text-gray-950 dark:text-white">
                       {fertilizer.fertilizer_type}
                     </h3>
                   </div>
@@ -255,7 +262,7 @@ export function Dashboard() {
                   </span>
                 </div>
                 <div className="flex items-end justify-between gap-4">
-                  <p className="text-4xl font-black tracking-tight text-gray-950">
+                  <p className="text-4xl font-black tracking-tight text-gray-950 dark:text-white">
                     {fertilizer.quantity_available.toLocaleString()}
                   </p>
                   <p className="mb-1 text-sm font-bold text-emerald-700">MTS</p>
@@ -273,8 +280,8 @@ export function Dashboard() {
       </div>
 
       {/* Government Schemes */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+      <div className="portal-card p-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
           <Users className="w-7 h-7 text-emerald-600" />
           {t('Government Schemes', 'ప్రభుత్వ పథకాలు')}
         </h2>
@@ -289,7 +296,7 @@ export function Dashboard() {
             return (
               <div key={scheme.id} className={`${schemeColors[idx % 4]} bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 hover:shadow-lg transition-all group`}>
                 <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-lg text-gray-900">{scheme.scheme_name}</h3>
+                  <h3 className="font-bold text-lg text-gray-900 dark:text-white">{scheme.scheme_name}</h3>
                   {isAdminUser && (
                     <button
                       onClick={() => setEditingScheme(editingScheme === scheme.id ? null : scheme.id)}
@@ -299,15 +306,15 @@ export function Dashboard() {
                     </button>
                   )}
                 </div>
-                <p className="text-gray-600 text-sm mt-2">{scheme.description}</p>
+                <p className="text-gray-600 dark:text-slate-400 text-sm mt-2">{scheme.description}</p>
                 <div className="space-y-2 mt-3 text-sm">
                   <div className="flex items-start gap-2">
                     <span className="font-semibold text-emerald-600 min-w-fit">{t('Benefits:', 'ప్రయోజనాలు:')}</span>
-                    <span className="text-gray-700">{scheme.benefits}</span>
+                    <span className="text-gray-700 dark:text-slate-300">{scheme.benefits}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="font-semibold text-emerald-600 min-w-fit">{t('Eligibility:', 'అర్హత:')}</span>
-                    <span className="text-gray-700">{scheme.eligibility}</span>
+                    <span className="text-gray-700 dark:text-slate-300">{scheme.eligibility}</span>
                   </div>
                 </div>
               </div>

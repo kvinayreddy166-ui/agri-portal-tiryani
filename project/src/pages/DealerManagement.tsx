@@ -2,62 +2,83 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Users, Search, Save, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Dealer } from '../types/database';
+import { parseExcelAndImportDealers } from '../lib/excelParser';
+
+type DealerCategory = 'fertilizer' | 'seed' | 'pesticide';
+
+const TABS: { id: DealerCategory; label: string; telugu: string }[] = [
+  { id: 'fertilizer', label: 'Fertilizer', telugu: 'ఎరువులు' },
+  { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
+  { id: 'pesticide', label: 'Pesticides', telugu: 'పురుగుమందులు' },
+];
+
+const emptyForm = {
+  dealer_name: '',
+  ifms_id: '',
+  phone_number: '',
+  license_number: '',
+  issue_date: '',
+  expiry_date: '',
+  location: '',
+};
 
 export function DealerManagement() {
   const { isAdminUser } = useAuth();
+  const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState<DealerCategory>('fertilizer');
   const [dealers, setDealers] = useState<Dealer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [formData, setFormData] = useState({
-    dealer_name: '',
-    ifms_id: '',
-    phone_number: '',
-    license_number: '',
-    issue_date: '',
-    expiry_date: '',
-    location: '',
-  });
+  const [formData, setFormData] = useState(emptyForm);
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     fetchDealers();
-  }, []);
+  }, [activeTab]);
 
   const fetchDealers = async () => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('dealers')
         .select('*')
+        .eq('dealer_category', activeTab)
         .order('dealer_name');
 
       if (error) throw error;
       setDealers(data || []);
     } catch (error) {
       console.error('Error fetching dealers:', error);
+      const { data: fallback } = await supabase.from('dealers').select('*').order('dealer_name');
+      const filtered = (fallback || []).filter(
+        (d) => (d.dealer_category || 'fertilizer') === activeTab
+      );
+      setDealers(filtered as Dealer[]);
     } finally {
       setLoading(false);
     }
   };
 
+  const buildPayload = () => {
+    const isPesticide = activeTab === 'pesticide';
+    return {
+      ...formData,
+      dealer_category: activeTab,
+      ifms_id: activeTab === 'fertilizer' ? formData.ifms_id : '',
+      expiry_date: isPesticide ? '2099-12-31' : formData.expiry_date,
+    };
+  };
+
   const handleAdd = async () => {
     try {
-      const { error } = await supabase
-        .from('dealers')
-        .insert([formData]);
-
+      const { error } = await supabase.from('dealers').insert([buildPayload()]);
       if (error) throw error;
       setShowAddForm(false);
-      setFormData({
-        dealer_name: '',
-        ifms_id: '',
-        phone_number: '',
-        license_number: '',
-        issue_date: '',
-        expiry_date: '',
-        location: '',
-      });
+      setFormData(emptyForm);
       fetchDealers();
     } catch (error) {
       console.error('Error adding dealer:', error);
@@ -67,14 +88,15 @@ export function DealerManagement() {
 
   const handleUpdate = async (id: string) => {
     try {
-      const dealer = dealers.find(d => d.id === id);
+      const dealer = dealers.find((d) => d.id === id);
       if (!dealer) return;
-
-      const { error } = await supabase
-        .from('dealers')
-        .update(dealer)
-        .eq('id', id);
-
+      const payload = {
+        ...dealer,
+        ifms_id: activeTab === 'fertilizer' ? dealer.ifms_id : '',
+        expiry_date: activeTab === 'pesticide' ? '2099-12-31' : dealer.expiry_date,
+        dealer_category: activeTab,
+      };
+      const { error } = await supabase.from('dealers').update(payload).eq('id', id);
       if (error) throw error;
       setEditingId(null);
       fetchDealers();
@@ -86,13 +108,8 @@ export function DealerManagement() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this dealer?')) return;
-
     try {
-      const { error } = await supabase
-        .from('dealers')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await supabase.from('dealers').delete().eq('id', id);
       if (error) throw error;
       fetchDealers();
     } catch (error) {
@@ -101,285 +118,470 @@ export function DealerManagement() {
     }
   };
 
-  const updateLocalDealer = (id: string, field: string, value: string) => {
-    setDealers(prev => prev.map(dealer =>
-      dealer.id === id ? { ...dealer, [field]: value } : dealer
-    ));
+  const handleExcelImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const { imported, errors } = await parseExcelAndImportDealers(file, activeTab);
+      if (imported > 0) {
+        alert(`Imported ${imported} dealers`);
+        fetchDealers();
+      } else if (errors.length) {
+        alert(errors.join('\n'));
+      }
+    } finally {
+      setImporting(false);
+      e.target.value = '';
+    }
   };
 
-  const filteredDealers = dealers.filter(dealer =>
-    dealer.dealer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    dealer.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    dealer.license_number.toLowerCase().includes(searchTerm.toLowerCase())
+  const updateLocalDealer = (id: string, field: string, value: string) => {
+    setDealers((prev) =>
+      prev.map((dealer) => (dealer.id === id ? { ...dealer, [field]: value } : dealer))
+    );
+  };
+
+  const filteredDealers = dealers.filter(
+    (dealer) =>
+      dealer.dealer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dealer.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dealer.license_number.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const showIfms = activeTab === 'fertilizer';
+  const validityLabel =
+    activeTab === 'pesticide' ? t('Validity', 'చెల్లుబాటు') : t('Valid Until', 'చెల్లుబాటు తేదీ');
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-emerald-600" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dealer Management</h1>
-          <p className="text-gray-600">Manage registered dealers and their licenses</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('Dealer Management', 'డీలర్ నిర్వహణ')}
+          </h1>
+          <p className="text-gray-600 dark:text-slate-400">
+            {t('Fertilizer, seed, and pesticide dealers', 'ఎరువులు, విత్తనాలు, పురుగుమందుల డీలర్లు')}
+          </p>
         </div>
         {isAdminUser && (
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Add Dealer
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-emerald-300 px-4 py-2 text-sm font-bold text-emerald-800 dark:border-emerald-700 dark:text-emerald-300">
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                onChange={handleExcelImport}
+                disabled={importing}
+              />
+              {importing ? t('Importing...', 'దిగుమతి...') : t('Import Excel', 'Excel దిగుమతి')}
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
+            >
+              <Plus className="h-5 w-5" />
+              {t('Add Dealer', 'డీలర్ జోడించండి')}
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Search */}
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-700">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => {
+              setActiveTab(tab.id);
+              setEditingId(null);
+            }}
+            className={`rounded-t-lg px-5 py-2.5 text-sm font-bold transition ${
+              activeTab === tab.id
+                ? 'bg-emerald-700 text-white'
+                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+            }`}
+          >
+            {t(tab.label, tab.telugu)}
+          </button>
+        ))}
+      </div>
+
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
-          placeholder="Search dealers by name, location, or license number..."
+          placeholder={t('Search dealers...', 'డీలర్లు వెతకండి...')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+          className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-4 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
         />
       </div>
 
-      {/* Add Form Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl p-6 w-full max-w-lg my-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Add New Dealer</h2>
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Dealer Name</label>
-                <input
-                  type="text"
-                  value={formData.dealer_name}
-                  onChange={(e) => setFormData({ ...formData, dealer_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">IFMS ID</label>
-                <input
-                  type="text"
-                  value={formData.ifms_id}
-                  onChange={(e) => setFormData({ ...formData, ifms_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input
-                  type="tel"
-                  value={formData.phone_number}
-                  onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">License Number</label>
-                <input
-                  type="text"
-                  value={formData.license_number}
-                  onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
-                  <input
-                    type="date"
-                    value={formData.issue_date}
-                    onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                  <input
-                    type="date"
-                    value={formData.expiry_date}
-                    onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                <input
-                  type="text"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
+          <div className="my-8 w-full max-w-lg rounded-xl bg-white p-6 dark:bg-slate-900">
+            <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+              {t('Add New Dealer', 'కొత్త డీలర్')}
+            </h2>
+            <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-2">
+              <FormFields
+                formData={formData}
+                setFormData={setFormData}
+                showIfms={showIfms}
+                activeTab={activeTab}
+                t={t}
+              />
             </div>
-            <div className="flex gap-3 mt-6">
+            <div className="mt-6 flex gap-3">
               <button
+                type="button"
                 onClick={() => setShowAddForm(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-gray-700 dark:border-slate-600 dark:text-slate-300"
               >
-                Cancel
+                {t('Cancel', 'రద్దు')}
               </button>
               <button
+                type="button"
                 onClick={handleAdd}
-                className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
               >
-                Add Dealer
+                {t('Add Dealer', 'జోడించండి')}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Dealers Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-slate-800">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Dealer Name</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">IFMS ID</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Phone</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">License No.</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Valid Until</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Location</th>
-                {isAdminUser && <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>}
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                  {t('Dealer Name', 'పేరు')}
+                </th>
+                {showIfms && (
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                    IFMS ID
+                  </th>
+                )}
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                  {t('Phone', 'ఫోన్')}
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                  {t('License', 'లైసెన్స్')}
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                  {validityLabel}
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                  {t('Location', 'స్థానం')}
+                </th>
+                {isAdminUser && (
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                    {t('Actions', 'చర్యలు')}
+                  </th>
+                )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {filteredDealers.map((dealer) => (
-                <tr key={dealer.id} className="hover:bg-gray-50">
+                <tr key={dealer.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
                   {editingId === dealer.id ? (
-                    <>
-                      <td className="px-4 py-3">
-                        <input
-                          type="text"
-                          value={dealer.dealer_name}
-                          onChange={(e) => updateLocalDealer(dealer.id, 'dealer_name', e.target.value)}
-                          className="w-full px-2 py-1 border rounded text-sm"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="text"
-                          value={dealer.ifms_id}
-                          onChange={(e) => updateLocalDealer(dealer.id, 'ifms_id', e.target.value)}
-                          className="w-full px-2 py-1 border rounded text-sm"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="tel"
-                          value={dealer.phone_number}
-                          onChange={(e) => updateLocalDealer(dealer.id, 'phone_number', e.target.value)}
-                          className="w-full px-2 py-1 border rounded text-sm"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="text"
-                          value={dealer.license_number}
-                          onChange={(e) => updateLocalDealer(dealer.id, 'license_number', e.target.value)}
-                          className="w-full px-2 py-1 border rounded text-sm"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="date"
-                          value={dealer.expiry_date}
-                          onChange={(e) => updateLocalDealer(dealer.id, 'expiry_date', e.target.value)}
-                          className="w-full px-2 py-1 border rounded text-sm"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="text"
-                          value={dealer.location}
-                          onChange={(e) => updateLocalDealer(dealer.id, 'location', e.target.value)}
-                          className="w-full px-2 py-1 border rounded text-sm"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => handleUpdate(dealer.id)}
-                            className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
-                          >
-                            <Save className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setEditingId(null)}
-                            className="p-1 text-gray-600 hover:bg-gray-100 rounded"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </>
+                    <EditRow
+                      dealer={dealer}
+                      showIfms={showIfms}
+                      activeTab={activeTab}
+                      isAdminUser={isAdminUser}
+                      onUpdate={() => handleUpdate(dealer.id)}
+                      onCancel={() => setEditingId(null)}
+                      updateLocalDealer={updateLocalDealer}
+                    />
                   ) : (
-                    <>
-                      <td className="px-4 py-3 font-medium text-gray-900">{dealer.dealer_name}</td>
-                      <td className="px-4 py-3 text-gray-600">{dealer.ifms_id}</td>
-                      <td className="px-4 py-3 text-gray-600">{dealer.phone_number}</td>
-                      <td className="px-4 py-3 text-gray-600">{dealer.license_number}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          new Date(dealer.expiry_date) > new Date()
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}>
-                          {new Date(dealer.expiry_date).toLocaleDateString()}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{dealer.location}</td>
-                      {isAdminUser && (
-                        <td className="px-4 py-3">
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => setEditingId(dealer.id)}
-                              className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(dealer.id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      )}
-                    </>
+                    <DisplayRow
+                      dealer={dealer}
+                      showIfms={showIfms}
+                      activeTab={activeTab}
+                      isAdminUser={isAdminUser}
+                      validityLabel={validityLabel}
+                      onEdit={() => setEditingId(dealer.id)}
+                      onDelete={() => handleDelete(dealer.id)}
+                    />
                   )}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-
         {filteredDealers.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No dealers found</p>
+          <div className="py-12 text-center">
+            <Users className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+            <p className="text-gray-500">{t('No dealers found', 'డీలర్లు లేరు')}</p>
           </div>
         )}
       </div>
-
-      <div className="text-sm text-gray-500">
-        Showing {filteredDealers.length} of {dealers.length} dealers
-      </div>
     </div>
+  );
+}
+
+function FormFields({
+  formData,
+  setFormData,
+  showIfms,
+  activeTab,
+  t,
+}: {
+  formData: typeof emptyForm;
+  setFormData: React.Dispatch<React.SetStateAction<typeof emptyForm>>;
+  showIfms: boolean;
+  activeTab: DealerCategory;
+  t: (en: string, te: string) => string;
+}) {
+  return (
+    <>
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">
+          {t('Dealer Name', 'పేరు')}
+        </label>
+        <input
+          type="text"
+          value={formData.dealer_name}
+          onChange={(e) => setFormData({ ...formData, dealer_name: e.target.value })}
+          className="w-full rounded-lg border px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+        />
+      </div>
+      {showIfms && (
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">IFMS ID</label>
+          <input
+            type="text"
+            value={formData.ifms_id}
+            onChange={(e) => setFormData({ ...formData, ifms_id: e.target.value })}
+            className="w-full rounded-lg border px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+      )}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">
+          {t('Phone', 'ఫోన్')}
+        </label>
+        <input
+          type="tel"
+          value={formData.phone_number}
+          onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+          className="w-full rounded-lg border px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+        />
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">
+          {t('License Number', 'లైసెన్స్')}
+        </label>
+        <input
+          type="text"
+          value={formData.license_number}
+          onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
+          className="w-full rounded-lg border px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+        />
+      </div>
+      {activeTab !== 'pesticide' && (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">
+              {t('Issue Date', 'జారీ తేదీ')}
+            </label>
+            <input
+              type="date"
+              value={formData.issue_date}
+              onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
+              className="w-full rounded-lg border px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">
+              {t('Expiry Date', 'గడువు')}
+            </label>
+            <input
+              type="date"
+              value={formData.expiry_date}
+              onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
+              className="w-full rounded-lg border px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+            />
+          </div>
+        </div>
+      )}
+      {activeTab === 'pesticide' && (
+        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+          {t('Validity: Permanent', 'చెల్లుబాటు: శాశ్వతం')}
+        </p>
+      )}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">
+          {t('Location', 'స్థానం')}
+        </label>
+        <input
+          type="text"
+          value={formData.location}
+          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+          className="w-full rounded-lg border px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+        />
+      </div>
+    </>
+  );
+}
+
+function DisplayRow({
+  dealer,
+  showIfms,
+  activeTab,
+  isAdminUser,
+  validityLabel,
+  onEdit,
+  onDelete,
+}: {
+  dealer: Dealer;
+  showIfms: boolean;
+  activeTab: DealerCategory;
+  isAdminUser: boolean;
+  validityLabel: string;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const isPermanent = activeTab === 'pesticide';
+  return (
+    <>
+      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{dealer.dealer_name}</td>
+      {showIfms && <td className="px-4 py-3 text-gray-600 dark:text-slate-400">{dealer.ifms_id}</td>}
+      <td className="px-4 py-3 text-gray-600 dark:text-slate-400">{dealer.phone_number}</td>
+      <td className="px-4 py-3 text-gray-600 dark:text-slate-400">{dealer.license_number}</td>
+      <td className="px-4 py-3">
+        {isPermanent ? (
+          <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">
+            Permanent
+          </span>
+        ) : (
+          <span
+            className={`rounded-full px-2 py-1 text-xs ${
+              new Date(dealer.expiry_date) > new Date()
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {new Date(dealer.expiry_date).toLocaleDateString()}
+          </span>
+        )}
+      </td>
+      <td className="px-4 py-3 text-gray-600 dark:text-slate-400">{dealer.location}</td>
+      {isAdminUser && (
+        <td className="px-4 py-3">
+          <div className="flex gap-1">
+            <button type="button" onClick={onEdit} className="rounded p-1 text-emerald-600 hover:bg-emerald-50">
+              <Edit2 className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={onDelete} className="rounded p-1 text-red-600 hover:bg-red-50">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        </td>
+      )}
+    </>
+  );
+}
+
+function EditRow({
+  dealer,
+  showIfms,
+  activeTab,
+  isAdminUser,
+  onUpdate,
+  onCancel,
+  updateLocalDealer,
+}: {
+  dealer: Dealer;
+  showIfms: boolean;
+  activeTab: DealerCategory;
+  isAdminUser: boolean;
+  onUpdate: () => void;
+  onCancel: () => void;
+  updateLocalDealer: (id: string, field: string, value: string) => void;
+}) {
+  return (
+    <>
+      <td className="px-4 py-3">
+        <input
+          type="text"
+          value={dealer.dealer_name}
+          onChange={(e) => updateLocalDealer(dealer.id, 'dealer_name', e.target.value)}
+          className="w-full rounded border px-2 py-1 text-sm dark:bg-slate-800 dark:text-white"
+        />
+      </td>
+      {showIfms && (
+        <td className="px-4 py-3">
+          <input
+            type="text"
+            value={dealer.ifms_id}
+            onChange={(e) => updateLocalDealer(dealer.id, 'ifms_id', e.target.value)}
+            className="w-full rounded border px-2 py-1 text-sm dark:bg-slate-800 dark:text-white"
+          />
+        </td>
+      )}
+      <td className="px-4 py-3">
+        <input
+          type="tel"
+          value={dealer.phone_number}
+          onChange={(e) => updateLocalDealer(dealer.id, 'phone_number', e.target.value)}
+          className="w-full rounded border px-2 py-1 text-sm dark:bg-slate-800 dark:text-white"
+        />
+      </td>
+      <td className="px-4 py-3">
+        <input
+          type="text"
+          value={dealer.license_number}
+          onChange={(e) => updateLocalDealer(dealer.id, 'license_number', e.target.value)}
+          className="w-full rounded border px-2 py-1 text-sm dark:bg-slate-800 dark:text-white"
+        />
+      </td>
+      <td className="px-4 py-3">
+        {activeTab === 'pesticide' ? (
+          <span className="text-xs font-bold text-emerald-700">Permanent</span>
+        ) : (
+          <input
+            type="date"
+            value={dealer.expiry_date}
+            onChange={(e) => updateLocalDealer(dealer.id, 'expiry_date', e.target.value)}
+            className="w-full rounded border px-2 py-1 text-sm dark:bg-slate-800 dark:text-white"
+          />
+        )}
+      </td>
+      <td className="px-4 py-3">
+        <input
+          type="text"
+          value={dealer.location}
+          onChange={(e) => updateLocalDealer(dealer.id, 'location', e.target.value)}
+          className="w-full rounded border px-2 py-1 text-sm dark:bg-slate-800 dark:text-white"
+        />
+      </td>
+      {isAdminUser && (
+        <td className="px-4 py-3">
+          <div className="flex gap-1">
+            <button type="button" onClick={onUpdate} className="rounded p-1 text-emerald-600">
+              <Save className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={onCancel} className="rounded p-1 text-gray-600">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </td>
+      )}
+    </>
   );
 }

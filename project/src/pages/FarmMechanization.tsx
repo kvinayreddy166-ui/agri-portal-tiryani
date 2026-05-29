@@ -9,6 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { getContentType } from '../lib/fileTypes';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
 import { useAuth } from '../context/AuthContext';
 import { FarmMechanizationDocument } from '../types/database';
@@ -74,7 +75,7 @@ export function FarmMechanization() {
 
       const { error: uploadError } = await supabase.storage
         .from('uploads')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, { upsert: true, contentType: getContentType(file) });
 
       if (uploadError) throw uploadError;
 

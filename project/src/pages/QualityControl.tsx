@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { getContentType } from '../lib/fileTypes';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
 import { useAuth } from '../context/AuthContext';
 import { QualityControlSample, QualityControlTarget } from '../types/database';
@@ -136,7 +137,10 @@ export function QualityControl({ category }: QualityControlProps) {
 
         const { error: uploadError } = await supabase.storage
           .from('uploads')
-          .upload(filePath, sampleFile, { upsert: true });
+          .upload(filePath, sampleFile, {
+            upsert: true,
+            contentType: getContentType(sampleFile),
+          });
 
         if (uploadError) throw uploadError;
 

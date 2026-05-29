@@ -7,6 +7,7 @@ export interface Dealer {
   issue_date: string;
   expiry_date: string;
   location: string;
+  dealer_category?: 'fertilizer' | 'seed' | 'pesticide';
   created_at: string;
   updated_at: string;
 }
