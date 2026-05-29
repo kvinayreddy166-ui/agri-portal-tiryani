@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, Upload, Save } from 'lucide-react';
+import { Landmark, Sprout, Trash2, Upload, Save } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/ui/PageHeader';
 import { uploadPortalFile } from '../lib/uploadFile';
+import { FileActionButtons } from '../components/ui/FileActionButtons';
+import { inferFileTypeFromName } from '../lib/fileTypes';
 
 export type SubsidyProgram = 'nfsm' | 'state_seed_cell';
 
@@ -32,6 +34,7 @@ const emptyRecord = {
 
 interface SubsidyTrackingProps {
   program: SubsidyProgram;
+  onProgramChange?: (program: SubsidyProgram) => void;
 }
 
 const programMeta: Record<SubsidyProgram, { title: string; telugu: string; desc: string }> = {
@@ -47,7 +50,7 @@ const programMeta: Record<SubsidyProgram, { title: string; telugu: string; desc:
   },
 };
 
-export function SubsidyTracking({ program }: SubsidyTrackingProps) {
+export function SubsidyTracking({ program, onProgramChange }: SubsidyTrackingProps) {
   const { isAdminUser, user } = useAuth();
   const { t } = useLanguage();
   const meta = programMeta[program];
@@ -139,6 +142,39 @@ export function SubsidyTracking({ program }: SubsidyTrackingProps) {
         description={t(meta.desc, meta.desc)}
       />
 
+      <div className="grid gap-4 md:grid-cols-2">
+        {([
+          { id: 'nfsm' as const, title: 'NFSM', desc: 'National Food Security Mission', icon: Landmark },
+          { id: 'state_seed_cell' as const, title: 'State Seed Cell', desc: 'Seed subsidy and distribution', icon: Sprout },
+        ]).map((item) => {
+          const Icon = item.icon;
+          const active = program === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onProgramChange?.(item.id)}
+              className={`rounded-2xl border p-5 text-left transition ${
+                active
+                  ? 'border-emerald-300 bg-emerald-700 text-white shadow-lg shadow-emerald-900/10'
+                  : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+              }`}
+            >
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div className={`rounded-xl p-3 ${active ? 'bg-white/15' : 'bg-emerald-50 text-emerald-700'}`}>
+                  <Icon className="h-6 w-6" />
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${active ? 'bg-white/15' : 'bg-slate-100 text-slate-600'}`}>
+                  {active ? 'Open' : 'Select'}
+                </span>
+              </div>
+              <h2 className="text-xl font-black">{item.title}</h2>
+              <p className={`mt-1 text-sm ${active ? 'text-emerald-50' : 'text-slate-500'}`}>{item.desc}</p>
+            </button>
+          );
+        })}
+      </div>
+
       {isAdminUser && (
         <div className="portal-card space-y-4 p-6">
           <h2 className="text-lg font-black text-slate-900 dark:text-white">
@@ -159,7 +195,7 @@ export function SubsidyTracking({ program }: SubsidyTrackingProps) {
             </div>
             <div>
               <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">
-                {t('Crop Variety', 'పంట రకం')}
+                {t('Crop / Variety', 'పంట / రకం')}
               </label>
               <input
                 type="text"
@@ -239,6 +275,7 @@ export function SubsidyTracking({ program }: SubsidyTrackingProps) {
               <th className="px-4 py-3 text-left font-bold">{t('Variety', 'రకం')}</th>
               <th className="px-4 py-3 text-left font-bold">{t('Allotted', 'కేటాయింపు')}</th>
               <th className="px-4 py-3 text-left font-bold">{t('Sales', 'అమ్మకాలు')}</th>
+              <th className="px-4 py-3 text-left font-bold">{t('Beneficiaries', 'Beneficiaries')}</th>
               {isAdminUser && <th className="px-4 py-3" />}
             </tr>
           </thead>
@@ -251,6 +288,18 @@ export function SubsidyTracking({ program }: SubsidyTrackingProps) {
                   {row.quantity_allotted} {row.quantity_unit}
                 </td>
                 <td className="px-4 py-3 max-w-xs truncate">{row.sales_data || '—'}</td>
+                <td className="px-4 py-3">
+                  {row.beneficiary_list_url ? (
+                    <FileActionButtons
+                      fileUrl={row.beneficiary_list_url}
+                      fileName={`${row.program}-${row.financial_year}-beneficiaries`}
+                      fileType={inferFileTypeFromName(row.beneficiary_list_url)}
+                      size="sm"
+                    />
+                  ) : (
+                    'No file'
+                  )}
+                </td>
                 {isAdminUser && (
                   <td className="px-4 py-3 text-right">
                     <button

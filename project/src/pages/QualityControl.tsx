@@ -317,7 +317,12 @@ export function QualityControl({ category }: QualityControlProps) {
                     {sample.remarks && <p className="mt-1 line-clamp-1">{sample.remarks}</p>}
                   </div>
                   <div className="flex items-center gap-2">
-                    {sample.form_url && <FileActionButtons fileUrl={sample.form_url} />}
+                    {sample.form_url && (
+                      <FileActionButtons
+                        fileUrl={sample.form_url}
+                        fileName={`${sample.category}-${sample.dealer_name}`}
+                      />
+                    )}
                     {isAdminUser && (
                       <button
                         onClick={() => deleteSample(sample.id)}

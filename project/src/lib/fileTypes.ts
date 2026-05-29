@@ -2,6 +2,17 @@ import { FileSpreadsheet, FileText, FileImage, File, FileType } from 'lucide-rea
 import type { LucideIcon } from 'lucide-react';
 
 export function inferFileTypeFromName(name: string, mimeType?: string): string {
+  const normalizedType = mimeType?.toLowerCase();
+  if (normalizedType && ['image', 'pdf', 'excel', 'doc', 'file'].includes(normalizedType)) {
+    return normalizedType;
+  }
+  if (normalizedType === 'document' || normalizedType === 'word') return 'doc';
+  if (normalizedType === 'spreadsheet') return 'excel';
+  if (normalizedType?.includes('pdf')) return 'pdf';
+  if (normalizedType?.includes('spreadsheet') || normalizedType?.includes('excel') || normalizedType?.includes('csv')) {
+    return 'excel';
+  }
+  if (normalizedType?.includes('wordprocessing') || normalizedType?.includes('msword')) return 'doc';
   if (mimeType?.startsWith('image/')) return 'image';
   const ext = name.split('.').pop()?.toLowerCase() || '';
   if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'].includes(ext)) return 'image';

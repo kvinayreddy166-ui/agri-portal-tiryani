@@ -23,16 +23,9 @@ const menuItems = [
     id: 'crops',
     label: 'Crop Management',
     icon: Leaf,
-    submenu: [
-      { id: 'cotton', label: 'Cotton' },
-      { id: 'paddy', label: 'Paddy' },
-      { id: 'maize', label: 'Maize' },
-      { id: 'pulses', label: 'Pulses' },
-      { id: 'oilseeds', label: 'Oilseeds' },
-    ],
   },
   { id: 'forms', label: 'Forms & Downloads', icon: FileDown },
-  { id: 'file-directory', label: 'File Directory', icon: FolderOpen },
+  { id: 'file-directory', label: 'File Directory', icon: FolderOpen, adminOnly: true },
   {
     id: 'subsidy',
     label: 'Subsidy Cell',
@@ -48,11 +41,6 @@ const menuItems = [
     id: 'quality',
     label: 'Quality Control',
     icon: ShieldCheck,
-    submenu: [
-      { id: 'seeds', label: 'Seeds' },
-      { id: 'pesticides', label: 'Pesticides' },
-      { id: 'fertilizers', label: 'Fertilizers' },
-    ],
   },
   { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor },
   { id: 'excel', label: 'Office Files', icon: Upload },
@@ -90,7 +78,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             </button>
             <div className="flex items-center gap-3">
               <div className="rounded-xl bg-white p-1 shadow-md">
-                <img src="/images/agri-emblem.svg" alt="" className="h-9 w-9 rounded-lg" />
+                <img src="/images/agri-emblem.png" alt="" className="h-9 w-9 rounded-lg" />
               </div>
               <div className="min-w-0">
                 <h1 className="truncate text-sm font-black tracking-tight sm:text-base">

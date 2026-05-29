@@ -60,7 +60,7 @@ export function Dashboard() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-8 text-white shadow-lg">
         <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-[url('/images/rice.jpg')] bg-cover bg-center opacity-20 md:block" />
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
-          <img src="/images/agri-emblem.svg" alt="" className="h-20 w-20 rounded-full bg-white p-1 shadow-lg" />
+          <img src="/images/agri-emblem.png" alt="" className="h-20 w-20 rounded-full bg-white p-1 shadow-lg" />
           <div>
             <h1 className="text-4xl font-black tracking-tight">
               {t('Tiryani Agriculture Portal', 'తిర్యాని వ్యవసాయ పోర్టల్')}

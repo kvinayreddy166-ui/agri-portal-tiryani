@@ -1,22 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  File,
-  FileImage,
-  FileText,
-  Folder,
-  Image,
-  Link,
-  Plus,
-  Trash2,
-  Upload,
-  X,
-} from 'lucide-react';
+import { Folder, Link, Plus, Trash2, Upload, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { FormDownload } from '../types/database';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { getContentType } from '../lib/fileTypes';
+import { FileTypeBadge } from '../components/ui/FileTypeBadge';
+import { getContentType, inferFileTypeFromName } from '../lib/fileTypes';
 
 const folders = [
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
@@ -61,11 +51,7 @@ export function FormsDownloads() {
       setForms(data || []);
     } catch (error) {
       console.error('Error fetching forms:', error);
-      setFetchError(
-        error instanceof Error
-          ? error.message
-          : 'Unable to load downloads. Please sign in again and retry.'
-      );
+      setFetchError(error instanceof Error ? error.message : 'Unable to load downloads.');
     } finally {
       setLoading(false);
     }
@@ -106,7 +92,7 @@ export function FormsDownloads() {
       let fileType = newForm.file_type;
 
       if (selectedFile) {
-        fileType = getFileType(selectedFile);
+        fileType = inferFileTypeFromName(selectedFile.name, selectedFile.type);
         const cleanName = selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
         const filePath = `forms/${newForm.category}/${Date.now()}_${cleanName}`;
 
@@ -119,22 +105,19 @@ export function FormsDownloads() {
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('uploads')
-          .getPublicUrl(filePath);
-
+        const { data: { publicUrl } } = supabase.storage.from('uploads').getPublicUrl(filePath);
         fileUrl = publicUrl;
+      } else {
+        fileType = inferFileTypeFromName(fileUrl, fileType);
       }
 
-      const { error } = await supabase
-        .from('forms_downloads')
-        .insert([{
-          title: newForm.title.trim(),
-          description: newForm.description.trim(),
-          file_url: fileUrl,
-          file_type: fileType,
-          category: newForm.category,
-        }]);
+      const { error } = await supabase.from('forms_downloads').insert([{
+        title: newForm.title.trim(),
+        description: newForm.description.trim(),
+        file_url: fileUrl,
+        file_type: fileType,
+        category: newForm.category,
+      }]);
 
       if (error) throw error;
 
@@ -142,11 +125,7 @@ export function FormsDownloads() {
       fetchForms();
     } catch (error) {
       console.error('Error adding document:', error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Failed to add document. Please make sure the uploads storage bucket exists.';
-      alert(message);
+      alert(error instanceof Error ? error.message : 'Failed to add document.');
     } finally {
       setUploading(false);
     }
@@ -154,13 +133,8 @@ export function FormsDownloads() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this item?')) return;
-
     try {
-      const { error } = await supabase
-        .from('forms_downloads')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await supabase.from('forms_downloads').delete().eq('id', id);
       if (error) throw error;
       fetchForms();
     } catch (error) {
@@ -191,12 +165,12 @@ export function FormsDownloads() {
             {t('Resource library', 'వనరుల గ్రంథాలయం')}
           </p>
           <h1 className="mt-1 text-3xl font-black tracking-tight text-gray-950">
-            {t('Forms & Downloads', 'ఫారాలు & డౌన్లోడ్లు')}
+            {t('Forms & Downloads', 'ఫారాలు & డౌన్‌లోడ్‌లు')}
           </h1>
           <p className="mt-2 text-gray-600">
             {t(
               'Download seed, fertilizer, and pesticide documents shared by the office.',
-              'కార్యాలయం పంచిన విత్తనాలు, ఎరువులు మరియు పురుగుమందుల పత్రాలను డౌన్లోడ్ చేసుకోండి.'
+              'కార్యాలయం పంచిన విత్తనాలు, ఎరువులు మరియు పురుగుమందుల పత్రాలను చూడండి.'
             )}
           </p>
         </div>
@@ -253,8 +227,8 @@ export function FormsDownloads() {
           <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-black text-gray-950">{t('Add Download Item', 'డౌన్లోడ్ ఐటమ్ జోడించండి')}</h2>
-                <p className="text-sm text-gray-500">{t('Upload an image or document for users to download.', 'వినియోగదారులు డౌన్లోడ్ చేసుకునేందుకు చిత్రం లేదా పత్రాన్ని అప్లోడ్ చేయండి.')}</p>
+                <h2 className="text-2xl font-black text-gray-950">{t('Add Download Item', 'డౌన్‌లోడ్ ఐటమ్ జోడించండి')}</h2>
+                <p className="text-sm text-gray-500">{t('Upload an image or document for users.', 'వినియోగదారుల కోసం చిత్రం లేదా పత్రం అప్లోడ్ చేయండి.')}</p>
               </div>
               <button onClick={resetForm} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
                 <X className="h-5 w-5" />
@@ -269,7 +243,6 @@ export function FormsDownloads() {
                   value={newForm.title}
                   onChange={(e) => setNewForm({ ...newForm, title: e.target.value })}
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                  placeholder={t('Example: Seed distribution form', 'ఉదా: విత్తనాల పంపిణీ ఫారం')}
                 />
               </div>
 
@@ -280,7 +253,6 @@ export function FormsDownloads() {
                   onChange={(e) => setNewForm({ ...newForm, description: e.target.value })}
                   rows={3}
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                  placeholder={t('Brief details for users', 'వినియోగదారుల కోసం చిన్న వివరణ')}
                 />
               </div>
 
@@ -319,7 +291,7 @@ export function FormsDownloads() {
                   <input
                     type="file"
                     className="hidden"
-                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv"
                     onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                   />
                   <Upload className="mb-3 h-8 w-8 text-emerald-700" />
@@ -334,17 +306,10 @@ export function FormsDownloads() {
             </div>
 
             <div className="mt-6 flex gap-3">
-              <button
-                onClick={resetForm}
-                className="flex-1 rounded-xl border border-gray-300 px-4 py-3 font-bold text-gray-700 hover:bg-gray-50"
-              >
+              <button onClick={resetForm} className="flex-1 rounded-xl border border-gray-300 px-4 py-3 font-bold text-gray-700 hover:bg-gray-50">
                 {t('Cancel', 'రద్దు')}
               </button>
-              <button
-                onClick={handleAdd}
-                disabled={uploading}
-                className="flex-1 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-              >
+              <button onClick={handleAdd} disabled={uploading} className="flex-1 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
                 {uploading ? t('Saving...', 'సేవ్ అవుతోంది...') : t('Save Item', 'సేవ్ చేయండి')}
               </button>
             </div>
@@ -353,92 +318,56 @@ export function FormsDownloads() {
       )}
 
       <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-black text-gray-950">{t(activeFolder.label, activeFolder.telugu)}</h2>
-            <p className="text-sm text-gray-500">
-              {selectedForms.length} {t('items available for download', 'ఐటమ్లు డౌన్లోడ్ కోసం అందుబాటులో ఉన్నాయి')}
-            </p>
-          </div>
+        <div className="mb-5">
+          <h2 className="text-2xl font-black text-gray-950">{t(activeFolder.label, activeFolder.telugu)}</h2>
+          <p className="text-sm text-gray-500">
+            {selectedForms.length} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
+          </p>
         </div>
 
         {selectedForms.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {selectedForms.map((form) => (
-              <article
-                key={form.id}
-                className="group overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
-              >
-                {isImageItem(form) ? (
-                  <img
-                    src={form.file_url || ''}
-                    alt=""
-                    className="h-40 w-full bg-gray-100 object-cover"
-                  />
-                ) : (
-                  <div className="flex h-40 items-center justify-center bg-gradient-to-br from-emerald-50 to-sky-50">
-                    {getFileIcon(form.file_type)}
+          <div className="overflow-hidden rounded-2xl border border-gray-100">
+            <div className="hidden grid-cols-[1.4fr_0.75fr_0.7fr_auto] gap-4 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 md:grid">
+              <span>{t('File', 'ఫైల్')}</span>
+              <span>{t('Type', 'రకం')}</span>
+              <span>{t('Date', 'తేదీ')}</span>
+              <span className="text-right">{t('Action', 'చర్య')}</span>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {selectedForms.map((form) => (
+                <article
+                  key={form.id}
+                  className="grid gap-4 px-4 py-4 transition hover:bg-gray-50 md:grid-cols-[1.4fr_0.75fr_0.7fr_auto] md:items-center"
+                >
+                  <div className="min-w-0">
+                    <h3 className="truncate text-base font-black text-gray-950">{form.title}</h3>
+                    <p className="mt-1 line-clamp-2 text-sm text-gray-600">{form.description}</p>
                   </div>
-                )}
-                <div className="p-4">
-                  <div className="mb-3 flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="truncate text-lg font-black text-gray-950">{form.title}</h3>
-                      <p className="mt-1 line-clamp-2 text-sm text-gray-600">{form.description}</p>
-                    </div>
+                  <FileTypeBadge fileName={form.file_url || form.title} fileType={form.file_type} />
+                  <span className="text-sm font-medium text-gray-500">
+                    {new Date(form.created_at).toLocaleDateString()}
+                  </span>
+                  <div className="flex justify-end gap-2">
+                    {form.file_url && (
+                      <FileActionButtons fileUrl={form.file_url} fileName={form.title} fileType={form.file_type} size="sm" />
+                    )}
                     {isAdminUser && (
-                      <button
-                        onClick={() => handleDelete(form.id)}
-                        className="rounded-lg p-2 text-red-500 opacity-0 transition hover:bg-red-50 group-hover:opacity-100"
-                        aria-label="Delete item"
-                      >
+                      <button onClick={() => handleDelete(form.id)} className="rounded-lg p-2 text-red-500 transition hover:bg-red-50" aria-label="Delete item">
                         <Trash2 className="h-5 w-5" />
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs font-medium text-gray-400">
-                      {new Date(form.created_at).toLocaleDateString()}
-                    </span>
-                    {form.file_url && <FileActionButtons fileUrl={form.file_url} size="sm" />}
-                  </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-gray-200 p-12 text-center">
             <Folder className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-            <p className="font-semibold text-gray-600">{t('No items in this folder yet', 'ఈ ఫోల్డర్లో ఇంకా ఐటమ్లు లేవు')}</p>
+            <p className="font-semibold text-gray-600">{t('No items in this folder yet', 'ఈ ఫోల్డర్‌లో ఇంకా ఐటమ్లు లేవు')}</p>
           </div>
         )}
       </section>
     </div>
   );
-}
-
-function getFileType(file: File) {
-  if (file.type.startsWith('image/')) return 'image';
-  const extension = file.name.split('.').pop()?.toLowerCase() || 'file';
-  return extension;
-}
-
-function isImageItem(form: FormDownload) {
-  return form.file_type === 'image' || /\.(png|jpe?g|webp|gif)$/i.test(form.file_url || '');
-}
-
-function getFileIcon(fileType: string) {
-  if (fileType === 'image') {
-    return <Image className="h-16 w-16 text-emerald-600" />;
-  }
-
-  if (fileType === 'pdf') {
-    return <FileText className="h-16 w-16 text-red-500" />;
-  }
-
-  if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(fileType)) {
-    return <FileImage className="h-16 w-16 text-emerald-600" />;
-  }
-
-  return <File className="h-16 w-16 text-sky-600" />;
 }

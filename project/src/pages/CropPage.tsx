@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Leaf, FileText, MapPin, Save, Upload } from 'lucide-react';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
+import { FileTypeBadge } from '../components/ui/FileTypeBadge';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { uploadPortalFile } from '../lib/uploadFile';
@@ -341,36 +342,44 @@ export function CropPage({ cropType }: CropPageProps) {
           </div>
         )}
 
-        {/* Documents Grid */}
         {cropData.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {cropData.map((item) => (
-              <div key={item.id} className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-emerald-300 transition-colors group">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <span className="bg-gray-200 px-2 py-1 rounded">{item.file_type}</span>
-                      <span>{new Date(item.created_at).toLocaleDateString()}</span>
-                    </div>
+          <div className="overflow-hidden rounded-2xl border border-gray-100">
+            <div className="hidden grid-cols-[1.4fr_0.75fr_0.7fr_auto] gap-4 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 md:grid">
+              <span>File</span>
+              <span>Type</span>
+              <span>Date</span>
+              <span className="text-right">Action</span>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {cropData.map((item) => (
+                <div key={item.id} className="grid gap-4 px-4 py-4 transition hover:bg-gray-50 md:grid-cols-[1.4fr_0.75fr_0.7fr_auto] md:items-center">
+                  <div className="min-w-0">
+                    <h3 className="truncate font-semibold text-gray-900">{item.title}</h3>
+                    <p className="mt-1 line-clamp-2 text-sm text-gray-600">{item.description}</p>
                   </div>
-                  {isAdminUser && (
-                    <button
-                      onClick={() => handleDeleteCropData(item.id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-red-500 hover:bg-red-50 rounded transition-all"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+                  <FileTypeBadge fileName={item.file_url || item.title} fileType={item.file_type} />
+                  <span className="text-sm text-gray-500">{new Date(item.created_at).toLocaleDateString()}</span>
+                  <div className="flex justify-end gap-2">
+                    {item.file_url && (
+                      <FileActionButtons
+                        fileUrl={item.file_url}
+                        fileName={item.title}
+                        fileType={item.file_type}
+                        size="sm"
+                      />
+                    )}
+                    {isAdminUser && (
+                      <button
+                        onClick={() => handleDeleteCropData(item.id)}
+                        className="rounded-lg p-2 text-red-500 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {item.file_url && (
-                  <div className="mt-3 flex justify-end border-t border-gray-200 pt-3">
-                    <FileActionButtons fileUrl={item.file_url} size="sm" />
-                  </div>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         ) : (
           <div className="text-center py-12">

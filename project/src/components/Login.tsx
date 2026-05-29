@@ -6,21 +6,33 @@ import {
   LockKeyhole,
   LogIn,
   Mail,
+  MessageSquareText,
+  Send,
   ShieldCheck,
   UserRoundCheck,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { supabase } from '../lib/supabase';
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
 const TEST_EMAIL = 'test@gmail.com';
 const TEST_PASSWORD = 'Test@123';
 
 export function Login() {
+  const [activeTab, setActiveTab] = useState<'login' | 'grievance'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [grievance, setGrievance] = useState({
+    farmer_name: '',
+    village: '',
+    issue_type: 'schemes',
+    message: '',
+    phone: '',
+  });
+  const [grievanceStatus, setGrievanceStatus] = useState<string | null>(null);
   const { signIn } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
 
@@ -49,21 +61,51 @@ export function Login() {
     setLoading(false);
   };
 
+  const handleGrievanceSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGrievanceStatus(null);
+
+    const subject = `Farmer grievance - ${grievance.issue_type} - ${grievance.village}`;
+    const body = [
+      `Farmer Name: ${grievance.farmer_name}`,
+      `Village: ${grievance.village}`,
+      `Phone: ${grievance.phone || 'Not provided'}`,
+      `Issue Type: ${grievance.issue_type}`,
+      '',
+      grievance.message,
+    ].join('\n');
+
+    try {
+      await supabase.from('farmer_grievances').insert([{
+        farmer_name: grievance.farmer_name.trim(),
+        village: grievance.village.trim(),
+        phone: grievance.phone.trim() || null,
+        issue_type: grievance.issue_type,
+        message: grievance.message.trim(),
+        email_to: ADMIN_EMAIL,
+      }]);
+    } catch (err) {
+      console.warn('Grievance table insert skipped:', err);
+    }
+
+    window.location.href = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setGrievanceStatus(t('Complaint prepared for email. Please send it from your mail app.', 'ఫిర్యాదు ఇమెయిల్ కోసం సిద్ధమైంది. మీ మెయిల్ యాప్ నుండి పంపండి.'));
+    setGrievance({ farmer_name: '', village: '', issue_type: 'schemes', message: '', phone: '' });
+  };
+
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#eef6f0] p-4 sm:p-6">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(16,185,129,0.18),transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(14,165,233,0.12),transparent_45%)]" />
-      <div className="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl" />
-      <div className="pointer-events-none absolute -right-24 bottom-20 h-72 w-72 rounded-full bg-teal-300/20 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(4,120,87,0.08),rgba(14,165,233,0.08)_48%,rgba(250,204,21,0.08))]" />
 
       <div className="relative grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm lg:grid-cols-[1.15fr_0.85fr]">
         <section className="relative hidden min-h-[720px] flex-col justify-between overflow-hidden bg-emerald-950 p-10 text-white lg:flex">
-          <img src="/images/rice.jpg" alt="" className="absolute inset-x-0 top-0 h-[52%] w-full object-cover opacity-80" />
-          <img src="/images/cotton.jpg" alt="" className="absolute inset-x-0 bottom-0 h-[52%] w-full object-cover opacity-75" />
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/96 via-emerald-900/75 to-slate-900/50" />
+          <img src="/images/rice.jpg" alt="" className="absolute inset-x-0 top-0 h-[50%] w-full object-cover opacity-95" />
+          <img src="/images/cotton.jpg" alt="" className="absolute inset-x-0 bottom-0 h-[50%] w-full object-cover opacity-95" />
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/82 via-emerald-900/58 to-slate-900/30" />
 
           <div className="relative">
             <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur-md">
-              <img src="/images/agri-emblem.svg" alt="" className="h-9 w-9 rounded-full bg-white p-0.5" />
+              <img src="/images/agri-emblem.png" alt="" className="h-9 w-9 rounded-full bg-white p-0.5" />
               {t('Department of Agriculture', 'వ్యవసాయ శాఖ')}
             </div>
             <h1 className="max-w-lg text-4xl font-black leading-[1.1] tracking-tight xl:text-5xl">
@@ -110,7 +152,7 @@ export function Login() {
             <div className="mb-8 flex items-start justify-between gap-4">
               <div>
                 <img
-                  src="/images/agri-emblem.svg"
+                  src="/images/agri-emblem.png"
                   alt="Agriculture emblem"
                   className="mb-4 h-20 w-20 rounded-2xl border border-emerald-100 bg-white p-1.5 shadow-lg"
                 />
@@ -137,21 +179,38 @@ export function Login() {
               </button>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-6 grid grid-cols-2 rounded-2xl bg-slate-100 p-1 text-sm font-bold text-slate-600">
+              <button
+                type="button"
+                onClick={() => setActiveTab('login')}
+                className={`rounded-xl px-3 py-2 transition ${activeTab === 'login' ? 'bg-white text-emerald-800 shadow-sm' : 'hover:text-slate-900'}`}
+              >
+                {t('Login', 'లాగిన్')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('grievance')}
+                className={`rounded-xl px-3 py-2 transition ${activeTab === 'grievance' ? 'bg-white text-emerald-800 shadow-sm' : 'hover:text-slate-900'}`}
+              >
+                {t('Grievance', 'ఫిర్యాదు')}
+              </button>
+            </div>
+
+            <div className={`mb-6 ${activeTab === 'login' ? '' : 'hidden'}`}>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
                 {t('Secure sign in', 'సురక్షిత లాగిన్')}
               </p>
               <h3 className="mt-2 text-2xl font-black text-slate-950">{t('Welcome', 'స్వాగతం')}</h3>
             </div>
 
-            {error && (
+            {activeTab === 'login' && error && (
               <div className="mb-5 flex gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className={`space-y-4 ${activeTab === 'login' ? '' : 'hidden'}`}>
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   {t('Email Address', 'ఇమెయిల్ చిరునామా')}
@@ -198,7 +257,7 @@ export function Login() {
               </button>
             </form>
 
-            <div className="mt-5 rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950">
+            <div className={`mt-5 rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950 ${activeTab === 'login' ? '' : 'hidden'}`}>
               <p className="flex items-center gap-2 font-bold">
                 <UserRoundCheck className="h-4 w-4" />
                 {t('Test login', 'టెస్ట్ లాగిన్')}
@@ -210,6 +269,42 @@ export function Login() {
                 <span className="font-semibold">Password:</span> {TEST_PASSWORD}
               </p>
             </div>
+
+            <form onSubmit={handleGrievanceSubmit} className={`space-y-4 ${activeTab === 'grievance' ? '' : 'hidden'}`}>
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4">
+                <p className="flex items-center gap-2 text-sm font-black text-emerald-900">
+                  <MessageSquareText className="h-5 w-5" />
+                  {t('Farmer Grievance', 'రైతు ఫిర్యాదు')}
+                </p>
+                <p className="mt-1 text-xs text-emerald-800">
+                  {t('Submit scheme or other issue details to the MAO office.', 'పథకాలు లేదా ఇతర సమస్యల వివరాలను MAO కార్యాలయానికి పంపండి.')}
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <input value={grievance.farmer_name} onChange={(e) => setGrievance({ ...grievance, farmer_name: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Farmer Name', 'రైతు పేరు')} required />
+                <input value={grievance.village} onChange={(e) => setGrievance({ ...grievance, village: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Village', 'గ్రామం')} required />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <select value={grievance.issue_type} onChange={(e) => setGrievance({ ...grievance, issue_type: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                  <option value="schemes">{t('Schemes', 'పథకాలు')}</option>
+                  <option value="fertilizer">{t('Fertilizer', 'ఎరువులు')}</option>
+                  <option value="seed">{t('Seed', 'విత్తనాలు')}</option>
+                  <option value="pesticides">{t('Pesticides', 'పురుగుమందులు')}</option>
+                  <option value="other">{t('Other Issues', 'ఇతర సమస్యలు')}</option>
+                </select>
+                <input value={grievance.phone} onChange={(e) => setGrievance({ ...grievance, phone: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Phone', 'ఫోన్')} />
+              </div>
+
+              <textarea value={grievance.message} onChange={(e) => setGrievance({ ...grievance, message: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Complaint Details', 'ఫిర్యాదు వివరాలు')} required />
+
+              <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3.5 font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:from-emerald-800 hover:to-teal-800">
+                <Send className="h-5 w-5" />
+                {t('Submit Complaint', 'ఫిర్యాదు పంపండి')}
+              </button>
+              {grievanceStatus && <p className="text-sm font-semibold text-emerald-700">{grievanceStatus}</p>}
+            </form>
 
             <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/80 px-4 py-4 text-center text-xs leading-5 text-emerald-900">
               <p>

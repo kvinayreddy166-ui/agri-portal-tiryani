@@ -277,7 +277,7 @@ export function GosCirculars() {
                   )}
                 </div>
                 <div className="mt-4 flex justify-end border-t border-gray-100 pt-4">
-                  <FileActionButtons fileUrl={doc.file_url} />
+                  <FileActionButtons fileUrl={doc.file_url} fileName={doc.title} fileType={doc.file_type} />
                 </div>
               </article>
             ))}

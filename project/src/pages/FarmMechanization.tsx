@@ -204,7 +204,10 @@ export function FarmMechanization() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <FileActionButtons fileUrl={document.file_url} />
+                    <FileActionButtons
+                      fileUrl={document.file_url}
+                      fileName={document.file_name || document.title}
+                    />
                     {isAdminUser && (
                       <button
                         onClick={() => deleteDocument(document.id)}

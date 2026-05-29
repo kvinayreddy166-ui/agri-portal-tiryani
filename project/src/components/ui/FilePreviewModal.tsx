@@ -15,6 +15,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
   const canPreview = isPreviewable(fileUrl, type);
   const isImage = type === 'image' || /\.(png|jpe?g|webp|gif)(\?|$)/i.test(fileUrl);
   const isPdf = type === 'pdf' || /\.pdf(\?|$)/i.test(fileUrl);
+  const isOfficeFile = type === 'doc' || type === 'excel';
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(canPreview && (isImage || isPdf));
   const [previewError, setPreviewError] = useState(false);
@@ -42,7 +43,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
       .catch(() => {
         if (!cancelled) {
           setPreviewError(true);
-          setPreviewSrc(fileUrl);
+          setPreviewSrc(null);
         }
       })
       .finally(() => {
@@ -71,6 +72,16 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
   };
 
   const displaySrc = previewSrc || fileUrl;
+  const officeViewerSrc = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(fileUrl)}`;
+
+  const handleOpen = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if ((isImage || isPdf) && previewSrc) {
+      window.open(previewSrc, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    window.open(isOfficeFile ? officeViewerSrc : fileUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div
@@ -98,15 +109,14 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
             >
               {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}
             </button>
-            <a
-              href={fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={handleOpen}
               className="rounded-lg p-2 text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-slate-800"
               title="Open in new tab"
             >
               <ExternalLink className="h-5 w-5" />
-            </a>
+            </button>
             <button
               type="button"
               onClick={onClose}
@@ -143,6 +153,14 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
             />
           )}
 
+          {!loadingPreview && isOfficeFile && (
+            <iframe
+              src={officeViewerSrc}
+              title={fileName || 'Document preview'}
+              className="h-[75vh] w-full rounded-lg border-0 bg-white shadow-lg"
+            />
+          )}
+
           {!loadingPreview && previewError && canPreview && (
             <div className="text-center">
               <p className="text-slate-600 dark:text-slate-400">
@@ -160,10 +178,10 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
             </div>
           )}
 
-          {!loadingPreview && !canPreview && (
+          {!loadingPreview && !canPreview && !isOfficeFile && (
             <div className="text-center">
               <p className="text-slate-600 dark:text-slate-400">
-                Inline preview is not available for this file type (Excel/Word). Use Download.
+                Inline preview is not available for this file type. Use Download.
               </p>
             </div>
           )}

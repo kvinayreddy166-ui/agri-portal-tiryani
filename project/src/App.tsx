@@ -9,11 +9,13 @@ import { StockManagement } from './pages/StockManagement';
 import { DealerManagement } from './pages/DealerManagement';
 import { DealerStockTracking } from './pages/DealerStockTracking';
 import { CropPage } from './pages/CropPage';
+import { CropManagement } from './pages/CropManagement';
 import { FormsDownloads } from './pages/FormsDownloads';
 import { ExcelUploads } from './pages/ExcelUploads';
 import { Analytics } from './pages/Analytics';
 import { Settings } from './pages/Settings';
 import { QualityControl } from './pages/QualityControl';
+import { QualityControlHub } from './pages/QualityControlHub';
 import { FarmMechanization } from './pages/FarmMechanization';
 import { GosCirculars } from './pages/GosCirculars';
 import { FileDirectory } from './pages/FileDirectory';
@@ -31,7 +33,7 @@ function PageLoader() {
 }
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdminUser } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   if (loading) {
@@ -60,6 +62,8 @@ function AppContent() {
         return <DealerManagement />;
       case 'dealer-stock':
         return <DealerStockTracking />;
+      case 'crops':
+        return <CropManagement />;
       case 'crop-cotton':
         return <CropPage cropType="cotton" />;
       case 'crop-paddy':
@@ -74,6 +78,8 @@ function AppContent() {
         return <FormsDownloads />;
       case 'gos-circulars':
         return <GosCirculars />;
+      case 'quality':
+        return <QualityControlHub />;
       case 'quality-seeds':
         return <QualityControl category="seeds" />;
       case 'quality-pesticides':
@@ -85,11 +91,11 @@ function AppContent() {
       case 'excel':
         return <ExcelUploads />;
       case 'file-directory':
-        return <FileDirectory />;
+        return isAdminUser ? <FileDirectory /> : <Dashboard />;
       case 'subsidy-nfsm':
-        return <SubsidyTracking program="nfsm" />;
+        return <SubsidyTracking program="nfsm" onProgramChange={(program) => setCurrentPage(program === 'nfsm' ? 'subsidy-nfsm' : 'subsidy-state-seed')} />;
       case 'subsidy-state-seed':
-        return <SubsidyTracking program="state_seed_cell" />;
+        return <SubsidyTracking program="state_seed_cell" onProgramChange={(program) => setCurrentPage(program === 'nfsm' ? 'subsidy-nfsm' : 'subsidy-state-seed')} />;
       case 'crop-diagnosis':
         return (
           <Suspense fallback={<PageLoader />}>
