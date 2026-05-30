@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { FarmerChatbot } from './FarmerChatbot';
 import { DEALER_DEFAULT_PASSWORD } from '../lib/dealerAuth';
+import { translateDealerLoginError } from '../lib/dealerLoginMessages';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
@@ -52,9 +53,7 @@ export function Login() {
     if (loginMode === 'dealer') {
       const { error: signInError } = await signInDealer(dealerPhone, dealerPassword);
       if (signInError) {
-        setError(
-          t(signInError.message, signInError.message)
-        );
+        setError(translateDealerLoginError(signInError.message, language === 'te'));
       }
       setLoading(false);
       return;
@@ -263,7 +262,7 @@ export function Login() {
                       />
                     </div>
                     <p className="mt-1 text-xs text-slate-500">
-                      {t('Default dealer password: guest', 'డీలర్ పాస్వర్డ్: guest')}
+                      {t(`Default dealer password: ${DEALER_DEFAULT_PASSWORD}`, `డీలర్ పాస్వర్డ్: ${DEALER_DEFAULT_PASSWORD}`)}
                     </p>
                   </div>
                 </>

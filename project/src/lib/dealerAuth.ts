@@ -26,4 +26,12 @@ export async function findDealerByPhone(phone: string) {
   return exact || data[0];
 }
 
-export const DEALER_DEFAULT_PASSWORD = 'guest';
+export const DEALER_DEFAULT_PASSWORD = 'Guest@123';
+
+/** Legacy password still accepted during transition. */
+export const DEALER_LEGACY_PASSWORD = 'guest';
+
+export function isValidDealerPassword(password: string): boolean {
+  const trimmed = password.trim();
+  return trimmed === DEALER_DEFAULT_PASSWORD || trimmed === DEALER_LEGACY_PASSWORD;
+}

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Users, Search, Save, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Search, Save, X, KeyRound } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Dealer } from '../types/database';
 import { parseExcelAndImportDealers } from '../lib/excelParser';
-import { provisionAllDealerLogins } from '../lib/provisionDealerLogins';
-import { dealerEmailFromPhone } from '../lib/dealerAuth';
+import { provisionAllDealerLogins, provisionDealerLogin } from '../lib/provisionDealerLogins';
+import { dealerEmailFromPhone, DEALER_DEFAULT_PASSWORD, normalizePhone } from '../lib/dealerAuth';
 
 type DealerCategory = 'fertilizer' | 'seed' | 'pesticide';
 
@@ -38,6 +38,10 @@ export function DealerManagement() {
   const [formData, setFormData] = useState(emptyForm);
   const [importing, setImporting] = useState(false);
   const [provisioningLogins, setProvisioningLogins] = useState(false);
+  const [showLoginSetup, setShowLoginSetup] = useState(false);
+  const [loginSetupDealerId, setLoginSetupDealerId] = useState('');
+  const [loginPassword, setLoginPassword] = useState(DEALER_DEFAULT_PASSWORD);
+  const [allDealersForLogin, setAllDealersForLogin] = useState<Dealer[]>([]);
 
   useEffect(() => {
     fetchDealers();
@@ -66,18 +70,68 @@ export function DealerManagement() {
     }
   };
 
-  const handleProvisionDealerLogins = async () => {
-    if (!confirm(t('Create portal logins for all dealers with phone numbers? Password will be: guest', 'ఫోన్ ఉన్న అన్ని డీలర్లకు పోర్టల్ లాగిన్ సృష్టించాలా? పాస్వర్డ్: guest'))) {
+  const openLoginSetup = async () => {
+    try {
+      const { data, error } = await supabase.from('dealers').select('*').order('dealer_name');
+      if (error) throw error;
+      setAllDealersForLogin((data || []) as Dealer[]);
+      setLoginSetupDealerId('');
+      setLoginPassword(DEALER_DEFAULT_PASSWORD);
+      setShowLoginSetup(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Could not load dealers');
+    }
+  };
+
+  const selectedLoginDealer = allDealersForLogin.find((d) => d.id === loginSetupDealerId);
+
+  const handleSetupSingleDealerLogin = async () => {
+    if (!loginSetupDealerId) {
+      alert(t('Select a dealer first.', 'ముందు డీలర్‌ను ఎంచుకోండి.'));
       return;
     }
     setProvisioningLogins(true);
     try {
-      const result = await provisionAllDealerLogins();
-      const failNote = result.failed.length ? `\n\nFailed:\n${result.failed.slice(0, 5).join('\n')}` : '';
+      const result = await provisionDealerLogin(loginSetupDealerId, loginPassword);
+      if (!result.ok) {
+        alert(result.error || t('Could not set up dealer login.', 'డీలర్ లాగిన్ సెటప్ కాలేదు.'));
+        return;
+      }
       alert(
         t(
-          `Created: ${result.created}, already existed: ${result.skipped}.${failNote}`,
-          `సృష్టించబడినవి: ${result.created}, ఇప్పటికే ఉన్నవి: ${result.skipped}.${failNote}`
+          `Login ready for ${result.dealer_name}.\nPhone (login ID): ${result.phone}\nPassword: ${result.password}`,
+          `లాగిన్ సిద్ధం: ${result.dealer_name}.\nఫోన్ (లాగిన్ ID): ${result.phone}\nపాస్వర్డ్: ${result.password}`
+        )
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Could not provision dealer login');
+    } finally {
+      setProvisioningLogins(false);
+    }
+  };
+
+  const handleProvisionAllDealerLogins = async () => {
+    if (
+      !confirm(
+        t(
+          `Create or reset portal logins for ALL dealers with phone numbers? Password: ${loginPassword}`,
+          `ఫోన్ ఉన్న అన్ని డీలర్లకు లాగిన్ సృష్టించాలా/రీసెట్ చేయాలా? పాస్వర్డ్: ${loginPassword}`
+        )
+      )
+    ) {
+      return;
+    }
+    setProvisioningLogins(true);
+    try {
+      const result = await provisionAllDealerLogins(loginPassword);
+      const failNote =
+        result.failed > 0
+          ? `\n\n${t('Failed', 'విఫలం')}: ${result.failed}`
+          : '';
+      alert(
+        t(
+          `Set up: ${result.created}${failNote}`,
+          `సెటప్: ${result.created}${failNote}`
         )
       );
     } catch (err) {
@@ -211,11 +265,12 @@ export function DealerManagement() {
             </label>
             <button
               type="button"
-              onClick={handleProvisionDealerLogins}
+              onClick={openLoginSetup}
               disabled={provisioningLogins}
-              className="rounded-lg border border-amber-400 px-4 py-2 text-sm font-bold text-amber-900 hover:bg-amber-50 disabled:opacity-60 dark:text-amber-200"
+              className="inline-flex items-center gap-2 rounded-lg border border-amber-400 px-4 py-2 text-sm font-bold text-amber-900 hover:bg-amber-50 disabled:opacity-60 dark:text-amber-200 dark:hover:bg-amber-950/30"
             >
-              {provisioningLogins ? t('Setting up…', 'సెటప్…') : t('Setup dealer logins', 'డీలర్ లాగిన్లు')}
+              <KeyRound className="h-4 w-4" />
+              {provisioningLogins ? t('Setting up…', 'సెటప్…') : t('Setup dealer login', 'డీలర్ లాగిన్')}
             </button>
             <button
               type="button"
@@ -259,6 +314,131 @@ export function DealerManagement() {
           className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-4 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
         />
       </div>
+
+      {showLoginSetup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
+          <div className="my-8 w-full max-w-lg rounded-xl border border-amber-200 bg-white p-6 shadow-2xl dark:border-amber-900 dark:bg-slate-900">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                {t('Setup dealer portal login', 'డీలర్ పోర్టల్ లాగిన్ సెటప్')}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowLoginSetup(false)}
+                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-300">
+                  {t('Select dealer', 'డీలర్ ఎంచుకోండి')}
+                </label>
+                <select
+                  value={loginSetupDealerId}
+                  onChange={(e) => setLoginSetupDealerId(e.target.value)}
+                  className="w-full rounded-lg border px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                >
+                  <option value="">{t('— Choose dealer —', '— డీలర్ ఎంచుకోండి —')}</option>
+                  {allDealersForLogin.map((dealer) => {
+                    const digits = normalizePhone(dealer.phone_number || '');
+                    const hasPhone = digits.length >= 10;
+                    return (
+                      <option key={dealer.id} value={dealer.id} disabled={!hasPhone}>
+                        {dealer.dealer_name} ({dealer.location || dealer.dealer_category}) —{' '}
+                        {hasPhone ? digits : t('add phone first', 'ముందు ఫోన్ జోడించండి')}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-300">
+                  {t('Login ID (phone number)', 'లాగిన్ ID (ఫోన్ నంబర్)')}
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={selectedLoginDealer ? normalizePhone(selectedLoginDealer.phone_number) : ''}
+                  placeholder={t('Select a dealer to see phone', 'ఫోన్ చూడడానికి డీలర్ ఎంచుకోండి')}
+                  className="w-full rounded-lg border bg-slate-50 px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-200"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-300">
+                  {t('Password', 'పాస్వర్డ్')}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="min-w-0 flex-1 rounded-lg border px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setLoginPassword(DEALER_DEFAULT_PASSWORD)}
+                    className="shrink-0 rounded-lg border border-amber-400 px-3 py-2 text-xs font-bold text-amber-900 dark:text-amber-200"
+                  >
+                    {t('Reset', 'రీసెట్')}
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  {t('Recommended password:', 'సిఫారసు పాస్వర్డ్:')} <strong>{DEALER_DEFAULT_PASSWORD}</strong>
+                </p>
+              </div>
+
+              {selectedLoginDealer && (
+                <div className="space-y-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+                  <p>
+                    {t('Portal email (internal):', 'పోర్టల్ ఇమెయిల్:')}{' '}
+                    <span className="font-mono font-bold">
+                      {selectedLoginDealer.portal_email ||
+                        dealerEmailFromPhone(selectedLoginDealer.phone_number)}
+                    </span>
+                  </p>
+                  <p>
+                    {t(
+                      'Dealer signs in on the login page (Dealer tab) with phone as ID and the password above.',
+                      'లాగిన్ పేజీ డీలర్ ట్యాబ్‌లో ఫోన్ ID + పాస్వర్డ్ తో లాగిన్ అవుతారు.'
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setShowLoginSetup(false)}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-bold text-gray-700 dark:border-slate-600 dark:text-slate-300"
+              >
+                {t('Cancel', 'రద్దు')}
+              </button>
+              <button
+                type="button"
+                onClick={handleSetupSingleDealerLogin}
+                disabled={provisioningLogins || !loginSetupDealerId}
+                className="flex-1 rounded-lg bg-amber-600 px-4 py-2 font-bold text-white hover:bg-amber-700 disabled:opacity-50"
+              >
+                {provisioningLogins ? t('Setting up…', 'సెటప్…') : t('Setup selected', 'ఎంచుకున్నది సెటప్')}
+              </button>
+              <button
+                type="button"
+                onClick={handleProvisionAllDealerLogins}
+                disabled={provisioningLogins}
+                className="flex-1 rounded-lg border border-amber-500 px-4 py-2 font-bold text-amber-900 hover:bg-amber-50 disabled:opacity-50 dark:text-amber-200 dark:hover:bg-amber-950/30"
+              >
+                {t('Setup all dealers', 'అందరికీ సెటప్')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">

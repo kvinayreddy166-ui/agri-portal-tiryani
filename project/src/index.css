@@ -24,6 +24,20 @@ body {
   .portal-section-title {
     @apply text-2xl font-black tracking-tight text-slate-950 dark:text-white;
   }
+
+  .page-title {
+    @apply text-3xl font-black tracking-tight text-slate-950 dark:text-white;
+  }
+
+  .page-subtitle {
+    @apply mt-1 text-slate-600 dark:text-slate-300;
+  }
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  color-scheme: dark;
 }
 
 /* Custom scrollbar */

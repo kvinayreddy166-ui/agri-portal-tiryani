@@ -1,7 +1,16 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, isAdmin, isDealerUser, getDealerIdFromUser } from '../lib/supabase';
-import { DEALER_DEFAULT_PASSWORD, dealerEmailFromPhone, normalizePhone } from '../lib/dealerAuth';
+import {
+  DEALER_DEFAULT_PASSWORD,
+  dealerEmailFromPhone,
+  isValidDealerPassword,
+  normalizePhone,
+} from '../lib/dealerAuth';
+import {
+  dealerLoginNotConfiguredError,
+  isDealerRpcMissing,
+} from '../lib/dealerLoginMessages';
 
 interface AuthContextType {
   user: User | null;
@@ -127,8 +136,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const dealerPassword = password.trim() || DEALER_DEFAULT_PASSWORD;
-    if (dealerPassword !== DEALER_DEFAULT_PASSWORD) {
-      return { error: new Error('Invalid dealer password. Use password: guest') };
+    if (!isValidDealerPassword(dealerPassword)) {
+      return {
+        error: new Error(`Invalid dealer password. Use password: ${DEALER_DEFAULT_PASSWORD}`),
+      };
     }
 
     try {
@@ -139,6 +150,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: loginInfo, error: rpcError } = await supabase.rpc('get_dealer_login_info', {
         p_phone: digits,
       });
+
+      if (rpcError && isDealerRpcMissing(rpcError.message)) {
+        return { error: dealerLoginNotConfiguredError() };
+      }
 
       if (!rpcError && loginInfo?.[0]) {
         const row = loginInfo[0] as { dealer_id: string; portal_email: string; dealer_name: string };
@@ -168,6 +183,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let result = await finishSignIn();
       if (!result.error) return { error: null };
 
+      if (result.error.message?.toLowerCase().includes('database error querying schema')) {
+        return {
+          error: new Error(
+            `Dealer login account needs repair. Admin: open Dealer Management → Setup dealer login → select this dealer → Setup selected (password ${DEALER_DEFAULT_PASSWORD}).`
+          ),
+        };
+      }
+
       const invalidCreds =
         result.error.message?.toLowerCase().includes('invalid login') ||
         result.error.message?.toLowerCase().includes('invalid credentials');
@@ -192,9 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           !signUpError.message.toLowerCase().includes('already been registered')
         ) {
           return {
-            error: new Error(
-              `Could not create dealer login (${signUpError.message}). Admin: run SQL migration 20260530140000_dealer_login_rpc.sql in Supabase, or enable email sign-ups.`
-            ),
+            error: dealerLoginNotConfiguredError(),
           };
         }
 
@@ -202,10 +223,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!result.error) return { error: null };
       }
 
-      if (!loginInfo?.length && rpcError) {
+      if (!loginInfo?.length) {
+        if (rpcError) {
+          return { error: dealerLoginNotConfiguredError() };
+        }
         return {
           error: new Error(
-            'Phone not found in dealer records, or database helper is missing. Admin: run migration 20260530140000_dealer_login_rpc.sql in Supabase SQL Editor.'
+            'Phone not found in Dealer Management. Add the dealer with this phone number first.'
           ),
         };
       }
@@ -213,7 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return {
         error: new Error(
           result.error?.message ||
-            'Dealer login failed. Confirm phone is in Dealer Management and password is guest.'
+            `Dealer login failed. Confirm phone is in Dealer Management and password is ${DEALER_DEFAULT_PASSWORD}.`
         ),
       };
     } catch (err) {

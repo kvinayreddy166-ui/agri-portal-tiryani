@@ -24,6 +24,7 @@ export function inferFileTypeFromName(name: string, mimeType?: string): string {
 
 export function isPreviewable(fileUrl: string, fileType?: string): boolean {
   const type = fileType || inferFileTypeFromName(fileUrl);
+  if (/drive\.google\.com|docs\.google\.com/i.test(fileUrl)) return true;
   if (type === 'image') return true;
   if (type === 'pdf' || /\.pdf(\?|$)/i.test(fileUrl)) return true;
   if (type === 'doc' || type === 'excel') return true;
