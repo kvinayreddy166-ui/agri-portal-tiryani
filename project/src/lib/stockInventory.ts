@@ -13,6 +13,7 @@ export interface StockInventoryLine {
   total: number;
   sales: number;
   closing_balance: number;
+  report_date?: string;
   report_month?: string;
 }
 
@@ -64,12 +65,43 @@ export function computeStockRow(opening: number, receipts: number, sales: number
   return { opening_balance, receipts: receiptsNum, total, sales: salesNum, closing_balance };
 }
 
-export function currentReportMonth(): string {
+export function currentReportDate(): string {
   const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
-export function emptyInventoryRow(serialNo: number, category: StockCategory): StockInventoryLine {
+export function reportDateToMonth(reportDate: string): string {
+  return reportDate.slice(0, 7);
+}
+
+export function shiftReportDate(reportDate: string, days: number): string {
+  const [y, m, d] = reportDate.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + days);
+  const yy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yy}-${mm}-${dd}`;
+}
+
+export function formatReportDateLabel(reportDate: string, locale = 'en-IN'): string {
+  const [y, m, d] = reportDate.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(locale, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+export function emptyInventoryRow(
+  serialNo: number,
+  category: StockCategory,
+  reportDate: string = currentReportDate()
+): StockInventoryLine {
   const types = productTypesForCategory(category);
   return {
     category,
@@ -80,6 +112,7 @@ export function emptyInventoryRow(serialNo: number, category: StockCategory): St
     total: 0,
     sales: 0,
     closing_balance: 0,
-    report_month: currentReportMonth(),
+    report_date: reportDate,
+    report_month: reportDateToMonth(reportDate),
   };
 }

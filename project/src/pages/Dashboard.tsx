@@ -308,8 +308,8 @@ export function Dashboard() {
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
               {t(
-                'Totals from dealer Stock Inventory submissions (closing balance in MTS)',
-                'డీలర్ స్టాక్ ఇన్వెంటరీ సమర్పణల నుండి మొత్తాలు (మిగిలిన మోతాదు MTS)'
+                'Totals from Stock Management (dealer-wise allocation in MTS)',
+                'స్టాక్ నిర్వహణ నుండి మొత్తాలు (డీలర్ వారీగా MTS)'
               )}
             </p>
           </div>
@@ -365,9 +365,12 @@ export function Dashboard() {
                 </div>
                 <div className="flex items-end justify-between gap-4">
                   <p className="text-4xl font-black tracking-tight text-gray-950 dark:text-white">
-                    {fertilizer.quantity_available.toLocaleString()}
+                    {fertilizer.quantity_available.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </p>
-                  <p className="mb-1 text-sm font-bold text-emerald-700">MTS</p>
+                  <p className="mb-1 text-sm font-bold text-emerald-700 dark:text-emerald-400">MTS</p>
                 </div>
                 <div className="mt-4 h-3 overflow-hidden rounded-full bg-gray-100">
                   <div

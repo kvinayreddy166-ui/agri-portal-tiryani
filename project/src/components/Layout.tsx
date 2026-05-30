@@ -42,7 +42,7 @@ const adminMenuItems = [
 ];
 
 const dealerMenuItems = [
-  { id: 'dealer-portal', label: 'My Stock Entry', icon: Package },
+  { id: 'dealer-portal', label: 'Daily Stock Entry', icon: Package },
 ];
 
 const menuItems = adminMenuItems;
@@ -201,6 +201,7 @@ function translateMenu(label: string) {
     'Stock Management': 'స్టాక్ నిర్వహణ',
     'Stock Inventory': 'స్టాక్ ఇన్వెంటరీ',
     'My Stock Entry': 'నా స్టాక్ ఎంట్రీ',
+    'Daily Stock Entry': 'రోజువారీ స్టాక్ ఎంట్రీ',
     'Dealer Management': 'డీలర్ నిర్వహణ',
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
     'Crop Management': 'పంట నిర్వహణ',
