@@ -3,6 +3,7 @@ export interface Dealer {
   dealer_name: string;
   ifms_id: string;
   phone_number: string;
+  portal_email?: string;
   license_number: string;
   issue_date: string;
   expiry_date: string;
@@ -19,6 +20,23 @@ export interface FertilizerStock {
   unit: string;
   last_updated: string;
   created_at: string;
+}
+
+export interface StockInventoryLine {
+  id: string;
+  dealer_id: string;
+  category: 'fertilizer' | 'seed' | 'pesticide';
+  serial_no: number;
+  product_type: string;
+  opening_balance: number;
+  receipts: number;
+  total: number;
+  sales: number;
+  closing_balance: number;
+  report_month: string;
+  created_at: string;
+  updated_at: string;
+  submitted_by: string;
 }
 
 export interface DealerStockAllocation {

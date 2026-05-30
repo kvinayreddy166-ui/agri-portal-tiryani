@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -7,7 +7,6 @@ import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { StockManagement } from './pages/StockManagement';
 import { DealerManagement } from './pages/DealerManagement';
-import { DealerStockTracking } from './pages/DealerStockTracking';
 import { CropPage } from './pages/CropPage';
 import { CropManagement } from './pages/CropManagement';
 import { FormsDownloads } from './pages/FormsDownloads';
@@ -20,6 +19,8 @@ import { FarmMechanization } from './pages/FarmMechanization';
 import { GosCirculars } from './pages/GosCirculars';
 import { FileDirectory } from './pages/FileDirectory';
 import { SubsidyTracking } from './pages/SubsidyTracking';
+import { DealerStockPortal } from './pages/DealerStockPortal';
+import { StockInventory } from './pages/StockInventory';
 const CropDiagnosis = lazy(() =>
   import('./pages/CropDiagnosis').then((m) => ({ default: m.CropDiagnosis }))
 );
@@ -33,8 +34,14 @@ function PageLoader() {
 }
 
 function AppContent() {
-  const { user, loading, isAdminUser } = useAuth();
+  const { user, loading, isAdminUser, isDealerUser } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
+
+  useEffect(() => {
+    if (user && isDealerUser) {
+      setCurrentPage('dealer-portal');
+    }
+  }, [user, isDealerUser]);
 
   const navigateToPage = (page: string) => {
     setCurrentPage(page);
@@ -63,11 +70,13 @@ function AppContent() {
       case 'dashboard':
         return <Dashboard />;
       case 'stock':
-        return <StockManagement />;
+        return isAdminUser ? <StockManagement /> : <DealerStockPortal />;
+      case 'stock-inventory':
+        return isAdminUser ? <StockInventory /> : <Dashboard />;
+      case 'dealer-portal':
+        return <DealerStockPortal />;
       case 'dealers':
         return <DealerManagement />;
-      case 'dealer-stock':
-        return <DealerStockTracking />;
       case 'crops':
         return <CropManagement />;
       case 'crop-cotton':
@@ -98,10 +107,14 @@ function AppContent() {
         return isAdminUser ? <ExcelUploads /> : <Dashboard />;
       case 'file-directory':
         return isAdminUser ? <FileDirectory /> : <Dashboard />;
+      case 'subsidy':
       case 'subsidy-nfsm':
-        return <SubsidyTracking program="nfsm" onProgramChange={(program) => navigateToPage(program === 'nfsm' ? 'subsidy-nfsm' : 'subsidy-state-seed')} />;
       case 'subsidy-state-seed':
-        return <SubsidyTracking program="state_seed_cell" onProgramChange={(program) => navigateToPage(program === 'nfsm' ? 'subsidy-nfsm' : 'subsidy-state-seed')} />;
+        return (
+          <SubsidyTracking
+            initialProgram={currentPage === 'subsidy-state-seed' ? 'state_seed_cell' : 'nfsm'}
+          />
+        );
       case 'crop-diagnosis':
         return (
           <Suspense fallback={<PageLoader />}>

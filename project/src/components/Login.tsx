@@ -7,10 +7,15 @@ import {
   LogIn,
   Mail,
   MessageSquareText,
+  Phone,
   Send,
   ShieldCheck,
+  Store,
   UserRoundCheck,
+  X,
 } from 'lucide-react';
+import { FarmerChatbot } from './FarmerChatbot';
+import { DEALER_DEFAULT_PASSWORD } from '../lib/dealerAuth';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
@@ -20,11 +25,14 @@ const TEST_EMAIL = 'test@gmail.com';
 const TEST_PASSWORD = 'Test@123';
 
 export function Login() {
-  const [activeTab, setActiveTab] = useState<'login' | 'grievance'>('login');
+  const [loginMode, setLoginMode] = useState<'staff' | 'dealer'>('staff');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [dealerPhone, setDealerPhone] = useState('');
+  const [dealerPassword, setDealerPassword] = useState(DEALER_DEFAULT_PASSWORD);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [grievanceOpen, setGrievanceOpen] = useState(false);
   const [grievance, setGrievance] = useState({
     farmer_name: '',
     village: '',
@@ -33,13 +41,24 @@ export function Login() {
     phone: '',
   });
   const [grievanceStatus, setGrievanceStatus] = useState<string | null>(null);
-  const { signIn } = useAuth();
+  const { signIn, signInDealer } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    if (loginMode === 'dealer') {
+      const { error: signInError } = await signInDealer(dealerPhone, dealerPassword);
+      if (signInError) {
+        setError(
+          t(signInError.message, signInError.message)
+        );
+      }
+      setLoading(false);
+      return;
+    }
 
     const normalizedEmail = email.trim().toLowerCase();
     const { error: signInError } = await signIn(normalizedEmail, password);
@@ -179,85 +198,129 @@ export function Login() {
               </button>
             </div>
 
-            <div className="mb-6 grid grid-cols-2 rounded-2xl bg-slate-100 p-1 text-sm font-bold text-slate-600">
+            <div className="mb-4 grid grid-cols-2 rounded-2xl bg-slate-100 p-1 text-sm font-bold">
               <button
                 type="button"
-                onClick={() => setActiveTab('login')}
-                className={`rounded-xl px-3 py-2 transition ${activeTab === 'login' ? 'bg-white text-emerald-800 shadow-sm' : 'hover:text-slate-900'}`}
+                onClick={() => setLoginMode('staff')}
+                className={`rounded-xl px-3 py-2 ${loginMode === 'staff' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}
               >
-                {t('Login', 'లాగిన్')}
+                {t('Staff / Test', 'సిబ్బంది / టెస్ట్')}
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('grievance')}
-                className={`rounded-xl px-3 py-2 transition ${activeTab === 'grievance' ? 'bg-white text-emerald-800 shadow-sm' : 'hover:text-slate-900'}`}
+                onClick={() => setLoginMode('dealer')}
+                className={`rounded-xl px-3 py-2 ${loginMode === 'dealer' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}
               >
-                {t('Grievance', 'ఫిర్యాదు')}
+                {t('Dealer', 'డీలర్')}
               </button>
             </div>
 
-            <div className={`mb-6 ${activeTab === 'login' ? '' : 'hidden'}`}>
+            <div className="mb-6">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
-                {t('Secure sign in', 'సురక్షిత లాగిన్')}
+                {loginMode === 'dealer' ? t('Dealer login', 'డీలర్ లాగిన్') : t('Secure sign in', 'సురక్షిత లాగిన్')}
               </p>
               <h3 className="mt-2 text-2xl font-black text-slate-950">{t('Welcome', 'స్వాగతం')}</h3>
             </div>
 
-            {activeTab === 'login' && error && (
+            {error && (
               <div className="mb-5 flex gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className={`space-y-4 ${activeTab === 'login' ? '' : 'hidden'}`}>
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  {t('Email Address', 'ఇమెయిల్ చిరునామా')}
-                </label>
-                <div className="relative">
-                  <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-                    placeholder={t('Enter email address', 'ఇమెయిల్ నమోదు చేయండి')}
-                    autoComplete="email"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  {t('Password', 'పాస్వర్డ్')}
-                </label>
-                <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-                    placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')}
-                    autoComplete="current-password"
-                    required
-                  />
-                </div>
-              </div>
-
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {loginMode === 'dealer' ? (
+                <>
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700">
+                      {t('Registered phone (Dealer Management)', 'నమోదైన ఫోన్ (డీలర్ నిర్వహణ)')}
+                    </label>
+                    <div className="relative">
+                      <Phone className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="tel"
+                        value={dealerPhone}
+                        onChange={(e) => setDealerPhone(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                        placeholder="9949497506"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700">
+                      {t('Password', 'పాస్వర్డ్')}
+                    </label>
+                    <div className="relative">
+                      <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="password"
+                        value={dealerPassword}
+                        onChange={(e) => setDealerPassword(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                        required
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {t('Default dealer password: guest', 'డీలర్ పాస్వర్డ్: guest')}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700">
+                      {t('Email Address', 'ఇమెయిల్ చిరునామా')}
+                    </label>
+                    <div className="relative">
+                      <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                        placeholder={t('Enter email address', 'ఇమెయిల్ నమోదు చేయండి')}
+                        autoComplete="email"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700">
+                      {t('Password', 'పాస్వర్డ్')}
+                    </label>
+                    <div className="relative">
+                      <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                        placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')}
+                        autoComplete="current-password"
+                        required
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
               <button
                 type="submit"
                 disabled={loading}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3.5 font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:from-emerald-800 hover:to-teal-800 disabled:opacity-60"
               >
-                <LogIn className="h-5 w-5" />
-                {loading ? t('Signing in...', 'లాగిన్ అవుతోంది...') : t('Sign In', 'లాగిన్')}
+                {loginMode === 'dealer' ? <Store className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
+                {loading
+                  ? t('Signing in...', 'లాగిన్ అవుతోంది...')
+                  : loginMode === 'dealer'
+                    ? t('Dealer Sign In', 'డీలర్ లాగిన్')
+                    : t('Sign In', 'లాగిన్')}
               </button>
             </form>
 
-            <div className={`mt-5 rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950 ${activeTab === 'login' ? '' : 'hidden'}`}>
+            {loginMode === 'staff' && (
+            <div className="mt-5 rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950">
               <p className="flex items-center gap-2 font-bold">
                 <UserRoundCheck className="h-4 w-4" />
                 {t('Test login', 'టెస్ట్ లాగిన్')}
@@ -269,42 +332,7 @@ export function Login() {
                 <span className="font-semibold">Password:</span> {TEST_PASSWORD}
               </p>
             </div>
-
-            <form onSubmit={handleGrievanceSubmit} className={`space-y-4 ${activeTab === 'grievance' ? '' : 'hidden'}`}>
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4">
-                <p className="flex items-center gap-2 text-sm font-black text-emerald-900">
-                  <MessageSquareText className="h-5 w-5" />
-                  {t('Farmer Grievance', 'రైతు ఫిర్యాదు')}
-                </p>
-                <p className="mt-1 text-xs text-emerald-800">
-                  {t('Submit scheme or other issue details to the MAO office.', 'పథకాలు లేదా ఇతర సమస్యల వివరాలను MAO కార్యాలయానికి పంపండి.')}
-                </p>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <input value={grievance.farmer_name} onChange={(e) => setGrievance({ ...grievance, farmer_name: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Farmer Name', 'రైతు పేరు')} required />
-                <input value={grievance.village} onChange={(e) => setGrievance({ ...grievance, village: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Village', 'గ్రామం')} required />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <select value={grievance.issue_type} onChange={(e) => setGrievance({ ...grievance, issue_type: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
-                  <option value="schemes">{t('Schemes', 'పథకాలు')}</option>
-                  <option value="fertilizer">{t('Fertilizer', 'ఎరువులు')}</option>
-                  <option value="seed">{t('Seed', 'విత్తనాలు')}</option>
-                  <option value="pesticides">{t('Pesticides', 'పురుగుమందులు')}</option>
-                  <option value="other">{t('Other Issues', 'ఇతర సమస్యలు')}</option>
-                </select>
-                <input value={grievance.phone} onChange={(e) => setGrievance({ ...grievance, phone: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Phone', 'ఫోన్')} />
-              </div>
-
-              <textarea value={grievance.message} onChange={(e) => setGrievance({ ...grievance, message: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Complaint Details', 'ఫిర్యాదు వివరాలు')} required />
-
-              <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3.5 font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:from-emerald-800 hover:to-teal-800">
-                <Send className="h-5 w-5" />
-                {t('Submit Complaint', 'ఫిర్యాదు పంపండి')}
-              </button>
-              {grievanceStatus && <p className="text-sm font-semibold text-emerald-700">{grievanceStatus}</p>}
-            </form>
+            )}
 
             <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/80 px-4 py-4 text-center text-xs leading-5 text-emerald-900">
               <p>
@@ -319,17 +347,58 @@ export function Login() {
           </div>
         </section>
       </div>
+
       <button
         type="button"
-        onClick={() => {
-          setActiveTab('grievance');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onClick={() => setGrievanceOpen(true)}
         className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-black text-white shadow-xl shadow-emerald-950/20 transition hover:bg-emerald-800"
       >
         <MessageSquareText className="h-5 w-5" />
         {t('Grievances', 'ఫిర్యాదులు')}
       </button>
+
+      <FarmerChatbot showOnLoginPage />
+
+      {grievanceOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-lg font-black text-emerald-900">
+                <MessageSquareText className="h-5 w-5" />
+                {t('Farmer Grievance', 'రైతు ఫిర్యాదు')}
+              </h3>
+              <button type="button" onClick={() => setGrievanceOpen(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="mb-4 text-sm text-slate-600">
+              {t('Submit scheme or other issue details to the MAO office.', 'పథకాలు లేదా ఇతర సమస్యల వివరాలను MAO కార్యాలయానికి పంపండి.')}
+            </p>
+            <form onSubmit={handleGrievanceSubmit} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <input value={grievance.farmer_name} onChange={(e) => setGrievance({ ...grievance, farmer_name: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Farmer Name', 'రైతు పేరు')} required />
+                <input value={grievance.village} onChange={(e) => setGrievance({ ...grievance, village: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Village', 'గ్రామం')} required />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <select value={grievance.issue_type} onChange={(e) => setGrievance({ ...grievance, issue_type: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                  <option value="schemes">{t('Schemes', 'పథకాలు')}</option>
+                  <option value="fertilizer">{t('Fertilizer', 'ఎరువులు')}</option>
+                  <option value="seed">{t('Seed', 'విత్తనాలు')}</option>
+                  <option value="pesticides">{t('Pesticides', 'పురుగుమందులు')}</option>
+                  <option value="other">{t('Other Issues', 'ఇతర సమస్యలు')}</option>
+                </select>
+                <input value={grievance.phone} onChange={(e) => setGrievance({ ...grievance, phone: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Phone', 'ఫోన్')} />
+              </div>
+              <textarea value={grievance.message} onChange={(e) => setGrievance({ ...grievance, message: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Complaint Details', 'ఫిర్యాదు వివరాలు')} required />
+              <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3.5 font-bold text-white shadow-lg">
+                <Send className="h-5 w-5" />
+                {t('Submit Complaint', 'ఫిర్యాదు పంపండి')}
+              </button>
+              {grievanceStatus && <p className="text-sm font-semibold text-emerald-700">{grievanceStatus}</p>}
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { X, Download, ExternalLink, Loader2 } from 'lucide-react';
-import { inferFileTypeFromName, isPreviewable } from '../../lib/fileTypes';
+import { inferFileTypeFromName } from '../../lib/fileTypes';
+import {
+  getGoogleViewerEmbedUrl,
+  getGoogleViewerTabUrl,
+  getOfficeViewerEmbedUrl,
+} from '../../lib/filePreviewUrls';
 import { downloadFileFromUrl, fetchBlobUrl, revokeBlobUrl } from '../../lib/fileBlob';
 
 interface FilePreviewModalProps {
@@ -12,13 +17,16 @@ interface FilePreviewModalProps {
 
 export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FilePreviewModalProps) {
   const type = fileType || inferFileTypeFromName(fileName || fileUrl);
-  const canPreview = isPreviewable(fileUrl, type);
-  const isImage = type === 'image' || /\.(png|jpe?g|webp|gif)(\?|$)/i.test(fileUrl);
-  const isPdf = type === 'pdf' || /\.pdf(\?|$)/i.test(fileUrl);
-  const isOfficeFile = type === 'doc' || type === 'excel';
+  const isImage = type === 'image' || /\.(png|jpe?g|webp|gif|bmp)(\?|$)/i.test(fileUrl);
+
+  const officeViewerSrc = getOfficeViewerEmbedUrl(fileUrl);
+  const googleViewerEmbedSrc = getGoogleViewerEmbedUrl(fileUrl);
+  const googleViewerTabSrc = getGoogleViewerTabUrl(fileUrl);
+
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
-  const [loadingPreview, setLoadingPreview] = useState(canPreview && isImage);
-  const [previewError, setPreviewError] = useState(false);
+  const [loadingImage, setLoadingImage] = useState(isImage);
+  const [imageFailed, setImageFailed] = useState(false);
+  const [viewerMode, setViewerMode] = useState<'office' | 'google'>('office');
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
@@ -30,30 +38,30 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
   }, [onClose]);
 
   useEffect(() => {
-    if (!canPreview || !isImage) return;
+    if (!isImage) {
+      setLoadingImage(false);
+      return;
+    }
 
     let cancelled = false;
-    setLoadingPreview(true);
-    setPreviewError(false);
+    setLoadingImage(true);
+    setImageFailed(false);
 
     fetchBlobUrl(fileUrl)
       .then((blobUrl) => {
         if (!cancelled) setPreviewSrc(blobUrl);
       })
       .catch(() => {
-        if (!cancelled) {
-          setPreviewError(true);
-          setPreviewSrc(null);
-        }
+        if (!cancelled) setImageFailed(true);
       })
       .finally(() => {
-        if (!cancelled) setLoadingPreview(false);
+        if (!cancelled) setLoadingImage(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [fileUrl, canPreview, isImage]);
+  }, [fileUrl, isImage]);
 
   useEffect(() => {
     return () => revokeBlobUrl(previewSrc);
@@ -71,18 +79,8 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
     }
   };
 
-  const displaySrc = previewSrc || fileUrl;
-  const officeViewerSrc = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
-  const googleViewerSrc = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(fileUrl)}`;
-
-  const handleOpen = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    if ((isImage || isPdf) && previewSrc) {
-      window.open(previewSrc, '_blank', 'noopener,noreferrer');
-      return;
-    }
-    window.open(isOfficeFile ? officeViewerSrc : fileUrl, '_blank', 'noopener,noreferrer');
-  };
+  const activeIframeSrc = viewerMode === 'office' ? officeViewerSrc : googleViewerEmbedSrc;
+  const showImageInline = isImage && !imageFailed && previewSrc && !loadingImage;
 
   return (
     <div
@@ -100,7 +98,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
           <h2 className="truncate text-sm font-bold text-slate-900 dark:text-white">
             {fileName || 'File preview'}
           </h2>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-0.5">
             <button
               type="button"
               onClick={handleDownload}
@@ -110,14 +108,15 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
             >
               {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}
             </button>
-            <button
-              type="button"
-              onClick={handleOpen}
+            <a
+              href={googleViewerTabSrc}
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-lg p-2 text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-slate-800"
-              title="Open in new tab"
+              title="Open preview in new tab"
             >
               <ExternalLink className="h-5 w-5" />
-            </button>
+            </a>
             <button
               type="button"
               onClick={onClose}
@@ -129,103 +128,55 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
           </div>
         </div>
 
-        <div className="flex min-h-[50vh] flex-1 items-center justify-center overflow-auto bg-slate-100 p-4 dark:bg-slate-950">
-          {loadingPreview && (
-            <div className="flex flex-col items-center gap-3 text-slate-500">
+        <div className="flex min-h-[50vh] flex-1 flex-col overflow-hidden bg-slate-100 dark:bg-slate-950">
+          {loadingImage && (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-slate-500">
               <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
               <p className="text-sm">Loading preview…</p>
             </div>
           )}
 
-          {!loadingPreview && canPreview && isImage && (
-            <img
-              src={displaySrc}
-              alt={fileName || 'Preview'}
-              className="max-h-[75vh] max-w-full rounded-lg object-contain shadow-lg"
-              onError={() => setPreviewError(true)}
-            />
-          )}
-
-          {!loadingPreview && isPdf && !isImage && (
-            <div className="flex h-[75vh] w-full flex-col gap-3">
-              <iframe
-                src={fileUrl}
-                title={fileName || 'PDF preview'}
-                className="min-h-0 flex-1 rounded-lg border-0 bg-white shadow-lg"
+          {!loadingImage && showImageInline && (
+            <div className="flex max-h-[38vh] shrink-0 items-center justify-center overflow-auto p-4">
+              <img
+                src={previewSrc}
+                alt={fileName || 'Preview'}
+                className="max-h-[36vh] max-w-full rounded-lg object-contain shadow-lg"
+                onError={() => setImageFailed(true)}
               />
-              <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
-                <span>PDF preview opens directly in the browser.</span>
-                <a
-                  href={googleViewerSrc}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-emerald-700 hover:underline"
-                >
-                  Try Google preview
-                </a>
-                <button
-                  type="button"
-                  onClick={handleDownload}
-                  className="font-bold text-sky-700 hover:underline"
-                >
-                  Download
-                </button>
-              </div>
             </div>
           )}
 
-          {!loadingPreview && isOfficeFile && (
-            <div className="flex h-[75vh] w-full flex-col gap-3">
+          {!loadingImage && (
+            <div className={`flex min-h-0 flex-1 flex-col p-4 ${showImageInline ? 'pt-0' : ''}`}>
               <iframe
-                src={officeViewerSrc}
+                key={activeIframeSrc}
+                src={activeIframeSrc}
                 title={fileName || 'Document preview'}
-                className="min-h-0 flex-1 rounded-lg border-0 bg-white shadow-lg"
+                className="min-h-[42vh] flex-1 rounded-lg border-0 bg-white shadow-lg"
               />
-              <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
-                <span>Preview uses the online Office viewer.</span>
-                <a
-                  href={googleViewerSrc}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-emerald-700 hover:underline"
-                >
-                  Try Google preview
-                </a>
-                <button
-                  type="button"
-                  onClick={handleDownload}
-                  className="font-bold text-sky-700 hover:underline"
-                >
-                  Download
-                </button>
-              </div>
             </div>
           )}
 
-          {!loadingPreview && previewError && canPreview && (
-            <div className="text-center">
-              <p className="text-slate-600 dark:text-slate-400">
-                Preview could not be loaded inline.
-              </p>
-              <a
-                href={fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-800"
+          <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+              <span>Preview uses the online Office viewer.</span>
+              <button
+                type="button"
+                onClick={() => setViewerMode((m) => (m === 'office' ? 'google' : 'office'))}
+                className="font-bold text-emerald-700 hover:underline dark:text-emerald-400"
               >
-                <ExternalLink className="h-4 w-4" />
-                Open in new tab
-              </a>
+                Try Google preview
+              </button>
+              <button
+                type="button"
+                onClick={handleDownload}
+                className="font-bold text-sky-700 hover:underline dark:text-sky-400"
+              >
+                Download
+              </button>
             </div>
-          )}
-
-          {!loadingPreview && !canPreview && !isOfficeFile && !isPdf && (
-            <div className="text-center">
-              <p className="text-slate-600 dark:text-slate-400">
-                Inline preview is not available for this file type. Use Download.
-              </p>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

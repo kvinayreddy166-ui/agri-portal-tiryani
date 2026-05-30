@@ -347,7 +347,7 @@ export function FormsDownloads() {
                   <span className="text-sm font-medium text-gray-500">
                     {new Date(form.created_at).toLocaleDateString()}
                   </span>
-                  <div className="flex justify-end gap-2">
+                  <div className="flex items-center justify-end gap-0.5">
                     {form.file_url && (
                       <FileActionButtons fileUrl={form.file_url} fileName={form.title} fileType={form.file_type} size="sm" />
                     )}

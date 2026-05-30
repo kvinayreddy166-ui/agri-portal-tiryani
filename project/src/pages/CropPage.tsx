@@ -359,7 +359,7 @@ export function CropPage({ cropType }: CropPageProps) {
                   </div>
                   <FileTypeBadge fileName={item.file_url || item.title} fileType={item.file_type} />
                   <span className="text-sm text-gray-500">{new Date(item.created_at).toLocaleDateString()}</span>
-                  <div className="flex justify-end gap-2">
+                  <div className="flex items-center justify-end gap-0.5">
                     {item.file_url && (
                       <FileActionButtons
                         fileUrl={item.file_url}

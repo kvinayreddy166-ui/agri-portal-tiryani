@@ -26,7 +26,16 @@ export function isPreviewable(fileUrl: string, fileType?: string): boolean {
   const type = fileType || inferFileTypeFromName(fileUrl);
   if (type === 'image') return true;
   if (type === 'pdf' || /\.pdf(\?|$)/i.test(fileUrl)) return true;
+  if (type === 'doc' || type === 'excel') return true;
+  if (/\.(docx?|xlsx?|csv)(\?|$)/i.test(fileUrl)) return true;
   return /\.(png|jpe?g|webp|gif)(\?|$)/i.test(fileUrl);
+}
+
+export function usesGoogleViewer(fileType?: string, fileUrl?: string): boolean {
+  const type = fileType || inferFileTypeFromName(fileUrl || '');
+  if (type === 'pdf' || /\.pdf(\?|$)/i.test(fileUrl || '')) return true;
+  if (type === 'doc' || type === 'excel') return true;
+  return /\.(docx?|xlsx?|csv)(\?|$)/i.test(fileUrl || '');
 }
 
 export function getFileTypeIcon(fileType: string): LucideIcon {

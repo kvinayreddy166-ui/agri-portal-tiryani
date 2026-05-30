@@ -24,13 +24,43 @@ export function aggregateFertilizerStock(
   }));
 }
 
-export async function fetchAggregatedFertilizerStock(): Promise<FertilizerStock[]> {
-  const { data, error } = await supabase
-    .from('dealer_stock_allocation')
-    .select('fertilizer_type, quantity_mts');
+function aggregateFromInventoryLines(
+  lines: { product_type: string; closing_balance: number | string }[]
+): { fertilizer_type: string; quantity_mts: number }[] {
+  const totals = FERTILIZER_TYPES.reduce((result, fertilizer) => {
+    result[fertilizer] = lines
+      .filter((line) => line.product_type === fertilizer)
+      .reduce((sum, line) => sum + Number(line.closing_balance || 0), 0);
+    return result;
+  }, {} as Record<string, number>);
 
-  if (error) throw error;
-  return aggregateFertilizerStock(data || []);
+  return FERTILIZER_TYPES.map((fertilizer_type) => ({
+    fertilizer_type,
+    quantity_mts: totals[fertilizer_type],
+  }));
+}
+
+export async function fetchAggregatedFertilizerStock(): Promise<FertilizerStock[]> {
+  const month = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+
+  const [inventoryRes, allocationRes] = await Promise.all([
+    supabase
+      .from('stock_inventory_lines')
+      .select('product_type, closing_balance')
+      .eq('category', 'fertilizer')
+      .eq('report_month', month),
+    supabase.from('dealer_stock_allocation').select('fertilizer_type, quantity_mts'),
+  ]);
+
+  if (inventoryRes.error) console.warn('stock_inventory_lines:', inventoryRes.error.message);
+  if (allocationRes.error) throw allocationRes.error;
+
+  const inventoryLines = inventoryRes.data || [];
+  if (inventoryLines.length > 0) {
+    return aggregateFertilizerStock(aggregateFromInventoryLines(inventoryLines));
+  }
+
+  return aggregateFertilizerStock(allocationRes.data || []);
 }
 
 export async function syncFertilizerStockTable(): Promise<void> {

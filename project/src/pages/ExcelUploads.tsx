@@ -490,7 +490,7 @@ export function ExcelUploads() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-0.5">
                   <FileActionButtons
                     fileUrl={upload.file_url}
                     fileName={upload.file_name}

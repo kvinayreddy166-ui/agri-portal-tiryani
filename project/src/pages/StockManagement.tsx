@@ -68,12 +68,15 @@ export function StockManagement() {
     try {
       const { error } = await supabase
         .from('dealer_stock_allocation')
-        .insert([{
-          dealer_id: formData.dealer_id,
-          fertilizer_type: formData.fertilizer_type,
-          quantity_mts: formData.quantity_mts,
-          last_updated: new Date().toISOString(),
-        }]);
+        .upsert(
+          [{
+            dealer_id: formData.dealer_id,
+            fertilizer_type: formData.fertilizer_type,
+            quantity_mts: formData.quantity_mts,
+            last_updated: new Date().toISOString(),
+          }],
+          { onConflict: 'dealer_id,fertilizer_type' }
+        );
 
       if (error) throw error;
       await syncFertilizerStockTable();
@@ -82,7 +85,10 @@ export function StockManagement() {
       fetchData();
     } catch (error) {
       console.error('Error adding dealer-wise stock:', error);
-      alert('Failed to add dealer-wise stock. Please check database permissions.');
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert(
+        `Failed to add dealer-wise stock: ${message}\n\nIf this mentions permission or policy, run the latest Supabase migration (stock inventory & dealer login).`
+      );
     }
   };
 

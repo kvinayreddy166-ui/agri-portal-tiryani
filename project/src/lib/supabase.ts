@@ -45,3 +45,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export const isAdmin = (email: string | undefined) => {
   return email?.trim().toLowerCase() === 'k.vinayreddy166@gmail.com';
 };
+
+export const isDealerUser = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
+  return user?.user_metadata?.role === 'dealer';
+};
+
+export const getDealerIdFromUser = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
+  const id = user?.user_metadata?.dealer_id;
+  return typeof id === 'string' && id.length > 0 ? id : null;
+};

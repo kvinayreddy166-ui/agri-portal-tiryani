@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X } from 'lucide-react';
+import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { fetchAggregatedFertilizerStock } from '../lib/fertilizerStock';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +19,13 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [editingCrop, setEditingCrop] = useState<string | null>(null);
   const [editingScheme, setEditingScheme] = useState<string | null>(null);
+  const [editingSchemeDetails, setEditingSchemeDetails] = useState<string | null>(null);
+  const [schemeForm, setSchemeForm] = useState({
+    scheme_name: '',
+    description: '',
+    benefits: '',
+    eligibility: '',
+  });
   const [beneficiaryForm, setBeneficiaryForm] = useState({
     scheme_id: '',
     financial_year: '2025-26',
@@ -67,6 +74,54 @@ export function Dashboard() {
       beneficiaries_count: '',
       notes: '',
     });
+  };
+
+  const openSchemeEdit = (scheme: Scheme) => {
+    setEditingSchemeDetails(scheme.id);
+    setSchemeForm({
+      scheme_name: scheme.scheme_name,
+      description: scheme.description,
+      benefits: scheme.benefits,
+      eligibility: scheme.eligibility,
+    });
+  };
+
+  const saveSchemeDetails = async () => {
+    if (!editingSchemeDetails || !schemeForm.scheme_name.trim()) return;
+    const { error } = await supabase
+      .from('schemes')
+      .update({
+        scheme_name: schemeForm.scheme_name.trim(),
+        description: schemeForm.description.trim(),
+        benefits: schemeForm.benefits.trim(),
+        eligibility: schemeForm.eligibility.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', editingSchemeDetails);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    setEditingSchemeDetails(null);
+    fetchDashboardData();
+  };
+
+  const deleteScheme = async (schemeId: string, schemeName: string) => {
+    if (!confirm(t(`Delete scheme "${schemeName}"?`, `"${schemeName}" పథకాన్ని తొలగించాలా?`))) return;
+    await supabase.from('scheme_beneficiaries').delete().eq('scheme_id', schemeId);
+    const { error } = await supabase.from('schemes').delete().eq('id', schemeId);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    fetchDashboardData();
+  };
+
+  const deleteBeneficiary = async (id: string) => {
+    if (!confirm(t('Delete this beneficiary record?', 'ఈ లబ్ధిదారు రికార్డును తొలగించాలా?'))) return;
+    await supabase.from('scheme_beneficiaries').delete().eq('id', id);
+    fetchDashboardData();
   };
 
   const saveBeneficiaryRecord = async () => {
@@ -253,8 +308,8 @@ export function Dashboard() {
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
               {t(
-                'Totals from Stock Management (dealer-wise entries in MTS)',
-                'స్టాక్ నిర్వహణ నుండి మొత్తాలు (డీలర్ వారీగా MTS)'
+                'Totals from dealer Stock Inventory submissions (closing balance in MTS)',
+                'డీలర్ స్టాక్ ఇన్వెంటరీ సమర్పణల నుండి మొత్తాలు (మిగిలిన మోతాదు MTS)'
               )}
             </p>
           </div>
@@ -346,29 +401,87 @@ export function Dashboard() {
                 : scheme.eligibility;
             return (
               <div key={scheme.id} className={`${schemeColors[idx % 4]} bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 hover:shadow-lg transition-all group`}>
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start gap-2">
                   <h3 className="font-bold text-lg text-gray-900 dark:text-white">{scheme.scheme_name}</h3>
                   {isAdminUser && (
-                    <button
-                      onClick={() => openBeneficiaryForm(scheme.id)}
-                      className="opacity-0 group-hover:opacity-100 text-blue-600 hover:bg-blue-50 p-2 rounded transition-all"
-                      title={t('Add beneficiaries', 'లబ్ధిదారులను జోడించండి')}
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
+                    <div className="flex shrink-0 gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
+                      <button
+                        onClick={() => openBeneficiaryForm(scheme.id)}
+                        className="text-blue-600 hover:bg-blue-50 p-2 rounded"
+                        title={t('Add beneficiaries', 'లబ్ధిదారులను జోడించండి')}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => openSchemeEdit(scheme)}
+                        className="text-amber-600 hover:bg-amber-50 p-2 rounded"
+                        title={t('Edit scheme', 'పథకం సవరించు')}
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteScheme(scheme.id, scheme.scheme_name)}
+                        className="text-red-600 hover:bg-red-50 p-2 rounded"
+                        title={t('Delete scheme', 'పథకం తొలగించు')}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                 </div>
-                <p className="text-gray-600 dark:text-slate-400 text-sm mt-2">{scheme.description}</p>
-                <div className="space-y-2 mt-3 text-sm">
-                  <div className="flex items-start gap-2">
-                    <span className="font-semibold text-emerald-600 min-w-fit">{t('Benefits:', 'ప్రయోజనాలు:')}</span>
-                    <span className="text-gray-700 dark:text-slate-300">{scheme.benefits}</span>
+                {isAdminUser && editingSchemeDetails === scheme.id ? (
+                  <div className="mt-3 space-y-2">
+                    <input
+                      value={schemeForm.scheme_name}
+                      onChange={(e) => setSchemeForm({ ...schemeForm, scheme_name: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                      placeholder={t('Scheme name', 'పథకం పేరు')}
+                    />
+                    <textarea
+                      value={schemeForm.description}
+                      onChange={(e) => setSchemeForm({ ...schemeForm, description: e.target.value })}
+                      rows={2}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                      placeholder={t('Description', 'వివరణ')}
+                    />
+                    <textarea
+                      value={schemeForm.benefits}
+                      onChange={(e) => setSchemeForm({ ...schemeForm, benefits: e.target.value })}
+                      rows={2}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                      placeholder={t('Benefits', 'ప్రయోజనాలు')}
+                    />
+                    <textarea
+                      value={schemeForm.eligibility}
+                      onChange={(e) => setSchemeForm({ ...schemeForm, eligibility: e.target.value })}
+                      rows={2}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                      placeholder={t('Eligibility', 'అర్హత')}
+                    />
+                    <div className="flex gap-1">
+                      <button type="button" onClick={saveSchemeDetails} className="rounded-lg bg-emerald-700 p-2 text-white">
+                        <Save className="h-4 w-4" />
+                      </button>
+                      <button type="button" onClick={() => setEditingSchemeDetails(null)} className="rounded-lg border border-slate-300 p-2 text-slate-600">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <span className="font-semibold text-emerald-600 min-w-fit">{t('Eligibility:', 'అర్హత:')}</span>
-                    <span className="text-gray-700 dark:text-slate-300">{eligibility}</span>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <p className="text-gray-600 dark:text-slate-400 text-sm mt-2">{scheme.description}</p>
+                    <div className="space-y-2 mt-3 text-sm">
+                      <div className="flex items-start gap-2">
+                        <span className="font-semibold text-emerald-600 min-w-fit">{t('Benefits:', 'ప్రయోజనాలు:')}</span>
+                        <span className="text-gray-700 dark:text-slate-300">{scheme.benefits}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-semibold text-emerald-600 min-w-fit">{t('Eligibility:', 'అర్హత:')}</span>
+                        <span className="text-gray-700 dark:text-slate-300">{eligibility}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
                 <div className="mt-4 rounded-lg border border-white bg-white/70 p-3 dark:border-slate-700 dark:bg-slate-800/70">
                   <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">
                     {t('Financial year beneficiaries', 'ఆర్థిక సంవత్సరం లబ్ధిదారులు')}
@@ -380,14 +493,26 @@ export function Dashboard() {
                     {schemeBeneficiaries
                       .filter((row) => row.scheme_id === scheme.id)
                       .map((row) => (
-                        <div key={row.id} className="flex items-start justify-between gap-3 rounded-md bg-slate-50 px-3 py-2 dark:bg-slate-900">
+                        <div key={row.id} className="flex items-start justify-between gap-2 rounded-md bg-slate-50 px-3 py-2 dark:bg-slate-900">
                           <div>
                             <p className="text-sm font-bold text-slate-900 dark:text-white">{row.financial_year}</p>
                             {row.notes && <p className="text-xs text-slate-500">{row.notes}</p>}
                           </div>
-                          <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-700">
-                            {row.beneficiaries_count.toLocaleString()}
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-700">
+                              {row.beneficiaries_count.toLocaleString()}
+                            </span>
+                            {isAdminUser && (
+                              <button
+                                type="button"
+                                onClick={() => deleteBeneficiary(row.id)}
+                                className="rounded p-1 text-red-500 hover:bg-red-50"
+                                title={t('Delete record', 'రికార్డు తొలగించు')}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ))}
                   </div>

@@ -203,7 +203,7 @@ export function FarmMechanization() {
                       {new Date(document.created_at).toLocaleString()}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-0.5">
                     <FileActionButtons
                       fileUrl={document.file_url}
                       fileName={document.file_name || document.title}

@@ -316,7 +316,7 @@ export function QualityControl({ category }: QualityControlProps) {
                     <p className="flex items-center gap-2 font-semibold"><CalendarDays className="h-4 w-4 text-emerald-600" />{new Date(sample.sample_date).toLocaleDateString()}</p>
                     {sample.remarks && <p className="mt-1 line-clamp-1">{sample.remarks}</p>}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-0.5">
                     {sample.form_url && (
                       <FileActionButtons
                         fileUrl={sample.form_url}

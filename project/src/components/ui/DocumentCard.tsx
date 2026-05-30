@@ -58,8 +58,8 @@ export function DocumentCard({
           <p className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">{description}</p>
         )}
         {meta && <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">{meta}</p>}
-        <div className="mt-auto flex items-center justify-between gap-2 pt-5">
-          <FileActionButtons fileUrl={fileUrl} fileName={title} fileType={fileType} />
+        <div className="mt-auto flex items-center justify-between gap-0.5 pt-4">
+          <FileActionButtons fileUrl={fileUrl} fileName={title} fileType={fileType} size="sm" />
           {showDelete && onDelete && (
             <button
               type="button"

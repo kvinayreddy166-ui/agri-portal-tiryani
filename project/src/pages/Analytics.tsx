@@ -88,7 +88,7 @@ export function Analytics() {
             <div>
               <p className="text-sm text-gray-600">Fertilizer Stock</p>
               <p className="text-2xl font-bold text-gray-900">{totalFertilizer.toLocaleString()}</p>
-              <p className="text-xs text-gray-500">kg</p>
+              <p className="text-xs text-gray-500">MTS</p>
             </div>
           </div>
         </div>
@@ -157,7 +157,7 @@ export function Analytics() {
               <div key={fertilizer.name} className="group">
                 <div className="flex justify-between mb-1">
                   <span className="text-sm font-medium text-gray-700">{fertilizer.name}</span>
-                  <span className="text-sm text-gray-500">{fertilizer.quantity.toLocaleString()} kg</span>
+                  <span className="text-sm text-gray-500">{fertilizer.quantity.toLocaleString()} MTS</span>
                 </div>
                 <div className="h-8 bg-gray-100 rounded-full overflow-hidden">
                   <div

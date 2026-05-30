@@ -22,7 +22,7 @@ export function FileActionButtons({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const iconClass = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
-  const btnClass = size === 'sm' ? 'rounded-lg p-2' : 'rounded-xl p-2.5';
+  const btnClass = size === 'sm' ? 'rounded-md p-1' : 'rounded-lg p-1.5';
   const resolvedType = fileType || inferFileTypeFromName(fileName || fileUrl);
 
   const handleView = (e: React.MouseEvent) => {
@@ -46,7 +46,7 @@ export function FileActionButtons({
 
   return (
     <>
-      <div className={`flex items-center gap-1.5 ${className}`}>
+      <div className={`inline-flex items-center gap-0.5 ${className}`}>
         <button
           type="button"
           onClick={handleView}

@@ -1,9 +1,10 @@
 import React, { useState, ReactNode } from 'react';
 import {
   Menu, X, LayoutDashboard, Package, Users, Leaf, FileDown,
-  Upload, BarChart3, Settings, LogOut, ChevronDown, TrendingUp, Globe2, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Camera,
+  Upload, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
+  FolderOpen, Moon, Sun, Landmark, Camera, ClipboardList,
 } from 'lucide-react';
+import { FarmerChatbot } from './FarmerChatbot';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -14,11 +15,11 @@ interface LayoutProps {
   onNavigate: (page: string) => void;
 }
 
-const menuItems = [
+const adminMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'stock', label: 'Stock Management', icon: Package, adminOnly: true },
-  { id: 'dealers', label: 'Dealer Management', icon: Users, adminOnly: true },
-  { id: 'dealer-stock', label: 'Dealer Stock Tracking', icon: TrendingUp },
+  { id: 'stock', label: 'Stock Management', icon: Package },
+  { id: 'stock-inventory', label: 'Stock Inventory', icon: ClipboardList },
+  { id: 'dealers', label: 'Dealer Management', icon: Users },
   {
     id: 'crops',
     label: 'Crop Management',
@@ -26,15 +27,7 @@ const menuItems = [
   },
   { id: 'forms', label: 'Forms & Downloads', icon: FileDown },
   { id: 'file-directory', label: 'File Directory', icon: FolderOpen, adminOnly: true },
-  {
-    id: 'subsidy',
-    label: 'Subsidy Cell',
-    icon: Landmark,
-    submenu: [
-      { id: 'nfsm', label: 'NFSM' },
-      { id: 'state-seed', label: 'State Seed Cell' },
-    ],
-  },
+  { id: 'subsidy', label: 'Subsidy Cell', icon: Landmark },
   { id: 'crop-diagnosis', label: 'Crop Disease AI', icon: Camera },
   { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText },
   {
@@ -48,10 +41,15 @@ const menuItems = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
+const dealerMenuItems = [
+  { id: 'dealer-portal', label: 'My Stock Entry', icon: Package },
+];
+
+const menuItems = adminMenuItems;
+
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const { user, signOut, isAdminUser } = useAuth();
+  const { user, signOut, isAdminUser, isDealerUser, dealerName } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
 
@@ -60,7 +58,15 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
     setSidebarOpen(false);
   };
 
-  const visibleMenuItems = menuItems.filter((item) => !item.adminOnly || isAdminUser);
+  const visibleMenuItems = isDealerUser
+    ? dealerMenuItems
+    : menuItems.filter((item) => {
+        if (item.id === 'dealers' || item.id === 'stock-inventory' || item.id === 'stock') {
+          return isAdminUser;
+        }
+        if (item.adminOnly) return isAdminUser;
+        return true;
+      });
 
   return (
     <div className="min-h-screen bg-[#eef6f0] dark:bg-slate-950">
@@ -114,7 +120,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 isAdminUser ? 'bg-amber-200 text-amber-950' : 'bg-cyan-200 text-cyan-950'
               }`}
             >
-              {isAdminUser ? t('Admin', 'అడ్మిన్') : t('Test User', 'టెస్ట్')}
+              {isAdminUser ? t('Admin', 'అడ్మిన్') : isDealerUser ? t('Dealer', 'డీలర్') : t('Test User', 'టెస్ట్')}
             </span>
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-sm font-bold">
               {user?.email?.charAt(0).toUpperCase()}
@@ -138,60 +144,19 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       >
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
           {visibleMenuItems.map((item) => (
-            <div key={item.id}>
-              {item.submenu ? (
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => setOpenMenu(openMenu === item.id ? null : item.id)}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 transition ${
-                      currentPage.startsWith(item.id === 'crops' ? 'crop' : item.id) || openMenu === item.id
-                        ? 'bg-emerald-600 text-white shadow-md'
-                        : 'text-emerald-100 hover:bg-white/10'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <item.icon className="h-5 w-5 shrink-0" />
-                      <span className="text-sm font-semibold">{t(item.label, translateMenu(item.label))}</span>
-                    </div>
-                    <ChevronDown
-                      className={`h-4 w-4 shrink-0 transition ${openMenu === item.id ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                  {openMenu === item.id && (
-                    <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-emerald-500/50 pl-3">
-                      {item.submenu.map((subitem) => (
-                        <button
-                          key={subitem.id}
-                          type="button"
-                          onClick={() => handleNavigation(getSubmenuPageId(item.id, subitem.id))}
-                          className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
-                            currentPage === getSubmenuPageId(item.id, subitem.id)
-                              ? 'bg-white/15 font-bold text-white'
-                              : 'text-emerald-200/90 hover:bg-white/5'
-                          }`}
-                        >
-                          {t(subitem.label, translateMenu(subitem.label))}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => handleNavigation(item.id)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
-                    currentPage === item.id
-                      ? 'bg-emerald-600 text-white shadow-md'
-                      : 'text-emerald-100 hover:bg-white/10'
-                  }`}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  {t(item.label, translateMenu(item.label))}
-                </button>
-              )}
-            </div>
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => handleNavigation(item.id)}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                currentPage === item.id || (item.id === 'crops' && currentPage.startsWith('crop-'))
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-emerald-100 hover:bg-white/10'
+              }`}
+            >
+              <item.icon className="h-5 w-5 shrink-0" />
+              {t(item.label, translateMenu(item.label))}
+            </button>
           ))}
         </nav>
 
@@ -203,7 +168,11 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-medium">{user?.email}</p>
               <p className="text-[10px] text-emerald-300">
-                {isAdminUser ? t('Administrator', 'నిర్వాహకుడు') : t('View access', 'చూడే ప్రవేశం')}
+                {isAdminUser
+                  ? t('Administrator', 'నిర్వాహకుడు')
+                  : isDealerUser
+                    ? dealerName || t('Dealer', 'డీలర్')
+                    : t('View access', 'చూడే ప్రవేశం')}
               </p>
             </div>
           </div>
@@ -221,6 +190,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       <main className="min-h-[calc(100vh-4.25rem)]">
         <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">{children}</div>
       </main>
+      <FarmerChatbot />
     </div>
   );
 }
@@ -229,6 +199,8 @@ function translateMenu(label: string) {
   const labels: Record<string, string> = {
     Dashboard: 'డ్యాష్ బోర్డ్',
     'Stock Management': 'స్టాక్ నిర్వహణ',
+    'Stock Inventory': 'స్టాక్ ఇన్వెంటరీ',
+    'My Stock Entry': 'నా స్టాక్ ఎంట్రీ',
     'Dealer Management': 'డీలర్ నిర్వహణ',
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
     'Crop Management': 'పంట నిర్వహణ',
@@ -256,12 +228,3 @@ function translateMenu(label: string) {
   return labels[label] ?? label;
 }
 
-function getSubmenuPageId(menuId: string, subitemId: string) {
-  if (menuId === 'crops') return `crop-${subitemId}`;
-  if (menuId === 'quality') return `quality-${subitemId}`;
-  if (menuId === 'subsidy') {
-    if (subitemId === 'nfsm') return 'subsidy-nfsm';
-    if (subitemId === 'state-seed') return 'subsidy-state-seed';
-  }
-  return `${menuId}-${subitemId}`;
-}

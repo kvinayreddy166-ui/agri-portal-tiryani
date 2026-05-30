@@ -33,7 +33,8 @@ const emptyRecord = {
 };
 
 interface SubsidyTrackingProps {
-  program: SubsidyProgram;
+  program?: SubsidyProgram;
+  initialProgram?: SubsidyProgram;
   onProgramChange?: (program: SubsidyProgram) => void;
 }
 
@@ -50,10 +51,20 @@ const programMeta: Record<SubsidyProgram, { title: string; telugu: string; desc:
   },
 };
 
-export function SubsidyTracking({ program, onProgramChange }: SubsidyTrackingProps) {
+export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm', onProgramChange }: SubsidyTrackingProps) {
   const { isAdminUser, user } = useAuth();
   const { t } = useLanguage();
+  const [program, setProgram] = useState<SubsidyProgram>(programProp ?? initialProgram);
   const meta = programMeta[program];
+
+  useEffect(() => {
+    if (programProp) setProgram(programProp);
+  }, [programProp]);
+
+  const switchProgram = (next: SubsidyProgram) => {
+    setProgram(next);
+    onProgramChange?.(next);
+  };
   const [records, setRecords] = useState<SubsidyRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyRecord);
@@ -153,7 +164,7 @@ export function SubsidyTracking({ program, onProgramChange }: SubsidyTrackingPro
             <button
               key={item.id}
               type="button"
-              onClick={() => onProgramChange?.(item.id)}
+              onClick={() => switchProgram(item.id)}
               className={`rounded-2xl border p-5 text-left transition ${
                 active
                   ? 'border-emerald-300 bg-emerald-700 text-white shadow-lg shadow-emerald-900/10'

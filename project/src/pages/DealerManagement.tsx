@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Dealer } from '../types/database';
 import { parseExcelAndImportDealers } from '../lib/excelParser';
+import { provisionAllDealerLogins } from '../lib/provisionDealerLogins';
+import { dealerEmailFromPhone } from '../lib/dealerAuth';
 
 type DealerCategory = 'fertilizer' | 'seed' | 'pesticide';
 
@@ -35,6 +37,7 @@ export function DealerManagement() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
   const [importing, setImporting] = useState(false);
+  const [provisioningLogins, setProvisioningLogins] = useState(false);
 
   useEffect(() => {
     fetchDealers();
@@ -63,10 +66,32 @@ export function DealerManagement() {
     }
   };
 
+  const handleProvisionDealerLogins = async () => {
+    if (!confirm(t('Create portal logins for all dealers with phone numbers? Password will be: guest', 'ఫోన్ ఉన్న అన్ని డీలర్లకు పోర్టల్ లాగిన్ సృష్టించాలా? పాస్వర్డ్: guest'))) {
+      return;
+    }
+    setProvisioningLogins(true);
+    try {
+      const result = await provisionAllDealerLogins();
+      const failNote = result.failed.length ? `\n\nFailed:\n${result.failed.slice(0, 5).join('\n')}` : '';
+      alert(
+        t(
+          `Created: ${result.created}, already existed: ${result.skipped}.${failNote}`,
+          `సృష్టించబడినవి: ${result.created}, ఇప్పటికే ఉన్నవి: ${result.skipped}.${failNote}`
+        )
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Could not provision dealer logins');
+    } finally {
+      setProvisioningLogins(false);
+    }
+  };
+
   const buildPayload = () => {
     const isPesticide = activeTab === 'pesticide';
     return {
       ...formData,
+      portal_email: dealerEmailFromPhone(formData.phone_number),
       dealer_category: activeTab,
       ifms_id: activeTab === 'fertilizer' ? formData.ifms_id : '',
       expiry_date: isPesticide ? '2099-12-31' : formData.expiry_date,
@@ -184,6 +209,14 @@ export function DealerManagement() {
               />
               {importing ? t('Importing...', 'దిగుమతి...') : t('Import Excel', 'Excel దిగుమతి')}
             </label>
+            <button
+              type="button"
+              onClick={handleProvisionDealerLogins}
+              disabled={provisioningLogins}
+              className="rounded-lg border border-amber-400 px-4 py-2 text-sm font-bold text-amber-900 hover:bg-amber-50 disabled:opacity-60 dark:text-amber-200"
+            >
+              {provisioningLogins ? t('Setting up…', 'సెటప్…') : t('Setup dealer logins', 'డీలర్ లాగిన్లు')}
+            </button>
             <button
               type="button"
               onClick={() => setShowAddForm(true)}
