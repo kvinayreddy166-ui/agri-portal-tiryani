@@ -14,9 +14,10 @@ import { PageHeader } from '../components/ui/PageHeader';
 
 import { FileActionButtons } from '../components/ui/FileActionButtons';
 
-import { getContentType, getFileTypeIcon, getFileTypeLabel, getFileTypeTone, inferFileTypeFromName, validateUploadFile } from '../lib/fileTypes';
+import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 
 import { parseExcelAndImportDealers } from '../lib/excelParser';
+import { getContentType, inferFileTypeFromName, validateUploadFile } from '../lib/fileTypes';
 
 
 
@@ -453,18 +454,14 @@ export function ExcelUploads() {
         <div className="portal-card divide-y divide-slate-100 overflow-hidden dark:divide-slate-700">
 
           {uploads.map((upload) => {
-            const fileType = upload.upload_type || inferFileTypeFromName(upload.file_name);
-            const Icon = getFileTypeIcon(fileType);
-            const tone = getFileTypeTone(fileType);
+            const fileType = inferFileTypeFromName(upload.file_name, upload.upload_type);
             return (
               <div
                 key={upload.id}
                 className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50"
               >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <div className={`rounded-lg border p-2 ${tone.bg} ${tone.text} ${tone.ring}`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
+                  <FileTypeIcon fileName={upload.file_name} fileType={fileType} fileUrl={upload.file_url} size="sm" />
                   <div className="min-w-0">
                     {renamingId === upload.id ? (
                       <div className="flex min-w-0 items-center gap-2">
@@ -485,7 +482,7 @@ export function ExcelUploads() {
                       <p className="truncate font-bold text-slate-900 dark:text-white">{upload.file_name}</p>
                     )}
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {getFileTypeLabel(fileType)} · {t('Uploaded by', 'అప్లోడ్')}: {upload.created_by} ·{' '}
+                      {t('Uploaded by', 'అప్లోడ్')}: {upload.created_by} ·{' '}
                       {new Date(upload.created_at).toLocaleString()}
                     </p>
                   </div>

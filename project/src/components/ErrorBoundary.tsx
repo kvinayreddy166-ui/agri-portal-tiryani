@@ -1,4 +1,5 @@
 import React, { Component, ReactNode } from 'react';
+import { PortalLogo } from './ui/PortalLogo';
 
 interface Props {
   children: ReactNode;
@@ -23,7 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#eef6f0] p-6 text-center">
-          <img src="/images/agri-emblem.png" alt="" className="h-16 w-16 rounded-2xl bg-white p-1 shadow-lg" />
+          <PortalLogo size="md" />
           <h1 className="text-xl font-bold text-slate-900">Something went wrong</h1>
           <p className="max-w-md text-sm text-slate-600">{this.state.error.message}</p>
           <button

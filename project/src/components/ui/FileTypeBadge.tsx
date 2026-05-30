@@ -1,5 +1,5 @@
 import React from 'react';
-import { getFileTypeIcon, getFileTypeLabel, getFileTypeTone, inferFileTypeFromName } from '../../lib/fileTypes';
+import { getFileTypeIconSrc, getFileTypeLabel, inferFileTypeFromName } from '../../lib/fileTypes';
 
 interface FileTypeBadgeProps {
   fileName?: string;
@@ -9,18 +9,17 @@ interface FileTypeBadgeProps {
 
 export function FileTypeBadge({ fileName = '', fileType, iconOnly = false }: FileTypeBadgeProps) {
   const resolvedType = inferFileTypeFromName(fileName, fileType);
-  const Icon = getFileTypeIcon(resolvedType);
-  const tone = getFileTypeTone(resolvedType);
+  const iconSrc = getFileTypeIconSrc(resolvedType);
   const label = getFileTypeLabel(resolvedType);
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs font-bold ${tone.bg} ${tone.text} ${tone.ring}`}
+      className="inline-flex items-center gap-1.5"
       title={label}
       aria-label={label}
     >
-      <Icon className="h-4 w-4" />
-      {!iconOnly && label}
+      <img src={iconSrc} alt={label} className="h-7 w-7 object-contain" />
+      {!iconOnly && <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{label}</span>}
     </span>
   );
 }

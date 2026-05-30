@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { FormDownload } from '../types/database';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { FileTypeBadge } from '../components/ui/FileTypeBadge';
+import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 import { getContentType, inferFileTypeFromName } from '../lib/fileTypes';
 
 const folders = [
@@ -327,24 +327,22 @@ export function FormsDownloads() {
 
         {selectedForms.length > 0 ? (
           <div className="overflow-hidden rounded-2xl border border-gray-100">
-            <div className="hidden grid-cols-[1.4fr_0.75fr_0.7fr_auto] gap-4 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 md:grid">
+            <div className="hidden grid-cols-[1fr_0.7fr_auto] gap-4 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400 md:grid">
               <span>{t('File', 'ఫైల్')}</span>
-              <span>{t('Type', 'రకం')}</span>
               <span>{t('Date', 'తేదీ')}</span>
               <span className="text-right">{t('Action', 'చర్య')}</span>
             </div>
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-slate-700">
               {selectedForms.map((form) => (
                 <article
                   key={form.id}
-                  className="grid gap-4 px-4 py-4 transition hover:bg-gray-50 md:grid-cols-[1.4fr_0.75fr_0.7fr_auto] md:items-center"
+                  className="grid gap-4 px-4 py-3 transition hover:bg-gray-50 dark:hover:bg-slate-800/50 md:grid-cols-[1fr_0.7fr_auto] md:items-center"
                 >
-                  <div className="min-w-0">
-                    <h3 className="truncate text-base font-black text-gray-950">{form.title}</h3>
-                    <p className="mt-1 line-clamp-2 text-sm text-gray-600">{form.description}</p>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
+                    <h3 className="truncate text-sm font-black text-gray-950 dark:text-white">{form.title}</h3>
                   </div>
-                  <FileTypeBadge fileName={form.file_url || form.title} fileType={form.file_type} />
-                  <span className="text-sm font-medium text-gray-500">
+                  <span className="text-sm font-medium text-gray-500 dark:text-slate-400">
                     {new Date(form.created_at).toLocaleDateString()}
                   </span>
                   <div className="flex items-center justify-end gap-0.5">

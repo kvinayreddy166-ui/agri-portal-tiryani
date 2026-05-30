@@ -2,8 +2,17 @@ import { FileSpreadsheet, FileText, FileImage, File, FileType } from 'lucide-rea
 import type { LucideIcon } from 'lucide-react';
 
 export function inferFileTypeFromName(name: string, mimeType?: string): string {
+  const cleanName = name.split('?')[0].split('#')[0];
+  const ext = cleanName.split('.').pop()?.toLowerCase() || '';
+
+  if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'].includes(ext)) return 'image';
+  if (ext === 'pdf') return 'pdf';
+  if (['xlsx', 'xls', 'csv'].includes(ext)) return 'excel';
+  if (['doc', 'docx'].includes(ext)) return 'doc';
+  if (['ppt', 'pptx'].includes(ext)) return 'doc';
+
   const normalizedType = mimeType?.toLowerCase();
-  if (normalizedType && ['image', 'pdf', 'excel', 'doc', 'file'].includes(normalizedType)) {
+  if (normalizedType && ['image', 'pdf', 'excel', 'doc'].includes(normalizedType)) {
     return normalizedType;
   }
   if (normalizedType === 'document' || normalizedType === 'word') return 'doc';
@@ -14,12 +23,8 @@ export function inferFileTypeFromName(name: string, mimeType?: string): string {
   }
   if (normalizedType?.includes('wordprocessing') || normalizedType?.includes('msword')) return 'doc';
   if (mimeType?.startsWith('image/')) return 'image';
-  const ext = name.split('.').pop()?.toLowerCase() || '';
-  if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'].includes(ext)) return 'image';
-  if (ext === 'pdf') return 'pdf';
-  if (['xlsx', 'xls', 'csv'].includes(ext)) return 'excel';
-  if (['doc', 'docx'].includes(ext)) return 'doc';
-  return ext || 'file';
+
+  return ext || normalizedType || 'file';
 }
 
 export function isPreviewable(fileUrl: string, fileType?: string): boolean {
@@ -37,6 +42,48 @@ export function usesGoogleViewer(fileType?: string, fileUrl?: string): boolean {
   if (type === 'pdf' || /\.pdf(\?|$)/i.test(fileUrl || '')) return true;
   if (type === 'doc' || type === 'excel') return true;
   return /\.(docx?|xlsx?|csv)(\?|$)/i.test(fileUrl || '');
+}
+
+export function resolveFileIdentity(
+  fileName?: string,
+  fileType?: string,
+  fileUrl?: string
+): { displayName: string; resolvedType: string } {
+  const url = fileUrl || '';
+  const urlBase = url.split('?')[0].split('#')[0].split('/').pop() || '';
+  const cleanTitle = (fileName || '').split('?')[0].split('#')[0];
+  const hasExtension = (value: string) => /\.[a-z0-9]{2,5}$/i.test(value);
+
+  const displayName = hasExtension(cleanTitle)
+    ? cleanTitle
+    : hasExtension(urlBase)
+      ? urlBase
+      : cleanTitle || urlBase || 'file';
+
+  let resolvedType = inferFileTypeFromName(displayName, fileType);
+  if (resolvedType === 'file' && url) {
+    resolvedType = inferFileTypeFromName(url, fileType);
+  }
+  if (resolvedType === 'file' && urlBase) {
+    resolvedType = inferFileTypeFromName(urlBase, fileType);
+  }
+
+  return { displayName, resolvedType };
+}
+
+export function getFileTypeIconSrc(fileType: string): string {
+  switch (fileType) {
+    case 'image':
+      return '/images/file-icons/image.png';
+    case 'pdf':
+      return '/images/file-icons/pdf.png';
+    case 'excel':
+      return '/images/file-icons/excel.png';
+    case 'doc':
+      return '/images/file-icons/doc.png';
+    default:
+      return '/images/file-icons/doc.png';
+  }
 }
 
 export function getFileTypeIcon(fileType: string): LucideIcon {

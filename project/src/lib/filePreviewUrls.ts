@@ -50,7 +50,7 @@ export function resolveViewerSourceUrl(fileUrl: string): string {
     return `https://docs.google.com/presentation/d/${id}/preview`;
   }
 
-  return `https://drive.google.com/uc?export=download&id=${id}`;
+  return `https://drive.google.com/file/d/${id}/preview`;
 }
 
 /** Direct embed URL (Google native preview or Office Online). */

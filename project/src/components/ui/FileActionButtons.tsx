@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Download, Eye, Loader2 } from 'lucide-react';
 import { FilePreviewModal } from './FilePreviewModal';
-import { inferFileTypeFromName } from '../../lib/fileTypes';
+import { resolveFileIdentity } from '../../lib/fileTypes';
 import { downloadFileFromUrl } from '../../lib/fileBlob';
 
 interface FileActionButtonsProps {
@@ -23,7 +23,7 @@ export function FileActionButtons({
   const [downloading, setDownloading] = useState(false);
   const iconClass = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
   const btnClass = size === 'sm' ? 'rounded-md p-1' : 'rounded-lg p-1.5';
-  const resolvedType = fileType || inferFileTypeFromName(fileName || fileUrl);
+  const resolvedType = resolveFileIdentity(fileName, fileType, fileUrl).resolvedType;
 
   const handleView = (e: React.MouseEvent) => {
     e.preventDefault();

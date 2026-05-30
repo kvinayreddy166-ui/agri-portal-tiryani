@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Leaf, FileText, MapPin, Save, Upload } from 'lucide-react';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { FileTypeBadge } from '../components/ui/FileTypeBadge';
+import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { uploadPortalFile } from '../lib/uploadFile';
@@ -344,21 +344,19 @@ export function CropPage({ cropType }: CropPageProps) {
 
         {cropData.length > 0 ? (
           <div className="overflow-hidden rounded-2xl border border-gray-100">
-            <div className="hidden grid-cols-[1.4fr_0.75fr_0.7fr_auto] gap-4 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 md:grid">
+            <div className="hidden grid-cols-[1fr_0.7fr_auto] gap-4 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400 md:grid">
               <span>File</span>
-              <span>Type</span>
               <span>Date</span>
               <span className="text-right">Action</span>
             </div>
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-slate-700">
               {cropData.map((item) => (
-                <div key={item.id} className="grid gap-4 px-4 py-4 transition hover:bg-gray-50 md:grid-cols-[1.4fr_0.75fr_0.7fr_auto] md:items-center">
-                  <div className="min-w-0">
-                    <h3 className="truncate font-semibold text-gray-900">{item.title}</h3>
-                    <p className="mt-1 line-clamp-2 text-sm text-gray-600">{item.description}</p>
+                <div key={item.id} className="grid gap-4 px-4 py-3 transition hover:bg-gray-50 dark:hover:bg-slate-800/50 md:grid-cols-[1fr_0.7fr_auto] md:items-center">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <FileTypeIcon fileName={item.title} fileType={item.file_type} fileUrl={item.file_url || undefined} size="sm" />
+                    <h3 className="truncate font-semibold text-gray-900 dark:text-white">{item.title}</h3>
                   </div>
-                  <FileTypeBadge fileName={item.file_url || item.title} fileType={item.file_type} />
-                  <span className="text-sm text-gray-500">{new Date(item.created_at).toLocaleDateString()}</span>
+                  <span className="text-sm text-gray-500 dark:text-slate-400">{new Date(item.created_at).toLocaleDateString()}</span>
                   <div className="flex items-center justify-end gap-0.5">
                     {item.file_url && (
                       <FileActionButtons

@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { supabase } from './supabase';
+import { fetchFileBuffer } from './fileBlob';
 
 export interface ParsedDealerRow {
   dealer_name: string;
@@ -135,10 +136,44 @@ export async function parseExcelAndImportDealers(
   return { imported: newDealers.length, errors };
 }
 
+export interface ExcelPreviewData {
+  sheetName: string;
+  headers: string[];
+  rows: string[][];
+}
+
+function parseExcelBuffer(buffer: ArrayBuffer, maxRows = 50): ExcelPreviewData {
+  const workbook = XLSX.read(buffer, { type: 'array' });
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const grid = XLSX.utils.sheet_to_json<(string | number | boolean | null)[]>(sheet, {
+    header: 1,
+    defval: '',
+    raw: false,
+  });
+
+  if (grid.length === 0) {
+    return { sheetName, headers: [], rows: [] };
+  }
+
+  const headers = grid[0].map((cell) => String(cell ?? ''));
+  const rows = grid.slice(1, maxRows + 1).map((row) => headers.map((_, i) => String(row[i] ?? '')));
+  return { sheetName, headers, rows };
+}
+
 export function readExcelPreview(file: File): Promise<Record<string, unknown>[]> {
   return file.arrayBuffer().then((buffer) => {
     const workbook = XLSX.read(buffer, { type: 'array' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     return XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' }).slice(0, 5);
   });
+}
+
+export async function fetchExcelPreviewFromUrl(
+  fileUrl: string,
+  fileName?: string,
+  maxRows = 50
+): Promise<ExcelPreviewData> {
+  const buffer = await fetchFileBuffer(fileUrl, fileName);
+  return parseExcelBuffer(buffer, maxRows);
 }

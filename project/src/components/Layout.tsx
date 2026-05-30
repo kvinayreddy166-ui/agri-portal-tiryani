@@ -4,6 +4,7 @@ import {
   Upload, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Camera, ClipboardList,
 } from 'lucide-react';
+import { PortalLogo } from './ui/PortalLogo';
 import { FarmerChatbot } from './FarmerChatbot';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -83,9 +84,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-white p-1 shadow-md">
-                <img src="/images/agri-emblem.png" alt="" className="h-9 w-9 rounded-lg" />
-              </div>
+              <PortalLogo size="sm" />
               <div className="min-w-0">
                 <h1 className="truncate text-sm font-black tracking-tight sm:text-base">
                   {t('Tiryani Agriculture Portal', 'తిర్యాని వ్యవసాయ పోర్టల్')}

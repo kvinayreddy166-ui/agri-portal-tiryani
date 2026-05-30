@@ -4,7 +4,8 @@ import { supabase } from '../lib/supabase';
 import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/ui/PageHeader';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { getFileTypeIcon, getFileTypeLabel, getFileTypeTone, inferFileTypeFromName } from '../lib/fileTypes';
+import { FileTypeIcon } from '../components/ui/FileTypeIcon';
+import { inferFileTypeFromName, getFileTypeLabel } from '../lib/fileTypes';
 
 interface UnifiedFile {
   id: string;
@@ -257,31 +258,25 @@ export function FileDirectory() {
               <p>{t('No files match your search', 'మీ శోధనకు ఫైళ్లు లేవు')}</p>
             </div>
           ) : (
-            filtered.map((file) => {
-              const Icon = getFileTypeIcon(file.fileType);
-              const tone = getFileTypeTone(file.fileType);
-              return (
+            filtered.map((file) => (
                 <div
                   key={file.id}
                   className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <div className={`rounded-lg border p-2 ${tone.bg} ${tone.text} ${tone.ring}`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
+                    <FileTypeIcon fileName={file.title} fileType={file.fileType} fileUrl={file.fileUrl} size="sm" />
                     <div className="min-w-0">
                       <p className="truncate font-bold text-slate-900 dark:text-white">{file.title}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {file.folder}
-                        {file.subfolder ? ` / ${file.subfolder}` : ''} - {getFileTypeLabel(file.fileType)} -{' '}
+                        {file.subfolder ? ` / ${file.subfolder}` : ''} ·{' '}
                         {new Date(file.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   <FileActionButtons fileUrl={file.fileUrl} fileName={file.title} fileType={file.fileType} size="sm" />
                 </div>
-              );
-            })
+              ))
           )}
         </div>
       </div>

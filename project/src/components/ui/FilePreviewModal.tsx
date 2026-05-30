@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { X, Download, ExternalLink, Loader2 } from 'lucide-react';
-import { inferFileTypeFromName } from '../../lib/fileTypes';
+import React, { useEffect, useRef, useState } from 'react';
+import { X, Download, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
+import { resolveFileIdentity } from '../../lib/fileTypes';
 import {
+  getGoogleViewerEmbedUrl,
   getGoogleViewerTabUrl,
   getOfficeViewerEmbedUrl,
   getViewerFileUrl,
   isGoogleDriveUrl,
 } from '../../lib/filePreviewUrls';
 import { downloadFileFromUrl, fetchBlobUrl, revokeBlobUrl } from '../../lib/fileBlob';
+import { fetchExcelPreviewFromUrl, type ExcelPreviewData } from '../../lib/excelParser';
 
 interface FilePreviewModalProps {
   fileUrl: string;
@@ -16,32 +18,52 @@ interface FilePreviewModalProps {
   onClose: () => void;
 }
 
+type EmbedViewer = 'office' | 'google';
+
+const EMBED_TIMEOUT_MS = 12000;
+
 export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FilePreviewModalProps) {
-  const type = fileType || inferFileTypeFromName(fileName || fileUrl);
-  const isImage = type === 'image' || /\.(png|jpe?g|webp|gif|bmp)(\?|$)/i.test(fileUrl);
-  const isPdf = type === 'pdf' || /\.pdf(\?|$)/i.test(fileUrl);
-  const isOfficeDoc =
-    type === 'doc' ||
-    type === 'excel' ||
-    /\.(docx?|xlsx?|xls|csv|pptx?)(\?|$)/i.test(fileName || fileUrl);
+  const { displayName, resolvedType } = resolveFileIdentity(fileName, fileType, fileUrl);
+
+  const isImage = resolvedType === 'image';
+  const isPdf = resolvedType === 'pdf';
+  const isSpreadsheet = resolvedType === 'excel';
+  const isOfficeDoc = resolvedType === 'doc';
   const isDriveLink = isGoogleDriveUrl(fileUrl);
 
-  const officeViewerEmbedSrc = getOfficeViewerEmbedUrl(fileUrl);
   const googleViewerTabSrc = getGoogleViewerTabUrl(fileUrl);
 
-  const useOfficeViewer = isPdf || isOfficeDoc || isDriveLink;
-
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
-  const [loadingBlob, setLoadingBlob] = useState(isImage);
-  const [blobFailed, setBlobFailed] = useState(false);
-  const [officeFailed, setOfficeFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [excelData, setExcelData] = useState<ExcelPreviewData | null>(null);
+  const [embedViewer, setEmbedViewer] = useState<EmbedViewer>('google');
+  const [embedFailed, setEmbedFailed] = useState(false);
+  const [pdfUseEmbed, setPdfUseEmbed] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const embedTimerRef = useRef<number | null>(null);
 
-  const showOfficeEmbed = useOfficeViewer && !officeFailed;
-  const showImageInline = isImage && previewSrc && !loadingBlob && !blobFailed;
+  const useExcelPreview = isSpreadsheet;
+  const useEmbedPreview = isOfficeDoc || isDriveLink || pdfUseEmbed;
+
+  const officeEmbedSrc = getOfficeViewerEmbedUrl(fileUrl);
+  const googleEmbedSrc = getGoogleViewerEmbedUrl(fileUrl);
+  const activeEmbedSrc = embedViewer === 'google' ? googleEmbedSrc : officeEmbedSrc;
+
+  const showImageInline = isImage && previewSrc && !loading && !loadFailed;
+  const showPdfInline = isPdf && previewSrc && !loading && !loadFailed && !pdfUseEmbed;
+  const showExcelTable = useExcelPreview && excelData && !loading && !loadFailed;
+  const showEmbed =
+    !loading &&
+    !loadFailed &&
+    !showImageInline &&
+    !showPdfInline &&
+    !showExcelTable &&
+    useEmbedPreview &&
+    !embedFailed;
   const showDownloadFallback =
-    !loadingBlob &&
-    (blobFailed || officeFailed || (!showImageInline && !showOfficeEmbed));
+    !loading &&
+    (loadFailed || embedFailed || (!showImageInline && !showPdfInline && !showExcelTable && !showEmbed));
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -52,44 +74,89 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
   }, [onClose]);
 
   useEffect(() => {
-    if (!isImage) {
-      setLoadingBlob(false);
-      return;
-    }
-
     let cancelled = false;
-    setLoadingBlob(true);
-    setBlobFailed(false);
+    setLoading(true);
+    setLoadFailed(false);
+    setPreviewSrc(null);
+    setExcelData(null);
+    setEmbedFailed(false);
+    setEmbedViewer('google');
+    setPdfUseEmbed(false);
 
-    fetchBlobUrl(fileUrl)
-      .then((blobUrl) => {
-        if (!cancelled) setPreviewSrc(blobUrl);
-      })
-      .catch(() => {
-        if (!cancelled) setBlobFailed(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingBlob(false);
-      });
+    const load = async () => {
+      try {
+        if (isSpreadsheet) {
+          const data = await fetchExcelPreviewFromUrl(fileUrl, displayName);
+          if (!cancelled) setExcelData(data);
+          return;
+        }
+
+        if (isImage || isPdf) {
+          try {
+            const blobUrl = await fetchBlobUrl(fileUrl, displayName);
+            if (!cancelled) setPreviewSrc(blobUrl);
+          } catch {
+            if (isImage && !cancelled) {
+              setPreviewSrc(fileUrl);
+            } else if (isPdf && !cancelled) {
+              setPdfUseEmbed(true);
+            } else if (!cancelled) {
+              setLoadFailed(true);
+            }
+          }
+          return;
+        }
+      } catch {
+        if (!cancelled) setLoadFailed(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void load();
 
     return () => {
       cancelled = true;
     };
-  }, [fileUrl, isImage]);
-
-  useEffect(() => {
-    setOfficeFailed(false);
-  }, [fileUrl, officeViewerEmbedSrc]);
+  }, [fileUrl, displayName, isImage, isPdf, isSpreadsheet]);
 
   useEffect(() => {
     return () => revokeBlobUrl(previewSrc);
   }, [previewSrc]);
 
+  useEffect(() => {
+    if (!showEmbed) {
+      if (embedTimerRef.current) window.clearTimeout(embedTimerRef.current);
+      return;
+    }
+
+    embedTimerRef.current = window.setTimeout(() => {
+      if (embedViewer === 'google') {
+        setEmbedViewer('office');
+      } else {
+        setEmbedFailed(true);
+      }
+    }, EMBED_TIMEOUT_MS);
+
+    return () => {
+      if (embedTimerRef.current) window.clearTimeout(embedTimerRef.current);
+    };
+  }, [showEmbed, activeEmbedSrc, embedViewer]);
+
+  const handleEmbedLoad = () => {
+    if (embedTimerRef.current) window.clearTimeout(embedTimerRef.current);
+  };
+
+  const switchEmbedViewer = () => {
+    setEmbedFailed(false);
+    setEmbedViewer((current) => (current === 'office' ? 'google' : 'office'));
+  };
+
   const handleDownload = async (e?: React.MouseEvent) => {
     e?.preventDefault();
     setDownloading(true);
     try {
-      await downloadFileFromUrl(fileUrl, fileName);
+      await downloadFileFromUrl(fileUrl, displayName);
     } catch {
       window.open(fileUrl, '_blank', 'noopener,noreferrer');
     } finally {
@@ -111,7 +178,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
       >
         <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
           <h2 className="truncate text-sm font-bold text-slate-900 dark:text-white">
-            {fileName || 'File preview'}
+            {fileName || displayName || 'File preview'}
           </h2>
           <div className="flex shrink-0 items-center gap-0.5">
             <button
@@ -124,15 +191,17 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
               {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               Download
             </button>
-            <a
-              href={googleViewerTabSrc}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg p-2 text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-slate-800"
-              title="Google preview (new tab)"
-            >
-              <ExternalLink className="h-5 w-5" />
-            </a>
+            {!isSpreadsheet && (
+              <a
+                href={googleViewerTabSrc}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg p-2 text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-slate-800"
+                title="Open in new tab"
+              >
+                <ExternalLink className="h-5 w-5" />
+              </a>
+            )}
             <button
               type="button"
               onClick={onClose}
@@ -145,32 +214,112 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
         </div>
 
         <div className="flex min-h-[50vh] flex-1 flex-col overflow-hidden bg-slate-100 dark:bg-slate-950">
-          {loadingBlob && (
+          {loading && (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 text-slate-600 dark:text-slate-300">
               <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
               <p className="text-sm">Loading preview…</p>
             </div>
           )}
 
-          {!loadingBlob && showImageInline && (
+          {!loading && showImageInline && (
             <div className="flex flex-1 items-center justify-center overflow-auto p-4">
               <img
                 src={previewSrc}
                 alt={fileName || 'Preview'}
                 className="max-h-[70vh] max-w-full rounded-lg object-contain shadow-lg"
-                onError={() => setBlobFailed(true)}
+                onError={() => {
+                  if (previewSrc !== fileUrl) {
+                    setPreviewSrc(fileUrl);
+                  } else {
+                    setLoadFailed(true);
+                  }
+                }}
               />
             </div>
           )}
 
-          {!loadingBlob && showOfficeEmbed && (
+          {!loading && showPdfInline && previewSrc && (
             <div className="flex min-h-0 flex-1 flex-col p-4">
-              <iframe
-                key={officeViewerEmbedSrc}
-                src={officeViewerEmbedSrc}
-                title={fileName || 'Document preview'}
+              <embed
+                src={previewSrc}
+                type="application/pdf"
+                title={fileName || 'PDF preview'}
                 className="min-h-[65vh] flex-1 rounded-lg border-0 bg-white shadow-lg"
-                onError={() => setOfficeFailed(true)}
+              />
+            </div>
+          )}
+
+          {!loading && showExcelTable && excelData && (
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
+              <p className="mb-2 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {excelData.sheetName}
+                {excelData.rows.length >= 50 ? ' · first 50 rows' : ''}
+              </p>
+              <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                <table className="min-w-full border-collapse text-left text-sm">
+                  <thead className="sticky top-0 bg-emerald-700 text-white">
+                    <tr>
+                      {excelData.headers.map((header, i) => (
+                        <th key={i} className="border border-emerald-600 whitespace-nowrap px-3 py-2 font-bold">
+                          {header || `Col ${i + 1}`}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {excelData.rows.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={Math.max(excelData.headers.length, 1)}
+                          className="px-3 py-6 text-center text-slate-500 dark:text-slate-400"
+                        >
+                          No data rows in this sheet.
+                        </td>
+                      </tr>
+                    ) : (
+                      excelData.rows.map((row, rowIdx) => (
+                        <tr
+                          key={rowIdx}
+                          className={rowIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/60'}
+                        >
+                          {row.map((cell, cellIdx) => (
+                            <td
+                              key={cellIdx}
+                              className="border border-slate-200 whitespace-nowrap px-3 py-1.5 text-slate-700 dark:border-slate-700 dark:text-slate-200"
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {!loading && showEmbed && (
+            <div className="flex min-h-0 flex-1 flex-col p-4">
+              <div className="mb-2 flex shrink-0 items-center justify-between gap-2">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {embedViewer === 'office' ? 'Office Online viewer' : 'Google Docs viewer'}
+                </p>
+                <button
+                  type="button"
+                  onClick={switchEmbedViewer}
+                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-slate-800"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Switch viewer
+                </button>
+              </div>
+              <iframe
+                key={activeEmbedSrc}
+                src={activeEmbedSrc}
+                title={fileName || 'Document preview'}
+                className="min-h-[60vh] flex-1 rounded-lg border-0 bg-white shadow-lg"
+                onLoad={handleEmbedLoad}
               />
             </div>
           )}
@@ -178,7 +327,9 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
           {showDownloadFallback && (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
               <p className="max-w-md text-sm text-slate-600 dark:text-slate-300">
-                Inline preview could not load. Download the file or try Google preview.
+                {isSpreadsheet
+                  ? 'Could not load the Excel preview. Download the file to open in Excel.'
+                  : 'Inline preview could not load. Download the file or try opening in a new tab.'}
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <button
@@ -190,15 +341,32 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
                   {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}
                   Download file
                 </button>
-                <a
-                  href={googleViewerTabSrc}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl border border-emerald-600 px-5 py-3 text-sm font-bold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
-                >
-                  <ExternalLink className="h-5 w-5" />
-                  Google preview
-                </a>
+                {!isSpreadsheet && (
+                  <a
+                    href={googleViewerTabSrc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl border border-emerald-600 px-5 py-3 text-sm font-bold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                  >
+                    <ExternalLink className="h-5 w-5" />
+                    Open in new tab
+                  </a>
+                )}
+                {(isOfficeDoc || isDriveLink || isPdf) && !isSpreadsheet && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoadFailed(false);
+                      setEmbedFailed(false);
+                      setPdfUseEmbed(true);
+                      setEmbedViewer('google');
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl border border-violet-600 px-5 py-3 text-sm font-bold text-violet-700 hover:bg-violet-50 dark:border-violet-500 dark:text-violet-300 dark:hover:bg-violet-950/40"
+                  >
+                    <RefreshCw className="h-5 w-5" />
+                    Retry preview
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -206,13 +374,8 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
 
         <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-600 dark:text-slate-300">
-            {useOfficeViewer && !isImage && (
-              <span>
-                {isDriveLink
-                  ? 'Preview uses Google Drive / Office viewer.'
-                  : 'Preview uses Microsoft Office Online viewer.'}
-              </span>
-            )}
+            {showExcelTable && <span>Excel spreadsheet preview</span>}
+            {showEmbed && <span>Document viewer embed</span>}
             <button
               type="button"
               onClick={handleDownload}
@@ -221,15 +384,6 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
             >
               Download
             </button>
-            <a
-              href={googleViewerTabSrc}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:underline dark:text-emerald-300"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              Google preview
-            </a>
             {isDriveLink && (
               <a
                 href={getViewerFileUrl(fileUrl)}

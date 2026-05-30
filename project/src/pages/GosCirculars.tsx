@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   FileText,
   Plus,
-  ScrollText,
   Trash2,
   Upload,
   X,
@@ -13,7 +12,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { uploadPortalFile } from '../lib/uploadFile';
 import { GosCircular } from '../types/database';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { FileTypeBadge } from '../components/ui/FileTypeBadge';
+import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 
 const emptyForm = {
   title: '',
@@ -247,36 +246,30 @@ export function GosCirculars() {
             {documents.map((doc) => (
               <article
                 key={doc.id}
-                className="group rounded-2xl border border-gray-100 bg-gray-50 p-5 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
+                className="group flex items-start gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/60"
               >
-                <div className="mb-4 flex items-start justify-between gap-3">
-                  <div className="rounded-xl bg-slate-100 p-3 text-slate-700">
-                    <ScrollText className="h-6 w-6" />
+                <FileTypeIcon fileName={doc.file_name || doc.title} fileType={doc.file_type} fileUrl={doc.file_url} size="md" />
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-start justify-between gap-2">
+                    <h3 className="text-base font-black text-gray-950 dark:text-white">{doc.title}</h3>
+                    {isAdminUser && (
+                      <button
+                        onClick={() => handleDelete(doc.id)}
+                        className="rounded-lg p-1.5 text-red-500 opacity-0 transition hover:bg-red-50 group-hover:opacity-100 dark:hover:bg-red-950/40"
+                        aria-label="Delete document"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
-                  {isAdminUser && (
-                    <button
-                      onClick={() => handleDelete(doc.id)}
-                      className="rounded-lg p-2 text-red-500 opacity-0 transition hover:bg-red-50 group-hover:opacity-100"
-                      aria-label="Delete document"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  )}
-                </div>
-                <h3 className="text-lg font-black text-gray-950">{doc.title}</h3>
-                {doc.description && (
-                  <p className="mt-2 line-clamp-3 text-sm text-gray-600">{doc.description}</p>
-                )}
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
-                  <FileTypeBadge fileName={doc.file_name || doc.title} fileType={doc.file_type} />
                   {doc.issued_date && (
-                    <span className="rounded-full bg-white px-2 py-1">
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
                       {t('Issued', 'జారీ')}: {new Date(doc.issued_date).toLocaleDateString()}
-                    </span>
+                    </p>
                   )}
-                </div>
-                <div className="mt-4 flex justify-end border-t border-gray-100 pt-4">
-                  <FileActionButtons fileUrl={doc.file_url} fileName={doc.title} fileType={doc.file_type} />
+                  <div className="mt-3 flex justify-end border-t border-gray-100 pt-3 dark:border-slate-700">
+                    <FileActionButtons fileUrl={doc.file_url} fileName={doc.title} fileType={doc.file_type} />
+                  </div>
                 </div>
               </article>
             ))}

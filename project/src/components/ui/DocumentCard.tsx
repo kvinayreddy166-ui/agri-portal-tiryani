@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { FileActionButtons } from './FileActionButtons';
 import { FilePreviewModal } from './FilePreviewModal';
-import { getFileTypeIcon, getFileTypeLabel, getFileTypeTone } from '../../lib/fileTypes';
+import { FileTypeIcon, resolveFileType } from './FileTypeIcon';
 
 interface DocumentCardProps {
   title: string;
@@ -24,59 +24,48 @@ export function DocumentCard({
   showDelete = false,
 }: DocumentCardProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
-  const Icon = getFileTypeIcon(fileType || 'file');
-  const tone = getFileTypeTone(fileType || 'file');
-  const isImage = fileType === 'image';
+  const resolvedType = resolveFileType(title, fileType, fileUrl);
+  const isImage = resolvedType === 'image';
 
   return (
-    <article className="portal-card group flex h-full flex-col overflow-hidden p-0 transition hover:-translate-y-0.5 hover:shadow-lg">
+    <article className="portal-card group flex items-center gap-3 p-3 transition hover:-translate-y-0.5 hover:shadow-md">
       {isImage ? (
         <button
           type="button"
           onClick={() => setPreviewOpen(true)}
-          className="block w-full cursor-zoom-in"
+          className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-600"
           aria-label="View image"
         >
-          <img src={fileUrl} alt="" className="h-36 w-full object-cover" />
+          <img src={fileUrl} alt="" className="h-full w-full object-cover" />
         </button>
       ) : (
-        <div className={`flex h-24 items-center justify-center border-b ${tone.bg} ${tone.ring}`}>
-          <Icon className={`h-11 w-11 ${tone.text}`} />
-        </div>
+        <FileTypeIcon fileName={title} fileType={fileType} fileUrl={fileUrl} size="md" />
       )}
-      <div className="flex flex-1 flex-col p-5">
-        <div className="mb-2 flex items-start justify-between gap-3">
-          {fileType && (
-            <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${tone.bg} ${tone.text} ${tone.ring}`}>
-              <Icon className="h-3.5 w-3.5" />
-              {getFileTypeLabel(fileType)}
-            </span>
-          )}
-        </div>
-        <h3 className="line-clamp-2 text-lg font-black text-slate-950 dark:text-white">{title}</h3>
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate text-sm font-black text-slate-950 dark:text-white">{title}</h3>
+        {meta && <p className="truncate text-xs text-slate-500 dark:text-slate-400">{meta}</p>}
         {description && (
-          <p className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">{description}</p>
+          <p className="mt-0.5 line-clamp-1 text-xs text-slate-600 dark:text-slate-400">{description}</p>
         )}
-        {meta && <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">{meta}</p>}
-        <div className="mt-auto flex items-center justify-between gap-0.5 pt-4">
-          <FileActionButtons fileUrl={fileUrl} fileName={title} fileType={fileType} size="sm" />
-          {showDelete && onDelete && (
-            <button
-              type="button"
-              onClick={onDelete}
-              className="rounded-xl border border-red-200 p-2.5 text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/40"
-              aria-label="Delete document"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
-          )}
-        </div>
+      </div>
+      <div className="flex shrink-0 items-center gap-0.5">
+        <FileActionButtons fileUrl={fileUrl} fileName={title} fileType={resolvedType} size="sm" />
+        {showDelete && onDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            className="rounded-lg border border-red-200 p-2 text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/40"
+            aria-label="Delete document"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </div>
       {previewOpen && (
         <FilePreviewModal
           fileUrl={fileUrl}
           fileName={title}
-          fileType={fileType}
+          fileType={resolvedType}
           onClose={() => setPreviewOpen(false)}
         />
       )}

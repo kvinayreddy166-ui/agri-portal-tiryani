@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { PortalLogo } from './components/ui/PortalLogo';
 import { Login } from './components/Login';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
@@ -50,11 +51,7 @@ function AppContent() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
-        <img
-          src="/images/agri-emblem-192.png"
-          alt="Tiryani Agriculture Portal"
-          className="h-24 w-24 rounded-3xl bg-white p-1.5 shadow-xl"
-        />
+        <PortalLogo size="xl" />
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
         <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading portal…</p>
       </div>
