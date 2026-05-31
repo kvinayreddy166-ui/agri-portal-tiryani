@@ -6,7 +6,8 @@ import { useLanguage } from '../context/LanguageContext';
 import { FormDownload } from '../types/database';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
 import { FileTypeIcon } from '../components/ui/FileTypeIcon';
-import { getContentType, inferFileTypeFromName } from '../lib/fileTypes';
+import { inferFileTypeFromName } from '../lib/fileTypes';
+import { uploadPortalFile } from '../lib/uploadFile';
 
 const folders = [
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
@@ -19,7 +20,7 @@ const emptyForm = {
   description: '',
   file_url: '',
   file_type: 'pdf',
-  category: 'seed',
+  category: 'fertilizers',
 };
 
 export function FormsDownloads() {
@@ -30,7 +31,7 @@ export function FormsDownloads() {
   const [uploading, setUploading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
-  const [selectedFolder, setSelectedFolder] = useState('seed');
+  const [selectedFolder, setSelectedFolder] = useState('fertilizers');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newForm, setNewForm] = useState(emptyForm);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -94,21 +95,9 @@ export function FormsDownloads() {
       let fileType = newForm.file_type;
 
       if (selectedFile) {
-        fileType = inferFileTypeFromName(selectedFile.name, selectedFile.type);
-        const cleanName = selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const filePath = `forms/${newForm.category}/${Date.now()}_${cleanName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('uploads')
-          .upload(filePath, selectedFile, {
-            upsert: true,
-            contentType: getContentType(selectedFile),
-          });
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage.from('uploads').getPublicUrl(filePath);
-        fileUrl = publicUrl;
+        const upload = await uploadPortalFile(selectedFile, `forms/${newForm.category}`);
+        fileType = upload.fileType;
+        fileUrl = upload.publicUrl;
       } else {
         fileType = inferFileTypeFromName(fileUrl, fileType);
       }
@@ -181,15 +170,15 @@ export function FormsDownloads() {
     <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-sm font-bold uppercase tracking-wide text-emerald-700">
-            {t('Resource library', 'వనరుల గ్రంథాలయం')}
+          <p className="text-sm font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+            {t('Statutory forms admin', 'Statutory forms admin')}
           </p>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-gray-950">
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-gray-950 dark:text-white">
             {t('Forms & Templates', 'ఫారాలు & టెంప్లేట్లు')}
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-600 dark:text-slate-300">
             {t(
-              'Upload, edit, delete, view, and download statutory forms and templates.',
+              'Files uploaded here appear on the public Statutory Forms page before login.',
               'చట్టబద్ధ ఫారాలు మరియు టెంప్లేట్లను అప్లోడ్, సవరించు, తొలగించు, చూడండి మరియు డౌన్‌లోడ్ చేయండి.'
             )}
           </p>
@@ -201,7 +190,7 @@ export function FormsDownloads() {
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
           >
             <Plus className="h-5 w-5" />
-            {t('Add Item', 'ఐటమ్ జోడించండి')}
+            {t('Upload Statutory Form', 'Upload Statutory Form')}
           </button>
         )}
       </div>
@@ -218,10 +207,10 @@ export function FormsDownloads() {
             key={folder.id}
             type="button"
             onClick={() => setSelectedFolder(folder.id)}
-            className={`rounded-lg border p-2.5 text-left transition ${
+            className={`rounded-lg border px-2.5 py-2 text-left transition ${
               selectedFolder === folder.id
                 ? 'border-emerald-300 bg-emerald-700 text-white shadow-md shadow-emerald-900/10'
-                : 'border-gray-100 bg-white text-gray-900 shadow-sm hover:border-emerald-200'
+                : 'border-gray-100 bg-white text-gray-900 shadow-sm hover:border-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
             }`}
           >
             <div className="flex items-center justify-between gap-2">
@@ -236,7 +225,7 @@ export function FormsDownloads() {
             </div>
             <h2 className="mt-1.5 truncate text-sm font-black">{t(folder.label, folder.telugu)}</h2>
             <p className={`mt-0.5 text-xs ${selectedFolder === folder.id ? 'text-emerald-50' : 'text-gray-500'}`}>
-              {t('Folder', 'ఫోల్డర్')}
+              {t('Statutory section', 'Statutory section')}
             </p>
           </button>
         ))}
@@ -248,9 +237,9 @@ export function FormsDownloads() {
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-black text-gray-950">
-                  {editingFormId ? t('Edit Download Item', 'Edit Download Item') : t('Add Download Item', 'డౌన్‌లోడ్ ఐటమ్ జోడించండి')}
+                  {editingFormId ? t('Edit Statutory Form', 'Edit Statutory Form') : t('Upload Statutory Form', 'Upload Statutory Form')}
                 </h2>
-                <p className="text-sm text-gray-500">{t('Upload an image or document for users.', 'వినియోగదారుల కోసం చిత్రం లేదా పత్రం అప్లోడ్ చేయండి.')}</p>
+                <p className="text-sm text-gray-500">{t('This will be visible to the public on the login page.', 'This will be visible to the public on the login page.')}</p>
               </div>
               <button onClick={resetForm} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
                 <X className="h-5 w-5" />
@@ -279,7 +268,7 @@ export function FormsDownloads() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700">{t('Folder', 'ఫోల్డర్')}</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700">{t('Statutory section', 'Statutory section')}</label>
                 <select
                   value={newForm.category}
                   onChange={(e) => setNewForm({ ...newForm, category: e.target.value })}
@@ -339,16 +328,16 @@ export function FormsDownloads() {
         </div>
       )}
 
-      <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+      <section className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <div className="mb-3">
-          <h2 className="text-xl font-black text-gray-950">{t(activeFolder.label, activeFolder.telugu)}</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-xl font-black text-gray-950 dark:text-white">{t(activeFolder.label, activeFolder.telugu)}</h2>
+          <p className="text-sm text-gray-500 dark:text-slate-300">
             {selectedForms.length} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
           </p>
         </div>
 
         {selectedForms.length > 0 ? (
-          <div className="overflow-hidden rounded-xl border border-gray-100">
+          <div className="overflow-hidden rounded-lg border border-gray-100 dark:border-slate-700">
             <div className="hidden grid-cols-[1fr_0.6fr_auto] gap-3 bg-slate-50 px-3 py-2.5 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400 md:grid">
               <span>{t('File', 'ఫైల్')}</span>
               <span>{t('Date', 'తేదీ')}</span>

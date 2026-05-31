@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -105,6 +105,11 @@ export function Login() {
 
   const { signIn, signInDealer } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
+
+  useLayoutEffect(() => {
+    window.history.scrollRestoration = 'manual';
+    window.scrollTo({ top: 0, left: 0 });
+  }, [showStatutoryForms]);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event: Event) => {
@@ -226,10 +231,18 @@ export function Login() {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
+  const openAdminFormsUpload = () => {
+    window.localStorage.setItem('tiryani-post-login-page', 'forms');
+    setShowStatutoryForms(false);
+    setLoginMode('staff');
+    setEmail(ADMIN_EMAIL);
+    setPassword('');
+  };
+
   if (showStatutoryForms) {
     return (
-      <div className="min-h-screen bg-[#eef6f0] p-4 sm:p-6">
-        <div className="mx-auto w-full max-w-5xl rounded-2xl border border-white/70 bg-white/95 p-4 shadow-xl shadow-emerald-950/10 sm:p-6">
+      <div className="min-h-screen bg-[#eef6f0] p-3 sm:p-4">
+        <div className="mx-auto w-full max-w-5xl rounded-lg border border-white/70 bg-white/95 p-4 shadow-xl shadow-emerald-950/10 sm:p-5">
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <button
@@ -245,16 +258,26 @@ export function Login() {
                 <h1 className="text-2xl font-black text-slate-950">Statutory Forms</h1>
               </div>
             </div>
-            <PortalLogo size="md" />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={openAdminFormsUpload}
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-sm hover:bg-emerald-800"
+              >
+                <FileText className="h-4 w-4" />
+                Admin upload/edit/delete
+              </button>
+              <PortalLogo size="md" />
+            </div>
           </div>
 
-          <div className="mb-5 grid grid-cols-3 gap-2">
+          <div className="mb-4 grid grid-cols-3 gap-2">
             {STATUTORY_FOLDERS.map((folder) => (
               <button
                 key={folder.id}
                 type="button"
                 onClick={() => setStatutoryFolder(folder.id)}
-                className={`rounded-lg border px-3 py-3 text-left font-black transition ${
+                className={`rounded-lg border px-2.5 py-2 text-left font-black transition ${
                   statutoryFolder === folder.id
                     ? 'border-emerald-700 bg-emerald-700 text-white shadow-md shadow-emerald-900/10'
                     : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'
@@ -319,11 +342,11 @@ export function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#eef6f0] p-3 sm:p-4">
+    <div className="relative flex min-h-screen items-start justify-center overflow-hidden bg-[#eef6f0] p-2 sm:p-3 lg:p-4">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(4,120,87,0.08),rgba(14,165,233,0.08)_48%,rgba(250,204,21,0.08))]" />
 
-      <div className="relative grid w-full max-w-5xl overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm lg:grid-cols-[1fr_0.95fr]">
-        <section className="relative hidden min-h-[620px] flex-col justify-between overflow-hidden bg-emerald-950 p-8 text-white lg:flex">
+      <div className="relative grid w-full max-w-5xl overflow-hidden rounded-lg border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm lg:grid-cols-[1fr_0.95fr]">
+        <section className="relative hidden min-h-[600px] flex-col justify-between overflow-hidden bg-emerald-950 p-7 text-white lg:flex">
           <img src="/images/rice.jpg" alt="" className="absolute inset-x-0 top-0 h-[50%] w-full object-cover opacity-95" />
           <img src="/images/cotton.jpg" alt="" className="absolute inset-x-0 bottom-0 h-[50%] w-full object-cover opacity-95" />
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/82 via-emerald-900/58 to-slate-900/30" />
@@ -373,11 +396,11 @@ export function Login() {
           </div>
         </section>
 
-        <section className="flex flex-col justify-center p-5 sm:p-7 lg:p-8">
+        <section className="flex flex-col justify-start p-4 sm:p-6 lg:p-7">
           <div className="mx-auto w-full max-w-md">
-            <div className="mb-5 flex items-start justify-between gap-4">
+            <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <PortalLogo size="md" className="mb-3" />
+                <PortalLogo size="md" className="mb-2" />
                 <h2 className="whitespace-nowrap text-lg font-black tracking-tight text-slate-950 sm:text-2xl">
                   {t('Tiryani Agriculture Portal', 'Tiryani Agriculture Portal')}
                 </h2>
@@ -421,7 +444,7 @@ export function Login() {
               </button>
             </div>
 
-            <div className="mb-4">
+            <div className="mb-3">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
                 {loginMode === 'dealer' ? t('Dealer login', 'Dealer login') : t('Secure sign in', 'Secure sign in')}
               </p>
@@ -435,7 +458,7 @@ export function Login() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-2.5">
               {loginMode === 'dealer' ? (
                 <>
                   <LoginField label={t('Registered phone (Dealers Directory)', 'Registered phone (Dealers Directory)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
@@ -461,7 +484,7 @@ export function Login() {
             </form>
 
             {loginMode === 'staff' && (
-              <div className="mt-4 rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950">
+              <div className="mt-3 rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950">
                 <p className="flex items-center gap-2 font-bold">
                   <UserRoundCheck className="h-4 w-4" />
                   {t('Test login', 'Test login')}
@@ -475,7 +498,7 @@ export function Login() {
               </div>
             )}
 
-            <div className="mt-4 text-center text-[11px] font-semibold leading-5 text-slate-600">
+            <div className="mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600">
               <p>(C) 2026- Tiryani Agri portal- Department of Agriculture, Telangana</p>
               <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
             </div>
@@ -580,7 +603,7 @@ function LoginField({
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-12 pr-4 text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-12 pr-4 text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
           placeholder={placeholder}
           required
         />

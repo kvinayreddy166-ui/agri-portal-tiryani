@@ -131,13 +131,13 @@ export function GosCirculars() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-sm font-bold uppercase tracking-wide text-emerald-700">
+          <p className="text-sm font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
             {t('Official documents', 'అధికారిక పత్రాలు')}
           </p>
-          <h1 className="mt-1 text-3xl font-black tracking-tight text-gray-950">
+          <h1 className="mt-1 text-3xl font-black tracking-tight text-gray-950 dark:text-white">
             {t('GOs & Circulars', 'జీ.ఓలు & సర్క్యులర్లు')}
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-600 dark:text-slate-300">
             {t(
               'View government orders and circulars shared by the agriculture office.',
               'వ్యవసాయ కార్యాలయం పంచిన ప్రభుత్వ ఆదేశాలు మరియు సర్క్యులర్లను చూడండి.'
@@ -240,22 +240,22 @@ export function GosCirculars() {
         </div>
       )}
 
-      <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <section className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         {documents.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100 dark:divide-slate-700 dark:border-slate-700">
             {documents.map((doc) => (
               <article
                 key={doc.id}
-                className="group flex items-start gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/60"
+                className="group flex items-center gap-3 px-3 py-2 transition hover:bg-gray-50 dark:hover:bg-slate-800/50"
               >
-                <FileTypeIcon fileName={doc.file_name || doc.title} fileType={doc.file_type} fileUrl={doc.file_url} size="md" />
+                <FileTypeIcon fileName={doc.file_name || doc.title} fileType={doc.file_type} fileUrl={doc.file_url} size="sm" />
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-start justify-between gap-2">
-                    <h3 className="text-base font-black text-gray-950 dark:text-white">{doc.title}</h3>
+                    <h3 className="truncate text-sm font-black text-gray-950 dark:text-white">{doc.title}</h3>
                     {isAdminUser && (
                       <button
                         onClick={() => handleDelete(doc.id)}
-                        className="rounded-lg p-1.5 text-red-500 opacity-0 transition hover:bg-red-50 group-hover:opacity-100 dark:hover:bg-red-950/40"
+                        className="rounded-md p-1 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/40"
                         aria-label="Delete document"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -267,8 +267,8 @@ export function GosCirculars() {
                       {t('Issued', 'జారీ')}: {new Date(doc.issued_date).toLocaleDateString()}
                     </p>
                   )}
-                  <div className="mt-3 flex justify-end border-t border-gray-100 pt-3 dark:border-slate-700">
-                    <FileActionButtons fileUrl={doc.file_url} fileName={doc.title} fileType={doc.file_type} />
+                  <div className="mt-2 flex justify-end">
+                    <FileActionButtons fileUrl={doc.file_url} fileName={doc.title} fileType={doc.file_type} size="sm" />
                   </div>
                 </div>
               </article>

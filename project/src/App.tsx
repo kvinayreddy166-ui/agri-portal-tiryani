@@ -41,8 +41,17 @@ function AppContent() {
   useEffect(() => {
     if (user && isDealerUser) {
       setCurrentPage('dealer-portal');
+      return;
     }
-  }, [user, isDealerUser]);
+
+    if (user && isAdminUser) {
+      const requestedPage = window.localStorage.getItem('tiryani-post-login-page');
+      if (requestedPage) {
+        window.localStorage.removeItem('tiryani-post-login-page');
+        setCurrentPage(requestedPage);
+      }
+    }
+  }, [user, isAdminUser, isDealerUser]);
 
   const navigateToPage = (page: string) => {
     setCurrentPage(page);

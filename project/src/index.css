@@ -18,7 +18,7 @@ body {
 
 @layer components {
   .portal-card {
-    @apply rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/50 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/50;
+    @apply rounded-lg border border-slate-200/80 bg-white shadow-sm shadow-slate-200/50 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/50;
   }
 
   .portal-section-title {
