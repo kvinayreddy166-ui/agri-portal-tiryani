@@ -148,12 +148,12 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow={t('Subsidy Cell', 'సబ్సిడీ సెల్')}
+        eyebrow={t('Subsidy & Schemes', 'సబ్సిడీ & పథకాలు')}
         title={t(meta.title, meta.telugu)}
         description={t(meta.desc, meta.desc)}
       />
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2">
         {([
           { id: 'nfsm' as const, title: 'NFSM', desc: 'National Food Security Mission', icon: Landmark },
           { id: 'state_seed_cell' as const, title: 'State Seed Cell', desc: 'Seed subsidy and distribution', icon: Sprout },
@@ -165,21 +165,21 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
               key={item.id}
               type="button"
               onClick={() => switchProgram(item.id)}
-              className={`rounded-2xl border p-5 text-left transition ${
+              className={`rounded-lg border p-3 text-left transition ${
                 active
                   ? 'border-emerald-300 bg-emerald-700 text-white shadow-lg shadow-emerald-900/10'
                   : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
               }`}
             >
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div className={`rounded-xl p-3 ${active ? 'bg-white/15' : 'bg-emerald-50 text-emerald-700'}`}>
-                  <Icon className="h-6 w-6" />
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <div className={`rounded-lg p-2 ${active ? 'bg-white/15' : 'bg-emerald-50 text-emerald-700'}`}>
+                  <Icon className="h-5 w-5" />
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-bold ${active ? 'bg-white/15' : 'bg-slate-100 text-slate-600'}`}>
                   {active ? 'Open' : 'Select'}
                 </span>
               </div>
-              <h2 className="text-xl font-black">{item.title}</h2>
+              <h2 className="text-base font-black">{item.title}</h2>
               <p className={`mt-1 text-sm ${active ? 'text-emerald-50' : 'text-slate-500'}`}>{item.desc}</p>
             </button>
           );

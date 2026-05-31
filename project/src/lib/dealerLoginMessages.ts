@@ -13,7 +13,7 @@ export function isDealerRpcMissing(message?: string): boolean {
 
 export function dealerLoginNotConfiguredError(): Error {
   return new Error(
-    `Dealer login is not set up yet. Ask admin to apply the latest database migration (${MIGRATION_HINT}) in Supabase SQL Editor, then use "Setup dealer logins" in Dealer Management.`
+    `Dealer login is not set up yet. Ask admin to apply the latest database migration (${MIGRATION_HINT}) in Supabase SQL Editor, then use "Setup dealer logins" in Dealers Directory.`
   );
 }
 
@@ -31,7 +31,7 @@ export function translateDealerLoginError(message: string, telugu: boolean): str
     ],
     [
       /valid 10-digit phone/i,
-      'Enter a valid 10-digit phone number registered in Dealer Management.',
+      'Enter a valid 10-digit phone number registered in Dealers Directory.',
       'డీలర్ నిర్వహణలో నమోదైన 10 అంకెల ఫోన్ నంబర్ నమోదు చేయండి.',
     ],
     [
@@ -41,12 +41,12 @@ export function translateDealerLoginError(message: string, telugu: boolean): str
     ],
     [
       /database error querying schema|account needs repair/i,
-      'Dealer login account needs repair. Admin: Dealer Management → Setup dealer login → select dealer → Setup selected.',
+      'Dealer login account needs repair. Admin: Dealers Directory → Setup dealer login → select dealer → Setup selected.',
       'డీలర్ లాగిన్ ఖాతా సరిచేయాలి. అడ్మిన్: డీలర్ నిర్వహణ → డీలర్ లాగిన్ సెటప్ → డీలర్ ఎంచుకొని సెటప్.',
     ],
     [
       /dealer login failed/i,
-      'Dealer login failed. Confirm phone is in Dealer Management and password is Guest@123.',
+      'Dealer login failed. Confirm phone is in Dealers Directory and password is Guest@123.',
       'డీలర్ లాగిన్ విఫలమైంది. ఫోన్ డీలర్ నిర్వహణలో ఉందో మరియు పాస్వర్డ్ Guest@123 అని నిర్ధారించండి.',
     ],
   ];

@@ -90,7 +90,7 @@ export function CropDiagnosis() {
     <div className="space-y-6">
       <PageHeader
         eyebrow={t('AI Tools', 'ఏఐ సాధనాలు')}
-        title={t('Crop Disease Detection', 'పంట వ్యాధి గుర్తింపు')}
+        title={t('AI Crop Doctor', 'ఏఐ పంట డాక్టర్')}
         description={t(
           'Capture or upload a crop photo for pest/disease screening and management advice.',
           'పంట ఫోటో తీసి లేదా అప్లోడ్ చేసి వ్యాధి/పురుగు పరీక్ష మరియు సలహా పొందండి.'

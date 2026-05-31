@@ -335,13 +335,13 @@ export function ExcelUploads() {
 
   return (
 
-    <div className="space-y-6">
+    <div className="space-y-4">
 
       <PageHeader
 
-        eyebrow={t('Office files', 'కార్యాలయ ఫైళ్లు')}
+        eyebrow={t('Office records', 'కార్యాలయ రికార్డులు')}
 
-        title={isAdminUser ? t('File Uploads', 'ఫైల్ అప్లోడ్లు') : t('Office Files', 'కార్యాలయ ఫైళ్లు')}
+        title={t('Office Records', 'కార్యాలయ రికార్డులు')}
 
         description={
 
@@ -367,7 +367,7 @@ export function ExcelUploads() {
 
         <div
 
-          className={`portal-card border-2 border-dashed p-8 text-center transition ${
+          className={`portal-card border-2 border-dashed p-5 text-center transition ${
 
             dragActive ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' : 'border-slate-200 hover:border-emerald-400 dark:border-slate-600'
 
@@ -383,7 +383,7 @@ export function ExcelUploads() {
 
         >
 
-          <Upload className={`mx-auto mb-4 h-10 w-10 ${dragActive ? 'text-emerald-600' : 'text-slate-400'}`} />
+          <Upload className={`mx-auto mb-3 h-8 w-8 ${dragActive ? 'text-emerald-600' : 'text-slate-400'}`} />
 
           <p className="font-semibold text-slate-800 dark:text-slate-200">
 
@@ -458,7 +458,7 @@ export function ExcelUploads() {
             return (
               <div
                 key={upload.id}
-                className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50"
               >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <FileTypeIcon fileName={upload.file_name} fileType={fileType} fileUrl={upload.file_url} size="sm" />

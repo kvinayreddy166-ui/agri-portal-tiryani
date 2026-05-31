@@ -16,7 +16,6 @@ import {
   UserRoundCheck,
   X,
 } from 'lucide-react';
-import { FarmerChatbot } from './FarmerChatbot';
 import { FileActionButtons } from './ui/FileActionButtons';
 import { FileTypeIcon } from './ui/FileTypeIcon';
 import { PortalLogo } from './ui/PortalLogo';
@@ -439,7 +438,7 @@ export function Login() {
             <form onSubmit={handleSubmit} className="space-y-3">
               {loginMode === 'dealer' ? (
                 <>
-                  <LoginField label={t('Registered phone (Dealer Management)', 'Registered phone (Dealer Management)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
+                  <LoginField label={t('Registered phone (Dealers Directory)', 'Registered phone (Dealers Directory)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
                   <LoginField label={t('Password', 'Password')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
                   <p className="-mt-2 text-xs text-slate-500">
                     {t(`Default dealer password: ${DEALER_DEFAULT_PASSWORD}`, `Default dealer password: ${DEALER_DEFAULT_PASSWORD}`)}
@@ -501,8 +500,6 @@ export function Login() {
         <MessageSquareText className="h-5 w-5" />
         {t('Grievances', 'Grievances')}
       </button>
-
-      <FarmerChatbot showOnLoginPage />
 
       {grievanceOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">

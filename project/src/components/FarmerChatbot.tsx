@@ -10,6 +10,10 @@ interface ChatMessage {
   text: string;
 }
 
+interface FarmerChatbotProps {
+  showOnLoginPage?: boolean;
+}
+
 async function speakText(text: string, lang: AdvisoryLang) {
   if (!('speechSynthesis' in window)) return;
   const synth = window.speechSynthesis;
@@ -24,10 +28,6 @@ async function speakText(text: string, lang: AdvisoryLang) {
   synth.speak(utterance);
 }
 
-interface FarmerChatbotProps {
-  showOnLoginPage?: boolean;
-}
-
 export function FarmerChatbot({ showOnLoginPage = false }: FarmerChatbotProps) {
   const { language, t } = useLanguage();
   const [open, setOpen] = useState(false);
@@ -35,10 +35,9 @@ export function FarmerChatbot({ showOnLoginPage = false }: FarmerChatbotProps) {
   const [listening, setListening] = useState(false);
   const [voiceReply, setVoiceReply] = useState(true);
   const welcomeText = t(
-    'Namaste! Ask in Telugu about pests, diseases, cultural practices, fertilizers, and all crops. Tap the mic — replies use a clear female Indian voice.',
-    'నమస్కారం! పురుగులు, వ్యాధులు, సాంస్కృతిక పద్ధతులు, ఎరువులు, అన్ని పంటల గురించి తెలుగులో అడగండి. మైక్ నొక్కి మాట్లాడండి — స్త్రీల స్వరంలో సమాధానం వస్తుంది.'
+    'Welcome to Mandal Agriculture Office, Tiryani. Ask or speak in Telugu about crops, pests, diseases, fertilizers, seed, pesticides, subsidies, weather, or any farmer question.',
+    'మండల వ్యవసాయ కార్యాలయం, తిర్యానికి స్వాగతం. పంటలు, పురుగులు, వ్యాధులు, ఎరువులు, విత్తనాలు, పురుగుమందులు, సబ్సిడీలు, వాతావరణం లేదా రైతుల ఏ ప్రశ్న అయినా తెలుగులో అడగండి లేదా మైక్ ద్వారా మాట్లాడండి.'
   );
-
   const [messages, setMessages] = useState<ChatMessage[]>([
     { id: 'welcome', role: 'assistant', text: welcomeText },
   ]);
@@ -46,9 +45,7 @@ export function FarmerChatbot({ showOnLoginPage = false }: FarmerChatbotProps) {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
-    if ('speechSynthesis' in window) {
-      void loadSpeechVoices();
-    }
+    if ('speechSynthesis' in window) void loadSpeechVoices();
   }, []);
 
   useEffect(() => {
@@ -73,7 +70,7 @@ export function FarmerChatbot({ showOnLoginPage = false }: FarmerChatbotProps) {
     const recognition = new SpeechRecognitionCtor();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = language === 'te' ? 'te-IN' : 'en-IN';
+    recognition.lang = 'te-IN';
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0]?.[0]?.transcript?.trim();
       if (transcript) setInput(transcript);
@@ -83,21 +80,17 @@ export function FarmerChatbot({ showOnLoginPage = false }: FarmerChatbotProps) {
     recognition.onend = () => setListening(false);
     recognitionRef.current = recognition;
 
-    return () => {
-      recognition.abort();
-    };
-  }, [language]);
+    return () => recognition.abort();
+  }, []);
 
   const sendMessage = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
 
     const preferredLang: AdvisoryLang =
-      language === 'te' || /[\u0C00-\u0C7F]/.test(trimmed)
+      /[\u0C00-\u0C7F]/.test(trimmed) || language === 'te' || detectLanguage(trimmed) === 'te'
         ? 'te'
-        : detectLanguage(trimmed) === 'te'
-          ? 'te'
-          : 'en';
+        : 'en';
     const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: 'user', text: trimmed };
     const reply = getAdvisoryReply(trimmed, preferredLang);
     const assistantMsg: ChatMessage = {
@@ -123,18 +116,18 @@ export function FarmerChatbot({ showOnLoginPage = false }: FarmerChatbotProps) {
       return;
     }
     setListening(true);
-    recognition.lang = language === 'te' ? 'te-IN' : 'en-IN';
+    recognition.lang = 'te-IN';
     recognition.start();
   };
+
+  if (showOnLoginPage) return null;
 
   if (!open) {
     return (
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`fixed z-50 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 px-5 py-3 text-sm font-black text-white shadow-xl shadow-emerald-950/25 transition hover:from-teal-800 hover:to-emerald-800 ${
-          showOnLoginPage ? 'bottom-20 left-4 right-auto' : 'bottom-20 right-4'
-        }`}
+        className="fixed bottom-20 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 px-5 py-3 text-sm font-black text-white shadow-xl shadow-emerald-950/25 transition hover:from-teal-800 hover:to-emerald-800"
         aria-label={t('Open farmer assistant', 'రైతు సహాయకాన్ని తెరవండి')}
       >
         <Bot className="h-5 w-5" />
@@ -149,9 +142,9 @@ export function FarmerChatbot({ showOnLoginPage = false }: FarmerChatbotProps) {
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5" />
           <div>
-            <p className="text-sm font-black">{t('Crop Assistant', 'పంట సహాయకుడు')}</p>
+            <p className="text-sm font-black">{t('AI Crop Assistant', 'ఏఐ పంట సహాయకుడు')}</p>
             <p className="text-[10px] text-emerald-100">
-              {t('Pests · Disease · Culture', 'పురుగు · వ్యాధి · సాంస్కృతిక')}
+              {t('Mandal Agriculture Office, Tiryani', 'మండల వ్యవసాయ కార్యాలయం, తిర్యాని')}
             </p>
           </div>
         </div>
@@ -160,7 +153,7 @@ export function FarmerChatbot({ showOnLoginPage = false }: FarmerChatbotProps) {
             type="button"
             onClick={() => setVoiceReply((v) => !v)}
             className={`rounded-lg p-1.5 ${voiceReply ? 'bg-white/25' : 'hover:bg-white/15'}`}
-            title={t('Voice replies (female Indian)', 'వాయిస్ సమాధానాలు')}
+            title={t('Voice replies', 'వాయిస్ సమాధానాలు')}
           >
             <Volume2 className="h-4 w-4" />
           </button>
@@ -204,7 +197,7 @@ export function FarmerChatbot({ showOnLoginPage = false }: FarmerChatbotProps) {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={t('Ask about any crop…', 'ఏ పంట గురించైనా అడగండి…')}
+            placeholder={t('Ask or speak in Telugu...', 'తెలుగులో అడగండి లేదా మాట్లాడండి...')}
             className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-white"
           />
           <button

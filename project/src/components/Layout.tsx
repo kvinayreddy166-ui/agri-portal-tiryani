@@ -1,8 +1,8 @@
 import React, { useState, ReactNode } from 'react';
 import {
-  Menu, X, LayoutDashboard, Package, Users, Leaf, FileDown,
-  Upload, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Camera, ClipboardList,
+  Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
+  Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
+  FolderOpen, Moon, Sun, Landmark, Stethoscope, ClipboardList,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
 import { FarmerChatbot } from './FarmerChatbot';
@@ -18,18 +18,18 @@ interface LayoutProps {
 
 const adminMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'stock', label: 'Stock Management', icon: Package },
+  { id: 'stock', label: 'Fertilizer Allocation', icon: PackageCheck },
   { id: 'stock-inventory', label: 'Stock Inventory', icon: ClipboardList },
-  { id: 'dealers', label: 'Dealer Management', icon: Users },
+  { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
   {
     id: 'crops',
-    label: 'Crop Management',
-    icon: Leaf,
+    label: 'Crop Intelligence',
+    icon: BrainCircuit,
   },
-  { id: 'forms', label: 'Forms & Downloads', icon: FileDown },
-  { id: 'file-directory', label: 'File Directory', icon: FolderOpen, adminOnly: true },
-  { id: 'subsidy', label: 'Subsidy Cell', icon: Landmark },
-  { id: 'crop-diagnosis', label: 'Crop Disease AI', icon: Camera },
+  { id: 'forms', label: 'Forms & Templates', icon: FileStack },
+  { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
+  { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
+  { id: 'crop-diagnosis', label: 'AI Crop Doctor', icon: Stethoscope },
   { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText },
   {
     id: 'quality',
@@ -37,13 +37,13 @@ const adminMenuItems = [
     icon: ShieldCheck,
   },
   { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor },
-  { id: 'excel', label: 'Office Files', icon: Upload, adminOnly: true },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+  { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true },
+  { id: 'analytics', label: 'Report & Analytics', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 const dealerMenuItems = [
-  { id: 'dealer-portal', label: 'Daily Stock Entry', icon: Package },
+  { id: 'dealer-portal', label: 'Daily Stock Entry', icon: PackageCheck },
 ];
 
 const menuItems = adminMenuItems;
@@ -147,7 +147,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               key={item.id}
               type="button"
               onClick={() => handleNavigation(item.id)}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition ${
                 currentPage === item.id || (item.id === 'crops' && currentPage.startsWith('crop-'))
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-emerald-100 hover:bg-white/10'
@@ -197,23 +197,23 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
 function translateMenu(label: string) {
   const labels: Record<string, string> = {
     Dashboard: 'డ్యాష్ బోర్డ్',
-    'Stock Management': 'స్టాక్ నిర్వహణ',
+    'Fertilizer Allocation': 'ఎరువుల కేటాయింపు',
     'Stock Inventory': 'స్టాక్ ఇన్వెంటరీ',
     'My Stock Entry': 'నా స్టాక్ ఎంట్రీ',
     'Daily Stock Entry': 'రోజువారీ స్టాక్ ఎంట్రీ',
-    'Dealer Management': 'డీలర్ నిర్వహణ',
+    'Dealers Directory': 'డీలర్ల డైరెక్టరీ',
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
-    'Crop Management': 'పంట నిర్వహణ',
-    'Forms & Downloads': 'ఫారాలు & డౌన్లోడ్లు',
+    'Crop Intelligence': 'పంట ఇంటెలిజెన్స్',
+    'Forms & Templates': 'ఫారాలు & టెంప్లేట్లు',
     'GOs & Circulars': 'జీ.ఓలు & సర్క్యులర్లు',
     'Quality Control': 'నాణ్యత నియంత్రణ',
     'Farm Mechanization': 'వ్యవసాయ యాంత్రీకరణ',
-    'Office Files': 'కార్యాలయ ఫైళ్లు',
-    'File Directory': 'ఫైల్ డైరెక్టరీ',
-    'Subsidy Cell': 'సబ్సిడీ సెల్',
+    'Office Records': 'కార్యాలయ రికార్డులు',
+    'Document Repository': 'పత్రాల భాండాగారం',
+    'Subsidy & Schemes': 'సబ్సిడీ & పథకాలు',
     NFSM: 'ఎన్.ఎఫ్.ఎస్.ఎం',
     'State Seed Cell': 'రాష్ట్ర విత్తన కార్యాలయం',
-    'Crop Disease AI': 'పంట వ్యాధి ఏఐ',
+    'AI Crop Doctor': 'ఏఐ పంట డాక్టర్',
     Seeds: 'విత్తనాలు',
     Pesticides: 'పురుగుమందులు',
     Fertilizers: 'ఎరువులు',

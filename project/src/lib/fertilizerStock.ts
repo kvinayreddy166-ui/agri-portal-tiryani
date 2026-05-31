@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import { FERTILIZER_TYPES } from './constants';
 import { FertilizerStock } from '../types/database';
 
-/** Aggregate dealer-wise stock from Stock Management (dealer_stock_allocation). */
+/** Aggregate dealer-wise stock from Fertilizer Allocation (dealer_stock_allocation). */
 export function aggregateFertilizerStock(
   allocations: { fertilizer_type: string; quantity_mts: number | string }[]
 ): FertilizerStock[] {
@@ -25,7 +25,7 @@ export function aggregateFertilizerStock(
   }));
 }
 
-/** Dashboard & analytics: totals from Stock Management only (not Stock Inventory). */
+/** Dashboard & analytics: totals from Fertilizer Allocation only (not Stock Inventory). */
 export async function fetchAggregatedFertilizerStock(): Promise<FertilizerStock[]> {
   const { data, error } = await supabase
     .from('dealer_stock_allocation')
@@ -36,7 +36,7 @@ export async function fetchAggregatedFertilizerStock(): Promise<FertilizerStock[
   return aggregateFertilizerStock(data || []);
 }
 
-/** Mirror Stock Management totals into fertilizer_stock table for legacy readers. */
+/** Mirror Fertilizer Allocation totals into fertilizer_stock table for legacy readers. */
 export async function syncFertilizerStockTable(): Promise<void> {
   const aggregated = await fetchAggregatedFertilizerStock();
   const now = new Date().toISOString();
@@ -74,7 +74,7 @@ export async function syncFertilizerStockTable(): Promise<void> {
   }
 }
 
-/** Dealer portal: this dealer's fertilizer allocation from Stock Management (MTS). */
+/** Dealer portal: this dealer's fertilizer allocation from Fertilizer Allocation (MTS). */
 export async function fetchDealerFertilizerAllocation(
   dealerId: string
 ): Promise<{ fertilizer_type: string; quantity_mts: number }[]> {

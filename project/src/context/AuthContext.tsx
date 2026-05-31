@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInDealer = async (phone: string, password: string) => {
     const digits = normalizePhone(phone);
     if (!digits || digits.length < 10) {
-      return { error: new Error('Enter a valid 10-digit phone number registered in Dealer Management.') };
+      return { error: new Error('Enter a valid 10-digit phone number registered in Dealers Directory.') };
     }
 
     const dealerPassword = password.trim() || DEALER_DEFAULT_PASSWORD;
@@ -186,7 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result.error.message?.toLowerCase().includes('database error querying schema')) {
         return {
           error: new Error(
-            `Dealer login account needs repair. Admin: open Dealer Management → Setup dealer login → select this dealer → Setup selected (password ${DEALER_DEFAULT_PASSWORD}).`
+            `Dealer login account needs repair. Admin: open Dealers Directory → Setup dealer login → select this dealer → Setup selected (password ${DEALER_DEFAULT_PASSWORD}).`
           ),
         };
       }
@@ -229,7 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return {
           error: new Error(
-            'Phone not found in Dealer Management. Add the dealer with this phone number first.'
+            'Phone not found in Dealers Directory. Add the dealer with this phone number first.'
           ),
         };
       }
@@ -237,7 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return {
         error: new Error(
           result.error?.message ||
-            `Dealer login failed. Confirm phone is in Dealer Management and password is ${DEALER_DEFAULT_PASSWORD}.`
+            `Dealer login failed. Confirm phone is in Dealers Directory and password is ${DEALER_DEFAULT_PASSWORD}.`
         ),
       };
     } catch (err) {

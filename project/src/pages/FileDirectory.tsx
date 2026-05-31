@@ -49,7 +49,7 @@ export function FileDirectory() {
           title: row.file_name,
           fileUrl: row.file_url,
           fileType: inferFileTypeFromName(row.file_name, row.upload_type),
-          folder: t('Office Files', 'కార్యాలయ ఫైళ్లు'),
+          folder: t('Office Records', 'కార్యాలయ రికార్డులు'),
           createdAt: row.created_at,
         });
       });
@@ -61,7 +61,7 @@ export function FileDirectory() {
           title: row.title,
           fileUrl: row.file_url,
           fileType: inferFileTypeFromName(row.title, row.file_type),
-          folder: t('Forms & Downloads', 'ఫారాలు & డౌన్‌లోడ్‌లు'),
+          folder: t('Forms & Templates', 'ఫారాలు & టెంప్లేట్లు'),
           subfolder: row.category,
           createdAt: row.created_at,
         });
@@ -74,7 +74,7 @@ export function FileDirectory() {
           title: row.title,
           fileUrl: row.file_url,
           fileType: inferFileTypeFromName(row.title, row.file_type),
-          folder: t('Crop Management', 'పంట నిర్వహణ'),
+          folder: t('Crop Intelligence', 'పంట ఇంటెలిజెన్స్'),
           subfolder: row.crop_type,
           createdAt: row.created_at,
         });
@@ -112,7 +112,7 @@ export function FileDirectory() {
           title: `${row.program} ${row.financial_year} beneficiaries`,
           fileUrl: row.beneficiary_list_url,
           fileType: inferFileTypeFromName(row.beneficiary_list_url),
-          folder: t('Subsidy Cell', 'సబ్సిడీ సెల్'),
+          folder: t('Subsidy & Schemes', 'సబ్సిడీ & పథకాలు'),
           subfolder: row.program,
           createdAt: row.created_at,
         });
@@ -184,7 +184,7 @@ export function FileDirectory() {
     <div className="space-y-6">
       <PageHeader
         eyebrow={t('Documents', 'పత్రాలు')}
-        title={t('File Directory', 'ఫైల్ డైరెక్టరీ')}
+        title={t('Document Repository', 'పత్రాల భాండాగారం')}
         description={t(
           'All uploaded files across the portal with folder cards and file type symbols.',
           'పోర్టల్ అంతటా అప్లోడ్ చేసిన ఫైళ్లు ఫోల్డర్ కార్డులు మరియు ఫైల్ రకం గుర్తులతో.'
@@ -220,10 +220,10 @@ export function FileDirectory() {
         </select>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[17rem_1fr]">
+      <div className="grid gap-3 lg:grid-cols-[15rem_1fr]">
         <aside className="space-y-2">
           {folderCards.map((folder) => (
-            <div key={folder.name} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <div key={folder.name} className="rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">
                   <div className="rounded-md bg-slate-100 p-1.5 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
@@ -261,9 +261,9 @@ export function FileDirectory() {
             filtered.map((file) => (
                 <div
                   key={file.id}
-                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                 >
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
                     <FileTypeIcon fileName={file.title} fileType={file.fileType} fileUrl={file.fileUrl} size="sm" />
                     <div className="min-w-0">
                       <p className="truncate font-bold text-slate-900 dark:text-white">{file.title}</p>

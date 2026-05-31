@@ -185,12 +185,12 @@ export function FormsDownloads() {
             {t('Resource library', 'వనరుల గ్రంథాలయం')}
           </p>
           <h1 className="mt-1 text-2xl font-black tracking-tight text-gray-950">
-            {t('Forms & Downloads', 'ఫారాలు & డౌన్‌లోడ్‌లు')}
+            {t('Forms & Templates', 'ఫారాలు & టెంప్లేట్లు')}
           </h1>
           <p className="mt-2 text-gray-600">
             {t(
-              'Download seed, fertilizer, and pesticide documents shared by the office.',
-              'కార్యాలయం పంచిన విత్తనాలు, ఎరువులు మరియు పురుగుమందుల పత్రాలను చూడండి.'
+              'Upload, edit, delete, view, and download statutory forms and templates.',
+              'చట్టబద్ధ ఫారాలు మరియు టెంప్లేట్లను అప్లోడ్, సవరించు, తొలగించు, చూడండి మరియు డౌన్‌లోడ్ చేయండి.'
             )}
           </p>
         </div>

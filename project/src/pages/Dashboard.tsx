@@ -309,8 +309,8 @@ export function Dashboard() {
             </h2>
             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
               {t(
-                'Totals from Stock Management (dealer-wise allocation in MTS)',
-                'స్టాక్ నిర్వహణ నుండి మొత్తాలు (డీలర్ వారీగా MTS)'
+                'Totals from Fertilizer Allocation (dealer-wise allocation in MTS)',
+                'ఎరువుల కేటాయింపు నుండి మొత్తాలు (డీలర్ వారీగా MTS)'
               )}
             </p>
           </div>
@@ -323,8 +323,8 @@ export function Dashboard() {
           {fertilizers.length === 0 && (
             <div className="md:col-span-2 xl:col-span-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 p-5 text-center text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-300">
               {t(
-                'No fertilizer stock entered yet. Add dealer-wise stock in Stock Management.',
-                'ఇంకా ఎరువుల స్టాక్ నమోదు కాలేదు. స్టాక్ నిర్వహణలో డీలర్ వారీగా స్టాక్ జోడించండి.'
+                'No fertilizer stock entered yet. Add dealer-wise stock in Fertilizer Allocation.',
+                'ఇంకా ఎరువుల స్టాక్ నమోదు కాలేదు. ఎరువుల కేటాయింపులో డీలర్ వారీగా స్టాక్ జోడించండి.'
               )}
             </div>
           )}

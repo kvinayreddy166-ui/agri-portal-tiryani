@@ -170,8 +170,8 @@ export function StockManagement() {
     <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="page-title">Stock Management</h1>
-          <p className="page-subtitle">Enter and manage fertilizer stock dealer-wise in MTS.</p>
+          <h1 className="page-title">Fertilizer Allocation</h1>
+          <p className="page-subtitle">Enter and manage fertilizer allocation dealer-wise in MTS.</p>
         </div>
         {isAdminUser && (
           <button

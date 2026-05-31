@@ -61,7 +61,7 @@ export function Analytics() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Report & Analytics</h1>
         <p className="text-gray-600">Agricultural data insights and statistics</p>
       </div>
 

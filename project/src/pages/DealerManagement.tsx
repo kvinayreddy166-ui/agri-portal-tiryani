@@ -245,7 +245,7 @@ export function DealerManagement() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t('Dealer Management', 'డీలర్ నిర్వహణ')}
+            {t('Dealers Directory', 'డీలర్ల డైరెక్టరీ')}
           </h1>
           <p className="text-gray-600 dark:text-slate-400">
             {t('Fertilizer, seed, and pesticide dealers', 'ఎరువులు, విత్తనాలు, పురుగుమందుల డీలర్లు')}

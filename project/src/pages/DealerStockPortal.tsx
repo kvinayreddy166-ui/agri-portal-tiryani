@@ -220,7 +220,7 @@ export function DealerStockPortal() {
       {isFertilizer && fertilizerAllocationMts.length > 0 && (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-900 dark:bg-emerald-950/40">
           <p className="text-sm font-bold text-emerald-900 dark:text-emerald-200">
-            {t('Your fertilizer allocation (Stock Management)', 'మీ ఎరువుల కేటాయింపు (స్టాక్ నిర్వహణ)')}
+            {t('Your fertilizer allocation (Fertilizer Allocation)', 'మీ ఎరువుల కేటాయింపు (ఎరువుల కేటాయింపు)')}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {fertilizerAllocationMts.map((item) => (
