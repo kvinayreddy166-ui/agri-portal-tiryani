@@ -167,7 +167,7 @@ export function StockManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="page-title">Stock Management</h1>
@@ -176,7 +176,7 @@ export function StockManagement() {
         {isAdminUser && (
           <button
             onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
           >
             <Plus className="h-5 w-5" />
             Add Dealer Stock
@@ -184,14 +184,14 @@ export function StockManagement() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
         {fertilizers.map((fertilizer) => (
-          <div key={fertilizer} className="portal-card p-5">
-            <div className="mb-3 w-fit rounded-xl bg-emerald-50 p-3 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-              <Package className="h-5 w-5" />
+          <div key={fertilizer} className="portal-card p-3">
+            <div className="mb-2 w-fit rounded-lg bg-emerald-50 p-2 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+              <Package className="h-4 w-4" />
             </div>
-            <p className="text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{fertilizer}</p>
-            <p className="mt-1 text-3xl font-black text-slate-950 dark:text-white">{totals[fertilizer].toFixed(2)}</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{fertilizer}</p>
+            <p className="mt-1 text-2xl font-black text-slate-950 dark:text-white">{totals[fertilizer].toFixed(2)}</p>
             <p className="text-xs font-semibold text-slate-400 dark:text-slate-500">MTS total</p>
           </div>
         ))}

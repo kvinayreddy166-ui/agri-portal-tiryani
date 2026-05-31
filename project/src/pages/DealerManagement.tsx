@@ -480,6 +480,9 @@ export function DealerManagement() {
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-slate-800">
               <tr>
+                <th className="w-16 px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                  S.No.
+                </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
                   {t('Dealer Name', 'పేరు')}
                 </th>
@@ -508,8 +511,9 @@ export function DealerManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-              {filteredDealers.map((dealer) => (
+              {filteredDealers.map((dealer, index) => (
                 <tr key={dealer.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                  <td className="px-4 py-3 text-sm font-bold text-gray-600 dark:text-slate-400">{index + 1}</td>
                   {editingId === dealer.id ? (
                     <EditRow
                       dealer={dealer}

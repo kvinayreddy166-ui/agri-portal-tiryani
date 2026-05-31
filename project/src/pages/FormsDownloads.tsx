@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Folder, Link, Plus, Trash2, Upload, X } from 'lucide-react';
+import { Edit2, Folder, Link, Plus, Trash2, Upload, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -29,6 +29,7 @@ export function FormsDownloads() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingFormId, setEditingFormId] = useState<string | null>(null);
   const [selectedFolder, setSelectedFolder] = useState('seed');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newForm, setNewForm] = useState(emptyForm);
@@ -72,10 +73,11 @@ export function FormsDownloads() {
   const resetForm = () => {
     setNewForm({ ...emptyForm, category: selectedFolder });
     setSelectedFile(null);
+    setEditingFormId(null);
     setShowAddForm(false);
   };
 
-  const handleAdd = async () => {
+  const handleSave = async () => {
     if (!newForm.title.trim()) {
       alert('Please enter a title');
       return;
@@ -111,13 +113,17 @@ export function FormsDownloads() {
         fileType = inferFileTypeFromName(fileUrl, fileType);
       }
 
-      const { error } = await supabase.from('forms_downloads').insert([{
+      const payload = {
         title: newForm.title.trim(),
         description: newForm.description.trim(),
         file_url: fileUrl,
         file_type: fileType,
         category: newForm.category,
-      }]);
+      };
+
+      const { error } = editingFormId
+        ? await supabase.from('forms_downloads').update(payload).eq('id', editingFormId)
+        : await supabase.from('forms_downloads').insert([payload]);
 
       if (error) throw error;
 
@@ -146,6 +152,20 @@ export function FormsDownloads() {
   const openAddForm = () => {
     setNewForm({ ...emptyForm, category: selectedFolder });
     setSelectedFile(null);
+    setEditingFormId(null);
+    setShowAddForm(true);
+  };
+
+  const openEditForm = (form: FormDownload) => {
+    setNewForm({
+      title: form.title,
+      description: form.description || '',
+      file_url: form.file_url || '',
+      file_type: form.file_type || 'pdf',
+      category: form.category || selectedFolder,
+    });
+    setSelectedFile(null);
+    setEditingFormId(form.id);
     setShowAddForm(true);
   };
 
@@ -158,13 +178,13 @@ export function FormsDownloads() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-sm font-bold uppercase tracking-wide text-emerald-700">
             {t('Resource library', 'వనరుల గ్రంథాలయం')}
           </p>
-          <h1 className="mt-1 text-3xl font-black tracking-tight text-gray-950">
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-gray-950">
             {t('Forms & Downloads', 'ఫారాలు & డౌన్‌లోడ్‌లు')}
           </h1>
           <p className="mt-2 text-gray-600">
@@ -178,7 +198,7 @@ export function FormsDownloads() {
         {isAdminUser && (
           <button
             onClick={openAddForm}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
           >
             <Plus className="h-5 w-5" />
             {t('Add Item', 'ఐటమ్ జోడించండి')}
@@ -192,13 +212,13 @@ export function FormsDownloads() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
         {folders.map((folder) => (
           <button
             key={folder.id}
             type="button"
             onClick={() => setSelectedFolder(folder.id)}
-            className={`rounded-lg border p-3 text-left transition ${
+            className={`rounded-lg border p-2.5 text-left transition ${
               selectedFolder === folder.id
                 ? 'border-emerald-300 bg-emerald-700 text-white shadow-md shadow-emerald-900/10'
                 : 'border-gray-100 bg-white text-gray-900 shadow-sm hover:border-emerald-200'
@@ -214,7 +234,7 @@ export function FormsDownloads() {
                 {folderCounts[folder.id] || 0}
               </span>
             </div>
-            <h2 className="mt-2 truncate text-base font-black">{t(folder.label, folder.telugu)}</h2>
+            <h2 className="mt-1.5 truncate text-sm font-black">{t(folder.label, folder.telugu)}</h2>
             <p className={`mt-0.5 text-xs ${selectedFolder === folder.id ? 'text-emerald-50' : 'text-gray-500'}`}>
               {t('Folder', 'ఫోల్డర్')}
             </p>
@@ -227,7 +247,9 @@ export function FormsDownloads() {
           <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-black text-gray-950">{t('Add Download Item', 'డౌన్‌లోడ్ ఐటమ్ జోడించండి')}</h2>
+                <h2 className="text-2xl font-black text-gray-950">
+                  {editingFormId ? t('Edit Download Item', 'Edit Download Item') : t('Add Download Item', 'డౌన్‌లోడ్ ఐటమ్ జోడించండి')}
+                </h2>
                 <p className="text-sm text-gray-500">{t('Upload an image or document for users.', 'వినియోగదారుల కోసం చిత్రం లేదా పత్రం అప్లోడ్ చేయండి.')}</p>
               </div>
               <button onClick={resetForm} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
@@ -309,7 +331,7 @@ export function FormsDownloads() {
               <button onClick={resetForm} className="flex-1 rounded-xl border border-gray-300 px-4 py-3 font-bold text-gray-700 hover:bg-gray-50">
                 {t('Cancel', 'రద్దు')}
               </button>
-              <button onClick={handleAdd} disabled={uploading} className="flex-1 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
+              <button onClick={handleSave} disabled={uploading} className="flex-1 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
                 {uploading ? t('Saving...', 'సేవ్ అవుతోంది...') : t('Save Item', 'సేవ్ చేయండి')}
               </button>
             </div>
@@ -317,17 +339,17 @@ export function FormsDownloads() {
         </div>
       )}
 
-      <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="mb-5">
-          <h2 className="text-2xl font-black text-gray-950">{t(activeFolder.label, activeFolder.telugu)}</h2>
+      <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="mb-3">
+          <h2 className="text-xl font-black text-gray-950">{t(activeFolder.label, activeFolder.telugu)}</h2>
           <p className="text-sm text-gray-500">
             {selectedForms.length} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
           </p>
         </div>
 
         {selectedForms.length > 0 ? (
-          <div className="overflow-hidden rounded-2xl border border-gray-100">
-            <div className="hidden grid-cols-[1fr_0.7fr_auto] gap-4 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400 md:grid">
+          <div className="overflow-hidden rounded-xl border border-gray-100">
+            <div className="hidden grid-cols-[1fr_0.6fr_auto] gap-3 bg-slate-50 px-3 py-2.5 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400 md:grid">
               <span>{t('File', 'ఫైల్')}</span>
               <span>{t('Date', 'తేదీ')}</span>
               <span className="text-right">{t('Action', 'చర్య')}</span>
@@ -336,7 +358,7 @@ export function FormsDownloads() {
               {selectedForms.map((form) => (
                 <article
                   key={form.id}
-                  className="grid gap-4 px-4 py-3 transition hover:bg-gray-50 dark:hover:bg-slate-800/50 md:grid-cols-[1fr_0.7fr_auto] md:items-center"
+                  className="grid gap-3 px-3 py-2 transition hover:bg-gray-50 dark:hover:bg-slate-800/50 md:grid-cols-[1fr_0.6fr_auto] md:items-center"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
@@ -350,9 +372,14 @@ export function FormsDownloads() {
                       <FileActionButtons fileUrl={form.file_url} fileName={form.title} fileType={form.file_type} size="sm" />
                     )}
                     {isAdminUser && (
-                      <button onClick={() => handleDelete(form.id)} className="rounded-lg p-2 text-red-500 transition hover:bg-red-50" aria-label="Delete item">
-                        <Trash2 className="h-5 w-5" />
-                      </button>
+                      <>
+                        <button onClick={() => openEditForm(form)} className="rounded-md p-1 text-blue-600 transition hover:bg-blue-50" aria-label="Edit item">
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => handleDelete(form.id)} className="rounded-md p-1 text-red-500 transition hover:bg-red-50" aria-label="Delete item">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </>
                     )}
                   </div>
                 </article>
