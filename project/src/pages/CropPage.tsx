@@ -167,9 +167,9 @@ export function CropPage({ cropType }: CropPageProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Crop Header */}
-      <div className="relative rounded-2xl overflow-hidden">
+      <div className="relative overflow-hidden rounded-xl">
         <div className="absolute inset-0">
           <img
             src={cropImages[cropType] || cropImages.cotton}
@@ -178,14 +178,14 @@ export function CropPage({ cropType }: CropPageProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/90 to-emerald-800/70"></div>
         </div>
-        <div className="relative p-8 md:p-12">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-white/20 p-3 rounded-xl">
-              <Leaf className="w-8 h-8 text-white" />
+        <div className="relative p-4 md:p-6">
+          <div className="mb-3 flex items-center gap-3">
+            <div className="rounded-lg bg-white/20 p-2">
+              <Leaf className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white">{crop.crop_name}</h1>
-              <p className="text-emerald-200">Cultivation in Tiryani Mandal</p>
+              <h1 className="text-2xl font-black text-white md:text-3xl">{crop.crop_name}</h1>
+              <p className="text-sm text-emerald-200">Cultivation in Tiryani Mandal</p>
             </div>
           </div>
 
@@ -228,14 +228,14 @@ export function CropPage({ cropType }: CropPageProps) {
             </div>
           ) : (
             <>
-              <div className="flex flex-wrap gap-6 mt-6">
-                <div className="bg-white/10 px-4 py-2 rounded-lg">
+              <div className="mt-4 flex flex-wrap gap-3">
+                <div className="rounded-lg bg-white/10 px-3 py-1.5">
                   <MapPin className="w-5 h-5 text-emerald-300 inline mr-2" />
                   <span className="text-white font-semibold">{crop.acreage.toLocaleString()} acres</span>
                 </div>
               </div>
               {crop.description && (
-                <p className="mt-4 text-emerald-100 max-w-2xl">{crop.description}</p>
+                <p className="mt-3 max-w-2xl text-sm text-emerald-100">{crop.description}</p>
               )}
               {isAdminUser && (
                 <button
@@ -251,10 +251,10 @@ export function CropPage({ cropType }: CropPageProps) {
       </div>
 
       {/* Crop Data Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <FileText className="w-6 h-6 text-emerald-600" />
+      <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 text-lg font-black text-gray-900">
+            <FileText className="h-5 w-5 text-emerald-600" />
             Documents & Guides
           </h2>
           {isAdminUser && (
@@ -343,7 +343,7 @@ export function CropPage({ cropType }: CropPageProps) {
         )}
 
         {cropData.length > 0 ? (
-          <div className="overflow-hidden rounded-2xl border border-gray-100">
+          <div className="overflow-hidden rounded-xl border border-gray-100">
             <div className="hidden grid-cols-[1fr_0.7fr_auto] gap-4 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400 md:grid">
               <span>File</span>
               <span>Date</span>
@@ -351,13 +351,13 @@ export function CropPage({ cropType }: CropPageProps) {
             </div>
             <div className="divide-y divide-gray-100 dark:divide-slate-700">
               {cropData.map((item) => (
-                <div key={item.id} className="grid gap-4 px-4 py-3 transition hover:bg-gray-50 dark:hover:bg-slate-800/50 md:grid-cols-[1fr_0.7fr_auto] md:items-center">
+                <div key={item.id} className="grid grid-cols-[1fr_auto] gap-2 px-3 py-2 transition hover:bg-gray-50 dark:hover:bg-slate-800/50 md:grid-cols-[1fr_0.7fr_auto] md:items-center">
                   <div className="flex min-w-0 items-center gap-3">
                     <FileTypeIcon fileName={item.title} fileType={item.file_type} fileUrl={item.file_url || undefined} size="sm" />
-                    <h3 className="truncate font-semibold text-gray-900 dark:text-white">{item.title}</h3>
+                    <h3 className="truncate text-sm font-semibold text-gray-900 dark:text-white">{item.title}</h3>
                   </div>
-                  <span className="text-sm text-gray-500 dark:text-slate-400">{new Date(item.created_at).toLocaleDateString()}</span>
-                  <div className="flex items-center justify-end gap-0.5">
+                  <span className="col-start-1 ml-11 text-xs text-gray-500 dark:text-slate-400 md:col-start-auto md:ml-0 md:text-sm">{new Date(item.created_at).toLocaleDateString()}</span>
+                  <div className="row-span-2 flex items-center justify-end gap-1 md:row-span-1">
                     {item.file_url && (
                       <FileActionButtons
                         fileUrl={item.file_url}

@@ -171,10 +171,10 @@ export function FormsDownloads() {
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-sm font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
-            {t('Statutory forms admin', 'Statutory forms admin')}
+            {t('Statutory Forms', 'Statutory Forms')}
           </p>
           <h1 className="mt-1 text-2xl font-black tracking-tight text-gray-950 dark:text-white">
-            {t('Forms & Templates', 'ఫారాలు & టెంప్లేట్లు')}
+            {t('Statutory Forms', 'Statutory Forms')}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-slate-300">
             {t(

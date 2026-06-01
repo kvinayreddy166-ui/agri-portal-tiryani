@@ -21,7 +21,7 @@ export function FileTypeIcon({
   const label = getFileTypeLabel(resolvedType);
 
   const boxSize =
-    size === 'sm' ? 'h-9 w-9' : size === 'lg' ? 'h-12 w-12' : 'h-10 w-10';
+    size === 'sm' ? 'h-8 w-8' : size === 'lg' ? 'h-12 w-12' : 'h-10 w-10';
 
   return (
     <img

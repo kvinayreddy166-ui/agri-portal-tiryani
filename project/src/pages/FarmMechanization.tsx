@@ -11,6 +11,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { getContentType } from '../lib/fileTypes';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
+import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 import { useAuth } from '../context/AuthContext';
 import { FarmMechanizationDocument } from '../types/database';
 
@@ -135,16 +136,16 @@ export function FarmMechanization() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl bg-gradient-to-r from-emerald-700 via-lime-700 to-cyan-700 p-8 text-white shadow-lg">
+    <div className="space-y-4">
+      <div className="rounded-xl bg-gradient-to-r from-emerald-700 via-lime-700 to-cyan-700 p-5 text-white shadow-lg md:p-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-bold uppercase tracking-wide text-emerald-100">Admin Uploads</p>
-            <h1 className="mt-2 flex items-center gap-3 text-4xl font-black tracking-tight">
-              <Tractor className="h-10 w-10" />
+            <h1 className="mt-1 flex items-center gap-3 text-3xl font-black tracking-tight">
+              <Tractor className="h-8 w-8" />
               Farm Mechanization
             </h1>
-            <p className="mt-2 max-w-2xl text-emerald-50">
+            <p className="mt-1 max-w-2xl text-sm text-emerald-50">
               Maintain applications received and proceedings generated for each financial year.
             </p>
           </div>
@@ -153,7 +154,7 @@ export function FarmMechanization() {
             <select
               value={financialYear}
               onChange={(e) => setFinancialYear(e.target.value)}
-              className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 font-bold text-gray-950 outline-none"
+              className="w-full rounded-lg border border-white/20 bg-white px-3 py-2 font-bold text-gray-950 outline-none"
             >
               {financialYears.map((year) => (
                 <option key={year} value={year}>{year}</option>
@@ -168,16 +169,16 @@ export function FarmMechanization() {
         <SummaryCard label="Proceedings Generated" count={counts.proceedings} />
       </div>
 
-      <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
         <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl font-black text-gray-950">Documents</h2>
+            <h2 className="text-xl font-black text-gray-950">Documents</h2>
             <p className="text-sm text-gray-500">Farm mechanization records for {financialYear}</p>
           </div>
           {isAdminUser && (
             <button
               onClick={() => setShowUpload(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
             >
               <Plus className="h-5 w-5" />
               Upload Document
@@ -186,15 +187,18 @@ export function FarmMechanization() {
         </div>
 
         {documents.length > 0 ? (
-          <div className="overflow-hidden rounded-2xl border border-gray-100">
+          <div className="overflow-hidden rounded-xl border border-gray-100">
             <div className="divide-y divide-gray-100">
               {documents.map((document) => (
-                <div key={document.id} className="grid gap-4 p-4 transition hover:bg-gray-50 lg:grid-cols-[1fr_1fr_auto] lg:items-center">
-                  <div className="min-w-0">
-                    <p className="font-black text-gray-950">{document.title}</p>
-                    <p className="truncate text-sm text-gray-500">{document.file_name}</p>
+                <div key={document.id} className="grid grid-cols-[1fr_auto] gap-2 p-3 transition hover:bg-gray-50 lg:grid-cols-[1fr_1fr_auto] lg:items-center">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <FileTypeIcon fileName={document.file_name || document.title} fileUrl={document.file_url} size="sm" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-black text-gray-950">{document.title}</p>
+                      <p className="truncate text-xs text-gray-500">{document.file_name}</p>
+                    </div>
                   </div>
-                  <div className="space-y-1 text-sm text-gray-600">
+                  <div className="col-start-1 space-y-1 text-xs text-gray-600 lg:col-start-auto lg:text-sm">
                     <p className="font-semibold">
                       {documentTypes.find((type) => type.id === document.document_type)?.label}
                     </p>
@@ -203,7 +207,7 @@ export function FarmMechanization() {
                       {new Date(document.created_at).toLocaleString()}
                     </p>
                   </div>
-                  <div className="flex items-center gap-0.5">
+                  <div className="row-span-2 flex items-center gap-1 lg:row-span-1">
                     <FileActionButtons
                       fileUrl={document.file_url}
                       fileName={document.file_name || document.title}
@@ -307,12 +311,12 @@ export function FarmMechanization() {
 
 function SummaryCard({ label, count }: { label: string; count: number }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <div className="mb-4 w-fit rounded-xl bg-emerald-50 p-3 text-emerald-700">
-        <FileText className="h-6 w-6" />
+    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+      <div className="mb-3 w-fit rounded-lg bg-emerald-50 p-2 text-emerald-700">
+        <FileText className="h-5 w-5" />
       </div>
-      <p className="text-sm font-bold uppercase tracking-wide text-gray-500">{label}</p>
-      <p className="mt-2 text-4xl font-black text-gray-950">{count}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-gray-500">{label}</p>
+      <p className="mt-1 text-3xl font-black text-gray-950">{count}</p>
     </div>
   );
 }

@@ -21,8 +21,8 @@ export function FileActionButtons({
 }: FileActionButtonsProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const iconClass = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
-  const btnClass = size === 'sm' ? 'rounded-md p-1' : 'rounded-lg p-1.5';
+  const iconClass = 'h-4 w-4';
+  const btnClass = size === 'sm' ? 'h-8 w-8 rounded-md' : 'h-9 w-9 rounded-lg';
   const resolvedType = resolveFileIdentity(fileName, fileType, fileUrl).resolvedType;
 
   const handleView = (e: React.MouseEvent) => {
@@ -46,13 +46,13 @@ export function FileActionButtons({
 
   return (
     <>
-      <div className={`inline-flex items-center gap-0.5 ${className}`}>
+      <div className={`inline-flex shrink-0 items-center gap-1 ${className}`}>
         <button
           type="button"
           onClick={handleView}
-          className={`${btnClass} text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-slate-800`}
+          className={`inline-flex items-center justify-center ${btnClass} text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-slate-800`}
           aria-label="View file"
-          title="View"
+          title="Preview"
         >
           <Eye className={iconClass} />
         </button>
@@ -60,7 +60,7 @@ export function FileActionButtons({
           type="button"
           onClick={handleDownload}
           disabled={downloading}
-          className={`${btnClass} text-sky-700 transition hover:bg-sky-50 disabled:opacity-50 dark:text-sky-400 dark:hover:bg-slate-800`}
+          className={`inline-flex items-center justify-center ${btnClass} text-sky-700 transition hover:bg-sky-50 disabled:opacity-50 dark:text-sky-400 dark:hover:bg-slate-800`}
           aria-label="Download file"
           title="Download"
         >

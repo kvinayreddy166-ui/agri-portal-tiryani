@@ -231,14 +231,6 @@ export function Login() {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
-  const openAdminFormsUpload = () => {
-    window.localStorage.setItem('tiryani-post-login-page', 'forms');
-    setShowStatutoryForms(false);
-    setLoginMode('staff');
-    setEmail(ADMIN_EMAIL);
-    setPassword('');
-  };
-
   if (showStatutoryForms) {
     return (
       <div className="min-h-screen bg-[#eef6f0] p-3 sm:p-4">
@@ -258,17 +250,7 @@ export function Login() {
                 <h1 className="text-2xl font-black text-slate-950">Statutory Forms</h1>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={openAdminFormsUpload}
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-sm hover:bg-emerald-800"
-              >
-                <FileText className="h-4 w-4" />
-                Admin upload/edit/delete
-              </button>
-              <PortalLogo size="md" />
-            </div>
+            <PortalLogo size="md" />
           </div>
 
           <div className="mb-4 grid grid-cols-3 gap-2">
@@ -292,48 +274,42 @@ export function Login() {
           </div>
 
           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[680px]">
-                <thead className="bg-slate-900 text-white">
-                  <tr>
-                    <th className="w-20 px-4 py-3 text-left text-sm font-bold">S.No.</th>
-                    <th className="px-4 py-3 text-left text-sm font-bold">Proforma / Form Name</th>
-                    <th className="w-44 px-4 py-3 text-right text-sm font-bold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {formsLoading ? (
-                    <tr>
-                      <td colSpan={3} className="px-4 py-8 text-center text-sm font-semibold text-slate-500">
-                        Loading forms...
-                      </td>
-                    </tr>
-                  ) : selectedStatutoryForms.length > 0 ? (
-                    selectedStatutoryForms.map((form, index) => (
-                      <tr key={form.id} className="hover:bg-emerald-50/60">
-                        <td className="px-4 py-3 text-sm font-bold text-slate-600">{index + 1}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex min-w-0 items-center gap-3">
-                            <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                            <span className="truncate font-bold text-slate-950">{form.title}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {form.file_url && (
-                            <FileActionButtons fileUrl={form.file_url} fileName={form.title} fileType={form.file_type} size="sm" />
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={3} className="px-4 py-10 text-center text-sm font-semibold text-slate-500">
-                        No statutory forms uploaded yet.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="hidden grid-cols-[5rem_1fr_7rem] bg-slate-900 px-4 py-3 text-sm font-bold text-white sm:grid">
+              <span>S.No.</span>
+              <span>Proforma / Form Name</span>
+              <span className="text-right">Actions</span>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {formsLoading ? (
+                <div className="px-4 py-8 text-center text-sm font-semibold text-slate-500">
+                  Loading forms...
+                </div>
+              ) : selectedStatutoryForms.length > 0 ? (
+                selectedStatutoryForms.map((form, index) => (
+                  <article
+                    key={form.id}
+                    className="grid grid-cols-[1fr_auto] gap-2 px-3 py-2.5 hover:bg-emerald-50/60 sm:grid-cols-[5rem_1fr_7rem] sm:items-center sm:px-4 sm:py-3"
+                  >
+                    <span className="hidden text-sm font-bold text-slate-600 sm:block">{index + 1}</span>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
+                      <div className="min-w-0">
+                        <span className="truncate text-sm font-bold text-slate-950 sm:text-base">{form.title}</span>
+                        <p className="text-xs font-bold text-slate-500 sm:hidden">S.No. {index + 1}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-end">
+                      {form.file_url && (
+                        <FileActionButtons fileUrl={form.file_url} fileName={form.title} fileType={form.file_type} size="sm" />
+                      )}
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="px-4 py-10 text-center text-sm font-semibold text-slate-500">
+                  No statutory forms uploaded yet.
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -5,23 +5,24 @@ import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
 import { Login } from './components/Login';
 import { Layout } from './components/Layout';
-import { Dashboard } from './pages/Dashboard';
-import { StockManagement } from './pages/StockManagement';
-import { DealerManagement } from './pages/DealerManagement';
-import { CropPage } from './pages/CropPage';
-import { CropManagement } from './pages/CropManagement';
-import { FormsDownloads } from './pages/FormsDownloads';
-import { ExcelUploads } from './pages/ExcelUploads';
-import { Analytics } from './pages/Analytics';
-import { Settings } from './pages/Settings';
-import { QualityControl } from './pages/QualityControl';
-import { QualityControlHub } from './pages/QualityControlHub';
-import { FarmMechanization } from './pages/FarmMechanization';
-import { GosCirculars } from './pages/GosCirculars';
-import { FileDirectory } from './pages/FileDirectory';
-import { SubsidyTracking } from './pages/SubsidyTracking';
-import { DealerStockPortal } from './pages/DealerStockPortal';
-import { StockInventory } from './pages/StockInventory';
+
+const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
+const StockManagement = lazy(() => import('./pages/StockManagement').then((m) => ({ default: m.StockManagement })));
+const DealerManagement = lazy(() => import('./pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));
+const CropPage = lazy(() => import('./pages/CropPage').then((m) => ({ default: m.CropPage })));
+const CropManagement = lazy(() => import('./pages/CropManagement').then((m) => ({ default: m.CropManagement })));
+const FormsDownloads = lazy(() => import('./pages/FormsDownloads').then((m) => ({ default: m.FormsDownloads })));
+const ExcelUploads = lazy(() => import('./pages/ExcelUploads').then((m) => ({ default: m.ExcelUploads })));
+const Analytics = lazy(() => import('./pages/Analytics').then((m) => ({ default: m.Analytics })));
+const Settings = lazy(() => import('./pages/Settings').then((m) => ({ default: m.Settings })));
+const QualityControl = lazy(() => import('./pages/QualityControl').then((m) => ({ default: m.QualityControl })));
+const QualityControlHub = lazy(() => import('./pages/QualityControlHub').then((m) => ({ default: m.QualityControlHub })));
+const FarmMechanization = lazy(() => import('./pages/FarmMechanization').then((m) => ({ default: m.FarmMechanization })));
+const GosCirculars = lazy(() => import('./pages/GosCirculars').then((m) => ({ default: m.GosCirculars })));
+const FileDirectory = lazy(() => import('./pages/FileDirectory').then((m) => ({ default: m.FileDirectory })));
+const SubsidyTracking = lazy(() => import('./pages/SubsidyTracking').then((m) => ({ default: m.SubsidyTracking })));
+const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m) => ({ default: m.DealerStockPortal })));
+const StockInventory = lazy(() => import('./pages/StockInventory').then((m) => ({ default: m.StockInventory })));
 const CropDiagnosis = lazy(() =>
   import('./pages/CropDiagnosis').then((m) => ({ default: m.CropDiagnosis }))
 );
@@ -138,7 +139,9 @@ function AppContent() {
 
   return (
     <Layout currentPage={currentPage} onNavigate={navigateToPage}>
-      {renderPage()}
+      <Suspense fallback={<PageLoader />}>
+        {renderPage()}
+      </Suspense>
     </Layout>
   );
 }

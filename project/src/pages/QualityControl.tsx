@@ -15,6 +15,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { getContentType } from '../lib/fileTypes';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
+import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 import { useAuth } from '../context/AuthContext';
 import { QualityControlSample, QualityControlTarget } from '../types/database';
 
@@ -205,13 +206,13 @@ export function QualityControl({ category }: QualityControlProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-8 text-white shadow-lg">
+    <div className="space-y-4">
+      <div className="rounded-xl bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-5 text-white shadow-lg md:p-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-bold uppercase tracking-wide text-emerald-100">Quality Control</p>
-            <h1 className="mt-2 text-4xl font-black tracking-tight">{categoryTitle}</h1>
-            <p className="mt-2 max-w-2xl text-emerald-50">
+            <h1 className="mt-1 text-3xl font-black tracking-tight">{categoryTitle}</h1>
+            <p className="mt-1 max-w-2xl text-sm text-emerald-50">
               Track dealer samples, uploaded sample-drawn forms, and financial-year targets.
             </p>
           </div>
@@ -220,7 +221,7 @@ export function QualityControl({ category }: QualityControlProps) {
             <select
               value={financialYear}
               onChange={(e) => setFinancialYear(e.target.value)}
-              className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 font-bold text-gray-950 outline-none"
+              className="w-full rounded-lg border border-white/20 bg-white px-3 py-2 font-bold text-gray-950 outline-none"
             >
               {financialYears.map((year) => (
                 <option key={year} value={year}>{year}</option>
@@ -231,14 +232,14 @@ export function QualityControl({ category }: QualityControlProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="rounded-xl bg-emerald-50 p-3 text-emerald-700">
-              <Target className="h-6 w-6" />
+        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="rounded-lg bg-emerald-50 p-2 text-emerald-700">
+              <Target className="h-5 w-5" />
             </div>
             <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-bold text-gray-700">{financialYear}</span>
           </div>
-          <p className="text-sm font-bold uppercase tracking-wide text-gray-500">Target</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Target</p>
           {isAdminUser ? (
             <div className="mt-2 flex gap-2">
               <input
@@ -246,52 +247,52 @@ export function QualityControl({ category }: QualityControlProps) {
                 min="0"
                 value={targetCount}
                 onChange={(e) => setTargetCount(parseInt(e.target.value) || 0)}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-2xl font-black outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xl font-black outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
               <button
                 onClick={saveTarget}
                 disabled={saving}
-                className="rounded-xl bg-emerald-700 px-4 text-white transition hover:bg-emerald-800 disabled:opacity-60"
+                className="rounded-lg bg-emerald-700 px-3 text-white transition hover:bg-emerald-800 disabled:opacity-60"
                 aria-label="Save target"
               >
                 <Save className="h-5 w-5" />
               </button>
             </div>
           ) : (
-            <p className="mt-2 text-4xl font-black text-gray-950">{targetCount}</p>
+            <p className="mt-1 text-3xl font-black text-gray-950">{targetCount}</p>
           )}
         </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-4 rounded-xl bg-sky-50 p-3 text-sky-700 w-fit">
-            <ClipboardCheck className="h-6 w-6" />
+        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="mb-3 w-fit rounded-lg bg-sky-50 p-2 text-sky-700">
+            <ClipboardCheck className="h-5 w-5" />
           </div>
-          <p className="text-sm font-bold uppercase tracking-wide text-gray-500">Samples Drawn</p>
-          <p className="mt-2 text-4xl font-black text-gray-950">{samples.length}</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Samples Drawn</p>
+          <p className="mt-1 text-3xl font-black text-gray-950">{samples.length}</p>
         </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-4 rounded-xl bg-amber-50 p-3 text-amber-700 w-fit">
-            <ShieldCheck className="h-6 w-6" />
+        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="mb-3 w-fit rounded-lg bg-amber-50 p-2 text-amber-700">
+            <ShieldCheck className="h-5 w-5" />
           </div>
-          <p className="text-sm font-bold uppercase tracking-wide text-gray-500">Progress</p>
-          <p className="mt-2 text-4xl font-black text-gray-950">{progress}%</p>
-          <div className="mt-4 h-3 overflow-hidden rounded-full bg-gray-100">
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Progress</p>
+          <p className="mt-1 text-3xl font-black text-gray-950">{progress}%</p>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-100">
             <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" style={{ width: `${progress}%` }} />
           </div>
         </div>
       </div>
 
-      <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
         <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl font-black text-gray-950">Sample Drawn Records</h2>
+            <h2 className="text-xl font-black text-gray-950">Sample Drawn Records</h2>
             <p className="text-sm text-gray-500">Dealer-wise quality control samples for {financialYear}</p>
           </div>
           {isAdminUser && (
             <button
               onClick={() => setShowSampleForm(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
             >
               <Plus className="h-5 w-5" />
               Add Sample
@@ -300,23 +301,32 @@ export function QualityControl({ category }: QualityControlProps) {
         </div>
 
         {samples.length > 0 ? (
-          <div className="overflow-hidden rounded-2xl border border-gray-100">
+          <div className="overflow-hidden rounded-xl border border-gray-100">
             <div className="divide-y divide-gray-100">
               {samples.map((sample) => (
-                <div key={sample.id} className="grid gap-4 p-4 transition hover:bg-gray-50 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center">
-                  <div>
-                    <p className="font-black text-gray-950">{sample.dealer_name}</p>
-                    <p className="text-sm text-gray-500">License: {sample.license_number}</p>
+                <div key={sample.id} className="grid grid-cols-[1fr_auto] gap-2 p-3 transition hover:bg-gray-50 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center">
+                  <div className="flex min-w-0 items-center gap-3">
+                    {sample.form_url && (
+                      <FileTypeIcon
+                        fileName={`${sample.category}-${sample.dealer_name}`}
+                        fileUrl={sample.form_url}
+                        size="sm"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-black text-gray-950">{sample.dealer_name}</p>
+                      <p className="truncate text-xs text-gray-500">License: {sample.license_number}</p>
+                    </div>
                   </div>
-                  <div className="space-y-1 text-sm text-gray-600">
+                  <div className="col-start-1 space-y-1 text-xs text-gray-600 lg:col-start-auto lg:text-sm">
                     <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-emerald-600" />{sample.phone_number || 'No phone'}</p>
                     <p className="flex items-center gap-2"><MapPin className="h-4 w-4 text-emerald-600" />{sample.location || 'No location'}</p>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="col-start-1 text-xs text-gray-600 lg:col-start-auto lg:text-sm">
                     <p className="flex items-center gap-2 font-semibold"><CalendarDays className="h-4 w-4 text-emerald-600" />{new Date(sample.sample_date).toLocaleDateString()}</p>
                     {sample.remarks && <p className="mt-1 line-clamp-1">{sample.remarks}</p>}
                   </div>
-                  <div className="flex items-center gap-0.5">
+                  <div className="row-span-3 flex items-center gap-1 lg:row-span-1">
                     {sample.form_url && (
                       <FileActionButtons
                         fileUrl={sample.form_url}

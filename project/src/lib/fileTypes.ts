@@ -1,6 +1,3 @@
-import { FileSpreadsheet, FileText, FileImage, File, FileType } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-
 export function inferFileTypeFromName(name: string, mimeType?: string): string {
   const cleanName = name.split('?')[0].split('#')[0];
   const ext = cleanName.split('.').pop()?.toLowerCase() || '';
@@ -25,23 +22,6 @@ export function inferFileTypeFromName(name: string, mimeType?: string): string {
   if (mimeType?.startsWith('image/')) return 'image';
 
   return ext || normalizedType || 'file';
-}
-
-export function isPreviewable(fileUrl: string, fileType?: string): boolean {
-  const type = fileType || inferFileTypeFromName(fileUrl);
-  if (/drive\.google\.com|docs\.google\.com/i.test(fileUrl)) return true;
-  if (type === 'image') return true;
-  if (type === 'pdf' || /\.pdf(\?|$)/i.test(fileUrl)) return true;
-  if (type === 'doc' || type === 'excel') return true;
-  if (/\.(docx?|xlsx?|csv)(\?|$)/i.test(fileUrl)) return true;
-  return /\.(png|jpe?g|webp|gif)(\?|$)/i.test(fileUrl);
-}
-
-export function usesGoogleViewer(fileType?: string, fileUrl?: string): boolean {
-  const type = fileType || inferFileTypeFromName(fileUrl || '');
-  if (type === 'pdf' || /\.pdf(\?|$)/i.test(fileUrl || '')) return true;
-  if (type === 'doc' || type === 'excel') return true;
-  return /\.(docx?|xlsx?|csv)(\?|$)/i.test(fileUrl || '');
 }
 
 export function resolveFileIdentity(
@@ -86,21 +66,6 @@ export function getFileTypeIconSrc(fileType: string): string {
   }
 }
 
-export function getFileTypeIcon(fileType: string): LucideIcon {
-  switch (fileType) {
-    case 'image':
-      return FileImage;
-    case 'pdf':
-      return FileText;
-    case 'excel':
-      return FileSpreadsheet;
-    case 'doc':
-      return FileType;
-    default:
-      return File;
-  }
-}
-
 export function getFileTypeLabel(fileType: string): string {
   const labels: Record<string, string> = {
     image: 'Image',
@@ -110,37 +75,6 @@ export function getFileTypeLabel(fileType: string): string {
     file: 'File',
   };
   return labels[fileType] || fileType.toUpperCase();
-}
-
-export function getFileTypeTone(fileType: string): { bg: string; text: string; ring: string } {
-  const tones: Record<string, { bg: string; text: string; ring: string }> = {
-    pdf: {
-      bg: 'bg-red-50 dark:bg-red-950/40',
-      text: 'text-red-700 dark:text-red-300',
-      ring: 'border-red-100 dark:border-red-900/70',
-    },
-    doc: {
-      bg: 'bg-sky-50 dark:bg-sky-950/40',
-      text: 'text-sky-700 dark:text-sky-300',
-      ring: 'border-sky-100 dark:border-sky-900/70',
-    },
-    excel: {
-      bg: 'bg-emerald-50 dark:bg-emerald-950/40',
-      text: 'text-emerald-700 dark:text-emerald-300',
-      ring: 'border-emerald-100 dark:border-emerald-900/70',
-    },
-    image: {
-      bg: 'bg-violet-50 dark:bg-violet-950/40',
-      text: 'text-violet-700 dark:text-violet-300',
-      ring: 'border-violet-100 dark:border-violet-900/70',
-    },
-    file: {
-      bg: 'bg-slate-100 dark:bg-slate-800',
-      text: 'text-slate-700 dark:text-slate-300',
-      ring: 'border-slate-200 dark:border-slate-700',
-    },
-  };
-  return tones[fileType] || tones.file;
 }
 
 const ALLOWED_IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];

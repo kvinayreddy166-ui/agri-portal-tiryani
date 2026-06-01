@@ -61,7 +61,7 @@ export function FileDirectory() {
           title: row.title,
           fileUrl: row.file_url,
           fileType: inferFileTypeFromName(row.title, row.file_type),
-          folder: t('Forms & Templates', 'ఫారాలు & టెంప్లేట్లు'),
+          folder: t('Statutory Forms', 'Statutory Forms'),
           subfolder: row.category,
           createdAt: row.created_at,
         });
