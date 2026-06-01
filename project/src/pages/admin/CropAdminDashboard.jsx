@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Download, FileUp, ImagePlus, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { useCropData } from '../../hooks/useCropData';
 import {
@@ -25,8 +25,13 @@ export function CropAdminDashboard() {
   const [table, setTable] = useState(TABLES[0][0]);
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null);
+  const [editorText, setEditorText] = useState('');
+  const [editorError, setEditorError] = useState('');
   const [jsonText, setJsonText] = useState('');
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = useRef(null);
   const { crop, crops, loading, reload } = useCropData(slug, { faqLimit: 500 });
 
   const rows = useMemo(() => {
@@ -38,14 +43,28 @@ export function CropAdminDashboard() {
   }, [crop, table, search]);
 
   const startAdd = () => {
-    setEditing({ crop_id: crop?.id || '', _table: table });
+    openEditor({ crop_id: crop?.id || '', _table: table });
+  };
+
+  const openEditor = (record) => {
+    setEditing(record);
+    setEditorText(JSON.stringify(record, null, 2));
+    setEditorError('');
+    setUploadError('');
   };
 
   const save = async () => {
-    if (!editing) return;
+    if (!editorText.trim()) return;
+    let parsed;
+    try {
+      parsed = JSON.parse(editorText);
+    } catch (error) {
+      setEditorError(error.message);
+      return;
+    }
     setBusy(true);
     try {
-      const { _table, id, created_at, updated_at, crops: nestedCrop, ...payload } = editing;
+      const { _table, id, created_at, updated_at, crops: nestedCrop, ...payload } = parsed;
       void created_at;
       void updated_at;
       void nestedCrop;
@@ -73,8 +92,21 @@ export function CropAdminDashboard() {
 
   const uploadImage = async (file) => {
     if (!editing || !file) return;
-    const url = await uploadCropImage(file, slug, table);
-    setEditing({ ...editing, image_url: url });
+    setUploading(true);
+    setUploadError('');
+    try {
+      const url = await uploadCropImage(file, slug, table);
+      const parsed = JSON.parse(editorText || '{}');
+      const nextRecord = { ...parsed, image_url: url };
+      setEditing(nextRecord);
+      setEditorText(JSON.stringify(nextRecord, null, 2));
+      setEditorError('');
+    } catch (error) {
+      setUploadError(error.message || 'Unable to upload image.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -133,7 +165,7 @@ export function CropAdminDashboard() {
                   <article key={row.id} className="grid gap-3 p-3 lg:grid-cols-[1fr_auto]">
                     <pre className="max-h-32 overflow-auto rounded-lg bg-slate-50 p-3 text-xs dark:bg-slate-950 dark:text-slate-200">{JSON.stringify(row, null, 2)}</pre>
                     <div className="flex gap-2 lg:flex-col">
-                      <button onClick={() => setEditing({ ...row, _table: table })} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white">Edit</button>
+                      <button onClick={() => openEditor({ ...row, _table: table })} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white">Edit</button>
                       <button onClick={() => remove(row)} className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-black text-white">
                         <Trash2 className="h-4 w-4" />
                         Delete
@@ -163,14 +195,38 @@ export function CropAdminDashboard() {
               <h2 className="text-xl font-black text-slate-950 dark:text-white">Edit {table}</h2>
               <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white">
                 <ImagePlus className="h-4 w-4" />
-                Upload Image
-                <input type="file" accept="image/*" className="hidden" onChange={(event) => uploadImage(event.target.files?.[0])} />
+                {uploading ? 'Uploading...' : 'Upload / Change Image'}
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => uploadImage(event.target.files?.[0])} />
               </label>
             </div>
-            <textarea value={JSON.stringify(editing, null, 2)} onChange={(event) => setEditing(JSON.parse(event.target.value))} className="min-h-[50vh] flex-1 bg-slate-950 p-4 font-mono text-xs text-white outline-none" />
+            {editing.image_url && (
+              <div className="border-b border-slate-200 p-4 dark:border-slate-700">
+                <img src={editing.image_url} alt="Selected crop record" className="h-28 w-44 rounded-lg object-cover" />
+              </div>
+            )}
+            <textarea
+              value={editorText}
+              onChange={(event) => {
+                const nextText = event.target.value;
+                setEditorText(nextText);
+                try {
+                  const nextRecord = JSON.parse(nextText);
+                  setEditing(nextRecord);
+                  setEditorError('');
+                } catch (error) {
+                  setEditorError(error.message);
+                }
+              }}
+              className="min-h-[50vh] flex-1 bg-slate-950 p-4 font-mono text-xs text-white outline-none"
+            />
+            {(editorError || uploadError) && (
+              <div className="border-t border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-900">
+                {editorError ? `Fix JSON before saving: ${editorError}` : uploadError}
+              </div>
+            )}
             <div className="flex gap-2 border-t border-slate-200 p-4 dark:border-slate-700">
               <button onClick={() => setEditing(null)} className="flex-1 rounded-lg border border-slate-200 px-3 py-2 font-black dark:border-slate-700 dark:text-white">Cancel</button>
-              <button onClick={save} disabled={busy} className="flex-1 rounded-lg bg-emerald-700 px-3 py-2 font-black text-white disabled:opacity-50">{busy ? 'Saving...' : 'Save'}</button>
+              <button onClick={save} disabled={busy || !!editorError} className="flex-1 rounded-lg bg-emerald-700 px-3 py-2 font-black text-white disabled:opacity-50">{busy ? 'Saving...' : 'Save'}</button>
             </div>
           </div>
         </div>

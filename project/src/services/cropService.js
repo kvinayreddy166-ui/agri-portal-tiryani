@@ -127,13 +127,14 @@ export async function deleteCropRecord(table, id) {
 export async function uploadCropImage(file, cropSlug, entityType = 'crop') {
   const ext = file.name.split('.').pop() || 'jpg';
   const path = `crop-intelligence/${cropSlug}/${entityType}-${Date.now()}.${ext}`;
-  const { error: uploadError } = await supabase.storage.from('portal-files').upload(path, file, {
+  const { error: uploadError } = await supabase.storage.from('uploads').upload(path, file, {
     cacheControl: '3600',
+    contentType: file.type || undefined,
     upsert: true,
   });
   if (uploadError) throw uploadError;
 
-  const { data } = supabase.storage.from('portal-files').getPublicUrl(path);
+  const { data } = supabase.storage.from('uploads').getPublicUrl(path);
   return data.publicUrl;
 }
 
@@ -226,7 +227,9 @@ function localCrops(cropDataset, { search = '', slug = '' } = {}) {
         crop_profile: item.crop_profile.description_en,
         crop_profile_te: item.crop_profile.description_te,
         soil_requirements: item.soil_requirements.description_en,
+        soil_requirements_te: item.soil_requirements.description_te,
         climate_requirements: item.climate_requirements.description_en,
+        climate_requirements_te: item.climate_requirements.description_te,
         seed_rate_seed_treatment: item.seed_rate_seed_treatment,
         sowing_time_spacing_land_preparation: item.sowing_time_spacing_land_preparation,
         harvesting_yield: item.harvesting,
@@ -257,12 +260,14 @@ function localCropBySlug(cropDataset, slug) {
       fertilizer: row.fertilizer,
       quantity: row.quantity,
       method: row.method,
+      description_te: row.description_te,
     })),
     crop_irrigation: item.irrigation_management.map((row, index) => ({
       id: `${item.slug}-irrigation-${index + 1}`,
       crop_id: base.id,
       stage: row.stage,
       recommendation_en: row.recommendation,
+      recommendation_te: row.recommendation_te || row.recommendation,
     })),
     crop_weeds: item.weed_management.map((row) => ({
       id: row.id,

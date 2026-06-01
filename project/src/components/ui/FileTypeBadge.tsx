@@ -1,6 +1,7 @@
 import React from 'react';
 import { File, FileImage, FileSpreadsheet, FileText, FileType } from 'lucide-react';
 import { getFileTypeLabel, inferFileTypeFromName } from '../../lib/fileTypes';
+import { getFileTypeColor } from './FileTypeIcon';
 
 interface FileTypeBadgeProps {
   fileName?: string;
@@ -12,6 +13,7 @@ export function FileTypeBadge({ fileName = '', fileType, iconOnly = false }: Fil
   const resolvedType = inferFileTypeFromName(fileName, fileType);
   const label = getFileTypeLabel(resolvedType);
   const Icon = getStandardIcon(resolvedType);
+  const color = getFileTypeColor(resolvedType);
 
   return (
     <span
@@ -19,7 +21,7 @@ export function FileTypeBadge({ fileName = '', fileType, iconOnly = false }: Fil
       title={label}
       aria-label={label}
     >
-      <Icon className="h-4 w-4 text-slate-500 dark:text-slate-300" />
+      <Icon className={`h-4 w-4 ${color}`} />
       {!iconOnly && <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{label}</span>}
     </span>
   );
