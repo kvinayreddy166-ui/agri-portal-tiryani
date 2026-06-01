@@ -1,5 +1,6 @@
 import React from 'react';
-import { getFileTypeIconSrc, getFileTypeLabel, inferFileTypeFromName } from '../../lib/fileTypes';
+import { File, FileImage, FileSpreadsheet, FileText, FileType } from 'lucide-react';
+import { getFileTypeLabel, inferFileTypeFromName } from '../../lib/fileTypes';
 
 interface FileTypeBadgeProps {
   fileName?: string;
@@ -9,8 +10,8 @@ interface FileTypeBadgeProps {
 
 export function FileTypeBadge({ fileName = '', fileType, iconOnly = false }: FileTypeBadgeProps) {
   const resolvedType = inferFileTypeFromName(fileName, fileType);
-  const iconSrc = getFileTypeIconSrc(resolvedType);
   const label = getFileTypeLabel(resolvedType);
+  const Icon = getStandardIcon(resolvedType);
 
   return (
     <span
@@ -18,8 +19,23 @@ export function FileTypeBadge({ fileName = '', fileType, iconOnly = false }: Fil
       title={label}
       aria-label={label}
     >
-      <img src={iconSrc} alt={label} className="h-7 w-7 object-contain" />
+      <Icon className="h-4 w-4 text-slate-500 dark:text-slate-300" />
       {!iconOnly && <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{label}</span>}
     </span>
   );
+}
+
+function getStandardIcon(fileType: string) {
+  switch (fileType) {
+    case 'image':
+      return FileImage;
+    case 'pdf':
+      return FileText;
+    case 'excel':
+      return FileSpreadsheet;
+    case 'doc':
+      return FileType;
+    default:
+      return File;
+  }
 }

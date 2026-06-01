@@ -1,391 +1,414 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Leaf, FileText, MapPin, Save, Upload } from 'lucide-react';
-import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { FileTypeIcon } from '../components/ui/FileTypeIcon';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Edit2,
+  FileUp,
+  Leaf,
+  Save,
+  Sprout,
+  Trash2,
+  X,
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
 import { uploadPortalFile } from '../lib/uploadFile';
-import { Crop, CropData } from '../types/database';
+import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { getCropIntelligence } from '../lib/cropIntelligence';
 
 interface CropPageProps {
   cropType: string;
 }
 
+interface LocalizedText {
+  en: string;
+  te: string;
+}
+
+interface CropPractice {
+  key: string;
+  title: LocalizedText;
+  body: LocalizedText;
+}
+
+interface CropRisk {
+  type: string;
+  name: LocalizedText;
+  symptoms: LocalizedText;
+  control: LocalizedText;
+  chemicals: string[];
+  newChemicals: string[];
+  image_url: string;
+  image_source_url?: string;
+}
+
+interface CropIntelligenceRecord {
+  id?: string;
+  slug: string;
+  name_en: string;
+  name_te: string;
+  scientific_name: string;
+  crop_image_url: string;
+  source_pdf_name?: string;
+  source_pdf_url?: string;
+  content: {
+    soil: LocalizedText;
+    duration: LocalizedText;
+    varieties: Array<{ name: string; duration?: string; notes: LocalizedText }>;
+    practices: CropPractice[];
+  };
+  risks: CropRisk[];
+}
+
+const cropImages: Record<string, string> = {
+  cotton: '/images/cotton.jpg',
+  paddy: '/images/paddy.jpg',
+  rice: '/images/paddy.jpg',
+  maize: '/images/maize.jpg',
+  redgram: '/images/pulses.jpg',
+  greengram: '/images/pulses.jpg',
+  pulses: '/images/pulses.jpg',
+  oilseeds: '/images/oilseeds.jpg',
+};
+
 export function CropPage({ cropType }: CropPageProps) {
   const { isAdminUser } = useAuth();
-  const [crop, setCrop] = useState<Crop | null>(null);
-  const [cropData, setCropData] = useState<CropData[]>([]);
+  const { language, t } = useLanguage();
+  const [record, setRecord] = useState<CropIntelligenceRecord | null>(null);
   const [loading, setLoading] = useState(true);
-  const [editingCrop, setEditingCrop] = useState(false);
-  const [showAddDataForm, setShowAddDataForm] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [newData, setNewData] = useState({
-    title: '',
-    description: '',
-    file_url: '',
-    file_type: 'document',
-  });
+  const [editText, setEditText] = useState('');
 
-  const cropImages: Record<string, string> = {
-    cotton: '/images/cotton.jpg',
-    paddy: '/images/paddy.jpg',
-    maize: '/images/maize.jpg',
-    pulses: '/images/pulses.jpg',
-    oilseeds: '/images/oilseeds.jpg',
-  };
+  const slug = cropType === 'paddy' ? 'rice' : cropType;
+  const fallback = useMemo(() => buildFallbackRecord(slug), [slug]);
+  const visibleRecord = record || fallback;
+  const locale = language === 'te' ? 'te' : 'en';
 
   useEffect(() => {
-    fetchCropData();
-  }, [cropType]);
+    fetchCropIntelligence();
+  }, [slug]);
 
-  const fetchCropData = async () => {
+  const fetchCropIntelligence = async () => {
+    setLoading(true);
     try {
-      const cropName = cropType.charAt(0).toUpperCase() + cropType.slice(1);
-      const { data: cropResult } = await supabase
-        .from('crops')
+      const { data, error } = await supabase
+        .from('crop_intelligence')
         .select('*')
-        .eq('crop_name', cropName)
+        .eq('slug', slug)
         .maybeSingle();
 
-      if (cropResult) {
-        setCrop(cropResult);
-        const { data: dataResult } = await supabase
-          .from('crop_data')
-          .select('*')
-          .eq('crop_id', cropResult.id)
-          .order('created_at', { ascending: false });
-        setCropData(dataResult || []);
-      }
+      if (error) throw error;
+      setRecord(data as CropIntelligenceRecord | null);
     } catch (error) {
-      console.error('Error fetching crop data:', error);
+      console.error('Error loading crop intelligence:', error);
+      setRecord(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateCrop = async () => {
-    if (!crop) return;
+  const openEditor = () => {
+    setEditText(JSON.stringify(visibleRecord, null, 2));
+    setEditOpen(true);
+  };
+
+  const saveRecord = async () => {
+    setSaving(true);
     try {
+      const parsed = JSON.parse(editText) as CropIntelligenceRecord;
+      const payload = {
+        slug: parsed.slug || slug,
+        name_en: parsed.name_en,
+        name_te: parsed.name_te,
+        scientific_name: parsed.scientific_name,
+        crop_image_url: parsed.crop_image_url,
+        source_pdf_name: parsed.source_pdf_name || null,
+        source_pdf_url: parsed.source_pdf_url || null,
+        content: parsed.content,
+        risks: parsed.risks,
+        updated_at: new Date().toISOString(),
+      };
+
       const { error } = await supabase
-        .from('crops')
-        .update({
-          acreage: crop.acreage,
-          description: crop.description,
-        })
-        .eq('id', crop.id);
+        .from('crop_intelligence')
+        .upsert(payload, { onConflict: 'slug' });
 
       if (error) throw error;
-      setEditingCrop(false);
+      setEditOpen(false);
+      fetchCropIntelligence();
     } catch (error) {
-      console.error('Error updating crop:', error);
-      alert('Failed to update crop information');
+      console.error('Error saving crop intelligence:', error);
+      alert(error instanceof Error ? error.message : 'Unable to save crop intelligence.');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleAddCropData = async () => {
-    if (!crop) return;
-
-    if (!newData.title.trim()) {
-      alert('Please enter a document title');
-      return;
+  const deleteRecord = async () => {
+    if (!record?.id || !confirm('Delete this crop intelligence record?')) return;
+    try {
+      const { error } = await supabase.from('crop_intelligence').delete().eq('id', record.id);
+      if (error) throw error;
+      setRecord(null);
+    } catch (error) {
+      console.error('Error deleting crop intelligence:', error);
+      alert('Unable to delete crop intelligence record.');
     }
+  };
 
-    if (!selectedFile && !newData.file_url.trim()) {
-      alert('Please upload a file or enter a file URL');
-      return;
-    }
-
+  const uploadSourcePdf = async (file: File) => {
     setUploading(true);
     try {
-      let fileUrl = newData.file_url.trim();
-      let fileType = newData.file_type;
-
-      if (selectedFile) {
-        const uploaded = await uploadPortalFile(selectedFile, `crops/${cropType}`);
-        fileUrl = uploaded.publicUrl;
-        fileType = uploaded.fileType;
-      }
-
-      const { error } = await supabase
-        .from('crop_data')
-        .insert([{
-          title: newData.title.trim(),
-          description: newData.description.trim(),
-          file_url: fileUrl,
-          file_type: fileType,
-          crop_id: crop.id,
-          created_by: 'admin',
-        }]);
-
+      const uploaded = await uploadPortalFile(file, `crop-intelligence/${slug}`);
+      const nextRecord = {
+        ...visibleRecord,
+        source_pdf_name: file.name,
+        source_pdf_url: uploaded.publicUrl,
+      };
+      const { error } = await supabase.from('crop_intelligence').upsert({
+        slug: nextRecord.slug,
+        name_en: nextRecord.name_en,
+        name_te: nextRecord.name_te,
+        scientific_name: nextRecord.scientific_name,
+        crop_image_url: nextRecord.crop_image_url,
+        source_pdf_name: nextRecord.source_pdf_name,
+        source_pdf_url: nextRecord.source_pdf_url,
+        content: nextRecord.content,
+        risks: nextRecord.risks,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'slug' });
       if (error) throw error;
-      setShowAddDataForm(false);
-      setSelectedFile(null);
-      setNewData({ title: '', description: '', file_url: '', file_type: 'document' });
-      fetchCropData();
+      fetchCropIntelligence();
     } catch (error) {
-      console.error('Error adding crop data:', error);
-      const message = error instanceof Error ? error.message : 'Failed to add document';
-      alert(message);
+      console.error('Error uploading source PDF:', error);
+      alert(error instanceof Error ? error.message : 'Unable to upload source PDF.');
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDeleteCropData = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('crop_data')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      fetchCropData();
-    } catch (error) {
-      console.error('Error deleting crop data:', error);
-      alert('Failed to delete item');
-    }
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-      </div>
-    );
-  }
-
-  if (!crop) {
-    return (
-      <div className="text-center py-12">
-        <Leaf className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-500">Crop not found</p>
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {/* Crop Header */}
-      <div className="relative overflow-hidden rounded-xl">
-        <div className="absolute inset-0">
-          <img
-            src={cropImages[cropType] || cropImages.cotton}
-            alt={crop.crop_name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/90 to-emerald-800/70"></div>
-        </div>
-        <div className="relative p-4 md:p-6">
-          <div className="mb-3 flex items-center gap-3">
-            <div className="rounded-lg bg-white/20 p-2">
-              <Leaf className="h-6 w-6 text-white" />
-            </div>
+      <section className="relative overflow-hidden rounded-xl">
+        <img
+          src={visibleRecord.crop_image_url || cropImages[slug] || cropImages.cotton}
+          alt={visibleRecord.name_en}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-slate-900/55" />
+        <div className="relative p-5 text-white md:p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="text-2xl font-black text-white md:text-3xl">{crop.crop_name}</h1>
-              <p className="text-sm text-emerald-200">Cultivation in Tiryani Mandal</p>
-            </div>
-          </div>
-
-          {editingCrop && isAdminUser ? (
-            <div className="bg-white/10 rounded-xl p-4 mt-6 max-w-lg">
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm text-emerald-200 mb-1">Acreage</label>
-                  <input
-                    type="number"
-                    value={crop.acreage}
-                    onChange={(e) => setCrop({ ...crop, acreage: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 rounded-lg bg-white/20 text-white border border-white/30 focus:border-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-emerald-200 mb-1">Description</label>
-                  <textarea
-                    value={crop.description}
-                    onChange={(e) => setCrop({ ...crop, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 rounded-lg bg-white/20 text-white border border-white/30 focus:border-white"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleUpdateCrop}
-                    className="flex items-center gap-1 px-4 py-2 bg-white text-emerald-700 rounded-lg font-medium"
-                  >
-                    <Save className="w-4 h-4" /> Save
-                  </button>
-                  <button
-                    onClick={() => setEditingCrop(false)}
-                    className="px-4 py-2 text-white border border-white/30 rounded-lg"
-                  >
-                    Cancel
-                  </button>
-                </div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-black">
+                <Leaf className="h-4 w-4" />
+                Crop Intelligence
               </div>
+              <h1 className="text-3xl font-black tracking-tight">
+                {locale === 'te' ? visibleRecord.name_te : visibleRecord.name_en}
+              </h1>
+              <p className="mt-1 text-sm italic text-emerald-100">{visibleRecord.scientific_name}</p>
+              <p className="mt-3 max-w-3xl text-sm font-semibold text-emerald-50">
+                {text(visibleRecord.content.soil, locale)}
+              </p>
             </div>
-          ) : (
-            <>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <div className="rounded-lg bg-white/10 px-3 py-1.5">
-                  <MapPin className="w-5 h-5 text-emerald-300 inline mr-2" />
-                  <span className="text-white font-semibold">{crop.acreage.toLocaleString()} acres</span>
-                </div>
-              </div>
-              {crop.description && (
-                <p className="mt-3 max-w-2xl text-sm text-emerald-100">{crop.description}</p>
-              )}
-              {isAdminUser && (
-                <button
-                  onClick={() => setEditingCrop(true)}
-                  className="mt-4 flex items-center gap-1 text-emerald-200 hover:text-white"
-                >
-                  <Edit2 className="w-4 h-4" /> Edit Info
+            {isAdminUser && (
+              <div className="flex flex-wrap gap-2">
+                <button onClick={openEditor} className="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-black text-emerald-800">
+                  <Edit2 className="h-4 w-4" />
+                  Edit
                 </button>
-              )}
-            </>
-          )}
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-sm font-black text-white ring-1 ring-white/25">
+                  <FileUp className="h-4 w-4" />
+                  {uploading ? 'Uploading...' : 'Upload PDF'}
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) void uploadSourcePdf(file);
+                    }}
+                  />
+                </label>
+                {record?.id && (
+                  <button onClick={deleteRecord} className="inline-flex items-center gap-2 rounded-lg bg-red-500 px-3 py-2 text-sm font-black text-white">
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+      </section>
+
+      <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
+        <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <h2 className="mb-3 flex items-center gap-2 text-xl font-black text-slate-950 dark:text-white">
+            <Sprout className="h-5 w-5 text-emerald-700" />
+            {t('Production Guide', 'ఉత్పత్తి మార్గదర్శిని')}
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <InfoCard label={t('Duration', 'పంట కాలం')} value={text(visibleRecord.content.duration, locale)} />
+            <InfoCard label={t('Source PDF', 'మూల పీడీఎఫ్')} value={visibleRecord.source_pdf_name || 'PJTAU crop PDF'} />
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {visibleRecord.content.practices.map((practice) => (
+              <article key={practice.key} className="rounded-lg border border-slate-100 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800">
+                <h3 className="text-sm font-black text-emerald-800 dark:text-emerald-300">{text(practice.title, locale)}</h3>
+                <p className="mt-1 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-200">{text(practice.body, locale)}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <h2 className="mb-3 flex items-center gap-2 text-xl font-black text-slate-950 dark:text-white">
+            <CheckCircle2 className="h-5 w-5 text-emerald-700" />
+            {t('Varieties', 'రకాలు')}
+          </h2>
+          <div className="space-y-2">
+            {visibleRecord.content.varieties.map((variety) => (
+              <article key={variety.name} className="rounded-lg border border-slate-100 p-3 dark:border-slate-700">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-black text-slate-950 dark:text-white">{variety.name}</h3>
+                  {variety.duration && <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-black text-emerald-700">{variety.duration}</span>}
+                </div>
+                <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">{text(variety.notes, locale)}</p>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
 
-      {/* Crop Data Section */}
-      <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-lg font-black text-gray-900">
-            <FileText className="h-5 w-5 text-emerald-600" />
-            Documents & Guides
-          </h2>
-          {isAdminUser && (
-            <button
-              onClick={() => setShowAddDataForm(true)}
-              className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Add Document
-            </button>
-          )}
+      <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <h2 className="mb-3 flex items-center gap-2 text-xl font-black text-slate-950 dark:text-white">
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          {t('Pests, Diseases and Control', 'పురుగులు, తెగుళ్లు మరియు నియంత్రణ')}
+        </h2>
+        <div className="grid gap-3 lg:grid-cols-2">
+          {visibleRecord.risks.map((risk) => (
+            <article key={`${risk.type}-${risk.name.en}`} className="overflow-hidden rounded-lg border border-slate-100 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+              <div className="grid gap-0 sm:grid-cols-[10rem_1fr]">
+                <img src={risk.image_url} alt={text(risk.name, locale)} className="h-44 w-full object-cover sm:h-full" />
+                <div className="p-3">
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <h3 className="font-black text-slate-950 dark:text-white">{text(risk.name, locale)}</h3>
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700 dark:bg-slate-900">{risk.type}</span>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{text(risk.symptoms, locale)}</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">{text(risk.control, locale)}</p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <PillList label={t('PDF chemicals', 'పీడీఎఫ్ రసాయనాలు')} items={risk.chemicals} />
+                    <PillList label={t('Newer options', 'కొత్త ఎంపికలు')} items={risk.newChemicals} />
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
+      </section>
 
-        {/* Add Data Form Modal */}
-        {showAddDataForm && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Add Document</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                  <input
-                    type="text"
-                    value={newData.title}
-                    onChange={(e) => setNewData({ ...newData, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                    placeholder="Document title"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea
-                    value={newData.description}
-                    onChange={(e) => setNewData({ ...newData, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                    placeholder="Brief description"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">File URL (optional)</label>
-                  <input
-                    type="url"
-                    value={newData.file_url}
-                    onChange={(e) => setNewData({ ...newData, file_url: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                    placeholder="https://..."
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">Upload file</label>
-                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center transition hover:border-emerald-400 hover:bg-emerald-50">
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
-                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                    />
-                    <Upload className="mb-2 h-6 w-6 text-emerald-700" />
-                    <p className="text-sm font-semibold text-gray-800">
-                      {selectedFile ? selectedFile.name : 'Choose PDF, Word, Excel, or image'}
-                    </p>
-                  </label>
-                </div>
+      {editOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+          <div className="flex max-h-[90vh] w-full max-w-5xl flex-col rounded-xl bg-white shadow-2xl dark:bg-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-700">
+              <div>
+                <h2 className="text-xl font-black text-slate-950 dark:text-white">Edit Crop Intelligence JSON</h2>
+                <p className="text-sm text-slate-500">Update bilingual text, varieties, risks, chemicals, or image URLs.</p>
               </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowAddDataForm(false);
-                    setSelectedFile(null);
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddCropData}
-                  disabled={uploading}
-                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
-                >
-                  {uploading ? 'Uploading...' : 'Add'}
-                </button>
-              </div>
+              <button onClick={() => setEditOpen(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <textarea
+              value={editText}
+              onChange={(event) => setEditText(event.target.value)}
+              className="min-h-[55vh] flex-1 resize-none border-0 bg-slate-950 p-4 font-mono text-xs leading-5 text-slate-100 outline-none"
+              spellCheck={false}
+            />
+            <div className="flex gap-3 border-t border-slate-200 p-4 dark:border-slate-700">
+              <button onClick={() => setEditOpen(false)} className="flex-1 rounded-lg border border-slate-300 px-4 py-2 font-bold text-slate-700">
+                Cancel
+              </button>
+              <button onClick={saveRecord} disabled={saving} className="flex-1 rounded-lg bg-emerald-700 px-4 py-2 font-bold text-white disabled:opacity-60">
+                <Save className="mr-2 inline h-4 w-4" />
+                {saving ? 'Saving...' : 'Save'}
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
+    </div>
+  );
+}
 
-        {cropData.length > 0 ? (
-          <div className="overflow-hidden rounded-xl border border-gray-100">
-            <div className="hidden grid-cols-[1fr_0.7fr_auto] gap-4 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400 md:grid">
-              <span>File</span>
-              <span>Date</span>
-              <span className="text-right">Action</span>
-            </div>
-            <div className="divide-y divide-gray-100 dark:divide-slate-700">
-              {cropData.map((item) => (
-                <div key={item.id} className="grid grid-cols-[1fr_auto] gap-2 px-3 py-2 transition hover:bg-gray-50 dark:hover:bg-slate-800/50 md:grid-cols-[1fr_0.7fr_auto] md:items-center">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <FileTypeIcon fileName={item.title} fileType={item.file_type} fileUrl={item.file_url || undefined} size="sm" />
-                    <h3 className="truncate text-sm font-semibold text-gray-900 dark:text-white">{item.title}</h3>
-                  </div>
-                  <span className="col-start-1 ml-11 text-xs text-gray-500 dark:text-slate-400 md:col-start-auto md:ml-0 md:text-sm">{new Date(item.created_at).toLocaleDateString()}</span>
-                  <div className="row-span-2 flex items-center justify-end gap-1 md:row-span-1">
-                    {item.file_url && (
-                      <FileActionButtons
-                        fileUrl={item.file_url}
-                        fileName={item.title}
-                        fileType={item.file_type}
-                        size="sm"
-                      />
-                    )}
-                    {isAdminUser && (
-                      <button
-                        onClick={() => handleDeleteCropData(item.id)}
-                        className="rounded-lg p-2 text-red-500 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No documents available for this crop</p>
-          </div>
-        )}
+function text(value: LocalizedText, locale: 'en' | 'te') {
+  return value?.[locale] || value?.en || '';
+}
+
+function InfoCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800">
+      <p className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100">{value}</p>
+    </div>
+  );
+}
+
+function PillList({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div>
+      <p className="text-xs font-black uppercase tracking-wide text-slate-500">{label}</p>
+      <div className="mt-1 flex flex-wrap gap-1">
+        {items.map((item) => (
+          <span key={item} className="rounded-full bg-white px-2 py-1 text-[11px] font-bold text-slate-700 shadow-sm dark:bg-slate-900 dark:text-slate-200">
+            {item}
+          </span>
+        ))}
       </div>
     </div>
   );
+}
+
+function buildFallbackRecord(slug: string): CropIntelligenceRecord {
+  const fallback = getCropIntelligence(slug === 'rice' ? 'paddy' : slug);
+  return {
+    slug,
+    name_en: fallback?.label || slug,
+    name_te: fallback?.label || slug,
+    scientific_name: fallback?.scientificName || '',
+    crop_image_url: fallback?.image || cropImages[slug] || cropImages.cotton,
+    source_pdf_name: `${slug}.pdf`,
+    content: {
+      soil: { en: fallback?.soil || '', te: fallback?.soil || '' },
+      duration: { en: fallback?.duration || '', te: fallback?.duration || '' },
+      varieties: (fallback?.varieties || []).map((name) => ({ name, notes: { en: 'Recommended for local conditions.', te: 'స్థానిక పరిస్థితులకు అనుకూలం.' } })),
+      practices: [
+        { key: 'nursery', title: { en: 'Nursery / Sowing', te: 'నారు / విత్తడం' }, body: { en: fallback?.management.nursery || '', te: fallback?.management.nursery || '' } },
+        { key: 'fertilizer', title: { en: 'Fertilizer', te: 'ఎరువులు' }, body: { en: fallback?.management.fertilizer || '', te: fallback?.management.fertilizer || '' } },
+        { key: 'weed', title: { en: 'Weed Control', te: 'కలుపు నియంత్రణ' }, body: { en: fallback?.management.weed || '', te: fallback?.management.weed || '' } },
+        { key: 'irrigation', title: { en: 'Irrigation', te: 'నీటి నిర్వహణ' }, body: { en: fallback?.management.irrigation || '', te: fallback?.management.irrigation || '' } },
+      ],
+    },
+    risks: (fallback?.risks || []).map((risk) => ({
+      type: risk.type,
+      name: { en: risk.name, te: risk.name },
+      symptoms: { en: risk.symptoms, te: risk.symptoms },
+      control: { en: risk.action, te: risk.action },
+      chemicals: [],
+      newChemicals: [],
+      image_url: risk.image,
+    })),
+  };
 }

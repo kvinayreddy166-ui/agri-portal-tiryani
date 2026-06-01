@@ -26,6 +26,9 @@ const StockInventory = lazy(() => import('./pages/StockInventory').then((m) => (
 const CropDiagnosis = lazy(() =>
   import('./pages/CropDiagnosis').then((m) => ({ default: m.CropDiagnosis }))
 );
+const CropAdminDashboard = lazy(() =>
+  import('./pages/admin/CropAdminDashboard.jsx').then((m) => ({ default: m.CropAdminDashboard }))
+);
 
 function PageLoader() {
   return (
@@ -86,6 +89,8 @@ function AppContent() {
         return <DealerManagement />;
       case 'crops':
         return <CropManagement />;
+      case 'crop-admin':
+        return isAdminUser ? <CropAdminDashboard /> : <CropManagement />;
       case 'crop-cotton':
         return <CropPage cropType="cotton" />;
       case 'crop-paddy':

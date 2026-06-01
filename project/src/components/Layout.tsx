@@ -5,7 +5,6 @@ import {
   FolderOpen, Moon, Sun, Landmark, Stethoscope, ClipboardList,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
-import { FarmerChatbot } from './FarmerChatbot';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -25,6 +24,12 @@ const adminMenuItems = [
     id: 'crops',
     label: 'Crop Intelligence',
     icon: BrainCircuit,
+  },
+  {
+    id: 'crop-admin',
+    label: 'Crop Admin',
+    icon: ClipboardList,
+    adminOnly: true,
   },
   { id: 'forms', label: 'Statutory Forms', icon: FileStack },
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
@@ -189,7 +194,6 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       <main className="min-h-[calc(100vh-4.25rem)]">
         <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">{children}</div>
       </main>
-      <FarmerChatbot />
     </div>
   );
 }
@@ -204,6 +208,7 @@ function translateMenu(label: string) {
     'Dealers Directory': 'డీలర్ల డైరెక్టరీ',
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
     'Crop Intelligence': 'పంట ఇంటెలిజెన్స్',
+    'Crop Admin': 'పంట అడ్మిన్',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
     'GOs & Circulars': 'జీ.ఓలు & సర్క్యులర్లు',
     'Quality Control': 'నాణ్యత నియంత్రణ',

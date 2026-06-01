@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { BrainCircuit, Leaf } from 'lucide-react';
-import { CropPage } from './CropPage';
+import { CropIntelligencePage } from './crops/CropIntelligencePage.jsx';
 
 const cropTabs = [
-  { id: 'cotton', label: 'Cotton', image: '/images/cotton.jpg' },
   { id: 'paddy', label: 'Paddy', image: '/images/paddy.jpg' },
   { id: 'maize', label: 'Maize', image: '/images/maize.jpg' },
-  { id: 'pulses', label: 'Pulses', image: '/images/pulses.jpg' },
-  { id: 'oilseeds', label: 'Oilseeds', image: '/images/oilseeds.jpg' },
+  { id: 'cotton', label: 'Cotton', image: '/images/cotton.jpg' },
+  { id: 'redgram', label: 'Redgram', image: '/images/pulses.jpg' },
+  { id: 'greengram', label: 'Greengram', image: '/images/pulses.jpg' },
 ];
 
 export function CropManagement() {
@@ -51,7 +51,7 @@ export function CropManagement() {
       </aside>
 
       <div className="min-w-0">
-        <CropPage cropType={activeCrop} />
+        <CropIntelligencePage cropSlug={activeCrop} />
       </div>
     </div>
   );

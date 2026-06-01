@@ -51,21 +51,6 @@ export function resolveFileIdentity(
   return { displayName, resolvedType };
 }
 
-export function getFileTypeIconSrc(fileType: string): string {
-  switch (fileType) {
-    case 'image':
-      return '/images/file-icons/image.png';
-    case 'pdf':
-      return '/images/file-icons/pdf.png';
-    case 'excel':
-      return '/images/file-icons/excel.png';
-    case 'doc':
-      return '/images/file-icons/doc.png';
-    default:
-      return '/images/file-icons/doc.png';
-  }
-}
-
 export function getFileTypeLabel(fileType: string): string {
   const labels: Record<string, string> = {
     image: 'Image',

@@ -1,5 +1,6 @@
 import React from 'react';
-import { getFileTypeIconSrc, getFileTypeLabel, resolveFileIdentity } from '../../lib/fileTypes';
+import { File, FileImage, FileSpreadsheet, FileText, FileType } from 'lucide-react';
+import { getFileTypeLabel, resolveFileIdentity } from '../../lib/fileTypes';
 
 interface FileTypeIconProps {
   fileName?: string;
@@ -17,22 +18,37 @@ export function FileTypeIcon({
   className = '',
 }: FileTypeIconProps) {
   const { resolvedType } = resolveFileIdentity(fileName, fileType, fileUrl);
-  const iconSrc = getFileTypeIconSrc(resolvedType);
   const label = getFileTypeLabel(resolvedType);
+  const Icon = getStandardIcon(resolvedType);
 
   const boxSize =
-    size === 'sm' ? 'h-8 w-8' : size === 'lg' ? 'h-12 w-12' : 'h-10 w-10';
+    size === 'sm' ? 'h-4 w-4' : size === 'lg' ? 'h-6 w-6' : 'h-5 w-5';
 
   return (
-    <img
-      src={iconSrc}
-      alt={label}
-      title={label}
-      className={`shrink-0 object-contain ${boxSize} ${className}`}
-    />
+    <span title={label} className="inline-flex shrink-0 items-center justify-center">
+      <Icon
+        aria-label={label}
+        className={`text-slate-500 dark:text-slate-300 ${boxSize} ${className}`}
+      />
+    </span>
   );
 }
 
 export function resolveFileType(fileName?: string, fileType?: string, fileUrl?: string): string {
   return resolveFileIdentity(fileName, fileType, fileUrl).resolvedType;
+}
+
+function getStandardIcon(fileType: string) {
+  switch (fileType) {
+    case 'image':
+      return FileImage;
+    case 'pdf':
+      return FileText;
+    case 'excel':
+      return FileSpreadsheet;
+    case 'doc':
+      return FileType;
+    default:
+      return File;
+  }
 }
