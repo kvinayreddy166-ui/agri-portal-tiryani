@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Landmark, Sprout, Trash2, Upload, Save } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -71,11 +71,8 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
   const [beneficiaryFile, setBeneficiaryFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchRecords();
-  }, [program]);
-
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('subsidy_cell_records')
@@ -90,7 +87,11 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
     } finally {
       setLoading(false);
     }
-  };
+  }, [program]);
+
+  useEffect(() => {
+    void fetchRecords();
+  }, [fetchRecords]);
 
   const handleSave = async () => {
     if (!form.financial_year.trim()) {
@@ -123,7 +124,7 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
       if (error) throw error;
       setForm(emptyRecord);
       setBeneficiaryFile(null);
-      fetchRecords();
+      void fetchRecords();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to save record');
     } finally {
@@ -134,7 +135,7 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this record?')) return;
     await supabase.from('subsidy_cell_records').delete().eq('id', id);
-    fetchRecords();
+    void fetchRecords();
   };
 
   if (loading) {

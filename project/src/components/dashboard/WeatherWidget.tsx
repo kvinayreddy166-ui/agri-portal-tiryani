@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CloudRain, Droplets, Thermometer, Wind } from 'lucide-react';
+import { CalendarDays, CloudRain, Droplets, Thermometer, Wind } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 /** Tiryani Mandal approximate center */
@@ -12,6 +12,13 @@ interface WeatherData {
   humidity: number;
   rain1h?: number;
   rainToday?: number;
+  rainChanceToday?: number;
+  forecast: Array<{
+    date: string;
+    rainMm: number;
+    probability: number;
+    weatherCode?: number;
+  }>;
   description: string;
   windSpeed: number;
   source: 'openweather' | 'openmeteo';
@@ -37,18 +44,25 @@ export function WeatherWidget() {
         feelsLike: Math.round(data.main.feels_like),
         humidity: data.main.humidity,
         rain1h: data.rain?.['1h'] ?? data.rain?.['3h'],
+        forecast: [],
         description: data.weather?.[0]?.description ?? '',
-        windSpeed: data.wind?.speed ?? 0,
+        windSpeed: Math.round((data.wind?.speed ?? 0) * 3.6),
         source: 'openweather',
       };
     };
 
     const fetchOpenMeteo = async (): Promise<WeatherData> => {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&daily=precipitation_sum&timezone=Asia%2FKolkata`;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&daily=weather_code,precipitation_sum,precipitation_probability_max&forecast_days=7&timezone=Asia%2FKolkata`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('Weather fetch failed');
       const data = await res.json();
       const current = data.current;
+      const forecast = (data.daily?.time || []).map((date: string, index: number) => ({
+        date,
+        rainMm: Number(data.daily?.precipitation_sum?.[index] || 0),
+        probability: Number(data.daily?.precipitation_probability_max?.[index] || 0),
+        weatherCode: data.daily?.weather_code?.[index],
+      }));
       const codes: Record<number, string> = {
         0: 'Clear sky',
         1: 'Mainly clear',
@@ -66,23 +80,39 @@ export function WeatherWidget() {
         feelsLike: Math.round(current.temperature_2m),
         humidity: current.relative_humidity_2m,
         rain1h: current.precipitation > 0 ? current.precipitation : undefined,
-        rainToday: data.daily?.precipitation_sum?.[0],
+        rainToday: forecast[0]?.rainMm,
+        rainChanceToday: forecast[0]?.probability,
+        forecast,
         description: desc,
-        windSpeed: current.wind_speed_10m,
+        windSpeed: Math.round(current.wind_speed_10m),
         source: 'openmeteo',
       };
     };
 
     const load = async () => {
       try {
+        const meteo = await fetchOpenMeteo();
+        const ow = await fetchOpenWeather();
+        if (ow) {
+          setWeather({
+            ...ow,
+            rainToday: meteo.rainToday,
+            rainChanceToday: meteo.rainChanceToday,
+            forecast: meteo.forecast,
+          });
+          setError(null);
+          return;
+        }
+        setWeather(meteo);
+        setError(null);
+      } catch {
         const ow = await fetchOpenWeather();
         if (ow) {
           setWeather(ow);
-          return;
+          setError(null);
+        } else {
+          setError('fetch_failed');
         }
-        setWeather(await fetchOpenMeteo());
-      } catch {
-        setError('fetch_failed');
       } finally {
         setLoading(false);
       }
@@ -154,16 +184,44 @@ export function WeatherWidget() {
                   ? `${weather.rain1h} mm`
                   : '0 mm'}
             </p>
+            {weather.rainChanceToday != null && (
+              <p className="text-xs font-bold text-sky-700 dark:text-sky-300">
+                {weather.rainChanceToday}% {t('chance', 'అవకాశం')}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">
           <Wind className="h-8 w-8 text-slate-500" />
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400">{t('Wind', 'గాలి')}</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{weather.windSpeed} m/s</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white">{weather.windSpeed} km/h</p>
           </div>
         </div>
       </div>
+      {weather.forecast.length > 0 && (
+        <div className="border-t border-slate-100 p-5 dark:border-slate-800">
+          <div className="mb-3 flex items-center gap-2">
+            <CalendarDays className="h-5 w-5 text-emerald-700" />
+            <h4 className="text-sm font-black text-slate-950 dark:text-white">
+              {t('Rainfall forecast', 'వర్షపాతం అంచనా')}
+            </h4>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {weather.forecast.slice(0, 3).map((day, index) => (
+              <article key={day.date} className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-950">
+                <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                  {index === 0 ? t('Today', 'ఈరోజు') : new Date(day.date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
+                </p>
+                <p className="mt-1 text-xl font-black text-slate-950 dark:text-white">{day.rainMm} mm</p>
+                <p className="text-xs font-bold text-sky-700 dark:text-sky-300">
+                  {t('Rain chance', 'వర్షం అవకాశం')}: {day.probability}%
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

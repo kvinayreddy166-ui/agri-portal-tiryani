@@ -1,6 +1,6 @@
 import React from 'react';
 import { File, FileImage, FileSpreadsheet, FileText, FileType } from 'lucide-react';
-import { getFileTypeLabel, resolveFileIdentity } from '../../lib/fileTypes';
+import { getFileTypeColor, getFileTypeLabel, resolveFileIdentity } from '../../lib/fileTypes';
 
 interface FileTypeIconProps {
   fileName?: string;
@@ -35,10 +35,6 @@ export function FileTypeIcon({
   );
 }
 
-export function resolveFileType(fileName?: string, fileType?: string, fileUrl?: string): string {
-  return resolveFileIdentity(fileName, fileType, fileUrl).resolvedType;
-}
-
 function getStandardIcon(fileType: string) {
   switch (fileType) {
     case 'image':
@@ -51,20 +47,5 @@ function getStandardIcon(fileType: string) {
       return FileType;
     default:
       return File;
-  }
-}
-
-export function getFileTypeColor(fileType: string) {
-  switch (fileType) {
-    case 'doc':
-      return 'text-blue-600 dark:text-blue-400';
-    case 'excel':
-      return 'text-green-600 dark:text-green-400';
-    case 'pdf':
-      return 'text-red-600 dark:text-red-400';
-    case 'image':
-      return 'text-rose-900 dark:text-rose-300';
-    default:
-      return 'text-slate-500 dark:text-slate-300';
   }
 }

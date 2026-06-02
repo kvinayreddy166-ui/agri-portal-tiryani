@@ -51,6 +51,10 @@ export function resolveFileIdentity(
   return { displayName, resolvedType };
 }
 
+export function resolveFileType(fileName?: string, fileType?: string, fileUrl?: string): string {
+  return resolveFileIdentity(fileName, fileType, fileUrl).resolvedType;
+}
+
 export function getFileTypeLabel(fileType: string): string {
   const labels: Record<string, string> = {
     image: 'Image',
@@ -60,6 +64,21 @@ export function getFileTypeLabel(fileType: string): string {
     file: 'File',
   };
   return labels[fileType] || fileType.toUpperCase();
+}
+
+export function getFileTypeColor(fileType: string) {
+  switch (fileType) {
+    case 'doc':
+      return 'text-blue-600 dark:text-blue-400';
+    case 'excel':
+      return 'text-green-600 dark:text-green-400';
+    case 'pdf':
+      return 'text-red-600 dark:text-red-400';
+    case 'image':
+      return 'text-rose-900 dark:text-rose-300';
+    default:
+      return 'text-slate-500 dark:text-slate-300';
+  }
 }
 
 const ALLOWED_IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
@@ -107,6 +126,21 @@ export function validateUploadFile(file: File): string | null {
   const ct = getContentType(file);
   if (ct === 'application/octet-stream') {
     return 'Could not determine file type. Rename the file with a proper extension.';
+  }
+  return null;
+}
+
+export function validateImageUploadFile(file: File, maxSizeMb = 10): string | null {
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  if (!ALLOWED_IMAGE_EXT.includes(ext)) {
+    return `Image type ".${ext || 'unknown'}" is not allowed. Use JPG, PNG, WebP, or GIF.`;
+  }
+  if (file.size > maxSizeMb * 1024 * 1024) {
+    return `Image exceeds ${maxSizeMb} MB limit.`;
+  }
+  const contentType = getContentType(file);
+  if (!contentType.startsWith('image/')) {
+    return 'Selected file is not a valid image.';
   }
   return null;
 }

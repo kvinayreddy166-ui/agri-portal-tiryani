@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState, useEffect } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -40,11 +40,105 @@ function PageLoader() {
 
 function AppContent() {
   const { user, loading, isAdminUser, isDealerUser } = useAuth();
-  const [currentPage, setCurrentPage] = useState('dashboard');
+  const validPages = useMemo(
+    () =>
+      new Set([
+        'dashboard',
+        'stock',
+        'stock-inventory',
+        'dealer-portal',
+        'dealers',
+        'crops',
+        'crop-admin',
+        'crop-cotton',
+        'crop-paddy',
+        'crop-maize',
+        'crop-pulses',
+        'crop-oilseeds',
+        'forms',
+        'gos-circulars',
+        'quality',
+        'quality-seeds',
+        'quality-pesticides',
+        'quality-fertilizers',
+        'farm-mechanization',
+        'excel',
+        'file-directory',
+        'subsidy',
+        'subsidy-nfsm',
+        'subsidy-state-seed',
+        'crop-diagnosis',
+        'analytics',
+        'settings',
+      ]),
+    []
+  );
+  const getPageFromUrl = useCallback(() => {
+    const page = new URLSearchParams(window.location.search).get('page') || window.location.hash.replace(/^#\/?/, '');
+    return validPages.has(page) ? page : 'dashboard';
+  }, [validPages]);
+  const [currentPage, setCurrentPage] = useState(() => getPageFromUrl());
+  const pageRef = useRef(currentPage);
+
+  useEffect(() => {
+    pageRef.current = currentPage;
+    window.localStorage.setItem('tiryani-current-page', currentPage);
+  }, [currentPage]);
+
+  const buildPageUrl = useCallback((page: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', page);
+    url.hash = '';
+    return `${url.pathname}${url.search}${url.hash}`;
+  }, []);
+
+  const navigateToPage = useCallback(
+    (page: string, options: { replace?: boolean } = {}) => {
+      if (!validPages.has(page)) return;
+      setCurrentPage(page);
+      const state = { tiryaniPage: page };
+      const url = buildPageUrl(page);
+      if (options.replace) {
+        window.history.replaceState(state, '', url);
+      } else if (pageRef.current !== page) {
+        window.history.pushState(state, '', url);
+      }
+    },
+    [buildPageUrl, validPages]
+  );
+
+  useEffect(() => {
+    const initialPage = getPageFromUrl();
+    // Seed browser history with a dashboard entry before non-home pages so Android Back
+    // navigates inside the portal before the browser can close the installed PWA.
+    if (!window.history.state?.tiryaniPage) {
+      window.history.replaceState({ tiryaniPage: 'dashboard' }, '', buildPageUrl('dashboard'));
+      if (initialPage !== 'dashboard') {
+        window.history.pushState({ tiryaniPage: initialPage }, '', buildPageUrl(initialPage));
+      }
+    }
+    setCurrentPage(initialPage);
+
+    const handlePopState = (event: PopStateEvent) => {
+      const nextPage = event.state?.tiryaniPage;
+      if (validPages.has(nextPage)) {
+        setCurrentPage(nextPage);
+        return;
+      }
+
+      if (pageRef.current !== 'dashboard') {
+        window.history.replaceState({ tiryaniPage: 'dashboard' }, '', buildPageUrl('dashboard'));
+        setCurrentPage('dashboard');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [buildPageUrl, getPageFromUrl, validPages]);
 
   useEffect(() => {
     if (user && isDealerUser) {
-      setCurrentPage('dealer-portal');
+      navigateToPage('dealer-portal', { replace: true });
       return;
     }
 
@@ -52,14 +146,10 @@ function AppContent() {
       const requestedPage = window.localStorage.getItem('tiryani-post-login-page');
       if (requestedPage) {
         window.localStorage.removeItem('tiryani-post-login-page');
-        setCurrentPage(requestedPage);
+        navigateToPage(requestedPage);
       }
     }
-  }, [user, isAdminUser, isDealerUser]);
-
-  const navigateToPage = (page: string) => {
-    setCurrentPage(page);
-  };
+  }, [user, isAdminUser, isDealerUser, navigateToPage]);
 
   if (loading) {
     return (

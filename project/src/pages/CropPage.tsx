@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -86,11 +86,7 @@ export function CropPage({ cropType }: CropPageProps) {
   const visibleRecord = record || fallback;
   const locale = language === 'te' ? 'te' : 'en';
 
-  useEffect(() => {
-    fetchCropIntelligence();
-  }, [slug]);
-
-  const fetchCropIntelligence = async () => {
+  const fetchCropIntelligence = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -107,7 +103,11 @@ export function CropPage({ cropType }: CropPageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
+
+  useEffect(() => {
+    void fetchCropIntelligence();
+  }, [fetchCropIntelligence]);
 
   const openEditor = () => {
     setEditText(JSON.stringify(visibleRecord, null, 2));
@@ -137,7 +137,7 @@ export function CropPage({ cropType }: CropPageProps) {
 
       if (error) throw error;
       setEditOpen(false);
-      fetchCropIntelligence();
+      void fetchCropIntelligence();
     } catch (error) {
       console.error('Error saving crop intelligence:', error);
       alert(error instanceof Error ? error.message : 'Unable to save crop intelligence.');
@@ -180,7 +180,7 @@ export function CropPage({ cropType }: CropPageProps) {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'slug' });
       if (error) throw error;
-      fetchCropIntelligence();
+      void fetchCropIntelligence();
     } catch (error) {
       console.error('Error uploading source PDF:', error);
       alert(error instanceof Error ? error.message : 'Unable to upload source PDF.');

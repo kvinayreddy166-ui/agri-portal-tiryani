@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FolderOpen, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../context/LanguageContext';
@@ -24,11 +24,7 @@ export function FileDirectory() {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
 
-  useEffect(() => {
-    loadAllFiles();
-  }, []);
-
-  const loadAllFiles = async () => {
+  const loadAllFiles = useCallback(async () => {
     try {
       const [excel, forms, crops, gos, farm, subsidy, quality] = await Promise.all([
         supabase.from('excel_uploads').select('*'),
@@ -138,7 +134,11 @@ export function FileDirectory() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    void loadAllFiles();
+  }, [loadAllFiles]);
 
   const filtered = useMemo(() => {
     return files.filter((file) => {

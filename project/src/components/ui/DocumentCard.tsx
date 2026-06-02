@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { FileActionButtons } from './FileActionButtons';
 import { FilePreviewModal } from './FilePreviewModal';
-import { FileTypeIcon, resolveFileType } from './FileTypeIcon';
+import { FileTypeIcon } from './FileTypeIcon';
+import { resolveFileType } from '../../lib/fileTypes';
 
 interface DocumentCardProps {
   title: string;

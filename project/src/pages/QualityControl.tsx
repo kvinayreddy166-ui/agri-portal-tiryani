@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CalendarDays,
   ClipboardCheck,
@@ -58,11 +58,7 @@ export function QualityControl({ category }: QualityControlProps) {
     return Math.min(100, Math.round((samples.length / targetCount) * 100));
   }, [samples.length, targetCount]);
 
-  useEffect(() => {
-    fetchQualityControlData();
-  }, [category, financialYear]);
-
-  const fetchQualityControlData = async () => {
+  const fetchQualityControlData = useCallback(async () => {
     setLoading(true);
     try {
       const [samplesResult, targetResult] = await Promise.all([
@@ -91,7 +87,11 @@ export function QualityControl({ category }: QualityControlProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, financialYear]);
+
+  useEffect(() => {
+    void fetchQualityControlData();
+  }, [fetchQualityControlData]);
 
   const saveTarget = async () => {
     setSaving(true);
@@ -113,7 +113,7 @@ export function QualityControl({ category }: QualityControlProps) {
             .insert([payload]);
 
       if (error) throw error;
-      fetchQualityControlData();
+      void fetchQualityControlData();
     } catch (error) {
       console.error('Error saving target:', error);
       alert('Failed to save target');
@@ -171,7 +171,7 @@ export function QualityControl({ category }: QualityControlProps) {
       setShowSampleForm(false);
       setSampleForm(emptySample);
       setSampleFile(null);
-      fetchQualityControlData();
+      void fetchQualityControlData();
     } catch (error) {
       console.error('Error saving sample:', error);
       alert('Failed to save sample. Please check storage/database setup.');
@@ -190,7 +190,7 @@ export function QualityControl({ category }: QualityControlProps) {
         .eq('id', id);
 
       if (error) throw error;
-      fetchQualityControlData();
+      void fetchQualityControlData();
     } catch (error) {
       console.error('Error deleting sample:', error);
       alert('Failed to delete sample');

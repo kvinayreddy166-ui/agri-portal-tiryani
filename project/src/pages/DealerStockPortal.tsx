@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Copy, Plus, Save, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -33,24 +33,7 @@ export function DealerStockPortal() {
   const qtyUnit = isFertilizer ? 'MTS' : '';
   const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
 
-  useEffect(() => {
-    if (!dealerId) return;
-    loadRecentDates(category);
-    if (category === 'fertilizer') {
-      fetchDealerFertilizerAllocation(dealerId)
-        .then(setFertilizerAllocationMts)
-        .catch(() => setFertilizerAllocationMts([]));
-    } else {
-      setFertilizerAllocationMts([]);
-    }
-  }, [dealerId, category]);
-
-  useEffect(() => {
-    if (!dealerId) return;
-    loadRows(category, reportDate);
-  }, [dealerId, category, reportDate]);
-
-  const loadRecentDates = async (cat: StockCategory) => {
+  const loadRecentDates = useCallback(async (cat: StockCategory) => {
     if (!dealerId) return;
     const { data } = await supabase
       .from('stock_inventory_lines')
@@ -62,9 +45,9 @@ export function DealerStockPortal() {
 
     const unique = [...new Set((data || []).map((r) => r.report_date as string))];
     setRecentDates(unique);
-  };
+  }, [dealerId]);
 
-  const loadRows = async (cat: StockCategory, date: string) => {
+  const loadRows = useCallback(async (cat: StockCategory, date: string) => {
     if (!dealerId) return;
     setLoading(true);
     try {
@@ -89,7 +72,24 @@ export function DealerStockPortal() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dealerId]);
+
+  useEffect(() => {
+    if (!dealerId) return;
+    void loadRecentDates(category);
+    if (category === 'fertilizer') {
+      fetchDealerFertilizerAllocation(dealerId)
+        .then(setFertilizerAllocationMts)
+        .catch(() => setFertilizerAllocationMts([]));
+    } else {
+      setFertilizerAllocationMts([]);
+    }
+  }, [dealerId, category, loadRecentDates]);
+
+  useEffect(() => {
+    if (!dealerId) return;
+    void loadRows(category, reportDate);
+  }, [dealerId, category, reportDate, loadRows]);
 
   const applyYesterdayClosingAsOpening = async () => {
     if (!dealerId) return;
@@ -186,7 +186,7 @@ export function DealerStockPortal() {
         )
       );
       await loadRecentDates(category);
-      loadRows(category, reportDate);
+      void loadRows(category, reportDate);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Save failed';
       alert(t(`Could not save: ${msg}`, `సేవ్ చేయలేకపోయాం: ${msg}`));

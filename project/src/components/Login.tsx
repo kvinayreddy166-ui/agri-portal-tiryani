@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
+  Calculator,
   FileText,
   Globe2,
   LockKeyhole,
@@ -86,6 +87,8 @@ export function Login() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [grievanceOpen, setGrievanceOpen] = useState(false);
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
+  const [acreInput, setAcreInput] = useState('2.10 + 2.36');
   const [grievanceStatus, setGrievanceStatus] = useState<string | null>(null);
   const [showStatutoryForms, setShowStatutoryForms] = useState(false);
   const [statutoryFolder, setStatutoryFolder] = useState('fertilizers');
@@ -110,6 +113,29 @@ export function Login() {
     window.history.scrollRestoration = 'manual';
     window.scrollTo({ top: 0, left: 0 });
   }, [showStatutoryForms]);
+
+  useEffect(() => {
+    if (!showStatutoryForms) return;
+
+    const state = { publicStatutoryForms: true };
+    if (!window.history.state?.publicStatutoryForms) {
+      window.history.pushState(state, '', '#statutory-forms');
+    }
+
+    const handlePopState = () => {
+      setShowStatutoryForms(false);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [showStatutoryForms]);
+
+  const closeStatutoryForms = () => {
+    setShowStatutoryForms(false);
+    if (window.history.state?.publicStatutoryForms) {
+      window.history.back();
+    }
+  };
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event: Event) => {
@@ -148,6 +174,8 @@ export function Login() {
     () => statutoryForms.filter((form) => form.category === statutoryFolder),
     [statutoryForms, statutoryFolder]
   );
+
+  const acreCalculation = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -239,7 +267,7 @@ export function Login() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setShowStatutoryForms(false)}
+                onClick={closeStatutoryForms}
                 className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -273,44 +301,50 @@ export function Login() {
             ))}
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <div className="hidden grid-cols-[5rem_1fr_7rem] bg-slate-900 px-4 py-3 text-sm font-bold text-white sm:grid">
-              <span>S.No.</span>
-              <span>Proforma / Form Name</span>
-              <span className="text-right">Actions</span>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {formsLoading ? (
-                <div className="px-4 py-8 text-center text-sm font-semibold text-slate-500">
-                  Loading forms...
-                </div>
-              ) : selectedStatutoryForms.length > 0 ? (
-                selectedStatutoryForms.map((form, index) => (
-                  <article
-                    key={form.id}
-                    className="grid grid-cols-[1fr_auto] gap-2 px-3 py-2.5 hover:bg-emerald-50/60 sm:grid-cols-[5rem_1fr_7rem] sm:items-center sm:px-4 sm:py-3"
-                  >
-                    <span className="hidden text-sm font-bold text-slate-600 sm:block">{index + 1}</span>
-                    <div className="flex min-w-0 items-center gap-3">
-                      <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                      <div className="min-w-0">
-                        <span className="truncate text-sm font-bold text-slate-950 sm:text-base">{form.title}</span>
-                        <p className="text-xs font-bold text-slate-500 sm:hidden">S.No. {index + 1}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-end">
-                      {form.file_url && (
-                        <FileActionButtons fileUrl={form.file_url} fileName={form.title} fileType={form.file_type} size="sm" />
-                      )}
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <div className="px-4 py-10 text-center text-sm font-semibold text-slate-500">
-                  No statutory forms uploaded yet.
-                </div>
-              )}
-            </div>
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table className="min-w-[560px] w-full table-fixed text-left">
+              <thead className="sticky top-0 z-10 bg-slate-900 text-sm font-bold text-white">
+                <tr>
+                  <th className="w-20 px-4 py-3">S.No.</th>
+                  <th className="px-4 py-3">Proforma / Form Name</th>
+                  <th className="w-36 px-4 py-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {formsLoading ? (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-sm font-semibold text-slate-500">
+                      Loading forms...
+                    </td>
+                  </tr>
+                ) : selectedStatutoryForms.length > 0 ? (
+                  selectedStatutoryForms.map((form, index) => (
+                    <tr key={form.id} className="hover:bg-emerald-50/60">
+                      <td className="px-4 py-3 align-middle text-sm font-bold text-slate-600">{index + 1}</td>
+                      <td className="px-4 py-3 align-middle">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
+                          <span className="block min-w-0 truncate text-sm font-bold text-slate-950 sm:text-base">{form.title}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        <div className="flex items-center justify-end">
+                          {form.file_url && (
+                            <FileActionButtons fileUrl={form.file_url} fileName={form.title} fileType={form.file_type} size="sm" />
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-10 text-center text-sm font-semibold text-slate-500">
+                      No statutory forms uploaded yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -318,7 +352,7 @@ export function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-start justify-center overflow-hidden bg-[#eef6f0] p-2 sm:p-3 lg:p-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#eef6f0] p-2 sm:p-3 lg:p-4">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(4,120,87,0.08),rgba(14,165,233,0.08)_48%,rgba(250,204,21,0.08))]" />
 
       <div className="relative grid w-full max-w-5xl overflow-hidden rounded-lg border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm lg:grid-cols-[1fr_0.95fr]">
@@ -376,7 +410,7 @@ export function Login() {
           <div className="mx-auto w-full max-w-md">
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <PortalLogo size="md" className="mb-2" />
+                <PortalLogo size="lg" className="mb-2" />
                 <h2 className="whitespace-nowrap text-lg font-black tracking-tight text-slate-950 sm:text-2xl">
                   {t('Tiryani Agriculture Portal', 'Tiryani Agriculture Portal')}
                 </h2>
@@ -401,6 +435,15 @@ export function Login() {
             >
               <FileText className="h-4 w-4" />
               Statutory Forms
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCalculatorOpen(true)}
+              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-black text-sky-800 transition hover:bg-sky-100"
+            >
+              <Calculator className="h-4 w-4" />
+              Acres Calculator
             </button>
 
             <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-bold">
@@ -500,6 +543,52 @@ export function Login() {
         {t('Grievances', 'Grievances')}
       </button>
 
+      {calculatorOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h3 className="flex items-center gap-2 text-lg font-black text-slate-950">
+                <Calculator className="h-5 w-5 text-sky-700" />
+                Acres Calculator
+              </h3>
+              <button type="button" onClick={() => setCalculatorOpen(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-bold text-slate-700">Type or paste acre values</span>
+              <textarea
+                value={acreInput}
+                onChange={(event) => setAcreInput(event.target.value)}
+                rows={5}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-950 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
+                placeholder={'Example:\n2.10\n2.36\n0.15'}
+              />
+            </label>
+            <p className="mt-2 text-xs font-semibold text-slate-500">
+              Paste one Excel column or type values with + signs. Format uses acres.guntas; one acre is 40 guntas.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Total acres</p>
+                <p className="mt-1 text-3xl font-black text-emerald-950">{acreCalculation.formatted}</p>
+                <p className="mt-1 text-xs font-semibold text-emerald-800">
+                  {acreCalculation.acres} acres {acreCalculation.guntas} guntas
+                </p>
+              </div>
+              <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-sky-700">Hectares</p>
+                <p className="mt-1 text-3xl font-black text-sky-950">{acreCalculation.hectares}</p>
+                <p className="mt-1 text-xs font-semibold text-sky-800">Converted from total acres</p>
+              </div>
+            </div>
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700">
+              Read values: {acreCalculation.count} item{acreCalculation.count === 1 ? '' : 's'}
+            </div>
+          </div>
+        </div>
+      )}
+
       {grievanceOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
@@ -586,4 +675,24 @@ function LoginField({
       </div>
     </div>
   );
+}
+
+function calculateAcreValues(input: string) {
+  const values = input.match(/\d+(?:\.\d+)?/g) || [];
+  const totalGuntas = values.reduce((sum, value) => {
+    const [acrePart, guntaPart = '0'] = value.split('.');
+    const acres = Number.parseInt(acrePart, 10) || 0;
+    const guntas = Number.parseInt(guntaPart.padEnd(2, '0').slice(0, 2), 10) || 0;
+    return sum + acres * 40 + guntas;
+  }, 0);
+  const acres = Math.floor(totalGuntas / 40);
+  const guntas = totalGuntas % 40;
+  const decimalAcres = totalGuntas / 40;
+  return {
+    acres,
+    guntas,
+    count: values.length,
+    formatted: `${acres}.${String(guntas).padStart(2, '0')}`,
+    hectares: (decimalAcres * 0.40468564224).toFixed(4),
+  };
 }

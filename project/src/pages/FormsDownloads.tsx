@@ -23,6 +23,8 @@ const emptyForm = {
   category: 'fertilizers',
 };
 
+const STATE_KEY = 'tiryani-statutory-forms-state';
+
 export function FormsDownloads() {
   const { isAdminUser } = useAuth();
   const { t } = useLanguage();
@@ -31,7 +33,14 @@ export function FormsDownloads() {
   const [uploading, setUploading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
-  const [selectedFolder, setSelectedFolder] = useState('fertilizers');
+  const [selectedFolder, setSelectedFolder] = useState(() => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
+      return folders.some((folder) => folder.id === stored.selectedFolder) ? stored.selectedFolder : 'fertilizers';
+    } catch {
+      return 'fertilizers';
+    }
+  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newForm, setNewForm] = useState(emptyForm);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -39,6 +48,37 @@ export function FormsDownloads() {
   useEffect(() => {
     fetchForms();
   }, []);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
+      window.localStorage.setItem(STATE_KEY, JSON.stringify({ ...stored, selectedFolder }));
+    } catch {
+      window.localStorage.setItem(STATE_KEY, JSON.stringify({ selectedFolder }));
+    }
+  }, [selectedFolder]);
+
+  useEffect(() => {
+    let restoreTimer: number | undefined;
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
+      if (typeof stored.scrollY === 'number') {
+        restoreTimer = window.setTimeout(() => window.scrollTo({ top: stored.scrollY, left: 0 }), 80);
+      }
+    } catch {
+      // Ignore stale local state and continue with defaults.
+    }
+
+    return () => {
+      if (restoreTimer) window.clearTimeout(restoreTimer);
+      try {
+        const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
+        window.localStorage.setItem(STATE_KEY, JSON.stringify({ ...stored, selectedFolder, scrollY: window.scrollY }));
+      } catch {
+        window.localStorage.setItem(STATE_KEY, JSON.stringify({ selectedFolder, scrollY: window.scrollY }));
+      }
+    };
+  }, [selectedFolder]);
 
   const fetchForms = async () => {
     setFetchError(null);
@@ -334,43 +374,50 @@ export function FormsDownloads() {
         </div>
 
         {selectedForms.length > 0 ? (
-          <div className="overflow-hidden rounded-lg border border-gray-100 dark:border-slate-700">
-            <div className="hidden grid-cols-[1fr_0.6fr_auto] gap-3 bg-slate-50 px-3 py-2.5 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400 md:grid">
-              <span>{t('File', 'ఫైల్')}</span>
-              <span>{t('Date', 'తేదీ')}</span>
-              <span className="text-right">{t('Action', 'చర్య')}</span>
-            </div>
-            <div className="divide-y divide-gray-100 dark:divide-slate-700">
-              {selectedForms.map((form) => (
-                <article
-                  key={form.id}
-                  className="grid gap-3 px-3 py-2 transition hover:bg-gray-50 dark:hover:bg-slate-800/50 md:grid-cols-[1fr_0.6fr_auto] md:items-center"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                    <h3 className="truncate text-sm font-black text-gray-950 dark:text-white">{form.title}</h3>
-                  </div>
-                  <span className="text-sm font-medium text-gray-500 dark:text-slate-400">
-                    {new Date(form.created_at).toLocaleDateString()}
-                  </span>
-                  <div className="flex items-center justify-end gap-0.5">
-                    {form.file_url && (
-                      <FileActionButtons fileUrl={form.file_url} fileName={form.title} fileType={form.file_type} size="sm" />
-                    )}
-                    {isAdminUser && (
-                      <>
-                        <button onClick={() => openEditForm(form)} className="rounded-md p-1 text-blue-600 transition hover:bg-blue-50" aria-label="Edit item">
-                          <Edit2 className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => handleDelete(form.id)} className="rounded-md p-1 text-red-500 transition hover:bg-red-50" aria-label="Delete item">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
+          <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-slate-700">
+            <table className="min-w-[720px] w-full border-collapse text-left">
+              <thead className="bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                <tr>
+                  <th className="w-20 px-3 py-2.5">{t('S.No.', 'S.No.')}</th>
+                  <th className="px-3 py-2.5">{t('Proforma / Form Name', 'Proforma / Form Name')}</th>
+                  <th className="w-36 px-3 py-2.5">{t('Date', 'తేదీ')}</th>
+                  <th className="w-36 px-3 py-2.5 text-right">{t('Action', 'చర్య')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+                {selectedForms.map((form, index) => (
+                  <tr key={form.id} className="transition hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                    <td className="px-3 py-2 text-sm font-bold text-slate-600 dark:text-slate-300">{index + 1}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
+                        <h3 className="max-w-[28rem] truncate text-sm font-black text-gray-950 dark:text-white">{form.title}</h3>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-slate-400">
+                      {new Date(form.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center justify-end gap-0.5">
+                        {form.file_url && (
+                          <FileActionButtons fileUrl={form.file_url} fileName={form.title} fileType={form.file_type} size="sm" />
+                        )}
+                        {isAdminUser && (
+                          <>
+                            <button onClick={() => openEditForm(form)} className="rounded-md p-1 text-blue-600 transition hover:bg-blue-50" aria-label="Edit item">
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => handleDelete(form.id)} className="rounded-md p-1 text-red-500 transition hover:bg-red-50" aria-label="Delete item">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-gray-200 p-12 text-center">

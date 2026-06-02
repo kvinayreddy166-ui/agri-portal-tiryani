@@ -31,6 +31,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Context modules intentionally export both the provider and hook.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLanguage() {
   const context = useContext(LanguageContext);
   if (!context) {

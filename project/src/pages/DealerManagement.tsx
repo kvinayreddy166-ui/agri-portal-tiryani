@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Users, Search, Save, X, KeyRound } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -43,11 +43,7 @@ export function DealerManagement() {
   const [loginPassword, setLoginPassword] = useState(DEALER_DEFAULT_PASSWORD);
   const [allDealersForLogin, setAllDealersForLogin] = useState<Dealer[]>([]);
 
-  useEffect(() => {
-    fetchDealers();
-  }, [activeTab]);
-
-  const fetchDealers = async () => {
+  const fetchDealers = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -68,7 +64,11 @@ export function DealerManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab]);
+
+  useEffect(() => {
+    void fetchDealers();
+  }, [fetchDealers]);
 
   const openLoginSetup = async () => {
     try {
@@ -158,7 +158,7 @@ export function DealerManagement() {
       if (error) throw error;
       setShowAddForm(false);
       setFormData(emptyForm);
-      fetchDealers();
+      void fetchDealers();
     } catch (error) {
       console.error('Error adding dealer:', error);
       alert('Failed to add dealer');
@@ -178,7 +178,7 @@ export function DealerManagement() {
       const { error } = await supabase.from('dealers').update(payload).eq('id', id);
       if (error) throw error;
       setEditingId(null);
-      fetchDealers();
+      void fetchDealers();
     } catch (error) {
       console.error('Error updating dealer:', error);
       alert('Failed to update dealer');
@@ -190,7 +190,7 @@ export function DealerManagement() {
     try {
       const { error } = await supabase.from('dealers').delete().eq('id', id);
       if (error) throw error;
-      fetchDealers();
+      void fetchDealers();
     } catch (error) {
       console.error('Error deleting dealer:', error);
       alert('Failed to delete dealer');
@@ -205,7 +205,7 @@ export function DealerManagement() {
       const { imported, errors } = await parseExcelAndImportDealers(file, activeTab);
       if (imported > 0) {
         alert(`Imported ${imported} dealers`);
-        fetchDealers();
+        void fetchDealers();
       } else if (errors.length) {
         alert(errors.join('\n'));
       }

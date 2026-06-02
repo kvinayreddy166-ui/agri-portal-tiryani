@@ -1,7 +1,6 @@
 import React from 'react';
 import { File, FileImage, FileSpreadsheet, FileText, FileType } from 'lucide-react';
-import { getFileTypeLabel, inferFileTypeFromName } from '../../lib/fileTypes';
-import { getFileTypeColor } from './FileTypeIcon';
+import { getFileTypeColor, getFileTypeLabel, inferFileTypeFromName } from '../../lib/fileTypes';
 
 interface FileTypeBadgeProps {
   fileName?: string;

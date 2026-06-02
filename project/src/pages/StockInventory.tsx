@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FolderOpen, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../context/LanguageContext';
@@ -36,7 +36,7 @@ export function StockInventory() {
   const [expandedDealer, setExpandedDealer] = useState<string | null>(null);
   const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       let query = supabase
@@ -63,11 +63,11 @@ export function StockInventory() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, reportDate, reportMonth, viewMode]);
 
   useEffect(() => {
-    fetchData();
-  }, [category, reportDate, reportMonth, viewMode]);
+    void fetchData();
+  }, [fetchData]);
 
   const grouped = useMemo(() => {
     const map = new Map<

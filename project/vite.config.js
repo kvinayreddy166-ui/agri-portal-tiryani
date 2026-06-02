@@ -12,7 +12,6 @@ export default defineConfig({
       '@supabase/storage-js',
       '@supabase/functions-js',
     ],
-    // TensorFlow is large; exclude from pre-bundle to avoid dev OOM on low-memory machines
     exclude: ['@tensorflow/tfjs'],
   },
   build: {
@@ -20,14 +19,14 @@ export default defineConfig({
       output: {
         manualChunks: {
           supabase: ['@supabase/supabase-js'],
-          tensorflow: ['@tensorflow/tfjs'],
+          charts: ['recharts'],
+          office: ['xlsx'],
         },
       },
     },
   },
   server: {
     fs: {
-      // OneDrive can serve placeholder files; relax strict fs checks for node_modules
       strict: false,
     },
   },
