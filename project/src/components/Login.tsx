@@ -122,8 +122,8 @@ export function Login() {
       window.history.pushState(state, '', '#statutory-forms');
     }
 
-    const handlePopState = () => {
-      setShowStatutoryForms(false);
+    const handlePopState = (event: PopStateEvent) => {
+      setShowStatutoryForms(Boolean(event.state?.publicStatutoryForms));
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -518,7 +518,7 @@ export function Login() {
             )}
 
             <div className="mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600">
-              <p>(C) 2026- Tiryani Agri portal- Department of Agriculture, Telangana</p>
+              <p>© 2026- Tiryani Agri portal- Department of Agriculture, Telangana</p>
               <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
             </div>
           </div>
