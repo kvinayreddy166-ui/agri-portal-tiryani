@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { fetchAggregatedFertilizerStock } from '../lib/fertilizerStock';
@@ -34,35 +34,37 @@ export function Dashboard() {
     notes: '',
   });
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
-      const [cropsRes, schemesRes, contentRes] = await Promise.all([
-        supabase.from('crops').select('*'),
-        supabase.from('schemes').select('*'),
-        supabase.from('site_content').select('*').eq('section_name', 'mandal_overview').maybeSingle(),
+      const [cropsRes, schemesRes, contentRes, beneficiariesRes, aggregatedFertilizers] = await Promise.all([
+        safeDashboardQuery<Crop[]>(() => supabase.from('crops').select('*'), []),
+        safeDashboardQuery<Scheme[]>(() => supabase.from('schemes').select('*'), []),
+        safeDashboardQuery<{ content: MandalOverview } | null>(
+          () => supabase.from('site_content').select('*').eq('section_name', 'mandal_overview').maybeSingle(),
+          null
+        ),
+        safeDashboardQuery<SchemeBeneficiary[]>(
+          () => supabase.from('scheme_beneficiaries').select('*').order('financial_year', { ascending: false }),
+          []
+        ),
+        fetchAggregatedFertilizerStock().catch(() => []),
       ]);
-      const beneficiariesRes = await supabase
-        .from('scheme_beneficiaries')
-        .select('*')
-        .order('financial_year', { ascending: false });
 
-      const aggregatedFertilizers = await fetchAggregatedFertilizerStock();
-
-      if (cropsRes.data) setCrops(cropsRes.data);
+      setCrops(cropsRes);
       setFertilizers(aggregatedFertilizers);
-      if (schemesRes.data) setSchemes(schemesRes.data);
-      if (beneficiariesRes.data) setSchemeBeneficiaries(beneficiariesRes.data);
-      if (contentRes.data) setMandalData(contentRes.data.content);
+      setSchemes(schemesRes);
+      setSchemeBeneficiaries(beneficiariesRes);
+      setMandalData(contentRes?.content || null);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const totalAcreage = crops.reduce((sum, crop) => sum + crop.acreage, 0);
   const highestFertilizerStock = Math.max(...fertilizers.map((item) => item.quantity_available), 1);
@@ -105,7 +107,7 @@ export function Dashboard() {
       return;
     }
     setEditingSchemeDetails(null);
-    fetchDashboardData();
+    void fetchDashboardData();
   };
 
   const deleteScheme = async (schemeId: string, schemeName: string) => {
@@ -116,13 +118,13 @@ export function Dashboard() {
       alert(error.message);
       return;
     }
-    fetchDashboardData();
+    void fetchDashboardData();
   };
 
   const deleteBeneficiary = async (id: string) => {
     if (!confirm(t('Delete this beneficiary record?', 'ఈ లబ్ధిదారు రికార్డును తొలగించాలా?'))) return;
     await supabase.from('scheme_beneficiaries').delete().eq('id', id);
-    fetchDashboardData();
+    void fetchDashboardData();
   };
 
   const saveBeneficiaryRecord = async () => {
@@ -147,7 +149,7 @@ export function Dashboard() {
 
     setEditingScheme(null);
     setBeneficiaryForm({ scheme_id: '', financial_year: '2025-26', beneficiaries_count: '', notes: '' });
-    fetchDashboardData();
+    void fetchDashboardData();
   };
 
   if (loading) {
@@ -564,4 +566,18 @@ export function Dashboard() {
       </div>
     </div>
   );
+}
+
+async function safeDashboardQuery<T>(
+  queryFactory: () => PromiseLike<{ data: T | null; error: unknown }>,
+  fallback: T
+): Promise<T> {
+  try {
+    const { data, error } = await queryFactory();
+    if (error) throw error;
+    return data ?? fallback;
+  } catch (error) {
+    console.warn('Dashboard optional data skipped:', error);
+    return fallback;
+  }
 }
