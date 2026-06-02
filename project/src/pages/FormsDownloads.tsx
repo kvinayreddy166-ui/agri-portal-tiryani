@@ -261,9 +261,6 @@ export function FormsDownloads() {
               </span>
             </div>
             <h2 className="mt-1.5 truncate text-sm font-black">{t(folder.label, folder.telugu)}</h2>
-            <p className={`mt-0.5 text-xs ${selectedFolder === folder.id ? 'text-emerald-50' : 'text-gray-500'}`}>
-              {t('Statutory section', 'Statutory section')}
-            </p>
           </button>
         ))}
       </div>

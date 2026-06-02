@@ -437,6 +437,31 @@ export function Login() {
               Statutory Forms
             </button>
 
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  window.history.pushState({ tiryaniPage: 'dealers' }, '', '?page=dealers');
+                  window.dispatchEvent(new PopStateEvent('popstate', { state: { tiryaniPage: 'dealers' } }));
+                }}
+                className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-black text-slate-800 transition hover:border-emerald-300 hover:bg-emerald-50"
+              >
+                <Store className="h-4 w-4" />
+                Dealers
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  window.history.pushState({ tiryaniPage: 'stock-inventory' }, '', '?page=stock-inventory');
+                  window.dispatchEvent(new PopStateEvent('popstate', { state: { tiryaniPage: 'stock-inventory' } }));
+                }}
+                className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-black text-slate-800 transition hover:border-emerald-300 hover:bg-emerald-50"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Stock
+              </button>
+            </div>
+
             <button
               type="button"
               onClick={() => setCalculatorOpen(true)}

@@ -38,6 +38,44 @@ function PageLoader() {
   );
 }
 
+const PUBLIC_VIEW_PAGES = new Set(['dealers', 'stock-inventory']);
+
+function PublicReadOnlyShell({
+  title,
+  onHome,
+  children,
+}: {
+  title: string;
+  onHome: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-h-screen bg-[#eef6f0] dark:bg-slate-950">
+      <header className="sticky top-0 z-40 border-b border-emerald-800/20 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-700 text-white shadow-lg">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <PortalLogo size="sm" />
+            <div className="min-w-0">
+              <h1 className="truncate text-sm font-black sm:text-base">Tiryani Agriculture Portal</h1>
+              <p className="truncate text-xs font-semibold text-emerald-100">{title} - Public view</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onHome}
+            className="shrink-0 rounded-lg bg-white/15 px-3 py-2 text-sm font-black transition hover:bg-white/25"
+          >
+            Login
+          </button>
+        </div>
+      </header>
+      <main className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
+        <Suspense fallback={<PageLoader />}>{children}</Suspense>
+      </main>
+    </div>
+  );
+}
+
 function AppContent() {
   const { user, loading, isAdminUser, isDealerUser } = useAuth();
   const validPages = useMemo(
@@ -161,6 +199,17 @@ function AppContent() {
     );
   }
 
+  if (!user && PUBLIC_VIEW_PAGES.has(currentPage)) {
+    return (
+      <PublicReadOnlyShell
+        title={currentPage === 'dealers' ? 'Dealers Directory' : 'Stock Inventory'}
+        onHome={() => navigateToPage('dashboard')}
+      >
+        {currentPage === 'dealers' ? <DealerManagement /> : <StockInventory />}
+      </PublicReadOnlyShell>
+    );
+  }
+
   if (!user) {
     return <Login />;
   }
@@ -172,7 +221,7 @@ function AppContent() {
       case 'stock':
         return isAdminUser ? <StockManagement /> : <DealerStockPortal />;
       case 'stock-inventory':
-        return isAdminUser ? <StockInventory /> : <Dashboard />;
+        return <StockInventory />;
       case 'dealer-portal':
         return <DealerStockPortal />;
       case 'dealers':

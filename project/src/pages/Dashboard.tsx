@@ -160,10 +160,12 @@ export function Dashboard() {
 
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-5 text-white shadow-lg">
+      <div className="dashboard-rise relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-5 text-white shadow-lg">
         <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-[url('/images/rice.jpg')] bg-cover bg-center opacity-20 md:block" />
         <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center">
-          <PortalLogo size="lg" />
+          <div className="dashboard-float">
+            <PortalLogo size="lg" />
+          </div>
           <div>
             <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
               {t('Tiryani Agriculture Portal', 'తిర్యాని వ్యవసాయ పోర్టల్')}
@@ -184,41 +186,41 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <div className="dashboard-rise dashboard-delay-1 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <GoogleMapWidget />
         <WeatherWidget />
       </div>
 
       {/* Mandal Overview */}
       {mandalData && (
-        <div className="portal-card p-4">
+        <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <MapPin className="w-6 h-6 text-emerald-600" />
             {t('Mandal Overview', 'మండల వివరాలు')}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md">
+            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
               <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
                 <Building2 className="w-14 h-14" />
               </div>
               <p className="text-xs opacity-90 relative z-10">{t('Gram Panchayats', 'గ్రామ పంచాయతీలు')}</p>
               <p className="text-2xl font-bold mt-1 relative z-10">{mandalData.total_gram_panchayats}</p>
             </div>
-            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-md">
+            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
               <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
                 <Layers className="w-14 h-14" />
               </div>
               <p className="text-xs opacity-90 relative z-10">{t('Revenue Villages', 'రెవెన్యూ గ్రామాలు')}</p>
               <p className="text-2xl font-bold mt-1 relative z-10">{mandalData.total_revenue_villages}</p>
             </div>
-            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md">
+            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
               <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
                 <Users className="w-14 h-14" />
               </div>
               <p className="text-xs opacity-90 relative z-10">{t('Total Farmers', 'మొత్తం రైతులు')}</p>
               <p className="text-2xl font-bold mt-1 relative z-10">{mandalData.total_farmers.toLocaleString()}</p>
             </div>
-            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-md">
+            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
               <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
                 <TrendingUp className="w-14 h-14" />
               </div>
@@ -267,7 +269,7 @@ export function Dashboard() {
       )}
 
       {/* Crop Statistics */}
-      <div className="portal-card p-4">
+      <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-emerald-600" />
           {t('Major Crops', 'ప్రధాన పంటలు')} - {t('Total', 'మొత్తం')}: {totalAcreage.toLocaleString()} {t('acres', 'ఎకరాలు')}
@@ -300,7 +302,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="portal-card p-4">
+      <div className="dashboard-rise dashboard-delay-3 portal-card p-4">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="flex items-center gap-2 text-xl font-black tracking-tight text-gray-900 dark:text-white">
@@ -375,7 +377,7 @@ export function Dashboard() {
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-700">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
+                    className="dashboard-bar h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
@@ -386,7 +388,7 @@ export function Dashboard() {
       </div>
 
       {/* Government Schemes */}
-      <div className="portal-card p-4">
+      <div className="dashboard-rise dashboard-delay-3 portal-card p-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Users className="w-6 h-6 text-emerald-600" />
           {t('Government Schemes', 'ప్రభుత్వ పథకాలు')}

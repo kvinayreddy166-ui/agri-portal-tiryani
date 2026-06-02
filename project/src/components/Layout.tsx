@@ -67,7 +67,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const visibleMenuItems = isDealerUser
     ? dealerMenuItems
     : menuItems.filter((item) => {
-        if (item.id === 'dealers' || item.id === 'stock-inventory' || item.id === 'stock') {
+        if (item.id === 'stock') {
           return isAdminUser;
         }
         if (item.adminOnly) return isAdminUser;
