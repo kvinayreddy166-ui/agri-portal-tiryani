@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Calculator,
   Download,
+  Eye,
   FileText,
   Globe2,
   Loader2,
@@ -96,7 +97,7 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [grievanceOpen, setGrievanceOpen] = useState(false);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
-  const [acreInput, setAcreInput] = useState('2.10 + 2.36');
+  const [acreInput, setAcreInput] = useState('');
   const [grievanceStatus, setGrievanceStatus] = useState<string | null>(null);
   const [showStatutoryForms, setShowStatutoryForms] = useState(
     () => window.location.hash === '#statutory-forms' || window.sessionStorage.getItem(PUBLIC_FORMS_STATE_KEY) === '1'
@@ -238,7 +239,7 @@ export function Login() {
     try {
       await downloadFileFromUrl(form.file_url, form.title);
     } catch {
-      window.open(form.file_url, '_blank', 'noopener,noreferrer');
+      alert(t('Download could not start. Please preview the file and try again.', 'డౌన్లోడ్ ప్రారంభం కాలేదు. దయచేసి ఫైల్ ప్రివ్యూ చేసి మళ్లీ ప్రయత్నించండి.'));
     } finally {
       setDownloadingFormId(null);
     }
@@ -378,7 +379,7 @@ export function Login() {
                 <tr>
                   <th className="w-14 px-2.5 py-2 sm:w-16">{t('S.No.', 'క్ర.సం.')}</th>
                   <th className="px-2.5 py-2">{t('Proforma / Form Name', 'ప్రొఫార్మా / ఫారం పేరు')}</th>
-                  <th className="w-20 px-2.5 py-2 text-right">{t('Download', 'డౌన్లోడ్')}</th>
+                  <th className="w-24 px-2.5 py-2 text-right">{t('Action', 'చర్య')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -393,33 +394,39 @@ export function Login() {
                     <tr key={form.id} className="hover:bg-emerald-50/60">
                       <td className="px-2.5 py-2 align-middle text-sm font-bold text-slate-600">{index + 1}</td>
                       <td className="px-2.5 py-2 align-middle">
-                        <button
-                          type="button"
-                          onClick={() => openPublicPreview(form)}
-                          className="flex w-full min-w-0 items-center gap-2 text-left"
-                          title={t('Open preview', 'ప్రివ్యూ తెరవండి')}
-                        >
+                        <div className="flex w-full min-w-0 items-center gap-2 text-left">
                           <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                          <span className="block min-w-0 truncate text-sm font-bold text-slate-950 underline-offset-4 hover:underline sm:text-base">{form.title}</span>
-                        </button>
+                          <span className="block min-w-0 truncate text-sm font-bold text-slate-950 sm:text-base">{form.title}</span>
+                        </div>
                       </td>
                       <td className="px-2.5 py-2 align-middle">
                         <div className="flex items-center justify-end">
                           {form.file_url && (
-                            <button
-                              type="button"
-                              onClick={() => handlePublicDownload(form)}
-                              disabled={downloadingFormId === form.id}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-sky-700 transition hover:bg-sky-50 disabled:opacity-50"
-                              aria-label={t('Download file', 'ఫైల్ డౌన్లోడ్ చేయండి')}
-                              title={t('Download', 'డౌన్లోడ్')}
-                            >
-                              {downloadingFormId === form.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Download className="h-4 w-4" />
-                              )}
-                            </button>
+                            <div className="inline-flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => openPublicPreview(form)}
+                                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-emerald-700 transition hover:bg-emerald-50"
+                                aria-label={t('Preview file', 'ఫైల్ ప్రివ్యూ')}
+                                title={t('Preview', 'ప్రివ్యూ')}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handlePublicDownload(form)}
+                                disabled={downloadingFormId === form.id}
+                                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-sky-700 transition hover:bg-sky-50 disabled:opacity-50"
+                                aria-label={t('Download file', 'ఫైల్ డౌన్లోడ్ చేయండి')}
+                                title={t('Download', 'డౌన్లోడ్')}
+                              >
+                                {downloadingFormId === form.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Download className="h-4 w-4" />
+                                )}
+                              </button>
+                            </div>
                           )}
                         </div>
                       </td>

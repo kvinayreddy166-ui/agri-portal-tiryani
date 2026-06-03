@@ -9,12 +9,6 @@
   "theme_color": "#047857",
   "icons": [
     {
-      "src": "/images/agri-emblem.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
       "src": "/images/agri-emblem.png",
       "sizes": "225x225",
       "type": "image/png",
