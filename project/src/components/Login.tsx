@@ -216,6 +216,12 @@ export function Login() {
     [statutoryForms, statutoryFolder]
   );
 
+  useEffect(() => {
+    if (statutoryFolder === 'pesticides') {
+      setPdfToolOpen(false);
+    }
+  }, [statutoryFolder]);
+
   const openPublicPreview = (form: FormDownload) => {
     if (!form.file_url) return;
     window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
@@ -359,14 +365,16 @@ export function Login() {
               </div>
             </div>
             <div className="flex items-center justify-between gap-2 sm:justify-end">
-              <button
-                type="button"
-                onClick={() => setPdfToolOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-2.5 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800"
-              >
-                <FileText className="h-3.5 w-3.5" />
-                {statutoryFolder === 'seed' ? 'Seed PDF' : 'Generate PDF'}
-              </button>
+              {statutoryFolder !== 'pesticides' && (
+                <button
+                  type="button"
+                  onClick={() => setPdfToolOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-2.5 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800"
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  Generate PDF
+                </button>
+              )}
               <PortalLogo size="md" />
             </div>
           </div>

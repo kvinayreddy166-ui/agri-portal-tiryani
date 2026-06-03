@@ -472,6 +472,11 @@ function drawSeedFormVIII(doc, form) {
     { text: blank(r.premisesLocation), bold: true },
     { text: ' Samples of Seeds specified below to have same tested / Analyzed by Seed Analyst.' },
   ]);
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 28, p.y);
+  doc.text('SEED INSPECTOR', 176, p.y, { align: 'right' });
+  doc.setFont(PDF_FONT, 'normal');
+  p.y += 12;
   details(doc, p, [
     ['1. Serial No. of the sample', r.serialNo],
     ['2. Code No. of the sample', r.codeNo],
@@ -495,7 +500,7 @@ function drawSeedFormVIII(doc, form) {
   signatureRight(doc, signatureY, ['Seed Inspector/', 'Mandal Agriculture Officer']);
   doc.setFont(PDF_FONT, 'normal');
   doc.text(`Place: ${r.place || '__________'}`, 28, signatureY + 24);
-  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 128, signatureY + 24);
+  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 28, signatureY + 32);
 }
 
 function drawInfoSlips(doc, form, addPageBefore) {
