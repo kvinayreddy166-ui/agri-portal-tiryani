@@ -15,6 +15,7 @@ interface FilePreviewModalProps {
   fileUrl: string;
   fileName?: string;
   fileType?: string;
+  hideOpenInNewTab?: boolean;
   onClose: () => void;
 }
 
@@ -22,7 +23,7 @@ type EmbedViewer = 'office' | 'google';
 
 const EMBED_TIMEOUT_MS = 12000;
 
-export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FilePreviewModalProps) {
+export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab = false, onClose }: FilePreviewModalProps) {
   const { displayName, resolvedType } = resolveFileIdentity(fileName, fileType, fileUrl);
 
   const isImage = resolvedType === 'image';
@@ -191,7 +192,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
               {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               Download
             </button>
-            {!isSpreadsheet && (
+            {!hideOpenInNewTab && !isSpreadsheet && (
               <a
                 href={googleViewerTabSrc}
                 target="_blank"
@@ -341,7 +342,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
                   {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}
                   Download file
                 </button>
-                {!isSpreadsheet && (
+                {!hideOpenInNewTab && !isSpreadsheet && (
                   <a
                     href={googleViewerTabSrc}
                     target="_blank"
@@ -384,7 +385,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, onClose }: FileP
             >
               Download
             </button>
-            {isDriveLink && (
+            {!hideOpenInNewTab && isDriveLink && (
               <a
                 href={getViewerFileUrl(fileUrl)}
                 target="_blank"

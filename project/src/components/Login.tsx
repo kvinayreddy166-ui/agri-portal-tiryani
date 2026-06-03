@@ -141,9 +141,14 @@ export function Login() {
     }
 
     const handlePopState = (event: PopStateEvent) => {
-      const keepFormsOpen = Boolean(event.state?.publicStatutoryForms) || window.location.hash === '#statutory-forms';
+      const keepFormsOpen =
+        Boolean(event.state?.publicStatutoryForms) ||
+        window.location.hash === '#statutory-forms';
       setShowStatutoryForms(keepFormsOpen);
-      if (!keepFormsOpen) setPreviewForm(null);
+      if (!event.state?.publicFilePreview) setPreviewForm(null);
+      if (!keepFormsOpen) {
+        window.sessionStorage.removeItem(PUBLIC_FORMS_STATE_KEY);
+      }
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -201,6 +206,31 @@ export function Login() {
     () => statutoryForms.filter((form) => form.category === statutoryFolder),
     [statutoryForms, statutoryFolder]
   );
+
+  const openPublicPreview = (form: FormDownload) => {
+    if (!form.file_url) return;
+    window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
+    setShowStatutoryForms(true);
+    setPreviewForm(form);
+    if (!window.history.state?.publicFilePreview) {
+      window.history.pushState(
+        { publicStatutoryForms: true, publicFilePreview: true },
+        '',
+        '#statutory-forms'
+      );
+    }
+  };
+
+  const closePublicPreview = () => {
+    setPreviewForm(null);
+    setShowStatutoryForms(true);
+    window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
+    if (window.history.state?.publicFilePreview) {
+      window.history.back();
+    } else if (!window.history.state?.publicStatutoryForms) {
+      window.history.replaceState({ publicStatutoryForms: true }, '', '#statutory-forms');
+    }
+  };
 
   const handlePublicDownload = async (form: FormDownload) => {
     if (!form.file_url) return;
@@ -365,7 +395,7 @@ export function Login() {
                       <td className="px-2.5 py-2 align-middle">
                         <button
                           type="button"
-                          onClick={() => form.file_url && setPreviewForm(form)}
+                          onClick={() => openPublicPreview(form)}
                           className="flex w-full min-w-0 items-center gap-2 text-left"
                           title={t('Open preview', 'ప్రివ్యూ తెరవండి')}
                         >
@@ -418,11 +448,8 @@ export function Login() {
               fileUrl={previewForm.file_url}
               fileName={previewForm.title}
               fileType={previewForm.file_type}
-              onClose={() => {
-                setPreviewForm(null);
-                setShowStatutoryForms(true);
-                window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
-              }}
+              hideOpenInNewTab
+              onClose={closePublicPreview}
             />
           </Suspense>
         )}
