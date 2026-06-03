@@ -17,7 +17,7 @@ const labOptions = [
   {
     id: 'dna-lab',
     label: 'DNA Finger Printing Lab, Old Malakpet',
-    value: 'The Govt. Analyst/ADA,\nDNA Finger Printing Lab,\nOld Malakpet - 500036,\nHyderabad',
+    value: 'The Govt. Analyst/ADA,\nDNA Finger Printing Lab,\nOld Malakpet, Hyderabad - 500036',
   },
   { id: 'other', label: 'Other', value: '' },
 ];
@@ -52,7 +52,6 @@ const initialSeedForm = {
   dealerAddress: '',
   premisesLocation: '',
   costDemanded: 'No',
-  costAmount: '',
   costPaid: 'Not Applicable',
   labId: 'seed-testing',
   customLabAddress: '',
@@ -106,13 +105,26 @@ export function SeedForms() {
       return null;
     }
 
-    return buildSeedPdf(kind, form);
+    try {
+      return await buildSeedPdf(kind, form);
+    } catch (error) {
+      console.error('Seed PDF generation failed:', error);
+      setMessage('PDF could not be generated. Please check the entered details and try again.');
+      return null;
+    }
   };
 
   const generate = async (kind) => {
     const doc = await buildValidatedPdf(kind);
     if (!doc) return;
-    doc.save(seedFileName(kind, form));
+    const blobUrl = URL.createObjectURL(doc.output('blob'));
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = seedFileName(kind, form);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     setMessage('PDF generated.');
   };
 
@@ -181,7 +193,6 @@ export function SeedForms() {
             <Input label="Variety" value={form.variety} onChange={(value) => setField('variety', value)} />
             <Input label="Lot No. of sample" value={form.lotNo} onChange={(value) => setField('lotNo', value)} />
             <Input label="Quantity of sample drawn" value={form.quantityDrawn} onChange={(value) => setField('quantityDrawn', value)} />
-            <Input label="Quantity of sample in lot" value={form.quantityInLot} onChange={(value) => setField('quantityInLot', value)} />
             <SelectWithOther label="Class / Origin of seed" valueKey="seedClass" otherKey="seedClassOther" form={form} setField={setField} options={classOptions} />
             <Input label="Date of packing" type="date" value={form.packingDate} onChange={(value) => setField('packingDate', value)} />
             <Input label="Stock position" value={form.stockPosition} onChange={(value) => setField('stockPosition', value)} />
@@ -194,10 +205,9 @@ export function SeedForms() {
         <Card title="Dealer / Form VI & VIII Details">
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
           <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea />
-          <Input label="Premises location" value={form.premisesLocation} onChange={(value) => setField('premisesLocation', value)} />
-          <div className="grid gap-2 sm:grid-cols-3">
+          <Input label="Dealer location" value={form.premisesLocation} onChange={(value) => setField('premisesLocation', value)} />
+          <div className="grid gap-2 sm:grid-cols-2">
             <Select label="Cost of sample demanded" value={form.costDemanded} onChange={(value) => setField('costDemanded', value)} options={['Yes', 'No'].map(toOption)} />
-            <Input label="Cost amount" value={form.costAmount} onChange={(value) => setField('costAmount', value)} />
             <Select label="Cost paid" value={form.costPaid} onChange={(value) => setField('costPaid', value)} options={['Paid', 'Not Paid', 'Not Applicable'].map(toOption)} />
           </div>
         </Card>
@@ -369,7 +379,7 @@ function validateSeedForm(form, kind) {
   if (kind === 'VI' || kind === 'VIII' || kind === 'ALL') {
     required.push(['Dealer / Party name', form.dealerName]);
     required.push(['Dealer / Party address', form.dealerAddress]);
-    required.push(['Premises location', form.premisesLocation]);
+    required.push(['Dealer location', form.premisesLocation]);
   }
   const missing = required.find(([, value]) => !String(value || '').trim());
   return missing ? `Please enter ${missing[0]}.` : '';
@@ -456,9 +466,9 @@ function drawSeedFormVI(doc, form) {
   doc.setFontSize(12);
   doc.text('To', 20, p.y);
   p.y += 7;
-  doc.setFont(PDF_FONT, 'normal');
   const dealerAddress = [r.dealerName, r.dealerAddress, r.premisesLocation].filter(Boolean).join('\n');
   doc.text(doc.splitTextToSize(dealerAddress || '.......................................................', 170), 20, p.y);
+  doc.setFont(PDF_FONT, 'normal');
   p.y += Math.max(24, doc.splitTextToSize(dealerAddress || '', 170).length * 6 + 8);
 
   const notice =
@@ -493,7 +503,7 @@ function drawSeedFormVIII(doc, form) {
     ['13. Source of Supply', r.sourceOfSupply],
   ], 78);
   field(doc, p, 'Whether Cost of Sample Demanded?', r.costDemanded, 78);
-  field(doc, p, 'Cost of Sample Rs.', `${r.costAmount || '________'} ${r.costPaid}`, 78);
+  field(doc, p, 'Whether Cost Paid', r.costPaid, 78);
   doc.setFont(PDF_FONT, 'bold');
   doc.text(['Signature of the party / Dealer', 'from whose premises samples taken', 'and payment made'], 20, 258);
   signatureRight(doc, 258, 'SEED INSPECTOR');
@@ -504,7 +514,12 @@ function drawInfoSlips(doc, form, addPageBefore) {
   const tests = r.crop === 'Cotton' ? ['Germination, Purity & Moisture Test', 'BT Protein Test'] : [r.testRequired];
   tests.forEach((test, index) => {
     if (addPageBefore || index > 0) doc.addPage();
-    drawInformationSlip(doc, { ...form, testRequired: test, testRequiredOther: '' });
+    drawInformationSlip(doc, {
+      ...form,
+      testRequired: test,
+      testRequiredOther: '',
+      quantityDrawn: cottonSlipQuantity(r.crop, test) || form.quantityDrawn,
+    });
   });
 }
 
@@ -512,11 +527,7 @@ function drawInformationSlip(doc, form) {
   const r = resolveSeedValues(form);
   const p = page(doc);
   title(doc, p, 'INFORMATION TO ACCOMPANY THE SAMPLE', '', 'INFORMATION SLIP');
-  doc.setFont(PDF_FONT, 'bold');
-  doc.text('To', 118, p.y);
-  doc.setFont(PDF_FONT, 'normal');
-  doc.text(doc.splitTextToSize(r.labAddress || '________________', 72), 126, p.y);
-  p.y += 32;
+  p.y += 4;
   details(doc, p, [
     ['1. Date of sampling', fmtDate(r.collectionDate)],
     ["2. Sender's name", r.officerName],
@@ -526,7 +537,7 @@ function drawInformationSlip(doc, form) {
     ['6. Origin / Class of seed', r.seedClass],
     ['7. Lot No. of Sample', r.lotNo],
     ['8. Code No. of Sample', r.codeNo],
-    ['9. Quantity of sample in Lot', r.quantityInLot],
+    ['9. Quantity of sample drawn', r.quantityDrawn],
     ['10. Kind of test required', r.testRequired],
     ['11. Remarks', r.remarks],
   ]);
@@ -560,9 +571,9 @@ function drawFromTo(doc, p, r) {
   doc.setFont(PDF_FONT, 'bold');
   doc.text('From', 20, p.y);
   doc.text('To', 112, p.y);
-  doc.setFont(PDF_FONT, 'normal');
   doc.text(doc.splitTextToSize(r.fromAddress || '________________', 78), 20, p.y + 7);
   doc.text(doc.splitTextToSize(r.labAddress || '________________', 78), 112, p.y + 7);
+  doc.setFont(PDF_FONT, 'normal');
   p.y += 38;
 }
 
@@ -617,6 +628,13 @@ function fmtDate(value) {
 
 function blank(value) {
   return String(value || '').trim() || '________________';
+}
+
+function cottonSlipQuantity(crop, test) {
+  if (crop !== 'Cotton') return '';
+  if (test === 'BT Protein Test') return '25 grams * 3';
+  if (test === 'Germination, Purity & Moisture Test') return '250 grams * 3';
+  return '';
 }
 
 function seedFileName(kind, form) {
