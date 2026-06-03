@@ -94,8 +94,8 @@ const PAGE = {
 };
 
 const PDF_FONT = 'times';
-const BODY_SIZE = 12.5;
-const TITLE_SIZE = 16;
+const BODY_SIZE = 12.8;
+const TITLE_SIZE = 16.3;
 const ROW_LINE_HEIGHT = 5.9;
 const ROW_GAP = 1.7;
 const PARA_LINE_HEIGHT = 6.1;
@@ -287,11 +287,11 @@ function drawFormK(cursor: PdfCursor, formType: 'K_ADA' | 'K_JDA', values: Ferti
   doc.setFont(PDF_FONT, 'normal');
 
   boldText(cursor, 'From');
-  addressBlock(cursor, values.fromAddress, PAGE.marginX + 10, 4);
+  addressBlock(cursor, values.fromAddress, PAGE.marginX + 10, 4, true);
   cursor.y += 3;
 
   boldText(cursor, 'To');
-  addressBlock(cursor, getKAddress(formType), PAGE.marginX + 10, 5);
+  addressBlock(cursor, getKAddress(formType), PAGE.marginX + 10, 5, true);
   cursor.y += 5;
 
   paragraph(cursor, '1) The fertilizer samples as per details given below are sent for analysis: -');
@@ -328,9 +328,9 @@ function drawPlaceDateAndInspectorSignature(
   values: FertilizerPdfValues,
   options: { showPlaceDate: boolean }
 ) {
-  const blockHeight = 42;
-  const minY = cursor.y + 8;
-  const preferredY = cursor.y + 8;
+  const blockHeight = 36;
+  const minY = cursor.y + 4;
+  const preferredY = cursor.y + 4;
   const footerY = Math.min(Math.max(minY, preferredY), PAGE.bottom - blockHeight);
 
   cursor.y = footerY;
@@ -346,7 +346,7 @@ function drawPlaceDateAndInspectorSignature(
   doc.text(
     ['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'],
     SIGNATURE_RIGHT_X,
-    cursor.y + 28,
+    cursor.y + 22,
     { align: 'right' }
   );
   doc.setFont(PDF_FONT, 'normal');
@@ -426,17 +426,25 @@ function boldText(cursor: PdfCursor, value: string, lineHeight = PARA_LINE_HEIGH
   cursor.doc.setFont(PDF_FONT, 'normal');
 }
 
-function addressBlock(cursor: PdfCursor, value: string, x: number, minRows: number) {
+function addressBlock(cursor: PdfCursor, value: string, x: number, minRows: number, bold = false) {
   if (value.trim()) {
-    paragraph(cursor, value, x, PAGE.width - PAGE.marginX - x);
+    const lines = split(cursor, value, PAGE.width - PAGE.marginX - x);
+    const height = Math.max(lines.length, 1) * PARA_LINE_HEIGHT + 1;
+    ensure(cursor, height);
+    cursor.doc.setFont(PDF_FONT, bold ? 'bold' : 'normal');
+    cursor.doc.text(lines, x, cursor.y);
+    cursor.y += height;
+    cursor.doc.setFont(PDF_FONT, 'normal');
     return;
   }
 
   ensure(cursor, minRows * ROW_LINE_HEIGHT);
+  cursor.doc.setFont(PDF_FONT, bold ? 'bold' : 'normal');
   for (let i = 0; i < minRows; i += 1) {
     cursor.doc.text('______________________', x, cursor.y + i * ROW_LINE_HEIGHT);
   }
   cursor.y += minRows * ROW_LINE_HEIGHT + 1;
+  cursor.doc.setFont(PDF_FONT, 'normal');
 }
 
 function ensure(cursor: PdfCursor, neededHeight: number, noPageBreak = false) {

@@ -3,6 +3,9 @@ import { Download, Eye, FileText, RotateCcw, Save, X } from 'lucide-react';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const PDF_FONT = 'times';
+const PDF_BODY_SIZE = 13.4;
+const PDF_TITLE_SIZE = 16.4;
+const PDF_SUBTITLE_SIZE = 14.4;
 
 const cropOptions = ['Paddy', 'Cotton', 'Maize', 'Redgram', 'Greengram', 'Blackgram', 'Soybean', 'Bengalgram', 'Jowar', 'Other'];
 const natureOptions = ['Seed sample', 'Truthfully Labelled Seed', 'Certified Seed', 'Foundation Seed', 'Hybrid Seed', 'Other'];
@@ -432,15 +435,15 @@ function drawSeedFormVI(doc, form) {
   const r = resolveSeedValues(form);
   const p = page(doc);
   doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(PDF_TITLE_SIZE);
   doc.text('FORM VI', 105, p.y, { align: 'center' });
   p.y += 8;
-  doc.setFontSize(14);
+  doc.setFontSize(PDF_SUBTITLE_SIZE);
   doc.text('FORM OF NOTICE', 105, p.y, { align: 'center' });
   p.y += 18;
 
   doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(12);
+  doc.setFontSize(PDF_BODY_SIZE);
   doc.text('To', 20, p.y);
   p.y += 7;
   const dealerAddress = [r.dealerName, r.dealerAddress, r.premisesLocation].filter(Boolean).join('\n');
@@ -456,7 +459,7 @@ function drawSeedFormVI(doc, form) {
   p.y += 38;
 
   doc.text(`Date : ${fmtDate(r.date) || '____ / ____ / ______'}`, 20, p.y);
-  signatureRight(doc, Math.min(p.y + 24, 252), ['Seed Inspector/', 'Mandal Agriculture Officer']);
+  signatureRight(doc, Math.min(p.y + 16, 246), ['Seed Inspector/', 'Mandal Agriculture Officer']);
 }
 
 function drawSeedFormVIII(doc, form) {
@@ -540,25 +543,25 @@ function drawInformationSlip(doc, form) {
 
 function page(doc) {
   doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(13);
+  doc.setFontSize(PDF_BODY_SIZE);
   return { y: 20, margin: 20, width: 170 };
 }
 
 function title(doc, p, heading, subheading, titleText) {
   doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(PDF_TITLE_SIZE);
   doc.text(heading, 105, p.y, { align: 'center' });
   p.y += 8;
   if (subheading) {
-    doc.setFontSize(13);
+    doc.setFontSize(PDF_BODY_SIZE);
     doc.text(subheading, 105, p.y, { align: 'center' });
     p.y += 8;
   }
-  doc.setFontSize(14);
+  doc.setFontSize(PDF_SUBTITLE_SIZE);
   doc.text(titleText, 105, p.y, { align: 'center' });
   p.y += 14;
   doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(13);
+  doc.setFontSize(PDF_BODY_SIZE);
 }
 
 function drawFromTo(doc, p, r) {

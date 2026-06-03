@@ -241,19 +241,19 @@ export function DealerManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             {t('Dealers Directory', 'డీలర్ల డైరెక్టరీ')}
           </h1>
-          <p className="text-gray-600 dark:text-slate-400">
+          <p className="text-sm text-gray-600 dark:text-slate-400">
             {t('Fertilizer, seed, and pesticide dealers', 'ఎరువులు, విత్తనాలు, పురుగుమందుల డీలర్లు')}
           </p>
         </div>
         {isAdminUser && (
           <div className="flex flex-wrap gap-2">
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-emerald-300 px-4 py-2 text-sm font-bold text-emerald-800 dark:border-emerald-700 dark:text-emerald-300">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-emerald-300 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:border-emerald-700 dark:text-emerald-300">
               <input
                 type="file"
                 accept=".xlsx,.xls,.csv"
@@ -267,7 +267,7 @@ export function DealerManagement() {
               type="button"
               onClick={openLoginSetup}
               disabled={provisioningLogins}
-              className="inline-flex items-center gap-2 rounded-lg border border-amber-400 px-4 py-2 text-sm font-bold text-amber-900 hover:bg-amber-50 disabled:opacity-60 dark:text-amber-200 dark:hover:bg-amber-950/30"
+              className="inline-flex items-center gap-2 rounded-md border border-amber-400 px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-50 disabled:opacity-60 dark:text-amber-200 dark:hover:bg-amber-950/30"
             >
               <KeyRound className="h-4 w-4" />
               {provisioningLogins ? t('Setting up…', 'సెటప్…') : t('Setup dealer login', 'డీలర్ లాగిన్')}
@@ -275,16 +275,16 @@ export function DealerManagement() {
             <button
               type="button"
               onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
+              className="flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-emerald-700"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-4 w-4" />
               {t('Add Dealer', 'డీలర్ జోడించండి')}
             </button>
           </div>
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-700">
+      <div className="flex flex-wrap gap-1.5 border-b border-slate-200 dark:border-slate-700">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -293,7 +293,7 @@ export function DealerManagement() {
               setActiveTab(tab.id);
               setEditingId(null);
             }}
-            className={`rounded-t-lg px-5 py-2.5 text-sm font-bold transition ${
+            className={`rounded-t-md px-3 py-1.5 text-xs font-bold transition ${
               activeTab === tab.id
                 ? 'bg-emerald-700 text-white'
                 : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
@@ -305,13 +305,13 @@ export function DealerManagement() {
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
           placeholder={t('Search dealers...', 'డీలర్లు వెతకండి...')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-4 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+          className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
         />
       </div>
 
@@ -475,36 +475,36 @@ export function DealerManagement() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[820px] text-sm">
             <thead className="bg-gray-50 dark:bg-slate-800">
               <tr>
-                <th className="w-16 px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                <th className="w-14 px-2.5 py-2 text-left text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-slate-300">
                   S.No.
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                <th className="px-2.5 py-2 text-left text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-slate-300">
                   {t('Dealer Name', 'పేరు')}
                 </th>
                 {showIfms && (
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                  <th className="px-2.5 py-2 text-left text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-slate-300">
                     IFMS ID
                   </th>
                 )}
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                <th className="px-2.5 py-2 text-left text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-slate-300">
                   {t('Phone', 'ఫోన్')}
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                <th className="px-2.5 py-2 text-left text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-slate-300">
                   {t('License', 'లైసెన్స్')}
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                <th className="px-2.5 py-2 text-left text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-slate-300">
                   {validityLabel}
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                <th className="px-2.5 py-2 text-left text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-slate-300">
                   {t('Location', 'స్థానం')}
                 </th>
                 {isAdminUser && (
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-slate-300">
+                  <th className="w-20 px-2.5 py-2 text-left text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-slate-300">
                     {t('Actions', 'చర్యలు')}
                   </th>
                 )}
@@ -513,7 +513,7 @@ export function DealerManagement() {
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {filteredDealers.map((dealer, index) => (
                 <tr key={dealer.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                  <td className="px-4 py-3 text-sm font-bold text-gray-600 dark:text-slate-400">{index + 1}</td>
+                  <td className="px-2.5 py-1.5 text-xs font-bold text-gray-600 dark:text-slate-400">{index + 1}</td>
                   {editingId === dealer.id ? (
                     <EditRow
                       dealer={dealer}
@@ -673,18 +673,18 @@ function DisplayRow({
   const isPermanent = activeTab === 'pesticide';
   return (
     <>
-      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{dealer.dealer_name}</td>
-      {showIfms && <td className="px-4 py-3 text-gray-600 dark:text-slate-400">{dealer.ifms_id}</td>}
-      <td className="px-4 py-3 text-gray-600 dark:text-slate-400">{dealer.phone_number}</td>
-      <td className="px-4 py-3 text-gray-600 dark:text-slate-400">{dealer.license_number}</td>
-      <td className="px-4 py-3">
+      <td className="px-2.5 py-1.5 font-semibold text-gray-900 dark:text-white">{dealer.dealer_name}</td>
+      {showIfms && <td className="px-2.5 py-1.5 text-gray-600 dark:text-slate-400">{dealer.ifms_id}</td>}
+      <td className="px-2.5 py-1.5 text-gray-600 dark:text-slate-400">{dealer.phone_number}</td>
+      <td className="px-2.5 py-1.5 text-gray-600 dark:text-slate-400">{dealer.license_number}</td>
+      <td className="px-2.5 py-1.5">
         {isPermanent ? (
-          <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">
             Permanent
           </span>
         ) : (
           <span
-            className={`rounded-full px-2 py-1 text-xs ${
+            className={`rounded-full px-2 py-0.5 text-[11px] ${
               new Date(dealer.expiry_date) > new Date()
                 ? 'bg-green-100 text-green-700'
                 : 'bg-red-100 text-red-700'
@@ -694,9 +694,9 @@ function DisplayRow({
           </span>
         )}
       </td>
-      <td className="px-4 py-3 text-gray-600 dark:text-slate-400">{dealer.location}</td>
+      <td className="px-2.5 py-1.5 text-gray-600 dark:text-slate-400">{dealer.location}</td>
       {isAdminUser && (
-        <td className="px-4 py-3">
+        <td className="px-2.5 py-1.5">
           <div className="flex gap-1">
             <button type="button" onClick={onEdit} className="rounded p-1 text-emerald-600 hover:bg-emerald-50">
               <Edit2 className="h-4 w-4" />
@@ -730,7 +730,7 @@ function EditRow({
 }) {
   return (
     <>
-      <td className="px-4 py-3">
+      <td className="px-2.5 py-1.5">
         <input
           type="text"
           value={dealer.dealer_name}
@@ -739,7 +739,7 @@ function EditRow({
         />
       </td>
       {showIfms && (
-        <td className="px-4 py-3">
+        <td className="px-2.5 py-1.5">
           <input
             type="text"
             value={dealer.ifms_id}
@@ -748,7 +748,7 @@ function EditRow({
           />
         </td>
       )}
-      <td className="px-4 py-3">
+      <td className="px-2.5 py-1.5">
         <input
           type="tel"
           value={dealer.phone_number}
@@ -756,7 +756,7 @@ function EditRow({
           className="w-full rounded border px-2 py-1 text-sm dark:bg-slate-800 dark:text-white"
         />
       </td>
-      <td className="px-4 py-3">
+      <td className="px-2.5 py-1.5">
         <input
           type="text"
           value={dealer.license_number}
@@ -764,7 +764,7 @@ function EditRow({
           className="w-full rounded border px-2 py-1 text-sm dark:bg-slate-800 dark:text-white"
         />
       </td>
-      <td className="px-4 py-3">
+      <td className="px-2.5 py-1.5">
         {activeTab === 'pesticide' ? (
           <span className="text-xs font-bold text-emerald-700">Permanent</span>
         ) : (
@@ -776,7 +776,7 @@ function EditRow({
           />
         )}
       </td>
-      <td className="px-4 py-3">
+      <td className="px-2.5 py-1.5">
         <input
           type="text"
           value={dealer.location}
@@ -785,7 +785,7 @@ function EditRow({
         />
       </td>
       {isAdminUser && (
-        <td className="px-4 py-3">
+        <td className="px-2.5 py-1.5">
           <div className="flex gap-1">
             <button type="button" onClick={onUpdate} className="rounded p-1 text-emerald-600">
               <Save className="h-4 w-4" />

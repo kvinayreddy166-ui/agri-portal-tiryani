@@ -369,7 +369,7 @@ export function Login() {
                 <button
                   type="button"
                   onClick={() => setPdfToolOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-2.5 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-black text-white shadow-sm shadow-red-900/10 transition hover:bg-red-700"
                 >
                   <FileText className="h-3.5 w-3.5" />
                   Generate PDF
