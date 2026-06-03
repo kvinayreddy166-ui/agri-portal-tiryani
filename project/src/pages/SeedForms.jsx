@@ -117,14 +117,7 @@ export function SeedForms() {
   const generate = async (kind) => {
     const doc = await buildValidatedPdf(kind);
     if (!doc) return;
-    const blobUrl = URL.createObjectURL(doc.output('blob'));
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = seedFileName(kind, form);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    downloadSeedDoc(doc, seedFileName(kind, form));
     setMessage('PDF generated.');
   };
 
@@ -132,34 +125,35 @@ export function SeedForms() {
     const doc = await buildValidatedPdf(kind);
     if (!doc) return;
     if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setPreviewUrl(URL.createObjectURL(doc.output('blob')));
+    const blobUrl = URL.createObjectURL(doc.output('blob'));
+    setPreviewUrl(blobUrl);
     setMessage('PDF preview ready.');
   };
 
   return (
-    <section className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm">
-      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <section className="rounded-lg border border-emerald-100 bg-white p-4 shadow-sm">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Seed statutory PDF</p>
-          <h2 className="text-lg font-black text-slate-950">Generate Form II, V, VI, VIII and Information Slip</h2>
+          <p className="text-sm font-black uppercase tracking-wide text-emerald-700">Seed statutory PDF</p>
+          <h2 className="text-xl font-black text-slate-950">Generate Form II, V, VI, VIII and Information Slip</h2>
         </div>
         <div className="flex gap-2">
-          <button type="button" onClick={saveDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">
+          <button type="button" onClick={saveDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
             <Save className="h-4 w-4" /> Save Draft
           </button>
-          <button type="button" onClick={resetDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">
+          <button type="button" onClick={resetDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
             <RotateCcw className="h-4 w-4" /> Reset
           </button>
         </div>
       </div>
 
       {message && (
-        <div className={`mb-3 rounded-lg px-3 py-2 text-xs font-bold ${message.includes('Please') ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-800'}`}>
+        <div className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">
           {message}
         </div>
       )}
 
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Officer / From Details">
           <Input label="From officer name" value={form.officerName} onChange={(value) => setField('officerName', value)} />
           <Input label="From designation" value={form.designation} onChange={(value) => setField('designation', value)} />
@@ -213,8 +207,8 @@ export function SeedForms() {
         </Card>
       </div>
 
-      <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
-        <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">PDF Generation</p>
+      <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-4">
+        <p className="mb-3 text-sm font-black uppercase tracking-wide text-slate-600">PDF Generation</p>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           <PdfAction label="Form II" onPreview={() => preview('II')} onDownload={() => generate('II')} />
           <PdfAction label="Form V" onPreview={() => preview('V')} onDownload={() => generate('V')} />
@@ -260,31 +254,31 @@ export function SeedForms() {
 
 function Card({ title, children }) {
   return (
-    <div className="rounded-lg border border-slate-100 bg-white p-3">
-      <h3 className="mb-2 text-sm font-black text-slate-900">{title}</h3>
-      <div className="grid gap-2">{children}</div>
+    <div className="rounded-lg border border-slate-100 bg-white p-4">
+      <h3 className="mb-3 text-base font-black text-slate-900">{title}</h3>
+      <div className="grid gap-3">{children}</div>
     </div>
   );
 }
 
 function PreviewCard({ title, lines }) {
   return (
-    <div className="rounded-lg border border-dashed border-emerald-200 bg-emerald-50 p-2">
-      <p className="text-xs font-black text-emerald-900">{title}</p>
+    <div className="rounded-lg border border-dashed border-emerald-200 bg-emerald-50 p-3">
+      <p className="text-sm font-black text-emerald-900">{title}</p>
       {lines.map((line) => (
-        <p key={line} className="text-xs font-semibold text-emerald-800">{line}</p>
+        <p key={line} className="text-sm font-semibold text-emerald-800">{line}</p>
       ))}
     </div>
   );
 }
 
 function Input({ label, value, onChange, type = 'text', textarea = false }) {
-  const className = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+  const className = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-base font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
   return (
     <label>
-      <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600">{label}</span>
+      <span className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600">{label}</span>
       {textarea ? (
-        <textarea rows={2} value={value} onChange={(event) => onChange(event.target.value)} className={className} />
+        <textarea rows={3} value={value} onChange={(event) => onChange(event.target.value)} className={className} />
       ) : (
         <input type={type} value={value} onChange={(event) => onChange(event.target.value)} className={className} />
       )}
@@ -295,8 +289,8 @@ function Input({ label, value, onChange, type = 'text', textarea = false }) {
 function Select({ label, value, onChange, options }) {
   return (
     <label>
-      <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600">{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+      <span className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600">{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-base font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
         {options.map((option) => (
           <option key={option.value} value={option.value}>{option.label}</option>
         ))}
@@ -318,13 +312,13 @@ function SelectWithOther({ label, valueKey, otherKey, form, setField, options })
 
 function PdfAction({ label, onPreview, onDownload, primary = false }) {
   return (
-    <div className={`rounded-lg border p-2 ${primary ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
-      <p className="mb-1 text-xs font-black text-slate-800">{label}</p>
-      <div className="grid grid-cols-2 gap-1">
+    <div className={`rounded-lg border p-3 ${primary ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+      <p className="mb-2 text-sm font-black text-slate-800">{label}</p>
+      <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={onPreview}
-          className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-xs font-black text-emerald-800 hover:bg-emerald-50"
+          className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-2 text-sm font-black text-emerald-800 hover:bg-emerald-50"
         >
           <Eye className="h-3.5 w-3.5" />
           Preview
@@ -332,7 +326,7 @@ function PdfAction({ label, onPreview, onDownload, primary = false }) {
         <button
           type="button"
           onClick={onDownload}
-          className={`inline-flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs font-black ${
+          className={`inline-flex items-center justify-center gap-1 rounded-md px-2 py-2 text-sm font-black ${
             primary ? 'bg-emerald-700 text-white hover:bg-emerald-800' : 'bg-slate-900 text-white hover:bg-slate-800'
           }`}
         >
@@ -362,27 +356,9 @@ function resolveSeedValues(form) {
 }
 
 function validateSeedForm(form, kind) {
-  const resolved = resolveSeedValues(form);
-  const required = [
-    ['From officer name', form.officerName],
-    ['From designation', form.designation],
-    ['From office address', form.officeAddress],
-    ['Serial No.', form.serialNo],
-    ['Code No.', form.codeNo],
-    ['Date of collection', form.collectionDate],
-    ['Place of collection', form.collectionPlace],
-    ['Crop', resolved.crop],
-    ['Variety', form.variety],
-    ['Lot No.', form.lotNo],
-    ['Quantity drawn', form.quantityDrawn],
-  ];
-  if (kind === 'VI' || kind === 'VIII' || kind === 'ALL') {
-    required.push(['Dealer / Party name', form.dealerName]);
-    required.push(['Dealer / Party address', form.dealerAddress]);
-    required.push(['Dealer location', form.premisesLocation]);
-  }
-  const missing = required.find(([, value]) => !String(value || '').trim());
-  return missing ? `Please enter ${missing[0]}.` : '';
+  void form;
+  void kind;
+  return '';
 }
 
 async function buildSeedPdf(kind, form) {
@@ -546,25 +522,25 @@ function drawInformationSlip(doc, form) {
 
 function page(doc) {
   doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(12);
+  doc.setFontSize(13);
   return { y: 20, margin: 20, width: 170 };
 }
 
 function title(doc, p, heading, subheading, titleText) {
   doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(15);
+  doc.setFontSize(16);
   doc.text(heading, 105, p.y, { align: 'center' });
-  p.y += 7;
+  p.y += 8;
   if (subheading) {
-    doc.setFontSize(12);
+    doc.setFontSize(13);
     doc.text(subheading, 105, p.y, { align: 'center' });
-    p.y += 7;
+    p.y += 8;
   }
-  doc.setFontSize(13);
+  doc.setFontSize(14);
   doc.text(titleText, 105, p.y, { align: 'center' });
-  p.y += 12;
+  p.y += 14;
   doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(12);
+  doc.setFontSize(13);
 }
 
 function drawFromTo(doc, p, r) {
@@ -574,7 +550,7 @@ function drawFromTo(doc, p, r) {
   doc.text(doc.splitTextToSize(r.fromAddress || '________________', 78), 20, p.y + 7);
   doc.text(doc.splitTextToSize(r.labAddress || '________________', 78), 112, p.y + 7);
   doc.setFont(PDF_FONT, 'normal');
-  p.y += 38;
+  p.y += 44;
 }
 
 function details(doc, p, rows, labelWidth = 82) {
@@ -587,7 +563,8 @@ function field(doc, p, label, value, labelWidth = 82) {
   const width = 190 - valueX;
   const labelLines = doc.splitTextToSize(label, labelWidth);
   const valueLines = doc.splitTextToSize(blank(value), width);
-  const height = Math.max(labelLines.length, valueLines.length) * 6 + 1.5;
+  const lineHeight = 7;
+  const height = Math.max(labelLines.length, valueLines.length) * lineHeight + 2;
   if (p.y + height > 250) {
     doc.addPage();
     p.y = 20;
@@ -603,7 +580,7 @@ function para(doc, p, value) {
   const lines = doc.splitTextToSize(value, p.width);
   doc.setFont(PDF_FONT, 'normal');
   doc.text(lines, 20, p.y);
-  p.y += lines.length * 6 + 3;
+  p.y += lines.length * 7 + 4;
 }
 
 function footer(doc, p, r) {
@@ -635,6 +612,25 @@ function cottonSlipQuantity(crop, test) {
   if (test === 'BT Protein Test') return '25 grams * 3';
   if (test === 'Germination, Purity & Moisture Test') return '250 grams * 3';
   return '';
+}
+
+function downloadSeedDoc(doc, fileName) {
+  try {
+    doc.save(fileName);
+    return;
+  } catch (error) {
+    console.warn('jsPDF save failed; falling back to blob download.', error);
+  }
+
+  const blobUrl = URL.createObjectURL(doc.output('blob'));
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = fileName;
+  link.rel = 'noreferrer';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 }
 
 function seedFileName(kind, form) {
