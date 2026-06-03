@@ -10,15 +10,24 @@ interface LanguageContextType {
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LANGUAGE_KEY = 'tiryani-language';
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>(() => {
+    const stored = window.localStorage.getItem(LANGUAGE_KEY);
+    return stored === 'te' ? 'te' : 'en';
+  });
 
   const value = useMemo(
     () => ({
       language,
       isTelugu: language === 'te',
-      toggleLanguage: () => setLanguage((current) => (current === 'en' ? 'te' : 'en')),
+      toggleLanguage: () =>
+        setLanguage((current) => {
+          const next = current === 'en' ? 'te' : 'en';
+          window.localStorage.setItem(LANGUAGE_KEY, next);
+          return next;
+        }),
       t: (english: string, telugu: string) => (language === 'te' ? telugu : english),
     }),
     [language]

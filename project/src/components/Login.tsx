@@ -1,10 +1,12 @@
-import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
   Calculator,
+  Download,
   FileText,
   Globe2,
+  Loader2,
   LockKeyhole,
   LogIn,
   Mail,
@@ -17,7 +19,6 @@ import {
   UserRoundCheck,
   X,
 } from 'lucide-react';
-import { FileActionButtons } from './ui/FileActionButtons';
 import { FileTypeIcon } from './ui/FileTypeIcon';
 import { PortalLogo } from './ui/PortalLogo';
 import { DEALER_DEFAULT_PASSWORD } from '../lib/dealerAuth';
@@ -25,17 +26,24 @@ import { translateDealerLoginError } from '../lib/dealerLoginMessages';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
+import { downloadFileFromUrl } from '../lib/fileBlob';
 import { FormDownload } from '../types/database';
+
+const FilePreviewModal = lazy(() =>
+  import('./ui/FilePreviewModal').then((module) => ({ default: module.FilePreviewModal }))
+);
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
 const TEST_EMAIL = 'test@gmail.com';
 const TEST_PASSWORD = 'Test@123';
 
 const STATUTORY_FOLDERS = [
-  { id: 'fertilizers', label: 'Fertilizer' },
-  { id: 'seed', label: 'Seed' },
-  { id: 'pesticides', label: 'Pesticide' },
+  { id: 'fertilizers', label: 'Fertilizer', telugu: 'ఎరువులు' },
+  { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
+  { id: 'pesticides', label: 'Pesticide', telugu: 'పురుగుమందులు' },
 ];
+
+const PUBLIC_FORMS_STATE_KEY = 'tiryani-public-statutory-forms-open';
 
 const TELANGANA_DISTRICTS = [
   'Adilabad',
@@ -90,10 +98,14 @@ export function Login() {
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [acreInput, setAcreInput] = useState('2.10 + 2.36');
   const [grievanceStatus, setGrievanceStatus] = useState<string | null>(null);
-  const [showStatutoryForms, setShowStatutoryForms] = useState(false);
+  const [showStatutoryForms, setShowStatutoryForms] = useState(
+    () => window.location.hash === '#statutory-forms' || window.sessionStorage.getItem(PUBLIC_FORMS_STATE_KEY) === '1'
+  );
   const [statutoryFolder, setStatutoryFolder] = useState('fertilizers');
   const [statutoryForms, setStatutoryForms] = useState<FormDownload[]>([]);
   const [formsLoading, setFormsLoading] = useState(false);
+  const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
+  const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [grievance, setGrievance] = useState({
     farmer_name: '',
@@ -115,15 +127,23 @@ export function Login() {
   }, [showStatutoryForms]);
 
   useEffect(() => {
-    if (!showStatutoryForms) return;
+    if (!showStatutoryForms) {
+      window.sessionStorage.removeItem(PUBLIC_FORMS_STATE_KEY);
+      return;
+    }
 
+    window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
     const state = { publicStatutoryForms: true };
-    if (!window.history.state?.publicStatutoryForms) {
+    if (!window.history.state?.publicStatutoryForms && window.location.hash !== '#statutory-forms') {
       window.history.pushState(state, '', '#statutory-forms');
+    } else if (!window.history.state?.publicStatutoryForms) {
+      window.history.replaceState(state, '', '#statutory-forms');
     }
 
     const handlePopState = (event: PopStateEvent) => {
-      setShowStatutoryForms(Boolean(event.state?.publicStatutoryForms));
+      const keepFormsOpen = Boolean(event.state?.publicStatutoryForms) || window.location.hash === '#statutory-forms';
+      setShowStatutoryForms(keepFormsOpen);
+      if (!keepFormsOpen) setPreviewForm(null);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -131,10 +151,17 @@ export function Login() {
   }, [showStatutoryForms]);
 
   const closeStatutoryForms = () => {
+    window.sessionStorage.removeItem(PUBLIC_FORMS_STATE_KEY);
+    setPreviewForm(null);
     setShowStatutoryForms(false);
     if (window.history.state?.publicStatutoryForms) {
       window.history.back();
     }
+  };
+
+  const openStatutoryForms = () => {
+    window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
+    setShowStatutoryForms(true);
   };
 
   useEffect(() => {
@@ -174,6 +201,18 @@ export function Login() {
     () => statutoryForms.filter((form) => form.category === statutoryFolder),
     [statutoryForms, statutoryFolder]
   );
+
+  const handlePublicDownload = async (form: FormDownload) => {
+    if (!form.file_url) return;
+    setDownloadingFormId(form.id);
+    try {
+      await downloadFileFromUrl(form.file_url, form.title);
+    } catch {
+      window.open(form.file_url, '_blank', 'noopener,noreferrer');
+    } finally {
+      setDownloadingFormId(null);
+    }
+  };
 
   const acreCalculation = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
 
@@ -261,76 +300,96 @@ export function Login() {
 
   if (showStatutoryForms) {
     return (
-      <div className="min-h-screen bg-[#eef6f0] p-3 sm:p-4">
-        <div className="mx-auto w-full max-w-5xl rounded-lg border border-white/70 bg-white/95 p-4 shadow-xl shadow-emerald-950/10 sm:p-5">
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-h-screen bg-[#eef6f0] p-2 sm:p-3">
+        <div className="mx-auto w-full max-w-4xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={closeStatutoryForms}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back
+                {t('Back', 'వెనుకకు')}
               </button>
               <div>
-                <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Public documents</p>
-                <h1 className="text-2xl font-black text-slate-950">Statutory Forms</h1>
+                <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">
+                  {t('Public documents', 'ప్రజా పత్రాలు')}
+                </p>
+                <h1 className="text-xl font-black text-slate-950 sm:text-2xl">{t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}</h1>
               </div>
             </div>
             <PortalLogo size="md" />
           </div>
 
-          <div className="mb-4 grid grid-cols-3 gap-2">
+          <div className="mb-3 grid grid-cols-3 gap-1.5">
             {STATUTORY_FOLDERS.map((folder) => (
               <button
                 key={folder.id}
                 type="button"
                 onClick={() => setStatutoryFolder(folder.id)}
-                className={`rounded-lg border px-2.5 py-2 text-left font-black transition ${
+                className={`rounded-md border px-2 py-1.5 text-left font-black transition ${
                   statutoryFolder === folder.id
                     ? 'border-emerald-700 bg-emerald-700 text-white shadow-md shadow-emerald-900/10'
                     : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'
                 }`}
               >
-                <span className="flex items-center gap-2 text-sm">
-                  <FileText className="h-4 w-4" />
-                  {folder.label}
+                <span className="flex items-center gap-1.5 text-xs sm:text-sm">
+                  <FileText className="h-3.5 w-3.5" />
+                  {language === 'te' ? folder.telugu : folder.label}
                 </span>
               </button>
             ))}
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table className="min-w-[560px] w-full table-fixed text-left">
-              <thead className="sticky top-0 z-10 bg-slate-900 text-sm font-bold text-white">
+          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+            <table className="w-full min-w-[430px] table-fixed text-left">
+              <thead className="sticky top-0 z-10 bg-slate-900 text-xs font-bold text-white sm:text-sm">
                 <tr>
-                  <th className="w-20 px-4 py-3">S.No.</th>
-                  <th className="px-4 py-3">Proforma / Form Name</th>
-                  <th className="w-36 px-4 py-3 text-right">Action</th>
+                  <th className="w-14 px-2.5 py-2 sm:w-16">{t('S.No.', 'క్ర.సం.')}</th>
+                  <th className="px-2.5 py-2">{t('Proforma / Form Name', 'ప్రొఫార్మా / ఫారం పేరు')}</th>
+                  <th className="w-20 px-2.5 py-2 text-right">{t('Download', 'డౌన్లోడ్')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {formsLoading ? (
                   <tr>
-                    <td colSpan={3} className="px-4 py-8 text-center text-sm font-semibold text-slate-500">
-                      Loading forms...
+                    <td colSpan={3} className="px-3 py-6 text-center text-sm font-semibold text-slate-500">
+                      {t('Loading forms...', 'ఫారాలు లోడ్ అవుతున్నాయి...')}
                     </td>
                   </tr>
                 ) : selectedStatutoryForms.length > 0 ? (
                   selectedStatutoryForms.map((form, index) => (
                     <tr key={form.id} className="hover:bg-emerald-50/60">
-                      <td className="px-4 py-3 align-middle text-sm font-bold text-slate-600">{index + 1}</td>
-                      <td className="px-4 py-3 align-middle">
-                        <div className="flex min-w-0 items-center gap-3">
+                      <td className="px-2.5 py-2 align-middle text-sm font-bold text-slate-600">{index + 1}</td>
+                      <td className="px-2.5 py-2 align-middle">
+                        <button
+                          type="button"
+                          onClick={() => form.file_url && setPreviewForm(form)}
+                          className="flex w-full min-w-0 items-center gap-2 text-left"
+                          title={t('Open preview', 'ప్రివ్యూ తెరవండి')}
+                        >
                           <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                          <span className="block min-w-0 truncate text-sm font-bold text-slate-950 sm:text-base">{form.title}</span>
-                        </div>
+                          <span className="block min-w-0 truncate text-sm font-bold text-slate-950 underline-offset-4 hover:underline sm:text-base">{form.title}</span>
+                        </button>
                       </td>
-                      <td className="px-4 py-3 align-middle">
+                      <td className="px-2.5 py-2 align-middle">
                         <div className="flex items-center justify-end">
                           {form.file_url && (
-                            <FileActionButtons fileUrl={form.file_url} fileName={form.title} fileType={form.file_type} size="sm" />
+                            <button
+                              type="button"
+                              onClick={() => handlePublicDownload(form)}
+                              disabled={downloadingFormId === form.id}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-sky-700 transition hover:bg-sky-50 disabled:opacity-50"
+                              aria-label={t('Download file', 'ఫైల్ డౌన్లోడ్ చేయండి')}
+                              title={t('Download', 'డౌన్లోడ్')}
+                            >
+                              {downloadingFormId === form.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Download className="h-4 w-4" />
+                              )}
+                            </button>
                           )}
                         </div>
                       </td>
@@ -338,8 +397,8 @@ export function Login() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={3} className="px-4 py-10 text-center text-sm font-semibold text-slate-500">
-                      No statutory forms uploaded yet.
+                    <td colSpan={3} className="px-3 py-8 text-center text-sm font-semibold text-slate-500">
+                      {t('No statutory forms uploaded yet.', 'ఇంకా ఫారాలు అప్లోడ్ కాలేదు.')}
                     </td>
                   </tr>
                 )}
@@ -347,6 +406,26 @@ export function Login() {
             </table>
           </div>
         </div>
+        {previewForm?.file_url && (
+          <Suspense
+            fallback={
+              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 text-white">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            }
+          >
+            <FilePreviewModal
+              fileUrl={previewForm.file_url}
+              fileName={previewForm.title}
+              fileType={previewForm.file_type}
+              onClose={() => {
+                setPreviewForm(null);
+                setShowStatutoryForms(true);
+                window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
+              }}
+            />
+          </Suspense>
+        )}
       </div>
     );
   }
@@ -364,18 +443,18 @@ export function Login() {
           <div className="relative">
             <div className="mb-5 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur-md">
               <PortalLogo size="sm" className="ring-white/30" />
-              {t('Department of Agriculture', 'Department of Agriculture')}
+              {t('Department of Agriculture', 'వ్యవసాయ శాఖ')}
             </div>
             <h1 className="max-w-lg text-4xl font-black leading-[1.1] tracking-tight">
-              {t('Tiryani Agriculture Portal', 'Tiryani Agriculture Portal')}
+              {t('Tiryani Agriculture Portal', 'తిర్యాణి వ్యవసాయ పోర్టల్')}
             </h1>
             <p className="mt-3 text-lg font-semibold text-emerald-100">
-              {t('Information Management System', 'Information Management System')}
+              {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
             </p>
             <p className="mt-5 max-w-lg text-base leading-relaxed text-emerald-50/95">
               {t(
                 'A secure workspace for fertilizer, dealer, and crop management for Tiryani Mandal.',
-                'A secure workspace for fertilizer, dealer, and crop management for Tiryani Mandal.'
+                'తిర్యాణి మండలానికి ఎరువులు, డీలర్లు మరియు పంటల నిర్వహణ కోసం సురక్షిత వ్యవస్థ.'
               )}
             </p>
           </div>
@@ -384,23 +463,23 @@ export function Login() {
             <div className="rounded-xl border border-white/15 bg-white/10 p-3 backdrop-blur-md">
               <div className="mb-2 flex items-center gap-2 font-semibold">
                 <ShieldCheck className="h-5 w-5 text-emerald-200" />
-                {t('Admin access', 'Admin access')}
+                {t('Admin access', 'అధికారి ప్రవేశం')}
               </div>
               <p className="text-sm text-emerald-50/90">
-                {t('Full access to manage stock, dealers, crops, and uploads.', 'Full access to manage stock, dealers, crops, and uploads.')}
+                {t('Full access to manage stock, dealers, crops, and uploads.', 'స్టాక్, డీలర్లు, పంటలు మరియు అప్లోడ్లను నిర్వహించడానికి పూర్తి ప్రవేశం.')}
               </p>
             </div>
             <button
               type="button"
-              onClick={() => setShowStatutoryForms(true)}
+              onClick={openStatutoryForms}
               className="rounded-xl border border-white/15 bg-white/10 p-3 text-left backdrop-blur-md transition hover:bg-white/15"
             >
               <div className="mb-2 flex items-center gap-2 font-semibold">
                 <FileText className="h-5 w-5 text-cyan-200" />
-                Statutory Forms
+                {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
               </div>
               <p className="text-sm text-emerald-50/90">
-                Fertilizer, seed, and pesticide forms for public view and download.
+                {t('Fertilizer, seed, and pesticide forms for public view and download.', 'ఎరువులు, విత్తనాలు మరియు పురుగుమందుల ఫారాలను చూడండి, డౌన్లోడ్ చేయండి.')}
               </p>
             </button>
           </div>
@@ -412,10 +491,10 @@ export function Login() {
               <div>
                 <PortalLogo size="lg" className="mb-2" />
                 <h2 className="whitespace-nowrap text-lg font-black tracking-tight text-slate-950 sm:text-2xl">
-                  {t('Tiryani Agriculture Portal', 'Tiryani Agriculture Portal')}
+                  {t('Tiryani Agriculture Portal', 'తిర్యాణి వ్యవసాయ పోర్టల్')}
                 </h2>
                 <p className="mt-1 text-sm font-bold text-emerald-700">
-                  {t('Information Management System', 'Information Management System')}
+                  {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
                 </p>
               </div>
               <button
@@ -430,11 +509,11 @@ export function Login() {
 
             <button
               type="button"
-              onClick={() => setShowStatutoryForms(true)}
+              onClick={openStatutoryForms}
               className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-800 transition hover:bg-emerald-100 lg:hidden"
             >
               <FileText className="h-4 w-4" />
-              Statutory Forms
+              {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
             </button>
 
             <button
@@ -443,7 +522,7 @@ export function Login() {
               className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-black text-sky-800 transition hover:bg-sky-100"
             >
               <Calculator className="h-4 w-4" />
-              Acres Calculator
+              {t('Acres Calculator', 'ఎకరాల కాలిక్యులేటర్')}
             </button>
 
             <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-bold">
@@ -452,22 +531,22 @@ export function Login() {
                 onClick={() => setLoginMode('staff')}
                 className={`rounded-lg px-3 py-2 ${loginMode === 'staff' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}
               >
-                {t('Staff / Test', 'Staff / Test')}
+                {t('Staff / Test', 'సిబ్బంది / పరీక్ష')}
               </button>
               <button
                 type="button"
                 onClick={() => setLoginMode('dealer')}
                 className={`rounded-lg px-3 py-2 ${loginMode === 'dealer' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}
               >
-                {t('Dealer', 'Dealer')}
+                {t('Dealer', 'డీలర్')}
               </button>
             </div>
 
             <div className="mb-3">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
-                {loginMode === 'dealer' ? t('Dealer login', 'Dealer login') : t('Secure sign in', 'Secure sign in')}
+                {loginMode === 'dealer' ? t('Dealer login', 'డీలర్ లాగిన్') : t('Secure sign in', 'సురక్షిత లాగిన్')}
               </p>
-              <h3 className="mt-1 text-2xl font-black text-slate-950">{t('Welcome', 'Welcome')}</h3>
+              <h3 className="mt-1 text-2xl font-black text-slate-950">{t('Welcome', 'స్వాగతం')}</h3>
             </div>
 
             {error && (
@@ -480,16 +559,16 @@ export function Login() {
             <form onSubmit={handleSubmit} className="space-y-2.5">
               {loginMode === 'dealer' ? (
                 <>
-                  <LoginField label={t('Registered phone (Dealers Directory)', 'Registered phone (Dealers Directory)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
-                  <LoginField label={t('Password', 'Password')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
+                  <LoginField label={t('Registered phone (Dealers Directory)', 'నమోదైన ఫోన్ (డీలర్ల డైరెక్టరీ)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
+                  <LoginField label={t('Password', 'పాస్వర్డ్')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
                   <p className="-mt-2 text-xs text-slate-500">
-                    {t(`Default dealer password: ${DEALER_DEFAULT_PASSWORD}`, `Default dealer password: ${DEALER_DEFAULT_PASSWORD}`)}
+                    {t(`Default dealer password: ${DEALER_DEFAULT_PASSWORD}`, `డిఫాల్ట్ డీలర్ పాస్వర్డ్: ${DEALER_DEFAULT_PASSWORD}`)}
                   </p>
                 </>
               ) : (
                 <>
-                  <LoginField label={t('Email Address', 'Email Address')} icon={<Mail />} type="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'Enter email address')} />
-                  <LoginField label={t('Password', 'Password')} icon={<LockKeyhole />} type="password" value={password} onChange={setPassword} placeholder={t('Enter password', 'Enter password')} />
+                  <LoginField label={t('Email Address', 'ఇమెయిల్ చిరునామా')} icon={<Mail />} type="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'ఇమెయిల్ చిరునామా నమోదు చేయండి')} />
+                  <LoginField label={t('Password', 'పాస్వర్డ్')} icon={<LockKeyhole />} type="password" value={password} onChange={setPassword} placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')} />
                 </>
               )}
               <button
@@ -498,7 +577,7 @@ export function Login() {
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3 font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:from-emerald-800 hover:to-teal-800 disabled:opacity-60"
               >
                 {loginMode === 'dealer' ? <Store className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
-                {loading ? t('Signing in...', 'Signing in...') : loginMode === 'dealer' ? t('Dealer Sign In', 'Dealer Sign In') : t('Sign In', 'Sign In')}
+                {loading ? t('Signing in...', 'లాగిన్ అవుతోంది...') : loginMode === 'dealer' ? t('Dealer Sign In', 'డీలర్ లాగిన్') : t('Sign In', 'లాగిన్')}
               </button>
             </form>
 
@@ -506,7 +585,7 @@ export function Login() {
               <div className="mt-3 rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950">
                 <p className="flex items-center gap-2 font-bold">
                   <UserRoundCheck className="h-4 w-4" />
-                  {t('Test login', 'Test login')}
+                  {t('Test login', 'పరీక్ష లాగిన్')}
                 </p>
                 <p className="mt-2">
                   <span className="font-semibold">Email:</span> {TEST_EMAIL}
@@ -540,7 +619,7 @@ export function Login() {
         className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-black text-white shadow-xl shadow-emerald-950/20 transition hover:bg-emerald-800"
       >
         <MessageSquareText className="h-5 w-5" />
-        {t('Grievances', 'Grievances')}
+        {t('Grievances', 'ఫిర్యాదులు')}
       </button>
 
       {calculatorOpen && (
@@ -549,7 +628,7 @@ export function Login() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <h3 className="flex items-center gap-2 text-lg font-black text-slate-950">
                 <Calculator className="h-5 w-5 text-sky-700" />
-                Acres Calculator
+                {t('Acres Calculator', 'ఎకరాల కాలిక్యులేటర్')}
               </h3>
               <button type="button" onClick={() => setCalculatorOpen(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
                 <X className="h-5 w-5" />
@@ -595,7 +674,7 @@ export function Login() {
             <div className="mb-4 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-black text-emerald-900">
                 <MessageSquareText className="h-5 w-5" />
-                {t('Farmer Grievance', 'Farmer Grievance')}
+                {t('Farmer Grievance', 'రైతు ఫిర్యాదు')}
               </h3>
               <button type="button" onClick={() => setGrievanceOpen(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
                 <X className="h-5 w-5" />
@@ -631,7 +710,7 @@ export function Login() {
               <textarea value={grievance.description} onChange={(e) => setGrievance({ ...grievance, description: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder="Description" required />
               <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3.5 font-bold text-white shadow-lg">
                 <Send className="h-5 w-5" />
-                {t('Submit Complaint', 'Submit Complaint')}
+                {t('Submit Complaint', 'ఫిర్యాదు పంపండి')}
               </button>
               {grievanceStatus && <p className="text-sm font-semibold text-emerald-700">{grievanceStatus}</p>}
             </form>

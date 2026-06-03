@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { getContentType } from '../lib/fileTypes';
-import { FertilizerSamplePdfGenerator } from '../components/forms/FertilizerSamplePdfGenerator';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
 import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 import { useAuth } from '../context/AuthContext';
@@ -283,8 +282,6 @@ export function QualityControl({ category }: QualityControlProps) {
           </div>
         </div>
       </div>
-
-      {category === 'fertilizers' && <FertilizerSamplePdfGenerator />}
 
       <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
         <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
