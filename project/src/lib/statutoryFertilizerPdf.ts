@@ -1,6 +1,6 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 
-export type FertilizerStatutoryFormType = 'J' | 'K' | 'P';
+export type FertilizerStatutoryFormType = 'J' | 'K_ADA' | 'K_JDA' | 'P';
 
 export type FertilizerPdfValues = {
   no: string;
@@ -12,6 +12,11 @@ export type FertilizerPdfValues = {
   dealerManufacturerImporterName: string;
   batchDetails: string;
   composition: string;
+  compositionN: string;
+  compositionP: string;
+  compositionK: string;
+  compositionS: string;
+  compositionCa: string;
   stockReceiptDate: string;
   sampleCode: string;
   stockPosition: string;
@@ -28,19 +33,16 @@ export type FertilizerPdfValues = {
   date: string;
 };
 
-export const FERTILIZER_TO_ADDRESS_OPTIONS = [
-  {
-    id: 'ada-coding-centre',
-    label: 'Assistant Director of Agriculture, Fertilizer Coding Centre',
-    value: 'Assistant Director of Agriculture,\nFertilizer Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad.',
+export const FERTILIZER_K_ADDRESS_OPTIONS = {
+  K_ADA: {
+    label: 'Form K (ADA)',
+    value: 'Assistant Director of Agriculture\nFertilizer Coding Centre\nSAMETI Complex\nOld Malakpet\nHyderabad',
   },
-  {
-    id: 'designated-authority-jda',
-    label: 'The Designated Authority, JDA Soil Correlator',
-    value:
-      'The Designated Authority,\nJDA Soil Correlator,\nFertilizer Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad.',
+  K_JDA: {
+    label: 'Form K (JDA)',
+    value: 'The Designated Authority\nJDA Soil Correlator\nFertilizer Coding Centre\nSAMETI Complex\nOld Malakpet\nHyderabad',
   },
-] as const;
+} as const;
 
 export const initialFertilizerPdfValues: FertilizerPdfValues = {
   no: '',
@@ -52,6 +54,11 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   dealerManufacturerImporterName: '',
   batchDetails: '',
   composition: '',
+  compositionN: '',
+  compositionP: '',
+  compositionK: '',
+  compositionS: '',
+  compositionCa: '',
   stockReceiptDate: '',
   sampleCode: '',
   stockPosition: '',
@@ -60,7 +67,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   inspectorNameAddress: '',
   dealerReceipt: '',
   fromAddress: '',
-  toAddress: FERTILIZER_TO_ADDRESS_OPTIONS[0].value,
+  toAddress: FERTILIZER_K_ADDRESS_OPTIONS.K_ADA.value,
   forwardReportAddress: '',
   nameGrade: '',
   codeNumber: '',
@@ -70,27 +77,57 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
 
 export const fertilizerFormTitles: Record<FertilizerStatutoryFormType, string> = {
   J: 'FORM J',
-  K: 'FORM K',
+  K_ADA: 'FORM K (ADA)',
+  K_JDA: 'FORM K (JDA)',
   P: 'FORM P',
 };
 
 const CERTIFICATION_TEXT =
   'Certified that the sample of fertilizer has been drawn in accordance with the procedure laid down in the Fertilizer (Control) Order, 1985 from the stock in my possession, and I have signed the test samples at the time of wax sealing. I have also received one test sample out of the three test samples prepared.';
 
+const PAGE = {
+  marginX: 20,
+  top: 20,
+  bottom: 277,
+  width: 210,
+  height: 297,
+};
+
+const PDF_FONT = 'times';
+const BODY_SIZE = 12.5;
+const TITLE_SIZE = 16;
+const ROW_LINE_HEIGHT = 5.9;
+const ROW_GAP = 1.7;
+const PARA_LINE_HEIGHT = 6.1;
+const FORM_J_SIGNATURE_GAP = 18;
+
+type PdfCursor = {
+  doc: JsPdfInstance;
+  y: number;
+  contentWidth: number;
+};
+
 export async function generateFertilizerStatutoryPdf(
   formType: FertilizerStatutoryFormType,
   values: FertilizerPdfValues
 ) {
   const { jsPDF } = await import('jspdf');
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-  doc.setProperties({
-    title: `${fertilizerFormTitles[formType]} - Fertilizer Sampling`,
-    subject: 'Statutory fertilizer sampling form',
-    creator: 'Tiryani Agriculture Portal',
-  });
-
+  const doc = createDocument(jsPDF, `${fertilizerFormTitles[formType]} - Fertilizer Sampling`);
   drawForm(doc, formType, values);
+  return doc;
+}
+
+export async function generateAllFertilizerStatutoryPdf(values: FertilizerPdfValues) {
+  const { jsPDF } = await import('jspdf');
+  const doc = createDocument(jsPDF, 'FORM J K P - Fertilizer Sampling');
+
+  drawForm(doc, 'J', values);
+  doc.addPage();
+  drawForm(doc, 'K_ADA', values);
+  doc.addPage();
+  drawForm(doc, 'K_JDA', values);
+  doc.addPage();
+  drawForm(doc, 'P', values);
   return doc;
 }
 
@@ -102,211 +139,326 @@ export async function createFertilizerPdfBlobUrl(
   return URL.createObjectURL(doc.output('blob'));
 }
 
+export async function createAllFertilizerPdfBlobUrl(values: FertilizerPdfValues) {
+  const doc = await generateAllFertilizerStatutoryPdf(values);
+  return URL.createObjectURL(doc.output('blob'));
+}
+
 export function getFertilizerPdfFileName(formType: FertilizerStatutoryFormType, values: FertilizerPdfValues) {
-  const no = values.no.trim() ? `-${sanitizeFilePart(values.no)}` : '';
-  return `${fertilizerFormTitles[formType].replace(/\s+/g, '-')}${no}.pdf`;
+  const sampleCode = getSampleCode(values);
+  const suffix = sampleCode ? `_${sanitizeFilePart(sampleCode)}` : '';
+
+  if (formType === 'J') return `FormJ${suffix}.pdf`;
+  if (formType === 'K_ADA') return `FormK_ADA${suffix}.pdf`;
+  if (formType === 'K_JDA') return `FormK_JDA${suffix}.pdf`;
+  return `FormP${suffix}.pdf`;
+}
+
+export function getAllFertilizerPdfFileName(values: FertilizerPdfValues) {
+  const sampleCode = getSampleCode(values);
+  const suffix = sampleCode ? `_${sanitizeFilePart(sampleCode)}` : '';
+  return `FormJ_FormK_ADA_FormK_JDA_FormP${suffix}.pdf`;
+}
+
+function createDocument(
+  jsPDF: new (options: { orientation: 'portrait'; unit: 'mm'; format: 'a4' }) => JsPdfInstance,
+  title: string
+) {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  doc.setProperties({
+    title,
+    subject: 'Statutory fertilizer sampling form',
+    creator: 'Tiryani Agriculture Portal',
+  });
+  return doc;
 }
 
 function drawForm(doc: JsPdfInstance, formType: FertilizerStatutoryFormType, values: FertilizerPdfValues) {
-  const marginX = 18;
-  const pageWidth = doc.internal.pageSize.getWidth();
-  let y = 18;
+  const cursor = resetPage(doc);
 
-  doc.setLineHeightFactor(1.15);
-  doc.setFont('times', 'bold');
-  doc.setFontSize(14);
-  doc.text(`FORM \u2018${formType}\u2019`, pageWidth / 2, y, { align: 'center' });
-  y += 6;
+  drawHeader(cursor, formType, values);
 
-  doc.setFont('times', 'normal');
-  doc.setFontSize(10.5);
-  doc.text(getClauseReference(formType), pageWidth / 2, y, { align: 'center' });
-  y += 8;
-
-  doc.setFontSize(11);
-  doc.text(formType === 'J' ? `No: ${values.no || ''}` : `No. ${values.no || ''}`, marginX, y);
-  y += 8;
-
-  doc.setFont('times', 'bold');
-  doc.setFontSize(11);
-  const headingLines = doc.splitTextToSize(getHeading(formType), pageWidth - marginX * 2);
-  doc.text(headingLines, pageWidth / 2, y, { align: 'center' });
-  y += headingLines.length * 5.2 + 6;
-
-  if (formType === 'J') drawFormJ(doc, values, marginX, y, pageWidth);
-  if (formType === 'K') drawFormK(doc, values, marginX, y, pageWidth);
-  if (formType === 'P') drawFormP(doc, values, marginX, y, pageWidth);
+  if (formType === 'J') drawFormJ(cursor, values);
+  if (formType === 'K_ADA' || formType === 'K_JDA') drawFormK(cursor, formType, values);
+  if (formType === 'P') drawFormP(cursor, values);
 }
 
-function drawFormK(doc: JsPdfInstance, values: FertilizerPdfValues, marginX: number, startY: number, pageWidth: number) {
-  let y = startY;
-  doc.setFont('times', 'normal');
-  doc.setFontSize(11);
+function resetPage(doc: JsPdfInstance): PdfCursor {
+  doc.setLineHeightFactor(1.25);
+  doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(BODY_SIZE);
+  return {
+    doc,
+    y: PAGE.top,
+    contentWidth: PAGE.width - PAGE.marginX * 2,
+  };
+}
 
-  doc.text('From', marginX, y);
-  y += 6;
-  y = drawAddressOrBlanks(doc, values.fromAddress, marginX + 8, y, 4);
-  y += 4;
+function drawHeader(cursor: PdfCursor, formType: FertilizerStatutoryFormType, values: FertilizerPdfValues) {
+  const { doc } = cursor;
+  const displayType = formType === 'K_ADA' || formType === 'K_JDA' ? 'K' : formType;
 
-  doc.text('To', marginX, y);
-  y += 6;
-  y = drawMultiline(doc, values.toAddress, marginX + 8, y, pageWidth - marginX * 2 - 8, 5);
-  y += 6;
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(TITLE_SIZE);
+  doc.text(`FORM '${displayType}'`, PAGE.width / 2, cursor.y, { align: 'center' });
+  cursor.y += 6.5;
 
-  doc.text('1) The fertilizer samples as per details given below are sent for analysis: -', marginX, y);
-  y += 6;
-  y = drawColonField(doc, 'a. Type of the fertilizer &Grade', values.fertilizerTypeGrade, marginX + 6, y, 63);
-  y = drawColonField(doc, 'b. Date of sampling', formatFieldValue(values.samplingDate), marginX + 6, y, 63);
-  y = drawColonField(doc, 'c. Physical condition of fertilizer', values.physicalCondition, marginX + 6, y, 63);
-  y = drawColonField(doc, 'd. Code number of Sample', values.sampleCode, marginX + 6, y, 63);
-  y += 4;
+  doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(BODY_SIZE);
+  doc.text(getClauseReference(formType), PAGE.width / 2, cursor.y, { align: 'center' });
+  cursor.y += 9;
 
-  doc.text('2) The analysis report may please be forwarded to the undersigned', marginX, y);
-  y += 7;
-  drawAddressOrBlanks(doc, values.forwardReportAddress, marginX + 8, y, 4);
+  doc.text(displayType === 'J' ? `No: ${values.no || ''}` : `No. ${values.no || ''}`, PAGE.marginX, cursor.y);
+  cursor.y += 8;
 
-  doc.text(`Place: ${values.place || ''}`, marginX, 246);
-  doc.text(`Date: ${formatDate(values.date) || ''}`, marginX, 254);
-  doc.setFont('times', 'bold');
-  doc.text(['Signature and metallic seal', 'Impression of Fertilizer Inspector'], pageWidth - marginX, 260, {
+  doc.setFont(PDF_FONT, 'bold');
+  const headingLines = split(cursor, getHeading(formType), cursor.contentWidth);
+  doc.text(headingLines, PAGE.width / 2, cursor.y, { align: 'center' });
+  cursor.y += headingLines.length * PARA_LINE_HEIGHT + 7;
+  doc.setFont(PDF_FONT, 'normal');
+}
+
+function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
+  const fieldOptions = { lineHeight: 5.25, gap: 0.85, noPageBreak: true };
+
+  field(cursor, '(1) Name and Address of Dealer/Manufacturer/Importer', values.dealerNameAddress, 91, PAGE.marginX, fieldOptions);
+  field(cursor, '(1A) Letter of Authorization No.', values.authorizationNumber, 91, PAGE.marginX, fieldOptions);
+  field(cursor, '(2) Date of Sampling', formatFieldValue(values.samplingDate), 91, PAGE.marginX, fieldOptions);
+
+  heading(cursor, '(3) Details of markings on the bags from where sample has been taken', true);
+  if (values.markings.trim()) paragraph(cursor, values.markings, PAGE.marginX + 6, cursor.contentWidth - 6, 5, true);
+  field(cursor, 'a) Type and Grade of Fertilizer', values.fertilizerTypeGrade, 84, PAGE.marginX + 6, fieldOptions);
+  field(cursor, 'b) Name of Dealer/Manufacturer/Importer', values.dealerManufacturerImporterName, 84, PAGE.marginX + 6, fieldOptions);
+  field(cursor, 'c) Batch No. and Date of Manufacture/Import', values.batchDetails, 84, PAGE.marginX + 6, fieldOptions);
+  field(cursor, 'd) Composition of Fertilizer', formatComposition(values), 84, PAGE.marginX + 6, fieldOptions);
+
+  field(cursor, '(4) Date of Receipt of Stock by Dealer/Manufacturer/Importer/Pool Handling Agency', formatFieldValue(values.stockReceiptDate), 108, PAGE.marginX, fieldOptions);
+  field(cursor, '(5) Code No. of Sample', values.sampleCode, 91, PAGE.marginX, fieldOptions);
+  field(cursor, '(6) Stock Position of the Lot', values.stockPosition, 91, PAGE.marginX, fieldOptions);
+  field(cursor, '(7) Physical Condition of Fertilizer', values.physicalCondition, 91, PAGE.marginX, fieldOptions);
+  field(cursor, '(8) Samples Drawn From Open Bags/Stitched Bags/Bulk', values.bagSource, 99, PAGE.marginX, fieldOptions);
+  field(cursor, '(9) Name and Address of Fertilizer Inspector Drawing Sample', values.inspectorNameAddress, 99, PAGE.marginX, fieldOptions);
+
+  drawDealerReceipt(cursor);
+}
+
+function drawDealerReceipt(cursor: PdfCursor) {
+  const { doc } = cursor;
+  const receiptLines = split(cursor, CERTIFICATION_TEXT, cursor.contentWidth);
+  const compactParaLineHeight = 5.5;
+  const receiptTextHeight = receiptLines.length * compactParaLineHeight;
+  const receiptHeight = 8 + receiptTextHeight;
+  const signatureY = Math.min(cursor.y + receiptHeight + FORM_J_SIGNATURE_GAP + 3, PAGE.bottom - 11);
+  const latestY = signatureY - FORM_J_SIGNATURE_GAP - receiptTextHeight - 8;
+
+  cursor.y = Math.min(cursor.y + 4, latestY);
+
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Receipt of the Dealer', PAGE.width / 2, cursor.y, { align: 'center' });
+  cursor.y += 8;
+
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(receiptLines, PAGE.marginX, cursor.y);
+  cursor.y += receiptHeight;
+
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Signature of Dealer', PAGE.marginX + 33, signatureY, { align: 'center' });
+  doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], PAGE.width - PAGE.marginX, signatureY, {
     align: 'right',
   });
+  doc.setFont(PDF_FONT, 'normal');
 }
 
-function drawFormP(doc: JsPdfInstance, values: FertilizerPdfValues, marginX: number, startY: number, pageWidth: number) {
-  let y = startY + 4;
-  doc.setFont('times', 'normal');
-  doc.setFontSize(11.5);
+function drawFormK(cursor: PdfCursor, formType: 'K_ADA' | 'K_JDA', values: FertilizerPdfValues) {
+  const { doc } = cursor;
+  doc.setFont(PDF_FONT, 'normal');
 
-  y = drawColonField(doc, '1. Name and Grade of Fertilizer', values.nameGrade, marginX, y, 68);
-  y = drawColonField(doc, '2. Composition', values.composition, marginX, y, 68);
-  y = drawColonField(doc, '3. Physical Condition of Fertilizer', values.physicalCondition, marginX, y, 68);
-  y = drawColonField(doc, '4. Code Number', values.codeNumber, marginX, y, 68);
-  y = drawColonField(doc, '5. Date of sampling', formatFieldValue(values.samplingDate), marginX, y, 68);
-  doc.text('6. Name& Address of Fertilizer :', marginX, y);
-  y += 6;
-  doc.text('Inspector drawing sample', marginX + 6, y);
-  y += 6;
-  drawMultiline(doc, values.inspectorNameAddress, marginX + 8, y, pageWidth - marginX * 2 - 8, 5);
+  boldText(cursor, 'From');
+  addressBlock(cursor, values.fromAddress, PAGE.marginX + 10, 4);
+  cursor.y += 3;
 
-  doc.setFont('times', 'bold');
-  doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], pageWidth - marginX, 246, {
+  boldText(cursor, 'To');
+  addressBlock(cursor, getKAddress(formType), PAGE.marginX + 10, 5);
+  cursor.y += 5;
+
+  paragraph(cursor, '1) The fertilizer samples as per details given below are sent for analysis: -');
+  field(cursor, 'a. Type & Grade of Fertilizer', values.fertilizerTypeGrade, 72, PAGE.marginX + 6);
+  field(cursor, 'b. Date of Sampling', formatFieldValue(values.samplingDate), 72, PAGE.marginX + 6);
+  field(cursor, 'c. Physical Condition', values.physicalCondition, 72, PAGE.marginX + 6);
+  field(cursor, 'd. Code Number', values.sampleCode, 72, PAGE.marginX + 6);
+  cursor.y += 2;
+
+  paragraph(cursor, '2) The analysis report may please be forwarded to the undersigned');
+  addressBlock(cursor, values.forwardReportAddress, PAGE.marginX + 10, 4);
+
+  drawPlaceDateAndInspectorSignature(cursor, values, { showPlaceDate: true });
+}
+
+function drawFormP(cursor: PdfCursor, values: FertilizerPdfValues) {
+  field(cursor, '1. Name and Grade of Fertilizer', values.nameGrade, 82);
+  cursor.y += 2;
+  field(cursor, '2. Composition', formatComposition(values), 82);
+  cursor.y += 2;
+  field(cursor, '3. Physical Condition of Fertilizer', values.physicalCondition, 82);
+  cursor.y += 2;
+  field(cursor, '4. Code Number', values.codeNumber, 82);
+  cursor.y += 2;
+  field(cursor, '5. Date of Sampling', formatFieldValue(values.samplingDate), 82);
+  cursor.y += 2;
+  field(cursor, '6. Name & Address of Fertilizer\nInspector Drawing Sample', values.inspectorNameAddress, 82);
+
+  drawInspectorSignatureOnly(cursor);
+}
+
+function drawPlaceDateAndInspectorSignature(
+  cursor: PdfCursor,
+  values: FertilizerPdfValues,
+  options: { showPlaceDate: boolean }
+) {
+  const blockHeight = 42;
+  const minY = cursor.y + 8;
+  const preferredY = cursor.y + 8;
+  const footerY = Math.min(Math.max(minY, preferredY), PAGE.bottom - blockHeight);
+
+  cursor.y = footerY;
+  ensure(cursor, blockHeight);
+
+  const { doc } = cursor;
+  if (options.showPlaceDate) {
+    doc.setFont(PDF_FONT, 'normal');
+    doc.text(`Place: ${values.place || '___________'}`, PAGE.marginX, cursor.y);
+    doc.text(`Date: ${formatFieldValue(values.date) || '____________'}`, PAGE.marginX, cursor.y + 8);
+  }
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text(
+    ['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'],
+    PAGE.width - PAGE.marginX,
+    cursor.y + 28,
+    { align: 'right' }
+  );
+  doc.setFont(PDF_FONT, 'normal');
+}
+
+function drawInspectorSignatureOnly(cursor: PdfCursor) {
+  const blockHeight = 18;
+  cursor.y = Math.min(cursor.y + 8, PAGE.bottom - blockHeight);
+  ensure(cursor, blockHeight);
+  cursor.doc.setFont(PDF_FONT, 'bold');
+  cursor.doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], PAGE.width - PAGE.marginX, cursor.y, {
     align: 'right',
   });
+  cursor.doc.setFont(PDF_FONT, 'normal');
 }
 
-function drawFormJ(doc: JsPdfInstance, values: FertilizerPdfValues, marginX: number, startY: number, pageWidth: number) {
-  let y = startY;
-  doc.setFont('times', 'normal');
-  doc.setFontSize(9.8);
+function field(
+  cursor: PdfCursor,
+  label: string,
+  value: string,
+  labelWidth: number,
+  x = PAGE.marginX,
+  options: { lineHeight?: number; gap?: number; noPageBreak?: boolean } = {}
+) {
+  const { doc } = cursor;
+  doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(BODY_SIZE);
 
-  y = drawColonField(doc, '(1) Name and address of dealer/manufacturer/importer', values.dealerNameAddress, marginX, y, 84, 4.5);
-  y = drawColonField(doc, '(1A) Letter of authorization Number', values.authorizationNumber, marginX, y, 84, 4.5);
-  y = drawColonField(doc, '(2) Date of sampling', formatFieldValue(values.samplingDate), marginX, y, 84, 4.5);
+  const lineHeight = options.lineHeight ?? ROW_LINE_HEIGHT;
+  const gap = options.gap ?? ROW_GAP;
+  const colonX = x + labelWidth;
+  const valueX = colonX + 4;
+  const availableValueWidth = PAGE.width - PAGE.marginX - valueX;
+  const labelLines = split(cursor, label, Math.max(labelWidth - 3, 35));
+  const valueLines = split(cursor, formatFieldValue(value) || '________________', availableValueWidth);
+  const rowHeight = Math.max(labelLines.length, valueLines.length) * lineHeight + gap;
 
-  doc.text('(3) Details of markings on the bags from where sample has been taken', marginX, y);
-  y += 4.8;
-  if (values.markings.trim()) {
-    y = drawMultiline(doc, values.markings, marginX + 6, y, pageWidth - marginX * 2 - 6, 4.5);
+  ensure(cursor, rowHeight, options.noPageBreak);
+  doc.text(labelLines, x, cursor.y);
+  doc.text(':', colonX, cursor.y);
+  doc.text(valueLines, valueX, cursor.y);
+  cursor.y += rowHeight;
+}
+
+function heading(cursor: PdfCursor, value: string, noPageBreak = false) {
+  cursor.doc.setFont(PDF_FONT, 'bold');
+  text(cursor, value, ROW_LINE_HEIGHT + 1, noPageBreak);
+  cursor.doc.setFont(PDF_FONT, 'normal');
+}
+
+function paragraph(
+  cursor: PdfCursor,
+  value: string,
+  x = PAGE.marginX,
+  width = cursor.contentWidth,
+  lineHeight = PARA_LINE_HEIGHT,
+  noPageBreak = false
+) {
+  const lines = split(cursor, value, width);
+  const height = Math.max(lines.length, 1) * lineHeight + 1;
+  ensure(cursor, height, noPageBreak);
+  cursor.doc.setFont(PDF_FONT, 'normal');
+  cursor.doc.text(lines, x, cursor.y);
+  cursor.y += height;
+}
+
+function text(cursor: PdfCursor, value: string, lineHeight = PARA_LINE_HEIGHT, noPageBreak = false) {
+  const lines = split(cursor, value, cursor.contentWidth);
+  ensure(cursor, lines.length * lineHeight, noPageBreak);
+  cursor.doc.text(lines, PAGE.marginX, cursor.y);
+  cursor.y += lines.length * lineHeight;
+}
+
+function boldText(cursor: PdfCursor, value: string, lineHeight = PARA_LINE_HEIGHT) {
+  cursor.doc.setFont(PDF_FONT, 'bold');
+  text(cursor, value, lineHeight);
+  cursor.doc.setFont(PDF_FONT, 'normal');
+}
+
+function addressBlock(cursor: PdfCursor, value: string, x: number, minRows: number) {
+  if (value.trim()) {
+    paragraph(cursor, value, x, PAGE.width - PAGE.marginX - x);
+    return;
   }
 
-  y = drawColonField(doc, 'a) Type and grade of fertilizer', values.fertilizerTypeGrade, marginX + 6, y, 78, 4.5);
-  y = drawColonField(doc, 'b) Name of dealer/manufacturer/importer', values.dealerManufacturerImporterName, marginX + 6, y, 78, 4.5);
-  y = drawColonField(
-    doc,
-    'c) Batch No. (if applicable) and date of manufacture/import',
-    values.batchDetails,
-    marginX + 6,
-    y,
-    78,
-    4.5
-  );
-  y = drawColonField(doc, 'd) Composition of Fertilizer', values.composition, marginX + 6, y, 78, 4.5);
-  y = drawColonField(
-    doc,
-    '(4) Date of receipt of the stock by the dealer/manufacturer /importer/pool handling Agency',
-    formatFieldValue(values.stockReceiptDate),
-    marginX,
-    y,
-    108,
-    4.5
-  );
-  y = drawColonField(doc, '(5) Code no. of sample', values.sampleCode, marginX, y, 84, 4.5);
-  y = drawColonField(doc, '(6) Stock position of the lot', values.stockPosition, marginX, y, 84, 4.5);
-  y = drawColonField(doc, '(7) Physical condition of fertilizer', values.physicalCondition, marginX, y, 84, 4.5);
-  y = drawColonField(doc, '(8) Whether samples drawn from open bags/stitched bags/bulk', values.bagSource, marginX, y, 94, 4.5);
-  y = drawColonField(
-    doc,
-    '(9) Name and Address of Fertilizer Inspector drawing sample',
-    values.inspectorNameAddress,
-    marginX,
-    y,
-    94,
-    4.5
-  );
+  ensure(cursor, minRows * ROW_LINE_HEIGHT);
+  for (let i = 0; i < minRows; i += 1) {
+    cursor.doc.text('______________________', x, cursor.y + i * ROW_LINE_HEIGHT);
+  }
+  cursor.y += minRows * ROW_LINE_HEIGHT + 1;
+}
 
-  doc.setFont('times', 'bold');
-  doc.text(['Signature &Metallic Seal', 'Impression of Fertilizer inspector'], pageWidth - marginX, 174, {
-    align: 'right',
-  });
+function ensure(cursor: PdfCursor, neededHeight: number, noPageBreak = false) {
+  if (cursor.y + neededHeight <= PAGE.bottom) return;
+  if (noPageBreak) return;
+  cursor.doc.addPage();
+  cursor.y = PAGE.top;
+}
 
-  doc.setFont('times', 'normal');
-  doc.text('Receipt of the dealer', marginX, 190);
-  doc.text(doc.splitTextToSize(CERTIFICATION_TEXT, pageWidth - marginX * 2), marginX, 198);
-  doc.setFont('times', 'bold');
-  doc.text(['Signature and Seal', 'of Fertilizer Inspector'], marginX + 46, 258, { align: 'center' });
-  doc.text('Signature of dealer', pageWidth - marginX - 22, 258, { align: 'center' });
+function split(cursor: PdfCursor, value: string, width: number) {
+  return cursor.doc.splitTextToSize(value || '', width) as string[];
 }
 
 function getClauseReference(formType: FertilizerStatutoryFormType) {
   if (formType === 'J') return '[ See clause 28 (1) (b) and 28 (1) (bb)]';
-  if (formType === 'K') return '[ See clause 30 (1)]';
+  if (formType === 'K_ADA' || formType === 'K_JDA') return '[ See clause 30 (1)]';
   return '[See Clause 28 (1) (b)]';
 }
 
 function getHeading(formType: FertilizerStatutoryFormType) {
   if (formType === 'J') {
-    return 'FORM INDICATING PARTICULARS OF FERTILIZERS /ORGANIC FERTILIZERS/\nBIO-FERTILIZERS SAMPLED';
+    return 'FORM INDICATING PARTICULARS OF FERTILIZERS / ORGANIC FERTILIZERS / BIO-FERTILIZERS SAMPLED';
   }
-  if (formType === 'K') {
-    return 'MEMORANDUM TO ACCOMPANY FERTILISER /ORGANIC\nFERTILISER/BIO-FERTILISER SAMPLE FOR ANALYSIS.';
+  if (formType === 'K_ADA' || formType === 'K_JDA') {
+    return 'MEMORANDUM TO ACCOMPANY FERTILISER / ORGANIC FERTILISER / BIO-FERTILISER SAMPLE FOR ANALYSIS.';
   }
   return 'PARTICULARS OF SAMPLES DRAWN';
 }
 
-function drawColonField(
-  doc: JsPdfInstance,
-  label: string,
-  value: string,
-  x: number,
-  y: number,
-  labelWidth: number,
-  lineHeight = 5
-) {
-  const valueX = x + labelWidth;
-  const usableWidth = doc.internal.pageSize.getWidth() - valueX - 18;
-  const lines = doc.splitTextToSize(formatFieldValue(value) || '', usableWidth);
-  doc.text(`${label} :`, x, y);
-  if (lines.length) {
-    doc.text(lines, valueX, y);
-    return y + Math.max(lines.length * lineHeight, lineHeight + 1);
-  }
-  doc.text('____________________________', valueX, y);
-  return y + lineHeight + 1;
+function getKAddress(formType: 'K_ADA' | 'K_JDA') {
+  return FERTILIZER_K_ADDRESS_OPTIONS[formType].value;
 }
 
-function drawAddressOrBlanks(doc: JsPdfInstance, value: string, x: number, y: number, rows: number) {
-  if (value.trim()) return drawMultiline(doc, value, x, y, 85, 5);
-  for (let i = 0; i < rows; i += 1) {
-    doc.text('______________________', x, y + i * 6);
-  }
-  return y + rows * 6;
-}
-
-function drawMultiline(doc: JsPdfInstance, value: string, x: number, y: number, maxWidth: number, lineHeight: number) {
-  const lines = doc.splitTextToSize(formatFieldValue(value), maxWidth);
-  doc.text(lines.length ? lines : [''], x, y);
-  return y + Math.max(lines.length, 1) * lineHeight;
+function getSampleCode(values: FertilizerPdfValues) {
+  return values.sampleCode.trim() || values.codeNumber.trim() || values.no.trim();
 }
 
 function formatFieldValue(value: string) {
@@ -320,6 +472,24 @@ function formatDate(value: string) {
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function formatComposition(values: FertilizerPdfValues) {
+  const parts = [
+    `N: ${formatPercent(values.compositionN)}`,
+    `P: ${formatPercent(values.compositionP)}`,
+    `K: ${formatPercent(values.compositionK)}`,
+    `S: ${formatPercent(values.compositionS)}`,
+    `Ca: ${formatPercent(values.compositionCa)}`,
+  ];
+  const structured = parts.join('    ');
+  return values.composition.trim() ? `${structured}\n${values.composition}` : structured;
+}
+
+function formatPercent(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return '___%';
+  return trimmed.includes('%') ? trimmed : `${trimmed}%`;
 }
 
 function sanitizeFilePart(value: string) {
