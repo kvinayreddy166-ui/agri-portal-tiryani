@@ -33,6 +33,9 @@ import { FormDownload } from '../types/database';
 const FilePreviewModal = lazy(() =>
   import('./ui/FilePreviewModal').then((module) => ({ default: module.FilePreviewModal }))
 );
+const FertilizerStatutoryPdfTool = lazy(() =>
+  import('./forms/FertilizerStatutoryPdfTool').then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
+);
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
 const TEST_EMAIL = 'test@gmail.com';
@@ -106,6 +109,7 @@ export function Login() {
   const [statutoryForms, setStatutoryForms] = useState<FormDownload[]>([]);
   const [formsLoading, setFormsLoading] = useState(false);
   const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
+  const [pdfToolOpen, setPdfToolOpen] = useState(false);
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [grievance, setGrievance] = useState({
@@ -159,6 +163,7 @@ export function Login() {
   const closeStatutoryForms = () => {
     window.sessionStorage.removeItem(PUBLIC_FORMS_STATE_KEY);
     setPreviewForm(null);
+    setPdfToolOpen(false);
     setShowStatutoryForms(false);
     if (window.history.state?.publicStatutoryForms) {
       window.history.back();
@@ -350,7 +355,17 @@ export function Login() {
                 <h1 className="text-xl font-black text-slate-950 sm:text-2xl">{t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}</h1>
               </div>
             </div>
-            <PortalLogo size="md" />
+            <div className="flex items-center justify-between gap-2 sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setPdfToolOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-2.5 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Generate PDF
+              </button>
+              <PortalLogo size="md" />
+            </div>
           </div>
 
           <div className="mb-3 grid grid-cols-3 gap-1.5">
@@ -458,6 +473,17 @@ export function Login() {
               hideOpenInNewTab
               onClose={closePublicPreview}
             />
+          </Suspense>
+        )}
+        {pdfToolOpen && (
+          <Suspense
+            fallback={
+              <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4 text-white">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            }
+          >
+            <FertilizerStatutoryPdfTool onClose={() => setPdfToolOpen(false)} />
           </Suspense>
         )}
       </div>
