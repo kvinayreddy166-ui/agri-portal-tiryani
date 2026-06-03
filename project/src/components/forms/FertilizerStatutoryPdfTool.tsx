@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Download, Eye, FileText, Loader2, Printer, X } from 'lucide-react';
+import { Download, Eye, FileText, Loader2, Printer, RotateCcw, Save, X } from 'lucide-react';
 import {
   createAllFertilizerPdfBlobUrl,
   createFertilizerPdfBlobUrl,
@@ -24,6 +24,8 @@ type FieldConfig = {
 const commonTopFields: FieldConfig[] = [
   { key: 'no', label: 'No.' },
 ];
+
+const STORAGE_KEY = 'tiryani-fertilizer-forms-draft';
 
 const commonBottomFields: FieldConfig[] = [
   { key: 'place', label: 'Place' },
@@ -97,11 +99,23 @@ const formFields: Record<FertilizerStatutoryFormType, FieldConfig[]> = {
 
 export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void }) {
   const [formType, setFormType] = useState<FertilizerStatutoryFormType>('J');
-  const [values, setValues] = useState<FertilizerPdfValues>(initialFertilizerPdfValues);
+  const [values, setValues] = useState<FertilizerPdfValues>(() => {
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY);
+      return saved ? { ...initialFertilizerPdfValues, ...JSON.parse(saved) } : initialFertilizerPdfValues;
+    } catch {
+      return initialFertilizerPdfValues;
+    }
+  });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | 'downloadAll' | null>(null);
   const activeFields = useMemo(() => formFields[formType], [formType]);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+  }, [values]);
 
   useEffect(() => {
     return () => {
@@ -134,6 +148,21 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       }
       return next;
     });
+    setMessage(null);
+  };
+
+  const saveDraft = () => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    setMessage('Draft saved.');
+  };
+
+  const resetDraft = () => {
+    if (!window.confirm('Reset fertilizer form draft?')) return;
+    setValues(initialFertilizerPdfValues);
+    window.localStorage.removeItem(STORAGE_KEY);
+    setPreviewError(null);
+    setPreviewUrl(null);
+    setMessage('Draft reset.');
   };
 
   const previewPdf = async () => {
@@ -170,7 +199,11 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setBusyAction('download');
     try {
       const doc = await generateFertilizerStatutoryPdf(formType, values);
-      doc.save(getFertilizerPdfFileName(formType, values));
+      downloadFertilizerDoc(doc, getFertilizerPdfFileName(formType, values));
+      setMessage('PDF generated.');
+    } catch (error) {
+      console.error('Unable to download fertilizer PDF:', error);
+      setPreviewError('Download could not start. Please try Preview PDF and use Open.');
     } finally {
       setBusyAction(null);
     }
@@ -180,7 +213,11 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setBusyAction('downloadAll');
     try {
       const doc = await generateAllFertilizerStatutoryPdf(values);
-      doc.save(getAllFertilizerPdfFileName(values));
+      downloadFertilizerDoc(doc, getAllFertilizerPdfFileName(values));
+      setMessage('All forms PDF generated.');
+    } catch (error) {
+      console.error('Unable to download all fertilizer PDFs:', error);
+      setPreviewError('Download All could not start. Please try Preview All and use Open.');
     } finally {
       setBusyAction(null);
     }
@@ -200,9 +237,29 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
             <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Fertilizer sampling PDF</p>
             <h2 className="truncate text-lg font-black text-slate-950">Generate FORM J / FORM K / FORM P</h2>
           </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100" aria-label="Close">
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={saveDraft}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+              title="Save draft"
+            >
+              <Save className="h-4 w-4" />
+              <span className="hidden sm:inline">Save</span>
+            </button>
+            <button
+              type="button"
+              onClick={resetDraft}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+              title="Reset draft"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+            <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100" aria-label="Close">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
@@ -231,6 +288,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
             {previewError && (
               <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
                 {previewError}
+              </div>
+            )}
+
+            {message && (
+              <div className="mb-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+                {message}
               </div>
             )}
 
@@ -376,4 +439,23 @@ function PdfInput({
       )}
     </label>
   );
+}
+
+function downloadFertilizerDoc(doc: { save: (fileName: string) => void; output: (type: 'blob') => Blob }, fileName: string) {
+  try {
+    doc.save(fileName);
+    return;
+  } catch (error) {
+    console.warn('jsPDF save failed; falling back to blob download.', error);
+  }
+
+  const blobUrl = URL.createObjectURL(doc.output('blob'));
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = fileName;
+  link.rel = 'noreferrer';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 }

@@ -100,6 +100,7 @@ const ROW_LINE_HEIGHT = 5.9;
 const ROW_GAP = 1.7;
 const PARA_LINE_HEIGHT = 6.1;
 const FORM_J_SIGNATURE_GAP = 18;
+const SIGNATURE_RIGHT_X = PAGE.width - PAGE.marginX - 8;
 
 type PdfCursor = {
   doc: JsPdfInstance;
@@ -247,7 +248,7 @@ function drawPreReceiptInspectorSignature(cursor: PdfCursor) {
   const { doc } = cursor;
   cursor.y += 4;
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], PAGE.width - PAGE.marginX, cursor.y, {
+  doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], SIGNATURE_RIGHT_X, cursor.y, {
     align: 'right',
   });
   doc.setFont(PDF_FONT, 'normal');
@@ -275,7 +276,7 @@ function drawDealerReceipt(cursor: PdfCursor) {
 
   doc.setFont(PDF_FONT, 'bold');
   doc.text('Signature of Dealer', PAGE.marginX + 33, signatureY, { align: 'center' });
-  doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], PAGE.width - PAGE.marginX, signatureY, {
+  doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], SIGNATURE_RIGHT_X, signatureY, {
     align: 'right',
   });
   doc.setFont(PDF_FONT, 'normal');
@@ -344,7 +345,7 @@ function drawPlaceDateAndInspectorSignature(
   doc.setFont(PDF_FONT, 'bold');
   doc.text(
     ['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'],
-    PAGE.width - PAGE.marginX,
+    SIGNATURE_RIGHT_X,
     cursor.y + 28,
     { align: 'right' }
   );
@@ -356,7 +357,7 @@ function drawInspectorSignatureOnly(cursor: PdfCursor) {
   cursor.y = Math.min(cursor.y + 8, PAGE.bottom - blockHeight);
   ensure(cursor, blockHeight);
   cursor.doc.setFont(PDF_FONT, 'bold');
-  cursor.doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], PAGE.width - PAGE.marginX, cursor.y, {
+  cursor.doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], SIGNATURE_RIGHT_X, cursor.y, {
     align: 'right',
   });
   cursor.doc.setFont(PDF_FONT, 'normal');

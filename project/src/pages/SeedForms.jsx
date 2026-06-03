@@ -455,14 +455,19 @@ function drawSeedFormVI(doc, form) {
   p.y += 38;
 
   doc.text(`Date : ${fmtDate(r.date) || '____ / ____ / ______'}`, 20, p.y);
-  signatureRight(doc, Math.min(p.y + 24, 258), 'Seed Inspector');
+  signatureRight(doc, Math.min(p.y + 24, 252), 'Seed Inspector / Mandal Agriculture Officer');
 }
 
 function drawSeedFormVIII(doc, form) {
   const r = resolveSeedValues(form);
   const p = page(doc);
   title(doc, p, 'FORM VIII', '', 'DETAILS OF SAMPLES TAKEN');
-  para(doc, p, `I have this day ${fmtDate(r.collectionDate)} taken from the premises of ${blank(r.dealerName)} situated at ${blank(r.premisesLocation)} samples of seeds specified below to have same tested / analyzed by Seed Analyst.`);
+  const inspector = [r.officerName, r.designation || 'Seed Inspector / Mandal Agriculture Officer'].filter(Boolean).join(', ');
+  para(
+    doc,
+    p,
+    `I have this day ${fmtDate(r.collectionDate) || '____ / ____ / ______'}, ${inspector}, taken from the premises of ${blank(r.dealerName)} situated at ${blank(r.premisesLocation)} Samples of Seeds specified below to have same tested / Analyzed by Seed Analyst.`
+  );
   details(doc, p, [
     ['1. Serial No. of the sample', r.serialNo],
     ['2. Code No. of the sample', r.codeNo],
@@ -481,8 +486,11 @@ function drawSeedFormVIII(doc, form) {
   field(doc, p, 'Whether Cost of Sample Demanded?', r.costDemanded, 78);
   field(doc, p, 'Whether Cost Paid', r.costPaid, 78);
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(['Signature of the party / Dealer', 'from whose premises samples taken', 'and payment made'], 20, 258);
-  signatureRight(doc, 258, 'SEED INSPECTOR');
+  doc.text(['Signature of the party / Dealer', 'from whose premises samples taken', 'and payment made'], 28, 246);
+  signatureRight(doc, 246, 'Seed Inspector / Mandal Agriculture Officer');
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(`Place: ${r.place || '__________'}`, 28, 270);
+  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 128, 270);
 }
 
 function drawInfoSlips(doc, form, addPageBefore) {
@@ -517,7 +525,7 @@ function drawInformationSlip(doc, form) {
     ['10. Kind of test required', r.testRequired],
     ['11. Remarks', r.remarks],
   ]);
-  signatureRight(doc, Math.min(p.y + 16, 258), 'Seed Inspector');
+  signatureRight(doc, Math.min(p.y + 16, 252), 'Seed Inspector / Mandal Agriculture Officer');
 }
 
 function page(doc) {
@@ -585,14 +593,14 @@ function para(doc, p, value) {
 
 function footer(doc, p, r) {
   doc.setFont(PDF_FONT, 'normal');
-  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 20, 250);
-  doc.text(`Place: ${r.place || '__________'}`, 20, 258);
-  signatureRight(doc, 250, 'Seed Inspector');
+  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 24, 250);
+  doc.text(`Place: ${r.place || '__________'}`, 24, 258);
+  signatureRight(doc, 250, 'Seed Inspector / Mandal Agriculture Officer');
 }
 
 function signatureRight(doc, y, label) {
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(['Signature', label], 190, y, { align: 'right' });
+  doc.text(['Signature', label], 176, y, { align: 'right' });
   doc.setFont(PDF_FONT, 'normal');
 }
 
