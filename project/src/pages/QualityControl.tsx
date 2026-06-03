@@ -206,18 +206,18 @@ export function QualityControl({ category }: QualityControlProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-5 text-white shadow-lg md:p-6">
-        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+    <div className="space-y-3">
+      <div className="rounded-lg bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-3 text-white shadow-md md:p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-sm font-bold uppercase tracking-wide text-emerald-100">Quality Control</p>
-            <h1 className="mt-1 text-3xl font-black tracking-tight">{categoryTitle}</h1>
-            <p className="mt-1 max-w-2xl text-sm text-emerald-50">
+            <p className="text-xs font-bold uppercase tracking-wide text-emerald-100">Quality Control</p>
+            <h1 className="text-2xl font-black tracking-tight">{categoryTitle}</h1>
+            <p className="mt-0.5 max-w-2xl text-xs text-emerald-50">
               Track dealer samples, uploaded sample-drawn forms, and financial-year targets.
             </p>
           </div>
           <div className="min-w-52">
-            <label className="mb-2 block text-sm font-bold text-emerald-50">Financial Year</label>
+            <label className="mb-1 block text-xs font-bold text-emerald-50">Financial Year</label>
             <select
               value={financialYear}
               onChange={(e) => setFinancialYear(e.target.value)}
@@ -231,9 +231,9 @@ export function QualityControl({ category }: QualityControlProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+        <div className="rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
+          <div className="mb-2 flex items-center justify-between">
             <div className="rounded-lg bg-emerald-50 p-2 text-emerald-700">
               <Target className="h-5 w-5" />
             </div>
@@ -247,7 +247,7 @@ export function QualityControl({ category }: QualityControlProps) {
                 min="0"
                 value={targetCount}
                 onChange={(e) => setTargetCount(parseInt(e.target.value) || 0)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xl font-black outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-lg font-black outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
               <button
                 onClick={saveTarget}
@@ -259,53 +259,53 @@ export function QualityControl({ category }: QualityControlProps) {
               </button>
             </div>
           ) : (
-            <p className="mt-1 text-3xl font-black text-gray-950">{targetCount}</p>
+            <p className="mt-1 text-2xl font-black text-gray-950">{targetCount}</p>
           )}
         </div>
 
-        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-          <div className="mb-3 w-fit rounded-lg bg-sky-50 p-2 text-sky-700">
+        <div className="rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
+          <div className="mb-2 w-fit rounded-lg bg-sky-50 p-2 text-sky-700">
             <ClipboardCheck className="h-5 w-5" />
           </div>
           <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Samples Drawn</p>
-          <p className="mt-1 text-3xl font-black text-gray-950">{samples.length}</p>
+          <p className="mt-1 text-2xl font-black text-gray-950">{samples.length}</p>
         </div>
 
-        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-          <div className="mb-3 w-fit rounded-lg bg-amber-50 p-2 text-amber-700">
+        <div className="rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
+          <div className="mb-2 w-fit rounded-lg bg-amber-50 p-2 text-amber-700">
             <ShieldCheck className="h-5 w-5" />
           </div>
           <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Progress</p>
-          <p className="mt-1 text-3xl font-black text-gray-950">{progress}%</p>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-100">
+          <p className="mt-1 text-2xl font-black text-gray-950">{progress}%</p>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
             <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" style={{ width: `${progress}%` }} />
           </div>
         </div>
       </div>
 
-      <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <section className="rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl font-black text-gray-950">Sample Drawn Records</h2>
-            <p className="text-sm text-gray-500">Dealer-wise quality control samples for {financialYear}</p>
+            <h2 className="text-lg font-black text-gray-950">Sample Drawn Records</h2>
+            <p className="text-xs text-gray-500">Dealer-wise quality control samples for {financialYear}</p>
           </div>
           {isAdminUser && (
             <button
               onClick={() => setShowSampleForm(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
             >
-              <Plus className="h-5 w-5" />
+                <Plus className="h-4 w-4" />
               Add Sample
             </button>
           )}
         </div>
 
         {samples.length > 0 ? (
-          <div className="overflow-hidden rounded-xl border border-gray-100">
+          <div className="overflow-hidden rounded-lg border border-gray-100">
             <div className="divide-y divide-gray-100">
               {samples.map((sample) => (
-                <div key={sample.id} className="grid grid-cols-[1fr_auto] gap-2 p-3 transition hover:bg-gray-50 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center">
-                  <div className="flex min-w-0 items-center gap-3">
+                <div key={sample.id} className="grid grid-cols-[1fr_auto] gap-2 p-2 transition hover:bg-gray-50 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center">
+                  <div className="flex min-w-0 items-center gap-2">
                     {sample.form_url && (
                       <FileTypeIcon
                         fileName={`${sample.category}-${sample.dealer_name}`}
@@ -336,10 +336,10 @@ export function QualityControl({ category }: QualityControlProps) {
                     {isAdminUser && (
                       <button
                         onClick={() => deleteSample(sample.id)}
-                        className="rounded-lg p-2 text-red-500 hover:bg-red-50"
+                        className="rounded-lg p-1.5 text-red-500 hover:bg-red-50"
                         aria-label="Delete sample"
                       >
-                        <Trash2 className="h-5 w-5" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     )}
                   </div>
@@ -348,8 +348,8 @@ export function QualityControl({ category }: QualityControlProps) {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-gray-200 p-12 text-center">
-            <ClipboardCheck className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+          <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center">
+            <ClipboardCheck className="mx-auto mb-3 h-10 w-10 text-gray-300" />
             <p className="font-semibold text-gray-600">No sample records added for this year yet.</p>
           </div>
         )}
@@ -357,18 +357,18 @@ export function QualityControl({ category }: QualityControlProps) {
 
       {showSampleForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl">
-            <div className="mb-5 flex items-center justify-between">
+          <div className="w-full max-w-2xl rounded-xl bg-white p-4 shadow-2xl">
+            <div className="mb-3 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-black text-gray-950">Add Sample Drawn</h2>
-                <p className="text-sm text-gray-500">{categoryTitle} - {financialYear}</p>
+                <h2 className="text-xl font-black text-gray-950">Add Sample Drawn</h2>
+                <p className="text-xs text-gray-500">{categoryTitle} - {financialYear}</p>
               </div>
               <button onClick={() => setShowSampleForm(false)} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <TextField label="Dealer Name" value={sampleForm.dealer_name} onChange={(value) => setSampleForm({ ...sampleForm, dealer_name: value })} />
               <TextField label="License Number" value={sampleForm.license_number} onChange={(value) => setSampleForm({ ...sampleForm, license_number: value })} />
               <TextField label="Phone Number" value={sampleForm.phone_number} onChange={(value) => setSampleForm({ ...sampleForm, phone_number: value })} />
@@ -379,12 +379,12 @@ export function QualityControl({ category }: QualityControlProps) {
                   type="date"
                   value={sampleForm.sample_date}
                   onChange={(e) => setSampleForm({ ...sampleForm, sample_date: e.target.value })}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-bold text-gray-700">Sample Drawn Form</label>
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 hover:border-emerald-400 hover:bg-emerald-50">
+                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2 hover:border-emerald-400 hover:bg-emerald-50">
                   <FileUp className="h-5 w-5 text-emerald-700" />
                   <span className="truncate text-sm font-semibold text-gray-700">
                     {sampleFile ? sampleFile.name : 'Upload form'}
@@ -403,23 +403,23 @@ export function QualityControl({ category }: QualityControlProps) {
                   value={sampleForm.remarks}
                   onChange={(e) => setSampleForm({ ...sampleForm, remarks: e.target.value })}
                   rows={3}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                   placeholder="Optional notes"
                 />
               </div>
             </div>
 
-            <div className="mt-6 flex gap-3">
+            <div className="mt-4 flex gap-2">
               <button
                 onClick={() => setShowSampleForm(false)}
-                className="flex-1 rounded-xl border border-gray-300 px-4 py-3 font-bold text-gray-700 hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={saveSample}
                 disabled={saving}
-                className="flex-1 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800 disabled:opacity-60"
+                className="flex-1 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60"
               >
                 {saving ? 'Saving...' : 'Save Sample'}
               </button>
@@ -439,7 +439,7 @@ function TextField({ label, value, onChange }: { label: string; value: string; o
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
       />
     </div>
   );

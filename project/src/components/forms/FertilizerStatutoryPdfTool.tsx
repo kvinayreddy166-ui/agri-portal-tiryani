@@ -99,6 +99,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [formType, setFormType] = useState<FertilizerStatutoryFormType>('J');
   const [values, setValues] = useState<FertilizerPdfValues>(initialFertilizerPdfValues);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | 'downloadAll' | null>(null);
   const activeFields = useMemo(() => formFields[formType], [formType]);
 
@@ -137,10 +138,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
   const previewPdf = async () => {
     setBusyAction('preview');
+    setPreviewError(null);
     try {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       const url = await createFertilizerPdfBlobUrl(formType, values);
       setPreviewUrl(url);
+    } catch (error) {
+      console.error('Unable to preview fertilizer PDF:', error);
+      setPreviewError('PDF preview could not open. Please try Download Selected.');
     } finally {
       setBusyAction(null);
     }
@@ -148,10 +153,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
   const previewAllPdf = async () => {
     setBusyAction('preview');
+    setPreviewError(null);
     try {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       const url = await createAllFertilizerPdfBlobUrl(values);
       setPreviewUrl(url);
+    } catch (error) {
+      console.error('Unable to preview all fertilizer PDFs:', error);
+      setPreviewError('Preview All could not open. Please try Download All Forms.');
     } finally {
       setBusyAction(null);
     }
@@ -207,6 +216,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                     if (type === 'K_ADA' || type === 'K_JDA') {
                       setField('toAddress', FERTILIZER_K_ADDRESS_OPTIONS[type].value);
                     }
+                    setPreviewError(null);
                     setPreviewUrl(null);
                   }}
                   className={`rounded-md px-3 py-2 ${
@@ -217,6 +227,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                 </button>
               ))}
             </div>
+
+            {previewError && (
+              <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
+                {previewError}
+              </div>
+            )}
 
             <div className="grid gap-2 sm:grid-cols-2">
               {activeFields.map((field) => (
@@ -278,14 +294,23 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                   A4 PDF Preview
                 </div>
                 <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={printPreview}
-                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-black text-slate-700 hover:bg-white disabled:opacity-40"
-              >
-                <Printer className="h-3.5 w-3.5" />
-                Print
-              </button>
+                  <a
+                    href={previewUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-100"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    Open
+                  </a>
+                  <button
+                    type="button"
+                    onClick={printPreview}
+                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-100 disabled:opacity-40"
+                  >
+                    <Printer className="h-3.5 w-3.5" />
+                    Print
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
@@ -300,10 +325,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                 </div>
               </div>
               <iframe
+                key={previewUrl}
                 id="fertilizer-pdf-preview"
                 src={previewUrl}
                 title="Fertilizer statutory PDF preview"
                 className="min-h-0 flex-1 border-0 bg-white"
+                onError={() => setPreviewError('PDF preview could not open. Please use the download button.')}
               />
             </div>
           </div>

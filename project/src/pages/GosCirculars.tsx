@@ -128,16 +128,16 @@ export function GosCirculars() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-sm font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+          <p className="text-xs font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
             {t('Official documents', 'అధికారిక పత్రాలు')}
           </p>
-          <h1 className="mt-1 text-3xl font-black tracking-tight text-gray-950 dark:text-white">
+          <h1 className="text-2xl font-black tracking-tight text-gray-950 dark:text-white">
             {t('GOs & Circulars', 'జీ.ఓలు & సర్క్యులర్లు')}
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-slate-300">
+          <p className="mt-1 text-sm text-gray-600 dark:text-slate-300">
             {t(
               'View government orders and circulars shared by the agriculture office.',
               'వ్యవసాయ కార్యాలయం పంచిన ప్రభుత్వ ఆదేశాలు మరియు సర్క్యులర్లను చూడండి.'
@@ -147,9 +147,9 @@ export function GosCirculars() {
         {isAdminUser && (
           <button
             onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
             {t('Upload Document', 'పత్రం అప్లోడ్')}
           </button>
         )}
@@ -163,16 +163,16 @@ export function GosCirculars() {
 
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-black text-gray-950">
+          <div className="w-full max-w-xl rounded-xl bg-white p-4 shadow-2xl">
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <h2 className="text-xl font-black text-gray-950">
                 {t('Upload GO / Circular', 'జీ.ఓ / సర్క్యులర్ అప్లోడ్')}
               </h2>
               <button onClick={resetForm} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="grid gap-4">
+            <div className="grid gap-3">
               <div>
                 <label className="mb-1 block text-sm font-bold text-gray-700">
                   {t('Title', 'శీర్షిక')}
@@ -181,7 +181,7 @@ export function GosCirculars() {
                   type="text"
                   value={newDoc.title}
                   onChange={(e) => setNewDoc({ ...newDoc, title: e.target.value })}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 />
               </div>
               <div>
@@ -192,7 +192,7 @@ export function GosCirculars() {
                   value={newDoc.description}
                   onChange={(e) => setNewDoc({ ...newDoc, description: e.target.value })}
                   rows={3}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 />
               </div>
               <div>
@@ -203,35 +203,35 @@ export function GosCirculars() {
                   type="date"
                   value={newDoc.issued_date}
                   onChange={(e) => setNewDoc({ ...newDoc, issued_date: e.target.value })}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 />
               </div>
-              <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition hover:border-emerald-400 hover:bg-emerald-50">
+              <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center transition hover:border-emerald-400 hover:bg-emerald-50">
                 <input
                   type="file"
                   className="hidden"
                   accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                 />
-                <Upload className="mb-3 h-8 w-8 text-emerald-700" />
-                <p className="font-bold text-gray-900">
+                <Upload className="mb-2 h-6 w-6 text-emerald-700" />
+                <p className="text-sm font-bold text-gray-900">
                   {selectedFile
                     ? selectedFile.name
                     : t('Choose PDF, Word, Excel, or image', 'PDF, Word, Excel లేదా చిత్రం ఎంచుకోండి')}
                 </p>
               </label>
             </div>
-            <div className="mt-6 flex gap-3">
+            <div className="mt-4 flex gap-2">
               <button
                 onClick={resetForm}
-                className="flex-1 rounded-xl border border-gray-300 px-4 py-3 font-bold text-gray-700 hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50"
               >
                 {t('Cancel', 'రద్దు')}
               </button>
               <button
                 onClick={handleAdd}
                 disabled={uploading}
-                className="flex-1 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800 disabled:opacity-60"
+                className="flex-1 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60"
               >
                 {uploading ? t('Uploading...', 'అప్లోడ్ అవుతోంది...') : t('Save', 'సేవ్')}
               </button>
@@ -240,17 +240,17 @@ export function GosCirculars() {
         </div>
       )}
 
-      <section className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <section className="rounded-lg border border-gray-100 bg-white p-2 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         {documents.length > 0 ? (
           <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100 dark:divide-slate-700 dark:border-slate-700">
             {documents.map((doc) => (
               <article
                 key={doc.id}
-                className="group flex items-center gap-3 px-3 py-2 transition hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                className="group flex items-center gap-2 px-2 py-1.5 transition hover:bg-gray-50 dark:hover:bg-slate-800/50"
               >
                 <FileTypeIcon fileName={doc.file_name || doc.title} fileType={doc.file_type} fileUrl={doc.file_url} size="sm" />
                 <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex items-start justify-between gap-2">
+                  <div className="flex items-start justify-between gap-2">
                     <h3 className="truncate text-sm font-black text-gray-950 dark:text-white">{doc.title}</h3>
                     {isAdminUser && (
                       <button
@@ -267,7 +267,7 @@ export function GosCirculars() {
                       {t('Issued', 'జారీ')}: {new Date(doc.issued_date).toLocaleDateString()}
                     </p>
                   )}
-                  <div className="mt-2 flex justify-end">
+                  <div className="mt-1 flex justify-end">
                     <FileActionButtons fileUrl={doc.file_url} fileName={doc.title} fileType={doc.file_type} size="sm" />
                   </div>
                 </div>
@@ -275,8 +275,8 @@ export function GosCirculars() {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-gray-200 p-12 text-center">
-            <FileText className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+          <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center">
+            <FileText className="mx-auto mb-3 h-10 w-10 text-gray-300" />
             <p className="font-semibold text-gray-600">
               {t('No GOs or circulars uploaded yet', 'ఇంకా జీ.ఓలు లేదా సర్క్యులర్లు అప్లోడ్ కాలేదు')}
             </p>

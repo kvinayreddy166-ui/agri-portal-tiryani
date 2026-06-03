@@ -232,14 +232,26 @@ function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
   field(cursor, 'c) Batch No. and Date of Manufacture/Import', values.batchDetails, 84, PAGE.marginX + 6, fieldOptions);
   field(cursor, 'd) Composition of Fertilizer', formatComposition(values), 84, PAGE.marginX + 6, fieldOptions);
 
-  field(cursor, '(4) Date of Receipt of Stock by Dealer/Manufacturer/Importer/Pool Handling Agency', formatFieldValue(values.stockReceiptDate), 108, PAGE.marginX, fieldOptions);
+  field(cursor, '(4) Date of Receipt of Stock by Dealer/Manufacturer/Importer/Pool Handling Agency', formatFieldValue(values.stockReceiptDate), 91, PAGE.marginX, fieldOptions);
   field(cursor, '(5) Code No. of Sample', values.sampleCode, 91, PAGE.marginX, fieldOptions);
   field(cursor, '(6) Stock Position of the Lot', values.stockPosition, 91, PAGE.marginX, fieldOptions);
   field(cursor, '(7) Physical Condition of Fertilizer', values.physicalCondition, 91, PAGE.marginX, fieldOptions);
-  field(cursor, '(8) Samples Drawn From Open Bags/Stitched Bags/Bulk', values.bagSource, 99, PAGE.marginX, fieldOptions);
+  field(cursor, '(8) Samples Drawn From Open Bags/Stitched Bags/Bulk', values.bagSource, 91, PAGE.marginX, fieldOptions);
   field(cursor, '(9) Name and Address of Fertilizer Inspector Drawing Sample', values.inspectorNameAddress, 99, PAGE.marginX, fieldOptions);
 
+  drawPreReceiptInspectorSignature(cursor);
   drawDealerReceipt(cursor);
+}
+
+function drawPreReceiptInspectorSignature(cursor: PdfCursor) {
+  const { doc } = cursor;
+  cursor.y += 4;
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], PAGE.width - PAGE.marginX, cursor.y, {
+    align: 'right',
+  });
+  doc.setFont(PDF_FONT, 'normal');
+  cursor.y += 13;
 }
 
 function drawDealerReceipt(cursor: PdfCursor) {
