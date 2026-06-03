@@ -352,6 +352,7 @@ function resolveSeedValues(form) {
     testRequired: form.testRequired === 'Other' ? form.testRequiredOther : form.testRequired,
     labAddress: form.labId === 'other' ? form.customLabAddress : lab.value,
     fromAddress: [form.officerName, form.designation, form.officeAddress].filter(Boolean).join('\n'),
+    senderAddress: [form.designation, form.officeAddress].filter(Boolean).join('\n'),
   };
 }
 
@@ -403,7 +404,7 @@ function drawSeedFormII(doc, form) {
     ['7. Quantity of sample drawn', r.quantityDrawn],
     ['8. Name and designation of the person who sends the sample', r.fromAddress],
   ]);
-  footer(doc, p, r);
+  footer(doc, p, r, { compact: true });
 }
 
 function drawSeedFormV(doc, form) {
@@ -455,19 +456,22 @@ function drawSeedFormVI(doc, form) {
   p.y += 38;
 
   doc.text(`Date : ${fmtDate(r.date) || '____ / ____ / ______'}`, 20, p.y);
-  signatureRight(doc, Math.min(p.y + 24, 252), 'Seed Inspector / Mandal Agriculture Officer');
+  signatureRight(doc, Math.min(p.y + 24, 252), ['Seed Inspector/', 'Mandal Agriculture Officer']);
 }
 
 function drawSeedFormVIII(doc, form) {
   const r = resolveSeedValues(form);
   const p = page(doc);
   title(doc, p, 'FORM VIII', '', 'DETAILS OF SAMPLES TAKEN');
-  const inspector = [r.officerName, r.designation || 'Seed Inspector / Mandal Agriculture Officer'].filter(Boolean).join(', ');
-  para(
-    doc,
-    p,
-    `I have this day ${fmtDate(r.collectionDate) || '____ / ____ / ______'}, ${inspector}, taken from the premises of ${blank(r.dealerName)} situated at ${blank(r.premisesLocation)} Samples of Seeds specified below to have same tested / Analyzed by Seed Analyst.`
-  );
+  richPara(doc, p, [
+    { text: 'I have this day ' },
+    { text: fmtDate(r.collectionDate) || '____ / ____ / ______', bold: true },
+    { text: ' taken from the premises of ' },
+    { text: [r.dealerName, r.dealerAddress].filter(Boolean).join(', ') || '________________', bold: true },
+    { text: ' situated at ' },
+    { text: blank(r.premisesLocation), bold: true },
+    { text: ' Samples of Seeds specified below to have same tested / Analyzed by Seed Analyst.' },
+  ]);
   details(doc, p, [
     ['1. Serial No. of the sample', r.serialNo],
     ['2. Code No. of the sample', r.codeNo],
@@ -485,12 +489,13 @@ function drawSeedFormVIII(doc, form) {
   ], 78);
   field(doc, p, 'Whether Cost of Sample Demanded?', r.costDemanded, 78);
   field(doc, p, 'Whether Cost Paid', r.costPaid, 78);
+  const signatureY = Math.min(Math.max(p.y + 8, 224), 242);
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(['Signature of the party / Dealer', 'from whose premises samples taken', 'and payment made'], 28, 246);
-  signatureRight(doc, 246, 'Seed Inspector / Mandal Agriculture Officer');
+  doc.text(['Signature of the party / Dealer', 'from whose premises samples taken', 'and payment made'], 28, signatureY);
+  signatureRight(doc, signatureY, ['Seed Inspector/', 'Mandal Agriculture Officer']);
   doc.setFont(PDF_FONT, 'normal');
-  doc.text(`Place: ${r.place || '__________'}`, 28, 270);
-  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 128, 270);
+  doc.text(`Place: ${r.place || '__________'}`, 28, signatureY + 24);
+  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 128, signatureY + 24);
 }
 
 function drawInfoSlips(doc, form, addPageBefore) {
@@ -515,7 +520,7 @@ function drawInformationSlip(doc, form) {
   details(doc, p, [
     ['1. Date of sampling', fmtDate(r.collectionDate)],
     ["2. Sender's name", r.officerName],
-    ['3. Sender address', r.fromAddress],
+    ['3. Sender address', r.senderAddress],
     ['4. Name of the Crop', r.crop],
     ['5. Name of the Variety', r.variety],
     ['6. Origin / Class of seed', r.seedClass],
@@ -525,7 +530,7 @@ function drawInformationSlip(doc, form) {
     ['10. Kind of test required', r.testRequired],
     ['11. Remarks', r.remarks],
   ]);
-  signatureRight(doc, Math.min(p.y + 16, 252), 'Seed Inspector / Mandal Agriculture Officer');
+  signatureRight(doc, Math.min(p.y + 16, 252), ['Seed Inspector/', 'Mandal Agriculture Officer']);
 }
 
 function page(doc) {
@@ -591,16 +596,44 @@ function para(doc, p, value) {
   p.y += lines.length * 7 + 4;
 }
 
-function footer(doc, p, r) {
+function richPara(doc, p, segments) {
+  const xStart = 20;
+  const maxX = xStart + p.width;
+  const lineHeight = 7;
+  let x = xStart;
+  let y = p.y;
+
+  segments.forEach((segment) => {
+    const parts = String(segment.text || '').split(/(\s+)/).filter((part) => part.length > 0);
+    doc.setFont(PDF_FONT, segment.bold ? 'bold' : 'normal');
+
+    parts.forEach((part) => {
+      const width = doc.getTextWidth(part);
+      if (!/^\s+$/.test(part) && x + width > maxX) {
+        y += lineHeight;
+        x = xStart;
+      }
+      doc.text(part, x, y);
+      x += width;
+    });
+  });
+
   doc.setFont(PDF_FONT, 'normal');
-  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 24, 250);
-  doc.text(`Place: ${r.place || '__________'}`, 24, 258);
-  signatureRight(doc, 250, 'Seed Inspector / Mandal Agriculture Officer');
+  p.y = y + lineHeight + 4;
+}
+
+function footer(doc, p, r, options = {}) {
+  const y = options.compact ? Math.min(Math.max(p.y + 10, 224), 246) : 250;
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 24, y);
+  doc.text(`Place: ${r.place || '__________'}`, 24, y + 8);
+  signatureRight(doc, y, ['Seed Inspector/', 'Mandal Agriculture Officer']);
 }
 
 function signatureRight(doc, y, label) {
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(['Signature', label], 176, y, { align: 'right' });
+  const labelLines = Array.isArray(label) ? label : [label];
+  doc.text(['Signature', ...labelLines], 176, y, { align: 'right' });
   doc.setFont(PDF_FONT, 'normal');
 }
 
