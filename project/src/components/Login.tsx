@@ -36,6 +36,9 @@ const FilePreviewModal = lazy(() =>
 const FertilizerStatutoryPdfTool = lazy(() =>
   import('./forms/FertilizerStatutoryPdfTool').then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
 );
+const SeedForms = lazy(() =>
+  import('../pages/SeedForms').then((module) => ({ default: module.SeedForms }))
+);
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
 const TEST_EMAIL = 'test@gmail.com';
@@ -362,7 +365,7 @@ export function Login() {
                 className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-2.5 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800"
               >
                 <FileText className="h-3.5 w-3.5" />
-                Generate PDF
+                {statutoryFolder === 'seed' ? 'Seed PDF' : 'Generate PDF'}
               </button>
               <PortalLogo size="md" />
             </div>
@@ -483,7 +486,31 @@ export function Login() {
               </div>
             }
           >
-            <FertilizerStatutoryPdfTool onClose={() => setPdfToolOpen(false)} />
+            {statutoryFolder === 'seed' ? (
+              <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
+                <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-slate-50 shadow-2xl">
+                  <header className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-2.5 sm:px-4">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Seed statutory PDF</p>
+                      <h2 className="truncate text-lg font-black text-slate-950">Generate Seed Forms</h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setPdfToolOpen(false)}
+                      className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+                      aria-label="Close seed PDF generator"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </header>
+                  <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+                    <SeedForms />
+                  </div>
+                </section>
+              </div>
+            ) : (
+              <FertilizerStatutoryPdfTool onClose={() => setPdfToolOpen(false)} />
+            )}
           </Suspense>
         )}
       </div>

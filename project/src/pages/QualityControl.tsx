@@ -18,6 +18,7 @@ import { FileActionButtons } from '../components/ui/FileActionButtons';
 import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 import { useAuth } from '../context/AuthContext';
 import { QualityControlSample, QualityControlTarget } from '../types/database';
+import { SeedForms } from './SeedForms';
 
 interface QualityControlProps {
   category: 'seeds' | 'pesticides' | 'fertilizers';
@@ -230,6 +231,8 @@ export function QualityControl({ category }: QualityControlProps) {
           </div>
         </div>
       </div>
+
+      {category === 'seeds' && <SeedForms />}
 
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
         <div className="rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
