@@ -100,6 +100,7 @@ const ROW_LINE_HEIGHT = 5.9;
 const ROW_GAP = 1.7;
 const PARA_LINE_HEIGHT = 6.1;
 const FORM_J_SIGNATURE_GAP = 18;
+const FORM_J_INSPECTOR_SIGNATURE_GAP = 28;
 const SIGNATURE_RIGHT_X = PAGE.width - PAGE.marginX - 8;
 
 type PdfCursor = {
@@ -238,7 +239,10 @@ function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
   field(cursor, '(6) Stock Position of the Lot', values.stockPosition, 91, PAGE.marginX, fieldOptions);
   field(cursor, '(7) Physical Condition of Fertilizer', values.physicalCondition, 91, PAGE.marginX, fieldOptions);
   field(cursor, '(8) Samples Drawn From Open Bags/Stitched Bags/Bulk', values.bagSource, 91, PAGE.marginX, fieldOptions);
-  field(cursor, '(9) Name and Address of Fertilizer Inspector Drawing Sample', values.inspectorNameAddress, 99, PAGE.marginX, fieldOptions);
+  field(cursor, '(9) Name and Address of Fertilizer Inspector Drawing Sample', values.inspectorNameAddress, 82, PAGE.marginX, {
+    ...fieldOptions,
+    gap: 2.5,
+  });
 
   drawPreReceiptInspectorSignature(cursor);
   drawDealerReceipt(cursor);
@@ -246,13 +250,13 @@ function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
 
 function drawPreReceiptInspectorSignature(cursor: PdfCursor) {
   const { doc } = cursor;
-  cursor.y += 4;
+  cursor.y += FORM_J_INSPECTOR_SIGNATURE_GAP;
   doc.setFont(PDF_FONT, 'bold');
   doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], SIGNATURE_RIGHT_X, cursor.y, {
     align: 'right',
   });
   doc.setFont(PDF_FONT, 'normal');
-  cursor.y += 13;
+  cursor.y += 12;
 }
 
 function drawDealerReceipt(cursor: PdfCursor) {
