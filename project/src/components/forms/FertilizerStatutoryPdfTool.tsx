@@ -1,11 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Download, Eye, FileText, Loader2, Printer, RotateCcw, Save, X } from 'lucide-react';
+import { Download, Eye, FileText, Printer, RotateCcw, Save, X } from 'lucide-react';
 import {
   createAllFertilizerPdfBlobUrl,
   createFertilizerPdfBlobUrl,
-  FERTILIZER_K_ADDRESS_OPTIONS,
   FertilizerPdfValues,
-  fertilizerFormTitles,
   FertilizerStatutoryFormType,
   generateAllFertilizerStatutoryPdf,
   generateFertilizerStatutoryPdf,
@@ -21,10 +19,6 @@ type FieldConfig = {
   options?: { label: string; value: string }[];
 };
 
-const commonTopFields: FieldConfig[] = [
-  { key: 'no', label: 'No.' },
-];
-
 const STORAGE_KEY = 'tiryani-fertilizer-forms-draft';
 const DRAFTS_KEY = 'tiryani-fertilizer-forms-named-drafts';
 
@@ -33,11 +27,6 @@ type SavedFertilizerDraft = {
   values: FertilizerPdfValues;
   updatedAt: string;
 };
-
-const commonBottomFields: FieldConfig[] = [
-  { key: 'place', label: 'Place' },
-  { key: 'date', label: 'Date', type: 'date' },
-];
 
 const physicalConditionOptions = [
   { label: 'Granular', value: 'Granular' },
@@ -60,49 +49,51 @@ const compositionFields: FieldConfig[] = [
   { key: 'compositionCa', label: 'Ca (%)' },
 ];
 
-const formKFields: FieldConfig[] = [
-  ...commonTopFields,
-  { key: 'fromAddress', label: 'From address', type: 'textarea' },
-  { key: 'fertilizerTypeGrade', label: 'Type of fertilizer & Grade' },
-  { key: 'samplingDate', label: 'Date of sampling', type: 'date' },
-  { key: 'physicalCondition', label: 'Physical condition of sample', type: 'select', options: physicalConditionOptions },
-  { key: 'sampleCode', label: 'Code number of Sample' },
-  { key: 'forwardReportAddress', label: 'Forward analysis report to address', type: 'textarea' },
-  ...commonBottomFields,
+const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
+  {
+    title: 'Common Details',
+    fields: [
+      { key: 'no', label: 'No.' },
+      { key: 'sampleCode', label: 'Code no. of sample' },
+      { key: 'codeNumber', label: 'Code Number' },
+      { key: 'samplingDate', label: 'Date of sampling', type: 'date' },
+      { key: 'place', label: 'Place' },
+      { key: 'date', label: 'Form Date', type: 'date' },
+    ],
+  },
+  {
+    title: 'Dealer / Fertilizer Details',
+    fields: [
+      { key: 'dealerNameAddress', label: 'Name and address of dealer/manufacturer/importer', type: 'textarea' },
+      { key: 'authorizationNumber', label: 'Letter of authorization Number' },
+      { key: 'fertilizerTypeGrade', label: 'Type and grade of fertilizer' },
+      { key: 'nameGrade', label: 'Name and Grade of Fertilizer' },
+      { key: 'dealerManufacturerImporterName', label: 'Name of dealer/manufacturer/importer' },
+      { key: 'batchDetails', label: 'Batch No. and date of manufacture/import' },
+      { key: 'stockReceiptDate', label: 'Date of receipt of stock', type: 'date' },
+      { key: 'stockPosition', label: 'Stock position of lot' },
+      { key: 'physicalCondition', label: 'Physical condition of sample', type: 'select', options: physicalConditionOptions },
+      { key: 'bagSource', label: 'Samples drawn from open bags / stitched bags / bulk', type: 'select', options: bagSourceOptions },
+    ],
+  },
+  {
+    title: 'Composition / Markings',
+    fields: [
+      ...compositionFields,
+      { key: 'markings', label: 'Details of markings on bags', type: 'textarea' },
+      { key: 'composition', label: 'Additional composition remarks', type: 'textarea' },
+    ],
+  },
+  {
+    title: 'Inspector / Form K Details',
+    fields: [
+      { key: 'inspectorNameAddress', label: 'Name and Address of Fertilizer Inspector drawing sample', type: 'textarea' },
+      { key: 'fromAddress', label: 'From address', type: 'textarea' },
+      { key: 'forwardReportAddress', label: 'Forward analysis report to address', type: 'textarea' },
+      { key: 'dealerReceipt', label: 'Receipt of dealer', type: 'textarea' },
+    ],
+  },
 ];
-
-const formFields: Record<FertilizerStatutoryFormType, FieldConfig[]> = {
-  J: [
-    ...commonTopFields,
-    { key: 'dealerNameAddress', label: 'Name and address of dealer/manufacturer/importer', type: 'textarea' },
-    { key: 'authorizationNumber', label: 'Letter of authorization Number' },
-    { key: 'samplingDate', label: 'Date of sampling', type: 'date' },
-    { key: 'markings', label: 'Details of markings on the bags from where sample has been taken', type: 'textarea' },
-    { key: 'fertilizerTypeGrade', label: 'Type and grade of fertilizer' },
-    { key: 'dealerManufacturerImporterName', label: 'Name of dealer/manufacturer/importer' },
-    { key: 'batchDetails', label: 'Batch No. and date of manufacture/import' },
-    ...compositionFields,
-    { key: 'stockReceiptDate', label: 'Date of receipt of stock by dealer/manufacturer/importer/pool handling agency', type: 'date' },
-    { key: 'sampleCode', label: 'Code no. of sample' },
-    { key: 'stockPosition', label: 'Stock position of lot' },
-    { key: 'physicalCondition', label: 'Physical condition of sample', type: 'select', options: physicalConditionOptions },
-    { key: 'bagSource', label: 'Samples drawn from open bags / stitched bags / bulk', type: 'select', options: bagSourceOptions },
-    { key: 'inspectorNameAddress', label: 'Name and Address of Fertilizer Inspector drawing sample', type: 'textarea' },
-    { key: 'dealerReceipt', label: 'Receipt of dealer', type: 'textarea' },
-    ...commonBottomFields,
-  ],
-  K_ADA: formKFields,
-  K_JDA: formKFields,
-  P: [
-    ...commonTopFields,
-    { key: 'nameGrade', label: 'Name and Grade of Fertilizer' },
-    ...compositionFields,
-    { key: 'physicalCondition', label: 'Physical Condition of sample', type: 'select', options: physicalConditionOptions },
-    { key: 'codeNumber', label: 'Code Number' },
-    { key: 'samplingDate', label: 'Date of sampling', type: 'date' },
-    { key: 'inspectorNameAddress', label: 'Name & Address of Fertilizer Inspector drawing sample', type: 'textarea' },
-  ],
-};
 
 export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void }) {
   const [formType, setFormType] = useState<FertilizerStatutoryFormType>('J');
@@ -120,7 +111,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [draftName, setDraftName] = useState('');
   const [savedDrafts, setSavedDrafts] = useState<SavedFertilizerDraft[]>(() => loadFertilizerDrafts());
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | 'downloadAll' | null>(null);
-  const activeFields = useMemo(() => formFields[formType], [formType]);
+  const allFields = useMemo(() => fertilizerFieldSections, []);
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
@@ -207,13 +198,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setMessage(`Draft deleted: ${name}`);
   };
 
-  const previewPdf = async () => {
+  const previewPdf = async (type = formType) => {
     setBusyAction('preview');
     setPreviewError(null);
     try {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
-      const url = await createFertilizerPdfBlobUrl(formType, values);
+      const url = await createFertilizerPdfBlobUrl(type, values);
       setPreviewUrl(url);
+      setFormType(type);
     } catch (error) {
       console.error('Unable to preview fertilizer PDF:', error);
       setPreviewError('PDF preview could not open. Please try Download Selected.');
@@ -237,11 +229,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     }
   };
 
-  const downloadPdf = async () => {
+  const downloadPdf = async (type = formType) => {
     setBusyAction('download');
     try {
-      const doc = await generateFertilizerStatutoryPdf(formType, values);
-      downloadFertilizerDoc(doc, getFertilizerPdfFileName(formType, values));
+      const doc = await generateFertilizerStatutoryPdf(type, values);
+      downloadFertilizerDoc(doc, getFertilizerPdfFileName(type, values));
+      setFormType(type);
       setMessage('PDF generated.');
     } catch (error) {
       console.error('Unable to download fertilizer PDF:', error);
@@ -305,28 +298,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-            <div className="mb-2 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 text-sm font-black sm:grid-cols-4">
-              {(['J', 'K_ADA', 'K_JDA', 'P'] as FertilizerStatutoryFormType[]).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => {
-                    setFormType(type);
-                    if (type === 'K_ADA' || type === 'K_JDA') {
-                      setField('toAddress', FERTILIZER_K_ADDRESS_OPTIONS[type].value);
-                    }
-                    setPreviewError(null);
-                    setPreviewUrl(null);
-                  }}
-                  className={`rounded-md px-3 py-2 ${
-                    formType === type ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'
-                  }`}
-                >
-                  {fertilizerFormTitles[type]}
-                </button>
-              ))}
-            </div>
-
             <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
               <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-slate-600">Multiple user drafts</p>
               <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
@@ -371,54 +342,30 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               </div>
             )}
 
-            <div className="grid gap-2 sm:grid-cols-2">
-              {activeFields.map((field) => (
-                <PdfInput
-                  key={`${formType}-${field.key}`}
-                  field={field}
-                  value={values[field.key]}
-                  onChange={(value) => setField(field.key, value)}
-                />
+            <div className="grid gap-3 lg:grid-cols-2">
+              {allFields.map((section) => (
+                <FieldSection key={section.title} title={section.title}>
+                  {section.fields.map((field) => (
+                    <PdfInput
+                      key={field.key}
+                      field={field}
+                      value={values[field.key]}
+                      onChange={(value) => setField(field.key, value)}
+                    />
+                  ))}
+                </FieldSection>
               ))}
             </div>
 
-            <div className="sticky bottom-0 mt-3 grid gap-2 border-t border-slate-200 bg-white pt-2 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={previewPdf}
-                disabled={busyAction !== null}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-800 transition hover:bg-emerald-100 disabled:opacity-60"
-              >
-                {busyAction === 'preview' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
-                Preview PDF
-              </button>
-              <button
-                type="button"
-                onClick={previewAllPdf}
-                disabled={busyAction !== null}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-teal-200 bg-teal-50 px-4 py-2.5 text-sm font-black text-teal-800 transition hover:bg-teal-100 disabled:opacity-60"
-              >
-                {busyAction === 'preview' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                Preview All
-              </button>
-              <button
-                type="button"
-                onClick={downloadPdf}
-                disabled={busyAction !== null}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-black text-white transition hover:bg-slate-800 disabled:opacity-60"
-              >
-                {busyAction === 'download' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                Download Selected
-              </button>
-              <button
-                type="button"
-                onClick={downloadAllPdf}
-                disabled={busyAction !== null}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-black text-white transition hover:bg-emerald-800 disabled:opacity-60"
-              >
-                {busyAction === 'downloadAll' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                Download All Forms
-              </button>
+            <div className="sticky bottom-0 mt-3 border-t border-slate-200 bg-white pt-2">
+              <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-600">PDF Generation</p>
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                <FertilizerPdfAction label="Form J" busy={busyAction !== null} onPreview={() => previewPdf('J')} onDownload={() => downloadPdf('J')} />
+                <FertilizerPdfAction label="Form K ADA" busy={busyAction !== null} onPreview={() => previewPdf('K_ADA')} onDownload={() => downloadPdf('K_ADA')} />
+                <FertilizerPdfAction label="Form K JDA" busy={busyAction !== null} onPreview={() => previewPdf('K_JDA')} onDownload={() => downloadPdf('K_JDA')} />
+                <FertilizerPdfAction label="Form P" busy={busyAction !== null} onPreview={() => previewPdf('P')} onDownload={() => downloadPdf('P')} />
+                <FertilizerPdfAction label="All Forms" busy={busyAction !== null} onPreview={previewAllPdf} onDownload={downloadAllPdf} primary />
+              </div>
             </div>
         </div>
 
@@ -494,6 +441,57 @@ function buildDraftName(name: string, values: FertilizerPdfValues) {
 
 function upsertFertilizerDraft(drafts: SavedFertilizerDraft[], draft: SavedFertilizerDraft) {
   return [draft, ...drafts.filter((item) => item.name !== draft.name)].slice(0, 30);
+}
+
+function FieldSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-slate-100 bg-white p-3 shadow-sm">
+      <h3 className="mb-2 text-sm font-black text-slate-900">{title}</h3>
+      <div className="grid gap-2 sm:grid-cols-2">{children}</div>
+    </div>
+  );
+}
+
+function FertilizerPdfAction({
+  label,
+  onPreview,
+  onDownload,
+  busy,
+  primary = false,
+}: {
+  label: string;
+  onPreview: () => void;
+  onDownload: () => void;
+  busy: boolean;
+  primary?: boolean;
+}) {
+  return (
+    <div className={`rounded-lg border p-3 ${primary ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+      <p className="mb-2 text-sm font-black text-slate-800">{label}</p>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={onPreview}
+          disabled={busy}
+          className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-2 text-sm font-black text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+        >
+          <Eye className="h-3.5 w-3.5" />
+          Preview
+        </button>
+        <button
+          type="button"
+          onClick={onDownload}
+          disabled={busy}
+          className={`inline-flex items-center justify-center gap-1 rounded-md px-2 py-2 text-sm font-black disabled:opacity-60 ${
+            primary ? 'bg-emerald-700 text-white hover:bg-emerald-800' : 'bg-slate-900 text-white hover:bg-slate-800'
+          }`}
+        >
+          <Download className="h-3.5 w-3.5" />
+          PDF
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function PdfInput({
