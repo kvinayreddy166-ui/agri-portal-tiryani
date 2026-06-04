@@ -87,8 +87,6 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
     title: 'Inspector / Form K Details',
     fields: [
       { key: 'inspectorNameAddress', label: 'Name and Address of Fertilizer Inspector drawing sample', type: 'textarea' },
-      { key: 'fromAddress', label: 'From address for Form K', type: 'textarea' },
-      { key: 'forwardReportAddress', label: 'Forward analysis report address for Form K', type: 'textarea' },
     ],
   },
 ];
@@ -137,12 +135,8 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         next.sampleCode = value;
       }
       if (key === 'inspectorNameAddress') {
-        if (!current.fromAddress || current.fromAddress === current.inspectorNameAddress) {
-          next.fromAddress = value;
-        }
-        if (!current.forwardReportAddress || current.forwardReportAddress === current.inspectorNameAddress) {
-          next.forwardReportAddress = value;
-        }
+        next.fromAddress = value;
+        next.forwardReportAddress = value;
       }
       return next;
     });
