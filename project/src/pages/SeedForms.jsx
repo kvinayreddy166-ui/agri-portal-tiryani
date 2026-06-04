@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Download, Eye, FileText, RotateCcw, Save, X } from 'lucide-react';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
+const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
 const PDF_FONT = 'times';
 const PDF_BODY_SIZE = 13.4;
 const PDF_TITLE_SIZE = 16.4;
@@ -71,6 +72,8 @@ export function SeedForms() {
   });
   const [message, setMessage] = useState('');
   const [previewUrl, setPreviewUrl] = useState('');
+  const [draftName, setDraftName] = useState('');
+  const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
@@ -84,8 +87,17 @@ export function SeedForms() {
   };
 
   const saveDraft = () => {
+    const name = buildSeedDraftName(draftName, form);
+    const nextDrafts = upsertSeedDraft(savedDrafts, {
+      name,
+      form,
+      updatedAt: new Date().toISOString(),
+    });
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
-    setMessage('Draft saved.');
+    window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+    setDraftName(name);
+    setSavedDrafts(nextDrafts);
+    setMessage(`Draft saved: ${name}`);
   };
 
   const resetDraft = () => {
@@ -93,6 +105,32 @@ export function SeedForms() {
     setForm(initialSeedForm);
     window.localStorage.removeItem(STORAGE_KEY);
     setMessage('Draft reset.');
+  };
+
+  const loadDraft = (name) => {
+    const draft = savedDrafts.find((item) => item.name === name);
+    if (!draft) return;
+    setForm({ ...initialSeedForm, ...draft.form });
+    setDraftName(draft.name);
+    setMessage(`Draft loaded: ${draft.name}`);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl('');
+    }
+  };
+
+  const deleteDraft = () => {
+    const name = draftName.trim();
+    if (!name) {
+      setMessage('Select a saved draft to delete.');
+      return;
+    }
+    if (!confirm(`Delete saved draft "${name}"?`)) return;
+    const nextDrafts = savedDrafts.filter((draft) => draft.name !== name);
+    window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+    setSavedDrafts(nextDrafts);
+    setDraftName('');
+    setMessage(`Draft deleted: ${name}`);
   };
 
   useEffect(() => {
@@ -146,6 +184,38 @@ export function SeedForms() {
           </button>
           <button type="button" onClick={resetDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
             <RotateCcw className="h-4 w-4" /> Reset
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">Multiple user drafts</p>
+        <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+          <input
+            type="text"
+            value={draftName}
+            onChange={(event) => setDraftName(event.target.value)}
+            placeholder="Draft name / officer / dealer"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+          />
+          <select
+            value=""
+            onChange={(event) => loadDraft(event.target.value)}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+          >
+            <option value="">Load saved draft...</option>
+            {savedDrafts.map((draft) => (
+              <option key={draft.name} value={draft.name}>
+                {draft.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={deleteDraft}
+            className="rounded-lg border border-red-200 px-3 py-2 text-sm font-black text-red-700 hover:bg-red-50"
+          >
+            Delete
           </button>
         </div>
       </div>
@@ -685,6 +755,25 @@ function downloadSeedDoc(doc, fileName) {
 function seedFileName(kind, form) {
   const date = fmtDate(form.date || form.collectionDate).replace(/\//g, '-');
   return `Seed_Form_${kind}_${form.codeNo || 'CodeNo'}_${date || 'Date'}.pdf`;
+}
+
+function loadSeedDrafts() {
+  try {
+    const raw = window.localStorage.getItem(DRAFTS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function buildSeedDraftName(name, form) {
+  const fallback = form.codeNo || form.dealerName || form.officerName;
+  return (name.trim() || fallback || `Draft ${new Date().toLocaleString('en-IN')}`).slice(0, 80);
+}
+
+function upsertSeedDraft(drafts, draft) {
+  return [draft, ...drafts.filter((item) => item.name !== draft.name)].slice(0, 30);
 }
 
 export default SeedForms;

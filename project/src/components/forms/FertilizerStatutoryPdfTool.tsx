@@ -26,6 +26,13 @@ const commonTopFields: FieldConfig[] = [
 ];
 
 const STORAGE_KEY = 'tiryani-fertilizer-forms-draft';
+const DRAFTS_KEY = 'tiryani-fertilizer-forms-named-drafts';
+
+type SavedFertilizerDraft = {
+  name: string;
+  values: FertilizerPdfValues;
+  updatedAt: string;
+};
 
 const commonBottomFields: FieldConfig[] = [
   { key: 'place', label: 'Place' },
@@ -110,6 +117,8 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState('');
+  const [savedDrafts, setSavedDrafts] = useState<SavedFertilizerDraft[]>(() => loadFertilizerDrafts());
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | 'downloadAll' | null>(null);
   const activeFields = useMemo(() => formFields[formType], [formType]);
 
@@ -152,8 +161,17 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const saveDraft = () => {
+    const name = buildDraftName(draftName, values);
+    const nextDrafts = upsertFertilizerDraft(savedDrafts, {
+      name,
+      values,
+      updatedAt: new Date().toISOString(),
+    });
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
-    setMessage('Draft saved.');
+    window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+    setDraftName(name);
+    setSavedDrafts(nextDrafts);
+    setMessage(`Draft saved: ${name}`);
   };
 
   const resetDraft = () => {
@@ -163,6 +181,30 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setPreviewError(null);
     setPreviewUrl(null);
     setMessage('Draft reset.');
+  };
+
+  const loadDraft = (name: string) => {
+    const draft = savedDrafts.find((item) => item.name === name);
+    if (!draft) return;
+    setValues({ ...initialFertilizerPdfValues, ...draft.values });
+    setDraftName(draft.name);
+    setPreviewError(null);
+    setPreviewUrl(null);
+    setMessage(`Draft loaded: ${draft.name}`);
+  };
+
+  const deleteDraft = () => {
+    const name = draftName.trim();
+    if (!name) {
+      setMessage('Select a saved draft to delete.');
+      return;
+    }
+    if (!window.confirm(`Delete saved draft "${name}"?`)) return;
+    const nextDrafts = savedDrafts.filter((draft) => draft.name !== name);
+    window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+    setSavedDrafts(nextDrafts);
+    setDraftName('');
+    setMessage(`Draft deleted: ${name}`);
   };
 
   const previewPdf = async () => {
@@ -285,6 +327,38 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               ))}
             </div>
 
+            <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+              <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-slate-600">Multiple user drafts</p>
+              <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                <input
+                  type="text"
+                  value={draftName}
+                  onChange={(event) => setDraftName(event.target.value)}
+                  placeholder="Draft name / officer / dealer"
+                  className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+                <select
+                  value=""
+                  onChange={(event) => loadDraft(event.target.value)}
+                  className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                >
+                  <option value="">Load saved draft...</option>
+                  {savedDrafts.map((draft) => (
+                    <option key={draft.name} value={draft.name}>
+                      {draft.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={deleteDraft}
+                  className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-black text-red-700 hover:bg-red-50"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+
             {previewError && (
               <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
                 {previewError}
@@ -401,6 +475,25 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       </section>
     </div>
   );
+}
+
+function loadFertilizerDrafts(): SavedFertilizerDraft[] {
+  try {
+    const raw = window.localStorage.getItem(DRAFTS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function buildDraftName(name: string, values: FertilizerPdfValues) {
+  const fallback = values.sampleCode.trim() || values.no.trim() || values.dealerManufacturerImporterName.trim();
+  return (name.trim() || fallback || `Draft ${new Date().toLocaleString('en-IN')}`).slice(0, 80);
+}
+
+function upsertFertilizerDraft(drafts: SavedFertilizerDraft[], draft: SavedFertilizerDraft) {
+  return [draft, ...drafts.filter((item) => item.name !== draft.name)].slice(0, 30);
 }
 
 function PdfInput({
