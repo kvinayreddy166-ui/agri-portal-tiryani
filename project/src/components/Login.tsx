@@ -499,8 +499,8 @@ export function Login() {
                 <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-slate-50 shadow-2xl">
                   <header className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-2.5 sm:px-4">
                     <div className="min-w-0">
-                      <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Seed statutory PDF</p>
-                      <h2 className="truncate text-lg font-black text-slate-950">Generate Seed Forms</h2>
+                      <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Seed sampling</p>
+                      <h2 className="truncate text-lg font-black text-slate-950">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
                     </div>
                     <button
                       type="button"
@@ -584,7 +584,9 @@ export function Login() {
           <div className="mx-auto w-full max-w-md">
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <PortalLogo size="lg" className="mb-2" />
+                <div className="login-logo-hero mb-2 inline-flex">
+                  <PortalLogo size="lg" />
+                </div>
                 <h2 className="whitespace-nowrap text-lg font-black tracking-tight text-slate-950 sm:text-2xl">
                   {t('Tiryani Agriculture Portal', 'తిర్యాణి వ్యవసాయ పోర్టల్')}
                 </h2>

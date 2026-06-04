@@ -172,11 +172,23 @@ export function SeedForms() {
   return (
     <section className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm">
       <div className="mb-2 flex justify-end gap-2">
-          <button type="button" onClick={saveDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">
-            <Save className="h-4 w-4" /> Save Draft
+          <button
+            type="button"
+            onClick={saveDraft}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+            title="Save draft"
+          >
+            <Save className="h-4 w-4" />
+            <span className="hidden sm:inline">Save Draft</span>
           </button>
-          <button type="button" onClick={resetDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">
-            <RotateCcw className="h-4 w-4" /> Reset
+          <button
+            type="button"
+            onClick={resetDraft}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+            title="Reset draft"
+          >
+            <RotateCcw className="h-4 w-4" />
+            <span className="hidden sm:inline">Reset</span>
           </button>
       </div>
 

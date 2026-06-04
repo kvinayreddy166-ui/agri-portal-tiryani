@@ -252,7 +252,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       <section className="flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-3 py-2.5 sm:px-4">
           <div className="min-w-0">
-            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Fertilizer sampling PDF</p>
+            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Fertilizer sampling</p>
             <h2 className="truncate text-lg font-black text-slate-950">Generate FORM J / FORM K / FORM P</h2>
           </div>
           <div className="flex shrink-0 items-center gap-1">
@@ -263,7 +263,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               title="Save draft"
             >
               <Save className="h-4 w-4" />
-              <span className="hidden sm:inline">Save</span>
+              <span className="hidden sm:inline">Save Draft</span>
             </button>
             <button
               type="button"
