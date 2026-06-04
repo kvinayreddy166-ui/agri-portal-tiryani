@@ -53,7 +53,6 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
     fields: [
       { key: 'no', label: 'No.' },
       { key: 'sampleCode', label: 'Code no. of sample' },
-      { key: 'codeNumber', label: 'Code Number' },
       { key: 'samplingDate', label: 'Date of sampling', type: 'date' },
       { key: 'place', label: 'Place' },
       { key: 'date', label: 'Form Date', type: 'date' },
@@ -65,7 +64,6 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'dealerNameAddress', label: 'Name and address of dealer/manufacturer/importer', type: 'textarea' },
       { key: 'authorizationNumber', label: 'Letter of authorization Number' },
       { key: 'fertilizerTypeGrade', label: 'Type and grade of fertilizer' },
-      { key: 'nameGrade', label: 'Name and Grade of Fertilizer' },
       { key: 'dealerManufacturerImporterName', label: 'Name of dealer/manufacturer/importer' },
       { key: 'batchDetails', label: 'Batch No. and date of manufacture/import' },
       { key: 'stockReceiptDate', label: 'Date of receipt of stock', type: 'date' },
