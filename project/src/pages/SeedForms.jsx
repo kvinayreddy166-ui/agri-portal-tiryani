@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Download, Eye, FileText, RotateCcw, Save, X } from 'lucide-react';
+import { Download, Eye, RotateCcw, Save } from 'lucide-react';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
@@ -71,7 +71,6 @@ export function SeedForms() {
     }
   });
   const [message, setMessage] = useState('');
-  const [previewUrl, setPreviewUrl] = useState('');
   const [draftName, setDraftName] = useState('');
   const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
 
@@ -113,10 +112,6 @@ export function SeedForms() {
     setForm({ ...initialSeedForm, ...draft.form });
     setDraftName(draft.name);
     setMessage(`Draft loaded: ${draft.name}`);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl('');
-    }
   };
 
   const deleteDraft = () => {
@@ -132,12 +127,6 @@ export function SeedForms() {
     setDraftName('');
     setMessage(`Draft deleted: ${name}`);
   };
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
 
   const buildValidatedPdf = async (kind) => {
     const error = validateSeedForm(form, kind);
@@ -156,19 +145,25 @@ export function SeedForms() {
   };
 
   const generate = async (kind) => {
+    const targetWindow = openBlankSeedPdfTab();
     const doc = await buildValidatedPdf(kind);
-    if (!doc) return;
-    downloadSeedDoc(doc, seedFileName(kind, form));
-    setMessage('PDF generated.');
+    if (!doc) {
+      targetWindow?.close();
+      return;
+    }
+    openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
+    setMessage('PDF opened in a new tab.');
   };
 
   const preview = async (kind) => {
+    const targetWindow = openBlankSeedPdfTab();
     const doc = await buildValidatedPdf(kind);
-    if (!doc) return;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    const blobUrl = URL.createObjectURL(doc.output('blob'));
-    setPreviewUrl(blobUrl);
-    setMessage('PDF preview ready.');
+    if (!doc) {
+      targetWindow?.close();
+      return;
+    }
+    openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
+    setMessage('PDF preview opened in a new tab.');
   };
 
   return (
@@ -292,33 +287,6 @@ export function SeedForms() {
         </div>
       </div>
 
-      {previewUrl && (
-        <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white">
-          <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
-            <div className="flex items-center gap-2 text-sm font-black text-slate-700">
-              <FileText className="h-4 w-4 text-emerald-700" />
-              Inline Seed PDF Preview
-            </div>
-            <div className="flex items-center gap-1">
-              <a href={previewUrl} target="_blank" rel="noreferrer" className="rounded-md px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-100">
-                Open
-              </a>
-              <button
-                type="button"
-                onClick={() => {
-                  URL.revokeObjectURL(previewUrl);
-                  setPreviewUrl('');
-                }}
-                className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100"
-                aria-label="Close seed PDF preview"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-          <iframe key={previewUrl} src={previewUrl} title="Seed PDF preview" className="h-[70vh] min-h-[420px] w-full border-0 bg-white" />
-        </div>
-      )}
     </section>
   );
 }
@@ -734,23 +702,25 @@ function cottonSlipQuantity(crop, test) {
   return '';
 }
 
-function downloadSeedDoc(doc, fileName) {
-  try {
-    doc.save(fileName);
-    return;
-  } catch (error) {
-    console.warn('jsPDF save failed; falling back to blob download.', error);
+function openBlankSeedPdfTab() {
+  const targetWindow = window.open('', '_blank');
+  if (targetWindow) {
+    targetWindow.opener = null;
+    targetWindow.document.title = 'Preparing PDF...';
+    targetWindow.document.body.innerHTML = '<p style="font-family: system-ui; padding: 24px;">Preparing PDF...</p>';
   }
+  return targetWindow;
+}
 
-  const blobUrl = URL.createObjectURL(doc.output('blob'));
-  const link = document.createElement('a');
-  link.href = blobUrl;
-  link.download = fileName;
-  link.rel = 'noreferrer';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+function openSeedDocInTab(doc, fileName, targetWindow) {
+  const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
+  const blobUrl = URL.createObjectURL(blob);
+  if (targetWindow && !targetWindow.closed) {
+    targetWindow.location.href = blobUrl;
+  } else {
+    window.open(blobUrl, '_blank', 'noopener,noreferrer');
+  }
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 
 function seedFileName(kind, form) {

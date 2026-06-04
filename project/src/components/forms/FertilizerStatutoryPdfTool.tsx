@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Download, Eye, FileText, Printer, RotateCcw, Save, X } from 'lucide-react';
+import { Download, Eye, RotateCcw, Save, X } from 'lucide-react';
 import {
-  createAllFertilizerPdfBlobUrl,
-  createFertilizerPdfBlobUrl,
   FertilizerPdfValues,
   FertilizerStatutoryFormType,
   generateAllFertilizerStatutoryPdf,
@@ -101,7 +99,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       return initialFertilizerPdfValues;
     }
   });
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
@@ -112,12 +109,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
   }, [values]);
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
 
   const setField = (key: keyof FertilizerPdfValues, value: string) => {
     setValues((current) => {
@@ -162,7 +153,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setValues(initialFertilizerPdfValues);
     window.localStorage.removeItem(STORAGE_KEY);
     setPreviewError(null);
-    setPreviewUrl(null);
     setMessage('Draft reset.');
   };
 
@@ -172,7 +162,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setValues({ ...initialFertilizerPdfValues, ...draft.values });
     setDraftName(draft.name);
     setPreviewError(null);
-    setPreviewUrl(null);
     setMessage(`Draft loaded: ${draft.name}`);
   };
 
@@ -191,69 +180,71 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const previewPdf = async (type = formType) => {
+    const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
     try {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      const url = await createFertilizerPdfBlobUrl(type, values);
-      setPreviewUrl(url);
+      const doc = await generateFertilizerStatutoryPdf(type, values);
+      openFertilizerDocInTab(doc, getFertilizerPdfFileName(type, values), targetWindow);
       setFormType(type);
+      setMessage('PDF preview opened in a new tab.');
     } catch (error) {
       console.error('Unable to preview fertilizer PDF:', error);
-      setPreviewError('PDF preview could not open. Please try Download Selected.');
+      targetWindow?.close();
+      setPreviewError('PDF preview could not open. Please try again.');
     } finally {
       setBusyAction(null);
     }
   };
 
   const previewAllPdf = async () => {
+    const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
     try {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      const url = await createAllFertilizerPdfBlobUrl(values);
-      setPreviewUrl(url);
+      const doc = await generateAllFertilizerStatutoryPdf(values);
+      openFertilizerDocInTab(doc, getAllFertilizerPdfFileName(values), targetWindow);
+      setMessage('All forms preview opened in a new tab.');
     } catch (error) {
       console.error('Unable to preview all fertilizer PDFs:', error);
-      setPreviewError('Preview All could not open. Please try Download All Forms.');
+      targetWindow?.close();
+      setPreviewError('Preview All could not open. Please try again.');
     } finally {
       setBusyAction(null);
     }
   };
 
   const downloadPdf = async (type = formType) => {
+    const targetWindow = openBlankPdfTab();
     setBusyAction('download');
     try {
       const doc = await generateFertilizerStatutoryPdf(type, values);
-      downloadFertilizerDoc(doc, getFertilizerPdfFileName(type, values));
+      openFertilizerDocInTab(doc, getFertilizerPdfFileName(type, values), targetWindow);
       setFormType(type);
-      setMessage('PDF generated.');
+      setMessage('PDF opened in a new tab.');
     } catch (error) {
       console.error('Unable to download fertilizer PDF:', error);
-      setPreviewError('Download could not start. Please try Preview PDF and use Open.');
+      targetWindow?.close();
+      setPreviewError('PDF could not open. Please try Preview.');
     } finally {
       setBusyAction(null);
     }
   };
 
   const downloadAllPdf = async () => {
+    const targetWindow = openBlankPdfTab();
     setBusyAction('downloadAll');
     try {
       const doc = await generateAllFertilizerStatutoryPdf(values);
-      downloadFertilizerDoc(doc, getAllFertilizerPdfFileName(values));
-      setMessage('All forms PDF generated.');
+      openFertilizerDocInTab(doc, getAllFertilizerPdfFileName(values), targetWindow);
+      setMessage('All forms PDF opened in a new tab.');
     } catch (error) {
       console.error('Unable to download all fertilizer PDFs:', error);
-      setPreviewError('Download All could not start. Please try Preview All and use Open.');
+      targetWindow?.close();
+      setPreviewError('All forms PDF could not open. Please try Preview All.');
     } finally {
       setBusyAction(null);
     }
-  };
-
-  const printPreview = () => {
-    if (!previewUrl) return;
-    const frame = document.getElementById('fertilizer-pdf-preview') as HTMLIFrameElement | null;
-    frame?.contentWindow?.print();
   };
 
   return (
@@ -360,54 +351,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               </div>
             </div>
 
-            {previewUrl && (
-              <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white">
-                <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
-                  <div className="flex items-center gap-2 text-sm font-black text-slate-700">
-                    <FileText className="h-4 w-4 text-emerald-700" />
-                    Inline A4 PDF Preview
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <a
-                      href={previewUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-100"
-                    >
-                      <FileText className="h-3.5 w-3.5" />
-                      Open
-                    </a>
-                    <button
-                      type="button"
-                      onClick={printPreview}
-                      className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-100 disabled:opacity-40"
-                    >
-                      <Printer className="h-3.5 w-3.5" />
-                      Print
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        URL.revokeObjectURL(previewUrl);
-                        setPreviewUrl(null);
-                      }}
-                      className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100"
-                      aria-label="Close preview"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-                <iframe
-                  key={previewUrl}
-                  id="fertilizer-pdf-preview"
-                  src={previewUrl}
-                  title="Fertilizer statutory PDF preview"
-                  className="h-[70vh] min-h-[420px] w-full border-0 bg-white"
-                  onError={() => setPreviewError('PDF preview could not open. Please use the download button.')}
-                />
-              </div>
-            )}
         </div>
       </section>
     </div>
@@ -525,21 +468,27 @@ function PdfInput({
   );
 }
 
-function downloadFertilizerDoc(doc: { save: (fileName: string) => void; output: (type: 'blob') => Blob }, fileName: string) {
-  try {
-    doc.save(fileName);
-    return;
-  } catch (error) {
-    console.warn('jsPDF save failed; falling back to blob download.', error);
+function openBlankPdfTab() {
+  const targetWindow = window.open('', '_blank');
+  if (targetWindow) {
+    targetWindow.opener = null;
+    targetWindow.document.title = 'Preparing PDF...';
+    targetWindow.document.body.innerHTML = '<p style="font-family: system-ui; padding: 24px;">Preparing PDF...</p>';
   }
+  return targetWindow;
+}
 
-  const blobUrl = URL.createObjectURL(doc.output('blob'));
-  const link = document.createElement('a');
-  link.href = blobUrl;
-  link.download = fileName;
-  link.rel = 'noreferrer';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+function openFertilizerDocInTab(
+  doc: { output: (type: 'blob') => Blob },
+  fileName: string,
+  targetWindow: Window | null
+) {
+  const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
+  const blobUrl = URL.createObjectURL(blob);
+  if (targetWindow && !targetWindow.closed) {
+    targetWindow.location.href = blobUrl;
+  } else {
+    window.open(blobUrl, '_blank', 'noopener,noreferrer');
+  }
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
