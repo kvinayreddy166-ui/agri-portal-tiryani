@@ -101,6 +101,7 @@ const ROW_GAP = 1.7;
 const PARA_LINE_HEIGHT = 6.1;
 const FORM_J_SIGNATURE_GAP = 18;
 const FORM_J_INSPECTOR_SIGNATURE_GAP = 28;
+const FORM_J_PRE_RECEIPT_SIGNATURE_LIFT = 5;
 const SIGNATURE_RIGHT_X = PAGE.width - PAGE.marginX - 8;
 
 type PdfCursor = {
@@ -252,7 +253,7 @@ function drawPreReceiptInspectorSignature(cursor: PdfCursor) {
   const { doc } = cursor;
   cursor.y += FORM_J_INSPECTOR_SIGNATURE_GAP;
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], SIGNATURE_RIGHT_X, cursor.y, {
+  doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], SIGNATURE_RIGHT_X, cursor.y - FORM_J_PRE_RECEIPT_SIGNATURE_LIFT, {
     align: 'right',
   });
   doc.setFont(PDF_FONT, 'normal');

@@ -172,8 +172,8 @@ export function SeedForms() {
     <section className="rounded-lg border border-emerald-100 bg-white p-4 shadow-sm">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-black uppercase tracking-wide text-emerald-700">Seed statutory PDF</p>
-          <h2 className="text-xl font-black text-slate-950">Generate seed statutory forms and Information Slip</h2>
+          <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Seed sampling PDF</p>
+          <h2 className="truncate text-lg font-black text-slate-950">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={saveDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
