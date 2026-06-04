@@ -497,10 +497,10 @@ export function Login() {
             {statutoryFolder === 'seed' ? (
               <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
                 <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-slate-50 shadow-2xl">
-                  <header className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-2.5 sm:px-4">
-                    <div className="min-w-0">
+                  <header className="flex shrink-0 flex-wrap items-start justify-between gap-2 border-b border-slate-200 bg-white px-3 py-2.5 sm:px-4">
+                    <div className="min-w-0 flex-1">
                       <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Seed sampling</p>
-                      <h2 className="truncate text-lg font-black text-slate-950">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
+                      <h2 className="max-w-full whitespace-normal text-sm font-black leading-snug text-slate-950 sm:text-base">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
                     </div>
                     <button
                       type="button"
