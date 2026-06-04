@@ -161,7 +161,7 @@ export function Dashboard() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="dashboard-shell space-y-4">
       <div className="dashboard-rise relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-5 text-white shadow-lg">
         <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-[url('/images/rice.jpg')] bg-cover bg-center opacity-20 md:block" />
         <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center">

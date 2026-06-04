@@ -39,6 +39,7 @@ function PageLoader() {
 }
 
 const PUBLIC_VIEW_PAGES = new Set(['dealers', 'stock-inventory']);
+const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
 function PublicReadOnlyShell({
   title,
@@ -77,7 +78,7 @@ function PublicReadOnlyShell({
 }
 
 function AppContent() {
-  const { user, loading, isAdminUser, isDealerUser } = useAuth();
+  const { user, loading, isAdminUser, isDealerUser, signOut } = useAuth();
   const validPages = useMemo(
     () =>
       new Set([
@@ -175,19 +176,43 @@ function AppContent() {
   }, [buildPageUrl, getPageFromUrl, validPages]);
 
   useEffect(() => {
+    if (!user) return;
+
+    let timeoutId = 0;
+    const resetTimer = () => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        navigateToPage('dashboard', { replace: true });
+        void signOut();
+      }, INACTIVITY_SIGN_OUT_MS);
+    };
+
+    const activityEvents = ['click', 'keydown', 'mousemove', 'pointerdown', 'scroll', 'touchstart'];
+    activityEvents.forEach((eventName) => window.addEventListener(eventName, resetTimer, { passive: true }));
+    resetTimer();
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      activityEvents.forEach((eventName) => window.removeEventListener(eventName, resetTimer));
+    };
+  }, [navigateToPage, signOut, user]);
+
+  useEffect(() => {
     if (user && isDealerUser) {
       navigateToPage('dealer-portal', { replace: true });
       return;
     }
 
     if (user && isAdminUser) {
-      const requestedPage = window.localStorage.getItem('tiryani-post-login-page');
-      if (requestedPage) {
-        window.localStorage.removeItem('tiryani-post-login-page');
-        navigateToPage(requestedPage);
-      }
+      window.localStorage.removeItem('tiryani-post-login-page');
+      navigateToPage('dashboard', { replace: true });
     }
   }, [user, isAdminUser, isDealerUser, navigateToPage]);
+
+  useEffect(() => {
+    if (loading || user || currentPage === 'dashboard') return;
+    navigateToPage('dashboard', { replace: true });
+  }, [currentPage, loading, navigateToPage, user]);
 
   if (loading) {
     return (
