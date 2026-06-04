@@ -340,7 +340,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               ))}
             </div>
 
-            <div className="sticky bottom-0 mt-3 border-t border-slate-200 bg-white pt-2">
+            <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
               <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-600">PDF Generation</p>
               <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 <FertilizerPdfAction label="Form J" busy={busyAction !== null} onPreview={() => previewPdf('J')} onDownload={() => downloadPdf('J')} />
