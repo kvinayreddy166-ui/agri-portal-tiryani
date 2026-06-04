@@ -7,6 +7,7 @@ const PDF_FONT = 'times';
 const PDF_BODY_SIZE = 13.4;
 const PDF_TITLE_SIZE = 16.4;
 const PDF_SUBTITLE_SIZE = 14.4;
+const FORM_II_COTTON_QUANTITY = '25 grams * 3';
 
 const cropOptions = ['Paddy', 'Cotton', 'Maize', 'Redgram', 'Greengram', 'Blackgram', 'Soybean', 'Bengalgram', 'Jowar', 'Other'];
 const natureOptions = ['Seed sample', 'Truthfully Labelled Seed', 'Certified Seed', 'Foundation Seed', 'Hybrid Seed', 'Other'];
@@ -79,6 +80,7 @@ export function SeedForms() {
   }, [form]);
 
   const resolved = useMemo(() => resolveSeedValues(form), [form]);
+  const isCottonCrop = resolved.crop === 'Cotton';
 
   const setField = (key, value) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -171,7 +173,7 @@ export function SeedForms() {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-black uppercase tracking-wide text-emerald-700">Seed statutory PDF</p>
-          <h2 className="text-xl font-black text-slate-950">Generate Form II, V, VI, VIII and Information Slip</h2>
+          <h2 className="text-xl font-black text-slate-950">Generate seed statutory forms and Information Slip</h2>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={saveDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
@@ -278,7 +280,7 @@ export function SeedForms() {
       <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-4">
         <p className="mb-3 text-sm font-black uppercase tracking-wide text-slate-600">PDF Generation</p>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-          <PdfAction label="Form II" onPreview={() => preview('II')} onDownload={() => generate('II')} />
+          {isCottonCrop && <PdfAction label="Form II" onPreview={() => preview('II')} onDownload={() => generate('II')} />}
           <PdfAction label="Form V" onPreview={() => preview('V')} onDownload={() => generate('V')} />
           <PdfAction label="Form VI Notice" onPreview={() => preview('VI')} onDownload={() => generate('VI')} />
           <PdfAction label="Form VIII" onPreview={() => preview('VIII')} onDownload={() => generate('VIII')} />
@@ -398,9 +400,14 @@ function resolveSeedValues(form) {
   };
 }
 
+function isCottonSeedForm(form) {
+  return resolveSeedValues(form).crop === 'Cotton';
+}
+
 function validateSeedForm(form, kind) {
-  void form;
-  void kind;
+  if (kind === 'II' && !isCottonSeedForm(form)) {
+    return 'Form II is available only when Cotton crop is selected.';
+  }
   return '';
 }
 
@@ -410,8 +417,10 @@ async function buildSeedPdf(kind, form) {
   doc.setProperties({ title: `Seed Form ${kind}`, creator: 'Tiryani Agriculture Portal' });
 
   if (kind === 'ALL') {
-    drawSeedFormII(doc, form);
-    doc.addPage();
+    if (isCottonSeedForm(form)) {
+      drawSeedFormII(doc, form);
+      doc.addPage();
+    }
     drawSeedFormV(doc, form);
     doc.addPage();
     drawSeedFormVI(doc, form);
@@ -443,7 +452,7 @@ function drawSeedFormII(doc, form) {
     ['4. Nature of article submitted', r.nature],
     ['5. Crop & Variety', `${r.crop} - ${r.variety}`],
     ['6. Lot No. of the sample', r.lotNo],
-    ['7. Quantity of sample drawn', r.quantityDrawn],
+    ['7. Quantity of sample drawn', FORM_II_COTTON_QUANTITY],
     ['8. Name and designation of the person who sends the sample', r.fromAddress],
   ]);
   footer(doc, p, r, { compact: true });
