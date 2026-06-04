@@ -171,12 +171,7 @@ export function SeedForms() {
 
   return (
     <section className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm">
-      <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Seed sampling</p>
-          <h2 className="max-w-full whitespace-normal text-sm font-black leading-snug text-slate-950 sm:text-base">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
+      <div className="mb-2 flex justify-end gap-1">
           <button
             type="button"
             onClick={saveDraft}
@@ -195,7 +190,6 @@ export function SeedForms() {
             <RotateCcw className="h-4 w-4" />
             <span className="hidden sm:inline">Reset</span>
           </button>
-        </div>
       </div>
 
       <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 p-2">

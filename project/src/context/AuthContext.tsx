@@ -246,17 +246,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    setSession(null);
+    setUser(null);
+    setIsAdminUser(false);
+    setIsDealerUserFlag(false);
+    setDealerId(null);
+    setDealerName(null);
+
     try {
-      await supabase.auth.signOut({ scope: 'local' });
+      await Promise.race([
+        supabase.auth.signOut({ scope: 'local' }),
+        new Promise((resolve) => window.setTimeout(resolve, 1500)),
+      ]);
     } catch (error) {
       console.error('Sign out error:', error);
-    } finally {
-      setSession(null);
-      setUser(null);
-      setIsAdminUser(false);
-      setIsDealerUserFlag(false);
-      setDealerId(null);
-      setDealerName(null);
     }
   };
 

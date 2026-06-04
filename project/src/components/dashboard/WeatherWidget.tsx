@@ -21,7 +21,7 @@ interface WeatherData {
   }>;
   description: string;
   windSpeed: number;
-  source: 'openweather' | 'openmeteo';
+  source: 'openweather' | 'openmeteo' | 'fallback';
 }
 
 export function WeatherWidget() {
@@ -56,7 +56,7 @@ export function WeatherWidget() {
       const res = await fetch(url);
       if (!res.ok) throw new Error('Weather fetch failed');
       const data = await res.json();
-      const current = data.current;
+      const current = data.current || {};
       const forecast = (data.daily?.time || []).map((date: string, index: number) => ({
         date,
         rainMm: Number(data.daily?.precipitation_sum?.[index] || 0),
@@ -76,15 +76,15 @@ export function WeatherWidget() {
       };
       const desc = codes[current.weather_code as number] || 'Tiryani Mandal';
       return {
-        temp: Math.round(current.temperature_2m),
-        feelsLike: Math.round(current.temperature_2m),
-        humidity: current.relative_humidity_2m,
-        rain1h: current.precipitation > 0 ? current.precipitation : undefined,
+        temp: Math.round(Number(current.temperature_2m ?? 30)),
+        feelsLike: Math.round(Number(current.temperature_2m ?? 30)),
+        humidity: Number(current.relative_humidity_2m ?? 60),
+        rain1h: Number(current.precipitation ?? 0) > 0 ? Number(current.precipitation) : undefined,
         rainToday: forecast[0]?.rainMm,
         rainChanceToday: forecast[0]?.probability,
         forecast,
         description: desc,
-        windSpeed: Math.round(current.wind_speed_10m),
+        windSpeed: Math.round(Number(current.wind_speed_10m ?? 8)),
         source: 'openmeteo',
       };
     };
@@ -111,7 +111,8 @@ export function WeatherWidget() {
           setWeather(ow);
           setError(null);
         } else {
-          setError('fetch_failed');
+          setWeather(getFallbackWeatherData());
+          setError(null);
         }
       } finally {
         setLoading(false);
@@ -147,9 +148,11 @@ export function WeatherWidget() {
           {t('Live Weather — Tiryani Mandal', 'లైవ్ వాతావరణం — తిర్యాని మండలం')}
         </h3>
         <p className="mt-1 text-sm capitalize text-sky-100">{weather.description}</p>
-        {!openWeatherKey && (
+        {(weather.source === 'fallback' || !openWeatherKey) && (
           <p className="mt-1 text-xs text-sky-200/80">
-            {t('Powered by Open-Meteo (free). Add VITE_OPENWEATHER_API_KEY for OpenWeather.', 'Open-Meteo ద్వారా. OpenWeather కోసం API కీ జోడించండి.')}
+            {weather.source === 'fallback'
+              ? t('Live weather is temporarily unavailable. Showing local fallback estimate.', 'ప్రత్యక్ష వాతావరణం తాత్కాలికంగా అందుబాటులో లేదు. స్థానిక అంచనా చూపిస్తున్నాం.')
+              : t('Powered by Open-Meteo (free). Add VITE_OPENWEATHER_API_KEY for OpenWeather.', 'Open-Meteo ద్వారా. OpenWeather కోసం API కీ జోడించండి.')}
           </p>
         )}
       </div>
@@ -224,4 +227,30 @@ export function WeatherWidget() {
       )}
     </div>
   );
+}
+
+function getFallbackWeatherData(): WeatherData {
+  const today = new Date();
+  const forecast = Array.from({ length: 3 }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() + index);
+    return {
+      date: date.toISOString().slice(0, 10),
+      rainMm: index === 0 ? 0 : 1.5,
+      probability: index === 0 ? 20 : 35,
+      weatherCode: 2,
+    };
+  });
+
+  return {
+    temp: 30,
+    feelsLike: 31,
+    humidity: 62,
+    rainToday: forecast[0].rainMm,
+    rainChanceToday: forecast[0].probability,
+    forecast,
+    description: 'Local estimate',
+    windSpeed: 8,
+    source: 'fallback',
+  };
 }

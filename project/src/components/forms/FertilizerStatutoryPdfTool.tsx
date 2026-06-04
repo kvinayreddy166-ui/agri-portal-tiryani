@@ -444,7 +444,7 @@ function PdfInput({
 
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
-      <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600">{field.label}</span>
+      <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{field.label}</span>
       {field.type === 'textarea' ? (
         <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} className={commonClass} />
       ) : field.type === 'select' ? (

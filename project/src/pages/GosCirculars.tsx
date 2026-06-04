@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  FileText,
   Plus,
   Trash2,
   Upload,
@@ -12,7 +11,6 @@ import { useLanguage } from '../context/LanguageContext';
 import { uploadPortalFile } from '../lib/uploadFile';
 import { GosCircular } from '../types/database';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 
 const emptyForm = {
   title: '',
@@ -246,38 +244,32 @@ export function GosCirculars() {
             {documents.map((doc) => (
               <article
                 key={doc.id}
-                className="group flex items-center gap-2 px-2 py-1.5 transition hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                className="group flex min-w-0 items-center gap-2 px-2 py-1.5 transition hover:bg-gray-50 dark:hover:bg-slate-800/50"
               >
-                <FileTypeIcon fileName={doc.file_name || doc.title} fileType={doc.file_type} fileUrl={doc.file_url} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="truncate text-sm font-black text-gray-950 dark:text-white">{doc.title}</h3>
-                    {isAdminUser && (
-                      <button
-                        onClick={() => handleDelete(doc.id)}
-                        className="rounded-md p-1 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/40"
-                        aria-label="Delete document"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
+                <div className="min-w-0 flex-1 truncate text-sm font-black text-gray-950 dark:text-white">
+                  {doc.title}
                   {doc.issued_date && (
-                    <p className="text-xs text-gray-500 dark:text-slate-400">
-                      {t('Issued', 'జారీ')}: {new Date(doc.issued_date).toLocaleDateString()}
-                    </p>
+                    <span className="ml-2 text-xs font-semibold text-gray-500 dark:text-slate-400">
+                      {new Date(doc.issued_date).toLocaleDateString()}
+                    </span>
                   )}
-                  <div className="mt-1 flex justify-end">
-                    <FileActionButtons fileUrl={doc.file_url} fileName={doc.title} fileType={doc.file_type} size="sm" />
-                  </div>
                 </div>
+                <FileActionButtons fileUrl={doc.file_url} fileName={doc.title} fileType={doc.file_type} size="sm" />
+                {isAdminUser && (
+                  <button
+                    onClick={() => handleDelete(doc.id)}
+                    className="rounded-md p-1 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/40"
+                    aria-label="Delete document"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </article>
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center">
-            <FileText className="mx-auto mb-3 h-10 w-10 text-gray-300" />
-            <p className="font-semibold text-gray-600">
+          <div className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center">
+            <p className="text-sm font-semibold text-gray-600">
               {t('No GOs or circulars uploaded yet', 'ఇంకా జీ.ఓలు లేదా సర్క్యులర్లు అప్లోడ్ కాలేదు')}
             </p>
           </div>

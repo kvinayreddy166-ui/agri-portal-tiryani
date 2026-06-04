@@ -115,6 +115,7 @@ export function Login() {
   const [pdfToolOpen, setPdfToolOpen] = useState(false);
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installMessage, setInstallMessage] = useState<string | null>(null);
   const [grievance, setGrievance] = useState({
     farmer_name: '',
     mobile: '',
@@ -335,12 +336,17 @@ export function Login() {
 
   const handleInstallApp = async () => {
     if (installPrompt) {
-      await installPrompt.prompt();
-      await installPrompt.userChoice;
-      setInstallPrompt(null);
+      try {
+        await installPrompt.prompt();
+        await installPrompt.userChoice;
+        setInstallPrompt(null);
+        setInstallMessage(null);
+      } catch {
+        setInstallMessage(t('Use your browser menu and choose Install app.', 'బ్రౌజర్ మెనూలో Install app ఎంచుకోండి.'));
+      }
       return;
     }
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    setInstallMessage(t('Use your browser menu and choose Install app.', 'బ్రౌజర్ మెనూలో Install app ఎంచుకోండి.'));
   };
 
   if (showStatutoryForms) {
@@ -707,8 +713,13 @@ export function Login() {
         className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-black text-white shadow-xl shadow-slate-950/20 transition hover:bg-slate-800"
       >
         <Smartphone className="h-5 w-5" />
-        Install Tiryani Portal App
+        Install App
       </button>
+      {installMessage && (
+        <div className="fixed bottom-20 left-4 z-50 max-w-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xl shadow-slate-950/15">
+          {installMessage}
+        </div>
+      )}
 
       <button
         type="button"

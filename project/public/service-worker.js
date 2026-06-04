@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tiryani-portal-v2';
+const CACHE_VERSION = 'tiryani-portal-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -8,12 +8,6 @@ const STATIC_ASSETS = [
   '/manifest.webmanifest',
   '/images/agri-emblem-192.png',
   '/images/agri-emblem-512.png',
-  '/images/paddy.jpg',
-  '/images/cotton.jpg',
-  '/images/maize.jpg',
-  '/images/pulses.jpg',
-  '/images/oilseeds.jpg',
-  '/data/crop-intelligence.json',
 ];
 
 self.addEventListener('install', (event) => {
