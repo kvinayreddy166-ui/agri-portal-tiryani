@@ -13,6 +13,7 @@ const cropOptions = ['Paddy', 'Cotton', 'Maize', 'Redgram', 'Greengram', 'Blackg
 const natureOptions = ['Seed sample', 'Truthfully Labelled Seed', 'Certified Seed', 'Foundation Seed', 'Hybrid Seed', 'Other'];
 const classOptions = ['Breeder Seed', 'Foundation Seed', 'Certified Seed', 'Truthfully Labelled Seed', 'Hybrid Seed', 'Other'];
 const testOptions = ['Germination, Purity & Moisture Test', 'BT Protein Test', 'Genetic Purity Test', 'Seed Health Test', 'Complete Analysis', 'Other'];
+const designationOptions = ['Mandal Agriculture Officer', 'Asst. Director of Agriculture'];
 const labOptions = [
   {
     id: 'seed-testing',
@@ -169,36 +170,30 @@ export function SeedForms() {
   };
 
   return (
-    <section className="rounded-lg border border-emerald-100 bg-white p-4 shadow-sm">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Seed sampling PDF</p>
-          <h2 className="truncate text-lg font-black text-slate-950">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
-        </div>
-        <div className="flex gap-2">
-          <button type="button" onClick={saveDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
+    <section className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm">
+      <div className="mb-2 flex justify-end gap-2">
+          <button type="button" onClick={saveDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">
             <Save className="h-4 w-4" /> Save Draft
           </button>
-          <button type="button" onClick={resetDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
+          <button type="button" onClick={resetDraft} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">
             <RotateCcw className="h-4 w-4" /> Reset
           </button>
-        </div>
       </div>
 
-      <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-        <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">Multiple user drafts</p>
+      <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+        <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-slate-600">Multiple user drafts</p>
         <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
           <input
             type="text"
             value={draftName}
             onChange={(event) => setDraftName(event.target.value)}
             placeholder="Draft name / officer / dealer"
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+            className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
           />
           <select
             value=""
             onChange={(event) => loadDraft(event.target.value)}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+            className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
           >
             <option value="">Load saved draft...</option>
             {savedDrafts.map((draft) => (
@@ -210,7 +205,7 @@ export function SeedForms() {
           <button
             type="button"
             onClick={deleteDraft}
-            className="rounded-lg border border-red-200 px-3 py-2 text-sm font-black text-red-700 hover:bg-red-50"
+            className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-black text-red-700 hover:bg-red-50"
           >
             Delete
           </button>
@@ -223,10 +218,10 @@ export function SeedForms() {
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-2">
         <Card title="Officer / From Details">
           <Input label="From officer name" value={form.officerName} onChange={(value) => setField('officerName', value)} />
-          <Input label="From designation" value={form.designation} onChange={(value) => setField('designation', value)} />
+          <Select label="From designation" value={form.designation} onChange={(value) => setField('designation', value)} options={designationOptions.map(toOption)} />
           <Input label="From office address" value={form.officeAddress} onChange={(value) => setField('officeAddress', value)} textarea />
           <div className="grid gap-2 sm:grid-cols-2">
             <Input label="Form place" value={form.place} onChange={(value) => setField('place', value)} />
@@ -277,8 +272,8 @@ export function SeedForms() {
         </Card>
       </div>
 
-      <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-4">
-        <p className="mb-3 text-sm font-black uppercase tracking-wide text-slate-600">PDF Generation</p>
+      <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
+        <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-600">PDF Generation</p>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {isCottonCrop && <PdfAction label="Form II" onPreview={() => preview('II')} onDownload={() => generate('II')} />}
           <PdfAction label="Form V" onPreview={() => preview('V')} onDownload={() => generate('V')} />
@@ -295,31 +290,31 @@ export function SeedForms() {
 
 function Card({ title, children }) {
   return (
-    <div className="rounded-lg border border-slate-100 bg-white p-4">
-      <h3 className="mb-3 text-base font-black text-slate-900">{title}</h3>
-      <div className="grid gap-3">{children}</div>
+    <div className="rounded-lg border border-slate-100 bg-white p-3 shadow-sm">
+      <h3 className="mb-2 text-sm font-black text-slate-900">{title}</h3>
+      <div className="grid gap-2">{children}</div>
     </div>
   );
 }
 
 function PreviewCard({ title, lines }) {
   return (
-    <div className="rounded-lg border border-dashed border-emerald-200 bg-emerald-50 p-3">
-      <p className="text-sm font-black text-emerald-900">{title}</p>
+    <div className="rounded-lg border border-dashed border-emerald-200 bg-emerald-50 p-2.5">
+      <p className="text-xs font-black text-emerald-900">{title}</p>
       {lines.map((line) => (
-        <p key={line} className="text-sm font-semibold text-emerald-800">{line}</p>
+        <p key={line} className="text-xs font-semibold text-emerald-800">{line}</p>
       ))}
     </div>
   );
 }
 
 function Input({ label, value, onChange, type = 'text', textarea = false }) {
-  const className = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-base font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+  const className = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
   return (
     <label>
-      <span className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600">{label}</span>
+      <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600">{label}</span>
       {textarea ? (
-        <textarea rows={3} value={value} onChange={(event) => onChange(event.target.value)} className={className} />
+        <textarea rows={2} value={value} onChange={(event) => onChange(event.target.value)} className={className} />
       ) : (
         <input type={type} value={value} onChange={(event) => onChange(event.target.value)} className={className} />
       )}
@@ -330,8 +325,9 @@ function Input({ label, value, onChange, type = 'text', textarea = false }) {
 function Select({ label, value, onChange, options }) {
   return (
     <label>
-      <span className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600">{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-base font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+      <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600">{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+        <option value="">Select...</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>{option.label}</option>
         ))}
