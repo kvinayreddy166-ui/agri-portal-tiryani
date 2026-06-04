@@ -293,32 +293,30 @@ export function SeedForms() {
       </div>
 
       {previewUrl && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 p-2 sm:p-4">
-          <div className="flex h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
-              <div className="flex items-center gap-2 text-sm font-black text-slate-700">
-                <FileText className="h-4 w-4 text-emerald-700" />
-                Seed PDF Preview
-              </div>
-              <div className="flex items-center gap-1">
-                <a href={previewUrl} target="_blank" rel="noreferrer" className="rounded-md px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-100">
-                  Open
-                </a>
-                <button
-                  type="button"
-                  onClick={() => {
-                    URL.revokeObjectURL(previewUrl);
-                    setPreviewUrl('');
-                  }}
-                  className="rounded-md p-2 text-slate-600 hover:bg-slate-100"
-                  aria-label="Close seed PDF preview"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
+        <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
+            <div className="flex items-center gap-2 text-sm font-black text-slate-700">
+              <FileText className="h-4 w-4 text-emerald-700" />
+              Inline Seed PDF Preview
             </div>
-            <iframe key={previewUrl} src={previewUrl} title="Seed PDF preview" className="min-h-0 flex-1 border-0 bg-white" />
+            <div className="flex items-center gap-1">
+              <a href={previewUrl} target="_blank" rel="noreferrer" className="rounded-md px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-100">
+                Open
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  URL.revokeObjectURL(previewUrl);
+                  setPreviewUrl('');
+                }}
+                className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100"
+                aria-label="Close seed PDF preview"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
+          <iframe key={previewUrl} src={previewUrl} title="Seed PDF preview" className="h-[70vh] min-h-[420px] w-full border-0 bg-white" />
         </div>
       )}
     </section>
@@ -385,13 +383,16 @@ function SelectWithOther({ label, valueKey, otherKey, form, setField, options })
 
 function PdfAction({ label, onPreview, onDownload, primary = false }) {
   return (
-    <div className={`rounded-lg border p-3 ${primary ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
-      <p className="mb-2 text-sm font-black text-slate-800">{label}</p>
-      <div className="grid grid-cols-2 gap-2">
+    <div className={`rounded-lg border p-2 ${primary ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <p className="truncate text-xs font-black text-slate-800">{label}</p>
+        {primary && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black uppercase text-emerald-800">All</span>}
+      </div>
+      <div className="grid grid-cols-2 gap-1.5">
         <button
           type="button"
           onClick={onPreview}
-          className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-2 text-sm font-black text-emerald-800 hover:bg-emerald-50"
+          className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-xs font-black text-emerald-800 hover:bg-emerald-50"
         >
           <Eye className="h-3.5 w-3.5" />
           Preview
@@ -399,7 +400,7 @@ function PdfAction({ label, onPreview, onDownload, primary = false }) {
         <button
           type="button"
           onClick={onDownload}
-          className={`inline-flex items-center justify-center gap-1 rounded-md px-2 py-2 text-sm font-black ${
+          className={`inline-flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs font-black ${
             primary ? 'bg-emerald-700 text-white hover:bg-emerald-800' : 'bg-slate-900 text-white hover:bg-slate-800'
           }`}
         >
