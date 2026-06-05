@@ -29,7 +29,20 @@ const categoryLabels = {
   fertilizers: 'Fertilizers',
 };
 
-const financialYears = ['2025-2026', '2026-2027', '2027-2028', '2028-2029', '2029-2030'];
+const currentFinancialYear = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const start = now.getMonth() >= 3 ? year : year - 1;
+  return `${start}-${start + 1}`;
+};
+
+const financialYearOptions = () => {
+  const currentStart = Number(currentFinancialYear().slice(0, 4));
+  return Array.from({ length: 5 }, (_, index) => {
+    const start = currentStart - index;
+    return `${start}-${start + 1}`;
+  });
+};
 
 const emptySample = {
   dealer_name: '',
@@ -42,7 +55,7 @@ const emptySample = {
 
 export function QualityControl({ category }: QualityControlProps) {
   const { isAdminUser, user } = useAuth();
-  const [financialYear, setFinancialYear] = useState(financialYears[0]);
+  const [financialYear, setFinancialYear] = useState(currentFinancialYear());
   const [samples, setSamples] = useState<QualityControlSample[]>([]);
   const [target, setTarget] = useState<QualityControlTarget | null>(null);
   const [targetCount, setTargetCount] = useState(0);
@@ -223,7 +236,7 @@ export function QualityControl({ category }: QualityControlProps) {
               onChange={(e) => setFinancialYear(e.target.value)}
               className="w-full rounded-lg border border-white/20 bg-white px-3 py-2 font-bold text-gray-950 outline-none"
             >
-              {financialYears.map((year) => (
+              {financialYearOptions().map((year) => (
                 <option key={year} value={year}>{year}</option>
               ))}
             </select>

@@ -325,7 +325,7 @@ export function DealerStockPortal() {
           >
             <span className="flex items-center gap-2">
               <Truck className="h-5 w-5" />
-              <span className="text-base font-black uppercase">Fertilizer Receipts</span>
+              <span className="text-sm font-black text-red-700 dark:text-red-200">Fertilizer Receipts</span>
             </span>
             <ChevronDown className={`h-5 w-5 transition ${showFertilizerReceipts ? 'rotate-180' : ''}`} />
           </button>

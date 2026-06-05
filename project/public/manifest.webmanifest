@@ -1,6 +1,7 @@
 {
   "name": "Tiryani Agriculture Portal",
   "short_name": "Tiryani Agri",
+  "id": "/",
   "description": "Information Management System for Tiryani Agriculture Office.",
   "start_url": "/",
   "scope": "/",

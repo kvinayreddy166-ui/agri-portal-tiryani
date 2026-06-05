@@ -116,6 +116,9 @@ export function Login() {
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installMessage, setInstallMessage] = useState<string | null>(null);
+  const [appInstalled, setAppInstalled] = useState(
+    () => window.matchMedia?.('(display-mode: standalone)').matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
+  );
   const [grievance, setGrievance] = useState({
     farmer_name: '',
     mobile: '',
@@ -183,11 +186,22 @@ export function Login() {
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPrompt(event as BeforeInstallPromptEvent);
+      setInstallMessage(null);
+    };
+
+    const handleAppInstalled = () => {
+      setAppInstalled(true);
+      setInstallPrompt(null);
+      setInstallMessage(t('App installed successfully.', 'App installed successfully.'));
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, []);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, [t]);
 
   useEffect(() => {
     if (!showStatutoryForms) return;
@@ -335,18 +349,42 @@ export function Login() {
   };
 
   const handleInstallApp = async () => {
+    if (appInstalled) {
+      setInstallMessage(t('App is already installed.', 'App is already installed.'));
+      return;
+    }
+
     if (installPrompt) {
       try {
         await installPrompt.prompt();
-        await installPrompt.userChoice;
+        const choice = await installPrompt.userChoice;
         setInstallPrompt(null);
-        setInstallMessage(null);
+        setInstallMessage(
+          choice.outcome === 'accepted'
+            ? t('Installing app...', 'Installing app...')
+            : t('Install cancelled. Tap Install App again when the browser prompt is available.', 'Install cancelled. Tap Install App again when the browser prompt is available.')
+        );
       } catch {
         setInstallMessage(t('Use your browser menu and choose Install app.', 'బ్రౌజర్ మెనూలో Install app ఎంచుకోండి.'));
       }
       return;
     }
-    setInstallMessage(t('Use your browser menu and choose Install app.', 'బ్రౌజర్ మెనూలో Install app ఎంచుకోండి.'));
+    if ('serviceWorker' in navigator) {
+      try {
+        await navigator.serviceWorker.register('/service-worker.js');
+        await navigator.serviceWorker.ready;
+      } catch (error) {
+        console.warn('Service worker not ready for install:', error);
+      }
+    }
+
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (!isIos) {
+      setInstallMessage(t('Use your browser menu and choose Install app. If it is not visible, refresh once and tap Install App again.', 'Use your browser menu and choose Install app. If it is not visible, refresh once and tap Install App again.'));
+      return;
+    }
+
+    setInstallMessage(t('On iPhone/iPad: tap Share, then Add to Home Screen.', 'On iPhone/iPad: tap Share, then Add to Home Screen.'));
   };
 
   if (showStatutoryForms) {

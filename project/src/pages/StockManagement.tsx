@@ -47,6 +47,9 @@ export function StockManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [financialYear, setFinancialYear] = useState(currentFinancialYear());
+  const [dealerFilter, setDealerFilter] = useState('all');
+  const [fertilizerFilter, setFertilizerFilter] = useState('all');
+  const [wholesalerFilter, setWholesalerFilter] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     dealer_id: '',
@@ -138,16 +141,39 @@ export function StockManagement() {
     }
   };
 
+  const financialYearStock = useMemo(() => {
+    return stock.filter((item) => dateInFinancialYear(item.invoice_date || item.last_updated, financialYear));
+  }, [financialYear, stock]);
+
+  const dealerOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const item of financialYearStock) {
+      map.set(item.dealer_id, item.dealer_name || 'Unknown dealer');
+    }
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [financialYearStock]);
+
+  const wholesalerOptions = useMemo(() => {
+    const names = new Set(
+      financialYearStock
+        .map((item) => (item.wholesaler_name || '').trim())
+        .filter(Boolean)
+    );
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
+  }, [financialYearStock]);
+
   const filteredStock = useMemo(() => {
     const search = searchTerm.toLowerCase();
-    return stock.filter((item) => (
-      dateInFinancialYear(item.invoice_date || item.last_updated, financialYear) &&
+    return financialYearStock.filter((item) => (
+      (dealerFilter === 'all' || item.dealer_id === dealerFilter) &&
+      (fertilizerFilter === 'all' || item.fertilizer_type === fertilizerFilter) &&
+      (wholesalerFilter === 'all' || (item.wholesaler_name || '').trim() === wholesalerFilter) &&
       ((item.dealer_name || '').toLowerCase().includes(search) ||
       item.fertilizer_type.toLowerCase().includes(search) ||
       (item.invoice_number || '').toLowerCase().includes(search) ||
       (item.wholesaler_name || '').toLowerCase().includes(search))
     ));
-  }, [financialYear, searchTerm, stock]);
+  }, [dealerFilter, fertilizerFilter, financialYearStock, searchTerm, wholesalerFilter]);
 
   const fertilizerSummary = useMemo(() => fertilizers.map((fertilizer) => {
     const items = filteredStock.filter((item) => item.fertilizer_type === fertilizer);
@@ -161,6 +187,44 @@ export function StockManagement() {
 
   const visibleSummary = fertilizerSummary.filter((item) => item.entries > 0);
   const totalReceipts = visibleSummary.reduce((sum, item) => sum + item.receipts, 0);
+  const dealerSummary = useMemo(() => {
+    const map = new Map<string, { dealer: string; receipts: number; entries: number; fertilizers: Set<string> }>();
+    for (const item of filteredStock) {
+      const key = item.dealer_id || item.dealer_name || 'unknown';
+      const current = map.get(key) || {
+        dealer: item.dealer_name || 'Unknown dealer',
+        receipts: 0,
+        entries: 0,
+        fertilizers: new Set<string>(),
+      };
+      current.receipts += Number(item.quantity_mts || 0);
+      current.entries += 1;
+      current.fertilizers.add(item.fertilizer_type);
+      map.set(key, current);
+    }
+    return Array.from(map.values())
+      .map((item) => ({ ...item, fertilizerCount: item.fertilizers.size }))
+      .sort((a, b) => b.receipts - a.receipts);
+  }, [filteredStock]);
+  const wholesalerSummary = useMemo(() => {
+    const map = new Map<string, { wholesaler: string; receipts: number; entries: number; dealers: Set<string> }>();
+    for (const item of filteredStock) {
+      const key = (item.wholesaler_name || 'Not specified').trim() || 'Not specified';
+      const current = map.get(key) || {
+        wholesaler: key,
+        receipts: 0,
+        entries: 0,
+        dealers: new Set<string>(),
+      };
+      current.receipts += Number(item.quantity_mts || 0);
+      current.entries += 1;
+      current.dealers.add(item.dealer_id || item.dealer_name || 'unknown');
+      map.set(key, current);
+    }
+    return Array.from(map.values())
+      .map((item) => ({ ...item, dealerCount: item.dealers.size }))
+      .sort((a, b) => b.receipts - a.receipts);
+  }, [filteredStock]);
   const chartRows = visibleSummary.map((item) => ({
     fertilizer: item.fertilizer,
     Receipts: Number(item.receipts.toFixed(2)),
@@ -222,8 +286,47 @@ export function StockManagement() {
               ))}
             </select>
           </label>
+          <label className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+            Dealer
+            <select
+              value={dealerFilter}
+              onChange={(e) => setDealerFilter(e.target.value)}
+              className="max-w-44 bg-transparent text-slate-950 outline-none dark:text-white"
+            >
+              <option value="all">All dealers</option>
+              {dealerOptions.map(([dealerId, dealerName]) => (
+                <option key={dealerId} value={dealerId}>{titleCase(dealerName)}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+            Fertilizer
+            <select
+              value={fertilizerFilter}
+              onChange={(e) => setFertilizerFilter(e.target.value)}
+              className="max-w-40 bg-transparent text-slate-950 outline-none dark:text-white"
+            >
+              <option value="all">All fertilizers</option>
+              {fertilizers.map((fertilizer) => (
+                <option key={fertilizer} value={fertilizer}>{fertilizer}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+            Wholesaler
+            <select
+              value={wholesalerFilter}
+              onChange={(e) => setWholesalerFilter(e.target.value)}
+              className="max-w-44 bg-transparent text-slate-950 outline-none dark:text-white"
+            >
+              <option value="all">All wholesalers</option>
+              {wholesalerOptions.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          </label>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            Showing {filteredStock.length} of {stock.length} receipt entries
+            Showing {filteredStock.length} of {financialYearStock.length} receipt entries
           </p>
         </div>
       </div>
@@ -302,29 +405,54 @@ export function StockManagement() {
         </div>
       ) : (
         <>
-          <section className="grid gap-3 md:grid-cols-[16rem_1fr]">
-            <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-              <p className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Total Receipts</p>
-              <p className="mt-1 text-2xl font-black text-slate-950 dark:text-white">{totalReceipts.toFixed(2)} MT</p>
-              <p className="mt-1 text-xs font-semibold text-slate-500">{visibleSummary.length} fertilizer types</p>
+          <section className="grid gap-2 md:grid-cols-[13rem_1fr]">
+            <div className="rounded-lg border border-red-100 bg-white p-2.5 shadow-sm dark:border-red-900/60 dark:bg-slate-900">
+              <p className="text-[11px] font-black uppercase tracking-wide text-red-600 dark:text-red-300">Total Receipts</p>
+              <p className="mt-1 text-xl font-black text-slate-950 dark:text-white">{totalReceipts.toFixed(2)} MT</p>
+              <p className="mt-0.5 text-[11px] font-semibold text-slate-500">{visibleSummary.length} fertilizer types</p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
-                <BarChart3 className="h-5 w-5 text-emerald-600" />
+            <div className="rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <h2 className="mb-1.5 flex items-center gap-2 text-xs font-black text-slate-950 dark:text-white">
+                <BarChart3 className="h-4 w-4 text-red-600" />
                 Fertilizer-wise Receipts Chart
               </h2>
-              <div className="h-40">
+              <div className="h-28">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartRows} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
+                  <BarChart data={chartRows} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="fertilizer" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
+                    <XAxis dataKey="fertilizer" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
                     <Tooltip formatter={(value) => `${Number(value ?? 0).toFixed(2)} MT`} />
-                    <Bar dataKey="Receipts" fill="#059669" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Receipts" fill="#dc2626" radius={[4, 4, 0, 0]} barSize={18} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
+          </section>
+
+          <section className="grid gap-3 lg:grid-cols-2">
+            <GroupedTotalsTable
+              title="Dealer-wise Receipts Total"
+              firstColumn="Dealer"
+              secondColumn="Fertilizers"
+              rows={dealerSummary.map((item) => ({
+                name: titleCase(item.dealer),
+                receipts: item.receipts,
+                entries: item.entries,
+                count: item.fertilizerCount,
+              }))}
+            />
+            <GroupedTotalsTable
+              title="Wholesaler-wise Receipts Total"
+              firstColumn="Wholesaler"
+              secondColumn="Dealers"
+              rows={wholesalerSummary.map((item) => ({
+                name: item.wholesaler,
+                receipts: item.receipts,
+                entries: item.entries,
+                count: item.dealerCount,
+              }))}
+            />
           </section>
 
           <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
@@ -410,5 +538,55 @@ export function StockManagement() {
         </>
       )}
     </div>
+  );
+}
+
+function GroupedTotalsTable({
+  title,
+  firstColumn,
+  secondColumn,
+  rows,
+}: {
+  title: string;
+  firstColumn: string;
+  secondColumn: string;
+  rows: { name: string; receipts: number; entries: number; count: number }[];
+}) {
+  return (
+    <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div className="border-b border-slate-100 px-3 py-2 dark:border-slate-800">
+        <h2 className="text-sm font-black text-slate-950 dark:text-white">{title}</h2>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[440px] text-sm">
+          <thead className="bg-slate-50 text-[11px] uppercase text-slate-500 dark:bg-slate-800">
+            <tr>
+              <th className="px-3 py-2 text-left">{firstColumn}</th>
+              <th className="px-3 py-2 text-right">Receipts (MT)</th>
+              <th className="px-3 py-2 text-right">{secondColumn}</th>
+              <th className="px-3 py-2 text-right">Entries</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {rows.length > 0 ? (
+              rows.map((item) => (
+                <tr key={item.name}>
+                  <td className="px-3 py-2 font-black text-slate-950 dark:text-white">{item.name}</td>
+                  <td className="px-3 py-2 text-right font-black text-red-700 dark:text-red-300">{item.receipts.toFixed(2)}</td>
+                  <td className="px-3 py-2 text-right">{item.count}</td>
+                  <td className="px-3 py-2 text-right">{item.entries}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="px-3 py-4 text-center text-sm font-semibold text-slate-500">
+                  No matching receipts.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }

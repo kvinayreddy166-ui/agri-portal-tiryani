@@ -63,7 +63,7 @@ export function StockInventory() {
   const { t, language } = useLanguage();
   const [rows, setRows] = useState<InventoryRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState<StockCategory | 'all'>('all');
+  const [category, setCategory] = useState<StockCategory>('fertilizer');
   const [reportDate, setReportDate] = useState(currentReportDate());
   const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
   const [reportMonth, setReportMonth] = useState(reportDate.slice(0, 7));
@@ -89,9 +89,7 @@ export function StockInventory() {
         query = query.eq('report_month', reportMonth);
       }
 
-      if (category !== 'all') {
-        query = query.eq('category', category);
-      }
+      query = query.eq('category', category);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -238,13 +236,6 @@ export function StockInventory() {
             className="rounded-xl border border-slate-300 px-4 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
           />
         )}
-        <button
-          type="button"
-          onClick={() => setCategory('all')}
-          className={`rounded-xl px-4 py-2 text-sm font-bold ${category === 'all' ? 'bg-emerald-700 text-white' : 'bg-slate-100 dark:bg-slate-800'}`}
-        >
-          {t('All', 'All')}
-        </button>
         {STOCK_CATEGORIES.map((item) => (
           <button
             key={item.id}
@@ -270,7 +261,7 @@ export function StockInventory() {
             ))}
           </select>
         </label>
-        {(category === 'all' || category === 'fertilizer') && (
+        {category === 'fertilizer' && (
           <label className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
             {t('Fertilizer unit', 'Fertilizer unit')}
             <select
@@ -283,7 +274,7 @@ export function StockInventory() {
             </select>
           </label>
         )}
-        {(category === 'all' || category === 'fertilizer') && (
+        {category === 'fertilizer' && (
           <label className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
             {t('Fertilizer', 'Fertilizer')}
             <select
@@ -300,7 +291,7 @@ export function StockInventory() {
         )}
       </div>
 
-      {(category === 'all' || category === 'fertilizer') && (
+      {category === 'fertilizer' && (
         <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
             <BarChart3 className="h-5 w-5 text-emerald-600" />
