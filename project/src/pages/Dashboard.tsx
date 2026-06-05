@@ -313,8 +313,8 @@ export function Dashboard() {
             </h2>
             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
               {t(
-                'Daily dealer entries: summed sales and closing balance in MTS',
-                'Daily dealer entries: summed sales and closing balance in MTS'
+                'Fertilizer availability from dealer daily closing balance in MTS',
+                'Fertilizer availability from dealer daily closing balance in MTS'
               )}
             </p>
           </div>
@@ -368,31 +368,14 @@ export function Dashboard() {
                     {status}
                   </span>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-lg bg-white/80 p-2 dark:bg-slate-950/30">
-                    <p className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">
-                      {t('Sales', 'Sales')}
-                    </p>
-                    <p className="text-lg font-black tracking-tight text-gray-950 dark:text-white">
-                      {fertilizer.sales_mts.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                    <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">MTS</p>
-                  </div>
-                  <div className="rounded-lg bg-white/80 p-2 dark:bg-slate-950/30">
-                    <p className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">
-                      {t('Closing', 'Closing')}
-                    </p>
-                    <p className="text-lg font-black tracking-tight text-gray-950 dark:text-white">
-                      {fertilizer.closing_mts.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                    <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">MTS</p>
-                  </div>
+                <div className="flex items-end justify-between gap-3">
+                  <p className="text-2xl font-black tracking-tight text-gray-950 dark:text-white">
+                    {fertilizer.quantity_available.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </p>
+                  <p className="mb-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">MTS</p>
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-700">
                   <div

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Edit2, Package, Plus, Save, Search, Trash2, TrendingUp, X } from 'lucide-react';
+import { Package, Plus, Search, Trash2, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Dealer, DealerStockAllocation } from '../types/database';
@@ -15,7 +15,6 @@ export function StockManagement() {
   const [stock, setStock] = useState<DealerStockAllocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     dealer_id: '',
@@ -90,30 +89,6 @@ export function StockManagement() {
     }
   };
 
-  const handleUpdate = async (id: string) => {
-    const item = stock.find((row) => row.id === id);
-    if (!item) return;
-
-    try {
-      const { error } = await supabase
-        .from('dealer_stock_allocation')
-        .update({
-          fertilizer_type: item.fertilizer_type,
-          quantity_mts: item.quantity_mts,
-          last_updated: new Date().toISOString(),
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-      await syncFertilizerStockTable();
-      setEditingId(null);
-      fetchData();
-    } catch (error) {
-      console.error('Error updating dealer-wise stock:', error);
-      alert('Failed to update dealer-wise stock.');
-    }
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this dealer-wise stock entry?')) return;
 
@@ -130,12 +105,6 @@ export function StockManagement() {
       console.error('Error deleting dealer-wise stock:', error);
       alert('Failed to delete stock entry.');
     }
-  };
-
-  const updateLocalStock = (id: string, field: keyof DealerStockAllocation, value: string | number) => {
-    setStock((currentStock) =>
-      currentStock.map((item) => (item.id === id ? { ...item, [field]: value } : item))
-    );
   };
 
   const filteredStock = stock.filter((item) => {
@@ -256,121 +225,61 @@ export function StockManagement() {
         </div>
       )}
 
-      <section className="portal-card overflow-hidden p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-sm">
-            <thead className="bg-slate-900 text-white">
-              <tr>
-                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Dealer</th>
-                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Location</th>
-                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Fertilizer</th>
-                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Quantity</th>
-                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Wholesaler</th>
-                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Invoice</th>
-                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Invoice Date</th>
-                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Last Updated</th>
-                {isAdminUser && <th className="w-24 px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Actions</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {filteredStock.map((item) => (
-                <tr key={item.id} className="transition hover:bg-emerald-50 dark:hover:bg-emerald-950/30">
-                  <td className="px-3 py-2 font-bold text-slate-950 dark:text-white">{item.dealer_name}</td>
-                  <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{item.dealer_location || '-'}</td>
-                  <td className="px-3 py-2">
-                    {editingId === item.id && isAdminUser ? (
-                      <select
-                        value={item.fertilizer_type}
-                        onChange={(e) => updateLocalStock(item.id, 'fertilizer_type', e.target.value)}
-                        className="rounded-md border border-gray-300 px-2 py-1 text-sm outline-none focus:border-emerald-500"
-                      >
-                        {fertilizers.map((fertilizer) => (
-                          <option key={fertilizer} value={fertilizer}>{fertilizer}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">
-                        {item.fertilizer_type}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    {editingId === item.id && isAdminUser ? (
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.quantity_mts}
-                        onChange={(e) => updateLocalStock(item.id, 'quantity_mts', parseFloat(e.target.value) || 0)}
-                        className="w-24 rounded-md border border-gray-300 px-2 py-1 text-sm outline-none focus:border-emerald-500"
-                      />
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 font-black text-slate-950 dark:text-white">
-                        <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
-                        {Number(item.quantity_mts || 0).toFixed(2)} MTS
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{item.wholesaler_name || '-'}</td>
-                  <td className="px-3 py-2 font-bold text-slate-700 dark:text-slate-200">{item.invoice_number || '-'}</td>
-                  <td className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">
-                    {item.invoice_date ? new Date(item.invoice_date).toLocaleDateString() : '-'}
-                  </td>
-                  <td className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">
-                    {new Date(item.last_updated).toLocaleDateString()}
-                  </td>
-                  {isAdminUser && (
-                    <td className="px-3 py-2">
-                      {editingId === item.id ? (
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => handleUpdate(item.id)}
-                            className="rounded-md p-1.5 text-emerald-700 hover:bg-emerald-100"
-                            aria-label="Save stock"
-                          >
-                            <Save className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => setEditingId(null)}
-                            className="rounded-md p-1.5 text-gray-600 hover:bg-gray-100"
-                            aria-label="Cancel editing"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
+      {filteredStock.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-600">
+          <Package className="mx-auto mb-3 h-10 w-10 text-gray-300" />
+          <p className="font-semibold text-slate-600 dark:text-slate-300">No dealer-wise stock entries found.</p>
+        </div>
+      ) : (
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {fertilizers.map((fertilizer) => {
+            const items = filteredStock.filter((item) => item.fertilizer_type === fertilizer);
+            if (items.length === 0) return null;
+            const total = items.reduce((sum, item) => sum + Number(item.quantity_mts || 0), 0);
+            return (
+              <article key={fertilizer} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">{fertilizer}</p>
+                    <p className="text-2xl font-black text-slate-950 dark:text-white">{total.toFixed(2)} MTS</p>
+                  </div>
+                  <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200">
+                    {items.length} dealers
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {items.map((item) => (
+                    <div key={item.id} className="rounded-lg border border-slate-100 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-950/40">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-black text-slate-950 dark:text-white">{item.dealer_name}</p>
+                          <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{item.dealer_location || '-'}</p>
                         </div>
-                      ) : (
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => setEditingId(item.id)}
-                            className="rounded-md p-1.5 text-blue-600 hover:bg-blue-50"
-                            aria-label="Edit stock"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="rounded-md p-1.5 text-red-600 hover:bg-red-50"
-                            aria-label="Delete stock"
-                          >
+                        <span className="shrink-0 text-sm font-black text-emerald-700 dark:text-emerald-300">
+                          {Number(item.quantity_mts || 0).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                        <p><span className="font-bold text-slate-500">Wholesaler:</span> {item.wholesaler_name || '-'}</p>
+                        <p><span className="font-bold text-slate-500">Invoice:</span> {item.invoice_number || '-'}</p>
+                        <p><span className="font-bold text-slate-500">Date:</span> {item.invoice_date ? new Date(item.invoice_date).toLocaleDateString() : '-'}</p>
+                        <p><span className="font-bold text-slate-500">Updated:</span> {new Date(item.last_updated).toLocaleDateString()}</p>
+                      </div>
+                      {isAdminUser && (
+                        <div className="mt-2 flex gap-1">
+                          <button onClick={() => handleDelete(item.id)} className="rounded-md p-1.5 text-red-600 hover:bg-red-50" aria-label="Delete stock">
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       )}
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {filteredStock.length === 0 && (
-          <div className="p-12 text-center">
-            <Package className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-            <p className="font-semibold text-slate-600 dark:text-slate-300">No dealer-wise stock entries found.</p>
-          </div>
-        )}
-      </section>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      )}
     </div>
   );
 }

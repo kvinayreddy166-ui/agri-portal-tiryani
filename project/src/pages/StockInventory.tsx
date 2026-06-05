@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FolderOpen, RefreshCw } from 'lucide-react';
+import { BarChart3, FolderOpen, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../context/LanguageContext';
+import { FERTILIZER_TYPES } from '../lib/constants';
 import {
   STOCK_CATEGORIES,
   StockCategory,
@@ -36,6 +37,7 @@ export function StockInventory() {
   const [reportMonth, setReportMonth] = useState(reportDate.slice(0, 7));
   const [expandedDealer, setExpandedDealer] = useState<string | null>(null);
   const [fertilizerQtyUnit, setFertilizerQtyUnit] = useState<'mts' | 'bags'>('mts');
+  const [fertilizerFilter, setFertilizerFilter] = useState('all');
   const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
 
   const fetchData = useCallback(async () => {
@@ -71,12 +73,33 @@ export function StockInventory() {
     void fetchData();
   }, [fetchData]);
 
+  const filteredRows = useMemo(() => {
+    if (fertilizerFilter === 'all') return rows;
+    return rows.filter((row) => row.category !== 'fertilizer' || row.product_type === fertilizerFilter);
+  }, [fertilizerFilter, rows]);
+
+  const fertilizerSummary = useMemo(() => {
+    return FERTILIZER_TYPES.map((fertilizer) => {
+      const lines = rows.filter((row) => row.category === 'fertilizer' && row.product_type === fertilizer);
+      return {
+        fertilizer,
+        sales: lines.reduce((sum, row) => sum + Number(row.sales || 0), 0),
+        closing: lines.reduce((sum, row) => sum + Number(row.closing_balance || 0), 0),
+      };
+    });
+  }, [rows]);
+
+  const highestFertilizerValue = Math.max(
+    ...fertilizerSummary.flatMap((item) => [item.sales, item.closing]),
+    1
+  );
+
   const grouped = useMemo(() => {
     const map = new Map<
       string,
       { dealerName: string; location: string; phone: string; lines: InventoryRow[] }
     >();
-    for (const row of rows) {
+    for (const row of filteredRows) {
       const dealer = row.dealers;
       const key = row.dealer_id;
       if (!map.has(key)) {
@@ -90,7 +113,7 @@ export function StockInventory() {
       map.get(key)!.lines.push(row);
     }
     return Array.from(map.entries()).sort((a, b) => a[1].dealerName.localeCompare(b[1].dealerName));
-  }, [rows]);
+  }, [filteredRows]);
 
   const formatQuantity = (line: InventoryRow, value: number) => {
     if (line.category !== 'fertilizer') return Number(value || 0).toFixed(2);
@@ -193,7 +216,87 @@ export function StockInventory() {
             </select>
           </label>
         )}
+        {(category === 'all' || category === 'fertilizer') && (
+          <label className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
+            {t('Fertilizer', 'Fertilizer')}
+            <select
+              value={fertilizerFilter}
+              onChange={(e) => setFertilizerFilter(e.target.value)}
+              className="bg-transparent font-black text-slate-950 outline-none dark:text-white"
+            >
+              <option value="all">All</option>
+              {FERTILIZER_TYPES.map((fertilizer) => (
+                <option key={fertilizer} value={fertilizer}>{fertilizer}</option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
+
+      {(category === 'all' || category === 'fertilizer') && (
+        <section className="space-y-3">
+          <div className="grid gap-2 md:grid-cols-5">
+            {fertilizerSummary.map((item) => (
+              <div key={item.fertilizer} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <p className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">{item.fertilizer}</p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase text-slate-400">Sales</p>
+                    <p className="text-base font-black text-slate-950 dark:text-white">
+                      {formatFertilizerQuantity(item.sales, item.fertilizer, fertilizerQtyUnit)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase text-slate-400">Closing</p>
+                    <p className="text-base font-black text-emerald-700 dark:text-emerald-300">
+                      {formatFertilizerQuantity(item.closing, item.fertilizer, fertilizerQtyUnit)}
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-1 text-[10px] font-bold text-slate-400">{fertilizerQtyUnit === 'bags' ? 'Bags' : 'MTS'}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
+              <BarChart3 className="h-5 w-5 text-emerald-600" />
+              Fertilizer Sales and Closing Chart
+            </h2>
+            <div className="space-y-2">
+              {fertilizerSummary.map((item) => {
+                const salesWidth = Math.max(2, Math.round((item.sales / highestFertilizerValue) * 100));
+                const closingWidth = Math.max(2, Math.round((item.closing / highestFertilizerValue) * 100));
+                return (
+                  <div key={item.fertilizer} className="grid gap-2 md:grid-cols-[5rem_1fr] md:items-center">
+                    <p className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{item.fertilizer}</p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-12 text-[10px] font-bold text-slate-500">Sales</span>
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                          <div className="h-full rounded-full bg-amber-500" style={{ width: `${salesWidth}%` }} />
+                        </div>
+                        <span className="w-16 text-right text-[10px] font-bold text-slate-500">
+                          {formatFertilizerQuantity(item.sales, item.fertilizer, fertilizerQtyUnit)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-12 text-[10px] font-bold text-slate-500">Closing</span>
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                          <div className="h-full rounded-full bg-emerald-600" style={{ width: `${closingWidth}%` }} />
+                        </div>
+                        <span className="w-16 text-right text-[10px] font-bold text-slate-500">
+                          {formatFertilizerQuantity(item.closing, item.fertilizer, fertilizerQtyUnit)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {loading ? (
         <div className="flex h-48 items-center justify-center">
