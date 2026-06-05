@@ -40,7 +40,26 @@ const supabaseAnonKey = isValidAnonKey(envSupabaseAnonKey)
   ? envSupabaseAnonKey
   : FALLBACK_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const clearPersistedSupabaseAuth = () => {
+  if (typeof window === 'undefined') return;
+
+  for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+    const key = window.localStorage.key(index);
+    if (key?.startsWith('sb-') && key.endsWith('-auth-token')) {
+      window.localStorage.removeItem(key);
+    }
+  }
+};
+
+clearPersistedSupabaseAuth();
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+    persistSession: false,
+  },
+});
 
 export const isAdmin = (email: string | undefined) => {
   return email?.trim().toLowerCase() === 'k.vinayreddy166@gmail.com';

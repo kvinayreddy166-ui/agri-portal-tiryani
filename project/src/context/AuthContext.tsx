@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, isAdmin, isDealerUser, getDealerIdFromUser } from '../lib/supabase';
+import { supabase, isAdmin, isDealerUser, getDealerIdFromUser, clearPersistedSupabaseAuth } from '../lib/supabase';
 import {
   DEALER_DEFAULT_PASSWORD,
   dealerEmailFromPhone,
@@ -246,6 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    clearPersistedSupabaseAuth();
     setSession(null);
     setUser(null);
     setIsAdminUser(false);
@@ -260,6 +261,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ]);
     } catch (error) {
       console.error('Sign out error:', error);
+    } finally {
+      clearPersistedSupabaseAuth();
     }
   };
 

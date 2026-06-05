@@ -13,6 +13,7 @@ interface LayoutProps {
   children: ReactNode;
   currentPage: string;
   onNavigate: (page: string) => void;
+  onSignOut: () => void;
 }
 
 const adminMenuItems = [
@@ -53,9 +54,9 @@ const dealerMenuItems = [
 
 const menuItems = adminMenuItems;
 
-export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
+export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, signOut, isAdminUser, isDealerUser, dealerName } = useAuth();
+  const { user, isAdminUser, isDealerUser, dealerName } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
 
@@ -182,7 +183,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
           </div>
           <button
             type="button"
-            onClick={signOut}
+            onClick={onSignOut}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/90 py-2.5 text-sm font-bold transition hover:bg-red-500"
           >
             <LogOut className="h-4 w-4" />

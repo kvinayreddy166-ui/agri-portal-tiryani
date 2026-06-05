@@ -119,6 +119,18 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState(() => getPageFromUrl());
   const pageRef = useRef(currentPage);
 
+  const returnToLoginPage = useCallback(() => {
+    pageRef.current = 'dashboard';
+    setCurrentPage('dashboard');
+    window.localStorage.removeItem('tiryani-post-login-page');
+    window.history.replaceState({ tiryaniPage: 'dashboard' }, '', window.location.pathname);
+  }, []);
+
+  const handleSignOut = useCallback(() => {
+    returnToLoginPage();
+    void signOut();
+  }, [returnToLoginPage, signOut]);
+
   useEffect(() => {
     pageRef.current = currentPage;
     window.localStorage.setItem('tiryani-current-page', currentPage);
@@ -182,8 +194,7 @@ function AppContent() {
     const resetTimer = () => {
       window.clearTimeout(timeoutId);
       timeoutId = window.setTimeout(() => {
-        navigateToPage('dashboard', { replace: true });
-        void signOut();
+        handleSignOut();
       }, INACTIVITY_SIGN_OUT_MS);
     };
 
@@ -195,7 +206,7 @@ function AppContent() {
       window.clearTimeout(timeoutId);
       activityEvents.forEach((eventName) => window.removeEventListener(eventName, resetTimer));
     };
-  }, [navigateToPage, signOut, user]);
+  }, [handleSignOut, user]);
 
   useEffect(() => {
     if (user && isDealerUser) {
@@ -307,7 +318,7 @@ function AppContent() {
   };
 
   return (
-    <Layout currentPage={currentPage} onNavigate={navigateToPage}>
+    <Layout currentPage={currentPage} onNavigate={navigateToPage} onSignOut={handleSignOut}>
       <Suspense fallback={<PageLoader />}>
         {renderPage()}
       </Suspense>

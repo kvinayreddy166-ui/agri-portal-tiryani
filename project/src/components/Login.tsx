@@ -700,6 +700,7 @@ export function Login() {
             )}
 
             <div className="mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600">
+              <p className="font-black text-emerald-700">version-1.0.1</p>
               <p>© 2026- Tiryani Agri portal- Department of Agriculture, Telangana</p>
               <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
             </div>

@@ -99,9 +99,11 @@ const TITLE_SIZE = 16.3;
 const ROW_LINE_HEIGHT = 5.9;
 const ROW_GAP = 1.7;
 const PARA_LINE_HEIGHT = 6.1;
-const FORM_J_SIGNATURE_GAP = 18;
+const FORM_J_SIGNATURE_GAP = 10;
 const FORM_J_INSPECTOR_SIGNATURE_GAP = 22;
 const FORM_J_PRE_RECEIPT_SIGNATURE_LIFT = 14;
+const FORM_J_RECEIPT_DOWN_SHIFT = 11;
+const FORM_J_SIGNATURE_BOTTOM_CLEARANCE = 16;
 const SIGNATURE_RIGHT_X = PAGE.width - PAGE.marginX - 8;
 
 type PdfCursor = {
@@ -266,10 +268,13 @@ function drawDealerReceipt(cursor: PdfCursor) {
   const compactParaLineHeight = 5.5;
   const receiptTextHeight = receiptLines.length * compactParaLineHeight;
   const receiptHeight = 8 + receiptTextHeight;
-  const signatureY = Math.min(cursor.y + receiptHeight + FORM_J_SIGNATURE_GAP + 3, PAGE.bottom - 11);
+  const signatureY = Math.min(
+    cursor.y + FORM_J_RECEIPT_DOWN_SHIFT + receiptHeight + FORM_J_SIGNATURE_GAP,
+    PAGE.bottom - FORM_J_SIGNATURE_BOTTOM_CLEARANCE
+  );
   const latestY = signatureY - FORM_J_SIGNATURE_GAP - receiptTextHeight - 8;
 
-  cursor.y = Math.min(cursor.y + 4, latestY);
+  cursor.y = Math.min(cursor.y + FORM_J_RECEIPT_DOWN_SHIFT, latestY);
 
   doc.setFont(PDF_FONT, 'bold');
   doc.text('Receipt of the Dealer', PAGE.width / 2, cursor.y, { align: 'center' });

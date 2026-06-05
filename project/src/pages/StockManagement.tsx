@@ -319,7 +319,7 @@ export function StockManagement() {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="fertilizer" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(value: number) => `${Number(value || 0).toFixed(2)} MT`} />
+                    <Tooltip formatter={(value) => `${Number(value ?? 0).toFixed(2)} MT`} />
                     <Bar dataKey="Receipts" fill="#059669" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
