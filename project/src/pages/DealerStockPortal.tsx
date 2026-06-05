@@ -21,12 +21,29 @@ import {
 } from '../lib/stockInventory';
 import { supabase } from '../lib/supabase';
 
-const wholesalerOptions = ['MARKFED', 'IFFCO', 'KRIBHCO', 'Coromandel', 'NFL', 'RCF', 'Nagarjuna Fertilizers', 'Private Wholesaler', 'Other'];
+const wholesalerOptions = [
+  'M/s. Laxmi Narasimha Traders, Karimnagar',
+  'M/s. FR Lahoti & Sons',
+  'M/s. Vaibhav Traders, Karimnagar',
+  'Jahnavi Agro Agencies',
+  'M/s. Sai Rama Trading Company, Karimnagar',
+  'M/s. Meher Sai Seeds & Fertilizers',
+  'Sri Rajarajeshwari Traders, Mancherial',
+  'Markfed',
+  'Kanaka Durga Trading Company',
+  'M/s. Hanuman Agro Bellampally',
+  'Sri Laxmi Fertilizers',
+  'Rama Trading Company',
+  'Sri Ganesh Pesticides',
+  'Maheshwara Fertilizers & Seeds',
+  'Others provide description',
+];
 
 type FertilizerUnit = 'mts' | 'bags';
 type LoadForm = {
   fertilizer_type: string;
   wholesaler_name: string;
+  wholesaler_description: string;
   invoice_number: string;
   invoice_date: string;
   quantity: number;
@@ -48,7 +65,8 @@ export function DealerStockPortal() {
   const [message, setMessage] = useState('');
   const [loadForm, setLoadForm] = useState<LoadForm>({
     fertilizer_type: 'Urea',
-    wholesaler_name: 'MARKFED',
+    wholesaler_name: 'Markfed',
+    wholesaler_description: '',
     invoice_number: '',
     invoice_date: new Date().toISOString().slice(0, 10),
     quantity: 0,
@@ -221,7 +239,12 @@ export function DealerStockPortal() {
       ? (Number(loadForm.quantity) || 0) * fertilizerBagWeightMts(fertilizerType)
       : Number(loadForm.quantity) || 0;
 
-    if (!loadForm.wholesaler_name || !loadForm.invoice_number.trim() || loadMts <= 0) {
+    const wholesalerName =
+      loadForm.wholesaler_name === 'Others provide description'
+        ? loadForm.wholesaler_description.trim()
+        : loadForm.wholesaler_name;
+
+    if (!wholesalerName || !loadForm.invoice_number.trim() || loadMts <= 0) {
       alert('Enter wholesaler, invoice number and valid quantity.');
       return;
     }
@@ -233,7 +256,7 @@ export function DealerStockPortal() {
         dealer_id: dealerId,
         fertilizer_type: fertilizerType,
         quantity_mts: currentMts + loadMts,
-        wholesaler_name: loadForm.wholesaler_name,
+        wholesaler_name: wholesalerName,
         invoice_number: loadForm.invoice_number.trim(),
         invoice_date: loadForm.invoice_date,
         quantity_unit: fertilizerQtyUnit === 'bags' ? 'Bags' : 'MT',
@@ -341,9 +364,16 @@ export function DealerStockPortal() {
                 <CompactSelect
                   label="Wholesaler"
                   value={loadForm.wholesaler_name}
-                  onChange={(value) => setLoadForm({ ...loadForm, wholesaler_name: value })}
+                  onChange={(value) => setLoadForm({ ...loadForm, wholesaler_name: value, wholesaler_description: '' })}
                   options={wholesalerOptions}
                 />
+                {loadForm.wholesaler_name === 'Others provide description' && (
+                  <CompactInput
+                    label="Wholesaler Description"
+                    value={loadForm.wholesaler_description}
+                    onChange={(value) => setLoadForm({ ...loadForm, wholesaler_description: value })}
+                  />
+                )}
                 <CompactInput
                   label="Invoice No."
                   value={loadForm.invoice_number}

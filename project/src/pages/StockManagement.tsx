@@ -15,19 +15,31 @@ const titleCase = (value = '') =>
     .toLowerCase()
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
+const FINANCIAL_YEAR_OPTIONS = ['2025-26', '2026-27', '2027-28', '2028-29', '2029-30', '2030-31'];
+const WHOLESALER_OPTIONS = [
+  'M/s. Laxmi Narasimha Traders, Karimnagar',
+  'M/s. FR Lahoti & Sons',
+  'M/s. Vaibhav Traders, Karimnagar',
+  'Jahnavi Agro Agencies',
+  'M/s. Sai Rama Trading Company, Karimnagar',
+  'M/s. Meher Sai Seeds & Fertilizers',
+  'Sri Rajarajeshwari Traders, Mancherial',
+  'Markfed',
+  'Kanaka Durga Trading Company',
+  'M/s. Hanuman Agro Bellampally',
+  'Sri Laxmi Fertilizers',
+  'Rama Trading Company',
+  'Sri Ganesh Pesticides',
+  'Maheshwara Fertilizers & Seeds',
+  'Others provide description',
+];
+
 const currentFinancialYear = () => {
   const now = new Date();
   const year = now.getFullYear();
   const start = now.getMonth() >= 3 ? year : year - 1;
-  return `${start}-${String(start + 1).slice(-2)}`;
-};
-
-const financialYearOptions = () => {
-  const currentStart = Number(currentFinancialYear().slice(0, 4));
-  return Array.from({ length: 5 }, (_, index) => {
-    const start = currentStart - index;
-    return `${start}-${String(start + 1).slice(-2)}`;
-  });
+  const value = `${start}-${String(start + 1).slice(-2)}`;
+  return FINANCIAL_YEAR_OPTIONS.includes(value) ? value : FINANCIAL_YEAR_OPTIONS[0];
 };
 
 const dateInFinancialYear = (value: string | undefined, financialYear: string) => {
@@ -153,15 +165,6 @@ export function StockManagement() {
     return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   }, [financialYearStock]);
 
-  const wholesalerOptions = useMemo(() => {
-    const names = new Set(
-      financialYearStock
-        .map((item) => (item.wholesaler_name || '').trim())
-        .filter(Boolean)
-    );
-    return Array.from(names).sort((a, b) => a.localeCompare(b));
-  }, [financialYearStock]);
-
   const filteredStock = useMemo(() => {
     const search = searchTerm.toLowerCase();
     return financialYearStock.filter((item) => (
@@ -281,7 +284,7 @@ export function StockManagement() {
               onChange={(e) => setFinancialYear(e.target.value)}
               className="bg-transparent text-slate-950 outline-none dark:text-white"
             >
-              {financialYearOptions().map((year) => (
+              {FINANCIAL_YEAR_OPTIONS.map((year) => (
                 <option key={year} value={year}>{year}</option>
               ))}
             </select>
@@ -320,7 +323,7 @@ export function StockManagement() {
               className="max-w-44 bg-transparent text-slate-950 outline-none dark:text-white"
             >
               <option value="all">All wholesalers</option>
-              {wholesalerOptions.map((name) => (
+              {WHOLESALER_OPTIONS.map((name) => (
                 <option key={name} value={name}>{name}</option>
               ))}
             </select>
@@ -405,25 +408,25 @@ export function StockManagement() {
         </div>
       ) : (
         <>
-          <section className="grid gap-2 md:grid-cols-[13rem_1fr]">
-            <div className="rounded-lg border border-red-100 bg-white p-2.5 shadow-sm dark:border-red-900/60 dark:bg-slate-900">
-              <p className="text-[11px] font-black uppercase tracking-wide text-red-600 dark:text-red-300">Total Receipts</p>
-              <p className="mt-1 text-xl font-black text-slate-950 dark:text-white">{totalReceipts.toFixed(2)} MT</p>
-              <p className="mt-0.5 text-[11px] font-semibold text-slate-500">{visibleSummary.length} fertilizer types</p>
+          <section className="grid gap-3 md:grid-cols-[15rem_1fr]">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/20">
+              <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Total Receipts</p>
+              <p className="mt-1 text-2xl font-black text-slate-950 dark:text-white">{totalReceipts.toFixed(2)} MT</p>
+              <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">{visibleSummary.length} fertilizer types</p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="mb-1.5 flex items-center gap-2 text-xs font-black text-slate-950 dark:text-white">
-                <BarChart3 className="h-4 w-4 text-red-600" />
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <h2 className="mb-2 flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
+                <BarChart3 className="h-5 w-5 text-amber-600" />
                 Fertilizer-wise Receipts Chart
               </h2>
-              <div className="h-28">
+              <div className="h-36">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartRows} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
+                  <BarChart data={chartRows} margin={{ top: 8, right: 12, left: -4, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="fertilizer" tick={{ fontSize: 10 }} />
-                    <YAxis tick={{ fontSize: 10 }} />
+                    <XAxis dataKey="fertilizer" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(value) => `${Number(value ?? 0).toFixed(2)} MT`} />
-                    <Bar dataKey="Receipts" fill="#dc2626" radius={[4, 4, 0, 0]} barSize={18} />
+                    <Bar dataKey="Receipts" fill="#b68a18" radius={[4, 4, 0, 0]} barSize={22} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -435,6 +438,7 @@ export function StockManagement() {
               title="Dealer-wise Receipts Total"
               firstColumn="Dealer"
               secondColumn="Fertilizers"
+              tone="sky"
               rows={dealerSummary.map((item) => ({
                 name: titleCase(item.dealer),
                 receipts: item.receipts,
@@ -446,6 +450,7 @@ export function StockManagement() {
               title="Wholesaler-wise Receipts Total"
               firstColumn="Wholesaler"
               secondColumn="Dealers"
+              tone="violet"
               rows={wholesalerSummary.map((item) => ({
                 name: item.wholesaler,
                 receipts: item.receipts,
@@ -545,16 +550,24 @@ function GroupedTotalsTable({
   title,
   firstColumn,
   secondColumn,
+  tone = 'slate',
   rows,
 }: {
   title: string;
   firstColumn: string;
   secondColumn: string;
+  tone?: 'sky' | 'violet' | 'slate';
   rows: { name: string; receipts: number; entries: number; count: number }[];
 }) {
+  const toneClass = {
+    sky: 'border-sky-200 bg-sky-50 dark:border-sky-900/60 dark:bg-sky-950/20',
+    violet: 'border-violet-200 bg-violet-50 dark:border-violet-900/60 dark:bg-violet-950/20',
+    slate: 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900',
+  }[tone];
+
   return (
-    <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-      <div className="border-b border-slate-100 px-3 py-2 dark:border-slate-800">
+    <section className={`overflow-hidden rounded-lg border shadow-sm ${toneClass}`}>
+      <div className="border-b border-slate-100 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-sm font-black text-slate-950 dark:text-white">{title}</h2>
       </div>
       <div className="overflow-x-auto">
@@ -572,7 +585,7 @@ function GroupedTotalsTable({
               rows.map((item) => (
                 <tr key={item.name}>
                   <td className="px-3 py-2 font-black text-slate-950 dark:text-white">{item.name}</td>
-                  <td className="px-3 py-2 text-right font-black text-red-700 dark:text-red-300">{item.receipts.toFixed(2)}</td>
+                  <td className="px-3 py-2 text-right font-black text-slate-700 dark:text-slate-200">{item.receipts.toFixed(2)}</td>
                   <td className="px-3 py-2 text-right">{item.count}</td>
                   <td className="px-3 py-2 text-right">{item.entries}</td>
                 </tr>

@@ -18,19 +18,14 @@ const titleCase = (value = '') =>
     .toLowerCase()
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
+const FINANCIAL_YEAR_OPTIONS = ['2025-26', '2026-27', '2027-28', '2028-29', '2029-30', '2030-31'];
+
 const currentFinancialYear = () => {
   const now = new Date();
   const year = now.getFullYear();
   const start = now.getMonth() >= 3 ? year : year - 1;
-  return `${start}-${String(start + 1).slice(-2)}`;
-};
-
-const financialYearOptions = () => {
-  const currentStart = Number(currentFinancialYear().slice(0, 4));
-  return Array.from({ length: 5 }, (_, index) => {
-    const start = currentStart - index;
-    return `${start}-${String(start + 1).slice(-2)}`;
-  });
+  const value = `${start}-${String(start + 1).slice(-2)}`;
+  return FINANCIAL_YEAR_OPTIONS.includes(value) ? value : FINANCIAL_YEAR_OPTIONS[0];
 };
 
 const reportDateInFinancialYear = (value: string, financialYear: string) => {
@@ -195,7 +190,7 @@ export function StockInventory() {
             onChange={(e) => setFinancialYear(e.target.value)}
             className="bg-transparent font-black text-slate-950 outline-none dark:text-white"
           >
-            {financialYearOptions().map((year) => (
+            {FINANCIAL_YEAR_OPTIONS.map((year) => (
               <option key={year} value={year}>{year}</option>
             ))}
           </select>
