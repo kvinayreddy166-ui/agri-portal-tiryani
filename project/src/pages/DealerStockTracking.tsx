@@ -149,7 +149,7 @@ export function DealerStockTracking() {
         <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
           Dealer Stock Tracking
         </h1>
-        <p className="text-gray-600 mt-1">Manage fertilizer allocation to dealers (in MTS)</p>
+        <p className="text-gray-600 mt-1">Manage fertilizer allocation to dealers (in MT)</p>
       </div>
 
       {/* Summary Cards */}
@@ -166,7 +166,7 @@ export function DealerStockTracking() {
             <div key={fert} className={`bg-gradient-to-br ${colors[idx]} rounded-xl p-4 text-white shadow-lg`}>
               <p className="text-sm opacity-90">{fert}</p>
               <p className="text-2xl font-bold mt-1">{totalStockByFertilizer[fert].toFixed(1)}</p>
-              <p className="text-xs opacity-75 mt-1">MTS Total</p>
+              <p className="text-xs opacity-75 mt-1">MT Total</p>
             </div>
           );
         })}
@@ -211,7 +211,7 @@ export function DealerStockTracking() {
                   <option value="">Select Dealer</option>
                   {dealers.map(dealer => (
                     <option key={dealer.id} value={dealer.id}>
-                      {dealer.dealer_name} - {dealer.location}
+                      {dealer.dealer_name}
                     </option>
                   ))}
                 </select>
@@ -229,7 +229,7 @@ export function DealerStockTracking() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Quantity (MTS)</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Quantity (MT)</label>
                 <input
                   type="number"
                   value={formData.quantity_mts}
@@ -266,9 +266,8 @@ export function DealerStockTracking() {
             <thead className="bg-gradient-to-r from-slate-900 to-slate-800 text-white">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold">Dealer Name</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Location</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold">Fertilizer</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Quantity (MTS)</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Quantity (MT)</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold">Last Updated</th>
                 {isAdminUser && <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>}
               </tr>
@@ -281,7 +280,6 @@ export function DealerStockTracking() {
                     {editingId === item.id && isAdminUser ? (
                       <>
                         <td className="px-6 py-4 text-sm font-medium">{dealer?.dealer_name}</td>
-                        <td className="px-6 py-4 text-sm">{dealer?.location}</td>
                         <td className="px-6 py-4">
                           <select
                             value={item.fertilizer_type}
@@ -324,7 +322,6 @@ export function DealerStockTracking() {
                     ) : (
                       <>
                         <td className="px-6 py-4 font-medium text-gray-900">{dealer?.dealer_name}</td>
-                        <td className="px-6 py-4 text-gray-600">{dealer?.location}</td>
                         <td className="px-6 py-4">
                           <span className="inline-block bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium">
                             {item.fertilizer_type}
@@ -334,7 +331,7 @@ export function DealerStockTracking() {
                           <div className="flex items-center gap-2">
                             <TrendingUp className="w-4 h-4 text-emerald-600" />
                             <span className="font-bold text-lg text-gray-900">{item.quantity_mts.toFixed(2)}</span>
-                            <span className="text-sm text-gray-500">MTS</span>
+                            <span className="text-sm text-gray-500">MT</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">{new Date(item.last_updated).toLocaleDateString()}</td>

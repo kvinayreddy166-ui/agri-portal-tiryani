@@ -26,7 +26,7 @@ export function aggregateFertilizerStock(
     id: `aggregate-${fertilizer_type}`,
     fertilizer_type,
     quantity_available: totals[fertilizer_type],
-    unit: 'MTS',
+    unit: 'MT',
     last_updated: now,
     created_at: now,
   }));
@@ -91,7 +91,7 @@ export async function fetchDailyFertilizerStockSummary(
       sales_mts,
       closing_mts,
       report_date: effectiveDate,
-      unit: 'MTS',
+      unit: 'MT',
       last_updated: now,
       created_at: now,
     };
@@ -115,7 +115,7 @@ export async function syncFertilizerStockTable(): Promise<void> {
         .from('fertilizer_stock')
         .update({
           quantity_available: item.quantity_available,
-          unit: 'MTS',
+          unit: 'MT',
           last_updated: now,
         })
         .eq('id', existing.id);
@@ -126,7 +126,7 @@ export async function syncFertilizerStockTable(): Promise<void> {
         {
           fertilizer_type: item.fertilizer_type,
           quantity_available: item.quantity_available,
-          unit: 'MTS',
+          unit: 'MT',
           last_updated: now,
         },
       ]);
@@ -136,7 +136,7 @@ export async function syncFertilizerStockTable(): Promise<void> {
   }
 }
 
-/** Dealer portal: this dealer's fertilizer allocation from Fertilizer Allocation (MTS). */
+/** Dealer portal: this dealer's fertilizer allocation from Fertilizer Allocation (MT). */
 export async function fetchDealerFertilizerAllocation(
   dealerId: string
 ): Promise<{ fertilizer_type: string; quantity_mts: number }[]> {

@@ -7,7 +7,7 @@ const cropTabs = [
   { id: 'maize', label: 'Maize', image: '/images/maize.jpg' },
   { id: 'cotton', label: 'Cotton', image: '/images/cotton.jpg' },
   { id: 'redgram', label: 'Redgram', image: '/images/pulses.jpg' },
-  { id: 'greengram', label: 'Greengram', image: '/images/pulses.jpg' },
+  { id: 'greengram', label: 'Greengram', image: '/images/greengram.webp' },
 ];
 
 export function CropManagement() {

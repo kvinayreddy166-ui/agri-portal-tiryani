@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BarChart3, FolderOpen, RefreshCw } from 'lucide-react';
+import { BarChart3, FolderOpen, RefreshCw, Trash2 } from 'lucide-react';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { FERTILIZER_TYPES } from '../lib/constants';
 import {
@@ -10,6 +12,35 @@ import {
   formatFertilizerQuantity,
   formatReportDateLabel,
 } from '../lib/stockInventory';
+
+const titleCase = (value = '') =>
+  value
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+const currentFinancialYear = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const start = now.getMonth() >= 3 ? year : year - 1;
+  return `${start}-${String(start + 1).slice(-2)}`;
+};
+
+const financialYearOptions = () => {
+  const currentStart = Number(currentFinancialYear().slice(0, 4));
+  return Array.from({ length: 5 }, (_, index) => {
+    const start = currentStart - index;
+    return `${start}-${String(start + 1).slice(-2)}`;
+  });
+};
+
+const reportDateInFinancialYear = (value: string, financialYear: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  const start = Number(financialYear.slice(0, 4));
+  const from = new Date(start, 3, 1);
+  const to = new Date(start + 1, 2, 31, 23, 59, 59, 999);
+  return date >= from && date <= to;
+};
 
 interface InventoryRow {
   id: string;
@@ -24,10 +55,11 @@ interface InventoryRow {
   closing_balance: number;
   report_date: string;
   report_month: string;
-  dealers?: { dealer_name: string; location: string; phone_number: string };
+  dealers?: { dealer_name: string };
 }
 
 export function StockInventory() {
+  const { isAdminUser } = useAuth();
   const { t, language } = useLanguage();
   const [rows, setRows] = useState<InventoryRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +67,7 @@ export function StockInventory() {
   const [reportDate, setReportDate] = useState(currentReportDate());
   const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
   const [reportMonth, setReportMonth] = useState(reportDate.slice(0, 7));
-  const [expandedDealer, setExpandedDealer] = useState<string | null>(null);
+  const [financialYear, setFinancialYear] = useState(currentFinancialYear());
   const [fertilizerQtyUnit, setFertilizerQtyUnit] = useState<'mts' | 'bags'>('mts');
   const [fertilizerFilter, setFertilizerFilter] = useState('all');
   const [dealerFilter, setDealerFilter] = useState('all');
@@ -46,8 +78,9 @@ export function StockInventory() {
     try {
       let query = supabase
         .from('stock_inventory_lines')
-        .select('*, dealers(dealer_name, location, phone_number)')
+        .select('*, dealers(dealer_name)')
         .order('report_date', { ascending: false })
+        .order('dealers(dealer_name)', { ascending: true })
         .order('serial_no');
 
       if (viewMode === 'day') {
@@ -65,6 +98,7 @@ export function StockInventory() {
       setRows((data as InventoryRow[]) || []);
     } catch (err) {
       console.error(err);
+      setRows([]);
     } finally {
       setLoading(false);
     }
@@ -83,9 +117,10 @@ export function StockInventory() {
   }, [rows]);
 
   const dealerFilteredRows = useMemo(() => {
-    if (dealerFilter === 'all') return rows;
-    return rows.filter((row) => row.dealer_id === dealerFilter);
-  }, [dealerFilter, rows]);
+    const yearRows = rows.filter((row) => reportDateInFinancialYear(row.report_date, financialYear));
+    if (dealerFilter === 'all') return yearRows;
+    return yearRows.filter((row) => row.dealer_id === dealerFilter);
+  }, [dealerFilter, financialYear, rows]);
 
   const filteredRows = useMemo(() => {
     if (fertilizerFilter === 'all') return dealerFilteredRows;
@@ -104,31 +139,14 @@ export function StockInventory() {
     });
   }, [dealerFilteredRows, fertilizerFilter]);
 
-  const highestFertilizerValue = Math.max(
-    ...fertilizerSummary.flatMap((item) => [item.sales, item.closing]),
-    1
+  const chartRows = useMemo(
+    () => fertilizerSummary.map((item) => ({
+      fertilizer: item.fertilizer,
+      Sales: Number(item.sales.toFixed(2)),
+      Closing: Number(item.closing.toFixed(2)),
+    })),
+    [fertilizerSummary]
   );
-
-  const grouped = useMemo(() => {
-    const map = new Map<
-      string,
-      { dealerName: string; location: string; phone: string; lines: InventoryRow[] }
-    >();
-    for (const row of filteredRows) {
-      const dealer = row.dealers;
-      const key = row.dealer_id;
-      if (!map.has(key)) {
-        map.set(key, {
-          dealerName: dealer?.dealer_name || 'Unknown',
-          location: dealer?.location || '',
-          phone: dealer?.phone_number || '',
-          lines: [],
-        });
-      }
-      map.get(key)!.lines.push(row);
-    }
-    return Array.from(map.entries()).sort((a, b) => a[1].dealerName.localeCompare(b[1].dealerName));
-  }, [filteredRows]);
 
   const formatQuantity = (line: InventoryRow, value: number) => {
     if (line.category !== 'fertilizer') return Number(value || 0).toFixed(2);
@@ -137,7 +155,19 @@ export function StockInventory() {
 
   const unitLabelForLine = (line: InventoryRow) => {
     if (line.category !== 'fertilizer') return '';
-    return fertilizerQtyUnit === 'bags' ? 'Bags' : 'MTS';
+    return fertilizerQtyUnit === 'bags' ? 'Bags' : 'MT';
+  };
+
+  const handleDeleteLine = async (line: InventoryRow) => {
+    if (!isAdminUser) return;
+    if (!confirm(`Delete ${line.product_type} stock submission from ${line.dealers?.dealer_name || 'this dealer'}?`)) return;
+
+    const { error } = await supabase.from('stock_inventory_lines').delete().eq('id', line.id);
+    if (error) {
+      alert(`Could not delete submission: ${error.message}`);
+      return;
+    }
+    await fetchData();
   };
 
   return (
@@ -146,13 +176,10 @@ export function StockInventory() {
         <div>
           <h1 className="flex items-center gap-2 text-3xl font-black text-slate-950 dark:text-white">
             <FolderOpen className="h-8 w-8 text-emerald-600" />
-            {t('Dealer Daily Stock', 'డీలర్ రోజువారీ స్టాక్')}
+            {t('Dealer Daily Stock', 'Dealer Daily Stock')}
           </h1>
           <p className="mt-1 text-slate-600 dark:text-slate-400">
-            {t(
-              'View dealer daily stock submissions (fertilizer, seed, pesticide).',
-              'డీలర్ల రోజువారీ స్టాక్ సమర్పణలు (ఎరువు, విత్తనం, మందు).'
-            )}
+            {t('View dealer daily stock submissions as a table list.', 'View dealer daily stock submissions as a table list.')}
           </p>
         </div>
         <button
@@ -161,8 +188,20 @@ export function StockInventory() {
           className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 font-bold dark:border-slate-600"
         >
           <RefreshCw className="h-4 w-4" />
-          {t('Refresh', 'రిఫ్రెష్')}
+          {t('Refresh', 'Refresh')}
         </button>
+        <label className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
+          Financial Year
+          <select
+            value={financialYear}
+            onChange={(e) => setFinancialYear(e.target.value)}
+            className="bg-transparent font-black text-slate-950 outline-none dark:text-white"
+          >
+            {financialYearOptions().map((year) => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -173,7 +212,7 @@ export function StockInventory() {
             viewMode === 'day' ? 'bg-emerald-700 text-white' : 'bg-slate-100 dark:bg-slate-800'
           }`}
         >
-          {t('By day', 'రోజు వారీగా')}
+          {t('By day', 'By day')}
         </button>
         <button
           type="button"
@@ -182,7 +221,7 @@ export function StockInventory() {
             viewMode === 'month' ? 'bg-emerald-700 text-white' : 'bg-slate-100 dark:bg-slate-800'
           }`}
         >
-          {t('By month', 'నెల వారీగా')}
+          {t('By month', 'By month')}
         </button>
         {viewMode === 'day' ? (
           <input
@@ -204,7 +243,7 @@ export function StockInventory() {
           onClick={() => setCategory('all')}
           className={`rounded-xl px-4 py-2 text-sm font-bold ${category === 'all' ? 'bg-emerald-700 text-white' : 'bg-slate-100 dark:bg-slate-800'}`}
         >
-          {t('All', 'అన్నీ')}
+          {t('All', 'All')}
         </button>
         {STOCK_CATEGORIES.map((item) => (
           <button
@@ -222,15 +261,12 @@ export function StockInventory() {
           {t('Dealer', 'Dealer')}
           <select
             value={dealerFilter}
-            onChange={(e) => {
-              setDealerFilter(e.target.value);
-              setExpandedDealer(null);
-            }}
+            onChange={(e) => setDealerFilter(e.target.value)}
             className="bg-transparent font-black text-slate-950 outline-none dark:text-white"
           >
             <option value="all">All dealers</option>
             {dealerOptions.map(([dealerId, dealerName]) => (
-              <option key={dealerId} value={dealerId}>{dealerName}</option>
+              <option key={dealerId} value={dealerId}>{titleCase(dealerName)}</option>
             ))}
           </select>
         </label>
@@ -242,7 +278,7 @@ export function StockInventory() {
               onChange={(e) => setFertilizerQtyUnit(e.target.value as 'mts' | 'bags')}
               className="bg-transparent font-black text-slate-950 outline-none dark:text-white"
             >
-              <option value="mts">MTS</option>
+              <option value="mts">MT</option>
               <option value="bags">Bags</option>
             </select>
           </label>
@@ -265,43 +301,22 @@ export function StockInventory() {
       </div>
 
       {(category === 'all' || category === 'fertilizer') && (
-        <section className="space-y-3">
-          <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-            <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
-              <BarChart3 className="h-5 w-5 text-emerald-600" />
-              Fertilizer Sales and Closing Chart
-            </h2>
-            <div className="space-y-2">
-              {fertilizerSummary.map((item) => {
-                const salesWidth = Math.max(2, Math.round((item.sales / highestFertilizerValue) * 100));
-                const closingWidth = Math.max(2, Math.round((item.closing / highestFertilizerValue) * 100));
-                return (
-                  <div key={item.fertilizer} className="grid gap-2 md:grid-cols-[5rem_1fr] md:items-center">
-                    <p className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{item.fertilizer}</p>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="w-12 text-[10px] font-bold text-slate-500">Sales</span>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                          <div className="h-full rounded-full bg-amber-500" style={{ width: `${salesWidth}%` }} />
-                        </div>
-                        <span className="w-16 text-right text-[10px] font-bold text-slate-500">
-                          {formatFertilizerQuantity(item.sales, item.fertilizer, fertilizerQtyUnit)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-12 text-[10px] font-bold text-slate-500">Closing</span>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                          <div className="h-full rounded-full bg-emerald-600" style={{ width: `${closingWidth}%` }} />
-                        </div>
-                        <span className="w-16 text-right text-[10px] font-bold text-slate-500">
-                          {formatFertilizerQuantity(item.closing, item.fertilizer, fertilizerQtyUnit)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+        <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
+            <BarChart3 className="h-5 w-5 text-emerald-600" />
+            Fertilizer Sales and Closing Chart
+          </h2>
+          <div className="h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartRows} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="fertilizer" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip formatter={(value: number) => `${Number(value || 0).toFixed(2)} MT`} />
+                <Bar dataKey="Sales" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Closing" fill="#059669" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </section>
       )}
@@ -310,82 +325,66 @@ export function StockInventory() {
         <div className="flex h-48 items-center justify-center">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
         </div>
-      ) : grouped.length === 0 ? (
+      ) : filteredRows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500 dark:border-slate-600">
           {viewMode === 'day'
             ? t(
                 `No dealer stock submitted for ${formatReportDateLabel(reportDate, dateLocale)}.`,
-                `${formatReportDateLabel(reportDate, dateLocale)} నాటికి డీలర్ స్టాక్ లేదు.`
+                `No dealer stock submitted for ${formatReportDateLabel(reportDate, dateLocale)}.`
               )
-            : t('No dealer stock submitted for this month yet.', 'ఈ నెలకు ఇంకా డీలర్ స్టాక్ సమర్పించలేదు.')}
+            : t('No dealer stock submitted for this month yet.', 'No dealer stock submitted for this month yet.')}
         </div>
       ) : (
-        <div className="space-y-4">
-          {grouped.map(([dealerId, group]) => {
-            const open = expandedDealer === dealerId;
-            return (
-              <section
-                key={dealerId}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
-              >
-                <button
-                  type="button"
-                  onClick={() => setExpandedDealer(open ? null : dealerId)}
-                  className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  <div>
-                    <p className="text-lg font-black text-slate-900 dark:text-white">{group.dealerName}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      {group.location} · {group.phone} · {group.lines.length} {t('rows', 'వరుసలు')}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200">
-                    {open ? t('Close', 'మూసివేయి') : t('Open', 'తెరవండి')}
-                  </span>
-                </button>
-                {open && (
-                  <div className="overflow-x-auto border-t border-slate-100 dark:border-slate-800">
-                    <table className="w-full min-w-[880px] text-sm">
-                      <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800">
-                        <tr>
-                          <th className="px-4 py-2 text-left">{t('Date', 'తేదీ')}</th>
-                          <th className="px-4 py-2 text-left">{t('S.No', 'క్ర.సం.')}</th>
-                          <th className="px-4 py-2 text-left">{t('Category', 'వర్గం')}</th>
-                          <th className="px-4 py-2 text-left">{t('Type', 'రకం')}</th>
-                          <th className="px-4 py-2 text-right">{t('Opening', 'ప్రారంభ')}</th>
-                          <th className="px-4 py-2 text-right">{t('Receipts', 'రసీదులు')}</th>
-                          <th className="px-4 py-2 text-right">{t('Total', 'మొత్తం')}</th>
-                          <th className="px-4 py-2 text-right">{t('Sales', 'అమ్మకాలు')}</th>
-                          <th className="px-4 py-2 text-right">{t('Closing', 'మిగిలిన')}</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {group.lines.map((line) => (
-                          <tr key={line.id}>
-                            <td className="px-4 py-2 whitespace-nowrap">{line.report_date}</td>
-                            <td className="px-4 py-2">{line.serial_no}</td>
-                            <td className="px-4 py-2 capitalize">{line.category}</td>
-                            <td className="px-4 py-2 font-semibold">
-                              {line.product_type}
-                              {unitLabelForLine(line) ? ` (${unitLabelForLine(line)})` : ''}
-                            </td>
-                            <td className="px-4 py-2 text-right">{formatQuantity(line, line.opening_balance)}</td>
-                            <td className="px-4 py-2 text-right">{formatQuantity(line, line.receipts)}</td>
-                            <td className="px-4 py-2 text-right font-bold">{formatQuantity(line, line.total)}</td>
-                            <td className="px-4 py-2 text-right">{formatQuantity(line, line.sales)}</td>
-                            <td className="px-4 py-2 text-right font-black text-emerald-700 dark:text-emerald-400">
-                              {formatQuantity(line, line.closing_balance)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </section>
-            );
-          })}
-        </div>
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[860px] text-sm">
+              <thead className="bg-slate-900 text-xs uppercase text-white">
+                <tr>
+                  <th className="px-3 py-2 text-left">S.No</th>
+                  <th className="px-3 py-2 text-left">Dealer</th>
+                  <th className="px-3 py-2 text-left">Type</th>
+                  <th className="px-3 py-2 text-right">Opening</th>
+                  <th className="px-3 py-2 text-right">Receipts</th>
+                  <th className="px-3 py-2 text-right">Total</th>
+                  <th className="px-3 py-2 text-right">Sales</th>
+                  <th className="px-3 py-2 text-right">Closing</th>
+                  {isAdminUser && <th className="px-3 py-2 text-center">Delete</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredRows.map((line, index) => (
+                  <tr key={line.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                    <td className="px-3 py-2 font-bold">{index + 1}</td>
+                    <td className="px-3 py-2 font-black text-slate-950 dark:text-white">{titleCase(line.dealers?.dealer_name || 'Unknown')}</td>
+                    <td className="px-3 py-2 font-semibold">
+                      {line.product_type}
+                      {unitLabelForLine(line) ? ` (${unitLabelForLine(line)})` : ''}
+                    </td>
+                    <td className="px-3 py-2 text-right">{formatQuantity(line, line.opening_balance)}</td>
+                    <td className="px-3 py-2 text-right">{formatQuantity(line, line.receipts)}</td>
+                    <td className="px-3 py-2 text-right font-bold">{formatQuantity(line, line.total)}</td>
+                    <td className="px-3 py-2 text-right">{formatQuantity(line, line.sales)}</td>
+                    <td className="px-3 py-2 text-right font-black text-emerald-700 dark:text-emerald-400">
+                      {formatQuantity(line, line.closing_balance)}
+                    </td>
+                    {isAdminUser && (
+                      <td className="px-3 py-2 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteLine(line)}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                          aria-label="Delete stock submission"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       )}
     </div>
   );

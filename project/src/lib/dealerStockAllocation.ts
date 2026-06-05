@@ -18,7 +18,7 @@ export async function upsertDealerStockAllocation(payload: {
     wholesaler_name: payload.wholesaler_name || '',
     invoice_number: payload.invoice_number || '',
     invoice_date: payload.invoice_date || null,
-    quantity_unit: payload.quantity_unit || 'MTS',
+    quantity_unit: payload.quantity_unit || 'MT',
     quantity_bags: payload.quantity_bags || 0,
     last_updated: now,
   };

@@ -66,7 +66,7 @@ const cropImages: Record<string, string> = {
   rice: '/images/paddy.jpg',
   maize: '/images/maize.jpg',
   redgram: '/images/pulses.jpg',
-  greengram: '/images/pulses.jpg',
+  greengram: '/images/greengram.webp',
   pulses: '/images/pulses.jpg',
   oilseeds: '/images/oilseeds.jpg',
 };

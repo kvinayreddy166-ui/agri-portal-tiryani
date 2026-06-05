@@ -313,8 +313,8 @@ export function Dashboard() {
             </h2>
             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
               {t(
-                'Fertilizer availability from dealer daily closing balance in MTS',
-                'Fertilizer availability from dealer daily closing balance in MTS'
+                'Fertilizer availability from dealer daily closing balance in MT',
+                'Fertilizer availability from dealer daily closing balance in MT'
               )}
             </p>
           </div>
@@ -375,7 +375,7 @@ export function Dashboard() {
                       maximumFractionDigits: 2,
                     })}
                   </p>
-                  <p className="mb-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">MTS</p>
+                  <p className="mb-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">MT</p>
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-700">
                   <div

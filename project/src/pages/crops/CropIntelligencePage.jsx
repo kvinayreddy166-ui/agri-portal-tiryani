@@ -16,6 +16,7 @@ export function CropIntelligencePage({ cropSlug = 'paddy' }) {
   const profile = useMemo(() => crop?.profile || {}, [crop]);
   const localText = (english, telugu) => (isTelugu && telugu ? telugu : english);
   const cropName = localText(crop?.name_en || crop?.crop_name, crop?.name_te);
+  const cropImageUrl = cropSlug === 'greengram' ? '/images/greengram.webp' : crop?.image_url;
 
   const runSearch = async () => {
     const rows = await search(query, { limit: 25 });
@@ -33,7 +34,7 @@ export function CropIntelligencePage({ cropSlug = 'paddy' }) {
   return (
     <div className="space-y-4">
       <section className="relative overflow-hidden rounded-xl">
-        <img src={crop.image_url} alt={cropName} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={cropImageUrl} alt={cropName} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-slate-900/75 to-slate-900/40" />
         <div className="relative p-5 text-white md:p-7">
           <div className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-black">

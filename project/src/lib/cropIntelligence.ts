@@ -187,6 +187,7 @@ cropIntelligence.greengram = {
   id: 'greengram',
   label: 'Greengram / Mungbean',
   scientificName: 'Vigna radiata',
+  image: '/images/greengram.webp',
   varieties: ['WGG 37 (Ekasila)', 'MGG 295', 'Locally recommended greengram varieties'],
 };
 
