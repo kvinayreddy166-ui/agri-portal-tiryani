@@ -80,7 +80,7 @@ export function formatFertilizerQuantity(
 ): string {
   if (unit === 'bags') {
     const bags = fertilizerMtsToBags(valueMts, productType);
-    return bags.toFixed(Number.isInteger(bags) ? 0 : 2);
+    return String(Math.round(bags));
   }
   return (Number(valueMts) || 0).toFixed(2);
 }

@@ -38,6 +38,7 @@ export function StockInventory() {
   const [expandedDealer, setExpandedDealer] = useState<string | null>(null);
   const [fertilizerQtyUnit, setFertilizerQtyUnit] = useState<'mts' | 'bags'>('mts');
   const [fertilizerFilter, setFertilizerFilter] = useState('all');
+  const [dealerFilter, setDealerFilter] = useState('all');
   const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
 
   const fetchData = useCallback(async () => {
@@ -73,21 +74,35 @@ export function StockInventory() {
     void fetchData();
   }, [fetchData]);
 
+  const dealerOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const row of rows) {
+      map.set(row.dealer_id, row.dealers?.dealer_name || 'Unknown');
+    }
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [rows]);
+
+  const dealerFilteredRows = useMemo(() => {
+    if (dealerFilter === 'all') return rows;
+    return rows.filter((row) => row.dealer_id === dealerFilter);
+  }, [dealerFilter, rows]);
+
   const filteredRows = useMemo(() => {
-    if (fertilizerFilter === 'all') return rows;
-    return rows.filter((row) => row.category !== 'fertilizer' || row.product_type === fertilizerFilter);
-  }, [fertilizerFilter, rows]);
+    if (fertilizerFilter === 'all') return dealerFilteredRows;
+    return dealerFilteredRows.filter((row) => row.category !== 'fertilizer' || row.product_type === fertilizerFilter);
+  }, [dealerFilteredRows, fertilizerFilter]);
 
   const fertilizerSummary = useMemo(() => {
-    return FERTILIZER_TYPES.map((fertilizer) => {
-      const lines = rows.filter((row) => row.category === 'fertilizer' && row.product_type === fertilizer);
+    const fertilizers = fertilizerFilter === 'all' ? FERTILIZER_TYPES : [fertilizerFilter];
+    return fertilizers.map((fertilizer) => {
+      const lines = dealerFilteredRows.filter((row) => row.category === 'fertilizer' && row.product_type === fertilizer);
       return {
         fertilizer,
         sales: lines.reduce((sum, row) => sum + Number(row.sales || 0), 0),
         closing: lines.reduce((sum, row) => sum + Number(row.closing_balance || 0), 0),
       };
     });
-  }, [rows]);
+  }, [dealerFilteredRows, fertilizerFilter]);
 
   const highestFertilizerValue = Math.max(
     ...fertilizerSummary.flatMap((item) => [item.sales, item.closing]),
@@ -203,6 +218,22 @@ export function StockInventory() {
             {t(item.label, item.telugu)}
           </button>
         ))}
+        <label className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
+          {t('Dealer', 'Dealer')}
+          <select
+            value={dealerFilter}
+            onChange={(e) => {
+              setDealerFilter(e.target.value);
+              setExpandedDealer(null);
+            }}
+            className="bg-transparent font-black text-slate-950 outline-none dark:text-white"
+          >
+            <option value="all">All dealers</option>
+            {dealerOptions.map(([dealerId, dealerName]) => (
+              <option key={dealerId} value={dealerId}>{dealerName}</option>
+            ))}
+          </select>
+        </label>
         {(category === 'all' || category === 'fertilizer') && (
           <label className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
             {t('Fertilizer unit', 'Fertilizer unit')}
@@ -235,29 +266,6 @@ export function StockInventory() {
 
       {(category === 'all' || category === 'fertilizer') && (
         <section className="space-y-3">
-          <div className="grid gap-2 md:grid-cols-5">
-            {fertilizerSummary.map((item) => (
-              <div key={item.fertilizer} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                <p className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">{item.fertilizer}</p>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase text-slate-400">Sales</p>
-                    <p className="text-base font-black text-slate-950 dark:text-white">
-                      {formatFertilizerQuantity(item.sales, item.fertilizer, fertilizerQtyUnit)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase text-slate-400">Closing</p>
-                    <p className="text-base font-black text-emerald-700 dark:text-emerald-300">
-                      {formatFertilizerQuantity(item.closing, item.fertilizer, fertilizerQtyUnit)}
-                    </p>
-                  </div>
-                </div>
-                <p className="mt-1 text-[10px] font-bold text-slate-400">{fertilizerQtyUnit === 'bags' ? 'Bags' : 'MTS'}</p>
-              </div>
-            ))}
-          </div>
-
           <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
               <BarChart3 className="h-5 w-5 text-emerald-600" />

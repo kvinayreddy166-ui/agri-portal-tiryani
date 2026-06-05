@@ -25,11 +25,11 @@ const wholesalerOptions = ['MARKFED', 'IFFCO', 'KRIBHCO', 'Coromandel', 'NFL', '
 
 type FertilizerUnit = 'mts' | 'bags';
 type LoadForm = {
+  fertilizer_type: string;
   wholesaler_name: string;
   invoice_number: string;
   invoice_date: string;
   quantity: number;
-  quantity_unit: 'MTS' | 'Bags';
 };
 
 export function DealerStockPortal() {
@@ -44,14 +44,13 @@ export function DealerStockPortal() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fertilizerQtyUnit, setFertilizerQtyUnit] = useState<FertilizerUnit>('mts');
-  const [loadFertilizer, setLoadFertilizer] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [loadForm, setLoadForm] = useState<LoadForm>({
+    fertilizer_type: 'Urea',
     wholesaler_name: 'MARKFED',
     invoice_number: '',
     invoice_date: new Date().toISOString().slice(0, 10),
     quantity: 0,
-    quantity_unit: 'MTS',
   });
 
   const isFertilizer = category === 'fertilizer';
@@ -214,9 +213,10 @@ export function DealerStockPortal() {
     }
   };
 
-  const handleSaveLoad = async (fertilizerType: string) => {
+  const handleSaveLoad = async () => {
     if (!dealerId) return;
-    const loadMts = loadForm.quantity_unit === 'Bags'
+    const fertilizerType = loadForm.fertilizer_type;
+    const loadMts = fertilizerQtyUnit === 'bags'
       ? (Number(loadForm.quantity) || 0) * fertilizerBagWeightMts(fertilizerType)
       : Number(loadForm.quantity) || 0;
 
@@ -235,14 +235,13 @@ export function DealerStockPortal() {
         wholesaler_name: loadForm.wholesaler_name,
         invoice_number: loadForm.invoice_number.trim(),
         invoice_date: loadForm.invoice_date,
-        quantity_unit: loadForm.quantity_unit,
-        quantity_bags: loadForm.quantity_unit === 'Bags'
+        quantity_unit: fertilizerQtyUnit === 'bags' ? 'Bags' : 'MTS',
+        quantity_bags: fertilizerQtyUnit === 'bags'
           ? Number(loadForm.quantity) || 0
           : loadMts / fertilizerBagWeightMts(fertilizerType),
       });
-      setMessage(`${fertilizerType} load added.`);
+      setMessage(`${fertilizerType} fertilizer receipt saved.`);
       setLoadForm((current) => ({ ...current, invoice_number: '', quantity: 0 }));
-      setLoadFertilizer(null);
       await loadAllocation();
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Could not save load';
@@ -316,52 +315,74 @@ export function DealerStockPortal() {
       </div>
 
       {isFertilizer && (
-        <section className="grid grid-cols-2 gap-2 md:grid-cols-5">
-          {FERTILIZER_TYPES.map((fertilizer) => {
-            const mts = Number(allocation.find((item) => item.fertilizer_type === fertilizer)?.quantity_mts || 0);
-            const isOpen = loadFertilizer === fertilizer;
-            const loadMts = loadForm.quantity_unit === 'Bags'
-              ? (Number(loadForm.quantity) || 0) * fertilizerBagWeightMts(fertilizer)
-              : Number(loadForm.quantity) || 0;
-            return (
-              <div key={fertilizer} className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                <p className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">{fertilizer}</p>
-                <p className="text-lg font-black text-slate-950 dark:text-white">{mts.toFixed(2)} MTS</p>
-                <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                  {formatFertilizerQuantity(mts, fertilizer, 'bags')} Bags
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setLoadFertilizer(isOpen ? null : fertilizer)}
-                  className="mt-2 inline-flex w-full items-center justify-center gap-1 rounded-lg bg-emerald-700 px-2 py-1.5 text-xs font-black text-white"
-                >
-                  <Truck className="h-3.5 w-3.5" />
-                  Add Load
-                </button>
-                {isOpen && (
-                  <div className="mt-2 space-y-2 border-t border-slate-100 pt-2 dark:border-slate-800">
-                    <CompactSelect label="Wholesaler" value={loadForm.wholesaler_name} onChange={(value) => setLoadForm({ ...loadForm, wholesaler_name: value })} options={wholesalerOptions} />
-                    <CompactInput label="Invoice No." value={loadForm.invoice_number} onChange={(value) => setLoadForm({ ...loadForm, invoice_number: value })} />
-                    <CompactInput label="Date" type="date" value={loadForm.invoice_date} onChange={(value) => setLoadForm({ ...loadForm, invoice_date: value })} />
-                    <div className="grid grid-cols-2 gap-2">
-                      <CompactInput label="Qty" type="number" value={String(loadForm.quantity)} onChange={(value) => setLoadForm({ ...loadForm, quantity: Number(value) || 0 })} />
-                      <CompactSelect label="Unit" value={loadForm.quantity_unit} onChange={(value) => setLoadForm({ ...loadForm, quantity_unit: value as 'MTS' | 'Bags' })} options={['MTS', 'Bags']} />
-                    </div>
-                    <p className="text-[11px] font-bold text-slate-500">{loadMts.toFixed(2)} MTS</p>
-                    <button
-                      type="button"
-                      onClick={() => handleSaveLoad(fertilizer)}
-                      disabled={saving}
-                      className="inline-flex w-full items-center justify-center gap-1 rounded-lg bg-slate-900 px-2 py-1.5 text-xs font-black text-white disabled:opacity-60 dark:bg-white dark:text-slate-950"
-                    >
-                      <Save className="h-3.5 w-3.5" />
-                      Save Load
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+        <section className="rounded-xl border border-red-200 bg-red-50 p-3 shadow-sm dark:border-red-900/70 dark:bg-red-950/30">
+          <div className="mb-2 flex items-center gap-2 text-red-900 dark:text-red-100">
+            <Truck className="h-5 w-5" />
+            <h2 className="text-base font-black">Fertilizer receipts</h2>
+          </div>
+          <div className="grid gap-2 md:grid-cols-3">
+            <CompactSelect
+              label="Fertilizer type"
+              value={loadForm.fertilizer_type}
+              onChange={(value) => setLoadForm({ ...loadForm, fertilizer_type: value })}
+              options={[...FERTILIZER_TYPES]}
+            />
+            <CompactSelect
+              label="Wholesaler"
+              value={loadForm.wholesaler_name}
+              onChange={(value) => setLoadForm({ ...loadForm, wholesaler_name: value })}
+              options={wholesalerOptions}
+            />
+            <CompactInput
+              label="Invoice No."
+              value={loadForm.invoice_number}
+              onChange={(value) => setLoadForm({ ...loadForm, invoice_number: value })}
+            />
+            <CompactInput
+              label="Date"
+              type="date"
+              value={loadForm.invoice_date}
+              onChange={(value) => setLoadForm({ ...loadForm, invoice_date: value })}
+            />
+            <CompactInput
+              label={`Quantity (${qtyUnit})`}
+              type="number"
+              value={String(loadForm.quantity)}
+              onChange={(value) => setLoadForm({ ...loadForm, quantity: Number(value) || 0 })}
+            />
+            <div className="rounded-lg bg-white/75 p-2 dark:bg-slate-950/30">
+              <p className="text-[10px] font-black uppercase text-red-700 dark:text-red-200">Current balance</p>
+              <p className="text-sm font-black text-slate-950 dark:text-white">
+                {Number(allocation.find((item) => item.fertilizer_type === loadForm.fertilizer_type)?.quantity_mts || 0).toFixed(2)} MTS
+              </p>
+              <p className="text-xs font-bold text-red-700 dark:text-red-200">
+                {formatFertilizerQuantity(
+                  Number(allocation.find((item) => item.fertilizer_type === loadForm.fertilizer_type)?.quantity_mts || 0),
+                  loadForm.fertilizer_type,
+                  'bags'
+                )} Bags
+              </p>
+            </div>
+          </div>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs font-bold text-red-800 dark:text-red-200">
+              Receipt unit follows the selected page unit: {qtyUnit}. Converted MTS: {
+                (fertilizerQtyUnit === 'bags'
+                  ? (Number(loadForm.quantity) || 0) * fertilizerBagWeightMts(loadForm.fertilizer_type)
+                  : Number(loadForm.quantity) || 0
+                ).toFixed(2)
+              }
+            </p>
+            <button
+              type="button"
+              onClick={handleSaveLoad}
+              disabled={saving}
+              className="inline-flex items-center justify-center gap-1 rounded-lg bg-red-700 px-3 py-2 text-xs font-black text-white hover:bg-red-800 disabled:opacity-60"
+            >
+              <Save className="h-3.5 w-3.5" />
+              Save receipt
+            </button>
+          </div>
         </section>
       )}
 
