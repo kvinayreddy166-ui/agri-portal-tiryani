@@ -26,11 +26,13 @@ export function DealerStockPortal() {
   const [recentDates, setRecentDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [fertilizerQtyUnit, setFertilizerQtyUnit] = useState<'mts' | 'bags'>('mts');
+  const [dealerIfmsId, setDealerIfmsId] = useState('');
   const [fertilizerAllocationMts, setFertilizerAllocationMts] = useState<
     { fertilizer_type: string; quantity_mts: number }[]
   >([]);
   const isFertilizer = category === 'fertilizer';
-  const qtyUnit = isFertilizer ? 'MTS' : '';
+  const qtyUnit = isFertilizer ? (fertilizerQtyUnit === 'bags' ? 'Bags' : 'MTS') : '';
   const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
 
   const loadRecentDates = useCallback(async (cat: StockCategory) => {
@@ -45,6 +47,29 @@ export function DealerStockPortal() {
 
     const unique = [...new Set((data || []).map((r) => r.report_date as string))];
     setRecentDates(unique);
+  }, [dealerId]);
+
+  const buildRowsFromPreviousClosing = useCallback(async (cat: StockCategory, date: string) => {
+    if (!dealerId) return [emptyInventoryRow(1, cat, date)];
+    const prevDate = shiftReportDate(date, -1);
+    const { data } = await supabase
+      .from('stock_inventory_lines')
+      .select('product_type, closing_balance')
+      .eq('dealer_id', dealerId)
+      .eq('category', cat)
+      .eq('report_date', prevDate)
+      .order('serial_no');
+
+    if (!data?.length) return [emptyInventoryRow(1, cat, date)];
+
+    return data.map((item, index) => {
+      const opening = Number(item.closing_balance || 0);
+      return {
+        ...emptyInventoryRow(index + 1, cat, date),
+        product_type: String(item.product_type || ''),
+        ...computeStockRow(opening, 0, 0),
+      };
+    });
   }, [dealerId]);
 
   const loadRows = useCallback(async (cat: StockCategory, date: string) => {
@@ -64,7 +89,7 @@ export function DealerStockPortal() {
       if (data?.length) {
         setRows(data as StockInventoryLine[]);
       } else {
-        setRows([emptyInventoryRow(1, cat, date)]);
+        setRows(await buildRowsFromPreviousClosing(cat, date));
       }
     } catch (err) {
       console.error(err);
@@ -72,6 +97,19 @@ export function DealerStockPortal() {
     } finally {
       setLoading(false);
     }
+  }, [buildRowsFromPreviousClosing, dealerId]);
+
+  useEffect(() => {
+    if (!dealerId) return;
+    const loadDealerIfms = async () => {
+      try {
+        const { data } = await supabase.from('dealers').select('ifms_id').eq('id', dealerId).maybeSingle();
+        setDealerIfmsId(String(data?.ifms_id || ''));
+      } catch {
+        setDealerIfmsId('');
+      }
+    };
+    void loadDealerIfms();
   }, [dealerId]);
 
   useEffect(() => {
@@ -131,6 +169,31 @@ export function DealerStockPortal() {
       })
     );
   };
+
+  const bagWeightMts = (productType: string) => (productType.toLowerCase() === 'urea' ? 0.045 : 0.05);
+
+  const toDisplayQuantity = (valueMts: number, productType: string) => {
+    if (!isFertilizer || fertilizerQtyUnit === 'mts') return Number(valueMts) || 0;
+    return (Number(valueMts) || 0) / bagWeightMts(productType);
+  };
+
+  const fromDisplayQuantity = (value: number, productType: string) => {
+    if (!isFertilizer || fertilizerQtyUnit === 'mts') return Number(value) || 0;
+    return (Number(value) || 0) * bagWeightMts(productType);
+  };
+
+  const formatDisplayQuantity = (valueMts: number, productType: string) => {
+    const value = toDisplayQuantity(valueMts, productType);
+    return isFertilizer && fertilizerQtyUnit === 'bags'
+      ? value.toFixed(Number.isInteger(value) ? 0 : 2)
+      : value.toFixed(2);
+  };
+
+  const unitHelpText = isFertilizer
+    ? fertilizerQtyUnit === 'bags'
+      ? t('Bag conversion: Urea = 45 kg bag, all other fertilizers = 50 kg bag.', 'బ్యాగ్ మార్పిడి: యూరియా = 45 కిలోల బ్యాగ్, ఇతర ఎరువులు = 50 కిలోల బ్యాగ్.')
+      : t('All fertilizer stock is saved in MTS.', 'అన్ని ఎరువుల స్టాక్ MTS లో సేవ్ అవుతుంది.')
+    : '';
 
   const addRow = () => {
     setRows((current) => [...current, emptyInventoryRow(current.length + 1, category, reportDate)]);
@@ -212,9 +275,19 @@ export function DealerStockPortal() {
         <h1 className="text-3xl font-black text-slate-950 dark:text-white">
           {t('Daily Stock Entry', 'రోజువారీ స్టాక్ ఎంట్రీ')}
         </h1>
-        <p className="mt-1 text-slate-600 dark:text-slate-400">
-          {dealerName} · {t('Submit stock every day', 'ప్రతి రోజు స్టాక్ సమర్పించండి')}
-        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <p className="font-sans text-lg font-black tracking-normal text-slate-900 dark:text-white">
+            {dealerName}
+          </p>
+          {dealerIfmsId && (
+            <span className="rounded-lg bg-slate-900 px-3 py-1 text-sm font-black tracking-wide text-white shadow-sm dark:bg-white dark:text-slate-950">
+              IFMS ID: {dealerIfmsId}
+            </span>
+          )}
+          <p className="text-sm font-bold text-slate-600 dark:text-slate-400">
+            {t('Submit stock every day', 'ప్రతి రోజు స్టాక్ సమర్పించండి')}
+          </p>
+        </div>
       </div>
 
       {isFertilizer && fertilizerAllocationMts.length > 0 && (
@@ -228,7 +301,8 @@ export function DealerStockPortal() {
                 key={item.fertilizer_type}
                 className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-800 shadow-sm dark:bg-slate-900 dark:text-white"
               >
-                {item.fertilizer_type}: {item.quantity_mts.toFixed(2)} MTS
+                {item.fertilizer_type}: {formatDisplayQuantity(item.quantity_mts, item.fertilizer_type)} {qtyUnit}
+                {fertilizerQtyUnit === 'bags' ? ` (${item.quantity_mts.toFixed(2)} MTS)` : ''}
               </span>
             ))}
           </div>
@@ -275,14 +349,29 @@ export function DealerStockPortal() {
             </button>
           )}
         </div>
-        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-          {formatReportDateLabel(reportDate, dateLocale)}
-          {recentDates.includes(reportDate) && (
-            <span className="ml-2 rounded-full bg-emerald-600 px-2 py-0.5 text-xs text-white">
-              {t('Saved', 'సేవ్')}
-            </span>
+        <div className="flex flex-wrap items-center gap-3">
+          {isFertilizer && (
+            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+              {t('Unit', 'యూనిట్')}
+              <select
+                value={fertilizerQtyUnit}
+                onChange={(e) => setFertilizerQtyUnit(e.target.value as 'mts' | 'bags')}
+                className="rounded-xl border border-slate-300 px-3 py-2 font-black text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+              >
+                <option value="mts">MTS</option>
+                <option value="bags">Bags</option>
+              </select>
+            </label>
           )}
-        </p>
+          <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+            {formatReportDateLabel(reportDate, dateLocale)}
+            {recentDates.includes(reportDate) && (
+              <span className="ml-2 rounded-full bg-emerald-600 px-2 py-0.5 text-xs text-white">
+                {t('Saved', 'సేవ్')}
+              </span>
+            )}
+          </p>
+        </div>
       </div>
 
       {recentDates.length > 0 && (
@@ -307,7 +396,7 @@ export function DealerStockPortal() {
 
       {isFertilizer && (
         <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-          {t('All quantities below are in MTS (Metric Tons).', 'క్రింది అన్ని మోతాదులు MTS (మెట్రిక్ టన్నులు).')}
+          {unitHelpText}
         </p>
       )}
 
@@ -384,10 +473,12 @@ export function DealerStockPortal() {
                       <input
                         type="number"
                         min={0}
-                        step="0.01"
-                        value={row.opening_balance}
+                        step={isFertilizer && fertilizerQtyUnit === 'bags' ? '1' : '0.01'}
+                        value={toDisplayQuantity(row.opening_balance, row.product_type)}
                         onChange={(e) =>
-                          updateRow(index, { opening_balance: parseFloat(e.target.value) || 0 })
+                          updateRow(index, {
+                            opening_balance: fromDisplayQuantity(parseFloat(e.target.value) || 0, row.product_type),
+                          })
                         }
                         className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                       />
@@ -396,28 +487,36 @@ export function DealerStockPortal() {
                       <input
                         type="number"
                         min={0}
-                        step="0.01"
-                        value={row.receipts}
-                        onChange={(e) => updateRow(index, { receipts: parseFloat(e.target.value) || 0 })}
+                        step={isFertilizer && fertilizerQtyUnit === 'bags' ? '1' : '0.01'}
+                        value={toDisplayQuantity(row.receipts, row.product_type)}
+                        onChange={(e) =>
+                          updateRow(index, {
+                            receipts: fromDisplayQuantity(parseFloat(e.target.value) || 0, row.product_type),
+                          })
+                        }
                         className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                       />
                     </td>
                     <td className="px-3 py-2 font-bold text-emerald-700 dark:text-emerald-400">
-                      {row.total.toFixed(2)}
+                      {formatDisplayQuantity(row.total, row.product_type)}
                       {qtyUnit ? ` ${qtyUnit}` : ''}
                     </td>
                     <td className="px-3 py-2">
                       <input
                         type="number"
                         min={0}
-                        step="0.01"
-                        value={row.sales}
-                        onChange={(e) => updateRow(index, { sales: parseFloat(e.target.value) || 0 })}
+                        step={isFertilizer && fertilizerQtyUnit === 'bags' ? '1' : '0.01'}
+                        value={toDisplayQuantity(row.sales, row.product_type)}
+                        onChange={(e) =>
+                          updateRow(index, {
+                            sales: fromDisplayQuantity(parseFloat(e.target.value) || 0, row.product_type),
+                          })
+                        }
                         className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                       />
                     </td>
                     <td className="px-3 py-2 font-black text-slate-900 dark:text-white">
-                      {row.closing_balance.toFixed(2)}
+                      {formatDisplayQuantity(row.closing_balance, row.product_type)}
                       {qtyUnit ? ` ${qtyUnit}` : ''}
                     </td>
                     <td className="px-3 py-2">
