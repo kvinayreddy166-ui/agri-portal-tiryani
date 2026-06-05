@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Edit2, Package, Plus, Save, Search, Trash2, TrendingUp, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -147,17 +147,6 @@ export function StockManagement() {
     );
   });
 
-  const totals = useMemo(
-    () =>
-      fertilizers.reduce((result, fertilizer) => {
-        result[fertilizer] = stock
-          .filter((item) => item.fertilizer_type === fertilizer)
-          .reduce((sum, item) => sum + Number(item.quantity_mts || 0), 0);
-        return result;
-      }, {} as Record<string, number>),
-    [stock]
-  );
-
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -170,8 +159,8 @@ export function StockManagement() {
     <div className="space-y-3">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="page-title">Fertilizer Allocation</h1>
-          <p className="page-subtitle">Enter and manage fertilizer allocation dealer-wise in MTS.</p>
+          <h1 className="page-title">Fertilizer Tracking</h1>
+          <p className="page-subtitle">Dealer load entries and current fertilizer balance.</p>
         </div>
         {isAdminUser && (
           <button
@@ -179,22 +168,9 @@ export function StockManagement() {
             className="inline-flex items-center justify-center gap-2 rounded-md bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
           >
             <Plus className="h-4 w-4" />
-            Add Dealer Stock
+            Add Manual Balance
           </button>
         )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
-        {fertilizers.map((fertilizer) => (
-          <div key={fertilizer} className="portal-card p-2.5">
-            <div className="mb-1.5 w-fit rounded-md bg-emerald-50 p-1.5 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-              <Package className="h-3.5 w-3.5" />
-            </div>
-            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{fertilizer}</p>
-            <p className="text-xl font-black leading-tight text-slate-950 dark:text-white">{totals[fertilizer].toFixed(2)}</p>
-            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500">MTS total</p>
-          </div>
-        ))}
       </div>
 
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -282,13 +258,16 @@ export function StockManagement() {
 
       <section className="portal-card overflow-hidden p-0">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-sm">
+          <table className="w-full min-w-[980px] text-sm">
             <thead className="bg-slate-900 text-white">
               <tr>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Dealer</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Location</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Fertilizer</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Quantity</th>
+                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Wholesaler</th>
+                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Invoice</th>
+                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Invoice Date</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Last Updated</th>
                 {isAdminUser && <th className="w-24 px-3 py-2 text-left text-xs font-bold uppercase tracking-wide">Actions</th>}
               </tr>
@@ -331,6 +310,11 @@ export function StockManagement() {
                         {Number(item.quantity_mts || 0).toFixed(2)} MTS
                       </span>
                     )}
+                  </td>
+                  <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{item.wholesaler_name || '-'}</td>
+                  <td className="px-3 py-2 font-bold text-slate-700 dark:text-slate-200">{item.invoice_number || '-'}</td>
+                  <td className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">
+                    {item.invoice_date ? new Date(item.invoice_date).toLocaleDateString() : '-'}
                   </td>
                   <td className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">
                     {new Date(item.last_updated).toLocaleDateString()}

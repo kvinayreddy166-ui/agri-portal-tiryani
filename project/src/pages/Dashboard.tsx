@@ -1,10 +1,10 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { fetchAggregatedFertilizerStock } from '../lib/fertilizerStock';
+import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../lib/fertilizerStock';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Crop, FertilizerStock, Scheme, SchemeBeneficiary, MandalOverview } from '../types/database';
+import { Crop, Scheme, SchemeBeneficiary, MandalOverview } from '../types/database';
 import { GoogleMapWidget } from '../components/dashboard/GoogleMapWidget';
 import { WeatherWidget } from '../components/dashboard/WeatherWidget';
 import { PortalLogo } from '../components/ui/PortalLogo';
@@ -13,7 +13,7 @@ export function Dashboard() {
   const { isAdminUser } = useAuth();
   const { t } = useLanguage();
   const [crops, setCrops] = useState<Crop[]>([]);
-  const [fertilizers, setFertilizers] = useState<FertilizerStock[]>([]);
+  const [fertilizers, setFertilizers] = useState<DailyFertilizerStockSummary[]>([]);
   const [schemes, setSchemes] = useState<Scheme[]>([]);
   const [schemeBeneficiaries, setSchemeBeneficiaries] = useState<SchemeBeneficiary[]>([]);
   const [mandalData, setMandalData] = useState<MandalOverview | null>(null);
@@ -36,7 +36,7 @@ export function Dashboard() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [cropsRes, schemesRes, contentRes, beneficiariesRes, aggregatedFertilizers] = await Promise.all([
+      const [cropsRes, schemesRes, contentRes, beneficiariesRes, dailyFertilizers] = await Promise.all([
         safeDashboardQuery<Crop[]>(() => supabase.from('crops').select('*'), []),
         safeDashboardQuery<Scheme[]>(() => supabase.from('schemes').select('*'), []),
         safeDashboardQuery<{ content: MandalOverview } | null>(
@@ -47,11 +47,11 @@ export function Dashboard() {
           () => supabase.from('scheme_beneficiaries').select('*').order('financial_year', { ascending: false }),
           []
         ),
-        fetchAggregatedFertilizerStock().catch(() => []),
+        fetchDailyFertilizerStockSummary().catch(() => []),
       ]);
 
       setCrops(cropsRes);
-      setFertilizers(aggregatedFertilizers);
+      setFertilizers(dailyFertilizers);
       setSchemes(schemesRes);
       setSchemeBeneficiaries(beneficiariesRes);
       setMandalData(contentRes?.content || null);
@@ -313,8 +313,8 @@ export function Dashboard() {
             </h2>
             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
               {t(
-                'Totals from Fertilizer Allocation (dealer-wise allocation in MTS)',
-                'ఎరువుల కేటాయింపు నుండి మొత్తాలు (డీలర్ వారీగా MTS)'
+                'Daily dealer entries: summed sales and closing balance in MTS',
+                'Daily dealer entries: summed sales and closing balance in MTS'
               )}
             </p>
           </div>
@@ -327,8 +327,8 @@ export function Dashboard() {
           {fertilizers.length === 0 && (
             <div className="md:col-span-2 xl:col-span-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 p-5 text-center text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-300">
               {t(
-                'No fertilizer stock entered yet. Add dealer-wise stock in Fertilizer Allocation.',
-                'ఇంకా ఎరువుల స్టాక్ నమోదు కాలేదు. ఎరువుల కేటాయింపులో డీలర్ వారీగా స్టాక్ జోడించండి.'
+                'No dealer daily fertilizer entries found yet.',
+                'No dealer daily fertilizer entries found yet.'
               )}
             </div>
           )}
@@ -368,14 +368,31 @@ export function Dashboard() {
                     {status}
                   </span>
                 </div>
-                <div className="flex items-end justify-between gap-3">
-                  <p className="text-2xl font-black tracking-tight text-gray-950 dark:text-white">
-                    {fertilizer.quantity_available.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </p>
-                  <p className="mb-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">MTS</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-lg bg-white/80 p-2 dark:bg-slate-950/30">
+                    <p className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">
+                      {t('Sales', 'Sales')}
+                    </p>
+                    <p className="text-lg font-black tracking-tight text-gray-950 dark:text-white">
+                      {fertilizer.sales_mts.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                    <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">MTS</p>
+                  </div>
+                  <div className="rounded-lg bg-white/80 p-2 dark:bg-slate-950/30">
+                    <p className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">
+                      {t('Closing', 'Closing')}
+                    </p>
+                    <p className="text-lg font-black tracking-tight text-gray-950 dark:text-white">
+                      {fertilizer.closing_mts.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                    <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">MTS</p>
+                  </div>
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-700">
                   <div

@@ -17,7 +17,7 @@ interface LayoutProps {
 
 const adminMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'stock', label: 'Fertilizer Allocation', icon: PackageCheck },
+  { id: 'stock', label: 'Fertilizer Tracking', icon: PackageCheck },
   { id: 'stock-inventory', label: 'Stock Inventory', icon: ClipboardList },
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
   {
@@ -48,7 +48,7 @@ const adminMenuItems = [
 ];
 
 const dealerMenuItems = [
-  { id: 'dealer-portal', label: 'Daily Stock Entry', icon: PackageCheck },
+  { id: 'dealer-portal', label: 'Fertilizer Tracking', icon: PackageCheck },
 ];
 
 const menuItems = adminMenuItems;
@@ -201,10 +201,9 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
 function translateMenu(label: string) {
   const labels: Record<string, string> = {
     Dashboard: 'డ్యాష్ బోర్డ్',
-    'Fertilizer Allocation': 'ఎరువుల కేటాయింపు',
+    'Fertilizer Tracking': 'ఎరువుల ట్రాకింగ్',
     'Stock Inventory': 'స్టాక్ ఇన్వెంటరీ',
     'My Stock Entry': 'నా స్టాక్ ఎంట్రీ',
-    'Daily Stock Entry': 'రోజువారీ స్టాక్ ఎంట్రీ',
     'Dealers Directory': 'డీలర్ల డైరెక్టరీ',
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
     'Crop Intelligence': 'పంట ఇంటెలిజెన్స్',

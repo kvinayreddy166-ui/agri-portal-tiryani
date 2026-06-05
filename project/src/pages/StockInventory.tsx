@@ -6,6 +6,7 @@ import {
   STOCK_CATEGORIES,
   StockCategory,
   currentReportDate,
+  formatFertilizerQuantity,
   formatReportDateLabel,
 } from '../lib/stockInventory';
 
@@ -34,6 +35,7 @@ export function StockInventory() {
   const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
   const [reportMonth, setReportMonth] = useState(reportDate.slice(0, 7));
   const [expandedDealer, setExpandedDealer] = useState<string | null>(null);
+  const [fertilizerQtyUnit, setFertilizerQtyUnit] = useState<'mts' | 'bags'>('mts');
   const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
 
   const fetchData = useCallback(async () => {
@@ -89,6 +91,16 @@ export function StockInventory() {
     }
     return Array.from(map.entries()).sort((a, b) => a[1].dealerName.localeCompare(b[1].dealerName));
   }, [rows]);
+
+  const formatQuantity = (line: InventoryRow, value: number) => {
+    if (line.category !== 'fertilizer') return Number(value || 0).toFixed(2);
+    return formatFertilizerQuantity(value, line.product_type, fertilizerQtyUnit);
+  };
+
+  const unitLabelForLine = (line: InventoryRow) => {
+    if (line.category !== 'fertilizer') return '';
+    return fertilizerQtyUnit === 'bags' ? 'Bags' : 'MTS';
+  };
 
   return (
     <div className="space-y-6">
@@ -168,6 +180,19 @@ export function StockInventory() {
             {t(item.label, item.telugu)}
           </button>
         ))}
+        {(category === 'all' || category === 'fertilizer') && (
+          <label className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
+            {t('Fertilizer unit', 'Fertilizer unit')}
+            <select
+              value={fertilizerQtyUnit}
+              onChange={(e) => setFertilizerQtyUnit(e.target.value as 'mts' | 'bags')}
+              className="bg-transparent font-black text-slate-950 outline-none dark:text-white"
+            >
+              <option value="mts">MTS</option>
+              <option value="bags">Bags</option>
+            </select>
+          </label>
+        )}
       </div>
 
       {loading ? (
@@ -231,14 +256,14 @@ export function StockInventory() {
                             <td className="px-4 py-2 capitalize">{line.category}</td>
                             <td className="px-4 py-2 font-semibold">
                               {line.product_type}
-                              {line.category === 'fertilizer' ? ' (MTS)' : ''}
+                              {unitLabelForLine(line) ? ` (${unitLabelForLine(line)})` : ''}
                             </td>
-                            <td className="px-4 py-2 text-right">{Number(line.opening_balance).toFixed(2)}</td>
-                            <td className="px-4 py-2 text-right">{Number(line.receipts).toFixed(2)}</td>
-                            <td className="px-4 py-2 text-right font-bold">{Number(line.total).toFixed(2)}</td>
-                            <td className="px-4 py-2 text-right">{Number(line.sales).toFixed(2)}</td>
+                            <td className="px-4 py-2 text-right">{formatQuantity(line, line.opening_balance)}</td>
+                            <td className="px-4 py-2 text-right">{formatQuantity(line, line.receipts)}</td>
+                            <td className="px-4 py-2 text-right font-bold">{formatQuantity(line, line.total)}</td>
+                            <td className="px-4 py-2 text-right">{formatQuantity(line, line.sales)}</td>
                             <td className="px-4 py-2 text-right font-black text-emerald-700 dark:text-emerald-400">
-                              {Number(line.closing_balance).toFixed(2)}
+                              {formatQuantity(line, line.closing_balance)}
                             </td>
                           </tr>
                         ))}

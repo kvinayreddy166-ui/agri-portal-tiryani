@@ -65,6 +65,26 @@ export function computeStockRow(opening: number, receipts: number, sales: number
   return { opening_balance, receipts: receiptsNum, total, sales: salesNum, closing_balance };
 }
 
+export function fertilizerBagWeightMts(productType: string): number {
+  return productType.trim().toLowerCase() === 'urea' ? 0.045 : 0.05;
+}
+
+export function fertilizerMtsToBags(valueMts: number, productType: string): number {
+  return (Number(valueMts) || 0) / fertilizerBagWeightMts(productType);
+}
+
+export function formatFertilizerQuantity(
+  valueMts: number,
+  productType: string,
+  unit: 'mts' | 'bags'
+): string {
+  if (unit === 'bags') {
+    const bags = fertilizerMtsToBags(valueMts, productType);
+    return bags.toFixed(Number.isInteger(bags) ? 0 : 2);
+  }
+  return (Number(valueMts) || 0).toFixed(2);
+}
+
 export function currentReportDate(): string {
   const now = new Date();
   const y = now.getFullYear();

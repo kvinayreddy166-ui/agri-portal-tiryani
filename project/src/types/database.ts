@@ -44,6 +44,11 @@ export interface DealerStockAllocation {
   dealer_id: string;
   fertilizer_type: string;
   quantity_mts: number;
+  wholesaler_name?: string;
+  invoice_number?: string;
+  invoice_date?: string;
+  quantity_unit?: string;
+  quantity_bags?: number;
   last_updated: string;
   created_at: string;
   dealer_name?: string;

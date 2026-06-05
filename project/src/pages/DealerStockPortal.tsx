@@ -1,567 +1,287 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Copy, Plus, Save, Trash2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { PackageCheck, Plus, ReceiptText, Save, Truck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import {
-  STOCK_CATEGORIES,
-  StockCategory,
-  StockInventoryLine,
-  computeStockRow,
-  currentReportDate,
-  emptyInventoryRow,
-  formatReportDateLabel,
-  productTypesForCategory,
-  reportDateToMonth,
-  shiftReportDate,
-} from '../lib/stockInventory';
+import { FERTILIZER_TYPES } from '../lib/constants';
+import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
 import { fetchDealerFertilizerAllocation } from '../lib/fertilizerStock';
+import { fertilizerBagWeightMts, formatFertilizerQuantity } from '../lib/stockInventory';
+import { supabase } from '../lib/supabase';
+
+const wholesalerOptions = [
+  'MARKFED',
+  'IFFCO',
+  'KRIBHCO',
+  'Coromandel',
+  'NFL',
+  'RCF',
+  'Nagarjuna Fertilizers',
+  'Private Wholesaler',
+  'Other',
+];
+
+type LoadForm = {
+  fertilizer_type: string;
+  wholesaler_name: string;
+  invoice_number: string;
+  invoice_date: string;
+  quantity: number;
+  quantity_unit: 'MTS' | 'Bags';
+};
 
 export function DealerStockPortal() {
-  const { dealerId, dealerName, user } = useAuth();
-  const { language, t } = useLanguage();
-  const [category, setCategory] = useState<StockCategory>('fertilizer');
-  const [reportDate, setReportDate] = useState(currentReportDate());
-  const [rows, setRows] = useState<StockInventoryLine[]>([emptyInventoryRow(1, 'fertilizer')]);
-  const [recentDates, setRecentDates] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [fertilizerQtyUnit, setFertilizerQtyUnit] = useState<'mts' | 'bags'>('mts');
+  const { dealerId, dealerName } = useAuth();
+  const { t } = useLanguage();
+  const [allocation, setAllocation] = useState<{ fertilizer_type: string; quantity_mts: number }[]>([]);
   const [dealerIfmsId, setDealerIfmsId] = useState('');
-  const [fertilizerAllocationMts, setFertilizerAllocationMts] = useState<
-    { fertilizer_type: string; quantity_mts: number }[]
-  >([]);
-  const isFertilizer = category === 'fertilizer';
-  const qtyUnit = isFertilizer ? (fertilizerQtyUnit === 'bags' ? 'Bags' : 'MTS') : '';
-  const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
+  const [showLoadForm, setShowLoadForm] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [form, setForm] = useState<LoadForm>({
+    fertilizer_type: 'Urea',
+    wholesaler_name: 'MARKFED',
+    invoice_number: '',
+    invoice_date: new Date().toISOString().slice(0, 10),
+    quantity: 0,
+    quantity_unit: 'MTS',
+  });
 
-  const loadRecentDates = useCallback(async (cat: StockCategory) => {
+  const loadData = useCallback(async () => {
     if (!dealerId) return;
-    const { data } = await supabase
-      .from('stock_inventory_lines')
-      .select('report_date')
-      .eq('dealer_id', dealerId)
-      .eq('category', cat)
-      .order('report_date', { ascending: false })
-      .limit(30);
-
-    const unique = [...new Set((data || []).map((r) => r.report_date as string))];
-    setRecentDates(unique);
-  }, [dealerId]);
-
-  const buildRowsFromPreviousClosing = useCallback(async (cat: StockCategory, date: string) => {
-    if (!dealerId) return [emptyInventoryRow(1, cat, date)];
-    const prevDate = shiftReportDate(date, -1);
-    const { data } = await supabase
-      .from('stock_inventory_lines')
-      .select('product_type, closing_balance')
-      .eq('dealer_id', dealerId)
-      .eq('category', cat)
-      .eq('report_date', prevDate)
-      .order('serial_no');
-
-    if (!data?.length) return [emptyInventoryRow(1, cat, date)];
-
-    return data.map((item, index) => {
-      const opening = Number(item.closing_balance || 0);
-      return {
-        ...emptyInventoryRow(index + 1, cat, date),
-        product_type: String(item.product_type || ''),
-        ...computeStockRow(opening, 0, 0),
-      };
-    });
-  }, [dealerId]);
-
-  const loadRows = useCallback(async (cat: StockCategory, date: string) => {
-    if (!dealerId) return;
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('stock_inventory_lines')
-        .select('*')
-        .eq('dealer_id', dealerId)
-        .eq('category', cat)
-        .eq('report_date', date)
-        .order('serial_no');
-
-      if (error) throw error;
-
-      if (data?.length) {
-        setRows(data as StockInventoryLine[]);
-      } else {
-        setRows(await buildRowsFromPreviousClosing(cat, date));
-      }
-    } catch (err) {
-      console.error(err);
-      setRows([emptyInventoryRow(1, cat, date)]);
-    } finally {
-      setLoading(false);
-    }
-  }, [buildRowsFromPreviousClosing, dealerId]);
-
-  useEffect(() => {
-    if (!dealerId) return;
-    const loadDealerIfms = async () => {
-      try {
-        const { data } = await supabase.from('dealers').select('ifms_id').eq('id', dealerId).maybeSingle();
-        setDealerIfmsId(String(data?.ifms_id || ''));
-      } catch {
-        setDealerIfmsId('');
-      }
-    };
-    void loadDealerIfms();
+    const [allocationRows, dealerRow] = await Promise.all([
+      fetchDealerFertilizerAllocation(dealerId).catch(() => []),
+      supabase.from('dealers').select('ifms_id').eq('id', dealerId).maybeSingle(),
+    ]);
+    setAllocation(allocationRows);
+    setDealerIfmsId(String(dealerRow.data?.ifms_id || ''));
   }, [dealerId]);
 
   useEffect(() => {
-    if (!dealerId) return;
-    void loadRecentDates(category);
-    if (category === 'fertilizer') {
-      fetchDealerFertilizerAllocation(dealerId)
-        .then(setFertilizerAllocationMts)
-        .catch(() => setFertilizerAllocationMts([]));
-    } else {
-      setFertilizerAllocationMts([]);
-    }
-  }, [dealerId, category, loadRecentDates]);
+    void loadData();
+  }, [loadData]);
 
-  useEffect(() => {
-    if (!dealerId) return;
-    void loadRows(category, reportDate);
-  }, [dealerId, category, reportDate, loadRows]);
+  const currentMts = useMemo(() => {
+    const row = allocation.find((item) => item.fertilizer_type === form.fertilizer_type);
+    return Number(row?.quantity_mts || 0);
+  }, [allocation, form.fertilizer_type]);
 
-  const applyYesterdayClosingAsOpening = async () => {
-    if (!dealerId) return;
-    const prevDate = shiftReportDate(reportDate, -1);
-    const { data } = await supabase
-      .from('stock_inventory_lines')
-      .select('product_type, closing_balance')
-      .eq('dealer_id', dealerId)
-      .eq('category', category)
-      .eq('report_date', prevDate);
+  const loadMts =
+    form.quantity_unit === 'Bags'
+      ? (Number(form.quantity) || 0) * fertilizerBagWeightMts(form.fertilizer_type)
+      : Number(form.quantity) || 0;
 
-    if (!data?.length) {
-      alert(
-        t(
-          `No entry found for ${formatReportDateLabel(prevDate, dateLocale)}.`,
-          `${formatReportDateLabel(prevDate, dateLocale)} నాటికి ఎంట్రీ లేదు.`
-        )
-      );
+  const handleSaveLoad = async () => {
+    if (!dealerId) return;
+    if (!form.fertilizer_type || !form.wholesaler_name || !form.invoice_number.trim() || loadMts <= 0) {
+      alert('Enter wholesaler, invoice number, fertilizer and valid quantity.');
       return;
     }
 
-    const closingMap = new Map(data.map((r) => [r.product_type, Number(r.closing_balance || 0)]));
-    setRows((current) =>
-      current.map((row) => {
-        const opening = closingMap.get(row.product_type) ?? row.opening_balance;
-        const computed = computeStockRow(opening, row.receipts, row.sales);
-        return { ...row, ...computed };
-      })
-    );
-  };
-
-  const updateRow = (index: number, patch: Partial<StockInventoryLine>) => {
-    setRows((current) =>
-      current.map((row, i) => {
-        if (i !== index) return row;
-        const merged = { ...row, ...patch };
-        const computed = computeStockRow(merged.opening_balance, merged.receipts, merged.sales);
-        return { ...merged, ...computed };
-      })
-    );
-  };
-
-  const bagWeightMts = (productType: string) => (productType.toLowerCase() === 'urea' ? 0.045 : 0.05);
-
-  const toDisplayQuantity = (valueMts: number, productType: string) => {
-    if (!isFertilizer || fertilizerQtyUnit === 'mts') return Number(valueMts) || 0;
-    return (Number(valueMts) || 0) / bagWeightMts(productType);
-  };
-
-  const fromDisplayQuantity = (value: number, productType: string) => {
-    if (!isFertilizer || fertilizerQtyUnit === 'mts') return Number(value) || 0;
-    return (Number(value) || 0) * bagWeightMts(productType);
-  };
-
-  const formatDisplayQuantity = (valueMts: number, productType: string) => {
-    const value = toDisplayQuantity(valueMts, productType);
-    return isFertilizer && fertilizerQtyUnit === 'bags'
-      ? value.toFixed(Number.isInteger(value) ? 0 : 2)
-      : value.toFixed(2);
-  };
-
-  const unitHelpText = isFertilizer
-    ? fertilizerQtyUnit === 'bags'
-      ? t('Bag conversion: Urea = 45 kg bag, all other fertilizers = 50 kg bag.', 'బ్యాగ్ మార్పిడి: యూరియా = 45 కిలోల బ్యాగ్, ఇతర ఎరువులు = 50 కిలోల బ్యాగ్.')
-      : t('All fertilizer stock is saved in MTS.', 'అన్ని ఎరువుల స్టాక్ MTS లో సేవ్ అవుతుంది.')
-    : '';
-
-  const addRow = () => {
-    setRows((current) => [...current, emptyInventoryRow(current.length + 1, category, reportDate)]);
-  };
-
-  const removeRow = (index: number) => {
-    setRows((current) => {
-      const next = current.filter((_, i) => i !== index);
-      return next.length
-        ? next.map((row, i) => ({ ...row, serial_no: i + 1 }))
-        : [emptyInventoryRow(1, category, reportDate)];
-    });
-  };
-
-  const handleSave = async () => {
-    if (!dealerId) return;
     setSaving(true);
     try {
-      await supabase
-        .from('stock_inventory_lines')
-        .delete()
-        .eq('dealer_id', dealerId)
-        .eq('category', category)
-        .eq('report_date', reportDate);
-
-      const month = reportDateToMonth(reportDate);
-      const payload = rows.map((row, index) => {
-        const computed = computeStockRow(row.opening_balance, row.receipts, row.sales);
-        return {
-          dealer_id: dealerId,
-          category,
-          serial_no: index + 1,
-          product_type: row.product_type,
-          opening_balance: computed.opening_balance,
-          receipts: computed.receipts,
-          total: computed.total,
-          sales: computed.sales,
-          closing_balance: computed.closing_balance,
-          report_date: reportDate,
-          report_month: month,
-          submitted_by: user?.email || '',
-          updated_at: new Date().toISOString(),
-        };
+      const nextTotalMts = currentMts + loadMts;
+      await upsertDealerStockAllocation({
+        dealer_id: dealerId,
+        fertilizer_type: form.fertilizer_type,
+        quantity_mts: nextTotalMts,
+        wholesaler_name: form.wholesaler_name,
+        invoice_number: form.invoice_number.trim(),
+        invoice_date: form.invoice_date,
+        quantity_unit: form.quantity_unit,
+        quantity_bags:
+          form.quantity_unit === 'Bags'
+            ? Number(form.quantity) || 0
+            : loadMts / fertilizerBagWeightMts(form.fertilizer_type),
       });
 
-      const { error } = await supabase.from('stock_inventory_lines').insert(payload);
-      if (error) throw error;
-
-      alert(
-        t(
-          `Daily stock saved for ${formatReportDateLabel(reportDate, dateLocale)}.`,
-          `${formatReportDateLabel(reportDate, dateLocale)} నాటి స్టాక్ సేవ్ అయింది.`
-        )
-      );
-      await loadRecentDates(category);
-      void loadRows(category, reportDate);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Save failed';
-      alert(t(`Could not save: ${msg}`, `సేవ్ చేయలేకపోయాం: ${msg}`));
+      setMessage(`Load added. ${form.fertilizer_type} balance is now ${nextTotalMts.toFixed(2)} MTS.`);
+      setForm((current) => ({ ...current, invoice_number: '', quantity: 0 }));
+      await loadData();
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Could not save load';
+      alert(`Could not save load: ${msg}`);
     } finally {
       setSaving(false);
     }
   };
 
-  const types = productTypesForCategory(category);
-  const isToday = reportDate === currentReportDate();
-
   if (!dealerId) {
     return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-        {t('Dealer account not linked. Please sign in with your registered phone number.', 'డీలర్ ఖాతా లింక్ కాలేదు. నమోదైన ఫోన్ నంబర్‌తో లాగిన్ అవండి.')}
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+        {t('Dealer account not linked. Please sign in with your registered phone number.', 'Dealer account not linked. Please sign in with your registered phone number.')}
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-black text-slate-950 dark:text-white">
-          {t('Daily Stock Entry', 'రోజువారీ స్టాక్ ఎంట్రీ')}
-        </h1>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <p className="font-sans text-lg font-black tracking-normal text-slate-900 dark:text-white">
-            {dealerName}
-          </p>
-          {dealerIfmsId && (
-            <span className="rounded-lg bg-slate-900 px-3 py-1 text-sm font-black tracking-wide text-white shadow-sm dark:bg-white dark:text-slate-950">
-              IFMS ID: {dealerIfmsId}
-            </span>
-          )}
-          <p className="text-sm font-bold text-slate-600 dark:text-slate-400">
-            {t('Submit stock every day', 'ప్రతి రోజు స్టాక్ సమర్పించండి')}
-          </p>
-        </div>
-      </div>
-
-      {isFertilizer && fertilizerAllocationMts.length > 0 && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-900 dark:bg-emerald-950/40">
-          <p className="text-sm font-bold text-emerald-900 dark:text-emerald-200">
-            {t('Your fertilizer allocation (Fertilizer Allocation)', 'మీ ఎరువుల కేటాయింపు (ఎరువుల కేటాయింపు)')}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {fertilizerAllocationMts.map((item) => (
-              <span
-                key={item.fertilizer_type}
-                className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-800 shadow-sm dark:bg-slate-900 dark:text-white"
-              >
-                {item.fertilizer_type}: {formatDisplayQuantity(item.quantity_mts, item.fertilizer_type)} {qtyUnit}
-                {fertilizerQtyUnit === 'bags' ? ` (${item.quantity_mts.toFixed(2)} MTS)` : ''}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="portal-card flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <Calendar className="h-5 w-5 text-emerald-600" />
-          <label className="text-sm font-bold text-slate-700 dark:text-slate-200">
-            {t('Entry date', 'ఎంట్రీ తేదీ')}
-          </label>
-          <button
-            type="button"
-            onClick={() => setReportDate(shiftReportDate(reportDate, -1))}
-            className="rounded-lg border border-slate-300 p-2 hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-800"
-            aria-label="Previous day"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <input
-            type="date"
-            value={reportDate}
-            max={currentReportDate()}
-            onChange={(e) => setReportDate(e.target.value)}
-            className="rounded-xl border border-slate-300 px-3 py-2 font-semibold dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-          />
-          <button
-            type="button"
-            onClick={() => setReportDate(shiftReportDate(reportDate, 1))}
-            disabled={reportDate >= currentReportDate()}
-            className="rounded-lg border border-slate-300 p-2 hover:bg-slate-50 disabled:opacity-40 dark:border-slate-600 dark:hover:bg-slate-800"
-            aria-label="Next day"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-          {!isToday && (
-            <button
-              type="button"
-              onClick={() => setReportDate(currentReportDate())}
-              className="rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200"
-            >
-              {t('Today', 'ఈ రోజు')}
-            </button>
-          )}
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          {isFertilizer && (
-            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
-              {t('Unit', 'యూనిట్')}
-              <select
-                value={fertilizerQtyUnit}
-                onChange={(e) => setFertilizerQtyUnit(e.target.value as 'mts' | 'bags')}
-                className="rounded-xl border border-slate-300 px-3 py-2 font-black text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-              >
-                <option value="mts">MTS</option>
-                <option value="bags">Bags</option>
-              </select>
-            </label>
-          )}
-          <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-            {formatReportDateLabel(reportDate, dateLocale)}
-            {recentDates.includes(reportDate) && (
-              <span className="ml-2 rounded-full bg-emerald-600 px-2 py-0.5 text-xs text-white">
-                {t('Saved', 'సేవ్')}
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-black text-slate-950 dark:text-white">
+            <PackageCheck className="h-7 w-7 text-emerald-600" />
+            {t('Fertilizer Tracking', 'Fertilizer Tracking')}
+          </h1>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <span className="text-base font-black text-slate-900 dark:text-white">{dealerName}</span>
+            {dealerIfmsId && (
+              <span className="rounded-md bg-slate-900 px-2.5 py-1 text-xs font-black tracking-wide text-white dark:bg-white dark:text-slate-950">
+                IFMS ID: {dealerIfmsId}
               </span>
             )}
-          </p>
-        </div>
-      </div>
-
-      {recentDates.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <span className="text-xs font-bold uppercase text-slate-500">{t('Recent days', 'ఇటీవలి రోజులు')}:</span>
-          {recentDates.slice(0, 14).map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => setReportDate(d)}
-              className={`rounded-lg px-3 py-1 text-xs font-bold ${
-                d === reportDate
-                  ? 'bg-emerald-700 text-white'
-                  : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-              }`}
-            >
-              {d}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {isFertilizer && (
-        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-          {unitHelpText}
-        </p>
-      )}
-
-      <div className="grid gap-3 sm:grid-cols-3">
-        {STOCK_CATEGORIES.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => setCategory(item.id)}
-            className={`rounded-2xl border p-4 text-left font-bold transition ${
-              category === item.id
-                ? 'border-emerald-400 bg-emerald-700 text-white shadow-lg'
-                : 'border-slate-200 bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
-            }`}
-          >
-            {t(item.label, item.telugu)}
-          </button>
-        ))}
-      </div>
-
-      {loading ? (
-        <div className="flex h-48 items-center justify-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-sm">
-              <thead className="bg-slate-900 text-white">
-                <tr>
-                  <th className="px-3 py-3 text-left">{t('S.No', 'క్ర.సం.')}</th>
-                  <th className="px-3 py-3 text-left">{t('Type', 'రకం')}</th>
-                  <th className="px-3 py-3 text-left">
-                    {t('Opening', 'ప్రారంభ')}
-                    {qtyUnit ? ` (${qtyUnit})` : ''}
-                  </th>
-                  <th className="px-3 py-3 text-left">
-                    {t('Receipts', 'రసీదులు')}
-                    {qtyUnit ? ` (${qtyUnit})` : ''}
-                  </th>
-                  <th className="px-3 py-3 text-left">
-                    {t('Total', 'మొత్తం')}
-                    {qtyUnit ? ` (${qtyUnit})` : ''}
-                  </th>
-                  <th className="px-3 py-3 text-left">
-                    {t('Sales', 'అమ్మకాలు')}
-                    {qtyUnit ? ` (${qtyUnit})` : ''}
-                  </th>
-                  <th className="px-3 py-3 text-left">
-                    {t('Closing', 'మిగిలిన')}
-                    {qtyUnit ? ` (${qtyUnit})` : ''}
-                  </th>
-                  <th className="px-3 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {rows.map((row, index) => (
-                  <tr key={row.id || `${reportDate}-${index}`}>
-                    <td className="px-3 py-2 font-bold">{index + 1}</td>
-                    <td className="px-3 py-2">
-                      <select
-                        value={row.product_type}
-                        onChange={(e) => updateRow(index, { product_type: e.target.value })}
-                        className="w-full min-w-[8rem] rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                      >
-                        {types.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="number"
-                        min={0}
-                        step={isFertilizer && fertilizerQtyUnit === 'bags' ? '1' : '0.01'}
-                        value={toDisplayQuantity(row.opening_balance, row.product_type)}
-                        onChange={(e) =>
-                          updateRow(index, {
-                            opening_balance: fromDisplayQuantity(parseFloat(e.target.value) || 0, row.product_type),
-                          })
-                        }
-                        className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="number"
-                        min={0}
-                        step={isFertilizer && fertilizerQtyUnit === 'bags' ? '1' : '0.01'}
-                        value={toDisplayQuantity(row.receipts, row.product_type)}
-                        onChange={(e) =>
-                          updateRow(index, {
-                            receipts: fromDisplayQuantity(parseFloat(e.target.value) || 0, row.product_type),
-                          })
-                        }
-                        className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                      />
-                    </td>
-                    <td className="px-3 py-2 font-bold text-emerald-700 dark:text-emerald-400">
-                      {formatDisplayQuantity(row.total, row.product_type)}
-                      {qtyUnit ? ` ${qtyUnit}` : ''}
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="number"
-                        min={0}
-                        step={isFertilizer && fertilizerQtyUnit === 'bags' ? '1' : '0.01'}
-                        value={toDisplayQuantity(row.sales, row.product_type)}
-                        onChange={(e) =>
-                          updateRow(index, {
-                            sales: fromDisplayQuantity(parseFloat(e.target.value) || 0, row.product_type),
-                          })
-                        }
-                        className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                      />
-                    </td>
-                    <td className="px-3 py-2 font-black text-slate-900 dark:text-white">
-                      {formatDisplayQuantity(row.closing_balance, row.product_type)}
-                      {qtyUnit ? ` ${qtyUnit}` : ''}
-                    </td>
-                    <td className="px-3 py-2">
-                      <button
-                        type="button"
-                        onClick={() => removeRow(index)}
-                        className="rounded-lg p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
-          <div className="flex flex-wrap gap-3 border-t border-slate-100 p-4 dark:border-slate-800">
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowLoadForm((current) => !current)}
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white hover:bg-emerald-800"
+        >
+          <Plus className="h-4 w-4" />
+          {showLoadForm ? 'Hide Load' : 'Add Load'}
+        </button>
+      </div>
+
+      {message && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+          {message}
+        </div>
+      )}
+
+      {showLoadForm && (
+        <section className="portal-card p-3">
+          <div className="mb-2 flex items-center gap-2">
+            <Truck className="h-5 w-5 text-emerald-600" />
+            <h2 className="text-base font-black text-slate-950 dark:text-white">Load Entry</h2>
+          </div>
+          <div className="grid gap-2 md:grid-cols-3">
+            <CompactSelect
+              label="Fertilizer"
+              value={form.fertilizer_type}
+              onChange={(value) => setForm({ ...form, fertilizer_type: value })}
+              options={[...FERTILIZER_TYPES]}
+            />
+            <CompactSelect
+              label="Wholesaler Name"
+              value={form.wholesaler_name}
+              onChange={(value) => setForm({ ...form, wholesaler_name: value })}
+              options={wholesalerOptions}
+            />
+            <CompactInput
+              label="Invoice Number"
+              value={form.invoice_number}
+              onChange={(value) => setForm({ ...form, invoice_number: value })}
+            />
+            <CompactInput
+              label="Invoice Date"
+              type="date"
+              value={form.invoice_date}
+              onChange={(value) => setForm({ ...form, invoice_date: value })}
+            />
+            <CompactInput
+              label={`Quantity (${form.quantity_unit})`}
+              type="number"
+              value={String(form.quantity)}
+              onChange={(value) => setForm({ ...form, quantity: Number(value) || 0 })}
+            />
+            <CompactSelect
+              label="Unit"
+              value={form.quantity_unit}
+              onChange={(value) => setForm({ ...form, quantity_unit: value as 'MTS' | 'Bags' })}
+              options={['MTS', 'Bags']}
+            />
+          </div>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              Load converts to {loadMts.toFixed(2)} MTS. Bags: Urea 45 kg, others 50 kg.
+            </p>
             <button
               type="button"
-              onClick={addRow}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 font-bold dark:border-slate-600"
-            >
-              <Plus className="h-4 w-4" />
-              {t('Add row', 'వరుస జోడించు')}
-            </button>
-            <button
-              type="button"
-              onClick={applyYesterdayClosingAsOpening}
-              className="inline-flex items-center gap-2 rounded-xl border border-amber-400 px-4 py-2 font-bold text-amber-900 dark:text-amber-200"
-            >
-              <Copy className="h-4 w-4" />
-              {t('Opening from yesterday', 'నిన్నటి మిగిలినది ప్రారంభంగా')}
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
+              onClick={handleSaveLoad}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2 font-bold text-white hover:bg-emerald-800 disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-black text-white hover:bg-slate-800 disabled:opacity-60 dark:bg-white dark:text-slate-950"
             >
               <Save className="h-4 w-4" />
-              {saving ? t('Saving…', 'సేవ్…') : t('Save daily entry', 'రోజువారీ ఎంట్రీ సేవ్')}
+              {saving ? 'Saving...' : 'Save Load'}
             </button>
           </div>
-        </div>
+        </section>
       )}
+
+      <section className="portal-card overflow-hidden p-0">
+        <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2 dark:border-slate-800">
+          <ReceiptText className="h-5 w-5 text-emerald-600" />
+          <h2 className="text-sm font-black text-slate-950 dark:text-white">Current Fertilizer Balance</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-2 p-3 md:grid-cols-5">
+          {FERTILIZER_TYPES.map((fertilizer) => {
+            const row = allocation.find((item) => item.fertilizer_type === fertilizer);
+            const mts = Number(row?.quantity_mts || 0);
+            return (
+              <div key={fertilizer} className="rounded-lg border border-slate-100 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">{fertilizer}</p>
+                <p className="text-lg font-black text-slate-950 dark:text-white">{mts.toFixed(2)} MTS</p>
+                <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                  {formatFertilizerQuantity(mts, fertilizer, 'bags')} Bags
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
+  );
+}
+
+function CompactInput({
+  label,
+  value,
+  onChange,
+  type = 'text',
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>
+      <input
+        type={type}
+        min={type === 'number' ? '0' : undefined}
+        step={type === 'number' ? '0.01' : undefined}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-950 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+      />
+    </label>
+  );
+}
+
+function CompactSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-950 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
