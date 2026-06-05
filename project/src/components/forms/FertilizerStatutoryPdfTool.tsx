@@ -213,33 +213,33 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const downloadPdf = async (type = formType) => {
-    const targetWindow = openBlankPdfTab();
     setBusyAction('download');
+    setPreviewError(null);
     try {
       const doc = await generateFertilizerStatutoryPdf(type, values);
-      openFertilizerDocInTab(doc, getFertilizerPdfFileName(type, values), targetWindow);
+      const fileName = getFertilizerPdfFileName(type, values);
+      downloadFertilizerDoc(doc, fileName);
       setFormType(type);
-      setMessage('PDF opened in a new tab.');
+      setMessage(`PDF downloaded: ${fileName}`);
     } catch (error) {
       console.error('Unable to download fertilizer PDF:', error);
-      targetWindow?.close();
-      setPreviewError('PDF could not open. Please try Preview.');
+      setPreviewError('PDF could not download. Please try again.');
     } finally {
       setBusyAction(null);
     }
   };
 
   const downloadAllPdf = async () => {
-    const targetWindow = openBlankPdfTab();
     setBusyAction('downloadAll');
+    setPreviewError(null);
     try {
       const doc = await generateAllFertilizerStatutoryPdf(values);
-      openFertilizerDocInTab(doc, getAllFertilizerPdfFileName(values), targetWindow);
-      setMessage('All forms PDF opened in a new tab.');
+      const fileName = getAllFertilizerPdfFileName(values);
+      downloadFertilizerDoc(doc, fileName);
+      setMessage(`All forms PDF downloaded: ${fileName}`);
     } catch (error) {
       console.error('Unable to download all fertilizer PDFs:', error);
-      targetWindow?.close();
-      setPreviewError('All forms PDF could not open. Please try Preview All.');
+      setPreviewError('All forms PDF could not download. Please try again.');
     } finally {
       setBusyAction(null);
     }
@@ -421,7 +421,7 @@ function FertilizerPdfAction({
           }`}
         >
           <Download className="h-3.5 w-3.5" />
-          PDF
+          Download
         </button>
       </div>
     </div>
@@ -488,5 +488,20 @@ function openFertilizerDocInTab(
   } else {
     window.open(blobUrl, '_blank', 'noopener,noreferrer');
   }
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+}
+
+function downloadFertilizerDoc(doc: { output: (type: 'blob') => Blob }, fileName: string) {
+  const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = blobUrl;
+  link.download = fileName;
+  link.rel = 'noopener';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }

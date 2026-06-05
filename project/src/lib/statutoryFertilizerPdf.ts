@@ -150,19 +150,11 @@ export async function createAllFertilizerPdfBlobUrl(values: FertilizerPdfValues)
 }
 
 export function getFertilizerPdfFileName(formType: FertilizerStatutoryFormType, values: FertilizerPdfValues) {
-  const sampleCode = getSampleCode(values);
-  const suffix = sampleCode ? `_${sanitizeFilePart(sampleCode)}` : '';
-
-  if (formType === 'J') return `FormJ${suffix}.pdf`;
-  if (formType === 'K_ADA') return `FormK_ADA${suffix}.pdf`;
-  if (formType === 'K_JDA') return `FormK_JDA${suffix}.pdf`;
-  return `FormP${suffix}.pdf`;
+  return `${getSampleCodeFilePart(values)}_${getFormFilePart(formType)}.pdf`;
 }
 
 export function getAllFertilizerPdfFileName(values: FertilizerPdfValues) {
-  const sampleCode = getSampleCode(values);
-  const suffix = sampleCode ? `_${sanitizeFilePart(sampleCode)}` : '';
-  return `FormJ_FormK_ADA_FormK_JDA_FormP${suffix}.pdf`;
+  return `${getSampleCodeFilePart(values)}_FormJ_FormK_ADA_FormK_JDA_FormP.pdf`;
 }
 
 function createDocument(
@@ -491,6 +483,17 @@ function getKAddress(formType: 'K_ADA' | 'K_JDA') {
 
 function getSampleCode(values: FertilizerPdfValues) {
   return values.sampleCode.trim() || values.codeNumber.trim() || values.no.trim();
+}
+
+function getSampleCodeFilePart(values: FertilizerPdfValues) {
+  return sanitizeFilePart(getSampleCode(values)) || 'SampleCode';
+}
+
+function getFormFilePart(formType: FertilizerStatutoryFormType) {
+  if (formType === 'J') return 'FormJ';
+  if (formType === 'K_ADA') return 'FormK_ADA';
+  if (formType === 'K_JDA') return 'FormK_JDA';
+  return 'FormP';
 }
 
 function formatFieldValue(value: string) {
