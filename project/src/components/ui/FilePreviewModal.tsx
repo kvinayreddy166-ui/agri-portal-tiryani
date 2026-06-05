@@ -227,6 +227,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
               <img
                 src={previewSrc}
                 alt={fileName || 'Preview'}
+                decoding="async"
                 className="max-h-[70vh] max-w-full rounded-lg object-contain shadow-lg"
                 onError={() => {
                   if (previewSrc !== fileUrl) {

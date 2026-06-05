@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Edit2, Trash2, Users, Search, Save, X, KeyRound } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -25,6 +25,7 @@ const emptyForm = {
   expiry_date: '',
   location: '',
 };
+const DEALERS_PAGE_SIZE = 25;
 
 export function DealerManagement() {
   const { isAdminUser } = useAuth();
@@ -42,6 +43,7 @@ export function DealerManagement() {
   const [loginSetupDealerId, setLoginSetupDealerId] = useState('');
   const [loginPassword, setLoginPassword] = useState(DEALER_DEFAULT_PASSWORD);
   const [allDealersForLogin, setAllDealersForLogin] = useState<Dealer[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const fetchDealers = useCallback(async () => {
     setLoading(true);
@@ -221,12 +223,25 @@ export function DealerManagement() {
     );
   };
 
-  const filteredDealers = dealers.filter(
-    (dealer) =>
-      dealer.dealer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dealer.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dealer.license_number.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredDealers = useMemo(
+    () =>
+      dealers.filter(
+        (dealer) =>
+          dealer.dealer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          dealer.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          dealer.license_number.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [dealers, searchTerm]
   );
+  const pageCount = Math.max(1, Math.ceil(filteredDealers.length / DEALERS_PAGE_SIZE));
+  const paginatedDealers = filteredDealers.slice(
+    currentPage * DEALERS_PAGE_SIZE,
+    currentPage * DEALERS_PAGE_SIZE + DEALERS_PAGE_SIZE
+  );
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [activeTab, searchTerm]);
 
   const showIfms = activeTab === 'fertilizer';
   const validityLabel =
@@ -511,9 +526,9 @@ export function DealerManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-              {filteredDealers.map((dealer, index) => (
+              {paginatedDealers.map((dealer, index) => (
                 <tr key={dealer.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                  <td className="px-2.5 py-1.5 text-xs font-bold text-gray-600 dark:text-slate-400">{index + 1}</td>
+                  <td className="px-2.5 py-1.5 text-xs font-bold text-gray-600 dark:text-slate-400">{currentPage * DEALERS_PAGE_SIZE + index + 1}</td>
                   {editingId === dealer.id ? (
                     <EditRow
                       dealer={dealer}
@@ -545,7 +560,48 @@ export function DealerManagement() {
             <p className="text-gray-500">{t('No dealers found', 'డీలర్లు లేరు')}</p>
           </div>
         )}
+        {filteredDealers.length > DEALERS_PAGE_SIZE && (
+          <TablePagination
+            currentPage={currentPage}
+            pageCount={pageCount}
+            onPageChange={setCurrentPage}
+          />
+        )}
       </div>
+    </div>
+  );
+}
+
+function TablePagination({
+  currentPage,
+  pageCount,
+  onPageChange,
+}: {
+  currentPage: number;
+  pageCount: number;
+  onPageChange: (page: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-3 py-2 text-xs font-black text-slate-600 dark:border-slate-700 dark:text-slate-300">
+      <button
+        type="button"
+        onClick={() => onPageChange(Math.max(0, currentPage - 1))}
+        disabled={currentPage === 0}
+        className="rounded-md border border-slate-200 px-2.5 py-1.5 disabled:opacity-50 dark:border-slate-700"
+      >
+        Previous
+      </button>
+      <span className="uppercase tracking-wide">
+        Page {currentPage + 1} / {pageCount}
+      </span>
+      <button
+        type="button"
+        onClick={() => onPageChange(Math.min(pageCount - 1, currentPage + 1))}
+        disabled={currentPage >= pageCount - 1}
+        className="rounded-md border border-slate-200 px-2.5 py-1.5 disabled:opacity-50 dark:border-slate-700"
+      >
+        Next
+      </button>
     </div>
   );
 }

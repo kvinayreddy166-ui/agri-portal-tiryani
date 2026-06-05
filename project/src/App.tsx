@@ -3,9 +3,9 @@ import { useAuth, AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
-import { Login } from './components/Login';
-import { Layout } from './components/Layout';
 
+const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
+const Layout = lazy(() => import('./components/Layout').then((m) => ({ default: m.Layout })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const StockManagement = lazy(() => import('./pages/StockManagement').then((m) => ({ default: m.StockManagement })));
 const DealerManagement = lazy(() => import('./pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));
@@ -247,7 +247,11 @@ function AppContent() {
   }
 
   if (!user) {
-    return <Login />;
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <Login />
+      </Suspense>
+    );
   }
 
   const renderPage = () => {
@@ -318,11 +322,11 @@ function AppContent() {
   };
 
   return (
-    <Layout currentPage={currentPage} onNavigate={navigateToPage} onSignOut={handleSignOut}>
-      <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<PageLoader />}>
+      <Layout currentPage={currentPage} onNavigate={navigateToPage} onSignOut={handleSignOut}>
         {renderPage()}
-      </Suspense>
-    </Layout>
+      </Layout>
+    </Suspense>
   );
 }
 

@@ -158,10 +158,10 @@ export function getAllFertilizerPdfFileName(values: FertilizerPdfValues) {
 }
 
 function createDocument(
-  jsPDF: new (options: { orientation: 'portrait'; unit: 'mm'; format: 'a4' }) => JsPdfInstance,
+  jsPDF: new (options: { orientation: 'portrait'; unit: 'mm'; format: 'a4'; compress: boolean }) => JsPdfInstance,
   title: string
 ) {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
   doc.setProperties({
     title,
     subject: 'Statutory fertilizer sampling form',

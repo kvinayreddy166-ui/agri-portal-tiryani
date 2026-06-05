@@ -19,6 +19,7 @@ const titleCase = (value = '') =>
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 const FINANCIAL_YEAR_OPTIONS = ['2025-26', '2026-27', '2027-28', '2028-29', '2029-30', '2030-31'];
+const STOCK_ROWS_PAGE_SIZE = 25;
 
 const currentFinancialYear = () => {
   const now = new Date();
@@ -66,6 +67,7 @@ export function StockInventory() {
   const [fertilizerQtyUnit, setFertilizerQtyUnit] = useState<'mts' | 'bags'>('mts');
   const [fertilizerFilter, setFertilizerFilter] = useState('all');
   const [dealerFilter, setDealerFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(0);
   const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
 
   const fetchData = useCallback(async () => {
@@ -119,6 +121,15 @@ export function StockInventory() {
     if (fertilizerFilter === 'all') return dealerFilteredRows;
     return dealerFilteredRows.filter((row) => row.category !== 'fertilizer' || row.product_type === fertilizerFilter);
   }, [dealerFilteredRows, fertilizerFilter]);
+  const pageCount = Math.max(1, Math.ceil(filteredRows.length / STOCK_ROWS_PAGE_SIZE));
+  const paginatedRows = filteredRows.slice(
+    currentPage * STOCK_ROWS_PAGE_SIZE,
+    currentPage * STOCK_ROWS_PAGE_SIZE + STOCK_ROWS_PAGE_SIZE
+  );
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [category, dealerFilter, fertilizerFilter, financialYear, reportDate, reportMonth, viewMode]);
 
   const fertilizerSummary = useMemo(() => {
     const fertilizers = fertilizerFilter === 'all' ? FERTILIZER_TYPES : [fertilizerFilter];
@@ -338,9 +349,9 @@ export function StockInventory() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {filteredRows.map((line, index) => (
+                {paginatedRows.map((line, index) => (
                   <tr key={line.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
-                    <td className="px-3 py-2 font-bold">{index + 1}</td>
+                    <td className="px-3 py-2 font-bold">{currentPage * STOCK_ROWS_PAGE_SIZE + index + 1}</td>
                     <td className="px-3 py-2 font-black text-slate-950 dark:text-white">{titleCase(line.dealers?.dealer_name || 'Unknown')}</td>
                     <td className="px-3 py-2 font-semibold">
                       {line.product_type}
@@ -370,8 +381,49 @@ export function StockInventory() {
               </tbody>
             </table>
           </div>
+          {filteredRows.length > STOCK_ROWS_PAGE_SIZE && (
+            <TablePagination
+              currentPage={currentPage}
+              pageCount={pageCount}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </section>
       )}
+    </div>
+  );
+}
+
+function TablePagination({
+  currentPage,
+  pageCount,
+  onPageChange,
+}: {
+  currentPage: number;
+  pageCount: number;
+  onPageChange: (page: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-3 py-2 text-xs font-black text-slate-600 dark:border-slate-700 dark:text-slate-300">
+      <button
+        type="button"
+        onClick={() => onPageChange(Math.max(0, currentPage - 1))}
+        disabled={currentPage === 0}
+        className="rounded-md border border-slate-200 px-2.5 py-1.5 disabled:opacity-50 dark:border-slate-700"
+      >
+        Previous
+      </button>
+      <span className="uppercase tracking-wide">
+        Page {currentPage + 1} / {pageCount}
+      </span>
+      <button
+        type="button"
+        onClick={() => onPageChange(Math.min(pageCount - 1, currentPage + 1))}
+        disabled={currentPage >= pageCount - 1}
+        className="rounded-md border border-slate-200 px-2.5 py-1.5 disabled:opacity-50 dark:border-slate-700"
+      >
+        Next
+      </button>
     </div>
   );
 }

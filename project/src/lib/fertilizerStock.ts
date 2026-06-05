@@ -47,13 +47,14 @@ export async function fetchDailyFertilizerStockSummary(
   reportDate = currentReportDate()
 ): Promise<DailyFertilizerStockSummary[]> {
   let effectiveDate = reportDate;
-  let { data, error } = await supabase
+  const initialRows = await supabase
     .from('stock_inventory_lines')
     .select('product_type, sales, closing_balance, report_date')
     .eq('category', 'fertilizer')
     .eq('report_date', effectiveDate);
+  let data = initialRows.data;
 
-  if (error) throw error;
+  if (initialRows.error) throw initialRows.error;
 
   if (!data?.length) {
     const latest = await supabase

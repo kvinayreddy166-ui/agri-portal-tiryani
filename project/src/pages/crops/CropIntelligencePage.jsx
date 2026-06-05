@@ -34,7 +34,7 @@ export function CropIntelligencePage({ cropSlug = 'paddy' }) {
   return (
     <div className="space-y-4">
       <section className="relative overflow-hidden rounded-xl">
-        <img src={cropImageUrl} alt={cropName} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={cropImageUrl} alt={cropName} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-slate-900/75 to-slate-900/40" />
         <div className="relative p-5 text-white md:p-7">
           <div className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-black">

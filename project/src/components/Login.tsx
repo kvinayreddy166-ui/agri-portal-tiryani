@@ -51,6 +51,7 @@ const STATUTORY_FOLDERS = [
 ];
 
 const PUBLIC_FORMS_STATE_KEY = 'tiryani-public-statutory-forms-open';
+const PUBLIC_FORMS_PAGE_SIZE = 10;
 
 const TELANGANA_DISTRICTS = [
   'Adilabad',
@@ -109,6 +110,7 @@ export function Login() {
     () => window.location.hash === '#statutory-forms' || window.sessionStorage.getItem(PUBLIC_FORMS_STATE_KEY) === '1'
   );
   const [statutoryFolder, setStatutoryFolder] = useState('fertilizers');
+  const [statutoryPage, setStatutoryPage] = useState(0);
   const [statutoryForms, setStatutoryForms] = useState<FormDownload[]>([]);
   const [formsLoading, setFormsLoading] = useState(false);
   const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
@@ -230,8 +232,17 @@ export function Login() {
     () => statutoryForms.filter((form) => form.category === statutoryFolder),
     [statutoryForms, statutoryFolder]
   );
+  const statutoryPageCount = Math.max(1, Math.ceil(selectedStatutoryForms.length / PUBLIC_FORMS_PAGE_SIZE));
+  const paginatedStatutoryForms = useMemo(
+    () => selectedStatutoryForms.slice(
+      statutoryPage * PUBLIC_FORMS_PAGE_SIZE,
+      statutoryPage * PUBLIC_FORMS_PAGE_SIZE + PUBLIC_FORMS_PAGE_SIZE
+    ),
+    [selectedStatutoryForms, statutoryPage]
+  );
 
   useEffect(() => {
+    setStatutoryPage(0);
     if (statutoryFolder === 'pesticides') {
       setPdfToolOpen(false);
     }
@@ -460,9 +471,9 @@ export function Login() {
                     </td>
                   </tr>
                 ) : selectedStatutoryForms.length > 0 ? (
-                  selectedStatutoryForms.map((form, index) => (
+                  paginatedStatutoryForms.map((form, index) => (
                     <tr key={form.id} className="hover:bg-emerald-50/60">
-                      <td className="px-2.5 py-2 align-middle text-sm font-bold text-slate-600">{index + 1}</td>
+                      <td className="px-2.5 py-2 align-middle text-sm font-bold text-slate-600">{statutoryPage * PUBLIC_FORMS_PAGE_SIZE + index + 1}</td>
                       <td className="px-2.5 py-2 align-middle">
                         <div className="flex w-full min-w-0 items-center gap-2 text-left">
                           <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
@@ -512,6 +523,13 @@ export function Login() {
               </tbody>
             </table>
           </div>
+          {selectedStatutoryForms.length > PUBLIC_FORMS_PAGE_SIZE && (
+            <PublicFormsPagination
+              currentPage={statutoryPage}
+              pageCount={statutoryPageCount}
+              onPageChange={setStatutoryPage}
+            />
+          )}
         </div>
         {previewForm?.file_url && (
           <Suspense
@@ -575,8 +593,8 @@ export function Login() {
 
       <div className="relative grid w-full max-w-5xl overflow-hidden rounded-lg border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm lg:grid-cols-[1fr_0.95fr]">
         <section className="relative hidden min-h-[600px] flex-col justify-between overflow-hidden bg-emerald-950 p-7 text-white lg:flex">
-          <img src="/images/rice.jpg" alt="" className="absolute inset-x-0 top-0 h-[50%] w-full object-cover opacity-95" />
-          <img src="/images/cotton.jpg" alt="" className="absolute inset-x-0 bottom-0 h-[50%] w-full object-cover opacity-95" />
+          <img src="/images/rice.jpg" alt="" decoding="async" className="absolute inset-x-0 top-0 h-[50%] w-full object-cover opacity-95" />
+          <img src="/images/cotton.jpg" alt="" decoding="async" className="absolute inset-x-0 bottom-0 h-[50%] w-full object-cover opacity-95" />
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/82 via-emerald-900/58 to-slate-900/30" />
 
           <div className="relative">
@@ -864,6 +882,40 @@ export function Login() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function PublicFormsPagination({
+  currentPage,
+  pageCount,
+  onPageChange,
+}: {
+  currentPage: number;
+  pageCount: number;
+  onPageChange: (page: number) => void;
+}) {
+  return (
+    <div className="mt-2 flex items-center justify-end gap-2 text-xs font-black text-slate-600">
+      <button
+        type="button"
+        onClick={() => onPageChange(Math.max(0, currentPage - 1))}
+        disabled={currentPage === 0}
+        className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 disabled:opacity-50"
+      >
+        Previous
+      </button>
+      <span className="uppercase tracking-wide">
+        Page {currentPage + 1} / {pageCount}
+      </span>
+      <button
+        type="button"
+        onClick={() => onPageChange(Math.min(pageCount - 1, currentPage + 1))}
+        disabled={currentPage >= pageCount - 1}
+        className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 disabled:opacity-50"
+      >
+        Next
+      </button>
     </div>
   );
 }

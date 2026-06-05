@@ -118,7 +118,7 @@ export function CropDiagnosis() {
           )}
 
           {previewUrl && (
-            <img src={previewUrl} alt="Crop" className="w-full rounded-xl object-cover aspect-video" />
+            <img src={previewUrl} alt="Crop" decoding="async" className="w-full rounded-xl object-cover aspect-video" />
           )}
 
           <canvas ref={canvasRef} className="hidden" />

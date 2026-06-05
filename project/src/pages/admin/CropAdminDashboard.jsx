@@ -386,7 +386,7 @@ export function CropAdminDashboard() {
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 {editing.image_url ? (
-                  <img src={editing.image_url} alt="Selected crop record" className="h-28 w-44 rounded-lg object-cover" />
+                  <img src={editing.image_url} alt="Selected crop record" decoding="async" className="h-28 w-44 rounded-lg object-cover" />
                 ) : (
                   <div className="flex h-28 w-full items-center justify-center rounded-lg border-2 border-dashed border-slate-300 text-sm font-bold text-slate-500 sm:w-44">
                     Drop image here

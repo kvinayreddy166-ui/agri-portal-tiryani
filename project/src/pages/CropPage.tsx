@@ -70,6 +70,8 @@ const cropImages: Record<string, string> = {
   pulses: '/images/pulses.jpg',
   oilseeds: '/images/oilseeds.jpg',
 };
+const CROP_PAGE_CACHE_PREFIX = 'tiryani-crop-page-cache:';
+const CROP_PAGE_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 export function CropPage({ cropType }: CropPageProps) {
   const { isAdminUser } = useAuth();
@@ -87,7 +89,14 @@ export function CropPage({ cropType }: CropPageProps) {
   const locale = language === 'te' ? 'te' : 'en';
 
   const fetchCropIntelligence = useCallback(async () => {
-    setLoading(true);
+    const cachedRecord = readCropPageCache(slug);
+    if (cachedRecord) {
+      setRecord(cachedRecord);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
     try {
       const { data, error } = await supabase
         .from('crop_intelligence')
@@ -97,9 +106,10 @@ export function CropPage({ cropType }: CropPageProps) {
 
       if (error) throw error;
       setRecord(data as CropIntelligenceRecord | null);
+      if (data) writeCropPageCache(slug, data as CropIntelligenceRecord);
     } catch (error) {
       console.error('Error loading crop intelligence:', error);
-      setRecord(null);
+      if (!cachedRecord) setRecord(null);
     } finally {
       setLoading(false);
     }
@@ -136,6 +146,7 @@ export function CropPage({ cropType }: CropPageProps) {
         .upsert(payload, { onConflict: 'slug' });
 
       if (error) throw error;
+      clearCropPageCache(slug);
       setEditOpen(false);
       void fetchCropIntelligence();
     } catch (error) {
@@ -151,6 +162,7 @@ export function CropPage({ cropType }: CropPageProps) {
     try {
       const { error } = await supabase.from('crop_intelligence').delete().eq('id', record.id);
       if (error) throw error;
+      clearCropPageCache(slug);
       setRecord(null);
     } catch (error) {
       console.error('Error deleting crop intelligence:', error);
@@ -180,6 +192,7 @@ export function CropPage({ cropType }: CropPageProps) {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'slug' });
       if (error) throw error;
+      clearCropPageCache(slug);
       void fetchCropIntelligence();
     } catch (error) {
       console.error('Error uploading source PDF:', error);
@@ -203,6 +216,7 @@ export function CropPage({ cropType }: CropPageProps) {
         <img
           src={visibleRecord.crop_image_url || cropImages[slug] || cropImages.cotton}
           alt={visibleRecord.name_en}
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-slate-900/55" />
@@ -300,7 +314,7 @@ export function CropPage({ cropType }: CropPageProps) {
           {visibleRecord.risks.map((risk) => (
             <article key={`${risk.type}-${risk.name.en}`} className="overflow-hidden rounded-lg border border-slate-100 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
               <div className="grid gap-0 sm:grid-cols-[10rem_1fr]">
-                <img src={risk.image_url} alt={text(risk.name, locale)} className="h-44 w-full object-cover sm:h-full" />
+                <img src={risk.image_url} alt={text(risk.name, locale)} loading="lazy" decoding="async" className="h-44 w-full object-cover sm:h-full" />
                 <div className="p-3">
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <h3 className="font-black text-slate-950 dark:text-white">{text(risk.name, locale)}</h3>
@@ -355,6 +369,45 @@ export function CropPage({ cropType }: CropPageProps) {
 
 function text(value: LocalizedText, locale: 'en' | 'te') {
   return value?.[locale] || value?.en || '';
+}
+
+function readCropPageCache(slug: string) {
+  try {
+    const raw = window.localStorage.getItem(`${CROP_PAGE_CACHE_PREFIX}${slug}`);
+    if (!raw) return null;
+
+    const cached = JSON.parse(raw);
+    if (!cached || cached.expiresAt < Date.now()) {
+      window.localStorage.removeItem(`${CROP_PAGE_CACHE_PREFIX}${slug}`);
+      return null;
+    }
+
+    return cached.value as CropIntelligenceRecord;
+  } catch {
+    return null;
+  }
+}
+
+function writeCropPageCache(slug: string, value: CropIntelligenceRecord) {
+  try {
+    window.localStorage.setItem(
+      `${CROP_PAGE_CACHE_PREFIX}${slug}`,
+      JSON.stringify({
+        value,
+        expiresAt: Date.now() + CROP_PAGE_CACHE_TTL_MS,
+      })
+    );
+  } catch {
+    // If local storage is full or unavailable, live fetching still works.
+  }
+}
+
+function clearCropPageCache(slug: string) {
+  try {
+    window.localStorage.removeItem(`${CROP_PAGE_CACHE_PREFIX}${slug}`);
+  } catch {
+    // Cache cleanup should not block writes.
+  }
 }
 
 function InfoCard({ label, value }: { label: string; value: string }) {

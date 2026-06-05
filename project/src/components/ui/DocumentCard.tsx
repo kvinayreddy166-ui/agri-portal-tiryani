@@ -37,7 +37,7 @@ export function DocumentCard({
           className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-600"
           aria-label="View image"
         >
-          <img src={fileUrl} alt="" className="h-full w-full object-cover" />
+          <img src={fileUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
         </button>
       ) : (
         <FileTypeIcon fileName={title} fileType={fileType} fileUrl={fileUrl} size="md" />

@@ -20,6 +20,7 @@ export function PortalLogo({ size = 'md', className = '' }: PortalLogoProps) {
       <img
         src="/images/agri-emblem.png"
         alt="Tiryani Agriculture Portal"
+        decoding="async"
         className="h-full w-full object-cover"
       />
     </div>

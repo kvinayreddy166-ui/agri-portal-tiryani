@@ -35,7 +35,7 @@ export function CropManagement() {
                   : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
               }`}
             >
-              <img src={crop.image} alt="" className="absolute inset-y-0 right-0 h-full w-20 object-cover opacity-25 transition group-hover:opacity-40" />
+              <img src={crop.image} alt="" loading="lazy" decoding="async" className="absolute inset-y-0 right-0 h-full w-20 object-cover opacity-25 transition group-hover:opacity-40" />
               <div className="relative">
                 <div className={`mb-2 w-fit rounded-lg p-1.5 ${active ? 'bg-white/15' : 'bg-emerald-50 text-emerald-700'}`}>
                   <Leaf className="h-4 w-4" />

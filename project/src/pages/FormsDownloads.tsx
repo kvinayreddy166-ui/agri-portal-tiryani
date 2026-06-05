@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Edit2, Folder, Link, Plus, Trash2, Upload, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +24,7 @@ const emptyForm = {
 };
 
 const STATE_KEY = 'tiryani-statutory-forms-state';
+const FORMS_PAGE_SIZE = 12;
 
 export function FormsDownloads() {
   const { isAdminUser } = useAuth();
@@ -44,10 +45,54 @@ export function FormsDownloads() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newForm, setNewForm] = useState(emptyForm);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalForms, setTotalForms] = useState(0);
+  const [folderCounts, setFolderCounts] = useState<Record<string, number>>(
+    () => Object.fromEntries(folders.map((folder) => [folder.id, 0]))
+  );
+
+  const fetchForms = useCallback(async () => {
+    setFetchError(null);
+    try {
+      const from = currentPage * FORMS_PAGE_SIZE;
+      const to = from + FORMS_PAGE_SIZE - 1;
+      const [countResults, pageResult] = await Promise.all([
+        Promise.all(
+          folders.map(async (folder) => {
+            const { count } = await supabase
+              .from('forms_downloads')
+              .select('id', { count: 'exact', head: true })
+              .eq('category', folder.id);
+            return [folder.id, count || 0] as const;
+          })
+        ),
+        supabase
+          .from('forms_downloads')
+          .select('*', { count: 'exact' })
+          .eq('category', selectedFolder)
+          .order('created_at', { ascending: false })
+          .range(from, to),
+      ]);
+
+      if (pageResult.error) throw pageResult.error;
+      setFolderCounts(Object.fromEntries(countResults));
+      setTotalForms(pageResult.count || 0);
+      setForms(pageResult.data || []);
+    } catch (error) {
+      console.error('Error fetching forms:', error);
+      setFetchError(error instanceof Error ? error.message : 'Unable to load downloads.');
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, selectedFolder]);
 
   useEffect(() => {
-    fetchForms();
-  }, []);
+    void fetchForms();
+  }, [fetchForms]);
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [selectedFolder]);
 
   useEffect(() => {
     try {
@@ -80,36 +125,11 @@ export function FormsDownloads() {
     };
   }, [selectedFolder]);
 
-  const fetchForms = async () => {
-    setFetchError(null);
-    try {
-      const { data, error } = await supabase
-        .from('forms_downloads')
-        .select('*')
-        .in('category', folders.map((folder) => folder.id))
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setForms(data || []);
-    } catch (error) {
-      console.error('Error fetching forms:', error);
-      setFetchError(error instanceof Error ? error.message : 'Unable to load downloads.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const folderCounts = useMemo(
-    () =>
-      folders.reduce((counts, folder) => {
-        counts[folder.id] = forms.filter((form) => form.category === folder.id).length;
-        return counts;
-      }, {} as Record<string, number>),
-    [forms]
-  );
-
-  const selectedForms = forms.filter((form) => form.category === selectedFolder);
+  const selectedForms = forms;
   const activeFolder = folders.find((folder) => folder.id === selectedFolder) || folders[0];
+  const pageCount = Math.max(1, Math.ceil(totalForms / FORMS_PAGE_SIZE));
+  const firstVisibleItem = totalForms === 0 ? 0 : currentPage * FORMS_PAGE_SIZE + 1;
+  const lastVisibleItem = Math.min(totalForms, (currentPage + 1) * FORMS_PAGE_SIZE);
 
   const resetForm = () => {
     setNewForm({ ...emptyForm, category: selectedFolder });
@@ -157,7 +177,7 @@ export function FormsDownloads() {
       if (error) throw error;
 
       resetForm();
-      fetchForms();
+      void fetchForms();
     } catch (error) {
       console.error('Error adding document:', error);
       alert(error instanceof Error ? error.message : 'Failed to add document.');
@@ -171,7 +191,7 @@ export function FormsDownloads() {
     try {
       const { error } = await supabase.from('forms_downloads').delete().eq('id', id);
       if (error) throw error;
-      fetchForms();
+      void fetchForms();
     } catch (error) {
       console.error('Error deleting document:', error);
       alert('Failed to delete item');
@@ -366,11 +386,12 @@ export function FormsDownloads() {
         <div className="mb-3">
           <h2 className="text-xl font-black text-gray-950 dark:text-white">{t(activeFolder.label, activeFolder.telugu)}</h2>
           <p className="text-sm text-gray-500 dark:text-slate-300">
-            {selectedForms.length} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
+            {totalForms} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
           </p>
         </div>
 
         {selectedForms.length > 0 ? (
+          <>
           <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-slate-700">
             <table className="min-w-[720px] w-full border-collapse text-left">
               <thead className="bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
@@ -384,7 +405,7 @@ export function FormsDownloads() {
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                 {selectedForms.map((form, index) => (
                   <tr key={form.id} className="transition hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                    <td className="px-3 py-2 text-sm font-bold text-slate-600 dark:text-slate-300">{index + 1}</td>
+                      <td className="px-3 py-2 text-sm font-bold text-slate-600 dark:text-slate-300">{currentPage * FORMS_PAGE_SIZE + index + 1}</td>
                     <td className="px-3 py-2">
                       <div className="flex min-w-0 items-center gap-3">
                         <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
@@ -416,6 +437,17 @@ export function FormsDownloads() {
               </tbody>
             </table>
           </div>
+          {totalForms > FORMS_PAGE_SIZE && (
+            <PaginationControls
+              currentPage={currentPage}
+              pageCount={pageCount}
+              firstVisibleItem={firstVisibleItem}
+              lastVisibleItem={lastVisibleItem}
+              totalItems={totalForms}
+              onPageChange={setCurrentPage}
+            />
+          )}
+          </>
         ) : (
           <div className="rounded-2xl border border-dashed border-gray-200 p-12 text-center">
             <Folder className="mx-auto mb-4 h-12 w-12 text-gray-300" />
@@ -423,6 +455,51 @@ export function FormsDownloads() {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+function PaginationControls({
+  currentPage,
+  pageCount,
+  firstVisibleItem,
+  lastVisibleItem,
+  totalItems,
+  onPageChange,
+}: {
+  currentPage: number;
+  pageCount: number;
+  firstVisibleItem: number;
+  lastVisibleItem: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+}) {
+  return (
+    <div className="mt-3 flex flex-col gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700 sm:flex-row sm:items-center sm:justify-between">
+      <span>
+        Showing {firstVisibleItem}-{lastVisibleItem} of {totalItems}
+      </span>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => onPageChange(Math.max(0, currentPage - 1))}
+          disabled={currentPage === 0}
+          className="rounded-md border border-slate-200 bg-white px-3 py-1.5 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="text-xs uppercase tracking-wide text-slate-500">
+          Page {currentPage + 1} / {pageCount}
+        </span>
+        <button
+          type="button"
+          onClick={() => onPageChange(Math.min(pageCount - 1, currentPage + 1))}
+          disabled={currentPage >= pageCount - 1}
+          className="rounded-md border border-slate-200 bg-white px-3 py-1.5 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

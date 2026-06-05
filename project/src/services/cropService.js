@@ -4,6 +4,8 @@ import { getContentType, validateImageUploadFile } from '../lib/fileTypes';
 
 let cropDatasetCache = null;
 let cropListCache = null;
+const CROP_CACHE_PREFIX = 'tiryani-crop-cache:';
+const CROP_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 const RELATIONS = `
   *,
@@ -24,10 +26,18 @@ export async function fetchCrops({ search = '', slug = '', category = '' } = {})
   const canUseCache = !search && !slug && !category && cropListCache;
   if (canUseCache) return cropListCache;
 
+  const cacheKey = buildCropCacheKey('list', { search, slug, category });
+  const cachedRows = readCropCache(cacheKey);
+  if (cachedRows) {
+    if (!search && !slug && !category) cropListCache = cachedRows;
+    return cachedRows;
+  }
+
   if (!category) {
     const intelligenceRows = await fetchCropIntelligenceList({ search, slug });
     if (intelligenceRows.length) {
       if (!search && !slug) cropListCache = intelligenceRows;
+      writeCropCache(cacheKey, intelligenceRows);
       return intelligenceRows;
     }
   }
@@ -43,20 +53,33 @@ export async function fetchCrops({ search = '', slug = '', category = '' } = {})
     if (error) throw error;
     if (data?.length) {
       if (!search && !slug && !category) cropListCache = data;
+      writeCropCache(cacheKey, data);
       return data;
     }
   } catch (error) {
     console.warn('Trying crop_intelligence crop list fallback:', error);
     const intelligenceRows = await fetchCropIntelligenceList({ search, slug });
-    if (intelligenceRows.length) return intelligenceRows;
+    if (intelligenceRows.length) {
+      writeCropCache(cacheKey, intelligenceRows);
+      return intelligenceRows;
+    }
   }
 
-  return localCrops(await loadLocalCropDataset(), { search, slug });
+  const localRows = localCrops(await loadLocalCropDataset(), { search, slug });
+  writeCropCache(cacheKey, localRows);
+  return localRows;
 }
 
 export async function fetchCropBySlug(slug) {
+  const cacheKey = buildCropCacheKey('detail', { slug });
+  const cachedCrop = readCropCache(cacheKey);
+  if (cachedCrop) return cachedCrop;
+
   const intelligenceCrop = await fetchCropIntelligenceBySlug(slug);
-  if (intelligenceCrop) return intelligenceCrop;
+  if (intelligenceCrop) {
+    writeCropCache(cacheKey, intelligenceCrop);
+    return intelligenceCrop;
+  }
 
   let normalizedError = null;
   try {
@@ -67,7 +90,10 @@ export async function fetchCropBySlug(slug) {
       .maybeSingle();
 
     if (error) throw error;
-    if (data) return data;
+    if (data) {
+      writeCropCache(cacheKey, data);
+      return data;
+    }
   } catch (error) {
     normalizedError = error;
     console.warn('Trying crop_intelligence detail fallback:', error);
@@ -76,12 +102,23 @@ export async function fetchCropBySlug(slug) {
   if (normalizedError) {
     console.warn('Using local crop detail fallback:', normalizedError);
   }
-  return localCropBySlug(await loadLocalCropDataset(), slug);
+  const localCrop = localCropBySlug(await loadLocalCropDataset(), slug);
+  if (localCrop) writeCropCache(cacheKey, localCrop);
+  return localCrop;
 }
 
 export async function searchCropKnowledge(search, filters = {}) {
   const term = (search || '').trim();
   if (!term && !filters.cropSlug && !filters.category) return [];
+
+  const cacheKey = buildCropCacheKey('faqs', {
+    term,
+    cropSlug: filters.cropSlug || '',
+    category: filters.category || '',
+    limit: filters.limit || 50,
+  });
+  const cachedFaqs = readCropCache(cacheKey);
+  if (cachedFaqs) return cachedFaqs;
 
   try {
     const crops = filters.cropSlug ? await fetchCrops({ slug: filters.cropSlug }) : [];
@@ -98,15 +135,24 @@ export async function searchCropKnowledge(search, filters = {}) {
 
     const { data, error } = await query;
     if (error) throw error;
-    if (data?.length) return data;
+    if (data?.length) {
+      writeCropCache(cacheKey, data);
+      return data;
+    }
   } catch (error) {
     console.warn('Using local FAQ fallback:', error);
   }
 
-  return localFaqs(await loadLocalCropDataset(), { search: term, cropSlug: filters.cropSlug, category: filters.category, limit: filters.limit });
+  const localRows = localFaqs(await loadLocalCropDataset(), { search: term, cropSlug: filters.cropSlug, category: filters.category, limit: filters.limit });
+  writeCropCache(cacheKey, localRows);
+  return localRows;
 }
 
 export async function fetchCropImages({ cropSlug, entityType, entityName } = {}) {
+  const cacheKey = buildCropCacheKey('images', { cropSlug, entityType, entityName });
+  const cachedImages = readCropCache(cacheKey);
+  if (cachedImages) return cachedImages;
+
   try {
     let query = supabase.from('crop_images').select('*, crops(slug, crop_name)');
 
@@ -119,18 +165,23 @@ export async function fetchCropImages({ cropSlug, entityType, entityName } = {})
 
     const { data, error } = await query.order('entity_type');
     if (error) throw error;
-    if (data?.length) return data;
+    if (data?.length) {
+      writeCropCache(cacheKey, data);
+      return data;
+    }
   } catch (error) {
     console.warn('Using local image fallback:', error);
   }
 
-  return localImages(await loadLocalCropDataset(), { cropSlug, entityType, entityName });
+  const localRows = localImages(await loadLocalCropDataset(), { cropSlug, entityType, entityName });
+  writeCropCache(cacheKey, localRows);
+  return localRows;
 }
 
 export async function createCropRecord(table, payload) {
   const { data, error } = await supabase.from(table).insert(payload).select().single();
   if (error) throw error;
-  cropListCache = null;
+  invalidateCropCaches();
   return data;
 }
 
@@ -143,14 +194,14 @@ export async function updateCropRecord(table, id, payload) {
     .single();
 
   if (error) throw error;
-  cropListCache = null;
+  invalidateCropCaches();
   return data;
 }
 
 export async function deleteCropRecord(table, id) {
   const { error } = await supabase.from(table).delete().eq('id', id);
   if (error) throw error;
-  cropListCache = null;
+  invalidateCropCaches();
 }
 
 export async function saveCropIntelligenceCard(slug, table, record) {
@@ -176,7 +227,7 @@ export async function saveCropIntelligenceCard(slug, table, record) {
       .select()
       .single();
     if (error) throw error;
-    cropListCache = null;
+    invalidateCropCaches();
     return data;
   } else {
     throw new Error(`Unsupported crop intelligence section: ${table}`);
@@ -189,7 +240,7 @@ export async function saveCropIntelligenceCard(slug, table, record) {
     .select()
     .single();
   if (error) throw error;
-  cropListCache = null;
+  invalidateCropCaches();
   return data;
 }
 
@@ -211,7 +262,7 @@ export async function deleteCropIntelligenceCard(slug, table, index) {
       .update({ risks: nextRisks, updated_at: new Date().toISOString() })
       .eq('slug', slug);
     if (error) throw error;
-    cropListCache = null;
+    invalidateCropCaches();
     return;
   } else {
     throw new Error(`Unsupported crop intelligence section: ${table}`);
@@ -222,7 +273,7 @@ export async function deleteCropIntelligenceCard(slug, table, index) {
     .update({ content, updated_at: new Date().toISOString() })
     .eq('slug', slug);
   if (error) throw error;
-  cropListCache = null;
+  invalidateCropCaches();
 }
 
 export async function uploadCropImage(file, cropSlug, entityType = 'crop') {
@@ -240,6 +291,7 @@ export async function uploadCropImage(file, cropSlug, entityType = 'crop') {
   if (uploadError) throw uploadError;
 
   const { data } = supabase.storage.from('uploads').getPublicUrl(path);
+  invalidateCropCaches();
   return data.publicUrl;
 }
 
@@ -249,6 +301,7 @@ export async function deleteUploadedCropImage(imageUrl) {
   if (!path.startsWith('crop-intelligence/')) return;
   const { error } = await supabase.storage.from('uploads').remove([path]);
   if (error) throw error;
+  invalidateCropCaches();
 }
 
 export async function bulkImportCropJson(records) {
@@ -277,11 +330,65 @@ export async function bulkImportCropJson(records) {
       .single();
 
     if (error) throw error;
-    cropListCache = null;
+    invalidateCropCaches();
     results.push(cropRow);
   }
 
   return results;
+}
+
+function buildCropCacheKey(type, parts = {}) {
+  return `${type}:${JSON.stringify(parts)}`;
+}
+
+function readCropCache(key) {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return null;
+    const storageKey = `${CROP_CACHE_PREFIX}${key}`;
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return null;
+
+    const cached = JSON.parse(raw);
+    if (!cached || cached.expiresAt < Date.now()) {
+      window.localStorage.removeItem(storageKey);
+      return null;
+    }
+
+    return cached.value;
+  } catch {
+    return null;
+  }
+}
+
+function writeCropCache(key, value) {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    window.localStorage.setItem(
+      `${CROP_CACHE_PREFIX}${key}`,
+      JSON.stringify({
+        value,
+        expiresAt: Date.now() + CROP_CACHE_TTL_MS,
+      })
+    );
+  } catch {
+    // Storage can be unavailable or full; normal live fetching still works.
+  }
+}
+
+function invalidateCropCaches() {
+  cropListCache = null;
+
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+      const key = window.localStorage.key(index);
+      if (key?.startsWith(CROP_CACHE_PREFIX)) {
+        window.localStorage.removeItem(key);
+      }
+    }
+  } catch {
+    // Cache invalidation should never block data changes.
+  }
 }
 
 export function exportCropWorkbook(crop) {
