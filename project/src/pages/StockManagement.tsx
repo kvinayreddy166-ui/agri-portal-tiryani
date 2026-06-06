@@ -7,6 +7,8 @@ import { Dealer, DealerStockAllocation } from '../types/database';
 import { FERTILIZER_TYPES } from '../lib/constants';
 import { syncFertilizerStockTable } from '../lib/fertilizerStock';
 import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
+import { useVirtualRows } from '../hooks/useVirtualRows';
+import { cachedSupabaseRows } from '../lib/offlineCache';
 
 const fertilizers = [...FERTILIZER_TYPES];
 
@@ -77,18 +79,30 @@ export function StockManagement() {
     setLoading(true);
     try {
       const [dealersResult, stockResult] = await Promise.all([
-        supabase.from('dealers').select('*').order('dealer_name'),
-        supabase
-          .from('dealer_stock_allocation')
-          .select('*')
-          .order('last_updated', { ascending: false }),
+        cachedSupabaseRows<Dealer>(
+          'stock-management:dealers:v2',
+          () =>
+            supabase
+              .from('dealers')
+              .select('id, dealer_name, ifms_id, phone_number, portal_email, license_number, issue_date, expiry_date, location, dealer_category, created_at, updated_at')
+              .order('dealer_name')
+              .limit(600),
+          []
+        ),
+        cachedSupabaseRows<DealerStockAllocation>(
+          'stock-management:dealer-stock:v2',
+          () =>
+            supabase
+              .from('dealer_stock_allocation')
+              .select('id, dealer_id, fertilizer_type, quantity_mts, quantity_unit, quantity_bags, wholesaler_name, invoice_number, invoice_date, last_updated, created_at')
+              .order('last_updated', { ascending: false })
+              .range(0, 1499),
+          []
+        ),
       ]);
 
-      if (dealersResult.error) throw dealersResult.error;
-      if (stockResult.error) throw stockResult.error;
-
-      const dealerRows = dealersResult.data || [];
-      const enrichedStock = (stockResult.data || []).map((item) => {
+      const dealerRows = dealersResult || [];
+      const enrichedStock = (stockResult || []).map((item) => {
         const dealer = dealerRows.find((row) => row.id === item.dealer_id);
         return {
           ...item,
@@ -232,6 +246,8 @@ export function StockManagement() {
     fertilizer: item.fertilizer,
     Receipts: Number(item.receipts.toFixed(2)),
   }));
+  const receiptRows = useVirtualRows(filteredStock, { rowHeight: 44, viewportHeight: 560 });
+  const receiptColumnCount = isAdminUser ? 10 : 9;
 
   const formatDate = (value?: string) => {
     if (!value) return '-';
@@ -492,7 +508,7 @@ export function StockManagement() {
             <div className="border-b border-slate-100 px-3 py-2 dark:border-slate-800">
               <h2 className="text-sm font-black text-slate-950 dark:text-white">Fertilizer Receipts</h2>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" {...receiptRows.containerProps}>
               <table className="w-full min-w-[1120px] text-sm">
                 <thead className="bg-slate-900 text-xs uppercase text-white">
                   <tr>
@@ -509,7 +525,12 @@ export function StockManagement() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {filteredStock.map((item, index) => (
+                  {receiptRows.paddingTop > 0 && (
+                    <tr aria-hidden="true">
+                      <td colSpan={receiptColumnCount} className="p-0" style={{ height: receiptRows.paddingTop }} />
+                    </tr>
+                  )}
+                  {receiptRows.virtualRows.map(({ row: item, index }) => (
                     <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
                       <td className="px-3 py-2 font-bold">{index + 1}</td>
                       <td className="px-3 py-2 font-black text-slate-950 dark:text-white">{titleCase(item.dealer_name || 'Unknown dealer')}</td>
@@ -536,6 +557,11 @@ export function StockManagement() {
                       )}
                     </tr>
                   ))}
+                  {receiptRows.paddingBottom > 0 && (
+                    <tr aria-hidden="true">
+                      <td colSpan={receiptColumnCount} className="p-0" style={{ height: receiptRows.paddingBottom }} />
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

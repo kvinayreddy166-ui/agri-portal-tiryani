@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { FERTILIZER_TYPES } from './constants';
 import { FertilizerStock } from '../types/database';
 import { currentReportDate } from './stockInventory';
+import { cachedSupabaseRows } from './offlineCache';
 
 export type DailyFertilizerStockSummary = FertilizerStock & {
   sales_mts: number;
@@ -47,35 +48,43 @@ export async function fetchDailyFertilizerStockSummary(
   reportDate = currentReportDate()
 ): Promise<DailyFertilizerStockSummary[]> {
   let effectiveDate = reportDate;
-  const initialRows = await supabase
-    .from('stock_inventory_lines')
-    .select('product_type, sales, closing_balance, report_date')
-    .eq('category', 'fertilizer')
-    .eq('report_date', effectiveDate);
-  let data = initialRows.data;
-
-  if (initialRows.error) throw initialRows.error;
-
-  if (!data?.length) {
-    const latest = await supabase
-      .from('stock_inventory_lines')
-      .select('report_date')
-      .eq('category', 'fertilizer')
-      .order('report_date', { ascending: false })
-      .limit(1);
-
-    if (latest.error) throw latest.error;
-    effectiveDate = String(latest.data?.[0]?.report_date || reportDate);
-
-    if (effectiveDate !== reportDate) {
-      const latestRows = await supabase
+  let data = await cachedSupabaseRows<{ product_type: string; sales: number; closing_balance: number; report_date: string }>(
+    `daily-fertilizer-stock:${effectiveDate}:v2`,
+    () =>
+      supabase
         .from('stock_inventory_lines')
         .select('product_type, sales, closing_balance, report_date')
         .eq('category', 'fertilizer')
-        .eq('report_date', effectiveDate);
+        .eq('report_date', effectiveDate),
+    []
+  );
 
-      if (latestRows.error) throw latestRows.error;
-      data = latestRows.data || [];
+  if (!data?.length) {
+    const latest = await cachedSupabaseRows<{ report_date: string }>(
+      'daily-fertilizer-stock:latest-date:v2',
+      () =>
+        supabase
+          .from('stock_inventory_lines')
+          .select('report_date')
+          .eq('category', 'fertilizer')
+          .order('report_date', { ascending: false })
+          .limit(1),
+      []
+    );
+
+    effectiveDate = String(latest?.[0]?.report_date || reportDate);
+
+    if (effectiveDate !== reportDate) {
+      data = await cachedSupabaseRows<{ product_type: string; sales: number; closing_balance: number; report_date: string }>(
+        `daily-fertilizer-stock:${effectiveDate}:v2`,
+        () =>
+          supabase
+            .from('stock_inventory_lines')
+            .select('product_type, sales, closing_balance, report_date')
+            .eq('category', 'fertilizer')
+            .eq('report_date', effectiveDate),
+        []
+      );
     }
   }
 

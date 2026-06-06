@@ -18,7 +18,7 @@ export function PortalLogo({ size = 'md', className = '' }: PortalLogoProps) {
       className={`shrink-0 overflow-hidden rounded-full bg-white shadow-md ring-1 ring-emerald-100/80 dark:ring-slate-600 ${sizeMap[size]} ${className}`}
     >
       <img
-        src="/images/agri-emblem.png"
+        src="/images/agri-emblem.webp"
         alt="Tiryani Agriculture Portal"
         decoding="async"
         className="h-full w-full object-cover"

@@ -61,14 +61,14 @@ interface CropIntelligenceRecord {
 }
 
 const cropImages: Record<string, string> = {
-  cotton: '/images/cotton.jpg',
-  paddy: '/images/paddy.jpg',
-  rice: '/images/paddy.jpg',
-  maize: '/images/maize.jpg',
-  redgram: '/images/pulses.jpg',
+  cotton: '/images/cotton.webp',
+  paddy: '/images/paddy.webp',
+  rice: '/images/paddy.webp',
+  maize: '/images/maize.webp',
+  redgram: '/images/pulses.webp',
   greengram: '/images/greengram.webp',
-  pulses: '/images/pulses.jpg',
-  oilseeds: '/images/oilseeds.jpg',
+  pulses: '/images/pulses.webp',
+  oilseeds: '/images/oilseeds.webp',
 };
 const CROP_PAGE_CACHE_PREFIX = 'tiryani-crop-page-cache:';
 const CROP_PAGE_CACHE_TTL_MS = 6 * 60 * 60 * 1000;

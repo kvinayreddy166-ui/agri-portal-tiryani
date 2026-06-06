@@ -19,8 +19,16 @@ createRoot(rootEl).render(
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').catch((error) => {
-      console.warn('Service worker registration failed:', error);
-    });
+    const registerServiceWorker = () => {
+      navigator.serviceWorker.register('/service-worker.js').catch((error) => {
+        console.warn('Service worker registration failed:', error);
+      });
+    };
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(registerServiceWorker, { timeout: 3000 });
+    } else {
+      setTimeout(registerServiceWorker, 1200);
+    }
   });
 }

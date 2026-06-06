@@ -3,6 +3,7 @@ import { useAuth, AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
+import { OfflineStatus } from './components/ui/OfflineStatus';
 
 const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
 const Layout = lazy(() => import('./components/Layout').then((m) => ({ default: m.Layout })));
@@ -221,7 +222,7 @@ function AppContent() {
   }, [user, isAdminUser, isDealerUser, navigateToPage]);
 
   useEffect(() => {
-    if (loading || user || currentPage === 'dashboard') return;
+    if (loading || user || currentPage === 'dashboard' || PUBLIC_VIEW_PAGES.has(currentPage)) return;
     navigateToPage('dashboard', { replace: true });
   }, [currentPage, loading, navigateToPage, user]);
 
@@ -335,6 +336,7 @@ function App() {
     <ThemeProvider>
       <LanguageProvider>
         <AuthProvider>
+          <OfflineStatus />
           <AppContent />
         </AuthProvider>
       </LanguageProvider>

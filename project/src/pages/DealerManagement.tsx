@@ -4,9 +4,9 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Dealer } from '../types/database';
-import { parseExcelAndImportDealers } from '../lib/excelParser';
 import { provisionAllDealerLogins, provisionDealerLogin } from '../lib/provisionDealerLogins';
 import { dealerEmailFromPhone, DEALER_DEFAULT_PASSWORD, normalizePhone } from '../lib/dealerAuth';
+import { cachedSupabaseRows } from '../lib/offlineCache';
 
 type DealerCategory = 'fertilizer' | 'seed' | 'pesticide';
 
@@ -26,6 +26,8 @@ const emptyForm = {
   location: '',
 };
 const DEALERS_PAGE_SIZE = 25;
+const DEALER_COLUMNS =
+  'id, dealer_name, ifms_id, phone_number, portal_email, license_number, issue_date, expiry_date, location, dealer_category, created_at, updated_at';
 
 export function DealerManagement() {
   const { isAdminUser } = useAuth();
@@ -48,17 +50,21 @@ export function DealerManagement() {
   const fetchDealers = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('dealers')
-        .select('*')
-        .eq('dealer_category', activeTab)
-        .order('dealer_name');
-
-      if (error) throw error;
-      setDealers(data || []);
+      const rows = await cachedSupabaseRows<Dealer>(
+        `dealers:${activeTab}:v2`,
+        () =>
+          supabase
+            .from('dealers')
+            .select(DEALER_COLUMNS)
+            .eq('dealer_category', activeTab)
+            .order('dealer_name')
+            .limit(600),
+        []
+      );
+      setDealers(rows);
     } catch (error) {
       console.error('Error fetching dealers:', error);
-      const { data: fallback } = await supabase.from('dealers').select('*').order('dealer_name');
+      const { data: fallback } = await supabase.from('dealers').select(DEALER_COLUMNS).order('dealer_name').limit(600);
       const filtered = (fallback || []).filter(
         (d) => (d.dealer_category || 'fertilizer') === activeTab
       );
@@ -74,9 +80,12 @@ export function DealerManagement() {
 
   const openLoginSetup = async () => {
     try {
-      const { data, error } = await supabase.from('dealers').select('*').order('dealer_name');
-      if (error) throw error;
-      setAllDealersForLogin((data || []) as Dealer[]);
+      const data = await cachedSupabaseRows<Dealer>(
+        'dealers:login-setup:v2',
+        () => supabase.from('dealers').select(DEALER_COLUMNS).order('dealer_name').limit(600),
+        []
+      );
+      setAllDealersForLogin(data);
       setLoginSetupDealerId('');
       setLoginPassword(DEALER_DEFAULT_PASSWORD);
       setShowLoginSetup(true);
@@ -204,6 +213,7 @@ export function DealerManagement() {
     if (!file) return;
     setImporting(true);
     try {
+      const { parseExcelAndImportDealers } = await import('../lib/excelParser');
       const { imported, errors } = await parseExcelAndImportDealers(file, activeTab);
       if (imported > 0) {
         alert(`Imported ${imported} dealers`);

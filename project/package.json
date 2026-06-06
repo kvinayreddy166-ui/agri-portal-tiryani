@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "node --max-old-space-size=4096 ./node_modules/vite/bin/vite.js build",
     "lint": "eslint .",
+    "optimize:images": "node scripts/optimize-images.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
@@ -37,6 +38,7 @@
     "eslint-plugin-react-refresh": "^0.4.11",
     "globals": "^15.9.0",
     "postcss": "^8.4.35",
+    "sharp": "^0.34.5",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",

@@ -6,6 +6,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { FileActionButtons } from '../components/ui/FileActionButtons';
 import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 import { inferFileTypeFromName, getFileTypeLabel } from '../lib/fileTypes';
+import { cachedSupabaseRows } from '../lib/offlineCache';
 
 interface UnifiedFile {
   id: string;
@@ -17,91 +18,165 @@ interface UnifiedFile {
   createdAt: string;
 }
 
+interface ExcelFileRow {
+  id: string;
+  file_name: string;
+  file_url: string | null;
+  upload_type?: string | null;
+  created_at: string;
+}
+
+interface FormFileRow {
+  id: string;
+  title: string;
+  file_url: string | null;
+  file_type?: string | null;
+  category?: string | null;
+  created_at: string;
+}
+
+interface FarmFileRow {
+  id: string;
+  title?: string | null;
+  file_name?: string | null;
+  file_url: string | null;
+  document_type?: string | null;
+  created_at: string;
+}
+
+interface SubsidyFileRow {
+  id: string;
+  program: string;
+  financial_year: string;
+  beneficiary_list_url: string | null;
+  created_at: string;
+}
+
+interface QualityFileRow {
+  id: string;
+  category: string;
+  dealer_name?: string | null;
+  license_number?: string | null;
+  form_url: string | null;
+  created_at: string;
+}
+
+const FILE_DIRECTORY_LIMIT = 240;
+const FILES_PAGE_SIZE = 80;
+
 export function FileDirectory() {
   const { t } = useLanguage();
   const [files, setFiles] = useState<UnifiedFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [currentPage, setCurrentPage] = useState(0);
 
   const loadAllFiles = useCallback(async () => {
     try {
       const [excel, forms, crops, gos, farm, subsidy, quality] = await Promise.all([
-        supabase.from('excel_uploads').select('*'),
-        supabase.from('forms_downloads').select('*'),
-        supabase.from('crop_data').select('*'),
-        supabase.from('gos_circulars').select('*'),
-        supabase.from('farm_mechanization_documents').select('*'),
-        supabase.from('subsidy_cell_records').select('*'),
-        supabase.from('quality_control_samples').select('*'),
+        cachedSupabaseRows<ExcelFileRow>(
+          'file-directory:excel:v2',
+          () => supabase.from('excel_uploads').select('id, file_name, file_url, upload_type, created_at').order('created_at', { ascending: false }).limit(FILE_DIRECTORY_LIMIT),
+          []
+        ),
+        cachedSupabaseRows<FormFileRow>(
+          'file-directory:forms:v2',
+          () => supabase.from('forms_downloads').select('id, title, file_url, file_type, category, created_at').order('created_at', { ascending: false }).limit(FILE_DIRECTORY_LIMIT),
+          []
+        ),
+        cachedSupabaseRows<FormFileRow>(
+          'file-directory:crops:v2',
+          () => supabase.from('crop_data').select('id, title, file_url, file_type, created_at').order('created_at', { ascending: false }).limit(FILE_DIRECTORY_LIMIT),
+          []
+        ),
+        cachedSupabaseRows<FormFileRow>(
+          'file-directory:gos:v2',
+          () => supabase.from('gos_circulars').select('id, title, file_url, file_type, created_at').order('created_at', { ascending: false }).limit(FILE_DIRECTORY_LIMIT),
+          []
+        ),
+        cachedSupabaseRows<FarmFileRow>(
+          'file-directory:farm:v2',
+          () => supabase.from('farm_mechanization_documents').select('id, title, file_name, file_url, document_type, created_at').order('created_at', { ascending: false }).limit(FILE_DIRECTORY_LIMIT),
+          []
+        ),
+        cachedSupabaseRows<SubsidyFileRow>(
+          'file-directory:subsidy:v2',
+          () => supabase.from('subsidy_cell_records').select('id, program, financial_year, beneficiary_list_url, created_at').order('created_at', { ascending: false }).limit(FILE_DIRECTORY_LIMIT),
+          []
+        ),
+        cachedSupabaseRows<QualityFileRow>(
+          'file-directory:quality:v2',
+          () => supabase.from('quality_control_samples').select('id, category, dealer_name, license_number, form_url, created_at').order('created_at', { ascending: false }).limit(FILE_DIRECTORY_LIMIT),
+          []
+        ),
       ]);
 
       const unified: UnifiedFile[] = [];
 
-      (excel.data || []).forEach((row) => {
+      excel.forEach((row) => {
         if (!row.file_url) return;
         unified.push({
           id: `excel-${row.id}`,
           title: row.file_name,
           fileUrl: row.file_url,
-          fileType: inferFileTypeFromName(row.file_name, row.upload_type),
+          fileType: inferFileTypeFromName(row.file_name, row.upload_type || undefined),
           folder: t('Office Records', 'కార్యాలయ రికార్డులు'),
           createdAt: row.created_at,
         });
       });
 
-      (forms.data || []).forEach((row) => {
+      forms.forEach((row) => {
         if (!row.file_url) return;
         unified.push({
           id: `form-${row.id}`,
           title: row.title,
           fileUrl: row.file_url,
-          fileType: inferFileTypeFromName(row.title, row.file_type),
+          fileType: inferFileTypeFromName(row.title, row.file_type || undefined),
           folder: t('Statutory Forms', 'Statutory Forms'),
-          subfolder: row.category,
+          subfolder: row.category || undefined,
           createdAt: row.created_at,
         });
       });
 
-      (crops.data || []).forEach((row) => {
+      crops.forEach((row) => {
         if (!row.file_url) return;
         unified.push({
           id: `crop-${row.id}`,
           title: row.title,
           fileUrl: row.file_url,
-          fileType: inferFileTypeFromName(row.title, row.file_type),
+          fileType: inferFileTypeFromName(row.title, row.file_type || undefined),
           folder: t('Crop Intelligence', 'పంట ఇంటెలిజెన్స్'),
-          subfolder: row.crop_type,
           createdAt: row.created_at,
         });
       });
 
-      (gos.data || []).forEach((row) => {
+      gos.forEach((row) => {
         if (!row.file_url) return;
         unified.push({
           id: `gos-${row.id}`,
           title: row.title,
           fileUrl: row.file_url,
-          fileType: inferFileTypeFromName(row.title, row.file_type),
+          fileType: inferFileTypeFromName(row.title, row.file_type || undefined),
           folder: t('GOs & Circulars', 'జీ.ఓలు & సర్క్యులర్లు'),
           createdAt: row.created_at,
         });
       });
 
-      (farm.data || []).forEach((row) => {
+      farm.forEach((row) => {
         if (!row.file_url) return;
         unified.push({
           id: `farm-${row.id}`,
-          title: row.title || row.file_name || row.document_type,
+          title: row.title || row.file_name || row.document_type || 'Farm mechanization document',
           fileUrl: row.file_url,
-          fileType: inferFileTypeFromName(row.file_name || row.title || row.file_url, row.file_type),
+          fileType: inferFileTypeFromName(row.file_name || row.title || row.file_url),
           folder: t('Farm Mechanization', 'వ్యవసాయ యాంత్రీకరణ'),
-          subfolder: row.document_type,
+          subfolder: row.document_type || undefined,
           createdAt: row.created_at,
         });
       });
 
-      (subsidy.data || []).forEach((row) => {
+      subsidy.forEach((row) => {
         if (!row.beneficiary_list_url) return;
         unified.push({
           id: `subsidy-${row.id}`,
@@ -114,7 +189,7 @@ export function FileDirectory() {
         });
       });
 
-      (quality.data || []).forEach((row) => {
+      quality.forEach((row) => {
         if (!row.form_url) return;
         unified.push({
           id: `quality-${row.id}`,
@@ -171,6 +246,15 @@ export function FileDirectory() {
     });
     return counts;
   }, [files]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / FILES_PAGE_SIZE));
+  const paginatedFiles = filtered.slice(
+    currentPage * FILES_PAGE_SIZE,
+    currentPage * FILES_PAGE_SIZE + FILES_PAGE_SIZE
+  );
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [filterType, search]);
 
   if (loading) {
     return (
@@ -258,7 +342,7 @@ export function FileDirectory() {
               <p>{t('No files match your search', 'మీ శోధనకు ఫైళ్లు లేవు')}</p>
             </div>
           ) : (
-            filtered.map((file) => (
+            paginatedFiles.map((file) => (
                 <div
                   key={file.id}
                   className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50"
@@ -278,8 +362,49 @@ export function FileDirectory() {
                 </div>
               ))
           )}
+          {filtered.length > FILES_PAGE_SIZE && (
+            <ListPagination
+              currentPage={currentPage}
+              pageCount={pageCount}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ListPagination({
+  currentPage,
+  pageCount,
+  onPageChange,
+}: {
+  currentPage: number;
+  pageCount: number;
+  onPageChange: (page: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-3 py-2 text-xs font-black text-slate-600 dark:border-slate-700 dark:text-slate-300">
+      <button
+        type="button"
+        onClick={() => onPageChange(Math.max(0, currentPage - 1))}
+        disabled={currentPage === 0}
+        className="rounded-md border border-slate-200 px-2.5 py-1.5 disabled:opacity-50 dark:border-slate-700"
+      >
+        Previous
+      </button>
+      <span className="uppercase tracking-wide">
+        Page {currentPage + 1} / {pageCount}
+      </span>
+      <button
+        type="button"
+        onClick={() => onPageChange(Math.min(pageCount - 1, currentPage + 1))}
+        disabled={currentPage >= pageCount - 1}
+        className="rounded-md border border-slate-200 px-2.5 py-1.5 disabled:opacity-50 dark:border-slate-700"
+      >
+        Next
+      </button>
     </div>
   );
 }

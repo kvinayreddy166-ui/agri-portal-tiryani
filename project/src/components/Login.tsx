@@ -593,8 +593,8 @@ export function Login() {
 
       <div className="relative grid w-full max-w-5xl overflow-hidden rounded-lg border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm lg:grid-cols-[1fr_0.95fr]">
         <section className="relative hidden min-h-[600px] flex-col justify-between overflow-hidden bg-emerald-950 p-7 text-white lg:flex">
-          <img src="/images/rice.jpg" alt="" decoding="async" className="absolute inset-x-0 top-0 h-[50%] w-full object-cover opacity-95" />
-          <img src="/images/cotton.jpg" alt="" decoding="async" className="absolute inset-x-0 bottom-0 h-[50%] w-full object-cover opacity-95" />
+          <img src="/images/rice.webp" alt="" decoding="async" className="absolute inset-x-0 top-0 h-[50%] w-full object-cover opacity-95" />
+          <img src="/images/cotton.webp" alt="" decoding="async" className="absolute inset-x-0 bottom-0 h-[50%] w-full object-cover opacity-95" />
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/82 via-emerald-900/58 to-slate-900/30" />
 
           <div className="relative">

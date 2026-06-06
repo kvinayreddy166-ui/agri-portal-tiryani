@@ -3,10 +3,10 @@ import { BrainCircuit, Leaf } from 'lucide-react';
 import { CropIntelligencePage } from './crops/CropIntelligencePage.jsx';
 
 const cropTabs = [
-  { id: 'paddy', label: 'Paddy', image: '/images/paddy.jpg' },
-  { id: 'maize', label: 'Maize', image: '/images/maize.jpg' },
-  { id: 'cotton', label: 'Cotton', image: '/images/cotton.jpg' },
-  { id: 'redgram', label: 'Redgram', image: '/images/pulses.jpg' },
+  { id: 'paddy', label: 'Paddy', image: '/images/paddy.webp' },
+  { id: 'maize', label: 'Maize', image: '/images/maize.webp' },
+  { id: 'cotton', label: 'Cotton', image: '/images/cotton.webp' },
+  { id: 'redgram', label: 'Redgram', image: '/images/pulses.webp' },
   { id: 'greengram', label: 'Greengram', image: '/images/greengram.webp' },
 ];
 

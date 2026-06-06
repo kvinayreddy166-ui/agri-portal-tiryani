@@ -8,7 +8,7 @@
       "description_en": "Major kharif and rabi food crop grown under transplanted, wet direct seeded and dry direct seeded systems.",
       "description_te": "నాట్లు, తడి నేరుగా విత్తడం, పొడి నేరుగా విత్తడం పద్ధతుల్లో సాగు చేసే ప్రధాన ఆహార పంట.",
       "source_pdf_name": "rice.pdf",
-      "image": "/images/paddy.jpg"
+      "image": "/images/paddy.webp"
     },
     "soil_requirements": {
       "description_en": "Clay loams and water-retentive fertile soils are preferred. Avoid saline, alkaline and poorly drained problem soils unless reclaimed.",
@@ -26,7 +26,7 @@
         "duration": "120-125 days",
         "yield": "25-30 q/acre",
         "special_features": "Fine grain, low glycemic index, blast tolerant, suitable for Telangana conditions",
-        "image": "/images/paddy.jpg"
+        "image": "/images/paddy.webp"
       },
       {
         "id": "paddy-variety-2",
@@ -35,7 +35,7 @@
         "duration": "125 days",
         "yield": "28-32 q/acre",
         "special_features": "Fine grain, good cooking quality, non-lodging type",
-        "image": "/images/paddy.jpg"
+        "image": "/images/paddy.webp"
       },
       {
         "id": "paddy-variety-3",
@@ -44,7 +44,7 @@
         "duration": "145-150 days",
         "yield": "25-30 q/acre",
         "special_features": "Popular fine grain, needs careful disease management",
-        "image": "/images/paddy.jpg"
+        "image": "/images/paddy.webp"
       },
       {
         "id": "paddy-variety-4",
@@ -53,7 +53,7 @@
         "duration": "120-125 days",
         "yield": "25-32 q/acre",
         "special_features": "Short duration, suitable where water is limited",
-        "image": "/images/paddy.jpg"
+        "image": "/images/paddy.webp"
       },
       {
         "id": "paddy-variety-5",
@@ -62,7 +62,7 @@
         "duration": "130-135 days",
         "yield": "28-34 q/acre",
         "special_features": "High yielding fine grain variety for irrigated ecology",
-        "image": "/images/paddy.jpg"
+        "image": "/images/paddy.webp"
       }
     ],
     "crop_production_practices": [
@@ -147,7 +147,7 @@
         "control_measure": "Early flooding, line planting and hand weeding",
         "herbicide": "Pretilachlor 50 EC",
         "dose": "500 ml/acre within 3-5 DAT",
-        "image": "/images/paddy.jpg"
+        "image": "/images/paddy.webp"
       },
       {
         "id": "paddy-weed-2",
@@ -157,7 +157,7 @@
         "control_measure": "Maintain shallow water and remove before seed set",
         "herbicide": "Bensulfuron methyl + Pretilachlor",
         "dose": "Recommended label dose",
-        "image": "/images/paddy.jpg"
+        "image": "/images/paddy.webp"
       },
       {
         "id": "paddy-weed-3",
@@ -167,7 +167,7 @@
         "control_measure": "Hand weeding and stale seedbed",
         "herbicide": "2,4-D sodium salt",
         "dose": "Use after crop establishment",
-        "image": "/images/paddy.jpg"
+        "image": "/images/paddy.webp"
       }
     ],
     "pest_management": [
@@ -214,7 +214,7 @@
         "symptoms": "Oval lesions on sheath near water line that spread upward.",
         "management": "Avoid excess nitrogen, maintain spacing and improve aeration.",
         "fungicide": "Hexaconazole or Validamycin as recommended",
-        "image": "/images/paddy.jpg",
+        "image": "/images/paddy.webp",
         "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
       }
     ],
@@ -231,7 +231,7 @@
         "nutrient": "Nitrogen",
         "symptoms": "Older leaves turn pale yellow and tillering reduces.",
         "correction": "Apply split nitrogen after confirming no waterlogging stress.",
-        "image": "/images/paddy.jpg"
+        "image": "/images/paddy.webp"
       }
     ],
     "harvesting": "Harvest when 80-85% grains are mature and straw turns yellow. Expected yield is 25-35 q/acre depending on variety and water management.",
@@ -1591,7 +1591,7 @@
       "description_en": "Cereal crop grown for grain, fodder, sweet corn and industrial use; hybrids dominate commercial production.",
       "description_te": "ధాన్యం, పశుగ్రాసం, స్వీట్ కార్న్ మరియు పరిశ్రమల కోసం సాగు చేసే ముఖ్యమైన ధాన్య పంట.",
       "source_pdf_name": "maize.pdf",
-      "image": "/images/maize.jpg"
+      "image": "/images/maize.webp"
     },
     "soil_requirements": {
       "description_en": "Well-drained fertile loams and red sandy loams are ideal. Waterlogging seriously reduces stand and yield.",
@@ -1609,7 +1609,7 @@
         "duration": "90-95 days",
         "yield": "25-30 q/acre",
         "special_features": "Tolerant to leaf blight and stalk rot; suitable for Telangana",
-        "image": "/images/maize.jpg"
+        "image": "/images/maize.webp"
       },
       {
         "id": "maize-variety-2",
@@ -1618,7 +1618,7 @@
         "duration": "95-100 days",
         "yield": "30-35 q/acre",
         "special_features": "Orange flint grain, tolerant to stem borer and blights",
-        "image": "/images/maize.jpg"
+        "image": "/images/maize.webp"
       },
       {
         "id": "maize-variety-3",
@@ -1627,7 +1627,7 @@
         "duration": "90-95 days",
         "yield": "30-35 q/acre",
         "special_features": "Short duration hybrid with good disease tolerance",
-        "image": "/images/maize.jpg"
+        "image": "/images/maize.webp"
       },
       {
         "id": "maize-variety-4",
@@ -1636,7 +1636,7 @@
         "duration": "95-100 days",
         "yield": "30-35 q/acre",
         "special_features": "Tolerant to leaf blight and downy mildew",
-        "image": "/images/maize.jpg"
+        "image": "/images/maize.webp"
       },
       {
         "id": "maize-variety-5",
@@ -1645,7 +1645,7 @@
         "duration": "95-110 days",
         "yield": "30-38 q/acre",
         "special_features": "Use locally notified hybrid suited to season",
-        "image": "/images/maize.jpg"
+        "image": "/images/maize.webp"
       }
     ],
     "crop_production_practices": [
@@ -1730,7 +1730,7 @@
         "control_measure": "Interculture and removal of tubers where possible",
         "herbicide": "Atrazine 50 WP",
         "dose": "0.8-1.0 kg/acre pre-emergence",
-        "image": "/images/maize.jpg"
+        "image": "/images/maize.webp"
       },
       {
         "id": "maize-weed-2",
@@ -1740,7 +1740,7 @@
         "control_measure": "Early hoeing and row cultivation",
         "herbicide": "Tembotrione",
         "dose": "Use as post-emergence as advised",
-        "image": "/images/maize.jpg"
+        "image": "/images/maize.webp"
       },
       {
         "id": "maize-weed-3",
@@ -1750,7 +1750,7 @@
         "control_measure": "Hand removal before rooting at nodes",
         "herbicide": "Atrazine followed by hoeing",
         "dose": "Label dose",
-        "image": "/images/maize.jpg"
+        "image": "/images/maize.webp"
       }
     ],
     "pest_management": [
@@ -1786,7 +1786,7 @@
         "symptoms": "Long grey-green cigar-shaped lesions on leaves.",
         "management": "Use tolerant hybrids and remove infected residues.",
         "fungicide": "Mancozeb or Propiconazole as advisory",
-        "image": "/images/maize.jpg",
+        "image": "/images/maize.webp",
         "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
       },
       {
@@ -1797,7 +1797,7 @@
         "symptoms": "Banded lesions on sheath and lower leaves.",
         "management": "Avoid dense planting and waterlogging.",
         "fungicide": "Validamycin or Hexaconazole as recommended",
-        "image": "/images/maize.jpg",
+        "image": "/images/maize.webp",
         "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
       }
     ],
@@ -1807,14 +1807,14 @@
         "nutrient": "Zinc",
         "symptoms": "Broad white bands on young leaves near the base.",
         "correction": "Apply zinc sulphate or foliar zinc as soil-test based correction.",
-        "image": "/images/maize.jpg"
+        "image": "/images/maize.webp"
       },
       {
         "deficiency": "Nitrogen deficiency",
         "nutrient": "Nitrogen",
         "symptoms": "V-shaped yellowing from tip down the midrib of older leaves.",
         "correction": "Top dress nitrogen with adequate moisture.",
-        "image": "/images/maize.jpg"
+        "image": "/images/maize.webp"
       }
     ],
     "harvesting": "Harvest when husk turns dry and grain moisture falls. Expected grain yield is 25-35 q/acre in good hybrids.",
@@ -3174,7 +3174,7 @@
       "description_en": "Long duration fibre crop grown mainly under rainfed and irrigated black soil conditions.",
       "description_te": "వర్షాధార మరియు సాగునీటి నల్లరేగడి భూముల్లో సాగు చేసే దీర్ఘకాలిక నార పంట.",
       "source_pdf_name": "cotton.pdf",
-      "image": "/images/cotton.jpg"
+      "image": "/images/cotton.webp"
     },
     "soil_requirements": {
       "description_en": "Deep black cotton soils with good moisture retention are best; avoid shallow and waterlogged soils.",
@@ -3192,7 +3192,7 @@
         "duration": "160-170 days",
         "yield": "8-12 q/acre kapas",
         "special_features": "Drought tolerant and jassid tolerant desi type",
-        "image": "/images/cotton.jpg"
+        "image": "/images/cotton.webp"
       },
       {
         "id": "cotton-variety-2",
@@ -3201,7 +3201,7 @@
         "duration": "160-180 days",
         "yield": "10-14 q/acre kapas",
         "special_features": "Robust rainfed variety with good boll setting",
-        "image": "/images/cotton.jpg"
+        "image": "/images/cotton.webp"
       },
       {
         "id": "cotton-variety-3",
@@ -3210,7 +3210,7 @@
         "duration": "150-180 days",
         "yield": "10-18 q/acre kapas",
         "special_features": "Use only notified hybrids suited to district and season",
-        "image": "/images/cotton.jpg"
+        "image": "/images/cotton.webp"
       },
       {
         "id": "cotton-variety-4",
@@ -3219,7 +3219,7 @@
         "duration": "160 days",
         "yield": "8-12 q/acre kapas",
         "special_features": "Suitable for rainfed cotton areas",
-        "image": "/images/cotton.jpg"
+        "image": "/images/cotton.webp"
       },
       {
         "id": "cotton-variety-5",
@@ -3228,7 +3228,7 @@
         "duration": "150-160 days",
         "yield": "8-12 q/acre kapas",
         "special_features": "Suitable where high density planting is practiced",
-        "image": "/images/cotton.jpg"
+        "image": "/images/cotton.webp"
       }
     ],
     "crop_production_practices": [
@@ -3313,7 +3313,7 @@
         "control_measure": "Early hoeing and hand weeding",
         "herbicide": "Pendimethalin 30 EC",
         "dose": "1.0-1.3 L/acre pre-emergence",
-        "image": "/images/cotton.jpg"
+        "image": "/images/cotton.webp"
       },
       {
         "id": "cotton-weed-2",
@@ -3323,7 +3323,7 @@
         "control_measure": "Remove before flowering and maintain field borders",
         "herbicide": "Directed glyphosate on bunds only",
         "dose": "Avoid crop contact",
-        "image": "/images/cotton.jpg"
+        "image": "/images/cotton.webp"
       },
       {
         "id": "cotton-weed-3",
@@ -3333,7 +3333,7 @@
         "control_measure": "Repeated interculture and tuber exhaustion",
         "herbicide": "Pyrithiobac sodium",
         "dose": "Post-emergence label dose",
-        "image": "/images/cotton.jpg"
+        "image": "/images/cotton.webp"
       }
     ],
     "pest_management": [
@@ -3369,7 +3369,7 @@
         "symptoms": "Brown concentric leaf spots and defoliation.",
         "management": "Use healthy seed, remove debris and avoid moisture stress.",
         "fungicide": "Mancozeb or Copper oxychloride",
-        "image": "/images/cotton.jpg",
+        "image": "/images/cotton.webp",
         "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
       },
       {
@@ -3380,7 +3380,7 @@
         "symptoms": "Angular leaf spots, black arm symptoms and boll lesions.",
         "management": "Use acid-delinted clean seed and tolerant varieties.",
         "fungicide": "Streptocycline + Copper oxychloride where recommended",
-        "image": "/images/cotton.jpg",
+        "image": "/images/cotton.webp",
         "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
       }
     ],
@@ -3390,14 +3390,14 @@
         "nutrient": "Boron",
         "symptoms": "Square shedding, cracked bolls and poor boll opening.",
         "correction": "Foliar spray borax at recommended concentration.",
-        "image": "/images/cotton.jpg"
+        "image": "/images/cotton.webp"
       },
       {
         "deficiency": "Magnesium deficiency",
         "nutrient": "Magnesium",
         "symptoms": "Interveinal chlorosis of older leaves turning reddish.",
         "correction": "Spray magnesium sulphate in repeated low-dose sprays.",
-        "image": "/images/cotton.jpg"
+        "image": "/images/cotton.webp"
       }
     ],
     "harvesting": "Pick fully opened clean kapas in multiple pickings. Expected kapas yield is 8-15 q/acre depending on rainfall and hybrid.",
@@ -4757,7 +4757,7 @@
       "description_en": "Deep-rooted pulse crop grown as sole crop, intercrop and border crop in rainfed systems.",
       "description_te": "వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
       "source_pdf_name": "redgram.pdf",
-      "image": "/images/pulses.jpg"
+      "image": "/images/pulses.webp"
     },
     "soil_requirements": {
       "description_en": "Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot.",
@@ -4775,7 +4775,7 @@
         "duration": "130-140 days",
         "yield": "6-8 q/acre",
         "special_features": "Suitable for rabi and short duration planting",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "redgram-variety-2",
@@ -4784,7 +4784,7 @@
         "duration": "160-180 days",
         "yield": "5-8 q/acre",
         "special_features": "Popular variety suited to rainfed areas",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "redgram-variety-3",
@@ -4793,7 +4793,7 @@
         "duration": "160-180 days",
         "yield": "6-9 q/acre",
         "special_features": "Wilt tolerant and widely adapted",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "redgram-variety-4",
@@ -4802,7 +4802,7 @@
         "duration": "150-160 days",
         "yield": "6-8 q/acre",
         "special_features": "Suitable to medium soils",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "redgram-variety-5",
@@ -4811,7 +4811,7 @@
         "duration": "150-165 days",
         "yield": "6-9 q/acre",
         "special_features": "Recommended where local seed is available",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       }
     ],
     "crop_production_practices": [
@@ -4896,7 +4896,7 @@
         "control_measure": "Remove before flowering and maintain borders",
         "herbicide": "Pendimethalin 30 EC",
         "dose": "1.0 L/acre pre-emergence",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "redgram-weed-2",
@@ -4906,7 +4906,7 @@
         "control_measure": "Repeated hoeing and rhizome removal",
         "herbicide": "Quizalofop ethyl",
         "dose": "Post-emergence for grasses",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "redgram-weed-3",
@@ -4916,7 +4916,7 @@
         "control_measure": "Hand weeding and interculture",
         "herbicide": "Imazethapyr",
         "dose": "Use where recommended for pulses",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       }
     ],
     "pest_management": [
@@ -4939,7 +4939,7 @@
         "symptoms": "Maggot feeds inside developing seed; shrivelled grain.",
         "management": "Early sowing, collect damaged pods and avoid staggered flowering.",
         "chemical_control": "Dimethoate or Thiomethoxam as local advisory",
-        "image": "/images/pulses.jpg",
+        "image": "/images/pulses.webp",
         "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
       }
     ],
@@ -4952,7 +4952,7 @@
         "symptoms": "Sudden wilting, brown vascular discoloration and plant death.",
         "management": "Use wilt tolerant variety, seed treatment and crop rotation.",
         "fungicide": "Carbendazim seed treatment; Trichoderma in soil",
-        "image": "/images/pulses.jpg",
+        "image": "/images/pulses.webp",
         "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
       },
       {
@@ -4963,7 +4963,7 @@
         "symptoms": "Bushy pale green plants with little or no flowering.",
         "management": "Use resistant varieties and control eriophyid mite vector.",
         "fungicide": "Wettable sulphur or Dimethoate as advisory for mite",
-        "image": "/images/pulses.jpg",
+        "image": "/images/pulses.webp",
         "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
       }
     ],
@@ -4973,14 +4973,14 @@
         "nutrient": "Sulphur",
         "symptoms": "Young leaves become pale and plants remain weak.",
         "correction": "Apply gypsum or SSP based on soil test.",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "deficiency": "Iron chlorosis",
         "nutrient": "Iron",
         "symptoms": "Young leaves show interveinal chlorosis in calcareous soils.",
         "correction": "Foliar spray ferrous sulphate with lime neutralization.",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       }
     ],
     "harvesting": "Harvest when 80% pods turn brown and dry. Expected grain yield is 5-8 q/acre in rainfed crop.",
@@ -6358,7 +6358,7 @@
         "duration": "60-65 days",
         "yield": "4-6 q/acre",
         "special_features": "Shiny green seed and tolerance to yellow mosaic",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "greengram-variety-2",
@@ -6367,7 +6367,7 @@
         "duration": "60-65 days",
         "yield": "4-6 q/acre",
         "special_features": "Suitable for kharif and rabi seasons",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "greengram-variety-3",
@@ -6376,7 +6376,7 @@
         "duration": "70-75 days",
         "yield": "5-7 q/acre",
         "special_features": "High yielding, resistant to MYMV and leaf crinkle virus",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "greengram-variety-4",
@@ -6385,7 +6385,7 @@
         "duration": "65-70 days",
         "yield": "4-6 q/acre",
         "special_features": "Bold seed and good market preference",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "greengram-variety-5",
@@ -6394,7 +6394,7 @@
         "duration": "65-70 days",
         "yield": "4-6 q/acre",
         "special_features": "Yellow mosaic tolerant in many regions",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       }
     ],
     "crop_production_practices": [
@@ -6479,7 +6479,7 @@
         "control_measure": "Early hand weeding and hoeing",
         "herbicide": "Pendimethalin 30 EC",
         "dose": "0.75-1.0 L/acre pre-emergence",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "greengram-weed-2",
@@ -6489,7 +6489,7 @@
         "control_measure": "Line sowing and interculture",
         "herbicide": "Quizalofop ethyl",
         "dose": "Post-emergence grass control",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "id": "greengram-weed-3",
@@ -6499,7 +6499,7 @@
         "control_measure": "Remove before it spreads as mat",
         "herbicide": "Imazethapyr",
         "dose": "Use as locally recommended",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       }
     ],
     "pest_management": [
@@ -6522,7 +6522,7 @@
         "symptoms": "Webbed flowers and pods with larval feeding.",
         "management": "Monitor from flowering, remove webs and use need-based sprays.",
         "chemical_control": "Emamectin benzoate or Chlorantraniliprole",
-        "image": "/images/pulses.jpg",
+        "image": "/images/pulses.webp",
         "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
       }
     ],
@@ -6546,7 +6546,7 @@
         "symptoms": "White powdery growth on leaves and pods.",
         "management": "Avoid late humid crop and use tolerant varieties.",
         "fungicide": "Wettable sulphur or Hexaconazole as advisory",
-        "image": "/images/pulses.jpg",
+        "image": "/images/pulses.webp",
         "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
       }
     ],
@@ -6556,14 +6556,14 @@
         "nutrient": "Sulphur",
         "symptoms": "Pale young leaves and poor growth.",
         "correction": "Apply sulphur source basally.",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       },
       {
         "deficiency": "Molybdenum deficiency",
         "nutrient": "Molybdenum",
         "symptoms": "Poor nodulation and nitrogen fixation.",
         "correction": "Use micronutrient seed coating where advised.",
-        "image": "/images/pulses.jpg"
+        "image": "/images/pulses.webp"
       }
     ],
     "harvesting": "Harvest mature pods in 1-2 pickings or whole plant when most pods turn black. Expected yield is 4-6 q/acre.",

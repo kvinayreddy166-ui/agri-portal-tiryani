@@ -10,6 +10,24 @@
   "theme_color": "#047857",
   "icons": [
     {
+      "src": "/images/agri-emblem.webp",
+      "sizes": "225x225",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/agri-emblem-192.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/agri-emblem-512.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/images/agri-emblem.png",
       "sizes": "225x225",
       "type": "image/png",

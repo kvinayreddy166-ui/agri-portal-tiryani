@@ -8,6 +8,7 @@ import { Crop, Scheme, SchemeBeneficiary, MandalOverview } from '../types/databa
 import { GoogleMapWidget } from '../components/dashboard/GoogleMapWidget';
 import { WeatherWidget } from '../components/dashboard/WeatherWidget';
 import { PortalLogo } from '../components/ui/PortalLogo';
+import { cachedSupabaseRows, cachedSupabaseValue } from '../lib/offlineCache';
 
 export function Dashboard() {
   const { isAdminUser } = useAuth();
@@ -37,14 +38,24 @@ export function Dashboard() {
   const fetchDashboardData = useCallback(async () => {
     try {
       const [cropsRes, schemesRes, contentRes, beneficiariesRes, dailyFertilizers] = await Promise.all([
-        safeDashboardQuery<Crop[]>(() => supabase.from('crops').select('*'), []),
-        safeDashboardQuery<Scheme[]>(() => supabase.from('schemes').select('*'), []),
-        safeDashboardQuery<{ content: MandalOverview } | null>(
-          () => supabase.from('site_content').select('*').eq('section_name', 'mandal_overview').maybeSingle(),
+        cachedSupabaseRows<Crop>(
+          'dashboard:crops:v2',
+          () => supabase.from('crops').select('id, crop_name, acreage, description, image_url, created_at').order('crop_name'),
+          []
+        ),
+        cachedSupabaseRows<Scheme>(
+          'dashboard:schemes:v2',
+          () => supabase.from('schemes').select('id, scheme_name, description, benefits, eligibility, created_at, updated_at').order('scheme_name'),
+          []
+        ),
+        cachedSupabaseValue<{ content: MandalOverview }>(
+          'dashboard:mandal-overview:v2',
+          () => supabase.from('site_content').select('content').eq('section_name', 'mandal_overview').maybeSingle(),
           null
         ),
-        safeDashboardQuery<SchemeBeneficiary[]>(
-          () => supabase.from('scheme_beneficiaries').select('*').order('financial_year', { ascending: false }),
+        cachedSupabaseRows<SchemeBeneficiary>(
+          'dashboard:scheme-beneficiaries:v2',
+          () => supabase.from('scheme_beneficiaries').select('id, scheme_id, financial_year, beneficiaries_count, notes, created_at, created_by').order('financial_year', { ascending: false }).limit(80),
           []
         ),
         fetchDailyFertilizerStockSummary().catch(() => []),
@@ -163,7 +174,7 @@ export function Dashboard() {
   return (
     <div className="dashboard-shell space-y-4">
       <div className="dashboard-rise relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-5 text-white shadow-lg">
-        <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-[url('/images/rice.jpg')] bg-cover bg-center opacity-20 md:block" />
+        <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-[url('/images/rice.webp')] bg-cover bg-center opacity-20 md:block" />
         <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="dashboard-float">
             <PortalLogo size="lg" />
@@ -566,18 +577,4 @@ export function Dashboard() {
       </div>
     </div>
   );
-}
-
-async function safeDashboardQuery<T>(
-  queryFactory: () => PromiseLike<{ data: T | null; error: unknown }>,
-  fallback: T
-): Promise<T> {
-  try {
-    const { data, error } = await queryFactory();
-    if (error) throw error;
-    return data ?? fallback;
-  } catch (error) {
-    console.warn('Dashboard optional data skipped:', error);
-    return fallback;
-  }
 }

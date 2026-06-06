@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { FERTILIZER_TYPES } from '../lib/constants';
+import { cachedSupabaseRows } from '../lib/offlineCache';
 import {
   STOCK_CATEGORIES,
   StockCategory,
@@ -75,10 +76,11 @@ export function StockInventory() {
     try {
       let query = supabase
         .from('stock_inventory_lines')
-        .select('*, dealers(dealer_name)')
+        .select('id, dealer_id, category, serial_no, product_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month, dealers(dealer_name)')
         .order('report_date', { ascending: false })
         .order('dealers(dealer_name)', { ascending: true })
-        .order('serial_no');
+        .order('serial_no')
+        .range(0, 999);
 
       if (viewMode === 'day') {
         query = query.eq('report_date', reportDate);
@@ -88,9 +90,12 @@ export function StockInventory() {
 
       query = query.eq('category', category);
 
-      const { data, error } = await query;
-      if (error) throw error;
-      setRows((data as InventoryRow[]) || []);
+      const data = await cachedSupabaseRows<InventoryRow>(
+        `stock-inventory:${category}:${viewMode}:${viewMode === 'day' ? reportDate : reportMonth}:v2`,
+        () => query,
+        []
+      );
+      setRows(data);
     } catch (err) {
       console.error(err);
       setRows([]);
