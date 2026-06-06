@@ -337,9 +337,9 @@ export function CropAdminDashboard() {
               <div className="p-6 text-sm font-semibold text-slate-500">Loading records...</div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {rows.map((row) => (
-                  <article key={row.id} className="grid gap-3 p-3 lg:grid-cols-[1fr_auto]">
-                    <pre className="max-h-32 overflow-auto rounded-lg bg-slate-50 p-3 text-xs dark:bg-slate-950 dark:text-slate-200">{JSON.stringify(row, null, 2)}</pre>
+                {rows.map((row, index) => (
+                  <article key={row.id || row._index || `${table}-${index}`} className="grid gap-3 p-3 lg:grid-cols-[1fr_auto]">
+                    <RecordSummaryCard row={row} table={table} />
                     <div className="flex gap-2 lg:flex-col">
                       <button onClick={() => openEditor({ ...row, _table: table })} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white">Edit</button>
                       <button onClick={() => remove(row)} className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-black text-white">
@@ -531,4 +531,94 @@ function formatEditorValue(value) {
   if (value == null) return '';
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
+}
+
+function RecordSummaryCard({ row, table }) {
+  const title = getRecordTitle(row, table);
+  const subtitle = getRecordSubtitle(row, table);
+  const highlights = getRecordHighlights(row, table);
+
+  return (
+    <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+        {row.image_url && (
+          <img
+            src={row.image_url}
+            alt={title}
+            loading="lazy"
+            decoding="async"
+            className="h-24 w-full rounded-lg object-cover sm:w-32"
+          />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+            {labelForTable(table)}
+          </p>
+          <h3 className="mt-1 text-base font-black text-slate-950 dark:text-white">{title}</h3>
+          {subtitle && <p className="mt-1 text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">{subtitle}</p>}
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {highlights.map((item) => (
+              <div key={item.label} className="rounded-md bg-white px-2.5 py-2 dark:bg-slate-900">
+                <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{item.label}</p>
+                <p className="mt-0.5 line-clamp-2 text-xs font-bold leading-5 text-slate-700 dark:text-slate-200">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function labelForTable(table) {
+  const labels = Object.fromEntries([...NORMALIZED_TABLES, ...INTELLIGENCE_TABLES]);
+  return labels[table] || table;
+}
+
+function getRecordTitle(row, table) {
+  if (table === 'crop_varieties') return row.variety || 'Variety record';
+  if (table === 'crop_pests') return row.pest_name || 'Pest record';
+  if (table === 'crop_diseases') return row.disease_name || 'Disease record';
+  if (table === 'crop_weeds') return row.weed_name || 'Weed record';
+  if (table === 'crop_fertilizers') return row.fertilizer || row.stage || 'Fertilizer record';
+  if (table === 'crop_faqs') return row.question || 'FAQ record';
+  if (table === 'crop_advisories') return row.category || 'Advisory record';
+  if (table === 'ci_varieties') return row.name || 'Variety card';
+  if (table === 'ci_practices') return row.title_en || row.key || 'Practice card';
+  if (table === 'ci_risks') return row.name_en || row.type || 'Risk card';
+  return row.name || row.title || row.id || 'Crop record';
+}
+
+function getRecordSubtitle(row, table) {
+  if (table === 'crop_varieties') return row.special_features || row.expected_yield || row.duration;
+  if (table === 'crop_pests' || table === 'crop_diseases') return row.symptoms || row.management;
+  if (table === 'crop_weeds') return row.control_measure || row.scientific_name;
+  if (table === 'crop_fertilizers') return [row.quantity, row.method].filter(Boolean).join(' - ');
+  if (table === 'crop_faqs') return row.answer;
+  if (table === 'crop_advisories') return row.advisory_en || row.advisory_te;
+  if (table === 'ci_varieties') return row.notes_en || row.expected_yield || row.duration;
+  if (table === 'ci_practices') return row.body_en || row.body_te;
+  if (table === 'ci_risks') return row.symptoms_en || row.control_en || row.symptoms_te || row.control_te;
+  return '';
+}
+
+function getRecordHighlights(row, table) {
+  const keysByTable = {
+    crop_varieties: [['Duration', 'duration'], ['Yield', 'expected_yield'], ['Image', 'image_url']],
+    crop_pests: [['Scientific name', 'scientific_name'], ['Management', 'management'], ['Chemical control', 'chemical_control']],
+    crop_diseases: [['Causal organism', 'causal_organism'], ['Management', 'management'], ['Fungicide', 'fungicide']],
+    crop_weeds: [['Scientific name', 'scientific_name'], ['Herbicide', 'herbicide'], ['Dose', 'dose']],
+    crop_fertilizers: [['Stage', 'stage'], ['Quantity', 'quantity'], ['Method', 'method']],
+    crop_faqs: [['Category', 'category'], ['Answer', 'answer']],
+    crop_advisories: [['Priority', 'priority'], ['Telugu advisory', 'advisory_te']],
+    ci_varieties: [['Duration', 'duration'], ['Yield', 'expected_yield'], ['Telugu notes', 'notes_te']],
+    ci_practices: [['Key', 'key'], ['Telugu title', 'title_te'], ['Telugu body', 'body_te']],
+    ci_risks: [['Type', 'type'], ['Telugu name', 'name_te'], ['Control', 'control_en']],
+  };
+
+  const keys = keysByTable[table] || Object.keys(row).slice(0, 4).map((key) => [key, key]);
+  return keys
+    .map(([label, key]) => ({ label, value: formatEditorValue(row[key]) }))
+    .filter((item) => item.value)
+    .slice(0, 4);
 }

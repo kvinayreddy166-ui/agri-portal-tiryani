@@ -78,8 +78,8 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
   return (
     <div className="min-h-screen bg-[#eef6f0] dark:bg-slate-950">
       <header className="sticky top-0 z-50 border-b border-emerald-800/20 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-700 text-white shadow-lg">
-        <div className="flex items-center justify-between px-4 py-3 lg:px-6">
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:px-4 lg:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -89,7 +89,7 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
             >
               {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <PortalLogo size="sm" />
               <div className="min-w-0">
                 <h1 className="truncate text-sm font-black tracking-tight sm:text-base">
@@ -102,7 +102,7 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
             <button
               type="button"
               onClick={toggleTheme}
