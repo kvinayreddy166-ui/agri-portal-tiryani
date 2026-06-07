@@ -6,8 +6,15 @@ import { installPwaRecovery } from './lib/pwaRecovery';
 import { recordSiteHit } from './lib/siteHits';
 import './index.css';
 
+declare global {
+  interface Window {
+    __TIRYANI_APP_BOOTED__?: boolean;
+  }
+}
+
 installPwaRecovery();
 void recordSiteHit();
+window.__TIRYANI_APP_BOOTED__ = true;
 
 const rootEl = document.getElementById('root');
 if (!rootEl) {
