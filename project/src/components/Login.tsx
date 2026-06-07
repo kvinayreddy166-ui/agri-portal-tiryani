@@ -398,7 +398,7 @@ export function Login() {
     setInstallMessage(t('On iPhone/iPad: tap Share, then Add to Home Screen.', 'On iPhone/iPad: tap Share, then Add to Home Screen.'));
   };
 
-  if (showStatutoryForms) {
+  if (showStatutoryForms || calculatorOpen) {
     return (
       <div className="min-h-screen bg-[#eef6f0] p-2 sm:p-3">
         <div className="mx-auto w-full max-w-4xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
@@ -414,13 +414,15 @@ export function Login() {
               </button>
               <div>
                 <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">
-                  {t('Public documents', 'ప్రజా పత్రాలు')}
+                  Officer Toolkit
                 </p>
-                <h1 className="text-xl font-black text-slate-950 sm:text-2xl">{t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}</h1>
+                <h1 className="text-xl font-black text-slate-950 sm:text-2xl">
+                  {showStatutoryForms ? t('Statutory Forms', 'చట్టబద్ధ ఫారాలు') : t('Acreage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+                </h1>
               </div>
             </div>
             <div className="flex items-center justify-between gap-2 sm:justify-end">
-              {statutoryFolder !== 'pesticides' && (
+              {showStatutoryForms && statutoryFolder !== 'pesticides' && (
                 <button
                   type="button"
                   onClick={() => setPdfToolOpen(true)}
@@ -434,6 +436,30 @@ export function Login() {
             </div>
           </div>
 
+          <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-black">
+            <button
+              type="button"
+              onClick={openStatutoryForms}
+              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 transition ${
+                showStatutoryForms ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600 hover:bg-white/70'
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
+            </button>
+            <button
+              type="button"
+              onClick={openAcreageCalculator}
+              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 transition ${
+                calculatorOpen ? 'bg-white text-sky-800 shadow-sm' : 'text-slate-600 hover:bg-white/70'
+              }`}
+            >
+              <Calculator className="h-4 w-4" />
+              {t('Acreage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+            </button>
+          </div>
+
+          <div className={calculatorOpen ? 'hidden' : ''}>
           <div className="mb-3 grid grid-cols-3 gap-1.5">
             {STATUTORY_FOLDERS.map((folder) => (
               <button
@@ -530,8 +556,43 @@ export function Login() {
               onPageChange={setStatutoryPage}
             />
           )}
+          </div>
+          {calculatorOpen && (
+            <div className="rounded-xl border border-sky-100 bg-white p-4">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-bold text-slate-700">Type or paste acre values</span>
+                <textarea
+                  value={acreInput}
+                  onChange={(event) => setAcreInput(event.target.value)}
+                  rows={6}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-950 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
+                  placeholder={'Example:\n2.10\n2.36\n0.15'}
+                />
+              </label>
+              <p className="mt-2 text-xs font-semibold text-slate-500">
+                Paste one Excel column or type values with + signs. Format uses acres.guntas; one acre is 40 guntas.
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Total acres</p>
+                  <p className="mt-1 text-3xl font-black text-emerald-950">{acreCalculation.formatted}</p>
+                  <p className="mt-1 text-xs font-semibold text-emerald-800">
+                    {acreCalculation.acres} acres {acreCalculation.guntas} guntas
+                  </p>
+                </div>
+                <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
+                  <p className="text-xs font-black uppercase tracking-wide text-sky-700">Hectares</p>
+                  <p className="mt-1 text-3xl font-black text-sky-950">{acreCalculation.hectares}</p>
+                  <p className="mt-1 text-xs font-semibold text-sky-800">Converted from total acres</p>
+                </div>
+              </div>
+              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700">
+                Read values: {acreCalculation.count} item{acreCalculation.count === 1 ? '' : 's'}
+              </div>
+            </div>
+          )}
         </div>
-        {previewForm?.file_url && (
+        {showStatutoryForms && previewForm?.file_url && (
           <Suspense
             fallback={
               <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 text-white">
@@ -548,7 +609,7 @@ export function Login() {
             />
           </Suspense>
         )}
-        {pdfToolOpen && (
+        {showStatutoryForms && pdfToolOpen && (
           <Suspense
             fallback={
               <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4 text-white">

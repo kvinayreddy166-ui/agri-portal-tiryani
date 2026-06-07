@@ -42,6 +42,7 @@ function PageLoader() {
 }
 
 const PUBLIC_VIEW_PAGES = new Set(['dealers', 'stock-inventory']);
+const PUBLIC_AUTH_ROUTES = new Set(['/login', '/officer-toolkit/statutory-forms', '/officer-toolkit/acreage-calculator']);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
 const PAGE_PATHS: Record<string, string> = {
@@ -154,6 +155,7 @@ function AppContent() {
     []
   );
   const getPageFromLocation = useCallback(() => {
+    if (PUBLIC_AUTH_ROUTES.has(location.pathname)) return 'dashboard';
     const legacyPage = new URLSearchParams(location.search).get('page');
     const routePage = location.pathname.replace(/^\/+/, '') || 'dashboard';
     const hashPage = location.hash.replace(/^#\/?/, '');
@@ -198,7 +200,7 @@ function AppContent() {
   }, [getPageFromLocation]);
 
   useEffect(() => {
-    if (location.pathname === '/' && !location.search && user) {
+    if ((location.pathname === '/' || location.pathname === '/login') && !location.search && user) {
       navigate('/dashboard', { replace: true, state: { tiryaniPage: 'dashboard' } });
     }
   }, [location.pathname, location.search, navigate, user]);
@@ -230,21 +232,29 @@ function AppContent() {
   }, [handleSignOut, user]);
 
   useEffect(() => {
-    if (user && isDealerUser) {
+    const isDefaultAuthRoute = location.pathname === '/' || location.pathname === '/login';
+
+    if (user && isDealerUser && isDefaultAuthRoute) {
       navigateToPage('dealer-portal', { replace: true });
       return;
     }
 
-    if (user && isAdminUser) {
+    if (user && isAdminUser && isDefaultAuthRoute) {
       window.localStorage.removeItem('tiryani-post-login-page');
       navigateToPage('dashboard', { replace: true });
     }
-  }, [user, isAdminUser, isDealerUser, navigateToPage]);
+  }, [location.pathname, user, isAdminUser, isDealerUser, navigateToPage]);
 
   useEffect(() => {
-    if (loading || user || currentPage === 'dashboard' || PUBLIC_VIEW_PAGES.has(currentPage)) return;
+    if (
+      loading ||
+      user ||
+      currentPage === 'dashboard' ||
+      PUBLIC_VIEW_PAGES.has(currentPage) ||
+      PUBLIC_AUTH_ROUTES.has(location.pathname)
+    ) return;
     navigateToPage('dashboard', { replace: true });
-  }, [currentPage, loading, navigateToPage, user]);
+  }, [currentPage, loading, location.pathname, navigateToPage, user]);
 
   if (loading) {
     return (
