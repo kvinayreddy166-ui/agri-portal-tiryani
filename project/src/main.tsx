@@ -3,9 +3,11 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { installPwaRecovery } from './lib/pwaRecovery';
+import { recordSiteHit } from './lib/siteHits';
 import './index.css';
 
 installPwaRecovery();
+void recordSiteHit();
 
 const rootEl = document.getElementById('root');
 if (!rootEl) {
