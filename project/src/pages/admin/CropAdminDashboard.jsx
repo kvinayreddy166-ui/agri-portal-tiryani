@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, FileUp, ImagePlus, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
+import { CheckCircle2, Download, ImagePlus, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { useCropData } from '../../hooks/useCropData';
 import {
-  bulkImportCropJson,
   createCropRecord,
   deleteCropRecord,
   deleteCropIntelligenceCard,
@@ -28,6 +27,15 @@ const INTELLIGENCE_TABLES = [
   ['ci_varieties', 'Variety Cards'],
   ['ci_practices', 'Practice Cards'],
   ['ci_risks', 'Pest & Disease Cards'],
+];
+
+const CROP_OPTIONS = [
+  { slug: 'paddy', label: 'Paddy' },
+  { slug: 'cotton', label: 'Cotton' },
+  { slug: 'maize', label: 'Maize' },
+  { slug: 'redgram', label: 'Redgram' },
+  { slug: 'greengram', label: 'Greengram' },
+  { slug: 'other', label: 'Other Crops' },
 ];
 
 const FIELD_CONFIGS = {
@@ -91,23 +99,26 @@ const FIELD_CONFIGS = {
 };
 
 export function CropAdminDashboard() {
-  const [slug, setSlug] = useState('paddy');
+  const [selectedCrop, setSelectedCrop] = useState('paddy');
+  const [otherCropName, setOtherCropName] = useState('');
   const [table, setTable] = useState(NORMALIZED_TABLES[0][0]);
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null);
-  const [editorText, setEditorText] = useState('');
-  const [editorError, setEditorError] = useState('');
-  const [jsonText, setJsonText] = useState('');
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
-  const { crop, crops, loading, reload } = useCropData(slug, { faqLimit: 500 });
-  const usingJsonCards = crop?.__source === 'crop_intelligence' || String(crop?.id || '').startsWith('local-');
+  const slug = selectedCrop === 'other' ? slugifyCropName(otherCropName) : selectedCrop;
+  const canEditSelectedCrop = selectedCrop !== 'other' || Boolean(slug);
+  const { crop, loading, reload } = useCropData(slug, { faqLimit: 500 });
+  const usingJsonCards = selectedCrop === 'other' || crop?.__source === 'crop_intelligence' || String(crop?.id || '').startsWith('local-');
   const jsonCardsMessage = crop?.__source === 'crop_intelligence'
     ? 'Using editable crop_intelligence cards for text, pest/disease details and images.'
-    : 'This crop is loaded from local fallback data. Saving will create editable crop_intelligence cards in Supabase.';
+    : selectedCrop === 'other'
+      ? 'Enter the crop name, then add cards. Saving will create editable crop_intelligence cards in Supabase.'
+      : 'This crop is loaded from local fallback data. Saving will create editable crop_intelligence cards in Supabase.';
   const tableOptions = usingJsonCards ? INTELLIGENCE_TABLES : NORMALIZED_TABLES;
 
   useEffect(() => {
@@ -129,15 +140,6 @@ export function CropAdminDashboard() {
     return source.filter((row) => JSON.stringify(row).toLowerCase().includes(needle));
   }, [crop, table, search]);
 
-  const editorRecord = useMemo(() => {
-    if (!editorText.trim()) return null;
-    try {
-      return JSON.parse(editorText);
-    } catch {
-      return null;
-    }
-  }, [editorText]);
-
   const startAdd = () => {
     const nextRecord = table.startsWith('ci_')
       ? { ...defaultRecordForTable(table), _table: table }
@@ -147,30 +149,26 @@ export function CropAdminDashboard() {
 
   const openEditor = (record) => {
     setEditing(record);
-    setEditorText(JSON.stringify(record, null, 2));
-    setEditorError('');
     setUploadError('');
+    setStatusMessage('');
   };
 
   const save = async () => {
-    if (!editorText.trim()) return;
+    if (!editing || !canEditSelectedCrop) return;
     setUploadError('');
-    let parsed;
-    try {
-      parsed = JSON.parse(editorText);
-    } catch (error) {
-      setEditorError(error.message);
-      return;
-    }
+    setStatusMessage('');
     setBusy(true);
     try {
-      const { _table, id, created_at, updated_at, crops: nestedCrop, ...payload } = parsed;
+      const { _table, id, created_at, updated_at, crops: nestedCrop, ...payload } = editing;
       void created_at;
       void updated_at;
       void nestedCrop;
       const targetTable = _table || table;
       if (targetTable.startsWith('ci_')) {
-        await saveCropIntelligenceCard(slug, targetTable, parsed);
+        await saveCropIntelligenceCard(slug, targetTable, {
+          ...editing,
+          crop_name: selectedCrop === 'other' ? otherCropName.trim() : undefined,
+        });
       } else if (id) {
         await updateCropRecord(targetTable, id, payload);
       } else {
@@ -178,6 +176,7 @@ export function CropAdminDashboard() {
       }
       setEditing(null);
       setUploadError('');
+      setStatusMessage('Crop content saved successfully.');
       await reload();
     } catch (error) {
       setUploadError(error.message || 'Unable to save record.');
@@ -194,17 +193,11 @@ export function CropAdminDashboard() {
       } else {
         await deleteCropRecord(table, row.id);
       }
+      setStatusMessage('Crop content deleted successfully.');
       await reload();
     } catch (error) {
       setUploadError(error.message || 'Unable to delete record.');
     }
-  };
-
-  const importJson = async () => {
-    const parsed = JSON.parse(jsonText);
-    await bulkImportCropJson(parsed);
-    setJsonText('');
-    await reload();
   };
 
   const uploadImage = async (file) => {
@@ -216,25 +209,15 @@ export function CropAdminDashboard() {
     }
     setUploading(true);
     setUploadError('');
-    let parsed;
-    try {
-      parsed = JSON.parse(editorText || '{}');
-    } catch (error) {
-      setUploadError(`Fix JSON before uploading an image: ${error.message}`);
-      setUploading(false);
-      return;
-    }
     const previewUrl = URL.createObjectURL(file);
-    const previousImageUrl = parsed.image_url;
-    const optimisticRecord = { ...parsed, image_url: previewUrl };
+    const previousImageUrl = editing.image_url;
+    const optimisticRecord = { ...editing, image_url: previewUrl };
     setEditing(optimisticRecord);
-    setEditorText(JSON.stringify(optimisticRecord, null, 2));
     try {
       const url = await uploadCropImage(file, slug, table);
-      const nextRecord = { ...parsed, image_url: url };
+      const nextRecord = { ...editing, image_url: url };
       setEditing(nextRecord);
-      setEditorText(JSON.stringify(nextRecord, null, 2));
-      setEditorError('');
+      setStatusMessage('Image uploaded. Press Save to store the card changes.');
       if (previousImageUrl && previousImageUrl !== url) {
         deleteUploadedCropImage(previousImageUrl).catch((error) => {
           console.warn('Old crop image cleanup skipped:', error);
@@ -242,8 +225,7 @@ export function CropAdminDashboard() {
       }
     } catch (error) {
       setUploadError(error.message || 'Unable to upload image.');
-      setEditing(parsed);
-      setEditorText(JSON.stringify(parsed, null, 2));
+      setEditing(editing);
     } finally {
       URL.revokeObjectURL(previewUrl);
       setUploading(false);
@@ -253,18 +235,10 @@ export function CropAdminDashboard() {
 
   const removeImage = async () => {
     if (!editing) return;
-    let parsed;
-    try {
-      parsed = JSON.parse(editorText || '{}');
-    } catch (error) {
-      setUploadError(`Fix JSON before removing the image: ${error.message}`);
-      return;
-    }
-    const previousImageUrl = parsed.image_url;
-    const { image_url, ...nextRecord } = parsed;
+    const previousImageUrl = editing.image_url;
+    const { image_url, ...nextRecord } = editing;
     void image_url;
     setEditing(nextRecord);
-    setEditorText(JSON.stringify(nextRecord, null, 2));
     setUploadError('');
     try {
       await deleteUploadedCropImage(previousImageUrl);
@@ -280,10 +254,9 @@ export function CropAdminDashboard() {
   };
 
   const updateEditorField = (key, value) => {
-    const nextRecord = { ...(editorRecord || {}), [key]: value };
+    const nextRecord = { ...(editing || {}), [key]: value };
     setEditing(nextRecord);
-    setEditorText(JSON.stringify(nextRecord, null, 2));
-    setEditorError('');
+    setUploadError('');
   };
 
   return (
@@ -300,21 +273,51 @@ export function CropAdminDashboard() {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            <select value={slug} onChange={(event) => setSlug(event.target.value)} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold dark:border-slate-700 dark:bg-slate-950 dark:text-white">
-              {(crops.length ? crops : [{ slug: 'paddy', crop_name: 'Paddy' }]).map((item) => (
-                <option key={item.slug || item.crop_name} value={item.slug}>{item.name_en || item.crop_name}</option>
+            <select
+              value={selectedCrop}
+              onChange={(event) => {
+                setSelectedCrop(event.target.value);
+                setStatusMessage('');
+                setUploadError('');
+              }}
+              className="min-h-11 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            >
+              {CROP_OPTIONS.map((item) => (
+                <option key={item.slug} value={item.slug}>{item.label}</option>
               ))}
             </select>
-            <button onClick={reload} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white">
+            {selectedCrop === 'other' && (
+              <input
+                value={otherCropName}
+                onChange={(event) => {
+                  setOtherCropName(event.target.value);
+                  setStatusMessage('');
+                  setUploadError('');
+                }}
+                placeholder="Enter crop name"
+                className="min-h-11 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+              />
+            )}
+            <button onClick={reload} disabled={!canEditSelectedCrop} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black disabled:opacity-50 dark:border-slate-700 dark:text-white">
               <RefreshCw className="h-4 w-4" />
               Refresh
             </button>
-            <button disabled={!crop} onClick={() => crop && exportCropWorkbook(crop)} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white disabled:opacity-50">
+            <button disabled={!crop} onClick={() => crop && exportCropWorkbook(crop)} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white disabled:opacity-50">
               <Download className="h-4 w-4" />
               Export Excel
             </button>
           </div>
         </div>
+        {(statusMessage || uploadError) && (
+          <div className={`mt-3 flex items-start gap-2 rounded-lg border px-3 py-2 text-sm font-bold ${
+            uploadError
+              ? 'border-amber-200 bg-amber-50 text-amber-900'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-900'
+          }`}>
+            {!uploadError && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />}
+            <span>{uploadError || statusMessage}</span>
+          </div>
+        )}
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[16rem_1fr]">
@@ -332,7 +335,7 @@ export function CropAdminDashboard() {
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search and filter records" className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
             </div>
-            <button onClick={startAdd} disabled={!crop} className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white disabled:opacity-50">
+            <button onClick={startAdd} disabled={!canEditSelectedCrop || (!crop && selectedCrop !== 'other')} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white disabled:opacity-50">
               <Plus className="h-4 w-4" />
               Add Record
             </button>
@@ -361,19 +364,10 @@ export function CropAdminDashboard() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <h2 className="mb-2 text-lg font-black text-slate-950 dark:text-white">Bulk Import JSON</h2>
-        <textarea value={jsonText} onChange={(event) => setJsonText(event.target.value)} className="min-h-36 w-full rounded-lg border border-slate-200 bg-slate-950 p-3 font-mono text-xs text-white" placeholder="Paste paddy.json, maize.json, or crop-intelligence.json here" />
-        <button onClick={importJson} disabled={!jsonText.trim()} className="mt-2 inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white disabled:opacity-50">
-          <FileUp className="h-4 w-4" />
-          Import JSON
-        </button>
-      </section>
-
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
           <div className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-xl bg-white shadow-2xl dark:bg-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-700">
+            <div className="flex flex-col gap-3 border-b border-slate-200 p-4 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-xl font-black text-slate-950 dark:text-white">Edit {table}</h2>
               <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white">
                 <ImagePlus className="h-4 w-4" />
@@ -412,8 +406,8 @@ export function CropAdminDashboard() {
                 )}
               </div>
             </div>
-            {FIELD_CONFIGS[table] && editorRecord && (
-              <div className="max-h-[38vh] overflow-y-auto border-b border-slate-200 p-4 dark:border-slate-700">
+            {FIELD_CONFIGS[table] && editing && (
+              <div className="flex-1 overflow-y-auto border-b border-slate-200 p-4 dark:border-slate-700">
                 <p className="mb-3 text-sm font-black text-slate-950 dark:text-white">Card text editor</p>
                 <div className="grid gap-3 md:grid-cols-2">
                   {FIELD_CONFIGS[table].map(([key, label, type]) => (
@@ -421,14 +415,14 @@ export function CropAdminDashboard() {
                       <span className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">{label}</span>
                       {type === 'textarea' ? (
                         <textarea
-                          value={formatEditorValue(editorRecord[key])}
+                          value={formatEditorValue(editing[key])}
                           onChange={(event) => updateEditorField(key, event.target.value)}
                           rows={3}
                           className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                         />
                       ) : (
                         <input
-                          value={formatEditorValue(editorRecord[key])}
+                          value={formatEditorValue(editing[key])}
                           onChange={(event) => updateEditorField(key, event.target.value)}
                           className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                         />
@@ -438,29 +432,14 @@ export function CropAdminDashboard() {
                 </div>
               </div>
             )}
-            <textarea
-              value={editorText}
-              onChange={(event) => {
-                const nextText = event.target.value;
-                setEditorText(nextText);
-                try {
-                  const nextRecord = JSON.parse(nextText);
-                  setEditing(nextRecord);
-                  setEditorError('');
-                } catch (error) {
-                  setEditorError(error.message);
-                }
-              }}
-              className="min-h-[50vh] flex-1 bg-slate-950 p-4 font-mono text-xs text-white outline-none"
-            />
-            {(editorError || uploadError) && (
+            {uploadError && (
               <div className="border-t border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-900">
-                {editorError ? `Fix JSON before saving: ${editorError}` : uploadError}
+                {uploadError}
               </div>
             )}
             <div className="flex gap-2 border-t border-slate-200 p-4 dark:border-slate-700">
-              <button onClick={() => setEditing(null)} className="flex-1 rounded-lg border border-slate-200 px-3 py-2 font-black dark:border-slate-700 dark:text-white">Cancel</button>
-              <button onClick={save} disabled={busy || !!editorError} className="flex-1 rounded-lg bg-emerald-700 px-3 py-2 font-black text-white disabled:opacity-50">{busy ? 'Saving...' : 'Save'}</button>
+              <button onClick={() => setEditing(null)} className="min-h-11 flex-1 rounded-lg border border-slate-200 px-3 py-2 font-black dark:border-slate-700 dark:text-white">Cancel</button>
+              <button onClick={save} disabled={busy || !canEditSelectedCrop} className="min-h-11 flex-1 rounded-lg bg-emerald-700 px-3 py-2 font-black text-white disabled:opacity-50">{busy ? 'Saving...' : 'Save'}</button>
             </div>
           </div>
         </div>
@@ -537,6 +516,14 @@ function formatEditorValue(value) {
   if (value == null) return '';
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
+}
+
+function slugifyCropName(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 function RecordSummaryCard({ row, table }) {

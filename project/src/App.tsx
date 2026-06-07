@@ -4,6 +4,7 @@ import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
 import { OfflineStatus } from './components/ui/OfflineStatus';
+import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
 
 const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
 const Layout = lazy(() => import('./components/Layout').then((m) => ({ default: m.Layout })));
@@ -24,6 +25,7 @@ const FileDirectory = lazy(() => import('./pages/FileDirectory').then((m) => ({ 
 const SubsidyTracking = lazy(() => import('./pages/SubsidyTracking').then((m) => ({ default: m.SubsidyTracking })));
 const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m) => ({ default: m.DealerStockPortal })));
 const StockInventory = lazy(() => import('./pages/StockInventory').then((m) => ({ default: m.StockInventory })));
+const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const CropDiagnosis = lazy(() =>
   import('./pages/CropDiagnosis').then((m) => ({ default: m.CropDiagnosis }))
 );
@@ -41,6 +43,41 @@ function PageLoader() {
 
 const PUBLIC_VIEW_PAGES = new Set(['dealers', 'stock-inventory']);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
+
+const PAGE_PATHS: Record<string, string> = {
+  dashboard: '/dashboard',
+  stock: '/stock',
+  'stock-inventory': '/stock-inventory',
+  'dealer-portal': '/dealer-portal',
+  dealers: '/dealers',
+  crops: '/crops',
+  'crop-admin': '/crop-admin',
+  'crop-cotton': '/crop-cotton',
+  'crop-paddy': '/crop-paddy',
+  'crop-maize': '/crop-maize',
+  'crop-pulses': '/crop-pulses',
+  'crop-oilseeds': '/crop-oilseeds',
+  forms: '/forms',
+  'gos-circulars': '/gos-circulars',
+  quality: '/quality',
+  'quality-seeds': '/quality-seeds',
+  'quality-pesticides': '/quality-pesticides',
+  'quality-fertilizers': '/quality-fertilizers',
+  'farm-mechanization': '/farm-mechanization',
+  excel: '/excel',
+  'file-directory': '/file-directory',
+  subsidy: '/subsidy',
+  'subsidy-nfsm': '/subsidy-nfsm',
+  'subsidy-state-seed': '/subsidy-state-seed',
+  'crop-diagnosis': '/crop-diagnosis',
+  'acreage-calculator': '/acreage-calculator',
+  analytics: '/analytics',
+  settings: '/settings',
+};
+
+function pageToPath(page: string) {
+  return PAGE_PATHS[page] || '/dashboard';
+}
 
 function PublicReadOnlyShell({
   title,
@@ -80,6 +117,8 @@ function PublicReadOnlyShell({
 
 function AppContent() {
   const { user, loading, isAdminUser, isDealerUser, signOut } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const validPages = useMemo(
     () =>
       new Set([
@@ -108,24 +147,28 @@ function AppContent() {
         'subsidy-nfsm',
         'subsidy-state-seed',
         'crop-diagnosis',
+        'acreage-calculator',
         'analytics',
         'settings',
       ]),
     []
   );
-  const getPageFromUrl = useCallback(() => {
-    const page = new URLSearchParams(window.location.search).get('page') || window.location.hash.replace(/^#\/?/, '');
+  const getPageFromLocation = useCallback(() => {
+    const legacyPage = new URLSearchParams(location.search).get('page');
+    const routePage = location.pathname.replace(/^\/+/, '') || 'dashboard';
+    const hashPage = location.hash.replace(/^#\/?/, '');
+    const page = legacyPage || routePage || hashPage;
     return validPages.has(page) ? page : 'dashboard';
-  }, [validPages]);
-  const [currentPage, setCurrentPage] = useState(() => getPageFromUrl());
+  }, [location.hash, location.pathname, location.search, validPages]);
+  const [currentPage, setCurrentPage] = useState(() => getPageFromLocation());
   const pageRef = useRef(currentPage);
 
   const returnToLoginPage = useCallback(() => {
     pageRef.current = 'dashboard';
     setCurrentPage('dashboard');
     window.localStorage.removeItem('tiryani-post-login-page');
-    window.history.replaceState({ tiryaniPage: 'dashboard' }, '', window.location.pathname);
-  }, []);
+    navigate('/dashboard', { replace: true });
+  }, [navigate]);
 
   const handleSignOut = useCallback(() => {
     returnToLoginPage();
@@ -137,56 +180,33 @@ function AppContent() {
     window.localStorage.setItem('tiryani-current-page', currentPage);
   }, [currentPage]);
 
-  const buildPageUrl = useCallback((page: string) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', page);
-    url.hash = '';
-    return `${url.pathname}${url.search}${url.hash}`;
-  }, []);
-
   const navigateToPage = useCallback(
     (page: string, options: { replace?: boolean } = {}) => {
       if (!validPages.has(page)) return;
       setCurrentPage(page);
-      const state = { tiryaniPage: page };
-      const url = buildPageUrl(page);
-      if (options.replace) {
-        window.history.replaceState(state, '', url);
-      } else if (pageRef.current !== page) {
-        window.history.pushState(state, '', url);
-      }
+      navigate(pageToPath(page), {
+        replace: options.replace,
+        state: { tiryaniPage: page, from: pageRef.current },
+      });
     },
-    [buildPageUrl, validPages]
+    [navigate, validPages]
   );
 
   useEffect(() => {
-    const initialPage = getPageFromUrl();
-    // Seed browser history with a dashboard entry before non-home pages so Android Back
-    // navigates inside the portal before the browser can close the installed PWA.
-    if (!window.history.state?.tiryaniPage) {
-      window.history.replaceState({ tiryaniPage: 'dashboard' }, '', buildPageUrl('dashboard'));
-      if (initialPage !== 'dashboard') {
-        window.history.pushState({ tiryaniPage: initialPage }, '', buildPageUrl(initialPage));
-      }
+    const nextPage = getPageFromLocation();
+    setCurrentPage(nextPage);
+  }, [getPageFromLocation]);
+
+  useEffect(() => {
+    if (location.pathname === '/' && !location.search && user) {
+      navigate('/dashboard', { replace: true, state: { tiryaniPage: 'dashboard' } });
     }
-    setCurrentPage(initialPage);
+  }, [location.pathname, location.search, navigate, user]);
 
-    const handlePopState = (event: PopStateEvent) => {
-      const nextPage = event.state?.tiryaniPage;
-      if (validPages.has(nextPage)) {
-        setCurrentPage(nextPage);
-        return;
-      }
-
-      if (pageRef.current !== 'dashboard') {
-        window.history.replaceState({ tiryaniPage: 'dashboard' }, '', buildPageUrl('dashboard'));
-        setCurrentPage('dashboard');
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [buildPageUrl, getPageFromUrl, validPages]);
+  const handleBack = useCallback(() => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/dashboard');
+  }, [navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -313,6 +333,8 @@ function AppContent() {
             <CropDiagnosis />
           </Suspense>
         );
+      case 'acreage-calculator':
+        return <AcreageCalculator />;
       case 'analytics':
         return <Analytics />;
       case 'settings':
@@ -324,7 +346,7 @@ function AppContent() {
 
   return (
     <Suspense fallback={<PageLoader />}>
-      <Layout currentPage={currentPage} onNavigate={navigateToPage} onSignOut={handleSignOut}>
+      <Layout currentPage={currentPage} onNavigate={navigateToPage} onBack={handleBack} onSignOut={handleSignOut}>
         {renderPage()}
       </Layout>
     </Suspense>
@@ -336,8 +358,10 @@ function App() {
     <ThemeProvider>
       <LanguageProvider>
         <AuthProvider>
-          <OfflineStatus />
-          <AppContent />
+          <BrowserRouter>
+            <OfflineStatus />
+            <AppContent />
+          </BrowserRouter>
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>

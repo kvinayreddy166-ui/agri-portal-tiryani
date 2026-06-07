@@ -29,6 +29,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { downloadFileFromUrl } from '../lib/fileBlob';
 import { FormDownload } from '../types/database';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const FilePreviewModal = lazy(() =>
   import('./ui/FilePreviewModal').then((module) => ({ default: module.FilePreviewModal }))
@@ -95,6 +96,8 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 export function Login() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [loginMode, setLoginMode] = useState<'staff' | 'dealer'>('staff');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -103,12 +106,12 @@ export function Login() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [grievanceOpen, setGrievanceOpen] = useState(false);
-  const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [acreInput, setAcreInput] = useState('');
   const [grievanceStatus, setGrievanceStatus] = useState<string | null>(null);
-  const [showStatutoryForms, setShowStatutoryForms] = useState(
-    () => window.location.hash === '#statutory-forms' || window.sessionStorage.getItem(PUBLIC_FORMS_STATE_KEY) === '1'
-  );
+  const showStatutoryForms =
+    location.pathname === '/officer-toolkit/statutory-forms' ||
+    window.location.hash === '#statutory-forms';
+  const calculatorOpen = location.pathname === '/officer-toolkit/acreage-calculator';
   const [statutoryFolder, setStatutoryFolder] = useState('fertilizers');
   const [statutoryPage, setStatutoryPage] = useState(0);
   const [statutoryForms, setStatutoryForms] = useState<FormDownload[]>([]);
@@ -147,41 +150,33 @@ export function Login() {
     }
 
     window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
-    const state = { publicStatutoryForms: true };
-    if (!window.history.state?.publicStatutoryForms && window.location.hash !== '#statutory-forms') {
-      window.history.pushState(state, '', '#statutory-forms');
-    } else if (!window.history.state?.publicStatutoryForms) {
-      window.history.replaceState(state, '', '#statutory-forms');
-    }
-
-    const handlePopState = (event: PopStateEvent) => {
-      const keepFormsOpen =
-        Boolean(event.state?.publicStatutoryForms) ||
-        window.location.hash === '#statutory-forms';
-      setShowStatutoryForms(keepFormsOpen);
-      if (!event.state?.publicFilePreview) setPreviewForm(null);
-      if (!keepFormsOpen) {
-        window.sessionStorage.removeItem(PUBLIC_FORMS_STATE_KEY);
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
   }, [showStatutoryForms]);
+
+  const goBackToOfficerToolkit = () => {
+    window.sessionStorage.removeItem(PUBLIC_FORMS_STATE_KEY);
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/login');
+  };
 
   const closeStatutoryForms = () => {
     window.sessionStorage.removeItem(PUBLIC_FORMS_STATE_KEY);
     setPreviewForm(null);
     setPdfToolOpen(false);
-    setShowStatutoryForms(false);
-    if (window.history.state?.publicStatutoryForms) {
-      window.history.back();
-    }
+    goBackToOfficerToolkit();
   };
 
   const openStatutoryForms = () => {
     window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
-    setShowStatutoryForms(true);
+    navigate('/officer-toolkit/statutory-forms', { state: { from: 'officer-toolkit' } });
+  };
+
+  const openAcreageCalculator = () => {
+    navigate('/officer-toolkit/acreage-calculator', { state: { from: 'officer-toolkit' } });
+  };
+
+  const closeAcreageCalculator = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/login');
   };
 
   useEffect(() => {
@@ -251,7 +246,6 @@ export function Login() {
   const openPublicPreview = (form: FormDownload) => {
     if (!form.file_url) return;
     window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
-    setShowStatutoryForms(true);
     setPreviewForm(form);
     if (!window.history.state?.publicFilePreview) {
       window.history.pushState(
@@ -264,7 +258,6 @@ export function Login() {
 
   const closePublicPreview = () => {
     setPreviewForm(null);
-    setShowStatutoryForms(true);
     window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
     if (window.history.state?.publicFilePreview) {
       window.history.back();
@@ -272,6 +265,13 @@ export function Login() {
       window.history.replaceState({ publicStatutoryForms: true }, '', '#statutory-forms');
     }
   };
+
+  useEffect(() => {
+    if (!previewForm) return;
+    const handlePreviewBack = () => setPreviewForm(null);
+    window.addEventListener('popstate', handlePreviewBack);
+    return () => window.removeEventListener('popstate', handlePreviewBack);
+  }, [previewForm]);
 
   const handlePublicDownload = async (form: FormDownload) => {
     if (!form.file_url) return;
@@ -666,23 +666,33 @@ export function Login() {
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={openStatutoryForms}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-800 transition hover:bg-emerald-100 lg:hidden"
-            >
-              <FileText className="h-4 w-4" />
-              {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setCalculatorOpen(true)}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-black text-sky-800 transition hover:bg-sky-100"
-            >
-              <Calculator className="h-4 w-4" />
-              {t('Acres Calculator', 'ఎకరాల కాలిక్యులేటర్')}
-            </button>
+            <section className="mb-3 rounded-xl border border-emerald-100 bg-white p-3 shadow-sm">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Officer Toolkit</p>
+                  <p className="text-xs font-semibold text-slate-500">Quick field tools before sign in</p>
+                </div>
+                <ShieldCheck className="h-5 w-5 text-emerald-700" />
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={openStatutoryForms}
+                  className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-left text-sm font-black text-emerald-900 transition hover:bg-emerald-100"
+                >
+                  <FileText className="h-5 w-5 shrink-0" />
+                  <span>{t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={openAcreageCalculator}
+                  className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 px-3 py-3 text-left text-sm font-black text-sky-900 transition hover:bg-sky-100"
+                >
+                  <Calculator className="h-5 w-5 shrink-0" />
+                  <span>{t('Acreage Calculator', 'ఎకరాల కాలిక్యులేటర్')}</span>
+                </button>
+              </div>
+            </section>
 
             <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-bold">
               <button
@@ -795,8 +805,9 @@ export function Login() {
                 <Calculator className="h-5 w-5 text-sky-700" />
                 {t('Acres Calculator', 'ఎకరాల కాలిక్యులేటర్')}
               </h3>
-              <button type="button" onClick={() => setCalculatorOpen(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
-                <X className="h-5 w-5" />
+              <button type="button" onClick={closeAcreageCalculator} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100">
+                <ArrowLeft className="h-4 w-4" />
+                Back
               </button>
             </div>
             <label className="block">

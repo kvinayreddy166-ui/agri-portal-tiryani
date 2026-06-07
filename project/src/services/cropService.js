@@ -216,7 +216,7 @@ export async function deleteCropRecord(table, id) {
 }
 
 export async function saveCropIntelligenceCard(slug, table, record) {
-  const row = await ensureCropIntelligenceRow(slug);
+  const row = await ensureCropIntelligenceRow(slug, record.crop_name || record.name_en || record.name || '');
   if (!row) throw new Error('Crop intelligence record was not found.');
 
   const content = { ...(row.content || {}) };
@@ -552,11 +552,11 @@ async function fetchRawCropIntelligence(slug) {
   return pickPreferredSlugRow(data, slug, slugCandidates);
 }
 
-async function ensureCropIntelligenceRow(slug) {
+async function ensureCropIntelligenceRow(slug, cropName = '') {
   const existingRow = await fetchRawCropIntelligence(slug);
   if (existingRow) return existingRow;
 
-  const payload = buildCropIntelligencePayload(await loadLocalCropDataset(), slug);
+  const payload = buildCropIntelligencePayload(await loadLocalCropDataset(), slug, cropName);
   const { data, error } = await supabase
     .from('crop_intelligence')
     .upsert(payload, { onConflict: 'slug' })
@@ -762,15 +762,16 @@ function toIntelligenceRisk(record) {
   };
 }
 
-function buildCropIntelligencePayload(cropDataset, slug) {
+function buildCropIntelligencePayload(cropDataset, slug, cropName = '') {
   const item = findLocalCropItem(cropDataset, slug);
   const fallbackSlug = String(slug || 'crop').trim().toLowerCase() || 'crop';
+  const displayName = String(cropName || fallbackSlug).trim() || fallbackSlug;
 
   if (!item) {
     return {
       slug: fallbackSlug,
-      name_en: fallbackSlug,
-      name_te: fallbackSlug,
+      name_en: displayName,
+      name_te: displayName,
       scientific_name: '',
       crop_image_url: '',
       source_pdf_name: '',

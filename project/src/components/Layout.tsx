@@ -1,6 +1,6 @@
 import React, { useState, ReactNode } from 'react';
 import {
-  Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
+  ArrowLeft, Calculator, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Stethoscope, ClipboardList,
 } from 'lucide-react';
@@ -13,6 +13,7 @@ interface LayoutProps {
   children: ReactNode;
   currentPage: string;
   onNavigate: (page: string) => void;
+  onBack: () => void;
   onSignOut: () => void;
 }
 
@@ -33,6 +34,7 @@ const adminMenuItems = [
     adminOnly: true,
   },
   { id: 'forms', label: 'Statutory Forms', icon: FileStack },
+  { id: 'acreage-calculator', label: 'Acreage Calculator', icon: Calculator },
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
   { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
   { id: 'crop-diagnosis', label: 'AI Crop Doctor', icon: Stethoscope },
@@ -54,7 +56,7 @@ const dealerMenuItems = [
 
 const menuItems = adminMenuItems;
 
-export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutProps) {
+export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, isAdminUser, isDealerUser, dealerName } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
@@ -193,7 +195,19 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
       </aside>
 
       <main className="min-h-[calc(100vh-4.25rem)]">
-        <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">{children}</div>
+        <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
+          {currentPage !== 'dashboard' && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="mb-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </button>
+          )}
+          {children}
+        </div>
       </main>
     </div>
   );
@@ -210,6 +224,7 @@ function translateMenu(label: string) {
     'Crop Intelligence': 'పంట ఇంటెలిజెన్స్',
     'Crop Admin': 'పంట అడ్మిన్',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
+    'Acreage Calculator': 'ఎకరాల కాలిక్యులేటర్',
     'GOs & Circulars': 'జీ.ఓలు & సర్క్యులర్లు',
     'Quality Control': 'నాణ్యత నియంత్రణ',
     'Farm Mechanization': 'వ్యవసాయ యాంత్రీకరణ',
