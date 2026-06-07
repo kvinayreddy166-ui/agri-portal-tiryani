@@ -58,33 +58,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let subscription: { unsubscribe: () => void } | null = null;
+    let timeout = 0;
 
     const finishLoading = (sess: Session | null) => {
       if (!mounted) return;
+      window.clearTimeout(timeout);
       applySession(sess, setSession, setUser, setIsAdminUser, setIsDealerUserFlag, setDealerId, setDealerName);
       setLoading(false);
     };
 
-    supabase.auth
-      .getSession()
-      .then(({ data: { session: sess } }) => finishLoading(sess))
-      .catch((err) => {
-        console.error('Auth session error:', err);
-        finishLoading(null);
+    timeout = window.setTimeout(() => {
+      finishLoading(null);
+    }, 2500);
+
+    try {
+      supabase.auth
+        .getSession()
+        .then(({ data: { session: sess } }) => finishLoading(sess))
+        .catch((err) => {
+          console.error('Auth session error:', err);
+          finishLoading(null);
+        });
+
+      const authState = supabase.auth.onAuthStateChange((_event, sess) => {
+        finishLoading(sess);
       });
-
-    const timeout = window.setTimeout(() => {
-      if (mounted) setLoading(false);
-    }, 8000);
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
-      finishLoading(sess);
-    });
+      subscription = authState.data.subscription;
+    } catch (err) {
+      console.error('Auth startup error:', err);
+      finishLoading(null);
+    }
 
     return () => {
       mounted = false;
       window.clearTimeout(timeout);
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
