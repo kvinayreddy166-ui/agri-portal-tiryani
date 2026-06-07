@@ -29,20 +29,5 @@ export default defineConfig({
     sourcemap: false,
     target: 'es2020',
     chunkSizeWarningLimit: 650,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return undefined;
-          if (id.includes('@supabase')) return 'supabase';
-          if (id.includes('react-router-dom')) return 'router';
-          if (id.includes('react')) return 'react';
-          if (id.includes('recharts')) return 'charts';
-          if (id.includes('xlsx')) return 'office';
-          if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('dompurify')) return 'pdf';
-          if (id.includes('three') || id.includes('@react-three')) return 'three';
-          return 'vendor';
-        },
-      },
-    },
   },
 });
