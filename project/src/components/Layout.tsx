@@ -133,7 +133,7 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
               className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold transition hover:bg-white/25 sm:text-sm"
             >
               <Globe2 className="h-4 w-4" />
-              {language === 'en' ? 'తెలుగు' : 'EN'}
+              {language === 'en' ? 'త' : 'E'}
             </button>
             <span
               className={`hidden rounded-full px-2.5 py-1 text-[10px] font-bold sm:inline-block sm:text-xs ${

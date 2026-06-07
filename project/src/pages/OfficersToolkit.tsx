@@ -9,16 +9,16 @@ const toolkitItems = [
     telugu: 'Statutory Forms',
     path: '/forms',
     icon: FileText,
-    tone: 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100',
-    iconTone: 'bg-emerald-700 text-white',
+    tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
+    iconTone: 'bg-[#a9842f] text-white',
   },
   {
     title: 'Acreage Calculator',
     telugu: 'Acreage Calculator',
     path: '/acreage-calculator',
     icon: Calculator,
-    tone: 'border-sky-200 bg-sky-50 text-sky-900 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-100',
-    iconTone: 'bg-sky-700 text-white',
+    tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
+    iconTone: 'bg-stone-600 text-white',
   },
 ];
 
@@ -28,16 +28,16 @@ export function OfficersToolkit() {
 
   return (
     <div className="max-w-2xl">
-      <section className="rounded-lg border border-emerald-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-4">
+      <section className="rounded-lg border border-[#d8cfb2] bg-[#f4efdf] p-3 shadow-sm dark:border-stone-700 dark:bg-stone-900 sm:p-4">
         <div className="mb-3 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-700 text-white">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#a9842f] text-white">
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+            <p className="text-xs font-black uppercase tracking-wide text-stone-600 dark:text-stone-200">
               {t('Officer Toolkit', 'Officer Toolkit')}
             </p>
-            <p className="mt-0.5 text-sm font-semibold text-slate-500 dark:text-slate-300">
+            <p className="mt-0.5 text-sm font-semibold text-stone-500 dark:text-stone-300">
               {t('Choose a field tool to continue.', 'Choose a field tool to continue.')}
             </p>
           </div>

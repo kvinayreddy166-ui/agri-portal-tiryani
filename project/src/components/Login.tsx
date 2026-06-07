@@ -411,7 +411,7 @@ export function Login() {
             <PublicBreadcrumbs items={['Login', 'Officer Toolkit']} />
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Officer Toolkit</p>
+                <p className="text-[11px] font-black uppercase tracking-wide text-stone-600">Officer Toolkit</p>
                 <h1 className="text-2xl font-black text-slate-950 sm:text-3xl">
                   {t('Officer Toolkit', 'Officer Toolkit')}
                 </h1>
@@ -420,32 +420,32 @@ export function Login() {
             </div>
           </div>
 
-          <section className="rounded-lg border border-emerald-100 bg-emerald-50/60 p-2.5">
+          <section className="rounded-lg border border-[#d8cfb2] bg-[#f4efdf] p-2.5">
           <div className="grid gap-2 sm:grid-cols-2">
             <button
               type="button"
               onClick={openStatutoryForms}
-              className="flex min-h-16 items-center gap-3 rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-left text-emerald-900 shadow-sm transition hover:bg-emerald-50"
+              className="flex min-h-16 items-center gap-3 rounded-lg border border-[#d8cfb2] bg-white px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#fbf7ea]"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-white">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#a9842f] text-white">
                 <FileText className="h-5 w-5" />
               </span>
               <span>
                 <span className="block text-sm font-black">{t('Statutory Forms', 'Statutory Forms')}</span>
-                <span className="mt-0.5 block text-xs font-semibold text-emerald-800">Open</span>
+                <span className="mt-0.5 block text-xs font-semibold text-stone-600">Open</span>
               </span>
             </button>
             <button
               type="button"
               onClick={openAcreageCalculator}
-              className="flex min-h-16 items-center gap-3 rounded-lg border border-sky-200 bg-white px-3 py-2.5 text-left text-sky-900 shadow-sm transition hover:bg-sky-50"
+              className="flex min-h-16 items-center gap-3 rounded-lg border border-[#d8cfb2] bg-white px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#fbf7ea]"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-700 text-white">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-stone-600 text-white">
                 <Calculator className="h-5 w-5" />
               </span>
               <span>
                 <span className="block text-sm font-black">{t('Acreage Calculator', 'Acreage Calculator')}</span>
-                <span className="mt-0.5 block text-xs font-semibold text-sky-800">Open</span>
+                <span className="mt-0.5 block text-xs font-semibold text-stone-600">Open</span>
               </span>
             </button>
           </div>
@@ -788,24 +788,24 @@ export function Login() {
                 className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
               >
                 <Globe2 className="h-4 w-4" />
-                {language === 'en' ? 'Telugu' : 'English'}
+                {language === 'en' ? 'త' : 'E'}
               </button>
             </div>
 
-            <section className="mb-3 rounded-xl border border-emerald-100 bg-white p-3 shadow-sm">
+            <section className="mb-3 rounded-lg border border-[#d8cfb2] bg-[#f4efdf] p-2.5 shadow-sm">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Officer Toolkit</p>
-                  <p className="text-xs font-semibold text-slate-500">Quick field tools before sign in</p>
+                  <p className="text-[11px] font-black uppercase tracking-wide text-stone-600">Officer Toolkit</p>
+                  <p className="text-xs font-semibold text-stone-500">Quick field tools before sign in</p>
                 </div>
-                <ShieldCheck className="h-5 w-5 text-emerald-700" />
+                <ShieldCheck className="h-5 w-5 text-[#a9842f]" />
               </div>
               <button
                 type="button"
                 onClick={openOfficerToolkit}
-                className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-left text-sm font-black text-emerald-900 transition hover:bg-emerald-100"
+                className="flex min-h-14 w-full items-center gap-3 rounded-lg border border-[#d8cfb2] bg-white px-3 py-2.5 text-left text-sm font-black text-stone-800 transition hover:bg-[#fbf7ea]"
               >
-                <ShieldCheck className="h-5 w-5 shrink-0" />
+                <ShieldCheck className="h-5 w-5 shrink-0 text-[#a9842f]" />
                 <span>{t('Open Officer Toolkit', 'Open Officer Toolkit')}</span>
               </button>
               <div className="hidden">
