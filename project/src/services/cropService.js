@@ -22,6 +22,11 @@ const RELATIONS = `
   crop_images(*)
 `;
 
+const CROP_SLUG_ALIASES = {
+  paddy: ['paddy', 'rice'],
+  rice: ['rice', 'paddy'],
+};
+
 export async function fetchCrops({ search = '', slug = '', category = '' } = {}) {
   const canUseCache = !search && !slug && !category && cropListCache;
   if (canUseCache) return cropListCache;
@@ -43,9 +48,10 @@ export async function fetchCrops({ search = '', slug = '', category = '' } = {})
   }
 
   try {
+    const slugCandidates = getCropSlugCandidates(slug);
     let query = supabase.from('crops').select('*').order('crop_name');
 
-    if (slug) query = query.eq('slug', slug);
+    if (slug) query = slugCandidates.length > 1 ? query.in('slug', slugCandidates) : query.eq('slug', slug);
     if (search) query = query.or(`crop_name.ilike.%${search}%,name_en.ilike.%${search}%,name_te.ilike.%${search}%`);
     if (category) query = query.contains('profile', { category });
 
@@ -83,16 +89,21 @@ export async function fetchCropBySlug(slug) {
 
   let normalizedError = null;
   try {
+    const slugCandidates = getCropSlugCandidates(slug);
     const { data, error } = await supabase
       .from('crops')
       .select(RELATIONS)
-      .eq('slug', slug)
-      .maybeSingle();
+      .in('slug', slugCandidates)
+      .limit(slugCandidates.length || 1);
 
     if (error) throw error;
-    if (data) {
-      writeCropCache(cacheKey, data);
-      return data;
+    const crop = pickPreferredSlugRow(data, slug, slugCandidates);
+    if (crop) {
+      if (hasCropDetailRows(crop)) {
+        writeCropCache(cacheKey, crop);
+        return crop;
+      }
+      console.warn('Normalized crop detail rows are empty; using local crop detail fallback.');
     }
   } catch (error) {
     normalizedError = error;
@@ -205,13 +216,14 @@ export async function deleteCropRecord(table, id) {
 }
 
 export async function saveCropIntelligenceCard(slug, table, record) {
-  const row = await fetchRawCropIntelligence(slug);
+  const row = await ensureCropIntelligenceRow(slug);
   if (!row) throw new Error('Crop intelligence record was not found.');
 
   const content = { ...(row.content || {}) };
   const risks = Array.isArray(row.risks) ? [...row.risks] : [];
   const index = Number.isInteger(record._index) ? record._index : null;
   const cleanRecord = stripAdminFields(record);
+  const targetSlug = row.slug || slug;
 
   if (table === 'ci_varieties') {
     content.varieties = upsertArrayItem(content.varieties, index, toIntelligenceVariety(cleanRecord));
@@ -223,7 +235,7 @@ export async function saveCropIntelligenceCard(slug, table, record) {
     const { data, error } = await supabase
       .from('crop_intelligence')
       .update({ risks: nextRisks, updated_at: new Date().toISOString() })
-      .eq('slug', slug)
+      .eq('slug', targetSlug)
       .select()
       .single();
     if (error) throw error;
@@ -236,7 +248,7 @@ export async function saveCropIntelligenceCard(slug, table, record) {
   const { data, error } = await supabase
     .from('crop_intelligence')
     .update({ content, updated_at: new Date().toISOString() })
-    .eq('slug', slug)
+    .eq('slug', targetSlug)
     .select()
     .single();
   if (error) throw error;
@@ -245,11 +257,12 @@ export async function saveCropIntelligenceCard(slug, table, record) {
 }
 
 export async function deleteCropIntelligenceCard(slug, table, index) {
-  const row = await fetchRawCropIntelligence(slug);
+  const row = await ensureCropIntelligenceRow(slug);
   if (!row) throw new Error('Crop intelligence record was not found.');
 
   const content = { ...(row.content || {}) };
   const risks = Array.isArray(row.risks) ? [...row.risks] : [];
+  const targetSlug = row.slug || slug;
 
   if (table === 'ci_varieties') {
     content.varieties = removeArrayItem(content.varieties, index);
@@ -260,7 +273,7 @@ export async function deleteCropIntelligenceCard(slug, table, index) {
     const { error } = await supabase
       .from('crop_intelligence')
       .update({ risks: nextRisks, updated_at: new Date().toISOString() })
-      .eq('slug', slug);
+      .eq('slug', targetSlug);
     if (error) throw error;
     invalidateCropCaches();
     return;
@@ -271,7 +284,7 @@ export async function deleteCropIntelligenceCard(slug, table, index) {
   const { error } = await supabase
     .from('crop_intelligence')
     .update({ content, updated_at: new Date().toISOString() })
-    .eq('slug', slug);
+    .eq('slug', targetSlug);
   if (error) throw error;
   invalidateCropCaches();
 }
@@ -391,6 +404,46 @@ function invalidateCropCaches() {
   }
 }
 
+function getCropSlugCandidates(slug) {
+  const cleanSlug = String(slug || '').trim().toLowerCase();
+  if (!cleanSlug) return [];
+  return Array.from(new Set(CROP_SLUG_ALIASES[cleanSlug] || [cleanSlug]));
+}
+
+function pickPreferredSlugRow(rows, slug, candidates = getCropSlugCandidates(slug)) {
+  const list = Array.isArray(rows) ? rows : rows ? [rows] : [];
+  if (!list.length) return null;
+
+  for (const candidate of candidates) {
+    const match = list.find((row) => String(row?.slug || '').toLowerCase() === candidate);
+    if (match) return match;
+  }
+
+  return list[0] || null;
+}
+
+function hasCropDetailRows(crop) {
+  return [
+    'crop_varieties',
+    'crop_production',
+    'crop_fertilizers',
+    'crop_irrigation',
+    'crop_weeds',
+    'crop_pests',
+    'crop_diseases',
+    'crop_deficiencies',
+    'crop_advisories',
+    'crop_faqs',
+    'crop_practices',
+    'ci_risks',
+  ].some((key) => Array.isArray(crop?.[key]) && crop[key].length > 0);
+}
+
+function findLocalCropItem(cropDataset, slug) {
+  const candidates = getCropSlugCandidates(slug);
+  return cropDataset.find((crop) => candidates.includes(String(crop.slug || '').toLowerCase()));
+}
+
 export function exportCropWorkbook(crop) {
   const workbook = XLSX.utils.book_new();
   const sheets = {
@@ -427,8 +480,9 @@ async function loadLocalCropDataset() {
 
 function localCrops(cropDataset, { search = '', slug = '' } = {}) {
   const needle = search.toLowerCase();
+  const slugCandidates = getCropSlugCandidates(slug);
   return cropDataset
-    .filter((item) => !slug || item.slug === slug)
+    .filter((item) => !slug || slugCandidates.includes(String(item.slug || '').toLowerCase()))
     .filter((item) => {
       if (!needle) return true;
       return `${item.crop_profile.name_en} ${item.crop_profile.name_te} ${item.slug}`.toLowerCase().includes(needle);
@@ -460,15 +514,17 @@ function localCrops(cropDataset, { search = '', slug = '' } = {}) {
 
 async function fetchCropIntelligenceList({ search = '', slug = '' } = {}) {
   try {
+    const slugCandidates = getCropSlugCandidates(slug);
     let query = supabase
       .from('crop_intelligence')
       .select('id, slug, name_en, name_te, scientific_name, crop_image_url, source_pdf_name, updated_at')
       .order('name_en');
-    if (slug) query = query.eq('slug', slug);
+    if (slug) query = query.in('slug', slugCandidates);
     if (search) query = query.or(`name_en.ilike.%${search}%,name_te.ilike.%${search}%,slug.ilike.%${search}%`);
     const { data, error } = await query;
     if (error) throw error;
-    return (data || []).map((row) => ({
+    const rows = slug ? [pickPreferredSlugRow(data, slug, slugCandidates)].filter(Boolean) : data || [];
+    return rows.map((row) => ({
       id: row.id,
       slug: row.slug,
       crop_name: row.name_en,
@@ -486,12 +542,29 @@ async function fetchCropIntelligenceList({ search = '', slug = '' } = {}) {
 }
 
 async function fetchRawCropIntelligence(slug) {
+  const slugCandidates = getCropSlugCandidates(slug);
   const { data, error } = await supabase
     .from('crop_intelligence')
     .select('*')
-    .eq('slug', slug)
-    .maybeSingle();
+    .in('slug', slugCandidates)
+    .limit(slugCandidates.length || 1);
   if (error) throw error;
+  return pickPreferredSlugRow(data, slug, slugCandidates);
+}
+
+async function ensureCropIntelligenceRow(slug) {
+  const existingRow = await fetchRawCropIntelligence(slug);
+  if (existingRow) return existingRow;
+
+  const payload = buildCropIntelligencePayload(await loadLocalCropDataset(), slug);
+  const { data, error } = await supabase
+    .from('crop_intelligence')
+    .upsert(payload, { onConflict: 'slug' })
+    .select()
+    .single();
+
+  if (error) throw error;
+  invalidateCropCaches();
   return data;
 }
 
@@ -689,21 +762,165 @@ function toIntelligenceRisk(record) {
   };
 }
 
+function buildCropIntelligencePayload(cropDataset, slug) {
+  const item = findLocalCropItem(cropDataset, slug);
+  const fallbackSlug = String(slug || 'crop').trim().toLowerCase() || 'crop';
+
+  if (!item) {
+    return {
+      slug: fallbackSlug,
+      name_en: fallbackSlug,
+      name_te: fallbackSlug,
+      scientific_name: '',
+      crop_image_url: '',
+      source_pdf_name: '',
+      content: {
+        soil: { en: '', te: '' },
+        duration: { en: '', te: '' },
+        varieties: [],
+        practices: [],
+      },
+      risks: [],
+      updated_at: new Date().toISOString(),
+    };
+  }
+
+  const profile = item.crop_profile || {};
+  const soil = item.soil_requirements || {};
+  return {
+    slug: item.slug || fallbackSlug,
+    name_en: profile.name_en || item.slug || fallbackSlug,
+    name_te: profile.name_te || profile.name_en || item.slug || fallbackSlug,
+    scientific_name: profile.scientific_name || '',
+    crop_image_url: profile.image || '',
+    source_pdf_name: profile.source_pdf_name || '',
+    content: {
+      soil: {
+        en: soil.description_en || profile.description_en || '',
+        te: soil.description_te || profile.description_te || soil.description_en || profile.description_en || '',
+      },
+      duration: {
+        en: item.harvesting?.duration || item.harvesting_yield || item.seed_rate_seed_treatment || '',
+        te: item.harvesting?.duration_te || item.harvesting_yield_te || item.seed_rate_seed_treatment || '',
+      },
+      varieties: item.recommended_varieties.map((row) => ({
+        name: row.variety || '',
+        duration: row.duration || '',
+        expected_yield: row.yield || row.expected_yield || '',
+        notes: {
+          en: row.special_features || '',
+          te: row.special_features_te || row.special_features || '',
+        },
+        image_url: row.image || row.image_url || '',
+      })),
+      practices: localPracticeCardsFromItem(item),
+    },
+    risks: localRiskCardsFromItem(item),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function localPracticeCardsFromItem(item) {
+  return (item.crop_production_practices || []).map((row, index) => ({
+    key: slugifyKey(row.stage, `practice_${index + 1}`),
+    title: {
+      en: row.stage || `Practice ${index + 1}`,
+      te: row.stage_te || row.stage || `Practice ${index + 1}`,
+    },
+    body: {
+      en: row.description_en || row.description || '',
+      te: row.description_te || row.description_en || row.description || '',
+    },
+  }));
+}
+
+function localPracticeRowsFromItem(item) {
+  return localPracticeCardsFromItem(item).map((practice, index) => ({
+    id: `ci_practices:${index}`,
+    _table: 'ci_practices',
+    _index: index,
+    key: practice.key,
+    title_en: practice.title.en,
+    title_te: practice.title.te,
+    body_en: practice.body.en,
+    body_te: practice.body.te,
+  }));
+}
+
+function localRiskCardsFromItem(item) {
+  const pests = (item.pest_management || []).map((row) => ({
+    type: 'Pest',
+    name: {
+      en: row.pest_name || '',
+      te: row.pest_name_te || row.pest_name || '',
+    },
+    symptoms: {
+      en: row.symptoms || '',
+      te: row.symptoms_te || row.symptoms || '',
+    },
+    control: {
+      en: row.management || '',
+      te: row.management_te || row.management || '',
+    },
+    chemicals: csvToArray(row.chemical_control),
+    newChemicals: csvToArray(row.new_chemicals || row.newChemicals),
+    image_url: row.image_url || row.image || '',
+    image_source_url: row.image_source_url || '',
+  }));
+
+  const diseases = (item.disease_management || []).map((row) => ({
+    type: 'Disease',
+    name: {
+      en: row.disease_name || '',
+      te: row.disease_name_te || row.disease_name || '',
+    },
+    symptoms: {
+      en: row.symptoms || '',
+      te: row.symptoms_te || row.symptoms || '',
+    },
+    control: {
+      en: row.management || '',
+      te: row.management_te || row.management || '',
+    },
+    chemicals: csvToArray(row.fungicide || row.chemical_control),
+    newChemicals: csvToArray(row.new_chemicals || row.newChemicals),
+    image_url: row.image_url || row.image || '',
+    image_source_url: row.image_source_url || '',
+  }));
+
+  return [...pests, ...diseases];
+}
+
+function slugifyKey(value, fallback) {
+  const key = String(value || fallback || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return key || fallback;
+}
+
 function localCropBySlug(cropDataset, slug) {
-  const item = cropDataset.find((crop) => crop.slug === slug);
+  const item = findLocalCropItem(cropDataset, slug);
   if (!item) return null;
-  const [base] = localCrops(cropDataset, { slug });
+  const [base] = localCrops(cropDataset, { slug: item.slug });
+  const riskCards = localRiskCardsFromItem(item);
   return {
     ...base,
-    crop_varieties: item.recommended_varieties.map((row) => ({
+    crop_varieties: item.recommended_varieties.map((row, index) => ({
       id: row.id,
+      _table: 'ci_varieties',
+      _index: index,
       crop_id: base.id,
       variety: row.variety,
+      name: row.variety,
       duration: row.duration,
       expected_yield: row.yield,
       special_features: row.special_features,
+      notes_en: row.special_features,
+      notes_te: row.special_features_te || '',
       image_url: row.image,
     })),
+    crop_practices: localPracticeRowsFromItem(item),
     crop_production: item.crop_production_practices,
     crop_fertilizers: item.fertilizer_recommendations.map((row) => ({
       id: row.id,
@@ -775,6 +992,7 @@ function localCropBySlug(cropDataset, slug) {
       ...row,
     })),
     crop_images: localImages(cropDataset, { cropSlug: item.slug }),
+    ci_risks: riskCards.map((risk, index) => mapRiskToCard(risk, index, 'risk')),
   };
 }
 

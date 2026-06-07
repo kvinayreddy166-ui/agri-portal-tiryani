@@ -104,7 +104,10 @@ export function CropAdminDashboard() {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
   const { crop, crops, loading, reload } = useCropData(slug, { faqLimit: 500 });
-  const usingJsonCards = crop?.__source === 'crop_intelligence';
+  const usingJsonCards = crop?.__source === 'crop_intelligence' || String(crop?.id || '').startsWith('local-');
+  const jsonCardsMessage = crop?.__source === 'crop_intelligence'
+    ? 'Using editable crop_intelligence cards for text, pest/disease details and images.'
+    : 'This crop is loaded from local fallback data. Saving will create editable crop_intelligence cards in Supabase.';
   const tableOptions = usingJsonCards ? INTELLIGENCE_TABLES : NORMALIZED_TABLES;
 
   useEffect(() => {
@@ -136,7 +139,10 @@ export function CropAdminDashboard() {
   }, [editorText]);
 
   const startAdd = () => {
-    openEditor({ ...defaultRecordForTable(table), crop_id: crop?.id || '', _table: table });
+    const nextRecord = table.startsWith('ci_')
+      ? { ...defaultRecordForTable(table), _table: table }
+      : { ...defaultRecordForTable(table), crop_id: crop?.id || '', _table: table };
+    openEditor(nextRecord);
   };
 
   const openEditor = (record) => {
@@ -289,7 +295,7 @@ export function CropAdminDashboard() {
             <p className="mt-1 text-sm font-semibold text-slate-500">Add, edit, delete, upload images, bulk import JSON and export Excel.</p>
             {usingJsonCards && (
               <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
-                Using crop_intelligence JSON cards because normalized crop tables were not found in Supabase schema cache.
+                {jsonCardsMessage}
               </p>
             )}
           </div>
