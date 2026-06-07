@@ -397,9 +397,9 @@ export function Login() {
 
   if (showOfficerToolkit) {
     return (
-      <div className="min-h-screen bg-[#eef6f0] p-2 sm:p-3">
-        <div className="mx-auto w-full max-w-4xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
-          <div className="mb-4 flex flex-col gap-2">
+      <div className="min-h-screen bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24">
+        <div className="mx-auto w-full max-w-2xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
+          <div className="mb-3 flex flex-col gap-2">
             <button
               type="button"
               onClick={closeToolkitPage}
@@ -420,34 +420,36 @@ export function Login() {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <section className="rounded-lg border border-emerald-100 bg-emerald-50/60 p-2.5">
+          <div className="grid gap-2 sm:grid-cols-2">
             <button
               type="button"
               onClick={openStatutoryForms}
-              className="flex min-h-28 items-center gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-left text-emerald-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="flex min-h-16 items-center gap-3 rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-left text-emerald-900 shadow-sm transition hover:bg-emerald-50"
             >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-white">
-                <FileText className="h-6 w-6" />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-white">
+                <FileText className="h-5 w-5" />
               </span>
               <span>
-                <span className="block text-lg font-black">{t('Statutory Forms', 'Statutory Forms')}</span>
-                <span className="mt-1 block text-sm font-semibold text-emerald-800">Open</span>
+                <span className="block text-sm font-black">{t('Statutory Forms', 'Statutory Forms')}</span>
+                <span className="mt-0.5 block text-xs font-semibold text-emerald-800">Open</span>
               </span>
             </button>
             <button
               type="button"
               onClick={openAcreageCalculator}
-              className="flex min-h-28 items-center gap-4 rounded-lg border border-sky-200 bg-sky-50 p-4 text-left text-sky-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="flex min-h-16 items-center gap-3 rounded-lg border border-sky-200 bg-white px-3 py-2.5 text-left text-sky-900 shadow-sm transition hover:bg-sky-50"
             >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-sky-700 text-white">
-                <Calculator className="h-6 w-6" />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-700 text-white">
+                <Calculator className="h-5 w-5" />
               </span>
               <span>
-                <span className="block text-lg font-black">{t('Acreage Calculator', 'Acreage Calculator')}</span>
-                <span className="mt-1 block text-sm font-semibold text-sky-800">Open</span>
+                <span className="block text-sm font-black">{t('Acreage Calculator', 'Acreage Calculator')}</span>
+                <span className="mt-0.5 block text-xs font-semibold text-sky-800">Open</span>
               </span>
             </button>
           </div>
+          </section>
         </div>
       </div>
     );
@@ -455,7 +457,7 @@ export function Login() {
 
   if (showStatutoryForms || calculatorOpen) {
     return (
-      <div className="min-h-screen bg-[#eef6f0] p-2 sm:p-3">
+      <div className="min-h-screen bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24">
         <div className="mx-auto w-full max-w-4xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
           <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
@@ -499,7 +501,7 @@ export function Login() {
             </div>
           </div>
 
-          <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-black">
+          <div className="hidden">
             <button
               type="button"
               onClick={openStatutoryForms}
@@ -712,7 +714,7 @@ export function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#eef6f0] p-2 sm:p-3 lg:p-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24 lg:p-4 lg:pb-24">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(4,120,87,0.08),rgba(14,165,233,0.08)_48%,rgba(250,204,21,0.08))]" />
 
       <div className="relative grid w-full max-w-5xl overflow-hidden rounded-lg border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm lg:grid-cols-[1fr_0.95fr]">
@@ -897,7 +899,7 @@ export function Login() {
               </div>
             )}
 
-            <div className="mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600">
+            <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 sm:mb-16">
               <p className="font-black text-emerald-700">version-1.0.1</p>
               <p>© 2026- Tiryani Agri portal- Department of Agriculture, Telangana</p>
               <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
