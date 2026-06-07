@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tiryani-portal-v5';
+const CACHE_VERSION = 'tiryani-portal-v6';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -50,6 +50,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+  if (event.data?.type === 'CLEAR_RUNTIME_CACHES') {
+    event.waitUntil(deletePortalCaches());
   }
 });
 
@@ -149,4 +152,13 @@ async function trimCache(cacheName, maxEntries) {
   const keys = await cache.keys();
   if (keys.length <= maxEntries) return;
   await Promise.all(keys.slice(0, keys.length - maxEntries).map((key) => cache.delete(key)));
+}
+
+async function deletePortalCaches() {
+  const keys = await caches.keys();
+  await Promise.all(
+    keys
+      .filter((key) => key.startsWith('tiryani-portal'))
+      .map((key) => caches.delete(key))
+  );
 }
