@@ -100,7 +100,7 @@ export function CropPage({ cropType }: CropPageProps) {
     try {
       const { data, error } = await supabase
         .from('crop_intelligence')
-        .select('*')
+        .select('id, slug, name_en, name_te, scientific_name, crop_image_url, source_pdf_name, source_pdf_url, content, risks')
         .eq('slug', slug)
         .maybeSingle();
 

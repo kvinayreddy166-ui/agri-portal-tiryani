@@ -76,9 +76,10 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
     try {
       const { data, error } = await supabase
         .from('subsidy_cell_records')
-        .select('*')
+        .select('id, program, financial_year, crop_variety, quantity_allotted, quantity_unit, sales_data, beneficiary_list_url, notes, created_at')
         .eq('program', program)
-        .order('financial_year', { ascending: false });
+        .order('financial_year', { ascending: false })
+        .limit(200);
 
       if (error) throw error;
       setRecords(data || []);

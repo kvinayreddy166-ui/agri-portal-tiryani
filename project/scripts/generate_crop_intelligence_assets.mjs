@@ -1,6 +1,4 @@
-git add .
-git commit -m "Update all changes"
-git push origin mainimport fs from 'node:fs';
+import fs from 'node:fs';
 import path from 'node:path';
 
 const root = path.resolve(process.cwd());

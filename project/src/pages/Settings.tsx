@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Settings as SettingsIcon, Save, User, Database } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -10,15 +10,11 @@ export function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('settings')
-        .select('*')
+        .select('id, setting_key, setting_value, updated_at')
         .order('setting_key');
 
       if (error) throw error;
@@ -28,18 +24,27 @@ export function Settings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateSetting = async (key: string, value: string) => {
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
+  const saveSettings = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('settings')
-        .update({ setting_value: value, updated_at: new Date().toISOString() })
-        .eq('setting_key', key);
-
-      if (error) throw error;
-      fetchSettings();
+      const updatedAt = new Date().toISOString();
+      const updates = await Promise.all(
+        settings.map((setting) =>
+          supabase
+            .from('settings')
+            .update({ setting_value: setting.setting_value, updated_at: updatedAt })
+            .eq('setting_key', setting.setting_key)
+        )
+      );
+      const failedUpdate = updates.find((result) => result.error);
+      if (failedUpdate?.error) throw failedUpdate.error;
+      await fetchSettings();
     } catch (error) {
       console.error('Error updating setting:', error);
       alert('Failed to update setting');
@@ -152,9 +157,7 @@ export function Settings() {
             </div>
           </div>
           <button
-            onClick={() => {
-              settings.forEach(s => updateSetting(s.setting_key, s.setting_value));
-            }}
+            onClick={saveSettings}
             disabled={saving}
             className="mt-6 flex items-center gap-2 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >

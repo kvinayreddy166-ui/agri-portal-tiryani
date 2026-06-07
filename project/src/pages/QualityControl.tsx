@@ -77,13 +77,14 @@ export function QualityControl({ category }: QualityControlProps) {
       const [samplesResult, targetResult] = await Promise.all([
         supabase
           .from('quality_control_samples')
-          .select('*')
+          .select('id, category, financial_year, dealer_name, license_number, phone_number, location, sample_date, form_url, remarks, created_at, created_by')
           .eq('category', category)
           .eq('financial_year', financialYear)
-          .order('sample_date', { ascending: false }),
+          .order('sample_date', { ascending: false })
+          .limit(500),
         supabase
           .from('quality_control_targets')
-          .select('*')
+          .select('id, category, financial_year, target_count, created_at, updated_at')
           .eq('category', category)
           .eq('financial_year', financialYear)
           .maybeSingle(),

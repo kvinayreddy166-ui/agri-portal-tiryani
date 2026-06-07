@@ -46,9 +46,10 @@ export function FarmMechanization() {
     try {
       const { data, error } = await supabase
         .from('farm_mechanization_documents')
-        .select('*')
+        .select('id, document_type, financial_year, title, file_name, file_url, created_at, created_by')
         .eq('financial_year', financialYear)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(300);
 
       if (error) throw error;
       setDocuments(data || []);

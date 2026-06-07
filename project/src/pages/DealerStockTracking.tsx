@@ -16,7 +16,7 @@ interface DealerStockAllocation {
 
 export function DealerStockTracking() {
   const { isAdminUser } = useAuth();
-  const [dealers, setDealers] = useState<Dealer[]>([]);
+  const [dealers, setDealers] = useState<Pick<Dealer, 'id' | 'dealer_name'>[]>([]);
   const [stockData, setStockData] = useState<DealerStockAllocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,8 +37,11 @@ export function DealerStockTracking() {
   const fetchData = async () => {
     try {
       const [dealersRes, stockRes] = await Promise.all([
-        supabase.from('dealers').select('*').order('dealer_name'),
-        supabase.from('dealer_stock_allocation').select('*').order('created_at', { ascending: false }),
+        supabase.from('dealers').select('id, dealer_name').order('dealer_name'),
+        supabase
+          .from('dealer_stock_allocation')
+          .select('id, dealer_id, fertilizer_type, quantity_mts, last_updated, created_at')
+          .order('created_at', { ascending: false }),
       ]);
 
       if (dealersRes.data) setDealers(dealersRes.data);

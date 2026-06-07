@@ -67,9 +67,11 @@ export function ExcelUploads() {
 
         .from('excel_uploads')
 
-        .select('*')
+        .select('id, file_name, file_url, upload_type, created_at, created_by')
 
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+
+        .limit(300);
 
 
 

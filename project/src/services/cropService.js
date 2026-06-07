@@ -49,7 +49,10 @@ export async function fetchCrops({ search = '', slug = '', category = '' } = {})
 
   try {
     const slugCandidates = getCropSlugCandidates(slug);
-    let query = supabase.from('crops').select('*').order('crop_name');
+    let query = supabase
+      .from('crops')
+      .select('id, slug, crop_name, name_en, name_te, scientific_name, description, image_url, acreage, profile, created_at')
+      .order('crop_name');
 
     if (slug) query = slugCandidates.length > 1 ? query.in('slug', slugCandidates) : query.eq('slug', slug);
     if (search) query = query.or(`crop_name.ilike.%${search}%,name_en.ilike.%${search}%,name_te.ilike.%${search}%`);
@@ -137,7 +140,7 @@ export async function searchCropKnowledge(search, filters = {}) {
 
     let query = supabase
       .from('crop_faqs')
-      .select('*, crops(slug, crop_name, name_en, name_te)')
+      .select('id, crop_id, category, question, answer, answer_te, crops(slug, crop_name, name_en, name_te)')
       .limit(filters.limit || 50);
 
     if (cropId && !String(cropId).startsWith('local-')) query = query.eq('crop_id', cropId);
@@ -165,7 +168,9 @@ export async function fetchCropImages({ cropSlug, entityType, entityName } = {})
   if (cachedImages) return cachedImages;
 
   try {
-    let query = supabase.from('crop_images').select('*, crops(slug, crop_name)');
+    let query = supabase
+      .from('crop_images')
+      .select('id, crop_id, entity_type, entity_name, image_url, caption, source_url, created_at, crops(slug, crop_name)');
 
     if (cropSlug) {
       const crops = await fetchCrops({ slug: cropSlug });
@@ -545,7 +550,7 @@ async function fetchRawCropIntelligence(slug) {
   const slugCandidates = getCropSlugCandidates(slug);
   const { data, error } = await supabase
     .from('crop_intelligence')
-    .select('*')
+    .select('id, slug, name_en, name_te, scientific_name, crop_image_url, source_pdf_name, source_pdf_url, content, risks')
     .in('slug', slugCandidates)
     .limit(slugCandidates.length || 1);
   if (error) throw error;

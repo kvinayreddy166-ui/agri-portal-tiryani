@@ -86,7 +86,7 @@ export function FormsDownloads() {
         ),
         supabase
           .from('forms_downloads')
-          .select('*', { count: 'exact' })
+          .select('id, title, description, file_url, file_type, category, created_at', { count: 'exact' })
           .eq('category', selectedFolder)
           .order('created_at', { ascending: false })
           .range(from, to),

@@ -1,24 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { TrendingUp, Users, Leaf, Package, PieChart, BarChart3 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { fetchAggregatedFertilizerStock } from '../lib/fertilizerStock';
-import { Crop, FertilizerStock, Dealer } from '../types/database';
+import { Crop, Dealer, FertilizerStock } from '../types/database';
+
+type AnalyticsCrop = Pick<Crop, 'id' | 'crop_name' | 'acreage'>;
+type AnalyticsDealer = Pick<Dealer, 'id' | 'dealer_name' | 'location'>;
 
 export function Analytics() {
-  const [crops, setCrops] = useState<Crop[]>([]);
+  const [crops, setCrops] = useState<AnalyticsCrop[]>([]);
   const [fertilizers, setFertilizers] = useState<FertilizerStock[]>([]);
-  const [dealers, setDealers] = useState<Dealer[]>([]);
+  const [dealers, setDealers] = useState<AnalyticsDealer[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, []);
-
-  const fetchAnalyticsData = async () => {
+  const fetchAnalyticsData = useCallback(async () => {
     try {
       const [cropsRes, dealersRes, aggregatedFertilizers] = await Promise.all([
-        supabase.from('crops').select('*'),
-        supabase.from('dealers').select('*'),
+        supabase.from('crops').select('id, crop_name, acreage'),
+        supabase.from('dealers').select('id, dealer_name, location').limit(600),
         fetchAggregatedFertilizerStock(),
       ]);
 
@@ -30,24 +29,48 @@ export function Analytics() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const totalAcreage = crops.reduce((sum, crop) => sum + crop.acreage, 0);
-  const totalFertilizer = fertilizers.reduce((sum, f) => sum + f.quantity_available, 0);
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [fetchAnalyticsData]);
 
-  const cropChartData = crops.map(crop => ({
-    name: crop.crop_name,
-    acreage: crop.acreage,
-    percentage: totalAcreage > 0 ? ((crop.acreage / totalAcreage) * 100).toFixed(1) : 0,
-  }));
+  const totalAcreage = useMemo(
+    () => crops.reduce((sum, crop) => sum + crop.acreage, 0),
+    [crops]
+  );
+  const totalFertilizer = useMemo(
+    () => fertilizers.reduce((sum, f) => sum + f.quantity_available, 0),
+    [fertilizers]
+  );
 
-  const fertilizerChartData = fertilizers.map(f => ({
-    name: f.fertilizer_type,
-    quantity: f.quantity_available,
-  }));
+  const cropChartData = useMemo(
+    () =>
+      crops.map(crop => ({
+        name: crop.crop_name,
+        acreage: crop.acreage,
+        percentage: totalAcreage > 0 ? ((crop.acreage / totalAcreage) * 100).toFixed(1) : 0,
+      })),
+    [crops, totalAcreage]
+  );
 
-  const maxCropAcreage = Math.max(...crops.map(c => c.acreage), 1);
-  const maxFertilizerQty = Math.max(...fertilizers.map(f => f.quantity_available), 1);
+  const fertilizerChartData = useMemo(
+    () =>
+      fertilizers.map(f => ({
+        name: f.fertilizer_type,
+        quantity: f.quantity_available,
+      })),
+    [fertilizers]
+  );
+
+  const maxCropAcreage = useMemo(
+    () => Math.max(...crops.map(c => c.acreage), 1),
+    [crops]
+  );
+  const maxFertilizerQty = useMemo(
+    () => Math.max(...fertilizers.map(f => f.quantity_available), 1),
+    [fertilizers]
+  );
 
   if (loading) {
     return (

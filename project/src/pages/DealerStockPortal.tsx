@@ -115,7 +115,7 @@ export function DealerStockPortal() {
     try {
       const { data, error } = await supabase
         .from('stock_inventory_lines')
-        .select('*')
+        .select('id, dealer_id, category, serial_no, product_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month')
         .eq('dealer_id', dealerId)
         .eq('category', cat)
         .eq('report_date', date)

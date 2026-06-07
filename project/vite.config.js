@@ -23,24 +23,26 @@ export default defineConfig({
     exclude: ['@tensorflow/tfjs'],
   },
   build: {
+    assetsInlineLimit: 2048,
     cssCodeSplit: true,
+    minify: 'esbuild',
+    sourcemap: false,
     target: 'es2020',
     chunkSizeWarningLimit: 650,
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ['react', 'react-dom'],
-          supabase: ['@supabase/supabase-js'],
-          charts: ['recharts'],
-          office: ['xlsx'],
-          pdf: ['jspdf'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('@supabase')) return 'supabase';
+          if (id.includes('react-router-dom')) return 'router';
+          if (id.includes('react')) return 'react';
+          if (id.includes('recharts')) return 'charts';
+          if (id.includes('xlsx')) return 'office';
+          if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('dompurify')) return 'pdf';
+          if (id.includes('three') || id.includes('@react-three')) return 'three';
+          return 'vendor';
         },
       },
-    },
-  },
-  server: {
-    fs: {
-      strict: false,
     },
   },
 });

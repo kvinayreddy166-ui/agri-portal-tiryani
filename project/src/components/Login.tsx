@@ -224,7 +224,7 @@ export function Login() {
       setFormsLoading(true);
       const { data, error } = await supabase
         .from('forms_downloads')
-        .select('*')
+        .select('id, title, description, file_url, file_type, category, created_at')
         .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
         .order('created_at', { ascending: false });
 

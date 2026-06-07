@@ -38,8 +38,9 @@ export function GosCirculars() {
     try {
       const { data, error } = await supabase
         .from('gos_circulars')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('id, title, description, file_url, file_name, file_type, issued_date, created_at, created_by')
+        .order('created_at', { ascending: false })
+        .limit(200);
 
       if (error) throw error;
       setDocuments(data || []);
