@@ -1,8 +1,9 @@
-import React, { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
   Calculator,
+  ChevronRight,
   Download,
   Eye,
   FileText,
@@ -30,6 +31,7 @@ import { supabase } from '../lib/supabase';
 import { downloadFileFromUrl } from '../lib/fileBlob';
 import { FormDownload } from '../types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
 
 const FilePreviewModal = lazy(() =>
   import('./ui/FilePreviewModal').then((module) => ({ default: module.FilePreviewModal }))
@@ -51,7 +53,7 @@ const STATUTORY_FOLDERS = [
   { id: 'pesticides', label: 'Pesticide', telugu: 'పురుగుమందులు' },
 ];
 
-const PUBLIC_FORMS_STATE_KEY = 'tiryani-public-statutory-forms-open';
+const PUBLIC_TOOLKIT_STATE_KEY = 'tiryani-public-officer-toolkit-state';
 const PUBLIC_FORMS_PAGE_SIZE = 10;
 
 const TELANGANA_DISTRICTS = [
@@ -106,14 +108,15 @@ export function Login() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [grievanceOpen, setGrievanceOpen] = useState(false);
-  const [acreInput, setAcreInput] = useState('');
+  const [acreInput, setAcreInput] = useState(() => loadPublicToolkitState().acreInput || '');
   const [grievanceStatus, setGrievanceStatus] = useState<string | null>(null);
+  const showOfficerToolkit = location.pathname === '/officer-toolkit';
   const showStatutoryForms =
     location.pathname === '/officer-toolkit/statutory-forms' ||
     window.location.hash === '#statutory-forms';
   const calculatorOpen = location.pathname === '/officer-toolkit/acreage-calculator';
-  const [statutoryFolder, setStatutoryFolder] = useState('fertilizers');
-  const [statutoryPage, setStatutoryPage] = useState(0);
+  const [statutoryFolder, setStatutoryFolder] = useState(() => loadPublicToolkitState().statutoryFolder || 'fertilizers');
+  const [statutoryPage, setStatutoryPage] = useState(() => loadPublicToolkitState().statutoryPage || 0);
   const [statutoryForms, setStatutoryForms] = useState<FormDownload[]>([]);
   const [formsLoading, setFormsLoading] = useState(false);
   const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
@@ -137,36 +140,37 @@ export function Login() {
 
   const { signIn, signInDealer } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
-
-  useLayoutEffect(() => {
-    window.history.scrollRestoration = 'manual';
-    window.scrollTo({ top: 0, left: 0 });
-  }, [showStatutoryForms]);
+  const previewOverlay = useBackButtonOverlay('public-file-preview', () => setPreviewForm(null));
+  const pdfToolOverlay = useBackButtonOverlay('public-pdf-tool', () => setPdfToolOpen(false));
+  const grievanceOverlay = useBackButtonOverlay('public-grievance', () => setGrievanceOpen(false));
 
   useEffect(() => {
-    if (!showStatutoryForms) {
-      window.sessionStorage.removeItem(PUBLIC_FORMS_STATE_KEY);
+    savePublicToolkitState({ statutoryFolder, statutoryPage, acreInput });
+  }, [acreInput, statutoryFolder, statutoryPage]);
+
+  const goBackWithinPublicToolkit = (fallbackPath: string) => {
+    if (getBrowserHistoryIndex() > 0) {
+      navigate(-1);
       return;
     }
-
-    window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
-  }, [showStatutoryForms]);
-
-  const goBackToOfficerToolkit = () => {
-    window.sessionStorage.removeItem(PUBLIC_FORMS_STATE_KEY);
-    if (window.history.length > 1) navigate(-1);
-    else navigate('/login');
+    navigate(fallbackPath, { replace: true });
   };
 
-  const closeStatutoryForms = () => {
-    window.sessionStorage.removeItem(PUBLIC_FORMS_STATE_KEY);
+  const closeToolkitPage = () => {
+    goBackWithinPublicToolkit('/login');
+  };
+
+  const closeToolPage = () => {
     setPreviewForm(null);
     setPdfToolOpen(false);
-    goBackToOfficerToolkit();
+    goBackWithinPublicToolkit('/officer-toolkit');
+  };
+
+  const openOfficerToolkit = () => {
+    navigate('/officer-toolkit');
   };
 
   const openStatutoryForms = () => {
-    window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
     navigate('/officer-toolkit/statutory-forms', { state: { from: 'officer-toolkit' } });
   };
 
@@ -175,8 +179,21 @@ export function Login() {
   };
 
   const closeAcreageCalculator = () => {
-    if (window.history.length > 1) navigate(-1);
-    else navigate('/login');
+    goBackWithinPublicToolkit('/officer-toolkit');
+  };
+
+  const openPdfTool = () => {
+    pdfToolOverlay.pushOverlay();
+    setPdfToolOpen(true);
+  };
+
+  const closePdfTool = () => {
+    pdfToolOverlay.closeOverlay();
+  };
+
+  const openGrievance = () => {
+    grievanceOverlay.pushOverlay();
+    setGrievanceOpen(true);
   };
 
   useEffect(() => {
@@ -245,33 +262,13 @@ export function Login() {
 
   const openPublicPreview = (form: FormDownload) => {
     if (!form.file_url) return;
-    window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
+    previewOverlay.pushOverlay();
     setPreviewForm(form);
-    if (!window.history.state?.publicFilePreview) {
-      window.history.pushState(
-        { publicStatutoryForms: true, publicFilePreview: true },
-        '',
-        '#statutory-forms'
-      );
-    }
   };
 
   const closePublicPreview = () => {
-    setPreviewForm(null);
-    window.sessionStorage.setItem(PUBLIC_FORMS_STATE_KEY, '1');
-    if (window.history.state?.publicFilePreview) {
-      window.history.back();
-    } else if (!window.history.state?.publicStatutoryForms) {
-      window.history.replaceState({ publicStatutoryForms: true }, '', '#statutory-forms');
-    }
+    previewOverlay.closeOverlay();
   };
-
-  useEffect(() => {
-    if (!previewForm) return;
-    const handlePreviewBack = () => setPreviewForm(null);
-    window.addEventListener('popstate', handlePreviewBack);
-    return () => window.removeEventListener('popstate', handlePreviewBack);
-  }, [previewForm]);
 
   const handlePublicDownload = async (form: FormDownload) => {
     if (!form.file_url) return;
@@ -398,6 +395,64 @@ export function Login() {
     setInstallMessage(t('On iPhone/iPad: tap Share, then Add to Home Screen.', 'On iPhone/iPad: tap Share, then Add to Home Screen.'));
   };
 
+  if (showOfficerToolkit) {
+    return (
+      <div className="min-h-screen bg-[#eef6f0] p-2 sm:p-3">
+        <div className="mx-auto w-full max-w-4xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
+          <div className="mb-4 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={closeToolkitPage}
+              className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t('Back', 'Back')}
+            </button>
+            <PublicBreadcrumbs items={['Login', 'Officer Toolkit']} />
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Officer Toolkit</p>
+                <h1 className="text-2xl font-black text-slate-950 sm:text-3xl">
+                  {t('Officer Toolkit', 'Officer Toolkit')}
+                </h1>
+              </div>
+              <PortalLogo size="md" />
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={openStatutoryForms}
+              className="flex min-h-28 items-center gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-left text-emerald-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-white">
+                <FileText className="h-6 w-6" />
+              </span>
+              <span>
+                <span className="block text-lg font-black">{t('Statutory Forms', 'Statutory Forms')}</span>
+                <span className="mt-1 block text-sm font-semibold text-emerald-800">Open</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={openAcreageCalculator}
+              className="flex min-h-28 items-center gap-4 rounded-lg border border-sky-200 bg-sky-50 p-4 text-left text-sky-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-sky-700 text-white">
+                <Calculator className="h-6 w-6" />
+              </span>
+              <span>
+                <span className="block text-lg font-black">{t('Acreage Calculator', 'Acreage Calculator')}</span>
+                <span className="mt-1 block text-sm font-semibold text-sky-800">Open</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (showStatutoryForms || calculatorOpen) {
     return (
       <div className="min-h-screen bg-[#eef6f0] p-2 sm:p-3">
@@ -406,7 +461,7 @@ export function Login() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={closeStatutoryForms}
+                onClick={closeToolPage}
                 className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -416,6 +471,14 @@ export function Login() {
                 <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">
                   Officer Toolkit
                 </p>
+                <PublicBreadcrumbs
+                  items={[
+                    'Login',
+                    'Officer Toolkit',
+                    showStatutoryForms ? 'Statutory Forms' : 'Acreage Calculator',
+                    showStatutoryForms ? (STATUTORY_FOLDERS.find((folder) => folder.id === statutoryFolder)?.label || 'Fertilizer') : '',
+                  ].filter(Boolean)}
+                />
                 <h1 className="text-xl font-black text-slate-950 sm:text-2xl">
                   {showStatutoryForms ? t('Statutory Forms', 'చట్టబద్ధ ఫారాలు') : t('Acreage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
                 </h1>
@@ -425,7 +488,7 @@ export function Login() {
               {showStatutoryForms && statutoryFolder !== 'pesticides' && (
                 <button
                   type="button"
-                  onClick={() => setPdfToolOpen(true)}
+                  onClick={openPdfTool}
                   className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-black text-white shadow-sm shadow-red-900/10 transition hover:bg-red-700"
                 >
                   <FileText className="h-3.5 w-3.5" />
@@ -627,7 +690,7 @@ export function Login() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setPdfToolOpen(false)}
+                      onClick={closePdfTool}
                       className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
                       aria-label="Close seed PDF generator"
                     >
@@ -640,7 +703,7 @@ export function Login() {
                 </section>
               </div>
             ) : (
-              <FertilizerStatutoryPdfTool onClose={() => setPdfToolOpen(false)} />
+              <FertilizerStatutoryPdfTool onClose={closePdfTool} />
             )}
           </Suspense>
         )}
@@ -689,8 +752,8 @@ export function Login() {
             </div>
             <button
               type="button"
-              onClick={openStatutoryForms}
-              className="rounded-xl border border-white/15 bg-white/10 p-3 text-left backdrop-blur-md transition hover:bg-white/15"
+              onClick={openOfficerToolkit}
+              className="hidden rounded-xl border border-white/15 bg-white/10 p-3 text-left backdrop-blur-md transition hover:bg-white/15"
             >
               <div className="mb-2 flex items-center gap-2 font-semibold">
                 <FileText className="h-5 w-5 text-cyan-200" />
@@ -735,7 +798,15 @@ export function Login() {
                 </div>
                 <ShieldCheck className="h-5 w-5 text-emerald-700" />
               </div>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={openOfficerToolkit}
+                className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-left text-sm font-black text-emerald-900 transition hover:bg-emerald-100"
+              >
+                <ShieldCheck className="h-5 w-5 shrink-0" />
+                <span>{t('Open Officer Toolkit', 'Open Officer Toolkit')}</span>
+              </button>
+              <div className="hidden">
                 <button
                   type="button"
                   onClick={openStatutoryForms}
@@ -851,7 +922,7 @@ export function Login() {
 
       <button
         type="button"
-        onClick={() => setGrievanceOpen(true)}
+        onClick={openGrievance}
         className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-black text-white shadow-xl shadow-emerald-950/20 transition hover:bg-emerald-800"
       >
         <MessageSquareText className="h-5 w-5" />
@@ -913,7 +984,7 @@ export function Login() {
                 <MessageSquareText className="h-5 w-5" />
                 {t('Farmer Grievance', 'రైతు ఫిర్యాదు')}
               </h3>
-              <button type="button" onClick={() => setGrievanceOpen(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
+              <button type="button" onClick={grievanceOverlay.closeOverlay} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -956,6 +1027,55 @@ export function Login() {
       )}
     </div>
   );
+}
+
+function PublicBreadcrumbs({ items }: { items: string[] }) {
+  return (
+    <nav className="mt-1 flex flex-wrap items-center gap-1 text-[11px] font-black uppercase tracking-wide text-slate-500" aria-label="Breadcrumb">
+      {items.map((item, index) => (
+        <React.Fragment key={`${item}-${index}`}>
+          {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-slate-400" />}
+          <span className={index === items.length - 1 ? 'text-slate-800' : 'text-emerald-700'}>{item}</span>
+        </React.Fragment>
+      ))}
+    </nav>
+  );
+}
+
+type PublicToolkitState = {
+  statutoryFolder?: string;
+  statutoryPage?: number;
+  acreInput?: string;
+};
+
+function loadPublicToolkitState(): PublicToolkitState {
+  try {
+    const stored = JSON.parse(window.sessionStorage.getItem(PUBLIC_TOOLKIT_STATE_KEY) || '{}') as PublicToolkitState;
+    return {
+      statutoryFolder: STATUTORY_FOLDERS.some((folder) => folder.id === stored.statutoryFolder)
+        ? stored.statutoryFolder
+        : 'fertilizers',
+      statutoryPage: Number.isInteger(stored.statutoryPage) && Number(stored.statutoryPage) >= 0
+        ? Number(stored.statutoryPage)
+        : 0,
+      acreInput: typeof stored.acreInput === 'string' ? stored.acreInput : '',
+    };
+  } catch {
+    return { statutoryFolder: 'fertilizers', statutoryPage: 0, acreInput: '' };
+  }
+}
+
+function savePublicToolkitState(state: PublicToolkitState) {
+  try {
+    window.sessionStorage.setItem(PUBLIC_TOOLKIT_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // Persisting toolkit UI state is best effort.
+  }
+}
+
+function getBrowserHistoryIndex() {
+  const state = window.history.state as { idx?: number } | null;
+  return typeof state?.idx === 'number' ? state.idx : 0;
 }
 
 function PublicFormsPagination({

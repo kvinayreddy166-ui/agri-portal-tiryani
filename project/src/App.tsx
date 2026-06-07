@@ -1,10 +1,10 @@
-import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
 import { OfflineStatus } from './components/ui/OfflineStatus';
-import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
 const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
 const Layout = lazy(() => import('./components/Layout').then((m) => ({ default: m.Layout })));
@@ -26,6 +26,7 @@ const SubsidyTracking = lazy(() => import('./pages/SubsidyTracking').then((m) =>
 const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m) => ({ default: m.DealerStockPortal })));
 const StockInventory = lazy(() => import('./pages/StockInventory').then((m) => ({ default: m.StockInventory })));
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
+const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
 const CropDiagnosis = lazy(() =>
   import('./pages/CropDiagnosis').then((m) => ({ default: m.CropDiagnosis }))
 );
@@ -71,6 +72,7 @@ const PAGE_PATHS: Record<string, string> = {
   'subsidy-nfsm': '/subsidy-nfsm',
   'subsidy-state-seed': '/subsidy-state-seed',
   'crop-diagnosis': '/crop-diagnosis',
+  'officer-toolkit': '/officer-toolkit',
   'acreage-calculator': '/acreage-calculator',
   analytics: '/analytics',
   settings: '/settings',
@@ -78,6 +80,119 @@ const PAGE_PATHS: Record<string, string> = {
 
 function pageToPath(page: string) {
   return PAGE_PATHS[page] || '/dashboard';
+}
+
+const SCROLL_POSITIONS_KEY = 'tiryani-route-scroll-positions';
+
+function getRouteUrl(location: ReturnType<typeof useLocation>) {
+  return `${location.pathname}${location.search}${location.hash}`;
+}
+
+function getHistoryIndex() {
+  const state = window.history.state as { idx?: number } | null;
+  return typeof state?.idx === 'number' ? state.idx : 0;
+}
+
+function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
+  if (pathname === '/officer-toolkit/statutory-forms' || pathname === '/officer-toolkit/acreage-calculator') {
+    return '/officer-toolkit';
+  }
+  if (pathname === '/forms' || pathname === '/acreage-calculator') {
+    return '/officer-toolkit';
+  }
+  if (pathname === '/officer-toolkit') {
+    return isAuthenticated ? '/dashboard' : '/login';
+  }
+  if (isAuthenticated && pathname !== '/dashboard' && pathname !== '/' && pathname !== '/login') {
+    return '/dashboard';
+  }
+  return null;
+}
+
+function getPageBackFallback(page: string, isDealerUser: boolean) {
+  if (page === 'forms' || page === 'acreage-calculator') return '/officer-toolkit';
+  if (page === 'officer-toolkit') return '/dashboard';
+  if (page.startsWith('crop-') && page !== 'crop-diagnosis') return '/crops';
+  if (page.startsWith('quality-')) return '/quality';
+  if (page.startsWith('subsidy-')) return '/subsidy';
+  return isDealerUser ? '/dealer-portal' : '/dashboard';
+}
+
+function useAppScrollRestoration(location: ReturnType<typeof useLocation>, navigationType: ReturnType<typeof useNavigationType>) {
+  useEffect(() => {
+    const original = window.history.scrollRestoration;
+    window.history.scrollRestoration = 'manual';
+    return () => {
+      window.history.scrollRestoration = original;
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const scrollKey = location.key || getRouteUrl(location);
+    const positions = readScrollPositions();
+    const restoreY = navigationType === 'POP' ? positions[scrollKey] || 0 : 0;
+    const restoreTimer = window.setTimeout(() => {
+      window.scrollTo({ top: restoreY, left: 0 });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(restoreTimer);
+      writeScrollPosition(scrollKey, window.scrollY);
+    };
+  }, [location, navigationType]);
+}
+
+function readScrollPositions(): Record<string, number> {
+  try {
+    return JSON.parse(window.sessionStorage.getItem(SCROLL_POSITIONS_KEY) || '{}') as Record<string, number>;
+  } catch {
+    return {};
+  }
+}
+
+function writeScrollPosition(key: string, value: number) {
+  try {
+    const positions = readScrollPositions();
+    positions[key] = value;
+    window.sessionStorage.setItem(SCROLL_POSITIONS_KEY, JSON.stringify(positions));
+  } catch {
+    // Scroll restoration is a progressive enhancement.
+  }
+}
+
+function useInitialBackFallback(
+  location: ReturnType<typeof useLocation>,
+  loading: boolean,
+  isAuthenticated: boolean
+) {
+  const guardedUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (loading) return;
+
+    const currentUrl = getRouteUrl(location);
+    const fallbackPath = getRouteBackFallback(location.pathname, isAuthenticated);
+    if (!fallbackPath || fallbackPath === currentUrl || guardedUrlRef.current === currentUrl) return;
+    if (getHistoryIndex() > 0) return;
+
+    const currentState = window.history.state && typeof window.history.state === 'object'
+      ? { ...window.history.state }
+      : {};
+    const currentKey = typeof currentState.key === 'string' ? currentState.key : location.key;
+    const fallbackKey = `fallback-${Date.now()}`;
+
+    window.history.replaceState(
+      { ...currentState, idx: 0, key: fallbackKey, usr: { tiryaniFallback: true } },
+      '',
+      fallbackPath
+    );
+    window.history.pushState(
+      { ...currentState, idx: 1, key: currentKey, usr: currentState.usr },
+      '',
+      currentUrl
+    );
+    guardedUrlRef.current = currentUrl;
+  }, [isAuthenticated, loading, location]);
 }
 
 function PublicReadOnlyShell({
@@ -120,6 +235,9 @@ function AppContent() {
   const { user, loading, isAdminUser, isDealerUser, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const navigationType = useNavigationType();
+  useAppScrollRestoration(location, navigationType);
+  useInitialBackFallback(location, loading, Boolean(user));
   const validPages = useMemo(
     () =>
       new Set([
@@ -148,6 +266,7 @@ function AppContent() {
         'subsidy-nfsm',
         'subsidy-state-seed',
         'crop-diagnosis',
+        'officer-toolkit',
         'acreage-calculator',
         'analytics',
         'settings',
@@ -206,9 +325,12 @@ function AppContent() {
   }, [location.pathname, location.search, navigate, user]);
 
   const handleBack = useCallback(() => {
-    if (window.history.length > 1) navigate(-1);
-    else navigate('/dashboard');
-  }, [navigate]);
+    if (getHistoryIndex() > 0) {
+      navigate(-1);
+      return;
+    }
+    navigate(getPageBackFallback(currentPage, isDealerUser), { replace: true });
+  }, [currentPage, isDealerUser, navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -251,6 +373,7 @@ function AppContent() {
       user ||
       currentPage === 'dashboard' ||
       PUBLIC_VIEW_PAGES.has(currentPage) ||
+      location.pathname === '/officer-toolkit' ||
       PUBLIC_AUTH_ROUTES.has(location.pathname)
     ) return;
     navigateToPage('dashboard', { replace: true });
@@ -343,6 +466,8 @@ function AppContent() {
             <CropDiagnosis />
           </Suspense>
         );
+      case 'officer-toolkit':
+        return <OfficersToolkit />;
       case 'acreage-calculator':
         return <AcreageCalculator />;
       case 'analytics':

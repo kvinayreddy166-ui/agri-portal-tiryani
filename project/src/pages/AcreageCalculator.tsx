@@ -1,9 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Calculator } from 'lucide-react';
 
+const STORAGE_KEY = 'tiryani-acreage-calculator-input';
+
 export function AcreageCalculator() {
-  const [acreInput, setAcreInput] = useState('');
+  const [acreInput, setAcreInput] = useState(() => window.sessionStorage.getItem(STORAGE_KEY) || '');
   const result = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
+
+  useEffect(() => {
+    window.sessionStorage.setItem(STORAGE_KEY, acreInput);
+  }, [acreInput]);
 
   return (
     <div className="space-y-4">

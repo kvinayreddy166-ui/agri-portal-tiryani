@@ -3,6 +3,7 @@ import { Download, Eye, Loader2 } from 'lucide-react';
 import { FilePreviewModal } from './FilePreviewModal';
 import { resolveFileIdentity } from '../../lib/fileTypes';
 import { downloadFileFromUrl } from '../../lib/fileBlob';
+import { useBackButtonOverlay } from '../../hooks/useBackButtonOverlay';
 
 interface FileActionButtonsProps {
   fileUrl: string;
@@ -20,6 +21,7 @@ export function FileActionButtons({
   size = 'md',
 }: FileActionButtonsProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
+  const previewOverlay = useBackButtonOverlay('file-preview', () => setPreviewOpen(false));
   const [downloading, setDownloading] = useState(false);
   const iconClass = 'h-4 w-4';
   const btnClass = size === 'sm' ? 'h-8 w-8 rounded-md' : 'h-9 w-9 rounded-lg';
@@ -28,6 +30,7 @@ export function FileActionButtons({
   const handleView = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    previewOverlay.pushOverlay();
     setPreviewOpen(true);
   };
 
@@ -76,7 +79,7 @@ export function FileActionButtons({
           fileUrl={fileUrl}
           fileName={fileName}
           fileType={resolvedType}
-          onClose={() => setPreviewOpen(false)}
+          onClose={previewOverlay.closeOverlay}
         />
       )}
     </>

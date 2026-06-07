@@ -1,6 +1,6 @@
-import React, { useState, ReactNode } from 'react';
+import React, { useMemo, useState, ReactNode } from 'react';
 import {
-  ArrowLeft, Calculator, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
+  ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Stethoscope, ClipboardList,
 } from 'lucide-react';
@@ -8,11 +8,12 @@ import { PortalLogo } from './ui/PortalLogo';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
+import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
 
 interface LayoutProps {
   children: ReactNode;
   currentPage: string;
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, options?: { replace?: boolean }) => void;
   onBack: () => void;
   onSignOut: () => void;
 }
@@ -33,8 +34,7 @@ const adminMenuItems = [
     icon: ClipboardList,
     adminOnly: true,
   },
-  { id: 'forms', label: 'Statutory Forms', icon: FileStack },
-  { id: 'acreage-calculator', label: 'Acreage Calculator', icon: Calculator },
+  { id: 'officer-toolkit', label: 'Officers Toolkit', icon: FileStack },
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
   { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
   { id: 'crop-diagnosis', label: 'AI Crop Doctor', icon: Stethoscope },
@@ -58,13 +58,26 @@ const menuItems = adminMenuItems;
 
 export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarOverlay = useBackButtonOverlay('app-sidebar', () => setSidebarOpen(false));
   const { user, isAdminUser, isDealerUser, dealerName } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
+  const pageMeta = useMemo(() => getPageMeta(currentPage), [currentPage]);
 
   const handleNavigation = (page: string) => {
-    onNavigate(page);
+    const replaceDrawerEntry = sidebarOpen;
+    sidebarOverlay.releaseOverlay();
     setSidebarOpen(false);
+    onNavigate(page, { replace: replaceDrawerEntry });
+  };
+
+  const toggleSidebar = () => {
+    if (sidebarOpen) {
+      sidebarOverlay.closeOverlay();
+      return;
+    }
+    sidebarOverlay.pushOverlay();
+    setSidebarOpen(true);
   };
 
   const visibleMenuItems = isDealerUser
@@ -84,7 +97,7 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <button
               type="button"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
+              onClick={toggleSidebar}
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/10 transition hover:bg-white/20"
               aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={sidebarOpen}
@@ -139,7 +152,7 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
+          onClick={sidebarOverlay.closeOverlay}
           aria-hidden
         />
       )}
@@ -197,20 +210,129 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
       <main className="min-h-[calc(100vh-4.25rem)]">
         <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
           {currentPage !== 'dashboard' && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="mb-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </button>
+            <div className="mb-4 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={onBack}
+                className="inline-flex min-h-11 w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </button>
+              <nav className="flex flex-wrap items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400" aria-label="Breadcrumb">
+                {pageMeta.breadcrumbs.map((item, index) => (
+                  <React.Fragment key={`${item.label}-${index}`}>
+                    {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-slate-400" />}
+                    {item.page && item.page !== currentPage ? (
+                      <button
+                        type="button"
+                        onClick={() => onNavigate(item.page!)}
+                        className="rounded-md px-1.5 py-1 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-slate-800"
+                      >
+                        {t(item.label, translateMenu(item.label))}
+                      </button>
+                    ) : (
+                      <span className="rounded-md px-1.5 py-1 text-slate-700 dark:text-slate-200">
+                        {t(item.label, translateMenu(item.label))}
+                      </span>
+                    )}
+                  </React.Fragment>
+                ))}
+              </nav>
+              <h1 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white md:text-3xl">
+                {t(pageMeta.title, translateMenu(pageMeta.title))}
+              </h1>
+            </div>
           )}
           {children}
         </div>
       </main>
     </div>
   );
+}
+
+type BreadcrumbItem = {
+  label: string;
+  page?: string;
+};
+
+function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem[] } {
+  const dashboard = { label: 'Dashboard', page: 'dashboard' };
+  const toolkit = { label: 'Officers Toolkit', page: 'officer-toolkit' };
+
+  if (page.startsWith('crop-') && page !== 'crop-diagnosis') {
+    const title = page === 'crop-admin' ? 'Crop Admin' : cropTitle(page);
+    return {
+      title,
+      breadcrumbs: [dashboard, { label: 'Crop Intelligence', page: 'crops' }, { label: title }],
+    };
+  }
+
+  if (page.startsWith('quality-')) {
+    const title = qualityTitle(page);
+    return {
+      title,
+      breadcrumbs: [dashboard, { label: 'Quality Control', page: 'quality' }, { label: title }],
+    };
+  }
+
+  if (page.startsWith('subsidy-')) {
+    const title = subsidyTitle(page);
+    return {
+      title,
+      breadcrumbs: [dashboard, { label: 'Subsidy & Schemes', page: 'subsidy' }, { label: title }],
+    };
+  }
+
+  const meta: Record<string, { title: string; breadcrumbs: BreadcrumbItem[] }> = {
+    stock: { title: 'Fertilizer Tracking', breadcrumbs: [dashboard, { label: 'Fertilizer Tracking' }] },
+    'stock-inventory': { title: 'Stock Inventory', breadcrumbs: [dashboard, { label: 'Stock Inventory' }] },
+    'dealer-portal': { title: 'Fertilizer Tracking', breadcrumbs: [dashboard, { label: 'Fertilizer Tracking' }] },
+    dealers: { title: 'Dealers Directory', breadcrumbs: [dashboard, { label: 'Dealers Directory' }] },
+    crops: { title: 'Crop Intelligence', breadcrumbs: [dashboard, { label: 'Crop Intelligence' }] },
+    'officer-toolkit': { title: 'Officers Toolkit', breadcrumbs: [dashboard, { label: 'Officers Toolkit' }] },
+    forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit, { label: 'Statutory Forms' }] },
+    'acreage-calculator': { title: 'Acreage Calculator', breadcrumbs: [dashboard, toolkit, { label: 'Acreage Calculator' }] },
+    'gos-circulars': { title: 'GOs & Circulars', breadcrumbs: [dashboard, { label: 'GOs & Circulars' }] },
+    quality: { title: 'Quality Control', breadcrumbs: [dashboard, { label: 'Quality Control' }] },
+    'farm-mechanization': { title: 'Farm Mechanization', breadcrumbs: [dashboard, { label: 'Farm Mechanization' }] },
+    excel: { title: 'Office Records', breadcrumbs: [dashboard, { label: 'Office Records' }] },
+    'file-directory': { title: 'Document Repository', breadcrumbs: [dashboard, { label: 'Document Repository' }] },
+    subsidy: { title: 'Subsidy & Schemes', breadcrumbs: [dashboard, { label: 'Subsidy & Schemes' }] },
+    'crop-diagnosis': { title: 'AI Crop Doctor', breadcrumbs: [dashboard, { label: 'AI Crop Doctor' }] },
+    analytics: { title: 'Report & Analytics', breadcrumbs: [dashboard, { label: 'Report & Analytics' }] },
+    settings: { title: 'Settings', breadcrumbs: [dashboard, { label: 'Settings' }] },
+  };
+
+  return meta[page] || { title: 'Dashboard', breadcrumbs: [{ label: 'Dashboard' }] };
+}
+
+function cropTitle(page: string) {
+  const titles: Record<string, string> = {
+    'crop-cotton': 'Cotton',
+    'crop-paddy': 'Paddy',
+    'crop-maize': 'Maize',
+    'crop-pulses': 'Pulses',
+    'crop-oilseeds': 'Oilseeds',
+  };
+  return titles[page] || 'Crop Intelligence';
+}
+
+function qualityTitle(page: string) {
+  const titles: Record<string, string> = {
+    'quality-seeds': 'Seeds',
+    'quality-pesticides': 'Pesticides',
+    'quality-fertilizers': 'Fertilizers',
+  };
+  return titles[page] || 'Quality Control';
+}
+
+function subsidyTitle(page: string) {
+  const titles: Record<string, string> = {
+    'subsidy-nfsm': 'NFSM',
+    'subsidy-state-seed': 'State Seed Cell',
+  };
+  return titles[page] || 'Subsidy & Schemes';
 }
 
 function translateMenu(label: string) {
@@ -223,6 +345,7 @@ function translateMenu(label: string) {
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
     'Crop Intelligence': 'పంట ఇంటెలిజెన్స్',
     'Crop Admin': 'పంట అడ్మిన్',
+    'Officers Toolkit': 'Officers Toolkit',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
     'Acreage Calculator': 'ఎకరాల కాలిక్యులేటర్',
     'GOs & Circulars': 'జీ.ఓలు & సర్క్యులర్లు',

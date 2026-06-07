@@ -4,6 +4,7 @@ import { FileActionButtons } from './FileActionButtons';
 import { FilePreviewModal } from './FilePreviewModal';
 import { FileTypeIcon } from './FileTypeIcon';
 import { resolveFileType } from '../../lib/fileTypes';
+import { useBackButtonOverlay } from '../../hooks/useBackButtonOverlay';
 
 interface DocumentCardProps {
   title: string;
@@ -25,6 +26,7 @@ export function DocumentCard({
   showDelete = false,
 }: DocumentCardProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
+  const previewOverlay = useBackButtonOverlay('document-card-preview', () => setPreviewOpen(false));
   const resolvedType = resolveFileType(title, fileType, fileUrl);
   const isImage = resolvedType === 'image';
 
@@ -33,7 +35,10 @@ export function DocumentCard({
       {isImage ? (
         <button
           type="button"
-          onClick={() => setPreviewOpen(true)}
+          onClick={() => {
+            previewOverlay.pushOverlay();
+            setPreviewOpen(true);
+          }}
           className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-600"
           aria-label="View image"
         >
@@ -67,7 +72,7 @@ export function DocumentCard({
           fileUrl={fileUrl}
           fileName={title}
           fileType={resolvedType}
-          onClose={() => setPreviewOpen(false)}
+          onClose={previewOverlay.closeOverlay}
         />
       )}
     </article>

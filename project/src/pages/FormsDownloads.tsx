@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Edit2, Folder, Link, Plus, Trash2, Upload, X } from 'lucide-react';
+import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Edit2, FileText, Folder, Link, Loader2, Plus, Trash2, Upload, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -8,6 +8,14 @@ import { FileActionButtons } from '../components/ui/FileActionButtons';
 import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 import { inferFileTypeFromName } from '../lib/fileTypes';
 import { uploadPortalFile } from '../lib/uploadFile';
+import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
+
+const FertilizerStatutoryPdfTool = lazy(() =>
+  import('../components/forms/FertilizerStatutoryPdfTool').then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
+);
+const SeedForms = lazy(() =>
+  import('./SeedForms').then((module) => ({ default: module.SeedForms }))
+);
 
 const folders = [
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
@@ -33,6 +41,7 @@ export function FormsDownloads() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [pdfToolOpen, setPdfToolOpen] = useState(false);
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
   const [selectedFolder, setSelectedFolder] = useState(() => {
     try {
@@ -45,11 +54,20 @@ export function FormsDownloads() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newForm, setNewForm] = useState(emptyForm);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(() => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
+      return Number.isInteger(stored.currentPage) && stored.currentPage >= 0 ? stored.currentPage : 0;
+    } catch {
+      return 0;
+    }
+  });
   const [totalForms, setTotalForms] = useState(0);
   const [folderCounts, setFolderCounts] = useState<Record<string, number>>(
     () => Object.fromEntries(folders.map((folder) => [folder.id, 0]))
   );
+  const didMountFolderRef = useRef(false);
+  const pdfToolOverlay = useBackButtonOverlay('statutory-pdf-tool', () => setPdfToolOpen(false));
 
   const fetchForms = useCallback(async () => {
     setFetchError(null);
@@ -91,17 +109,21 @@ export function FormsDownloads() {
   }, [fetchForms]);
 
   useEffect(() => {
+    if (!didMountFolderRef.current) {
+      didMountFolderRef.current = true;
+      return;
+    }
     setCurrentPage(0);
   }, [selectedFolder]);
 
   useEffect(() => {
     try {
       const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
-      window.localStorage.setItem(STATE_KEY, JSON.stringify({ ...stored, selectedFolder }));
+      window.localStorage.setItem(STATE_KEY, JSON.stringify({ ...stored, selectedFolder, currentPage }));
     } catch {
-      window.localStorage.setItem(STATE_KEY, JSON.stringify({ selectedFolder }));
+      window.localStorage.setItem(STATE_KEY, JSON.stringify({ selectedFolder, currentPage }));
     }
-  }, [selectedFolder]);
+  }, [currentPage, selectedFolder]);
 
   useEffect(() => {
     let restoreTimer: number | undefined;
@@ -136,6 +158,15 @@ export function FormsDownloads() {
     setSelectedFile(null);
     setEditingFormId(null);
     setShowAddForm(false);
+  };
+
+  const openPdfTool = () => {
+    pdfToolOverlay.pushOverlay();
+    setPdfToolOpen(true);
+  };
+
+  const closePdfTool = () => {
+    pdfToolOverlay.closeOverlay();
   };
 
   const handleSave = async () => {
@@ -241,15 +272,27 @@ export function FormsDownloads() {
           </p>
         </div>
 
-        {isAdminUser && (
-          <button
-            onClick={openAddForm}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
-          >
-            <Plus className="h-5 w-5" />
-            {t('Upload Statutory Form', 'Upload Statutory Form')}
-          </button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {selectedFolder !== 'pesticides' && (
+            <button
+              type="button"
+              onClick={openPdfTool}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 font-bold text-white shadow-lg shadow-red-900/10 transition hover:bg-red-700"
+            >
+              <FileText className="h-5 w-5" />
+              Generate PDF
+            </button>
+          )}
+          {isAdminUser && (
+            <button
+              onClick={openAddForm}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+            >
+              <Plus className="h-5 w-5" />
+              {t('Upload Statutory Form', 'Upload Statutory Form')}
+            </button>
+          )}
+        </div>
       </div>
 
       {fetchError && (
@@ -380,6 +423,42 @@ export function FormsDownloads() {
             </div>
           </div>
         </div>
+      )}
+
+      {pdfToolOpen && (
+        <Suspense
+          fallback={
+            <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4 text-white">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          }
+        >
+          {selectedFolder === 'seed' ? (
+            <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
+              <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-slate-50 shadow-2xl">
+                <header className="flex shrink-0 flex-wrap items-start justify-between gap-2 border-b border-slate-200 bg-white px-3 py-2.5 sm:px-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Seed sampling</p>
+                    <h2 className="max-w-full whitespace-normal text-sm font-black leading-snug text-slate-950 sm:text-base">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closePdfTool}
+                    className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+                    aria-label="Close seed PDF generator"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </header>
+                <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+                  <SeedForms />
+                </div>
+              </section>
+            </div>
+          ) : (
+            <FertilizerStatutoryPdfTool onClose={closePdfTool} />
+          )}
+        </Suspense>
       )}
 
       <section className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
