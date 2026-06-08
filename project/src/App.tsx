@@ -320,9 +320,16 @@ function AppContent() {
 
   useEffect(() => {
     if ((location.pathname === '/' || location.pathname === '/login') && !location.search && user) {
-      navigate('/dashboard', { replace: true, state: { tiryaniPage: 'dashboard' } });
+      const page = isDealerUser ? 'dealer-portal' : 'dashboard';
+      navigate(pageToPath(page), { replace: true, state: { tiryaniPage: page } });
     }
-  }, [location.pathname, location.search, navigate, user]);
+  }, [isDealerUser, location.pathname, location.search, navigate, user]);
+
+  useEffect(() => {
+    if (user && isDealerUser && currentPage === 'dashboard') {
+      navigateToPage('dealer-portal', { replace: true });
+    }
+  }, [currentPage, isDealerUser, navigateToPage, user]);
 
   const handleBack = useCallback(() => {
     if (getHistoryIndex() > 0) {

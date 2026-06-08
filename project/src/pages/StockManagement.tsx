@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BarChart3, Package, Plus, Search, Trash2, X } from 'lucide-react';
+import { BarChart3, Download, Package, Plus, Search, Trash2, X } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Dealer, DealerStockAllocation } from '../types/database';
@@ -8,7 +9,6 @@ import { FERTILIZER_TYPES } from '../lib/constants';
 import { syncFertilizerStockTable } from '../lib/fertilizerStock';
 import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
 import { useVirtualRows } from '../hooks/useVirtualRows';
-import { cachedSupabaseRows } from '../lib/offlineCache';
 
 const fertilizers = [...FERTILIZER_TYPES];
 
@@ -79,30 +79,24 @@ export function StockManagement() {
     setLoading(true);
     try {
       const [dealersResult, stockResult] = await Promise.all([
-        cachedSupabaseRows<Dealer>(
-          'stock-management:dealers:v2',
-          () =>
-            supabase
-              .from('dealers')
-              .select('id, dealer_name, ifms_id, phone_number, portal_email, license_number, issue_date, expiry_date, location, dealer_category, created_at, updated_at')
-              .order('dealer_name')
-              .limit(600),
-          []
-        ),
-        cachedSupabaseRows<DealerStockAllocation>(
-          'stock-management:dealer-stock:v2',
-          () =>
-            supabase
-              .from('dealer_stock_allocation')
-              .select('id, dealer_id, fertilizer_type, quantity_mts, quantity_unit, quantity_bags, wholesaler_name, invoice_number, invoice_date, last_updated, created_at')
-              .order('last_updated', { ascending: false })
-              .range(0, 1499),
-          []
-        ),
+        supabase
+          .from('dealers')
+          .select('id, dealer_name, ifms_id, phone_number, portal_email, license_number, issue_date, expiry_date, location, dealer_category, created_at, updated_at')
+          .order('dealer_name')
+          .limit(800),
+        supabase
+          .from('dealer_stock_allocation')
+          .select('id, dealer_id, fertilizer_type, quantity_mts, quantity_unit, quantity_bags, wholesaler_name, invoice_number, invoice_date, last_updated, created_at')
+          .order('invoice_date', { ascending: false, nullsFirst: false })
+          .order('last_updated', { ascending: false })
+          .range(0, 4999),
       ]);
 
-      const dealerRows = dealersResult || [];
-      const enrichedStock = (stockResult || []).map((item) => {
+      if (dealersResult.error) throw dealersResult.error;
+      if (stockResult.error) throw stockResult.error;
+
+      const dealerRows = dealersResult.data || [];
+      const enrichedStock = (stockResult.data || []).map((item) => {
         const dealer = dealerRows.find((row) => row.id === item.dealer_id);
         return {
           ...item,
@@ -188,6 +182,8 @@ export function StockManagement() {
       ((item.dealer_name || '').toLowerCase().includes(search) ||
       item.fertilizer_type.toLowerCase().includes(search) ||
       (item.invoice_number || '').toLowerCase().includes(search) ||
+      (item.invoice_date || '').toLowerCase().includes(search) ||
+      (item.last_updated || '').toLowerCase().includes(search) ||
       (item.wholesaler_name || '').toLowerCase().includes(search))
     ));
   }, [dealerFilter, fertilizerFilter, financialYearStock, searchTerm, wholesalerFilter]);
@@ -247,12 +243,42 @@ export function StockManagement() {
     Receipts: Number(item.receipts.toFixed(2)),
   }));
   const receiptRows = useVirtualRows(filteredStock, { rowHeight: 44, viewportHeight: 560 });
-  const receiptColumnCount = isAdminUser ? 10 : 9;
+  const receiptColumnCount = isAdminUser ? 9 : 8;
 
   const formatDate = (value?: string) => {
     if (!value) return '-';
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('en-IN');
+  };
+
+  const exportFilteredReceipts = () => {
+    downloadWorkbook(
+      filteredStock.map((item, index) => ({
+        'S.No': index + 1,
+        Dealer: titleCase(item.dealer_name || 'Unknown dealer'),
+        Fertilizer: item.fertilizer_type,
+        'Receipts (MT)': Number(item.quantity_mts || 0),
+        Wholesaler: item.wholesaler_name || '',
+        'Invoice No.': item.invoice_number || '',
+        'Invoice Date': item.invoice_date || '',
+        Updated: item.last_updated || '',
+      })),
+      `fertilizer-receipts-${financialYear}.xlsx`,
+      'Filtered Receipts'
+    );
+  };
+
+  const exportDealerWiseReceipts = () => {
+    downloadWorkbook(
+      dealerSummary.map((item, index) => ({
+        'S.No': index + 1,
+        Dealer: titleCase(item.dealer),
+        'Receipts (MT)': Number(item.receipts.toFixed(2)),
+        Fertilizers: item.fertilizerCount,
+      })),
+      `dealer-wise-fertilizer-receipts-${financialYear}.xlsx`,
+      'Dealer Wise Receipts'
+    );
   };
 
   if (loading) {
@@ -264,24 +290,45 @@ export function StockManagement() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="page-title">Fertilizer Tracking</h1>
           <p className="page-subtitle">Fertilizer receipts, dealer load entries, and current balance.</p>
         </div>
-        {isAdminUser && (
+        <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-md bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+            type="button"
+            onClick={exportFilteredReceipts}
+            disabled={filteredStock.length === 0}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-emerald-300"
           >
-            <Plus className="h-4 w-4" />
-            Add Manual Receipt
+            <Download className="h-4 w-4" />
+            Export Filtered
           </button>
-        )}
+          <button
+            type="button"
+            onClick={exportDealerWiseReceipts}
+            disabled={dealerSummary.length === 0}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-black text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-sky-300"
+          >
+            <Download className="h-4 w-4" />
+            Export Dealer-wise
+          </button>
+          {isAdminUser && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+            >
+              <Plus className="h-4 w-4" />
+              Add Manual Receipt
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/50">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="relative w-full md:max-w-md">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
@@ -348,6 +395,7 @@ export function StockManagement() {
             Showing {filteredStock.length} of {financialYearStock.length} receipt entries
           </p>
         </div>
+      </div>
       </div>
 
       {showAddForm && (
@@ -425,12 +473,12 @@ export function StockManagement() {
       ) : (
         <>
           <section className="grid gap-3 md:grid-cols-[15rem_1fr]">
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/20">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm shadow-amber-100/80 dark:border-amber-900/60 dark:bg-amber-950/20">
               <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Total Receipts</p>
               <p className="mt-1 text-2xl font-black text-slate-950 dark:text-white">{totalReceipts.toFixed(2)} MT</p>
               <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">{visibleSummary.length} fertilizer types</p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
               <h2 className="mb-2 flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
                 <BarChart3 className="h-5 w-5 text-amber-600" />
                 Fertilizer-wise Receipts Chart
@@ -476,18 +524,17 @@ export function StockManagement() {
             />
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
             <div className="border-b border-slate-100 px-3 py-2 dark:border-slate-800">
               <h2 className="text-sm font-black text-slate-950 dark:text-white">Fertilizer-wise Receipts Summary</h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[620px] text-sm">
+              <table className="w-full min-w-[520px] text-sm">
                 <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800">
                   <tr>
                     <th className="px-3 py-2 text-left">Fertilizer</th>
                     <th className="px-3 py-2 text-right">Receipts (MT)</th>
                     <th className="px-3 py-2 text-right">Dealers</th>
-                    <th className="px-3 py-2 text-right">Entries</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -496,7 +543,6 @@ export function StockManagement() {
                       <td className="px-3 py-2 font-black text-slate-950 dark:text-white">{item.fertilizer}</td>
                       <td className="px-3 py-2 text-right font-black text-emerald-700 dark:text-emerald-300">{item.receipts.toFixed(2)}</td>
                       <td className="px-3 py-2 text-right">{item.dealers}</td>
-                      <td className="px-3 py-2 text-right">{item.entries}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -504,24 +550,23 @@ export function StockManagement() {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-            <div className="border-b border-slate-100 px-3 py-2 dark:border-slate-800">
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
+            <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
               <h2 className="text-sm font-black text-slate-950 dark:text-white">Fertilizer Receipts</h2>
             </div>
             <div className="overflow-x-auto" {...receiptRows.containerProps}>
-              <table className="w-full min-w-[1120px] text-sm">
+              <table className="w-full min-w-[1040px] text-sm">
                 <thead className="bg-slate-900 text-xs uppercase text-white">
                   <tr>
-                    <th className="px-3 py-2 text-left">S.No</th>
-                    <th className="px-3 py-2 text-left">Dealer</th>
-                    <th className="px-3 py-2 text-left">Fertilizer</th>
-                    <th className="px-3 py-2 text-right">Receipts (MT)</th>
-                    <th className="px-3 py-2 text-right">Bags</th>
-                    <th className="px-3 py-2 text-left">Wholesaler</th>
-                    <th className="px-3 py-2 text-left">Invoice</th>
-                    <th className="px-3 py-2 text-left">Invoice Date</th>
-                    <th className="px-3 py-2 text-left">Updated</th>
-                    {isAdminUser && <th className="px-3 py-2 text-center">Delete</th>}
+                    <th className="px-4 py-3 text-left">S.No</th>
+                    <th className="px-4 py-3 text-left">Dealer</th>
+                    <th className="px-4 py-3 text-left">Fertilizer</th>
+                    <th className="px-4 py-3 text-right">Receipts (MT)</th>
+                    <th className="px-4 py-3 text-left">Wholesaler</th>
+                    <th className="px-4 py-3 text-left">Invoice No.</th>
+                    <th className="px-4 py-3 text-left">Invoice Date</th>
+                    <th className="px-4 py-3 text-left">Updated</th>
+                    {isAdminUser && <th className="px-4 py-3 text-center">Delete</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -532,19 +577,18 @@ export function StockManagement() {
                   )}
                   {receiptRows.virtualRows.map(({ row: item, index }) => (
                     <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
-                      <td className="px-3 py-2 font-bold">{index + 1}</td>
-                      <td className="px-3 py-2 font-black text-slate-950 dark:text-white">{titleCase(item.dealer_name || 'Unknown dealer')}</td>
-                      <td className="px-3 py-2 font-semibold">{item.fertilizer_type}</td>
-                      <td className="px-3 py-2 text-right font-black text-emerald-700 dark:text-emerald-300">
+                      <td className="px-4 py-3 font-bold">{index + 1}</td>
+                      <td className="px-4 py-3 font-black text-slate-950 dark:text-white">{titleCase(item.dealer_name || 'Unknown dealer')}</td>
+                      <td className="px-4 py-3 font-semibold">{item.fertilizer_type}</td>
+                      <td className="px-4 py-3 text-right font-black text-emerald-700 dark:text-emerald-300">
                         {Number(item.quantity_mts || 0).toFixed(2)}
                       </td>
-                      <td className="px-3 py-2 text-right">{Number(item.quantity_bags || 0).toFixed(0)}</td>
-                      <td className="px-3 py-2">{item.wholesaler_name || '-'}</td>
-                      <td className="px-3 py-2">{item.invoice_number || '-'}</td>
-                      <td className="px-3 py-2">{formatDate(item.invoice_date)}</td>
-                      <td className="px-3 py-2">{formatDate(item.last_updated)}</td>
+                      <td className="px-4 py-3">{item.wholesaler_name || '-'}</td>
+                      <td className="px-4 py-3">{item.invoice_number || '-'}</td>
+                      <td className="px-4 py-3">{formatDate(item.invoice_date)}</td>
+                      <td className="px-4 py-3">{formatDate(item.last_updated)}</td>
                       {isAdminUser && (
-                        <td className="px-3 py-2 text-center">
+                        <td className="px-4 py-3 text-center">
                           <button
                             type="button"
                             onClick={() => handleDelete(item.id)}
@@ -592,8 +636,8 @@ function GroupedTotalsTable({
   }[tone];
 
   return (
-    <section className={`overflow-hidden rounded-lg border shadow-sm ${toneClass}`}>
-      <div className="border-b border-slate-100 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-900">
+    <section className={`overflow-hidden rounded-xl border shadow-sm ${toneClass}`}>
+      <div className="border-b border-slate-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-sm font-black text-slate-950 dark:text-white">{title}</h2>
       </div>
       <div className="overflow-x-auto">
@@ -603,7 +647,6 @@ function GroupedTotalsTable({
               <th className="px-3 py-2 text-left">{firstColumn}</th>
               <th className="px-3 py-2 text-right">Receipts (MT)</th>
               <th className="px-3 py-2 text-right">{secondColumn}</th>
-              <th className="px-3 py-2 text-right">Entries</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -613,12 +656,11 @@ function GroupedTotalsTable({
                   <td className="px-3 py-2 font-black text-slate-950 dark:text-white">{item.name}</td>
                   <td className="px-3 py-2 text-right font-black text-slate-700 dark:text-slate-200">{item.receipts.toFixed(2)}</td>
                   <td className="px-3 py-2 text-right">{item.count}</td>
-                  <td className="px-3 py-2 text-right">{item.entries}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="px-3 py-4 text-center text-sm font-semibold text-slate-500">
+                <td colSpan={3} className="px-3 py-4 text-center text-sm font-semibold text-slate-500">
                   No matching receipts.
                 </td>
               </tr>
@@ -628,4 +670,12 @@ function GroupedTotalsTable({
       </div>
     </section>
   );
+}
+
+function downloadWorkbook(rows: Record<string, string | number>[], fileName: string, sheetName: string) {
+  if (!rows.length) return;
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  XLSX.writeFile(workbook, fileName);
 }

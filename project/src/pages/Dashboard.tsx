@@ -184,9 +184,10 @@ export function Dashboard() {
   }
 
   return (
-    <div className="dashboard-shell space-y-4">
-      <div className="dashboard-rise relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-5 text-white shadow-lg">
-        <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-[url('/images/rice.webp')] bg-cover bg-center opacity-20 md:block" />
+    <div className="dashboard-shell space-y-6">
+      <div className="dashboard-rise relative overflow-hidden rounded-2xl border border-emerald-100 bg-white p-5 text-slate-950 shadow-sm shadow-emerald-100/70 dark:border-slate-700 dark:bg-slate-900 dark:text-white">
+        <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-[url('/images/rice.webp')] bg-cover bg-center opacity-10 md:block" />
+        <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
         <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="dashboard-float">
             <PortalLogo size="lg" />
@@ -195,13 +196,13 @@ export function Dashboard() {
             <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
               {t('Tiryani Agriculture Portal', 'తిర్యాని వ్యవసాయ పోర్టల్')}
             </h1>
-            <p className="mt-2 text-cyan-100">
+            <p className="mt-2 text-slate-600 dark:text-slate-300">
               {t(
                 'Kumram Bheem Asifabad District - Asifabad Division',
                 'కుమ్రం భీం ఆసిఫాబాద్ జిల్లా - ఆసిఫాబాద్ డివిజన్'
               )}
             </p>
-            <p className="mt-3 text-sm font-semibold text-emerald-50">
+            <p className="mt-3 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
               {t(
                 'Developed and maintained by K. Vinay Reddy, MAO, Tiryani',
                 'అభివృద్ధి మరియు నిర్వహణ: కె. వినయ్ రెడ్డి, ఎం.ఏ.ఓ, తిర్యాని'
@@ -218,7 +219,7 @@ export function Dashboard() {
 
       {isAdminUser && siteHitSummary && (
         <div className="dashboard-rise dashboard-delay-1 grid grid-cols-1 gap-3 md:grid-cols-4">
-          <div className="rounded-xl border border-emerald-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <div className="rounded-xl border border-emerald-100 bg-white p-4 shadow-sm shadow-emerald-100/60 transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
                 <Eye className="h-5 w-5" />
@@ -229,15 +230,15 @@ export function Dashboard() {
               </div>
             </div>
           </div>
-          <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">People Viewed</p>
             <p className="mt-2 text-2xl font-black text-slate-950 dark:text-white">{siteHitSummary.uniqueVisitors.toLocaleString()}</p>
           </div>
-          <div className="rounded-xl border border-amber-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <div className="rounded-xl border border-amber-100 bg-white p-4 shadow-sm shadow-amber-100/60 transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Today</p>
             <p className="mt-2 text-2xl font-black text-slate-950 dark:text-white">{siteHitSummary.todayViews.toLocaleString()}</p>
           </div>
-          <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm shadow-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Last Access</p>
             <p className="mt-2 text-sm font-black text-slate-950 dark:text-white">{lastViewedLabel}</p>
           </div>

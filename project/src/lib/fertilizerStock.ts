@@ -158,8 +158,13 @@ export async function fetchDealerFertilizerAllocation(
 
   if (error) throw error;
 
-  return (data || []).map((row) => ({
-    fertilizer_type: row.fertilizer_type,
-    quantity_mts: Number(row.quantity_mts || 0),
+  const totals = new Map<string, number>();
+  for (const row of data || []) {
+    totals.set(row.fertilizer_type, (totals.get(row.fertilizer_type) || 0) + Number(row.quantity_mts || 0));
+  }
+
+  return Array.from(totals.entries()).map(([fertilizer_type, quantity_mts]) => ({
+    fertilizer_type,
+    quantity_mts,
   }));
 }

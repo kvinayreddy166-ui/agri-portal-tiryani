@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BarChart3, FolderOpen, RefreshCw, Trash2 } from 'lucide-react';
+import { BarChart3, FolderOpen, RefreshCw, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -68,6 +68,8 @@ export function StockInventory() {
   const [fertilizerQtyUnit, setFertilizerQtyUnit] = useState<'mts' | 'bags'>('mts');
   const [fertilizerFilter, setFertilizerFilter] = useState('all');
   const [dealerFilter, setDealerFilter] = useState('all');
+  const [searchInput, setSearchInput] = useState('');
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
 
@@ -123,9 +125,24 @@ export function StockInventory() {
   }, [dealerFilter, financialYear, rows]);
 
   const filteredRows = useMemo(() => {
-    if (fertilizerFilter === 'all') return dealerFilteredRows;
-    return dealerFilteredRows.filter((row) => row.category !== 'fertilizer' || row.product_type === fertilizerFilter);
-  }, [dealerFilteredRows, fertilizerFilter]);
+    const fertilizerRows =
+      fertilizerFilter === 'all'
+        ? dealerFilteredRows
+        : dealerFilteredRows.filter((row) => row.category !== 'fertilizer' || row.product_type === fertilizerFilter);
+    const search = appliedSearchTerm.trim().toLowerCase();
+    if (!search) return fertilizerRows;
+    return fertilizerRows.filter((row) => {
+      const invoiceNumber = String((row as InventoryRow & { invoice_number?: string }).invoice_number || '');
+      return (
+        (row.dealers?.dealer_name || '').toLowerCase().includes(search) ||
+        row.product_type.toLowerCase().includes(search) ||
+        row.category.toLowerCase().includes(search) ||
+        row.report_date.toLowerCase().includes(search) ||
+        row.report_month.toLowerCase().includes(search) ||
+        invoiceNumber.toLowerCase().includes(search)
+      );
+    });
+  }, [appliedSearchTerm, dealerFilteredRows, fertilizerFilter]);
   const pageCount = Math.max(1, Math.ceil(filteredRows.length / STOCK_ROWS_PAGE_SIZE));
   const paginatedRows = filteredRows.slice(
     currentPage * STOCK_ROWS_PAGE_SIZE,
@@ -134,7 +151,17 @@ export function StockInventory() {
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [category, dealerFilter, fertilizerFilter, financialYear, reportDate, reportMonth, viewMode]);
+  }, [appliedSearchTerm, category, dealerFilter, fertilizerFilter, financialYear, reportDate, reportMonth, viewMode]);
+
+  const resetFilters = () => {
+    setSearchInput('');
+    setAppliedSearchTerm('');
+    setDealerFilter('all');
+    setFertilizerFilter('all');
+    setFinancialYear(currentFinancialYear());
+    setReportDate(currentReportDate());
+    setReportMonth(currentReportDate().slice(0, 7));
+  };
 
   const fertilizerSummary = useMemo(() => {
     const fertilizers = fertilizerFilter === 'all' ? FERTILIZER_TYPES : [fertilizerFilter];
@@ -214,6 +241,37 @@ export function StockInventory() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
+        <div className="flex w-full flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:w-auto md:flex-row md:items-center">
+          <div className="relative w-full md:w-80">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') setAppliedSearchTerm(searchInput);
+              }}
+              placeholder="Search dealer, firm, fertilizer, invoice, date"
+              className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setAppliedSearchTerm(searchInput)}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800"
+          >
+            <Search className="h-4 w-4" />
+            Search
+          </button>
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset
+          </button>
+        </div>
         <button
           type="button"
           onClick={() => setViewMode('day')}

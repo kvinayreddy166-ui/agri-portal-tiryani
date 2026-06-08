@@ -23,6 +23,18 @@ export async function upsertDealerStockAllocation(payload: {
     last_updated: now,
   };
 
+  const isReceiptRecord = Boolean(
+    payload.invoice_number?.trim() ||
+    payload.invoice_date ||
+    payload.wholesaler_name?.trim()
+  );
+
+  if (isReceiptRecord) {
+    const { error } = await supabase.from('dealer_stock_allocation').insert([row]);
+    if (error) throw error;
+    return;
+  }
+
   const { data: existing, error: selectError } = await supabase
     .from('dealer_stock_allocation')
     .select('id')

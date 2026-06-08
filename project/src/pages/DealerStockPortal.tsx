@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Calendar, ChevronDown, ChevronLeft, ChevronRight, Copy, PackageCheck, Plus, Save, Trash2, Truck } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronLeft, ChevronRight, Copy, Download, PackageCheck, Plus, RotateCcw, Save, Search, Trash2, Truck } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { FERTILIZER_TYPES } from '../lib/constants';
@@ -49,6 +50,20 @@ type LoadForm = {
   quantity: number;
 };
 
+type DealerReceipt = {
+  id: string;
+  dealer_id: string;
+  fertilizer_type: string;
+  quantity_mts: number;
+  quantity_unit?: string;
+  quantity_bags?: number;
+  wholesaler_name?: string;
+  invoice_number?: string;
+  invoice_date?: string;
+  last_updated: string;
+  created_at: string;
+};
+
 export function DealerStockPortal() {
   const { dealerId, dealerName, user } = useAuth();
   const { language, t } = useLanguage();
@@ -57,6 +72,10 @@ export function DealerStockPortal() {
   const [rows, setRows] = useState<StockInventoryLine[]>([emptyInventoryRow(1, 'fertilizer')]);
   const [recentDates, setRecentDates] = useState<string[]>([]);
   const [allocation, setAllocation] = useState<{ fertilizer_type: string; quantity_mts: number }[]>([]);
+  const [dealerReceipts, setDealerReceipts] = useState<DealerReceipt[]>([]);
+  const [receiptSearch, setReceiptSearch] = useState('');
+  const [receiptFromDate, setReceiptFromDate] = useState('');
+  const [receiptToDate, setReceiptToDate] = useState('');
   const [dealerIfmsId, setDealerIfmsId] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -141,12 +160,31 @@ export function DealerStockPortal() {
     setDealerIfmsId(String(dealerRow.data?.ifms_id || ''));
   }, [dealerId]);
 
+  const loadDealerReceipts = useCallback(async () => {
+    if (!dealerId) return;
+    const { data, error } = await supabase
+      .from('dealer_stock_allocation')
+      .select('id, dealer_id, fertilizer_type, quantity_mts, quantity_unit, quantity_bags, wholesaler_name, invoice_number, invoice_date, last_updated, created_at')
+      .eq('dealer_id', dealerId)
+      .order('invoice_date', { ascending: false, nullsFirst: false })
+      .order('last_updated', { ascending: false })
+      .range(0, 999);
+
+    if (error) {
+      console.error(error);
+      setDealerReceipts([]);
+      return;
+    }
+    setDealerReceipts((data || []) as DealerReceipt[]);
+  }, [dealerId]);
+
   useEffect(() => {
     if (!dealerId) return;
     void loadRecentDates(category);
     void loadRows(category, reportDate);
     void loadAllocation();
-  }, [dealerId, category, reportDate, loadAllocation, loadRecentDates, loadRows]);
+    void loadDealerReceipts();
+  }, [dealerId, category, reportDate, loadAllocation, loadDealerReceipts, loadRecentDates, loadRows]);
 
   const types = productTypesForCategory(category);
   const isToday = reportDate === currentReportDate();
@@ -165,6 +203,67 @@ export function DealerStockPortal() {
     isFertilizer && fertilizerQtyUnit === 'bags'
       ? formatFertilizerQuantity(valueMts, productType, 'bags')
       : (Number(valueMts) || 0).toFixed(2);
+
+  const filteredDealerReceipts = dealerReceipts.filter((item) => {
+    const search = receiptSearch.trim().toLowerCase();
+    const invoiceDate = item.invoice_date || '';
+    return (
+      (!search ||
+        item.fertilizer_type.toLowerCase().includes(search) ||
+        (item.invoice_number || '').toLowerCase().includes(search) ||
+        (item.wholesaler_name || '').toLowerCase().includes(search) ||
+        invoiceDate.includes(search)) &&
+      (!receiptFromDate || invoiceDate >= receiptFromDate) &&
+      (!receiptToDate || invoiceDate <= receiptToDate)
+    );
+  });
+
+  const dailyReceiptTotal = dealerReceipts
+    .filter((item) => item.invoice_date === reportDate)
+    .reduce((sum, item) => sum + Number(item.quantity_mts || 0), 0);
+  const dailySalesTotal = rows.reduce((sum, row) => sum + Number(row.sales || 0), 0);
+  const dailyEntryReceiptsTotal = rows.reduce((sum, row) => sum + Number(row.receipts || 0), 0);
+
+  const resetReceiptFilters = () => {
+    setReceiptSearch('');
+    setReceiptFromDate('');
+    setReceiptToDate('');
+  };
+
+  const exportDealerData = () => {
+    if (!filteredDealerReceipts.length && !rows.length) return;
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      workbook,
+      XLSX.utils.json_to_sheet(filteredDealerReceipts.map((item, index) => ({
+        'S.No': index + 1,
+        Dealer: dealerName || '',
+        Fertilizer: item.fertilizer_type,
+        'Receipts (MT)': Number(item.quantity_mts || 0),
+        Bags: Number(item.quantity_bags || 0),
+        Wholesaler: item.wholesaler_name || '',
+        'Invoice No.': item.invoice_number || '',
+        'Invoice Date': item.invoice_date || '',
+      }))),
+      'Receipts'
+    );
+    XLSX.utils.book_append_sheet(
+      workbook,
+      XLSX.utils.json_to_sheet(rows.map((row, index) => ({
+        'S.No': index + 1,
+        Date: reportDate,
+        Category: category,
+        Type: row.product_type,
+        Opening: Number(row.opening_balance || 0),
+        Receipts: Number(row.receipts || 0),
+        Total: Number(row.total || 0),
+        Sales: Number(row.sales || 0),
+        Closing: Number(row.closing_balance || 0),
+      }))),
+      'Daily Stock'
+    );
+    XLSX.writeFile(workbook, `dealer-fertilizer-data-${reportDate}.xlsx`);
+  };
 
   const updateRow = (index: number, patch: Partial<StockInventoryLine>) => {
     setRows((current) =>
@@ -251,11 +350,10 @@ export function DealerStockPortal() {
 
     setSaving(true);
     try {
-      const currentMts = Number(allocation.find((item) => item.fertilizer_type === fertilizerType)?.quantity_mts || 0);
       await upsertDealerStockAllocation({
         dealer_id: dealerId,
         fertilizer_type: fertilizerType,
-        quantity_mts: currentMts + loadMts,
+        quantity_mts: loadMts,
         wholesaler_name: wholesalerName,
         invoice_number: loadForm.invoice_number.trim(),
         invoice_date: loadForm.invoice_date,
@@ -267,6 +365,7 @@ export function DealerStockPortal() {
       setMessage(`${fertilizerType} Fertilizer Receipt saved.`);
       setLoadForm((current) => ({ ...current, invoice_number: '', quantity: 0 }));
       await loadAllocation();
+      await loadDealerReceipts();
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Could not save load';
       alert(`Could not save load: ${msg}`);
@@ -292,7 +391,6 @@ export function DealerStockPortal() {
             Daily Stock Entry
           </h1>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <span className="text-base font-black text-slate-900 dark:text-white">{dealerName}</span>
             {dealerIfmsId && (
               <span className="rounded-md bg-slate-900 px-2.5 py-1 text-xs font-black tracking-wide text-white dark:bg-white dark:text-slate-950">
                 IFMS ID: {dealerIfmsId}
@@ -313,6 +411,10 @@ export function DealerStockPortal() {
             </select>
           </label>
         )}
+      </div>
+
+      <div className="rounded-xl border border-red-100 bg-white p-4 text-center shadow-sm shadow-red-100/70 dark:border-red-900/60 dark:bg-slate-900">
+        <p className="text-2xl font-black text-red-700 md:text-3xl">{dealerName || 'Dealer Firm'}</p>
       </div>
 
       {message && (
@@ -337,6 +439,20 @@ export function DealerStockPortal() {
           </button>
         ))}
       </div>
+
+      <section className="grid gap-3 md:grid-cols-4">
+        <SummaryCard label="Receipt invoices today" value={`${dailyReceiptTotal.toFixed(2)} MT`} tone="emerald" />
+        <SummaryCard label="Daily entry receipts" value={`${dailyEntryReceiptsTotal.toFixed(2)} MT`} tone="sky" />
+        <SummaryCard label="Daily sales" value={`${dailySalesTotal.toFixed(2)} MT`} tone="amber" />
+        <button
+          type="button"
+          onClick={exportDealerData}
+          className="inline-flex min-h-24 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:text-emerald-300"
+        >
+          <Download className="h-5 w-5" />
+          Export Excel
+        </button>
+      </section>
 
       {isFertilizer && (
         <section className="overflow-hidden rounded-xl border border-red-200 bg-white shadow-sm dark:border-red-900/70 dark:bg-slate-900">
@@ -429,6 +545,93 @@ export function DealerStockPortal() {
         </section>
       )}
 
+      {isFertilizer && (
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
+          <div className="border-b border-slate-100 p-4 dark:border-slate-800">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="flex items-center gap-2 text-base font-black text-slate-950 dark:text-white">
+                  <Truck className="h-5 w-5 text-red-600" />
+                  My Fertilizer Receipts
+                </h2>
+                <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  Showing only receipts saved for this dealer login.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="relative block">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={receiptSearch}
+                    onChange={(event) => setReceiptSearch(event.target.value)}
+                    placeholder="Search invoice, fertilizer, wholesaler"
+                    className="w-64 rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                  />
+                </label>
+                <input
+                  type="date"
+                  value={receiptFromDate}
+                  onChange={(event) => setReceiptFromDate(event.target.value)}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                />
+                <input
+                  type="date"
+                  value={receiptToDate}
+                  onChange={(event) => setReceiptToDate(event.target.value)}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                />
+                <button
+                  type="button"
+                  onClick={resetReceiptFilters}
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[860px] text-sm">
+              <thead className="bg-slate-900 text-xs uppercase text-white">
+                <tr>
+                  <th className="px-4 py-3 text-left">S.No</th>
+                  <th className="px-4 py-3 text-left">Fertilizer</th>
+                  <th className="px-4 py-3 text-right">Receipts (MT)</th>
+                  <th className="px-4 py-3 text-right">Bags</th>
+                  <th className="px-4 py-3 text-left">Wholesaler</th>
+                  <th className="px-4 py-3 text-left">Invoice No.</th>
+                  <th className="px-4 py-3 text-left">Invoice Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredDealerReceipts.map((item, index) => (
+                  <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                    <td className="px-4 py-3 font-bold">{index + 1}</td>
+                    <td className="px-4 py-3 font-black text-slate-950 dark:text-white">{item.fertilizer_type}</td>
+                    <td className="px-4 py-3 text-right font-black text-emerald-700 dark:text-emerald-300">
+                      {Number(item.quantity_mts || 0).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-3 text-right">{Number(item.quantity_bags || 0).toFixed(0)}</td>
+                    <td className="px-4 py-3">{item.wholesaler_name || '-'}</td>
+                    <td className="px-4 py-3">{item.invoice_number || '-'}</td>
+                    <td className="px-4 py-3">{item.invoice_date || '-'}</td>
+                  </tr>
+                ))}
+                {filteredDealerReceipts.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-sm font-semibold text-slate-500">
+                      No receipts match the selected filters.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       <div className="portal-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <Calendar className="h-5 w-5 text-emerald-600" />
@@ -514,6 +717,21 @@ export function DealerStockPortal() {
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+function SummaryCard({ label, value, tone }: { label: string; value: string; tone: 'emerald' | 'sky' | 'amber' }) {
+  const classes = {
+    emerald: 'border-emerald-100 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200',
+    sky: 'border-sky-100 bg-sky-50 text-sky-800 dark:border-sky-900 dark:bg-sky-950/30 dark:text-sky-200',
+    amber: 'border-amber-100 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200',
+  }[tone];
+
+  return (
+    <div className={`rounded-xl border p-4 shadow-sm ${classes}`}>
+      <p className="text-xs font-black uppercase tracking-wide opacity-80">{label}</p>
+      <p className="mt-2 text-2xl font-black">{value}</p>
     </div>
   );
 }
