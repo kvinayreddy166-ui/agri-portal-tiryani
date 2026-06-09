@@ -27,7 +27,7 @@ const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m
 const StockInventory = lazy(() => import('./pages/StockInventory').then((m) => ({ default: m.StockInventory })));
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
-const OfficialDraftAutomation = lazy(() => import('./pages/OfficialDraftAutomation').then((m) => ({ default: m.default })));
+const OfficialDraftAutomation = lazy(() => import('./pages/OfficialDraftAutomation'));
 const CropDiagnosis = lazy(() =>
   import('./pages/CropDiagnosis').then((m) => ({ default: m.CropDiagnosis }))
 );

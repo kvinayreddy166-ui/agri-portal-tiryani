@@ -11,20 +11,12 @@ import {
   Eye,
   Save,
   Trash2,
-  ChevronDown,
-  ChevronUp,
-  Search,
-  Check,
   X,
   Printer,
-  Image as ImageIcon,
   Sparkles,
-  AlertTriangle,
   Shield,
-  Scale,
   Leaf,
   Globe,
-  Layers,
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 
