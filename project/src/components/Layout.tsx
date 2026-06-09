@@ -20,8 +20,7 @@ interface LayoutProps {
 
 const adminMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'stock', label: 'Fertilizer Tracking', icon: PackageCheck },
-  { id: 'stock-inventory', label: 'Stock Inventory', icon: ClipboardList },
+  { id: 'stock-analytics', label: 'Stock Analytics', icon: PackageCheck },
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
   {
     id: 'crops',
@@ -51,7 +50,8 @@ const adminMenuItems = [
 ];
 
 const dealerMenuItems = [
-  { id: 'dealer-portal', label: 'Fertilizer Tracking', icon: PackageCheck },
+  { id: 'stock-analytics', label: 'Stock Analytics', icon: PackageCheck },
+  { id: 'stock-receipts-sales', label: 'Stock Receipts & Sales', icon: ClipboardList },
 ];
 
 const menuItems = adminMenuItems;
@@ -239,9 +239,6 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
                   </React.Fragment>
                 ))}
               </nav>
-              <h1 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white md:text-3xl">
-                {t(pageMeta.title, translateMenu(pageMeta.title))}
-              </h1>
             </div>
           )}
           {children}
@@ -264,7 +261,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     const title = page === 'crop-admin' ? 'Crop Admin' : cropTitle(page);
     return {
       title,
-      breadcrumbs: [dashboard, { label: 'Crop Intelligence', page: 'crops' }, { label: title }],
+      breadcrumbs: [dashboard, { label: 'Crop Intelligence', page: 'crops' }],
     };
   }
 
@@ -272,7 +269,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     const title = qualityTitle(page);
     return {
       title,
-      breadcrumbs: [dashboard, { label: 'Quality Control', page: 'quality' }, { label: title }],
+      breadcrumbs: [dashboard, { label: 'Quality Control', page: 'quality' }],
     };
   }
 
@@ -280,28 +277,28 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     const title = subsidyTitle(page);
     return {
       title,
-      breadcrumbs: [dashboard, { label: 'Subsidy & Schemes', page: 'subsidy' }, { label: title }],
+      breadcrumbs: [dashboard, { label: 'Subsidy & Schemes', page: 'subsidy' }],
     };
   }
 
   const meta: Record<string, { title: string; breadcrumbs: BreadcrumbItem[] }> = {
-    stock: { title: 'Fertilizer Tracking', breadcrumbs: [dashboard, { label: 'Fertilizer Tracking' }] },
-    'stock-inventory': { title: 'Stock Inventory', breadcrumbs: [dashboard, { label: 'Stock Inventory' }] },
-    'dealer-portal': { title: 'Fertilizer Tracking', breadcrumbs: [dashboard, { label: 'Fertilizer Tracking' }] },
-    dealers: { title: 'Dealers Directory', breadcrumbs: [dashboard, { label: 'Dealers Directory' }] },
-    crops: { title: 'Crop Intelligence', breadcrumbs: [dashboard, { label: 'Crop Intelligence' }] },
-    'officer-toolkit': { title: 'Officers Toolkit', breadcrumbs: [dashboard, { label: 'Officers Toolkit' }] },
-    forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit, { label: 'Statutory Forms' }] },
-    'acreage-calculator': { title: 'Acreage Calculator', breadcrumbs: [dashboard, toolkit, { label: 'Acreage Calculator' }] },
-    'gos-circulars': { title: 'GOs & Circulars', breadcrumbs: [dashboard, { label: 'GOs & Circulars' }] },
-    quality: { title: 'Quality Control', breadcrumbs: [dashboard, { label: 'Quality Control' }] },
-    'farm-mechanization': { title: 'Farm Mechanization', breadcrumbs: [dashboard, { label: 'Farm Mechanization' }] },
-    excel: { title: 'Office Records', breadcrumbs: [dashboard, { label: 'Office Records' }] },
-    'file-directory': { title: 'Document Repository', breadcrumbs: [dashboard, { label: 'Document Repository' }] },
-    subsidy: { title: 'Subsidy & Schemes', breadcrumbs: [dashboard, { label: 'Subsidy & Schemes' }] },
-    'crop-diagnosis': { title: 'AI Crop Doctor', breadcrumbs: [dashboard, { label: 'AI Crop Doctor' }] },
-    analytics: { title: 'Report & Analytics', breadcrumbs: [dashboard, { label: 'Report & Analytics' }] },
-    settings: { title: 'Settings', breadcrumbs: [dashboard, { label: 'Settings' }] },
+    'stock-analytics': { title: 'Stock Analytics', breadcrumbs: [dashboard] },
+    'stock-receipts-sales': { title: 'Stock Receipts & Sales', breadcrumbs: [dashboard] },
+    'dealer-portal': { title: 'Stock Analytics', breadcrumbs: [dashboard] },
+    dealers: { title: 'Dealers Directory', breadcrumbs: [dashboard] },
+    crops: { title: 'Crop Intelligence', breadcrumbs: [dashboard] },
+    'officer-toolkit': { title: 'Officers Toolkit', breadcrumbs: [dashboard] },
+    forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit] },
+    'acreage-calculator': { title: 'Acreage Calculator', breadcrumbs: [dashboard, toolkit] },
+    'gos-circulars': { title: 'GOs & Circulars', breadcrumbs: [dashboard] },
+    quality: { title: 'Quality Control', breadcrumbs: [dashboard] },
+    'farm-mechanization': { title: 'Farm Mechanization', breadcrumbs: [dashboard] },
+    excel: { title: 'Office Records', breadcrumbs: [dashboard] },
+    'file-directory': { title: 'Document Repository', breadcrumbs: [dashboard] },
+    subsidy: { title: 'Subsidy & Schemes', breadcrumbs: [dashboard] },
+    'crop-diagnosis': { title: 'AI Crop Doctor', breadcrumbs: [dashboard] },
+    analytics: { title: 'Report & Analytics', breadcrumbs: [dashboard] },
+    settings: { title: 'Settings', breadcrumbs: [dashboard] },
   };
 
   return meta[page] || { title: 'Dashboard', breadcrumbs: [{ label: 'Dashboard' }] };
@@ -338,7 +335,8 @@ function subsidyTitle(page: string) {
 function translateMenu(label: string) {
   const labels: Record<string, string> = {
     Dashboard: 'డ్యాష్ బోర్డ్',
-    'Fertilizer Tracking': 'ఎరువుల ట్రాకింగ్',
+    'Stock Analytics': 'స్టాక్ విశ్లేషణలు',
+    'Stock Receipts & Sales': 'స్టాక్ రసీట్లు & అమ్మకాలు',
     'Stock Inventory': 'స్టాక్ ఇన్వెంటరీ',
     'My Stock Entry': 'నా స్టాక్ ఎంట్రీ',
     'Dealers Directory': 'డీలర్ల డైరెక్టరీ',

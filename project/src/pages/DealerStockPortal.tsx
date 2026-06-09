@@ -384,18 +384,16 @@ export function DealerStockPortal() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black text-slate-950 dark:text-white">
-            <PackageCheck className="h-7 w-7 text-emerald-600" />
-            Daily Stock Entry
-          </h1>
-          <div className="mt-1 flex flex-wrap items-center gap-2">
+        <div className="text-center sm:text-left">
+          <h1 className="flex flex-col items-center gap-1 text-2xl font-black text-emerald-700 dark:text-emerald-400 sm:flex-row">
+            <PackageCheck className="h-7 w-7" />
+            <span>Daily Stock Entry</span>
             {dealerIfmsId && (
-              <span className="rounded-md bg-slate-900 px-2.5 py-1 text-xs font-black tracking-wide text-white dark:bg-white dark:text-slate-950">
-                IFMS ID: {dealerIfmsId}
+              <span className="ml-2 text-lg font-semibold text-emerald-600 dark:text-emerald-500">
+                ({dealerIfmsId})
               </span>
             )}
-          </div>
+          </h1>
         </div>
         {isFertilizer && (
           <label className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
@@ -774,5 +772,33 @@ function CompactSelect({ label, value, onChange, options }: { label: string; val
         {options.map((option) => <option key={option} value={option}>{option}</option>)}
       </select>
     </label>
+  );
+}
+
+function SectionButton({ active, title, subtitle, tone, onClick }: { active: boolean; title: string; subtitle: string; tone: 'red' | 'emerald'; onClick: () => void }) {
+  const toneClasses = {
+    red: active ? 'border-red-500 bg-red-50 dark:border-red-400 dark:bg-red-950/30' : 'border-slate-200 bg-white hover:border-red-300 hover:bg-red-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-red-400 dark:hover:bg-red-950/30',
+    emerald: active ? 'border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/30' : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-emerald-400 dark:hover:bg-emerald-950/30',
+  };
+
+  const iconClasses = {
+    red: active ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+    emerald: active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-3 rounded-lg border p-4 text-left shadow-sm transition ${toneClasses[tone]}`}
+    >
+      <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${iconClasses[tone]}`}>
+        {tone === 'red' ? <PackageCheck className="h-6 w-6" /> : <Truck className="h-6 w-6" />}
+      </div>
+      <div className="flex-1">
+        <h3 className="text-sm font-black text-slate-900 dark:text-white">{title}</h3>
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{subtitle}</p>
+      </div>
+    </button>
   );
 }

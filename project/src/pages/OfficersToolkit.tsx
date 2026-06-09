@@ -1,17 +1,9 @@
 import React from 'react';
-import { Calculator, FileText, ShieldCheck, Sparkles } from 'lucide-react';
+import { Calculator, ShieldCheck, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
 const toolkitItems = [
-  {
-    title: 'Statutory Forms',
-    telugu: 'Statutory Forms',
-    path: '/forms',
-    icon: FileText,
-    tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
-    iconTone: 'bg-[#a9842f] text-white',
-  },
   {
     title: 'Acreage Calculator',
     telugu: 'Acreage Calculator',

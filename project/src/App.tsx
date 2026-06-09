@@ -9,7 +9,6 @@ import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'reac
 const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
 const Layout = lazy(() => import('./components/Layout').then((m) => ({ default: m.Layout })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
-const StockManagement = lazy(() => import('./pages/StockManagement').then((m) => ({ default: m.StockManagement })));
 const DealerManagement = lazy(() => import('./pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));
 const CropPage = lazy(() => import('./pages/CropPage').then((m) => ({ default: m.CropPage })));
 const CropManagement = lazy(() => import('./pages/CropManagement').then((m) => ({ default: m.CropManagement })));
@@ -24,10 +23,11 @@ const GosCirculars = lazy(() => import('./pages/GosCirculars').then((m) => ({ de
 const FileDirectory = lazy(() => import('./pages/FileDirectory').then((m) => ({ default: m.FileDirectory })));
 const SubsidyTracking = lazy(() => import('./pages/SubsidyTracking').then((m) => ({ default: m.SubsidyTracking })));
 const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m) => ({ default: m.DealerStockPortal })));
-const StockInventory = lazy(() => import('./pages/StockInventory').then((m) => ({ default: m.StockInventory })));
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
 const OfficialDraftAutomation = lazy(() => import('./pages/OfficialDraftAutomation'));
+const StockAnalytics = lazy(() => import('./pages/StockAnalytics'));
+const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const CropDiagnosis = lazy(() =>
   import('./pages/CropDiagnosis').then((m) => ({ default: m.CropDiagnosis }))
 );
@@ -43,14 +43,14 @@ function PageLoader() {
   );
 }
 
-const PUBLIC_VIEW_PAGES = new Set(['dealers', 'stock-inventory']);
+const PUBLIC_VIEW_PAGES = new Set(['dealers']);
 const PUBLIC_AUTH_ROUTES = new Set(['/login', '/officer-toolkit/statutory-forms', '/officer-toolkit/acreage-calculator', '/officer-toolkit/official-drafts']);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
 const PAGE_PATHS: Record<string, string> = {
   dashboard: '/dashboard',
-  stock: '/stock',
-  'stock-inventory': '/stock-inventory',
+  'stock-analytics': '/stock-analytics',
+  'stock-receipts-sales': '/stock-receipts-sales',
   'dealer-portal': '/dealer-portal',
   dealers: '/dealers',
   crops: '/crops',
@@ -244,8 +244,8 @@ function AppContent() {
     () =>
       new Set([
         'dashboard',
-        'stock',
-        'stock-inventory',
+        'stock-analytics',
+        'stock-receipts-sales',
         'dealer-portal',
         'dealers',
         'crops',
@@ -405,7 +405,7 @@ function AppContent() {
         title={currentPage === 'dealers' ? 'Dealers Directory' : 'Stock Inventory'}
         onHome={() => navigateToPage('dashboard')}
       >
-        {currentPage === 'dealers' ? <DealerManagement /> : <StockInventory />}
+        {currentPage === 'dealers' ? <DealerManagement /> : null}
       </PublicReadOnlyShell>
     );
   }
@@ -422,10 +422,18 @@ function AppContent() {
     switch (currentPage) {
       case 'dashboard':
         return <Dashboard />;
-      case 'stock':
-        return isAdminUser ? <StockManagement /> : <DealerStockPortal />;
-      case 'stock-inventory':
-        return <StockInventory />;
+      case 'stock-analytics':
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <StockAnalytics />
+          </Suspense>
+        );
+      case 'stock-receipts-sales':
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <StockReceiptsSales />
+          </Suspense>
+        );
       case 'dealer-portal':
         return <DealerStockPortal />;
       case 'dealers':
