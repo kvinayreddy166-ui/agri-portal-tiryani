@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Calendar, ChevronDown, ChevronLeft, ChevronRight, Copy, Download, PackageCheck, Plus, RotateCcw, Save, Search, Trash2, Truck } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Copy, Download, Menu, PackageCheck, Plus, RotateCcw, Save, Search, Trash2, Truck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -7,7 +7,6 @@ import { FERTILIZER_TYPES } from '../lib/constants';
 import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
 import { fetchDealerFertilizerAllocation } from '../lib/fertilizerStock';
 import {
-  STOCK_CATEGORIES,
   StockCategory,
   StockInventoryLine,
   computeStockRow,
@@ -67,7 +66,8 @@ type DealerReceipt = {
 export function DealerStockPortal() {
   const { dealerId, dealerName, user } = useAuth();
   const { language, t } = useLanguage();
-  const [category, setCategory] = useState<StockCategory>('fertilizer');
+  const category: StockCategory = 'fertilizer';
+  const [activeSection, setActiveSection] = useState<'receipts' | 'sales'>('receipts');
   const [reportDate, setReportDate] = useState(currentReportDate());
   const [rows, setRows] = useState<StockInventoryLine[]>([emptyInventoryRow(1, 'fertilizer')]);
   const [recentDates, setRecentDates] = useState<string[]>([]);
@@ -80,7 +80,6 @@ export function DealerStockPortal() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fertilizerQtyUnit, setFertilizerQtyUnit] = useState<FertilizerUnit>('mts');
-  const [showFertilizerReceipts, setShowFertilizerReceipts] = useState(false);
   const [message, setMessage] = useState('');
   const [loadForm, setLoadForm] = useState<LoadForm>({
     fertilizer_type: 'Urea',
@@ -423,21 +422,21 @@ export function DealerStockPortal() {
         </div>
       )}
 
-      <div className="grid gap-2 md:grid-cols-3">
-        {STOCK_CATEGORIES.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => setCategory(item.id)}
-            className={`rounded-xl border p-3 text-left font-black transition ${
-              category === item.id
-                ? 'border-emerald-500 bg-emerald-700 text-white shadow-md'
-                : 'border-slate-200 bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
+      <div className="grid gap-3 md:grid-cols-2">
+        <SectionButton
+          active={activeSection === 'receipts'}
+          title="Fertilizer Receipts"
+          subtitle="Invoice-wise receipt entry and receipt list"
+          tone="red"
+          onClick={() => setActiveSection('receipts')}
+        />
+        <SectionButton
+          active={activeSection === 'sales'}
+          title="Daily Stock / Sales"
+          subtitle="Opening, receipts, sales and closing entry"
+          tone="emerald"
+          onClick={() => setActiveSection('sales')}
+        />
       </div>
 
       <section className="grid gap-3 md:grid-cols-4">
@@ -454,22 +453,15 @@ export function DealerStockPortal() {
         </button>
       </section>
 
-      {isFertilizer && (
+      {activeSection === 'receipts' && (
         <section className="overflow-hidden rounded-xl border border-red-200 bg-white shadow-sm dark:border-red-900/70 dark:bg-slate-900">
-          <button
-            type="button"
-            onClick={() => setShowFertilizerReceipts((current) => !current)}
-            className="flex w-full items-center justify-between gap-3 bg-red-50 p-3 text-left text-red-900 transition hover:bg-red-100 dark:bg-red-950/30 dark:text-red-100 dark:hover:bg-red-950/50"
-            aria-expanded={showFertilizerReceipts}
-          >
+          <div className="flex w-full items-center justify-between gap-3 bg-red-50 p-3 text-left text-red-900 dark:bg-red-950/30 dark:text-red-100">
             <span className="flex items-center gap-2">
               <Truck className="h-5 w-5" />
               <span className="text-sm font-black text-red-700 dark:text-red-200">Fertilizer Receipts</span>
             </span>
-            <ChevronDown className={`h-5 w-5 transition ${showFertilizerReceipts ? 'rotate-180' : ''}`} />
-          </button>
-          {showFertilizerReceipts && (
-            <div className="p-3">
+          </div>
+          <div className="p-3">
               <div className="grid gap-2 md:grid-cols-3">
                 <CompactSelect
                   label="Fertilizer Type"
@@ -541,11 +533,10 @@ export function DealerStockPortal() {
                 </button>
               </div>
             </div>
-          )}
         </section>
       )}
 
-      {isFertilizer && (
+      {activeSection === 'receipts' && (
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
           <div className="border-b border-slate-100 p-4 dark:border-slate-800">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -632,90 +623,94 @@ export function DealerStockPortal() {
         </section>
       )}
 
-      <div className="portal-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <Calendar className="h-5 w-5 text-emerald-600" />
-          <button type="button" onClick={() => setReportDate(shiftReportDate(reportDate, -1))} className="rounded-lg border border-slate-300 p-2 dark:border-slate-600">
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <input
-            type="date"
-            value={reportDate}
-            max={currentReportDate()}
-            onChange={(event) => setReportDate(event.target.value)}
-            className="rounded-xl border border-slate-300 px-3 py-2 font-semibold dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-          />
-          <button type="button" onClick={() => setReportDate(shiftReportDate(reportDate, 1))} disabled={reportDate >= currentReportDate()} className="rounded-lg border border-slate-300 p-2 disabled:opacity-40 dark:border-slate-600">
-            <ChevronRight className="h-4 w-4" />
-          </button>
-          {!isToday && (
-            <button type="button" onClick={() => setReportDate(currentReportDate())} className="rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200">
-              Today
-            </button>
-          )}
-        </div>
-        <p className="text-sm font-bold text-slate-600 dark:text-slate-400">
-          {formatReportDateLabel(reportDate, dateLocale)}
-          {recentDates.includes(reportDate) && <span className="ml-2 rounded-full bg-emerald-600 px-2 py-0.5 text-xs text-white">Saved</span>}
-        </p>
-      </div>
+      {activeSection === 'sales' && (
+        <>
+          <div className="portal-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <Calendar className="h-5 w-5 text-emerald-600" />
+              <button type="button" onClick={() => setReportDate(shiftReportDate(reportDate, -1))} className="rounded-lg border border-slate-300 p-2 dark:border-slate-600">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <input
+                type="date"
+                value={reportDate}
+                max={currentReportDate()}
+                onChange={(event) => setReportDate(event.target.value)}
+                className="rounded-xl border border-slate-300 px-3 py-2 font-semibold dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+              />
+              <button type="button" onClick={() => setReportDate(shiftReportDate(reportDate, 1))} disabled={reportDate >= currentReportDate()} className="rounded-lg border border-slate-300 p-2 disabled:opacity-40 dark:border-slate-600">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              {!isToday && (
+                <button type="button" onClick={() => setReportDate(currentReportDate())} className="rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200">
+                  Today
+                </button>
+              )}
+            </div>
+            <p className="text-sm font-bold text-slate-600 dark:text-slate-400">
+              {formatReportDateLabel(reportDate, dateLocale)}
+              {recentDates.includes(reportDate) && <span className="ml-2 rounded-full bg-emerald-600 px-2 py-0.5 text-xs text-white">Saved</span>}
+            </p>
+          </div>
 
-      {loading ? (
-        <div className="flex h-36 items-center justify-center">
-          <div className="h-9 w-9 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
-        </div>
-      ) : (
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-sm">
-              <thead className="bg-slate-900 text-white">
-                <tr>
-                  <th className="px-3 py-2 text-left">S.No</th>
-                  <th className="px-3 py-2 text-left">Type</th>
-                  <th className="px-3 py-2 text-left">Opening{qtyUnit ? ` (${qtyUnit})` : ''}</th>
-                  <th className="px-3 py-2 text-left">Receipts{qtyUnit ? ` (${qtyUnit})` : ''}</th>
-                  <th className="px-3 py-2 text-left">Total{qtyUnit ? ` (${qtyUnit})` : ''}</th>
-                  <th className="px-3 py-2 text-left">Sales{qtyUnit ? ` (${qtyUnit})` : ''}</th>
-                  <th className="px-3 py-2 text-left">Closing{qtyUnit ? ` (${qtyUnit})` : ''}</th>
-                  <th className="px-3 py-2" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {rows.map((row, index) => (
-                  <tr key={row.id || `${reportDate}-${index}`}>
-                    <td className="px-3 py-2 font-bold">{index + 1}</td>
-                    <td className="px-3 py-2">
-                      <select value={row.product_type} onChange={(event) => updateRow(index, { product_type: event.target.value })} className="w-full min-w-[8rem] rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
-                        {types.map((type) => <option key={type} value={type}>{type}</option>)}
-                      </select>
-                    </td>
-                    <QuantityCell value={toDisplayQuantity(row.opening_balance, row.product_type)} isBags={isFertilizer && fertilizerQtyUnit === 'bags'} onChange={(value) => updateRow(index, { opening_balance: fromDisplayQuantity(value, row.product_type) })} />
-                    <QuantityCell value={toDisplayQuantity(row.receipts, row.product_type)} isBags={isFertilizer && fertilizerQtyUnit === 'bags'} onChange={(value) => updateRow(index, { receipts: fromDisplayQuantity(value, row.product_type) })} />
-                    <td className="px-3 py-2 font-bold text-emerald-700 dark:text-emerald-400">{formatDisplayQuantity(row.total, row.product_type)} {qtyUnit}</td>
-                    <QuantityCell value={toDisplayQuantity(row.sales, row.product_type)} isBags={isFertilizer && fertilizerQtyUnit === 'bags'} onChange={(value) => updateRow(index, { sales: fromDisplayQuantity(value, row.product_type) })} />
-                    <td className="px-3 py-2 font-black text-slate-900 dark:text-white">{formatDisplayQuantity(row.closing_balance, row.product_type)} {qtyUnit}</td>
-                    <td className="px-3 py-2">
-                      <button type="button" onClick={() => removeRow(index)} className="rounded-lg p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex flex-wrap gap-2 border-t border-slate-100 p-3 dark:border-slate-800">
-            <button type="button" onClick={addRow} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold dark:border-slate-600">
-              <Plus className="h-4 w-4" /> Add row
-            </button>
-            <button type="button" onClick={applyYesterdayClosingAsOpening} className="inline-flex items-center gap-2 rounded-xl border border-amber-400 px-3 py-2 text-sm font-bold text-amber-900 dark:text-amber-200">
-              <Copy className="h-4 w-4" /> Opening from yesterday
-            </button>
-            <button type="button" onClick={handleSaveDailyEntry} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
-              <Save className="h-4 w-4" /> {saving ? 'Saving...' : 'Save daily entry'}
-            </button>
-          </div>
-        </section>
+          {loading ? (
+            <div className="flex h-36 items-center justify-center">
+              <div className="h-9 w-9 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+            </div>
+          ) : (
+            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[900px] text-sm">
+                  <thead className="bg-slate-900 text-white">
+                    <tr>
+                      <th className="px-3 py-2 text-left">S.No</th>
+                      <th className="px-3 py-2 text-left">Type</th>
+                      <th className="px-3 py-2 text-left">Opening{qtyUnit ? ` (${qtyUnit})` : ''}</th>
+                      <th className="px-3 py-2 text-left">Receipts{qtyUnit ? ` (${qtyUnit})` : ''}</th>
+                      <th className="px-3 py-2 text-left">Total{qtyUnit ? ` (${qtyUnit})` : ''}</th>
+                      <th className="px-3 py-2 text-left">Sales{qtyUnit ? ` (${qtyUnit})` : ''}</th>
+                      <th className="px-3 py-2 text-left">Closing{qtyUnit ? ` (${qtyUnit})` : ''}</th>
+                      <th className="px-3 py-2" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {rows.map((row, index) => (
+                      <tr key={row.id || `${reportDate}-${index}`}>
+                        <td className="px-3 py-2 font-bold">{index + 1}</td>
+                        <td className="px-3 py-2">
+                          <select value={row.product_type} onChange={(event) => updateRow(index, { product_type: event.target.value })} className="w-full min-w-[8rem] rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                            {types.map((type) => <option key={type} value={type}>{type}</option>)}
+                          </select>
+                        </td>
+                        <QuantityCell value={toDisplayQuantity(row.opening_balance, row.product_type)} isBags={isFertilizer && fertilizerQtyUnit === 'bags'} onChange={(value) => updateRow(index, { opening_balance: fromDisplayQuantity(value, row.product_type) })} />
+                        <QuantityCell value={toDisplayQuantity(row.receipts, row.product_type)} isBags={isFertilizer && fertilizerQtyUnit === 'bags'} onChange={(value) => updateRow(index, { receipts: fromDisplayQuantity(value, row.product_type) })} />
+                        <td className="px-3 py-2 font-bold text-emerald-700 dark:text-emerald-400">{formatDisplayQuantity(row.total, row.product_type)} {qtyUnit}</td>
+                        <QuantityCell value={toDisplayQuantity(row.sales, row.product_type)} isBags={isFertilizer && fertilizerQtyUnit === 'bags'} onChange={(value) => updateRow(index, { sales: fromDisplayQuantity(value, row.product_type) })} />
+                        <td className="px-3 py-2 font-black text-slate-900 dark:text-white">{formatDisplayQuantity(row.closing_balance, row.product_type)} {qtyUnit}</td>
+                        <td className="px-3 py-2">
+                          <button type="button" onClick={() => removeRow(index)} className="rounded-lg p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex flex-wrap gap-2 border-t border-slate-100 p-3 dark:border-slate-800">
+                <button type="button" onClick={addRow} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold dark:border-slate-600">
+                  <Plus className="h-4 w-4" /> Add row
+                </button>
+                <button type="button" onClick={applyYesterdayClosingAsOpening} className="inline-flex items-center gap-2 rounded-xl border border-amber-400 px-3 py-2 text-sm font-bold text-amber-900 dark:text-amber-200">
+                  <Copy className="h-4 w-4" /> Opening from yesterday
+                </button>
+                <button type="button" onClick={handleSaveDailyEntry} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
+                  <Save className="h-4 w-4" /> {saving ? 'Saving...' : 'Save daily entry'}
+                </button>
+              </div>
+            </section>
+          )}
+        </>
       )}
     </div>
   );

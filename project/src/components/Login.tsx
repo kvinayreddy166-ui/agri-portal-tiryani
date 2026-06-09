@@ -17,6 +17,7 @@ import {
   Send,
   ShieldCheck,
   Smartphone,
+  Sparkles,
   Store,
   UserRoundCheck,
   X,
@@ -41,6 +42,9 @@ const FertilizerStatutoryPdfTool = lazy(() =>
 );
 const SeedForms = lazy(() =>
   import('../pages/SeedForms').then((module) => ({ default: module.SeedForms }))
+);
+const OfficialDraftAutomation = lazy(() =>
+  import('../pages/OfficialDraftAutomation').then((module) => ({ default: module.default }))
 );
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
@@ -115,6 +119,7 @@ export function Login() {
     location.pathname === '/officer-toolkit/statutory-forms' ||
     window.location.hash === '#statutory-forms';
   const calculatorOpen = location.pathname === '/officer-toolkit/acreage-calculator';
+  const officialDraftsOpen = location.pathname === '/officer-toolkit/official-drafts';
   const [statutoryFolder, setStatutoryFolder] = useState(() => loadPublicToolkitState().statutoryFolder || 'fertilizers');
   const [statutoryPage, setStatutoryPage] = useState(() => loadPublicToolkitState().statutoryPage || 0);
   const [statutoryForms, setStatutoryForms] = useState<FormDownload[]>([]);
@@ -176,6 +181,10 @@ export function Login() {
 
   const openAcreageCalculator = () => {
     navigate('/officer-toolkit/acreage-calculator', { state: { from: 'officer-toolkit' } });
+  };
+
+  const openOfficialDrafts = () => {
+    navigate('/officer-toolkit/official-drafts', { state: { from: 'officer-toolkit' } });
   };
 
   const closeAcreageCalculator = () => {
@@ -448,6 +457,19 @@ export function Login() {
                 <span className="mt-0.5 block text-xs font-semibold text-stone-600">Open</span>
               </span>
             </button>
+            <button
+              type="button"
+              onClick={openOfficialDrafts}
+              className="flex min-h-16 items-center gap-3 rounded-lg border border-[#d8cfb2] bg-white px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#fbf7ea]"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
+                <Sparkles className="h-5 w-5" />
+              </span>
+              <span>
+                <span className="block text-sm font-black">{t('AI Official Drafts', 'AI అధికారిక డ్రాఫ్ట్లు')}</span>
+                <span className="mt-0.5 block text-xs font-semibold text-stone-600">Generate Memos, Notices, Orders</span>
+              </span>
+            </button>
           </div>
           </section>
         </div>
@@ -455,7 +477,7 @@ export function Login() {
     );
   }
 
-  if (showStatutoryForms || calculatorOpen) {
+  if (showStatutoryForms || calculatorOpen || officialDraftsOpen) {
     return (
       <div className="min-h-screen bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24">
         <div className="mx-auto w-full max-w-4xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
@@ -477,12 +499,12 @@ export function Login() {
                   items={[
                     'Login',
                     'Officer Toolkit',
-                    showStatutoryForms ? 'Statutory Forms' : 'Acreage Calculator',
+                    showStatutoryForms ? 'Statutory Forms' : calculatorOpen ? 'Acreage Calculator' : 'AI Official Drafts',
                     showStatutoryForms ? (STATUTORY_FOLDERS.find((folder) => folder.id === statutoryFolder)?.label || 'Fertilizer') : '',
                   ].filter(Boolean)}
                 />
                 <h1 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  {showStatutoryForms ? t('Statutory Forms', 'చట్టబద్ధ ఫారాలు') : t('Acreage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+                  {showStatutoryForms ? t('Statutory Forms', 'చట్టబద్ధ ఫారాలు') : calculatorOpen ? t('Acreage Calculator', 'ఎకరాల కాలిక్యులేటర్') : t('AI Official Draft Automation', 'AI అధికారిక డ్రాఫ్ట్ ఆటోమేషన్')}
                 </h1>
               </div>
             </div>
@@ -655,6 +677,17 @@ export function Login() {
                 Read values: {acreCalculation.count} item{acreCalculation.count === 1 ? '' : 's'}
               </div>
             </div>
+          )}
+          {officialDraftsOpen && (
+            <Suspense
+              fallback={
+                <div className="flex h-64 items-center justify-center">
+                  <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+                </div>
+              }
+            >
+              <OfficialDraftAutomation />
+            </Suspense>
           )}
         </div>
         {showStatutoryForms && previewForm?.file_url && (

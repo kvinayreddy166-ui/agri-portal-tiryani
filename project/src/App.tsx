@@ -27,6 +27,7 @@ const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m
 const StockInventory = lazy(() => import('./pages/StockInventory').then((m) => ({ default: m.StockInventory })));
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
+const OfficialDraftAutomation = lazy(() => import('./pages/OfficialDraftAutomation').then((m) => ({ default: m.default })));
 const CropDiagnosis = lazy(() =>
   import('./pages/CropDiagnosis').then((m) => ({ default: m.CropDiagnosis }))
 );
@@ -43,7 +44,7 @@ function PageLoader() {
 }
 
 const PUBLIC_VIEW_PAGES = new Set(['dealers', 'stock-inventory']);
-const PUBLIC_AUTH_ROUTES = new Set(['/login', '/officer-toolkit/statutory-forms', '/officer-toolkit/acreage-calculator']);
+const PUBLIC_AUTH_ROUTES = new Set(['/login', '/officer-toolkit/statutory-forms', '/officer-toolkit/acreage-calculator', '/officer-toolkit/official-drafts']);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
 const PAGE_PATHS: Record<string, string> = {
@@ -73,6 +74,7 @@ const PAGE_PATHS: Record<string, string> = {
   'subsidy-state-seed': '/subsidy-state-seed',
   'crop-diagnosis': '/crop-diagnosis',
   'officer-toolkit': '/officer-toolkit',
+  'official-drafts': '/officer-toolkit/official-drafts',
   'acreage-calculator': '/acreage-calculator',
   analytics: '/analytics',
   settings: '/settings',
@@ -94,7 +96,7 @@ function getHistoryIndex() {
 }
 
 function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
-  if (pathname === '/officer-toolkit/statutory-forms' || pathname === '/officer-toolkit/acreage-calculator') {
+  if (pathname === '/officer-toolkit/statutory-forms' || pathname === '/officer-toolkit/acreage-calculator' || pathname === '/officer-toolkit/official-drafts') {
     return '/officer-toolkit';
   }
   if (pathname === '/forms' || pathname === '/acreage-calculator') {
@@ -267,6 +269,7 @@ function AppContent() {
         'subsidy-state-seed',
         'crop-diagnosis',
         'officer-toolkit',
+        'official-drafts',
         'acreage-calculator',
         'analytics',
         'settings',
@@ -475,6 +478,12 @@ function AppContent() {
         );
       case 'officer-toolkit':
         return <OfficersToolkit />;
+      case 'official-drafts':
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <OfficialDraftAutomation />
+          </Suspense>
+        );
       case 'acreage-calculator':
         return <AcreageCalculator />;
       case 'analytics':
