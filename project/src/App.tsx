@@ -34,9 +34,7 @@ const CropDiagnosis = lazy(() =>
 const CropAdminDashboard = lazy(() =>
   import('./pages/admin/CropAdminDashboard.jsx').then((m) => ({ default: m.CropAdminDashboard }))
 );
-const PdfToolsPage = lazy(() =>
-  import('./pages/PdfToolsPage').then((m) => ({ default: m.PdfToolsPage }))
-);
+const PdfToolsPage = lazy(() => import('./pages/PdfToolsPage'));
 
 function PageLoader() {
   return (
