@@ -1,12 +1,11 @@
 import React from 'react';
-import { Calculator, ShieldCheck, Sparkles } from 'lucide-react';
+import { Calculator, ShieldCheck, Sparkles, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
 const toolkitItems = [
   {
     title: 'Acreage Calculator',
-    telugu: 'Acreage Calculator',
     path: '/acreage-calculator',
     icon: Calculator,
     tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
@@ -14,9 +13,15 @@ const toolkitItems = [
   },
   {
     title: 'AI Official Drafts',
-    telugu: 'AI అధికారిక డ్రాఫ్ట్లు',
     path: '/officer-toolkit/official-drafts',
     icon: Sparkles,
+    tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
+    iconTone: 'bg-emerald-600 text-white',
+  },
+  {
+    title: 'PDF Tools',
+    path: '/pdf-tools',
+    icon: FileText,
     tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
     iconTone: 'bg-emerald-600 text-white',
   },
@@ -55,7 +60,7 @@ export function OfficersToolkit() {
                 <item.icon className="h-5 w-5" />
               </span>
               <span className="min-w-0">
-                <span className="block text-sm font-black">{t(item.title, item.telugu)}</span>
+                <span className="block text-sm font-black">{item.title}</span>
                 <span className="mt-0.5 block text-xs font-semibold opacity-75">Open</span>
               </span>
             </button>

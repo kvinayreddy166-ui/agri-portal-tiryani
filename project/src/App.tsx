@@ -34,6 +34,9 @@ const CropDiagnosis = lazy(() =>
 const CropAdminDashboard = lazy(() =>
   import('./pages/admin/CropAdminDashboard.jsx').then((m) => ({ default: m.CropAdminDashboard }))
 );
+const PdfToolsPage = lazy(() =>
+  import('./pages/PdfToolsPage').then((m) => ({ default: m.PdfToolsPage }))
+);
 
 function PageLoader() {
   return (
@@ -44,7 +47,7 @@ function PageLoader() {
 }
 
 const PUBLIC_VIEW_PAGES = new Set(['dealers']);
-const PUBLIC_AUTH_ROUTES = new Set(['/login', '/officer-toolkit/statutory-forms', '/officer-toolkit/acreage-calculator', '/officer-toolkit/official-drafts']);
+const PUBLIC_AUTH_ROUTES = new Set(['/login', '/officer-toolkit/statutory-forms', '/officer-toolkit/acreage-calculator', '/officer-toolkit/official-drafts', '/pdf-tools']);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
 const PAGE_PATHS: Record<string, string> = {
@@ -76,6 +79,7 @@ const PAGE_PATHS: Record<string, string> = {
   'officer-toolkit': '/officer-toolkit',
   'official-drafts': '/officer-toolkit/official-drafts',
   'acreage-calculator': '/acreage-calculator',
+  'pdf-tools': '/pdf-tools',
   analytics: '/analytics',
   settings: '/settings',
 };
@@ -271,6 +275,7 @@ function AppContent() {
         'officer-toolkit',
         'official-drafts',
         'acreage-calculator',
+        'pdf-tools',
         'analytics',
         'settings',
       ]),
@@ -384,7 +389,8 @@ function AppContent() {
       currentPage === 'dashboard' ||
       PUBLIC_VIEW_PAGES.has(currentPage) ||
       location.pathname === '/officer-toolkit' ||
-      PUBLIC_AUTH_ROUTES.has(location.pathname)
+      PUBLIC_AUTH_ROUTES.has(location.pathname) ||
+      location.pathname === '/pdf-tools'
     ) return;
     navigateToPage('dashboard', { replace: true });
   }, [currentPage, loading, location.pathname, navigateToPage, user]);
@@ -494,6 +500,12 @@ function AppContent() {
         );
       case 'acreage-calculator':
         return <AcreageCalculator />;
+      case 'pdf-tools':
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <PdfToolsPage />
+          </Suspense>
+        );
       case 'analytics':
         return <Analytics />;
       case 'settings':
