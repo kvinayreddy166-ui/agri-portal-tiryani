@@ -492,16 +492,30 @@ function openFertilizerDocInTab(
 }
 
 function downloadFertilizerDoc(doc: { output: (type: 'blob') => Blob }, fileName: string) {
-  const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
-  const blobUrl = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  try {
+    const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
 
-  link.href = blobUrl;
-  link.download = fileName;
-  link.rel = 'noopener';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+    link.href = blobUrl;
+    link.download = fileName;
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
 
-  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+  } catch (error) {
+    console.error('PDF download failed:', error);
+    // Fallback: try opening in new tab
+    try {
+      const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (fallbackError) {
+      console.error('Fallback also failed:', fallbackError);
+      throw error;
+    }
+  }
 }
