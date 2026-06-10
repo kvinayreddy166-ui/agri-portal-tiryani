@@ -148,14 +148,17 @@ export function SeedForms() {
   };
 
   const generate = async (kind) => {
-    const targetWindow = openBlankSeedPdfTab();
     const doc = await buildValidatedPdf(kind);
-    if (!doc) {
-      targetWindow?.close();
-      return;
+    if (!doc) return;
+    try {
+      downloadSeedDoc(doc, seedFileName(kind, form));
+      setMessage(`PDF downloaded: ${seedFileName(kind, form)}`);
+    } catch (error) {
+      console.error('Download failed, opening in new tab:', error);
+      const targetWindow = openBlankSeedPdfTab();
+      openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
+      setMessage('PDF opened in a new tab (download failed).');
     }
-    openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
-    setMessage('PDF opened in a new tab.');
   };
 
   const preview = async (kind) => {
@@ -737,6 +740,21 @@ function openSeedDocInTab(doc, fileName, targetWindow) {
   } else {
     window.open(blobUrl, '_blank', 'noopener,noreferrer');
   }
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+}
+
+function downloadSeedDoc(doc, fileName) {
+  const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = blobUrl;
+  link.download = fileName;
+  link.rel = 'noopener';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 
