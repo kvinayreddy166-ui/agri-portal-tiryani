@@ -284,7 +284,17 @@ function AppContent() {
     const legacyPage = new URLSearchParams(location.search).get('page');
     const routePage = location.pathname.replace(/^\/+/, '') || 'dashboard';
     const hashPage = location.hash.replace(/^#\/?/, '');
-    const page = legacyPage || routePage || hashPage;
+    
+    // Handle nested routes for officer toolkit
+    let page = legacyPage || routePage || hashPage;
+    if (page === 'officer-toolkit/pdf-tools') {
+      page = 'pdf-tools';
+    } else if (page === 'officer-toolkit/official-drafts') {
+      page = 'official-drafts';
+    } else if (page === 'officer-toolkit/acreage-calculator') {
+      page = 'acreage-calculator';
+    }
+    
     return validPages.has(page) ? page : 'dashboard';
   }, [location.hash, location.pathname, location.search, validPages]);
   const [currentPage, setCurrentPage] = useState(() => getPageFromLocation());
