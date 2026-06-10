@@ -280,7 +280,6 @@ function AppContent() {
     []
   );
   const getPageFromLocation = useCallback(() => {
-    if (PUBLIC_AUTH_ROUTES.has(location.pathname)) return 'dashboard';
     const legacyPage = new URLSearchParams(location.search).get('page');
     const routePage = location.pathname.replace(/^\/+/, '') || 'dashboard';
     const hashPage = location.hash.replace(/^#\/?/, '');
