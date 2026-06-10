@@ -20,7 +20,7 @@ const toolkitItems = [
   },
   {
     title: 'PDF Tools',
-    path: '/pdf-tools',
+    path: '/officer-toolkit/pdf-tools',
     icon: FileText,
     tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
     iconTone: 'bg-emerald-600 text-white',

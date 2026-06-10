@@ -47,7 +47,7 @@ function PageLoader() {
 }
 
 const PUBLIC_VIEW_PAGES = new Set(['dealers']);
-const PUBLIC_AUTH_ROUTES = new Set(['/login', '/officer-toolkit/statutory-forms', '/officer-toolkit/acreage-calculator', '/officer-toolkit/official-drafts', '/pdf-tools']);
+const PUBLIC_AUTH_ROUTES = new Set(['/login', '/officer-toolkit/statutory-forms', '/officer-toolkit/acreage-calculator', '/officer-toolkit/official-drafts', '/officer-toolkit/pdf-tools']);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
 const PAGE_PATHS: Record<string, string> = {
@@ -79,7 +79,7 @@ const PAGE_PATHS: Record<string, string> = {
   'officer-toolkit': '/officer-toolkit',
   'official-drafts': '/officer-toolkit/official-drafts',
   'acreage-calculator': '/acreage-calculator',
-  'pdf-tools': '/pdf-tools',
+  'pdf-tools': '/officer-toolkit/pdf-tools',
   analytics: '/analytics',
   settings: '/settings',
 };
@@ -100,7 +100,7 @@ function getHistoryIndex() {
 }
 
 function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
-  if (pathname === '/officer-toolkit/statutory-forms' || pathname === '/officer-toolkit/acreage-calculator' || pathname === '/officer-toolkit/official-drafts') {
+  if (pathname === '/officer-toolkit/statutory-forms' || pathname === '/officer-toolkit/acreage-calculator' || pathname === '/officer-toolkit/official-drafts' || pathname === '/officer-toolkit/pdf-tools') {
     return '/officer-toolkit';
   }
   if (pathname === '/forms' || pathname === '/acreage-calculator') {
@@ -389,8 +389,7 @@ function AppContent() {
       currentPage === 'dashboard' ||
       PUBLIC_VIEW_PAGES.has(currentPage) ||
       location.pathname === '/officer-toolkit' ||
-      PUBLIC_AUTH_ROUTES.has(location.pathname) ||
-      location.pathname === '/pdf-tools'
+      PUBLIC_AUTH_ROUTES.has(location.pathname)
     ) return;
     navigateToPage('dashboard', { replace: true });
   }, [currentPage, loading, location.pathname, navigateToPage, user]);
