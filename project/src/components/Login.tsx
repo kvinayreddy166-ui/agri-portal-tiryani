@@ -284,8 +284,11 @@ export function Login() {
     setDownloadingFormId(form.id);
     try {
       await downloadFileFromUrl(form.file_url, form.title);
-    } catch {
-      alert(t('Download could not start. Please preview the file and try again.', 'డౌన్లోడ్ ప్రారంభం కాలేదు. దయచేసి ఫైల్ ప్రివ్యూ చేసి మళ్లీ ప్రయత్నించండి.'));
+    } catch (error) {
+      console.error('Download failed:', error);
+      // Fallback: open in new tab
+      window.open(form.file_url, '_blank', 'noopener,noreferrer');
+      alert(t('Download started in new tab. If it does not download, try right-clicking and "Save as".', 'డౌన్లోడ్ కొత్త ట్యాబ్‌లో ప్రారంభమైంది. డౌన్లోడ్ కాకపోతే, కుడి-క్లిక్ చేసి "సేవ్ యాజ్" ప్రయత్నించండి.'));
     } finally {
       setDownloadingFormId(null);
     }

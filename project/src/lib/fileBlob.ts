@@ -79,13 +79,26 @@ export function revokeBlobUrl(url: string | null | undefined) {
 
 /** Programmatic download that works for cross-origin Supabase public URLs. */
 export async function downloadFileFromUrl(fileUrl: string, fileName?: string) {
-  const blob = await downloadBlob(fileUrl, fileName);
-  const blobUrl = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = blobUrl;
-  anchor.download = fileName || 'download';
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(blobUrl);
+  try {
+    const blob = await downloadBlob(fileUrl, fileName);
+    const blobUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = blobUrl;
+    anchor.download = fileName || 'download';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error('Blob download failed, falling back to direct URL:', error);
+    // Fallback: open in new tab if blob download fails
+    const anchor = document.createElement('a');
+    anchor.href = fileUrl;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    throw error;
+  }
 }
