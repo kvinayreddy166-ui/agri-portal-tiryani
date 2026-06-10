@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuth } from '../context/AuthContext';
 import {
   ArrowLeft,
   FileText,
@@ -14,9 +13,6 @@ import {
   X,
   Printer,
   Sparkles,
-  Shield,
-  Leaf,
-  Globe,
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 
@@ -211,26 +207,6 @@ const TELANGANA_DISTRICTS = [
 // Helper functions
 const getCurrentDate = () => new Date().toISOString().split('T')[0];
 
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case 'fertilizer': return 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950';
-    case 'seeds': return 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950';
-    case 'insecticides': return 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950';
-    case 'environment': return 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950';
-    default: return 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950';
-  }
-};
-
-const getCategoryBadgeColor = (category: string) => {
-  switch (category) {
-    case 'fertilizer': return 'bg-blue-600 text-white';
-    case 'seeds': return 'bg-yellow-600 text-white';
-    case 'insecticides': return 'bg-green-600 text-white';
-    case 'environment': return 'bg-red-600 text-white';
-    default: return 'bg-gray-600 text-white';
-  }
-};
-
 const getOfficeHeader = (designation: OfficerDesignation, mandal?: string, division?: string, district?: string) => {
   switch (designation) {
     case 'Mandal Agriculture Officer': return `OFFICE OF THE MANDAL AGRICULTURE OFFICER\n${mandal || '[Mandal]'}, ${district || '[District]'}\nGOVERNMENT OF TELANGANA`;
@@ -259,7 +235,7 @@ const generateOfficialDraft = (
 ): string => {
   const {
     rcNo, date, subject, reference, description, inspectionDate, inspectionFindings,
-    violationDetails, ruleActClause, instructions, decision, complianceDeadline,
+    ruleActClause, instructions, decision, complianceDeadline,
     officerName, designation, recipientName, recipientDesignation, recipientOffice,
     copyTo, mandal, division, district,
   } = formData;
@@ -291,11 +267,6 @@ const generateOfficialDraft = (
   const teluguReference = 'సూచన';
   const teluguRegarding = 'పై విషయమునకు సంబంధించి';
   const teluguPursuant = 'పై సూచనల మేరకు';
-  const teluguAfterInspection = 'పరిశీలించిన తరువాత';
-  const teluguOrdered = 'కింది విధముగా ఆదేశించడమైనది';
-  const teluguExplanation = 'గడువులోపు వివరణ సమర్పించవలెను';
-  const teluguComply = 'విధిగా పాటించవలెను';
-  const teluguAction = 'అవసరమైన చర్యలు తీసుకొని నివేదిక సమర్పించవలెను';
   const teluguRuleAction = 'నియమావళి ప్రకారం చర్యలు తీసుకోబడును';
 
   const warningEnglish = `You are directed to submit your explanation within ${complianceDeadline || '7'} days, failing which action will be initiated as per rules.`;
@@ -597,8 +568,6 @@ export default function OfficialDraftAutomation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
-  const { user } = useAuth();
-  const contentRef = useRef<HTMLDivElement>(null);
 
   // Form state
   const [documentType, setDocumentType] = useState<DocumentType>('Memo');
@@ -640,8 +609,6 @@ export default function OfficialDraftAutomation() {
 
   // Violation cards state
   const [violationCards, setViolationCards] = useState<ViolationCard[]>(VIOLATION_CARDS);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['fertilizer', 'seeds', 'insecticides', 'environment']));
 
   // Generated content state
   const [generatedContent, setGeneratedContent] = useState('');
@@ -713,52 +680,6 @@ export default function OfficialDraftAutomation() {
 
   const handleInputChange = (field: keyof DraftFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const toggleViolationCard = (id: string) => {
-    setViolationCards(prev => prev.map(card => 
-      card.id === id ? { ...card, selected: !card.selected } : card
-    ));
-    
-    // Auto-populate fields based on selected violations
-    const selected = violationCards.filter(v => v.id === id)[0];
-    if (selected && !selected.selected) {
-      // Card was just selected
-      const currentFindings = formData.inspectionFindings;
-      const currentViolations = formData.violationDetails;
-      const currentRules = formData.ruleActClause;
-      
-      setFormData(prev => ({
-        ...prev,
-        inspectionFindings: currentFindings ? `${currentFindings}\n- ${selected.description}` : `- ${selected.description}`,
-        violationDetails: currentViolations ? `${currentViolations}\n${selected.clause}: ${selected.description}` : `${selected.clause}: ${selected.description}`,
-        ruleActClause: currentRules ? `${currentRules}\n${selected.clause}` : selected.clause,
-      }));
-    }
-  };
-
-  const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(category)) {
-        newSet.delete(category);
-      } else {
-        newSet.add(category);
-      }
-      return newSet;
-    });
-  };
-
-  const selectAllInCategory = (category: string) => {
-    setViolationCards(prev => prev.map(card => 
-      card.category === category ? { ...card, selected: true } : card
-    ));
-  };
-
-  const clearAllInCategory = (category: string) => {
-    setViolationCards(prev => prev.map(card => 
-      card.category === category ? { ...card, selected: false } : card
-    ));
   };
 
   const handleGenerate = () => {
@@ -898,19 +819,6 @@ export default function OfficialDraftAutomation() {
     setViolationCards(VIOLATION_CARDS);
     setGeneratedContent('');
     setShowPreview(false);
-  };
-
-  const filteredCards = violationCards.filter(card =>
-    card.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    card.clause.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const categories = ['fertilizer', 'seeds', 'insecticides', 'environment'] as const;
-  const categoryIcons: Record<string, React.ReactNode> = {
-    fertilizer: <Leaf className="h-4 w-4" />,
-    seeds: <Sparkles className="h-4 w-4" />,
-    insecticides: <Shield className="h-4 w-4" />,
-    environment: <Globe className="h-4 w-4" />,
   };
 
   return (
