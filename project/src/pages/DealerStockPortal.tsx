@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Download, Home, PackageCheck, Save } from 'lucide-react';
+import { ArrowLeft, Calendar, ChevronUp, Download, Home, PackageCheck, Save, Truck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -47,6 +47,16 @@ type StockForm = {
   remarks: string;
 };
 
+type ReceiptForm = {
+  fertilizer_type: string;
+  supplier: string;
+  invoice_no: string;
+  invoice_date: string;
+  quantity: number;
+  unit: string;
+  remarks: string;
+};
+
 const categoryLabels: Record<StockCategory, string> = {
   fertilizer: 'Fertilizer',
   seed: 'Seed',
@@ -82,6 +92,7 @@ export function DealerStockPortal() {
 
   const [category, setCategory] = useState<StockCategory>('fertilizer');
   const [activeSection, setActiveSection] = useState<ActiveSection>('entry');
+  const [entryPanel, setEntryPanel] = useState<'receipt' | 'daily'>('daily');
   const [financialYear, setFinancialYear] = useState(financialYearForDate());
   const [dealerProfile, setDealerProfile] = useState<DealerProfile | null>(null);
   const [records, setRecords] = useState<StockInventoryLine[]>([]);
@@ -89,10 +100,20 @@ export function DealerStockPortal() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [form, setForm] = useState<StockForm>(() => initialForm('fertilizer'));
+  const [receiptForm, setReceiptForm] = useState<ReceiptForm>({
+    fertilizer_type: productTypesForCategory('fertilizer')[0] || '',
+    supplier: 'Markfed',
+    invoice_no: '',
+    invoice_date: currentReportDate(),
+    quantity: 0,
+    unit: 'MT',
+    remarks: '',
+  });
 
   const firmName = dealerProfile?.dealer_name || dealerName || 'Dealer Firm';
   const ifmsId = dealerProfile?.ifms_id || '-';
   const closingStock = form.opening_stock + form.received_quantity - form.sold_quantity;
+  const currentUnit = category === 'fertilizer' ? form.unit : CATEGORY_UNITS[category][0];
 
   const loadDealerProfile = useCallback(async () => {
     if (!dealerId) return;
@@ -139,11 +160,17 @@ export function DealerStockPortal() {
   const switchCategory = (nextCategory: StockCategory) => {
     setCategory(nextCategory);
     setForm(initialForm(nextCategory, form.entry_date));
+    setReceiptForm((current) => ({ ...current, unit: CATEGORY_UNITS[nextCategory][0] }));
+    setEntryPanel('daily');
     setActiveSection('entry');
   };
 
   const updateForm = (patch: Partial<StockForm>) => {
     setForm((current) => ({ ...current, ...patch }));
+  };
+
+  const updateReceiptForm = (patch: Partial<ReceiptForm>) => {
+    setReceiptForm((current) => ({ ...current, ...patch }));
   };
 
   const handleSubmit = async () => {
@@ -199,6 +226,64 @@ export function DealerStockPortal() {
     } catch (error) {
       const text = error instanceof Error ? error.message : 'Save failed';
       alert(`Could not save: ${text}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleReceiptSubmit = async () => {
+    if (!dealerId || saving) return;
+    if (category !== 'fertilizer') return;
+    if (!receiptForm.invoice_no.trim() || receiptForm.quantity <= 0) {
+      alert('Enter invoice number and valid quantity.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const quantity = Number(receiptForm.quantity) || 0;
+      const payload = {
+        dealer_id: dealerId,
+        category,
+        serial_no: 1,
+        product_type: receiptForm.fertilizer_type,
+        financial_year: financialYearForDate(receiptForm.invoice_date),
+        entry_type: 'receipt',
+        firm_name: firmName,
+        ifms_id: ifmsId === '-' ? '' : ifmsId,
+        opening_balance: 0,
+        receipts: quantity,
+        total: quantity,
+        sales: 0,
+        closing_balance: quantity,
+        unit: receiptForm.unit,
+        invoice_no: receiptForm.invoice_no.trim(),
+        invoice_date: receiptForm.invoice_date,
+        supplier: receiptForm.supplier.trim(),
+        remarks: receiptForm.remarks.trim(),
+        report_date: receiptForm.invoice_date,
+        report_month: receiptForm.invoice_date.slice(0, 7),
+        submitted_by: user?.email || '',
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('stock_inventory_lines').insert(payload);
+      if (error) throw error;
+
+      setMessage(`Fertilizer receipt saved for ${formatReportDateLabel(receiptForm.invoice_date, dateLocale)}.`);
+      setReceiptForm({
+        fertilizer_type: productTypesForCategory('fertilizer')[0] || '',
+        supplier: 'Markfed',
+        invoice_no: '',
+        invoice_date: currentReportDate(),
+        quantity: 0,
+        unit: form.unit,
+        remarks: '',
+      });
+      await loadRecords();
+      setActiveSection('history');
+    } catch (error) {
+      const text = error instanceof Error ? error.message : 'Save failed';
+      alert(`Could not save receipt: ${text}`);
     } finally {
       setSaving(false);
     }
@@ -271,21 +356,40 @@ export function DealerStockPortal() {
   }
 
   return (
-    <div className="space-y-4">
-      <section className="sticky top-0 z-30 rounded-lg bg-[#0B3D91] p-4 text-white shadow-lg">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-blue-200">{t('Welcome')}</p>
-            <h1 className="mt-1 text-xl font-black uppercase tracking-wide sm:text-2xl">{firmName}</h1>
-            <p className="mt-1 text-sm font-semibold text-blue-100">IFMS ID: {ifmsId}</p>
+    <div className="min-h-screen space-y-4 bg-[#eef8f2] p-2 sm:p-4">
+      <section className="rounded-lg bg-transparent p-2">
+        <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-start">
+          <div className="hidden md:block" />
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center gap-2 text-2xl font-black text-slate-950">
+              <PackageCheck className="h-8 w-8 text-emerald-700" />
+              Daily Stock Entry
+            </div>
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+              <h1 className="text-lg font-black uppercase tracking-wide text-slate-950 sm:text-xl">{firmName}</h1>
+              <span className="rounded-md bg-slate-950 px-3 py-1 text-sm font-black text-white">IFMS ID: {ifmsId}</span>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap justify-center gap-2 md:justify-end">
+            <label className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-950">
+              Unit
+              <select
+                value={currentUnit}
+                onChange={(event) => {
+                  updateForm({ unit: event.target.value });
+                  updateReceiptForm({ unit: event.target.value });
+                }}
+                className="bg-transparent font-black outline-none"
+              >
+                {CATEGORY_UNITS[category].map((unit) => <option key={unit} value={unit}>{unit}</option>)}
+              </select>
+            </label>
             {activeSection !== 'dashboard' && (
-              <button type="button" onClick={() => setActiveSection('dashboard')} className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-3 py-2 text-sm font-black hover:bg-white/20">
+              <button type="button" onClick={() => setActiveSection('dashboard')} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-black text-slate-800 hover:bg-slate-50">
                 <ArrowLeft className="h-4 w-4" /> Back
               </button>
             )}
-            <button type="button" onClick={handleBackToLogin} className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-3 py-2 text-sm font-black hover:bg-white/20">
+            <button type="button" onClick={handleBackToLogin} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-black text-slate-800 hover:bg-slate-50">
               <Home className="h-4 w-4" /> Login/Home
             </button>
           </div>
@@ -304,14 +408,13 @@ export function DealerStockPortal() {
             key={item}
             type="button"
             onClick={() => switchCategory(item)}
-            className={`rounded-lg border p-3 text-left shadow-sm transition ${
+            className={`min-h-16 rounded-xl border p-4 text-left text-lg shadow-sm transition ${
               category === item
-                ? 'border-emerald-500 bg-emerald-50 text-emerald-950'
-                : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300'
+                ? 'border-emerald-700 bg-emerald-700 text-white shadow-lg shadow-emerald-900/20'
+                : 'border-slate-200 bg-white text-slate-950 hover:border-emerald-300'
             }`}
           >
-            <p className="text-sm font-black">{categoryLabels[item]}</p>
-            <p className="mt-1 text-xs font-semibold opacity-70">Daily Stock Entry</p>
+            <p className="font-black">{categoryLabels[item]}</p>
           </button>
         ))}
       </section>
@@ -329,7 +432,7 @@ export function DealerStockPortal() {
           {FINANCIAL_YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
         </select>
         <div className="flex gap-2">
-          <button type="button" onClick={() => setActiveSection('entry')} className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white">Daily Stock Entry</button>
+          <button type="button" onClick={() => { setActiveSection('entry'); setEntryPanel('daily'); }} className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white">Daily Stock Entry</button>
           <button type="button" onClick={() => setActiveSection('history')} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-black text-slate-700">Stock Receipts & Sales</button>
           <button type="button" onClick={exportRecords} className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700">
             <Download className="h-4 w-4" /> Export to Excel
@@ -344,6 +447,55 @@ export function DealerStockPortal() {
       )}
 
       {activeSection === 'entry' && (
+        <div className="space-y-4">
+          {category === 'fertilizer' && (
+            <button
+              type="button"
+              onClick={() => setEntryPanel(entryPanel === 'receipt' ? 'daily' : 'receipt')}
+              className="flex w-full items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left text-red-800 shadow-sm"
+            >
+              <span className="inline-flex items-center gap-2 font-black">
+                <Truck className="h-5 w-5" /> Fertilizer Receipts
+              </span>
+              <ChevronUp className={`h-5 w-5 transition ${entryPanel === 'receipt' ? '' : 'rotate-180'}`} />
+            </button>
+          )}
+
+          {category === 'fertilizer' && entryPanel === 'receipt' && (
+            <section className="overflow-hidden rounded-xl border border-red-200 bg-white shadow-sm">
+              <div className="bg-red-50 px-4 py-3 text-sm font-black text-red-800">Fertilizer Receipts</div>
+              <div className="grid gap-3 p-4 md:grid-cols-3">
+                <CompactSelect label="Fertilizer Type" value={receiptForm.fertilizer_type} onChange={(value) => updateReceiptForm({ fertilizer_type: value })} options={productTypesForCategory('fertilizer')} />
+                <CompactInput label="Wholesaler" value={receiptForm.supplier} onChange={(value) => updateReceiptForm({ supplier: value })} />
+                <CompactInput label="Invoice No." value={receiptForm.invoice_no} onChange={(value) => updateReceiptForm({ invoice_no: value })} />
+                <CompactInput label="Date" type="date" value={receiptForm.invoice_date} onChange={(value) => updateReceiptForm({ invoice_date: value })} />
+                <CompactInput label={`Quantity (${receiptForm.unit})`} type="number" value={String(receiptForm.quantity)} onChange={(value) => updateReceiptForm({ quantity: Number(value) || 0 })} />
+                <div className="rounded-lg bg-red-50 p-3 text-red-800">
+                  <p className="text-[11px] font-black uppercase">Current Balance</p>
+                  <p className="mt-1 text-lg font-black">{summary.closing.toFixed(2)} {receiptForm.unit}</p>
+                </div>
+                <div className="md:col-span-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm font-black text-red-800">Receipt unit follows the selected page unit: {receiptForm.unit}. Converted quantity: {receiptForm.quantity.toFixed(2)}</p>
+                  <button type="button" onClick={handleReceiptSubmit} disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-700 px-4 py-2 text-sm font-black text-white disabled:opacity-60">
+                    <Save className="h-4 w-4" /> Save Receipt
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setEntryPanel(entryPanel === 'daily' ? 'receipt' : 'daily')}
+            className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-slate-950 shadow-sm"
+          >
+            <span className="inline-flex items-center gap-2 font-black">
+              <Calendar className="h-5 w-5 text-emerald-700" /> Daily Stock / Sales
+            </span>
+            <ChevronUp className={`h-5 w-5 transition ${entryPanel === 'daily' ? '' : 'rotate-180'}`} />
+          </button>
+
+          {entryPanel === 'daily' && (
         <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <PackageCheck className="h-5 w-5 text-emerald-700" />
@@ -390,6 +542,8 @@ export function DealerStockPortal() {
             </button>
           </div>
         </section>
+          )}
+        </div>
       )}
 
       {activeSection === 'history' && (
