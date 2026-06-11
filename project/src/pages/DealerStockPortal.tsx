@@ -742,40 +742,44 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
     return <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm font-bold text-slate-500">No saved entries found.</div>;
   }
 
-  const headers = type === 'receipt'
-    ? ['S.No', 'Date', 'Product', `Quantity (${unit})`, 'Invoice No', 'Invoice Date', 'Source', 'Remarks', 'Delete']
-    : ['S.No', 'Date', 'Product', `Opening (${unit})`, `Receipts (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'];
-
   return (
-    <>
-    <div className="grid gap-2 md:hidden">
-      {rows.map((row, index) => (
-        <SavedMobileRow
-          key={row.id || `${row.report_date}-${row.product_type}-${index}`}
-          row={row}
-          index={index}
-          category={category}
-          unit={unit}
-          type={type}
-          deletingId={deletingId}
-          onDelete={onDelete}
-        />
-      ))}
-    </div>
-    <div className="hidden max-w-full overflow-x-auto rounded-xl border border-slate-200 md:block">
-      <table className="w-full min-w-[820px] text-xs">
+    <div className="max-w-full overflow-hidden rounded-xl border border-slate-200">
+      <table className="w-full table-fixed text-[10px] sm:text-xs">
         <thead className={type === 'receipt' ? 'bg-red-800 text-white' : 'bg-emerald-900 text-white'}>
-          <tr>
-            {headers.map((header) => <th key={header} className="whitespace-nowrap px-2.5 py-2 text-left font-black">{header}</th>)}
-          </tr>
+          {type === 'receipt' ? (
+            <tr>
+              <TableHead className="w-8 sm:w-12">S.No</TableHead>
+              <TableHead className="w-16 sm:w-24">Date</TableHead>
+              <TableHead>Product</TableHead>
+              <TableHead className="w-20 sm:w-28">Qty ({unit})</TableHead>
+              <TableHead className="hidden w-24 sm:table-cell">Invoice No</TableHead>
+              <TableHead className="hidden w-24 md:table-cell">Invoice Date</TableHead>
+              <TableHead className="hidden md:table-cell">Source</TableHead>
+              <TableHead className="hidden lg:table-cell">Remarks</TableHead>
+              <TableHead className="w-11">Del</TableHead>
+            </tr>
+          ) : (
+            <tr>
+              <TableHead className="w-8 sm:w-12">S.No</TableHead>
+              <TableHead className="w-16 sm:w-24">Date</TableHead>
+              <TableHead>Product</TableHead>
+              <TableHead className="hidden w-24 sm:table-cell">Opening ({unit})</TableHead>
+              <TableHead className="w-20 sm:w-24">Receipts ({unit})</TableHead>
+              <TableHead className="w-20 sm:w-24">Sales ({unit})</TableHead>
+              <TableHead className="w-20 sm:w-24">Closing ({unit})</TableHead>
+              <TableHead className="w-11">Del</TableHead>
+            </tr>
+          )}
         </thead>
         <tbody className="divide-y divide-slate-100 bg-white">
           {rows.map((row, index) => (
             <tr key={row.id || `${row.report_date}-${row.product_type}-${index}`} className={type === 'receipt' ? 'hover:bg-red-50/70' : 'hover:bg-emerald-50/70'}>
-              {savedTableCells(row, index, category, unit, type).map((cell, cellIndex) => (
-                <td key={`${row.id || index}-${cellIndex}`} className="whitespace-nowrap px-2.5 py-2 font-bold text-slate-700">{cell}</td>
-              ))}
-              <td className="px-2.5 py-2">
+              {type === 'receipt' ? (
+                <ReceiptTableCells row={row} index={index} category={category} unit={unit} />
+              ) : (
+                <DailyTableCells row={row} index={index} category={category} unit={unit} />
+              )}
+              <td className="px-1.5 py-2 text-center sm:px-2.5">
                 <button
                   type="button"
                   onClick={() => onDelete(row)}
@@ -791,72 +795,46 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
         </tbody>
       </table>
     </div>
+  );
+}
+
+function ReceiptTableCells({ row, index, category, unit }: { row: StockInventoryLine; index: number; category: StockCategory; unit: string }) {
+  const product = displayProduct(row);
+  return (
+    <>
+      <TableCell>{index + 1}</TableCell>
+      <TableCell>{displayDate(row.report_date)}</TableCell>
+      <TableCell>{product}</TableCell>
+      <TableCell>{displayQuantity(Number(row.receipts || 0), product, category, unit)}</TableCell>
+      <TableCell className="hidden sm:table-cell">{row.invoice_no || '-'}</TableCell>
+      <TableCell className="hidden md:table-cell">{displayDate(row.invoice_date)}</TableCell>
+      <TableCell className="hidden md:table-cell">{row.supplier || '-'}</TableCell>
+      <TableCell className="hidden lg:table-cell">{row.remarks || '-'}</TableCell>
     </>
   );
 }
 
-function SavedMobileRow({ row, index, category, unit, type, deletingId, onDelete }: { row: StockInventoryLine; index: number; category: StockCategory; unit: string; type: 'receipt' | 'daily_stock'; deletingId: string; onDelete: (row: StockInventoryLine) => void }) {
+function DailyTableCells({ row, index, category, unit }: { row: StockInventoryLine; index: number; category: StockCategory; unit: string }) {
   const product = displayProduct(row);
   return (
-    <article className={`rounded-xl border p-2.5 ${type === 'receipt' ? 'border-red-100 bg-red-50/70' : 'border-emerald-100 bg-emerald-50/70'}`}>
-      <div className="mb-2 flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="break-words text-sm font-black text-slate-950">{index + 1}. {product}</p>
-          <p className="text-xs font-bold text-slate-500">{displayDate(row.report_date)}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => onDelete(row)}
-          disabled={!row.id || deletingId === row.id}
-          className="shrink-0 rounded-lg border border-red-200 bg-white p-2 text-red-600 disabled:opacity-50"
-          title="Delete entry"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
-      {type === 'receipt' ? (
-        <div className="grid grid-cols-2 gap-2">
-          <MobileValue label={`Quantity (${unit})`} value={displayQuantity(Number(row.receipts || 0), product, category, unit)} />
-          <MobileValue label="Invoice No" value={row.invoice_no || '-'} />
-          <MobileValue label="Invoice Date" value={displayDate(row.invoice_date)} />
-          <MobileValue label="Source" value={row.supplier || '-'} />
-          <div className="col-span-2"><MobileValue label="Remarks" value={row.remarks || '-'} /></div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-2">
-          <MobileValue label={`Opening (${unit})`} value={displayQuantity(Number(row.opening_balance || 0), product, category, unit)} />
-          <MobileValue label={`Receipts (${unit})`} value={displayQuantity(Number(row.receipts || 0), product, category, unit)} />
-          <MobileValue label={`Sales (${unit})`} value={displayQuantity(Number(row.sales || 0), product, category, unit)} />
-          <MobileValue label={`Closing (${unit})`} value={displayQuantity(Number(row.closing_balance || 0), product, category, unit)} />
-        </div>
-      )}
-    </article>
+    <>
+      <TableCell>{index + 1}</TableCell>
+      <TableCell>{displayDate(row.report_date)}</TableCell>
+      <TableCell>{product}</TableCell>
+      <TableCell className="hidden sm:table-cell">{displayQuantity(Number(row.opening_balance || 0), product, category, unit)}</TableCell>
+      <TableCell>{displayQuantity(Number(row.receipts || 0), product, category, unit)}</TableCell>
+      <TableCell>{displayQuantity(Number(row.sales || 0), product, category, unit)}</TableCell>
+      <TableCell>{displayQuantity(Number(row.closing_balance || 0), product, category, unit)}</TableCell>
+    </>
   );
 }
 
-function savedTableCells(row: StockInventoryLine, index: number, category: StockCategory, unit: string, type: 'receipt' | 'daily_stock') {
-  const product = displayProduct(row);
-  if (type === 'receipt') {
-    return [
-      index + 1,
-      displayDate(row.report_date),
-      product,
-      displayQuantity(Number(row.receipts || 0), product, category, unit),
-      row.invoice_no || '-',
-      displayDate(row.invoice_date),
-      row.supplier || '-',
-      row.remarks || '-',
-    ];
-  }
-  return [
-    index + 1,
-    displayDate(row.report_date),
-    product,
-    displayQuantity(Number(row.opening_balance || 0), product, category, unit),
-    displayQuantity(Number(row.receipts || 0), product, category, unit),
-    displayQuantity(Number(row.sales || 0), product, category, unit),
-    displayQuantity(Number(row.closing_balance || 0), product, category, unit),
-  ];
+function TableHead({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <th className={`break-words px-1.5 py-2 text-left font-black sm:px-2.5 ${className}`}>{children}</th>;
+}
+
+function TableCell({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <td className={`break-words px-1.5 py-2 align-top font-bold text-slate-700 sm:px-2.5 ${className}`}>{children}</td>;
 }
 
 function displayQuantity(value: number, product: string, category: StockCategory, unit: string) {
@@ -955,15 +933,6 @@ function MobileNumber({ label, value, onChange }: { label: string; value: number
   );
 }
 
-function MobileValue({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="min-w-0 rounded-lg bg-white/85 px-2.5 py-2">
-      <p className="text-[10px] font-black uppercase text-slate-500">{label}</p>
-      <p className="mt-0.5 break-words text-sm font-bold text-slate-900">{value}</p>
-    </div>
-  );
-}
-
 function Readonly({ label, value }: { label: string; value: string }) {
   return <div><span className="mb-1 block text-[10px] font-black uppercase text-slate-500">{label}</span><div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm font-black text-slate-900">{value}</div></div>;
 }
@@ -989,7 +958,7 @@ function useFilteredRows(rows: StockInventoryLine[], category: StockCategory, fi
     return rows.filter((row) => {
       const date = row.report_date || '';
       const title = row.product_type.toLowerCase();
-      const isType = type === 'receipt' ? (row.entry_type || 'daily_stock') === 'receipt' : (row.entry_type || 'daily_stock') !== 'receipt';
+      const isType = type === 'receipt' ? isReceiptRow(row) : !isReceiptRow(row);
       return (
         row.category === category &&
         isType &&
@@ -1008,11 +977,25 @@ function useFilteredRows(rows: StockInventoryLine[], category: StockCategory, fi
 function useOptions(rows: StockInventoryLine[], category: StockCategory, type: 'receipt' | 'daily_stock', field: 'product' | 'source') {
   return useMemo(() => {
     const values = rows
-      .filter((row) => row.category === category && (type === 'receipt' ? (row.entry_type || 'daily_stock') === 'receipt' : (row.entry_type || 'daily_stock') !== 'receipt'))
+      .filter((row) => row.category === category && (type === 'receipt' ? isReceiptRow(row) : !isReceiptRow(row)))
       .map((row) => field === 'product' ? row.product_type : row.supplier || '')
       .filter(Boolean);
     return [...new Set(values)].sort((a, b) => a.localeCompare(b));
   }, [category, field, rows, type]);
+}
+
+function isReceiptRow(row: StockInventoryLine) {
+  if (row.entry_type === 'receipt') return true;
+  if (row.entry_type === 'daily_stock' || row.entry_type === 'sale') return false;
+  if (row.invoice_no || row.supplier) return true;
+
+  const opening = Number(row.opening_balance || 0);
+  const receipts = Number(row.receipts || 0);
+  const total = Number(row.total || 0);
+  const sales = Number(row.sales || 0);
+  const closing = Number(row.closing_balance || 0);
+
+  return receipts > 0 && opening === 0 && sales === 0 && total === receipts && closing === receipts;
 }
 
 function buildSummary(dailyRows: StockInventoryLine[], receiptRows: StockInventoryLine[]) {
