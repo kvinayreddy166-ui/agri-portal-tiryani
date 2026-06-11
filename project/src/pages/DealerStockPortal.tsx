@@ -709,13 +709,13 @@ function SavedTableSection(props: {
   onDelete: (row: StockInventoryLine) => void;
 }) {
   return (
-    <section className="rounded-[14px] bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
+    <section className="border border-slate-200 bg-white">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div>
+        <div className="px-2 pt-2">
           <h3 className="text-sm font-black">{props.title}</h3>
           <p className="text-xs font-bold text-slate-500">{props.rows.length} records</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 px-2 pt-2">
           <button type="button" onClick={() => props.setFiltersOpen(!props.filtersOpen)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black">
             Filters <ChevronDown className={`h-3 w-3 transition ${props.filtersOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -724,7 +724,7 @@ function SavedTableSection(props: {
           </button>
         </div>
       </div>
-      <div className={`${props.filtersOpen ? 'grid' : 'hidden md:grid'} mb-2 gap-2 md:grid-cols-6`}>
+      <div className={`${props.filtersOpen ? 'grid' : 'hidden md:grid'} mb-2 gap-2 px-2 md:grid-cols-6`}>
         <SelectField label="Financial Year" value={props.filter.financialYear} onChange={(value) => props.setFilter((current) => ({ ...current, financialYear: value }))} options={FINANCIAL_YEARS} />
         <Field label="From Date" type="date" value={props.filter.fromDate} onChange={(value) => props.setFilter((current) => ({ ...current, fromDate: value }))} />
         <Field label="To Date" type="date" value={props.filter.toDate} onChange={(value) => props.setFilter((current) => ({ ...current, toDate: value }))} />
@@ -739,11 +739,11 @@ function SavedTableSection(props: {
 
 function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows: StockInventoryLine[]; category: StockCategory; unit: string; type: 'receipt' | 'daily_stock'; deletingId: string; onDelete: (row: StockInventoryLine) => void }) {
   if (!rows.length) {
-    return <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm font-bold text-slate-500">No saved entries found.</div>;
+    return <div className="border-t border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm font-bold text-slate-500">No saved entries found.</div>;
   }
 
   return (
-    <div className="max-w-full overflow-hidden rounded-xl border border-slate-200">
+    <div className="max-w-full overflow-hidden border-t border-slate-200">
       <table className="w-full table-fixed text-[10px] sm:text-xs">
         <thead className={type === 'receipt' ? 'bg-red-800 text-white' : 'bg-emerald-900 text-white'}>
           {type === 'receipt' ? (
