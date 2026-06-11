@@ -6,7 +6,7 @@ import { PortalLogo } from './components/ui/PortalLogo';
 import { OfflineStatus } from './components/ui/OfflineStatus';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
-const Login = lazy(() => import('./components/Login'));
+const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
 const Layout = lazy(() => import('./components/Layout').then((m) => ({ default: m.Layout })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const DealerManagement = lazy(() => import('./pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));
@@ -282,21 +282,26 @@ function AppContent() {
     []
   );
   const getPageFromLocation = useCallback(() => {
-    const legacyPage = new URLSearchParams(location.search).get('page');
-    const routePage = location.pathname.replace(/^\/+/, '') || 'dashboard';
-    const hashPage = location.hash.replace(/^#\/?/, '');
-    
-    // Handle nested routes for officer toolkit
-    let page = legacyPage || routePage || hashPage;
-    if (page === 'officer-toolkit/pdf-tools') {
-      page = 'pdf-tools';
-    } else if (page === 'officer-toolkit/official-drafts') {
-      page = 'official-drafts';
-    } else if (page === 'officer-toolkit/acreage-calculator') {
-      page = 'acreage-calculator';
+    try {
+      const legacyPage = new URLSearchParams(location.search).get('page');
+      const routePage = location.pathname.replace(/^\/+/, '') || 'dashboard';
+      const hashPage = location.hash.replace(/^#\/?/, '');
+      
+      // Handle nested routes for officer toolkit
+      let page = legacyPage || routePage || hashPage;
+      if (page === 'officer-toolkit/pdf-tools') {
+        page = 'pdf-tools';
+      } else if (page === 'officer-toolkit/official-drafts') {
+        page = 'official-drafts';
+      } else if (page === 'officer-toolkit/acreage-calculator') {
+        page = 'acreage-calculator';
+      }
+      
+      return validPages.has(page) ? page : 'dashboard';
+    } catch (error) {
+      console.error('Error getting page from location:', error);
+      return 'dashboard';
     }
-    
-    return validPages.has(page) ? page : 'dashboard';
   }, [location.hash, location.pathname, location.search, validPages]);
   const [currentPage, setCurrentPage] = useState(() => getPageFromLocation());
   const pageRef = useRef(currentPage);

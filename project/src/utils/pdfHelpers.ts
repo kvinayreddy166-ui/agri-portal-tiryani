@@ -137,7 +137,7 @@ export async function compressPdf(
     blob: compressedBlob,
     originalSize,
     compressedSize,
-    reduction,
+    reduction: Number.isFinite(reduction) ? reduction : 0,
   };
 }
 
