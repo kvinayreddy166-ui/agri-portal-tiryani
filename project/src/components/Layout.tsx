@@ -207,7 +207,7 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
 
       <main className="min-h-[calc(100vh-4.25rem)]">
         <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
-          {currentPage !== 'dashboard' && (
+          {currentPage !== 'dashboard' && currentPage !== 'dealer-portal' && (
             <div className="mb-4 flex flex-col gap-2">
               <button
                 type="button"

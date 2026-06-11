@@ -18,7 +18,6 @@ import { bagsToMt, formatBags, formatMt, mtToBags } from '../utils/fertilizerUni
 import { currentFinancialYear } from '../utils/financialYear';
 
 type Section = 'analytics' | 'saved';
-type ExportUnit = 'MT' | 'Bags' | 'Both';
 
 type DealerProfile = {
   dealer_name?: string;
@@ -79,8 +78,28 @@ const CATEGORY_LABELS: Record<StockCategory, string> = {
 const FERTILIZER_PRODUCTS = ['Urea', 'DAP', 'MOP', 'SSP', '20:20:0:13', '10:26:26', '14:35:14', '17:17:17', '19:19:19', '28:28:0', 'Other'];
 const WHOLESALERS = ['Markfed', 'Coromandel', 'M/s. Laxmi Narasimha Traders, Karimnagar', 'M/s. FR Lahoti & Sons', 'M/s. Vaibhav Traders, Karimnagar', 'Jahnavi Agro Agencies', 'M/s. Sai Rama Trading Company, Karimnagar', 'M/s. Meher Sai Seeds & Fertilizers', 'Sri Rajarajeshwari Traders, Mancherial', 'Kanaka Durga Trading Company', 'Sri Laxmi Fertilizers', 'Rama Trading Company'];
 
+type StockLinePayload = Omit<StockInventoryLine, 'id'> & {
+  dealer_id: string;
+  updated_at: string;
+  submitted_by: string;
+};
+
 function productsFor(category: StockCategory) {
   return category === 'fertilizer' ? FERTILIZER_PRODUCTS : productTypesForCategory(category);
+}
+
+async function saveStockLine(payload: StockLinePayload) {
+  const { error: rpcError } = await supabase.rpc('save_dealer_stock_line', { p_line: payload });
+  if (!rpcError) return;
+
+  const rpcMissing =
+    rpcError.message?.toLowerCase().includes('function') ||
+    rpcError.message?.toLowerCase().includes('schema cache');
+
+  if (!rpcMissing) throw rpcError;
+
+  const { error } = await supabase.from('stock_inventory_lines').insert(payload);
+  if (error) throw error;
 }
 
 function emptyReceipt(category: StockCategory): ReceiptForm {
@@ -128,12 +147,10 @@ export function DealerStockPortal() {
   const [dailyFilter, setDailyFilter] = useState<SavedFilter>(() => emptyFilter());
   const [receiptFiltersOpen, setReceiptFiltersOpen] = useState(false);
   const [dailyFiltersOpen, setDailyFiltersOpen] = useState(false);
-  const [exportUnit, setExportUnit] = useState<ExportUnit>('Both');
 
   const firmName = dealerProfile?.dealer_name || dealerName || 'Dealer Firm';
   const ifmsId = dealerProfile?.ifms_id || '';
   const licenseNumber = getCategoryLicense(dealerProfile, category);
-  const fyForQuery = section === 'saved' ? receiptFilter.financialYear : currentFinancialYear();
 
   const loadDealerProfile = useCallback(async () => {
     if (!dealerId) return;
@@ -141,19 +158,16 @@ export function DealerStockPortal() {
     setDealerProfile((data || null) as DealerProfile | null);
   }, [dealerId]);
 
-  const loadRecords = useCallback(async (financialYear = fyForQuery) => {
+  const loadRecords = useCallback(async () => {
     if (!dealerId) return;
     setLoading(true);
-    const range = financialYearRange(financialYear);
-    let query = supabase
+    const query = supabase
       .from('stock_inventory_lines')
       .select('*')
       .eq('dealer_id', dealerId)
       .eq('category', category)
       .order('report_date', { ascending: false })
       .order('created_at', { ascending: false });
-
-    query = query.or(`financial_year.eq.${financialYear},and(financial_year.is.null,report_date.gte.${range.start},report_date.lte.${range.end})`);
 
     const { data, error } = await query;
     if (error) {
@@ -164,7 +178,7 @@ export function DealerStockPortal() {
     }
     setRecordsLoaded(true);
     setLoading(false);
-  }, [category, dealerId, fyForQuery]);
+  }, [category, dealerId]);
 
   useEffect(() => {
     void loadDealerProfile();
@@ -176,15 +190,15 @@ export function DealerStockPortal() {
     setReceiptForm(emptyReceipt(category));
     setDailyForm(emptyDaily(category));
     setUnit(CATEGORY_UNITS[category][0]);
-    if (section === 'saved') void loadRecords(receiptFilter.financialYear);
+    if (section === 'saved') void loadRecords();
   }, [category]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (section === 'saved' && !recordsLoaded) void loadRecords(receiptFilter.financialYear);
+    if (section === 'saved' && !recordsLoaded) void loadRecords();
   }, [loadRecords, recordsLoaded, receiptFilter.financialYear, section]);
 
   useEffect(() => {
-    if (section === 'saved') void loadRecords(receiptFilter.financialYear);
+    if (section === 'saved') void loadRecords();
   }, [receiptFilter.financialYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveReceipt = async () => {
@@ -197,7 +211,7 @@ export function DealerStockPortal() {
 
     setSaving(true);
     try {
-      const payload = {
+      const payload: StockLinePayload = {
         dealer_id: dealerId,
         category,
         serial_no: 1,
@@ -222,8 +236,7 @@ export function DealerStockPortal() {
         submitted_by: user?.email || '',
         updated_at: new Date().toISOString(),
       };
-      const { error } = await supabase.from('stock_inventory_lines').insert(payload);
-      if (error) throw error;
+      await saveStockLine(payload);
       setMessage('Receipt saved.');
       setReceiptForm(emptyReceipt(category));
       setRecordsLoaded(false);
@@ -247,7 +260,7 @@ export function DealerStockPortal() {
 
     setSaving(true);
     try {
-      const payload = {
+      const payload: StockLinePayload = {
         dealer_id: dealerId,
         category,
         serial_no: 1,
@@ -267,8 +280,7 @@ export function DealerStockPortal() {
         submitted_by: user?.email || '',
         updated_at: new Date().toISOString(),
       };
-      const { error } = await supabase.from('stock_inventory_lines').insert(payload);
-      if (error) throw error;
+      await saveStockLine(payload);
       setMessage('Daily stock saved.');
       setDailyForm(emptyDaily(category));
       setRecordsLoaded(false);
@@ -301,7 +313,7 @@ export function DealerStockPortal() {
             {menuOpen && (
               <div className="absolute right-0 top-11 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
                 <MenuButton icon={<BarChart3 className="h-4 w-4" />} label="Stock Analytics" active={section === 'analytics'} onClick={() => { setSection('analytics'); setMenuOpen(false); }} />
-                <MenuButton icon={<Table2 className="h-4 w-4" />} label="Saved Entries" active={section === 'saved'} onClick={() => { setSection('saved'); setMenuOpen(false); void loadRecords(receiptFilter.financialYear); }} />
+                <MenuButton icon={<Table2 className="h-4 w-4" />} label="Saved Entries" active={section === 'saved'} onClick={() => { setSection('saved'); setMenuOpen(false); void loadRecords(); }} />
               </div>
             )}
           </div>
@@ -339,8 +351,6 @@ export function DealerStockPortal() {
             setReceiptFilter={setReceiptFilter}
             dailyFilter={dailyFilter}
             setDailyFilter={setDailyFilter}
-            exportUnit={exportUnit}
-            setExportUnit={setExportUnit}
             receiptFiltersOpen={receiptFiltersOpen}
             setReceiptFiltersOpen={setReceiptFiltersOpen}
             dailyFiltersOpen={dailyFiltersOpen}
@@ -467,8 +477,6 @@ function SavedEntries(props: {
   setReceiptFilter: React.Dispatch<React.SetStateAction<SavedFilter>>;
   dailyFilter: SavedFilter;
   setDailyFilter: React.Dispatch<React.SetStateAction<SavedFilter>>;
-  exportUnit: ExportUnit;
-  setExportUnit: (unit: ExportUnit) => void;
   receiptFiltersOpen: boolean;
   setReceiptFiltersOpen: (open: boolean) => void;
   dailyFiltersOpen: boolean;
@@ -498,9 +506,7 @@ function SavedEntries(props: {
         sourceOptions={receiptSources}
         filtersOpen={props.receiptFiltersOpen}
         setFiltersOpen={props.setReceiptFiltersOpen}
-        exportUnit={props.exportUnit}
-        setExportUnit={props.setExportUnit}
-        onExport={() => exportSavedRows('receipts', receiptRows, category, unit, props.exportUnit, props.firmName, props.ifmsId)}
+        onExport={() => exportSavedRows('receipts', receiptRows, category, unit, props.firmName, props.ifmsId)}
       />
       <SavedTableSection
         title="Saved Daily Stock / Sales"
@@ -514,9 +520,7 @@ function SavedEntries(props: {
         sourceOptions={[]}
         filtersOpen={props.dailyFiltersOpen}
         setFiltersOpen={props.setDailyFiltersOpen}
-        exportUnit={props.exportUnit}
-        setExportUnit={props.setExportUnit}
-        onExport={() => exportSavedRows('daily', dailyRows, category, unit, props.exportUnit, props.firmName, props.ifmsId)}
+        onExport={() => exportSavedRows('daily', dailyRows, category, unit, props.firmName, props.ifmsId)}
       />
     </div>
   );
@@ -534,8 +538,6 @@ function SavedTableSection(props: {
   sourceOptions: string[];
   filtersOpen: boolean;
   setFiltersOpen: (open: boolean) => void;
-  exportUnit: ExportUnit;
-  setExportUnit: (unit: ExportUnit) => void;
   onExport: () => void;
 }) {
   return (
@@ -546,11 +548,6 @@ function SavedTableSection(props: {
           <p className="text-xs font-bold text-slate-500">{props.rows.length} records</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {props.category === 'fertilizer' && (
-            <select value={props.exportUnit} onChange={(event) => props.setExportUnit(event.target.value as ExportUnit)} className="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-black">
-              {['MT', 'Bags', 'Both'].map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
-          )}
           <button type="button" onClick={() => props.setFiltersOpen(!props.filtersOpen)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black">
             Filters <ChevronDown className={`h-3 w-3 transition ${props.filtersOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -573,65 +570,89 @@ function SavedTableSection(props: {
 }
 
 function SavedTable({ rows, category, unit, type }: { rows: StockInventoryLine[]; category: StockCategory; unit: string; type: 'receipt' | 'daily_stock' }) {
-  const headers = type === 'receipt'
-    ? ['S.No', 'Date', 'Product', 'Quantity (MT)', 'Quantity (Bags)', 'Invoice No', 'Invoice Date', 'Source', 'Remarks']
-    : category === 'fertilizer'
-      ? ['S.No', 'Date', 'Product', 'Opening', 'Receipts', 'Sales', 'Closing', 'Opening Bags', 'Receipts Bags', 'Sales Bags', 'Closing Bags', 'Unit']
-      : ['S.No', 'Date', 'Product', 'Opening', 'Receipts', 'Sales', 'Closing', 'Unit'];
+  if (!rows.length) {
+    return <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm font-bold text-slate-500">No saved entries found.</div>;
+  }
 
   return (
-    <div className="max-w-full overflow-x-auto">
-      <table className="w-full min-w-[760px] text-xs">
-        <thead className="sticky top-0 text-white" style={{ background: COLORS.text }}>
-          <tr>{headers.map((header) => <th key={header} className="whitespace-nowrap px-2 py-2 text-left">{header}</th>)}</tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {!rows.length && <tr><td colSpan={headers.length} className="px-2 py-5 text-center font-bold text-slate-500">No saved entries found.</td></tr>}
-          {rows.map((row, index) => (
-            <tr key={row.id || `${row.report_date}-${row.product_type}-${index}`} className="bg-white">
-              {tableCells(row, index, category, unit, type).map((cell, cellIndex) => <td key={cellIndex} className="whitespace-nowrap px-2 py-2 font-semibold text-slate-700">{cell}</td>)}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+      {rows.map((row, index) => (
+        <SavedEntryCard
+          key={row.id || `${row.report_date}-${row.product_type}-${index}`}
+          row={row}
+          index={index}
+          category={category}
+          unit={unit}
+          type={type}
+        />
+      ))}
     </div>
   );
 }
 
-function tableCells(row: StockInventoryLine, index: number, category: StockCategory, unit: string, type: 'receipt' | 'daily_stock') {
+function SavedEntryCard({ row, index, category, unit, type }: { row: StockInventoryLine; index: number; category: StockCategory; unit: string; type: 'receipt' | 'daily_stock' }) {
   const product = row.product_type || '-';
-  if (type === 'receipt') {
-    return [
-      index + 1,
-      displayDate(row.report_date),
-      product,
-      category === 'fertilizer' ? formatMt(Number(row.receipts || 0)) : Number(row.receipts || 0),
-      category === 'fertilizer' ? formatBags(mtToBags(Number(row.receipts || 0), product)) : row.unit || unit,
-      row.invoice_no || '-',
-      displayDate(row.invoice_date),
-      row.supplier || '-',
-      row.remarks || '-',
-    ];
-  }
-  const base = [index + 1, displayDate(row.report_date), product, Number(row.opening_balance || 0), Number(row.receipts || 0), Number(row.sales || 0), Number(row.closing_balance || 0)];
-  if (category !== 'fertilizer') return [...base, row.unit || unit];
-  return [
-    ...base,
-    formatBags(mtToBags(Number(row.opening_balance || 0), product)),
-    formatBags(mtToBags(Number(row.receipts || 0), product)),
-    formatBags(mtToBags(Number(row.sales || 0), product)),
-    formatBags(mtToBags(Number(row.closing_balance || 0), product)),
-    'MT',
-  ];
+  const accent = type === 'receipt' ? 'border-red-100 bg-red-50/70' : 'border-emerald-100 bg-emerald-50/70';
+  return (
+    <article className={`rounded-[14px] border p-3 shadow-sm ${accent}`}>
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-black text-slate-950">{index + 1}. {product}</p>
+          <p className="text-xs font-bold text-slate-500">{displayDate(row.report_date)}</p>
+        </div>
+        <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase text-slate-600 shadow-sm">
+          {type === 'receipt' ? 'Receipt' : 'Daily'}
+        </span>
+      </div>
+      {type === 'receipt' ? (
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <MiniMetric label="Quantity" value={displayQuantity(Number(row.receipts || 0), product, category, unit)} />
+          <MiniMetric label="Invoice No" value={row.invoice_no || '-'} />
+          <MiniMetric label="Invoice Date" value={displayDate(row.invoice_date)} />
+          <MiniMetric label="Source" value={row.supplier || '-'} />
+          {row.remarks && <div className="col-span-2"><MiniMetric label="Remarks" value={row.remarks} /></div>}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <MiniMetric label="Opening" value={displayQuantity(Number(row.opening_balance || 0), product, category, unit)} />
+          <MiniMetric label="Receipts" value={displayQuantity(Number(row.receipts || 0), product, category, unit)} />
+          <MiniMetric label="Sales" value={displayQuantity(Number(row.sales || 0), product, category, unit)} />
+          <MiniMetric label="Closing" value={displayQuantity(Number(row.closing_balance || 0), product, category, unit)} strong />
+        </div>
+      )}
+    </article>
+  );
 }
 
-function SummaryCards({ summary, category, unit }: { summary: { receipts: number; sales: number; stock: number; products: number }; category: StockCategory; unit: string }) {
-  const display = (value: number) => category === 'fertilizer' ? `${formatMt(value)} MT` : `${Number(value || 0).toFixed(2)} ${unit}`;
+function MiniMetric({ label, value, strong = false }: { label: string; value: string | number; strong?: boolean }) {
+  return (
+    <div className="rounded-lg bg-white/85 px-2.5 py-2">
+      <p className="text-[10px] font-black uppercase text-slate-500">{label}</p>
+      <p className={`mt-0.5 break-words text-sm ${strong ? 'font-black text-emerald-800' : 'font-bold text-slate-900'}`}>{value}</p>
+    </div>
+  );
+}
+
+function displayQuantity(value: number, product: string, category: StockCategory, unit: string) {
+  if (category === 'fertilizer') {
+    return unit === 'Bags'
+      ? `${formatBags(mtToBags(value, product))} Bags`
+      : `${formatMt(value)} MT`;
+  }
+  return `${Number(value || 0).toFixed(2)} ${unit}`;
+}
+
+function SummaryCards({ summary, category, unit }: { summary: { receipts: number; sales: number; stock: number; products: number; receiptBags: number; salesBags: number; stockBags: number }; category: StockCategory; unit: string }) {
+  const display = (value: number, bags: number) => category === 'fertilizer' && unit === 'Bags'
+    ? `${formatBags(bags)} Bags`
+    : category === 'fertilizer'
+      ? `${formatMt(value)} MT`
+      : `${Number(value || 0).toFixed(2)} ${unit}`;
   return (
     <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-      <Summary label="Receipts" value={display(summary.receipts)} />
-      <Summary label="Sales" value={display(summary.sales)} />
-      <Summary label="Stock" value={display(summary.stock)} />
+      <Summary label="Receipts" value={display(summary.receipts, summary.receiptBags)} />
+      <Summary label="Sales" value={display(summary.sales, summary.salesBags)} />
+      <Summary label="Stock" value={display(summary.stock, summary.stockBags)} />
       <Summary label="Products" value={String(summary.products)} />
     </div>
   );
@@ -718,18 +739,23 @@ function buildSummary(dailyRows: StockInventoryLine[], receiptRows: StockInvento
   const receipts = receiptRows.reduce((sum, row) => sum + Number(row.receipts || 0), 0) + dailyRows.reduce((sum, row) => sum + Number(row.receipts || 0), 0);
   const sales = dailyRows.reduce((sum, row) => sum + Number(row.sales || 0), 0);
   const stock = receipts - sales;
+  const receiptBags =
+    receiptRows.reduce((sum, row) => sum + mtToBags(Number(row.receipts || 0), row.product_type), 0) +
+    dailyRows.reduce((sum, row) => sum + mtToBags(Number(row.receipts || 0), row.product_type), 0);
+  const salesBags = dailyRows.reduce((sum, row) => sum + mtToBags(Number(row.sales || 0), row.product_type), 0);
+  const stockBags = receiptBags - salesBags;
   const products = new Set([...receiptRows, ...dailyRows].map((row) => row.product_type).filter(Boolean)).size;
-  return { receipts, sales, stock, products };
+  return { receipts, sales, stock, products, receiptBags, salesBags, stockBags };
 }
 
-function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[], category: StockCategory, unit: string, exportUnit: ExportUnit, firmName: string, ifmsId: string) {
+function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[], category: StockCategory, unit: string, firmName: string, ifmsId: string) {
   if (!rows.length) {
     alert('No records to export.');
     return;
   }
   const excelRows = rows.map((row, index) => type === 'receipts'
-    ? receiptExcelRow(row, index, category, exportUnit)
-    : dailyExcelRow(row, index, category, unit, exportUnit));
+    ? receiptExcelRow(row, index, category, unit)
+    : dailyExcelRow(row, index, category, unit));
   const metadata = [['Firm Name', firmName], ['Category', CATEGORY_LABELS[category]], ['Generated Date', new Date().toLocaleString('en-IN')]];
   if (category === 'fertilizer') metadata.splice(2, 0, ['IFMS ID', ifmsId || '']);
   const headers = Object.keys(excelRows[0]);
@@ -740,13 +766,16 @@ function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[],
   XLSX.writeFile(workbook, `${CATEGORY_LABELS[category].toLowerCase()}-${type}-${Date.now()}.xlsx`);
 }
 
-function receiptExcelRow(row: StockInventoryLine, index: number, category: StockCategory, exportUnit: ExportUnit): Record<string, string | number> {
+function receiptExcelRow(row: StockInventoryLine, index: number, category: StockCategory, unit: string): Record<string, string | number> {
   const mt = Number(row.receipts || 0);
   const bags = mtToBags(mt, row.product_type);
   const base: Record<string, string | number> = { 'S.No': index + 1, Date: displayDate(row.report_date), Product: row.product_type };
   if (category === 'fertilizer') {
-    if (exportUnit !== 'Bags') base['Quantity MT'] = formatMt(mt);
-    if (exportUnit !== 'MT') base['Quantity Bags'] = formatBags(bags);
+    if (unit === 'Bags') {
+      base['Quantity Bags'] = formatBags(bags);
+    } else {
+      base['Quantity MT'] = formatMt(mt);
+    }
   } else {
     base.Quantity = Number(row.receipts || 0);
     base.Unit = row.unit || '';
@@ -754,20 +783,19 @@ function receiptExcelRow(row: StockInventoryLine, index: number, category: Stock
   return { ...base, 'Invoice No': row.invoice_no || '', 'Invoice Date': displayDate(row.invoice_date), Source: row.supplier || '', Remarks: row.remarks || '', 'Financial Year': row.financial_year || financialYearForDate(row.report_date || currentReportDate()) };
 }
 
-function dailyExcelRow(row: StockInventoryLine, index: number, category: StockCategory, unit: string, exportUnit: ExportUnit): Record<string, string | number> {
+function dailyExcelRow(row: StockInventoryLine, index: number, category: StockCategory, unit: string): Record<string, string | number> {
   const base: Record<string, string | number> = { 'S.No': index + 1, Date: displayDate(row.report_date), Product: row.product_type };
   if (category === 'fertilizer') {
-    if (exportUnit !== 'Bags') {
-      base['Opening MT'] = formatMt(Number(row.opening_balance || 0));
-      base['Receipts MT'] = formatMt(Number(row.receipts || 0));
-      base['Sales MT'] = formatMt(Number(row.sales || 0));
-      base['Closing MT'] = formatMt(Number(row.closing_balance || 0));
-    }
-    if (exportUnit !== 'MT') {
+    if (unit === 'Bags') {
       base['Opening Bags'] = formatBags(mtToBags(Number(row.opening_balance || 0), row.product_type));
       base['Receipts Bags'] = formatBags(mtToBags(Number(row.receipts || 0), row.product_type));
       base['Sales Bags'] = formatBags(mtToBags(Number(row.sales || 0), row.product_type));
       base['Closing Bags'] = formatBags(mtToBags(Number(row.closing_balance || 0), row.product_type));
+    } else {
+      base['Opening MT'] = formatMt(Number(row.opening_balance || 0));
+      base['Receipts MT'] = formatMt(Number(row.receipts || 0));
+      base['Sales MT'] = formatMt(Number(row.sales || 0));
+      base['Closing MT'] = formatMt(Number(row.closing_balance || 0));
     }
   } else {
     base.Opening = Number(row.opening_balance || 0);
