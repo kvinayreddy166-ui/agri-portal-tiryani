@@ -96,6 +96,13 @@ type StockLinePayload = Omit<StockInventoryLine, 'id'> & {
   submitted_by: string;
 };
 
+type SupabaseLikeError = {
+  message?: string;
+  details?: string;
+  hint?: string;
+  code?: string;
+};
+
 function productsFor(category: StockCategory) {
   return category === 'fertilizer' ? FERTILIZER_PRODUCTS : productTypesForCategory(category);
 }
@@ -104,14 +111,24 @@ async function saveStockLine(payload: StockLinePayload) {
   const { error: rpcError } = await supabase.rpc('save_dealer_stock_line', { p_line: payload });
   if (!rpcError) return;
 
+  const errors: string[] = [`Save helper: ${errorMessage(rpcError)}`];
   const rpcMissing =
     rpcError.message?.toLowerCase().includes('function') ||
-    rpcError.message?.toLowerCase().includes('schema cache');
+    rpcError.message?.toLowerCase().includes('schema cache') ||
+    rpcError.code === 'PGRST202';
 
-  if (!rpcMissing) throw rpcError;
+  if (!rpcMissing) {
+    throw new Error(errors.join('\n'));
+  }
 
   const { error } = await supabase.from('stock_inventory_lines').insert(payload);
-  if (error) throw error;
+  if (!error) return;
+  errors.push(`Full save: ${errorMessage(error)}`);
+
+  const { error: legacyError } = await supabase.from('stock_inventory_lines').insert(toLegacyStockPayload(payload));
+  if (!legacyError) return;
+  errors.push(`Basic save: ${errorMessage(legacyError)}`);
+  throw new Error(errors.join('\n'));
 }
 
 async function deleteStockLine(id: string) {
@@ -126,6 +143,34 @@ async function deleteStockLine(id: string) {
 
   const { error } = await supabase.from('stock_inventory_lines').delete().eq('id', id);
   if (error) throw error;
+}
+
+function toLegacyStockPayload(payload: StockLinePayload) {
+  return {
+    dealer_id: payload.dealer_id,
+    category: payload.category,
+    serial_no: payload.serial_no,
+    product_type: payload.product_type,
+    opening_balance: payload.opening_balance,
+    receipts: payload.receipts,
+    total: payload.total,
+    sales: payload.sales,
+    closing_balance: payload.closing_balance,
+    report_month: payload.report_month || currentReportDate().slice(0, 7),
+    report_date: payload.report_date || currentReportDate(),
+    submitted_by: payload.submitted_by,
+    updated_at: payload.updated_at,
+  };
+}
+
+function errorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object') {
+    const typed = error as SupabaseLikeError;
+    return [typed.message, typed.details, typed.hint, typed.code].filter(Boolean).join(' | ') || JSON.stringify(error);
+  }
+  return 'Unknown error';
 }
 
 function emptyReceipt(category: StockCategory): ReceiptForm {
@@ -379,7 +424,7 @@ export function DealerStockPortal() {
         <CategoryTabs category={category} onChange={setCategory} />
       </div>
 
-      <main className="space-y-3 p-3">
+      <main className="w-full max-w-full space-y-3 overflow-hidden p-2 sm:p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-black">{section === 'analytics' ? 'Stock Analytics' : 'Saved Entries'}</h2>
           <label className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-black shadow-sm">
@@ -393,7 +438,7 @@ export function DealerStockPortal() {
         {message && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">{message}</div>}
 
         {section === 'analytics' ? (
-          <div className="grid gap-3 xl:grid-cols-[minmax(280px,0.8fr)_minmax(520px,1.2fr)]">
+          <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(280px,0.8fr)_minmax(520px,1.2fr)]">
             <ReceiptEntryCard category={category} unit={unit} form={receiptForm} setForm={setReceiptForm} saving={saving} onSave={saveReceipt} />
             <DailyEntryCard category={category} unit={unit} rows={dailyRows} setRows={setDailyRows} saving={saving} onSave={saveDaily} />
           </div>
@@ -512,7 +557,33 @@ function DailyEntryCard({ category, unit, rows, setRows, saving, onSave }: { cat
           <Plus className="h-3.5 w-3.5" /> Add row
         </button>
       </div>
-      <div className="overflow-x-auto">
+      <div className="grid gap-2 md:hidden">
+        {rows.map((row) => {
+          const computed = category === 'fertilizer'
+            ? computeStockRow(row.openingMt, row.receiptsMt, row.salesMt)
+            : computeStockRow(row.opening, row.receipts, row.sales);
+          return (
+            <div key={row.id} className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2.5">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <input type="date" value={row.date} onChange={(event) => updateRow(row.id, { date: event.target.value })} className="min-w-0 rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-bold" />
+                <button type="button" onClick={() => removeRow(row.id)} disabled={rows.length === 1} className="shrink-0 rounded-lg border border-red-200 bg-white p-2 text-red-600 disabled:opacity-40">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <ProductInput category={category} label="Product" value={row.product} onChange={(value) => updateRow(row.id, { product: value })} />
+              {category === 'seed' && <div className="mt-2"><Field label="Variety / Hybrid" value={row.variety} onChange={(value) => updateRow(row.id, { variety: value })} /></div>}
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <MobileNumber label={`Opening (${unit})`} value={category === 'fertilizer' ? display(row.openingMt, row.product) : row.opening} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { openingMt: parse(value, row.product) }) : updateRow(row.id, { opening: value })} />
+                <MobileNumber label={`Receipts (${unit})`} value={category === 'fertilizer' ? display(row.receiptsMt, row.product) : row.receipts} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { receiptsMt: parse(value, row.product) }) : updateRow(row.id, { receipts: value })} />
+                <Readonly label={`Total (${unit})`} value={String(category === 'fertilizer' ? display(computed.total, row.product) : computed.total)} />
+                <MobileNumber label={`Sales (${unit})`} value={category === 'fertilizer' ? display(row.salesMt, row.product) : row.sales} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { salesMt: parse(value, row.product) }) : updateRow(row.id, { sales: value })} />
+                <div className="col-span-2"><Readonly label={`Closing (${unit})`} value={String(category === 'fertilizer' ? display(computed.closing_balance, row.product) : computed.closing_balance)} /></div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="hidden max-w-full overflow-x-auto md:block">
         <table className="w-full min-w-[860px] text-xs">
           <thead className="sticky top-0 text-white" style={{ background: COLORS.text }}>
             <tr>
@@ -676,7 +747,22 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
     : ['S.No', 'Date', 'Product', `Opening (${unit})`, `Receipts (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'];
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200">
+    <>
+    <div className="grid gap-2 md:hidden">
+      {rows.map((row, index) => (
+        <SavedMobileRow
+          key={row.id || `${row.report_date}-${row.product_type}-${index}`}
+          row={row}
+          index={index}
+          category={category}
+          unit={unit}
+          type={type}
+          deletingId={deletingId}
+          onDelete={onDelete}
+        />
+      ))}
+    </div>
+    <div className="hidden max-w-full overflow-x-auto rounded-xl border border-slate-200 md:block">
       <table className="w-full min-w-[820px] text-xs">
         <thead className={type === 'receipt' ? 'bg-red-800 text-white' : 'bg-emerald-900 text-white'}>
           <tr>
@@ -705,6 +791,46 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
         </tbody>
       </table>
     </div>
+    </>
+  );
+}
+
+function SavedMobileRow({ row, index, category, unit, type, deletingId, onDelete }: { row: StockInventoryLine; index: number; category: StockCategory; unit: string; type: 'receipt' | 'daily_stock'; deletingId: string; onDelete: (row: StockInventoryLine) => void }) {
+  const product = displayProduct(row);
+  return (
+    <article className={`rounded-xl border p-2.5 ${type === 'receipt' ? 'border-red-100 bg-red-50/70' : 'border-emerald-100 bg-emerald-50/70'}`}>
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="break-words text-sm font-black text-slate-950">{index + 1}. {product}</p>
+          <p className="text-xs font-bold text-slate-500">{displayDate(row.report_date)}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onDelete(row)}
+          disabled={!row.id || deletingId === row.id}
+          className="shrink-0 rounded-lg border border-red-200 bg-white p-2 text-red-600 disabled:opacity-50"
+          title="Delete entry"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      {type === 'receipt' ? (
+        <div className="grid grid-cols-2 gap-2">
+          <MobileValue label={`Quantity (${unit})`} value={displayQuantity(Number(row.receipts || 0), product, category, unit)} />
+          <MobileValue label="Invoice No" value={row.invoice_no || '-'} />
+          <MobileValue label="Invoice Date" value={displayDate(row.invoice_date)} />
+          <MobileValue label="Source" value={row.supplier || '-'} />
+          <div className="col-span-2"><MobileValue label="Remarks" value={row.remarks || '-'} /></div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          <MobileValue label={`Opening (${unit})`} value={displayQuantity(Number(row.opening_balance || 0), product, category, unit)} />
+          <MobileValue label={`Receipts (${unit})`} value={displayQuantity(Number(row.receipts || 0), product, category, unit)} />
+          <MobileValue label={`Sales (${unit})`} value={displayQuantity(Number(row.sales || 0), product, category, unit)} />
+          <MobileValue label={`Closing (${unit})`} value={displayQuantity(Number(row.closing_balance || 0), product, category, unit)} />
+        </div>
+      )}
+    </article>
   );
 }
 
@@ -784,12 +910,12 @@ function ProductWiseBars({ stats, category, unit }: { stats: ProductStat[]; cate
 
 function BarLine({ label, value, color, width }: { label: string; value: string; color: string; width: number }) {
   return (
-    <div className="mb-1.5 grid grid-cols-[4.5rem_1fr_auto] items-center gap-2 text-[11px] font-bold">
+    <div className="mb-2 grid min-w-0 grid-cols-[4.25rem_1fr] items-center gap-2 text-[11px] font-bold sm:grid-cols-[4.5rem_1fr_auto]">
       <span className="text-slate-500">{label}</span>
       <span className="h-2 overflow-hidden rounded-full bg-white">
         <span className={`block h-full rounded-full ${color}`} style={{ width: `${Math.max(4, Math.min(100, width))}%` }} />
       </span>
-      <span className="text-slate-800">{value}</span>
+      <span className="col-start-2 break-words text-slate-800 sm:col-start-auto">{value}</span>
     </div>
   );
 }
@@ -817,6 +943,24 @@ function Field({ label, value, onChange, type = 'text' }: { label: string; value
       {label && <span className="mb-1 block text-[10px] font-black uppercase text-slate-500">{label}</span>}
       <input type={type} value={value} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.001' : undefined} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600" />
     </label>
+  );
+}
+
+function MobileNumber({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+  return (
+    <label className="block min-w-0">
+      <span className="mb-1 block text-[10px] font-black uppercase text-slate-500">{label}</span>
+      <input type="number" min={0} step="0.001" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value) || 0)} className="h-9 w-full rounded-lg border border-slate-300 bg-white px-2 text-xs font-bold outline-none focus:border-emerald-600" />
+    </label>
+  );
+}
+
+function MobileValue({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="min-w-0 rounded-lg bg-white/85 px-2.5 py-2">
+      <p className="text-[10px] font-black uppercase text-slate-500">{label}</p>
+      <p className="mt-0.5 break-words text-sm font-bold text-slate-900">{value}</p>
+    </div>
   );
 }
 

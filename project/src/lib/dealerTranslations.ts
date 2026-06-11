@@ -1,144 +1,106 @@
 /**
- * Centralized Telugu Translation Dictionary for Dealer Portal
- * Using proper Telangana Agriculture Department terminology
+ * Telugu translation dictionary for dealer stock screens.
  */
 
 export const dealerTranslations = {
-  // Navigation
-  'Fertilizer Receipts': 'ఎరువు స్వీకరణలు',
+  'Fertilizer Receipts': 'ఎరువుల స్వీకరణలు',
   'Daily Stock / Sales': 'దినసరి నిల్వ / అమ్మకాలు',
-  'Stock Receipts & Sales History': 'నిల్వ స్వీకరణలు & అమ్మకాల చరిత్ర',
-  
-  // Header
-  'Welcome': 'స్వాగతం',
-  'IFMS ID': 'IFMS ID',
-  
-  // Units
-  'Unit': 'యూనిట్',
-  'Bags': 'బస్తాలు',
-  'MT': 'మెట్రిక్ టన్నులు',
-  
-  // Stock Terms
+  'Stock Receipts & Sales History': 'నిల్వ స్వీకరణలు మరియు అమ్మకాల చరిత్ర',
+  Welcome: 'స్వాగతం',
+  'IFMS ID': 'ఐఎఫ్‌ఎంఎస్ ఐడి',
+  Unit: 'యూనిట్',
+  Bags: 'బస్తాలు',
+  MT: 'మెట్రిక్ టన్నులు',
+  Kg: 'కిలోలు',
+  Quintal: 'క్వింటాల్',
+  Ltr: 'లీటర్లు',
+  Fertilizer: 'ఎరువులు',
+  Seed: 'విత్తనాలు',
+  Pesticide: 'పురుగుమందులు',
   'Daily Stock': 'దినసరి నిల్వ',
-  'Sales': 'అమ్మకాలు',
-  'Receipts': 'స్వీకరణలు',
+  Sales: 'అమ్మకాలు',
+  Receipts: 'స్వీకరణలు',
+  Stock: 'నిల్వ',
   'Opening Stock': 'ప్రారంభ నిల్వ',
   'Closing Stock': 'ముగింపు నిల్వ',
   'Available Stock': 'అందుబాటులో ఉన్న నిల్వ',
   'Total Available': 'మొత్తం అందుబాటు',
-  
-  // Invoice Terms
   'Invoice Number': 'ఇన్వాయిస్ నంబర్',
   'Invoice Date': 'ఇన్వాయిస్ తేదీ',
   'Receipt Number': 'రసీదు నంబర్',
-  
-  // Fertilizer Types
-  'Fertilizer': 'ఎరువు',
-  'Urea': 'యూరియా',
-  'DAP': 'డి.ఏ.పీ',
-  'Potash': 'పొటాష్',
-  'SSP': 'ఎస్.ఎస్.పీ',
-  'Complex': 'కాంప్లెక్స్',
-  
-  // Actions
-  'Save Entry': 'నమోదు చేయండి',
-  'Save Receipt': 'స్వీకరణ నమోదు చేయండి',
-  'Save': 'సేవ్',
-  'Cancel': 'రద్దు',
-  'Delete': 'తొలగించు',
-  'Edit': 'సవరించు',
-  'Add': 'జోడించు',
-  'Add row': 'వరుస జోడించు',
-  'Export Excel': 'ఎక్సెల్ ఎగుమతి',
-  'Search': 'వెతకండి',
-  'Filter': 'ఫిల్టర్',
-  'Reset': 'రీసెట్',
-  'Clear Filters': 'ఫిల్టర్లు తీసివేయండి',
-  
-  // Form Fields
+  Urea: 'యూరియా',
+  DAP: 'డీఏపీ',
+  MOP: 'ఎంఓపీ',
+  Potash: 'పొటాష్',
+  SSP: 'ఎస్‌ఎస్‌పీ',
+  Complex: 'కాంప్లెక్స్',
+  'Save Entry': 'నమోదు సేవ్ చేయండి',
+  'Save Receipt': 'స్వీకరణ సేవ్ చేయండి',
+  Save: 'సేవ్',
+  Cancel: 'రద్దు',
+  Delete: 'తొలగించండి',
+  Edit: 'సవరించండి',
+  Add: 'జోడించండి',
+  'Add row': 'వరుస జోడించండి',
+  'Export Excel': 'ఎక్సెల్‌కు ఎగుమతి',
+  Search: 'వెతకండి',
+  Filter: 'ఫిల్టర్',
+  Filters: 'ఫిల్టర్లు',
+  Reset: 'రీసెట్',
+  'Clear Filters': 'ఫిల్టర్లు తొలగించండి',
   'Fertilizer Type': 'ఎరువు రకం',
-  'Wholesaler': 'ఎగుమతిదారు',
-  'Wholesaler Name': 'ఎగుమతిదారు పేరు',
-  'Quantity': 'పరిమాణం',
-  'Date': 'తేదీ',
-  'Product': 'ఉత్పత్తి',
+  Wholesaler: 'హోల్‌సేలర్',
+  'Wholesaler Name': 'హోల్‌సేలర్ పేరు',
+  Quantity: 'పరిమాణం',
+  Date: 'తేదీ',
+  Product: 'ఉత్పత్తి',
   'Product Type': 'ఉత్పత్తి రకం',
-  
-  // Summary Cards
+  'Variety / Hybrid': 'రకం / హైబ్రిడ్',
   'Total Receipts': 'మొత్తం స్వీకరణలు',
   'Total Sales': 'మొత్తం అమ్మకాలు',
   'Current Stock': 'ప్రస్తుత నిల్వ',
-  'Total Urea Received': 'మొత్తం యూరియా స్వీకరణ',
-  'Total DAP Received': 'మొత్తం DAP స్వీకరణ',
-  'Total Potash Received': 'మొత్తం పొటాష్ స్వీకరణ',
-  'Total Complex Received': 'మొత్తం కాంప్లెక్స్ స్వీకరణ',
-  
-  // Filters
-  'From Date': 'నుండి తేదీ',
-  'To Date': 'వరకు తేదీ',
-  'Month': 'నెల',
+  'From Date': 'ప్రారంభ తేదీ',
+  'To Date': 'ముగింపు తేదీ',
+  Month: 'నెల',
   'Financial Year': 'ఆర్థిక సంవత్సరం',
-  'Filter Results': 'ఫిల్టర్ ఫలితాలు',
-  
-  // Table Headers
-  'S.No': 'క్ర.సం',
-  'Dealer': 'డీలర్',
+  'Filter Results': 'ఫలితాలను ఫిల్టర్ చేయండి',
+  'S.No': 'క్ర.సం.',
+  'S.No.': 'క్ర.సం.',
+  Dealer: 'డీలర్',
   'Dealer Name': 'డీలర్ పేరు',
   'Invoice No.': 'ఇన్వాయిస్ నం.',
   'Last Updated': 'చివరి నవీకరణ',
-  
-  // Messages
-  'Dealer account not linked. Please sign in with your registered phone number.': 
-    'డీలర్ ఖాతా లింక్ చేయబడలేదు. దయచేసి మీ నమోదు చేసిన ఫోన్ నంబర్‌తో సైన్ ఇన్ చేయండి.',
-  'Enter wholesaler, invoice number and valid quantity.': 
-    'ఎగుమతిదారు, ఇన్వాయిస్ నంబర్ మరియు చెల్లుబాటు అయిన పరిమాణాన్ని నమోదు చేయండి.',
+  'Dealer account not linked. Please sign in with your registered phone number.':
+    'డీలర్ ఖాతా లింక్ కాలేదు. దయచేసి మీ నమోదిత ఫోన్ నంబర్‌తో సైన్ ఇన్ చేయండి.',
+  'Enter wholesaler, invoice number and valid quantity.':
+    'హోల్‌సేలర్, ఇన్వాయిస్ నంబర్ మరియు సరైన పరిమాణాన్ని నమోదు చేయండి.',
   'Daily stock saved for': 'దినసరి నిల్వ సేవ్ చేయబడింది',
-  'Fertilizer Receipt saved.': 'ఎరువు స్వీకరణ సేవ్ చేయబడింది.',
-  'Opening from yesterday': 'నిన్నటి నుండి ప్రారంభం',
-  'Today': 'నేడు',
-  'No receipts match the selected filters.': 'ఎంపిక చేసిన ఫిల్టర్లకు సరిపోయే స్వీకరణలు లేవు.',
-  'Showing only receipts saved for this dealer login.': 
-    'ఈ డీలర్ లాగిన్ కోసం సేవ్ చేసిన స్వీకరణలు మాత్రమే చూపిస్తోంది.',
-  
-  // Validation
-  'Opening stock cannot be negative': 'ప్రారంభ నిల్వ ప్రతికూలంగా ఉండకూడదు',
-  'Receipts cannot be negative': 'స్వీకరణలు ప్రతికూలంగా ఉండకూడదు',
-  'Sales cannot be negative': 'అమ్మకాలు ప్రతికూలంగా ఉండకూడదు',
-  'Closing stock cannot be negative': 'ముగింపు నిల్వ ప్రతికూలంగా ఉండకూడదు',
+  'Fertilizer Receipt saved.': 'ఎరువుల స్వీకరణ సేవ్ చేయబడింది.',
+  'Opening from yesterday': 'నిన్నటి ముగింపు నిల్వను ప్రారంభంగా తీసుకోండి',
+  Today: 'ఈ రోజు',
+  'No receipts match the selected filters.': 'ఎంచుకున్న ఫిల్టర్లకు సరిపోయే స్వీకరణలు లేవు.',
+  'Showing only receipts saved for this dealer login.':
+    'ఈ డీలర్ లాగిన్‌కు సంబంధించిన స్వీకరణలు మాత్రమే చూపిస్తున్నాం.',
+  'Opening stock cannot be negative': 'ప్రారంభ నిల్వ మైనస్‌గా ఉండకూడదు',
+  'Receipts cannot be negative': 'స్వీకరణలు మైనస్‌గా ఉండకూడదు',
+  'Sales cannot be negative': 'అమ్మకాలు మైనస్‌గా ఉండకూడదు',
+  'Closing stock cannot be negative': 'ముగింపు నిల్వ మైనస్‌గా ఉండకూడదు',
   'Stock validation failed': 'నిల్వ ధృవీకరణ విఫలమైంది',
-  'Duplicate entry for this date and product': 'ఈ తేదీ మరియు ఉత్పత్తికి నకిలీ నమోదు',
-  
-  // Summary
-  'Receipt invoices today': 'నేటి స్వీకరణ ఇన్వాయిస్‌లు',
-  'Daily entry receipts': 'దినసరి నమోదు స్వీకరణలు',
+  'Duplicate entry for this date and product': 'ఈ తేదీ మరియు ఉత్పత్తికి ఇప్పటికే నమోదు ఉంది',
+  'Receipt invoices today': 'ఈ రోజు స్వీకరణ ఇన్వాయిసులు',
+  'Daily entry receipts': 'దినసరి నమోదులో స్వీకరణలు',
   'Daily sales': 'దినసరి అమ్మకాలు',
-  'Current Balance': 'ప్రస్తుత బ్యాలెన్స్',
-  
-  // Other
-  'My Fertilizer Receipts': 'నా ఎరువు స్వీకరణలు',
-  'Search invoice, fertilizer, wholesaler': 'ఇన్వాయిస్, ఎరువు, ఎగుమతిదారు వెతకండి',
-  'Receipt unit follows the selected page unit': 'స్వీకరణ యూనిట్ ఎంచుకున్న పేజీ యూనిట్‌ను అనుసరిస్తుంది',
-  'Converted MT': 'మార్పు చేయబడిన MT',
+  'Current Balance': 'ప్రస్తుత నిల్వ',
+  'My Fertilizer Receipts': 'నా ఎరువుల స్వీకరణలు',
+  'Search invoice, fertilizer, wholesaler': 'ఇన్వాయిస్, ఎరువు, హోల్‌సేలర్ వెతకండి',
+  'Receipt unit follows the selected page unit': 'స్వీకరణ యూనిట్ పేజీలో ఎంచుకున్న యూనిట్‌ను అనుసరిస్తుంది',
+  'Converted MT': 'మార్చిన మెట్రిక్ టన్నులు',
 };
 
-/**
- * Get Telugu translation for a given English text
- * @param englishText - The English text to translate
- * @returns Telugu translation or original text if not found
- */
 export function getDealerTranslation(englishText: string): string {
   return dealerTranslations[englishText as keyof typeof dealerTranslations] || englishText;
 }
 
-/**
- * Hook-like function to get translation based on current language
- * @param englishText - The English text to translate
- * @param language - Current language ('en' or 'te')
- * @returns Translated text
- */
 export function translateDealerText(englishText: string, language: 'en' | 'te'): string {
-  if (language === 'te') {
-    return getDealerTranslation(englishText);
-  }
-  return englishText;
+  return language === 'te' ? getDealerTranslation(englishText) : englishText;
 }
