@@ -102,6 +102,39 @@ export default function StockReceiptsSales() {
     };
   }, [filteredRecords]);
 
+  const categoryChart = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredRecords.forEach((record) => {
+      const label = categoryLabels[record.category];
+      map.set(label, (map.get(label) || 0) + Number(record.closing_balance || 0));
+    });
+    return [...map.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+  }, [filteredRecords]);
+
+  const movementChart = useMemo(() => [
+    { label: 'Received', value: summary.received },
+    { label: 'Sold', value: summary.sold },
+    { label: 'Closing', value: summary.closing },
+  ], [summary]);
+
+  const productChart = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredRecords.forEach((record) => {
+      const key = record.product_type || 'Unknown';
+      map.set(key, (map.get(key) || 0) + Number(record.receipts || 0) + Number(record.sales || 0));
+    });
+    return [...map.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 8);
+  }, [filteredRecords]);
+
+  const dealerChart = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredRecords.forEach((record) => {
+      const key = record.firm_name || record.dealers?.dealer_name || 'Unknown dealer';
+      map.set(key, (map.get(key) || 0) + Number(record.closing_balance || 0));
+    });
+    return [...map.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 8);
+  }, [filteredRecords]);
+
   const exportToExcel = () => {
     if (!filteredRecords.length) {
       alert('No data to export');
@@ -160,6 +193,13 @@ export default function StockReceiptsSales() {
         <SummaryCard label="Total Entries" value={String(summary.entries)} />
         <SummaryCard label="Dealers" value={String(summary.dealers)} />
         <SummaryCard label="Products" value={String(summary.products)} />
+      </section>
+
+      <section className="grid gap-3 lg:grid-cols-4">
+        <AdminChartCard title="Category-wise Closing Stock" data={categoryChart} tone="emerald" />
+        <AdminChartCard title="Stock Movement" data={movementChart} tone="slate" />
+        <AdminChartCard title="Top Products" data={productChart} tone="amber" />
+        <AdminChartCard title="Dealer Stock Ranking" data={dealerChart} tone="red" />
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -246,6 +286,34 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-emerald-900 shadow-sm">
       <p className="text-[10px] font-black uppercase tracking-wide opacity-75">{label}</p>
       <p className="mt-1 text-xl font-black">{value}</p>
+    </div>
+  );
+}
+
+function AdminChartCard({ title, data, tone }: { title: string; data: { label: string; value: number }[]; tone: 'emerald' | 'slate' | 'amber' | 'red' }) {
+  const max = Math.max(...data.map((item) => Math.abs(item.value)), 1);
+  const color = tone === 'emerald' ? 'bg-emerald-600' : tone === 'amber' ? 'bg-amber-500' : tone === 'red' ? 'bg-red-600' : 'bg-slate-800';
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      <h3 className="mb-2 text-sm font-black text-slate-950">{title}</h3>
+      {data.length ? (
+        <div className="space-y-2">
+          {data.map((item) => (
+            <div key={item.label}>
+              <div className="mb-1 flex items-center justify-between gap-2 text-[11px] font-black">
+                <span className="truncate text-slate-700">{item.label}</span>
+                <span className="shrink-0 text-slate-500">{item.value.toFixed(2)}</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.max(4, Math.min(100, (Math.abs(item.value) / max) * 100))}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-lg bg-slate-50 p-3 text-center text-xs font-bold text-slate-500">No chart data.</div>
+      )}
     </div>
   );
 }

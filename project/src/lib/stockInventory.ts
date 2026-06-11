@@ -31,6 +31,7 @@ export interface StockInventoryLine {
   closing_balance: number;
   report_date?: string;
   report_month?: string;
+  submitted_by?: string;
 }
 
 export const STOCK_CATEGORIES: { id: StockCategory; label: string; telugu: string }[] = [
