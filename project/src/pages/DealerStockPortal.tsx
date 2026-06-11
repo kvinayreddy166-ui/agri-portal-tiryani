@@ -125,6 +125,10 @@ async function saveStockLine(payload: StockLinePayload) {
   if (!error) return;
   errors.push(`Full save: ${errorMessage(error)}`);
 
+  const { error: compatibilityError } = await supabase.from('stock_inventory_lines').insert(toCompatibilityStockPayload(payload));
+  if (!compatibilityError) return;
+  errors.push(`Receipt details save: ${errorMessage(compatibilityError)}`);
+
   const { error: legacyError } = await supabase.from('stock_inventory_lines').insert(toLegacyStockPayload(payload));
   if (!legacyError) return;
   errors.push(`Basic save: ${errorMessage(legacyError)}`);
@@ -160,6 +164,23 @@ function toLegacyStockPayload(payload: StockLinePayload) {
     report_date: payload.report_date || currentReportDate(),
     submitted_by: payload.submitted_by,
     updated_at: payload.updated_at,
+  };
+}
+
+function toCompatibilityStockPayload(payload: StockLinePayload) {
+  return {
+    ...toLegacyStockPayload(payload),
+    financial_year: payload.financial_year,
+    entry_type: payload.entry_type,
+    firm_name: payload.firm_name,
+    ifms_id: payload.ifms_id,
+    variety: payload.variety,
+    batch_number: payload.batch_number,
+    unit: payload.unit,
+    invoice_no: payload.invoice_no,
+    invoice_date: payload.invoice_date || null,
+    supplier: payload.supplier,
+    remarks: payload.remarks,
   };
 }
 
@@ -399,8 +420,8 @@ export function DealerStockPortal() {
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: COLORS.bg, color: COLORS.text }}>
-      <div className="sticky top-0 z-30 border-b border-emerald-900/10 bg-[#F4F8F5]/95 p-3 backdrop-blur">
-        <div className="mb-2 flex items-start justify-between gap-2">
+      <div className="sticky top-0 z-30 border-b border-emerald-900/10 bg-[#F4F8F5]/95 px-2 py-2 backdrop-blur sm:px-3">
+        <div className="mb-1.5 flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Welcome</p>
             <div className="flex flex-wrap items-center gap-2">
@@ -424,7 +445,7 @@ export function DealerStockPortal() {
         <CategoryTabs category={category} onChange={setCategory} />
       </div>
 
-      <main className="w-full max-w-full space-y-3 overflow-hidden p-2 sm:p-3">
+      <main className="w-full max-w-full space-y-2 overflow-hidden px-1.5 py-2 sm:px-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-black">{section === 'analytics' ? 'Stock Analytics' : 'Saved Entries'}</h2>
           <label className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-black shadow-sm">
@@ -438,7 +459,7 @@ export function DealerStockPortal() {
         {message && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">{message}</div>}
 
         {section === 'analytics' ? (
-          <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(280px,0.8fr)_minmax(520px,1.2fr)]">
+          <div className="grid min-w-0 gap-2 xl:grid-cols-[minmax(280px,0.8fr)_minmax(520px,1.2fr)]">
             <ReceiptEntryCard category={category} unit={unit} form={receiptForm} setForm={setReceiptForm} saving={saving} onSave={saveReceipt} />
             <DailyEntryCard category={category} unit={unit} rows={dailyRows} setRows={setDailyRows} saving={saving} onSave={saveDaily} />
           </div>
@@ -469,13 +490,13 @@ export function DealerStockPortal() {
 
 const CategoryTabs = memo(function CategoryTabs({ category, onChange }: { category: StockCategory; onChange: (category: StockCategory) => void }) {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 gap-1.5">
       {(['fertilizer', 'seed', 'pesticide'] as StockCategory[]).map((item) => (
         <button
           key={item}
           type="button"
           onClick={() => onChange(item)}
-          className={`rounded-xl border px-2 py-2.5 text-sm font-black transition ${category === item ? 'text-white' : 'bg-white text-emerald-800'}`}
+          className={`rounded-xl border px-2 py-2 text-sm font-black transition ${category === item ? 'text-white' : 'bg-white text-emerald-800'}`}
           style={{ background: category === item ? COLORS.primary : '#FFFFFF', borderColor: COLORS.primary }}
         >
           {CATEGORY_LABELS[item]}
@@ -743,12 +764,12 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
   }
 
   const headers = type === 'receipt'
-    ? ['S.No', 'Date', 'Product', `Quantity (${unit})`, 'Invoice No', 'Invoice Date', 'Source', 'Remarks', 'Delete']
+    ? ['S.No', 'Date', 'Product', `Quantity (${unit})`, 'Invoice No', 'Invoice Date', 'Wholesaler / Source', 'Remarks', 'Delete']
     : ['S.No', 'Date', 'Product', `Opening (${unit})`, `Receipts (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'];
 
   return (
     <div className="max-w-full overflow-x-auto border-t border-slate-200">
-      <table className="w-full min-w-[860px] text-xs">
+      <table className={`w-full text-xs ${type === 'receipt' ? 'min-w-[1080px]' : 'min-w-[900px]'}`}>
         <thead className={type === 'receipt' ? 'bg-red-800 text-white' : 'bg-emerald-900 text-white'}>
           <tr>
             {headers.map((header) => (
