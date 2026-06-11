@@ -742,44 +742,31 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
     return <div className="border-t border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm font-bold text-slate-500">No saved entries found.</div>;
   }
 
+  const headers = type === 'receipt'
+    ? ['S.No', 'Date', 'Product', `Quantity (${unit})`, 'Invoice No', 'Invoice Date', 'Source', 'Remarks', 'Delete']
+    : ['S.No', 'Date', 'Product', `Opening (${unit})`, `Receipts (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'];
+
   return (
-    <div className="max-w-full overflow-hidden border-t border-slate-200">
-      <table className="w-full table-fixed text-[10px] sm:text-xs">
+    <div className="max-w-full overflow-x-auto border-t border-slate-200">
+      <table className="w-full min-w-[860px] text-xs">
         <thead className={type === 'receipt' ? 'bg-red-800 text-white' : 'bg-emerald-900 text-white'}>
-          {type === 'receipt' ? (
-            <tr>
-              <TableHead className="w-8 sm:w-12">S.No</TableHead>
-              <TableHead className="w-16 sm:w-24">Date</TableHead>
-              <TableHead>Product</TableHead>
-              <TableHead className="w-20 sm:w-28">Qty ({unit})</TableHead>
-              <TableHead className="hidden w-24 sm:table-cell">Invoice No</TableHead>
-              <TableHead className="hidden w-24 md:table-cell">Invoice Date</TableHead>
-              <TableHead className="hidden md:table-cell">Source</TableHead>
-              <TableHead className="hidden lg:table-cell">Remarks</TableHead>
-              <TableHead className="w-11">Del</TableHead>
-            </tr>
-          ) : (
-            <tr>
-              <TableHead className="w-8 sm:w-12">S.No</TableHead>
-              <TableHead className="w-16 sm:w-24">Date</TableHead>
-              <TableHead>Product</TableHead>
-              <TableHead className="hidden w-24 sm:table-cell">Opening ({unit})</TableHead>
-              <TableHead className="w-20 sm:w-24">Receipts ({unit})</TableHead>
-              <TableHead className="w-20 sm:w-24">Sales ({unit})</TableHead>
-              <TableHead className="w-20 sm:w-24">Closing ({unit})</TableHead>
-              <TableHead className="w-11">Del</TableHead>
-            </tr>
-          )}
+          <tr>
+            {headers.map((header) => (
+              <th key={header} className="whitespace-nowrap px-2.5 py-2 text-left font-black">
+                {header}
+              </th>
+            ))}
+          </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 bg-white">
           {rows.map((row, index) => (
             <tr key={row.id || `${row.report_date}-${row.product_type}-${index}`} className={type === 'receipt' ? 'hover:bg-red-50/70' : 'hover:bg-emerald-50/70'}>
-              {type === 'receipt' ? (
-                <ReceiptTableCells row={row} index={index} category={category} unit={unit} />
-              ) : (
-                <DailyTableCells row={row} index={index} category={category} unit={unit} />
-              )}
-              <td className="px-1.5 py-2 text-center sm:px-2.5">
+              {savedTableCells(row, index, category, unit, type).map((cell, cellIndex) => (
+                <td key={`${row.id || index}-${cellIndex}`} className="whitespace-nowrap px-2.5 py-2 align-top font-bold text-slate-700">
+                  {cell}
+                </td>
+              ))}
+              <td className="whitespace-nowrap px-2.5 py-2">
                 <button
                   type="button"
                   onClick={() => onDelete(row)}
@@ -798,43 +785,29 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
   );
 }
 
-function ReceiptTableCells({ row, index, category, unit }: { row: StockInventoryLine; index: number; category: StockCategory; unit: string }) {
+function savedTableCells(row: StockInventoryLine, index: number, category: StockCategory, unit: string, type: 'receipt' | 'daily_stock') {
   const product = displayProduct(row);
-  return (
-    <>
-      <TableCell>{index + 1}</TableCell>
-      <TableCell>{displayDate(row.report_date)}</TableCell>
-      <TableCell>{product}</TableCell>
-      <TableCell>{displayQuantity(Number(row.receipts || 0), product, category, unit)}</TableCell>
-      <TableCell className="hidden sm:table-cell">{row.invoice_no || '-'}</TableCell>
-      <TableCell className="hidden md:table-cell">{displayDate(row.invoice_date)}</TableCell>
-      <TableCell className="hidden md:table-cell">{row.supplier || '-'}</TableCell>
-      <TableCell className="hidden lg:table-cell">{row.remarks || '-'}</TableCell>
-    </>
-  );
-}
-
-function DailyTableCells({ row, index, category, unit }: { row: StockInventoryLine; index: number; category: StockCategory; unit: string }) {
-  const product = displayProduct(row);
-  return (
-    <>
-      <TableCell>{index + 1}</TableCell>
-      <TableCell>{displayDate(row.report_date)}</TableCell>
-      <TableCell>{product}</TableCell>
-      <TableCell className="hidden sm:table-cell">{displayQuantity(Number(row.opening_balance || 0), product, category, unit)}</TableCell>
-      <TableCell>{displayQuantity(Number(row.receipts || 0), product, category, unit)}</TableCell>
-      <TableCell>{displayQuantity(Number(row.sales || 0), product, category, unit)}</TableCell>
-      <TableCell>{displayQuantity(Number(row.closing_balance || 0), product, category, unit)}</TableCell>
-    </>
-  );
-}
-
-function TableHead({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <th className={`break-words px-1.5 py-2 text-left font-black sm:px-2.5 ${className}`}>{children}</th>;
-}
-
-function TableCell({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <td className={`break-words px-1.5 py-2 align-top font-bold text-slate-700 sm:px-2.5 ${className}`}>{children}</td>;
+  if (type === 'receipt') {
+    return [
+      index + 1,
+      displayDate(row.report_date),
+      product,
+      displayQuantity(Number(row.receipts || 0), product, category, unit),
+      row.invoice_no || '-',
+      displayDate(row.invoice_date),
+      row.supplier || '-',
+      row.remarks || '-',
+    ];
+  }
+  return [
+    index + 1,
+    displayDate(row.report_date),
+    product,
+    displayQuantity(Number(row.opening_balance || 0), product, category, unit),
+    displayQuantity(Number(row.receipts || 0), product, category, unit),
+    displayQuantity(Number(row.sales || 0), product, category, unit),
+    displayQuantity(Number(row.closing_balance || 0), product, category, unit),
+  ];
 }
 
 function displayQuantity(value: number, product: string, category: StockCategory, unit: string) {
