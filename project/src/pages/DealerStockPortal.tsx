@@ -1,776 +1,479 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Copy, Download, PackageCheck, Plus, Save, Trash2, Truck, History } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, Download, Home, PackageCheck, Save } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { FERTILIZER_TYPES } from '../lib/constants';
-import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
-import { fetchDealerFertilizerAllocation } from '../lib/fertilizerStock';
 import { translateDealerText } from '../lib/dealerTranslations';
-import { DealerHistory } from './DealerHistory';
 import {
+  CATEGORY_UNITS,
+  FINANCIAL_YEARS,
   StockCategory,
   StockInventoryLine,
   computeStockRow,
   currentReportDate,
-  emptyInventoryRow,
-  fertilizerBagWeightMts,
-  formatFertilizerQuantity,
+  financialYearForDate,
+  financialYearRange,
   formatReportDateLabel,
   productTypesForCategory,
-  reportDateToMonth,
-  shiftReportDate,
 } from '../lib/stockInventory';
 import { supabase } from '../lib/supabase';
 
-const wholesalerOptions = [
-  'M/s. Laxmi Narasimha Traders, Karimnagar',
-  'M/s. FR Lahoti & Sons',
-  'M/s. Vaibhav Traders, Karimnagar',
-  'Jahnavi Agro Agencies',
-  'M/s. Sai Rama Trading Company, Karimnagar',
-  'M/s. Meher Sai Seeds & Fertilizers',
-  'Sri Rajarajeshwari Traders, Mancherial',
-  'Markfed',
-  'Kanaka Durga Trading Company',
-  'M/s. Hanuman Agro Bellampally',
-  'Sri Laxmi Fertilizers',
-  'Rama Trading Company',
-  'Sri Ganesh Pesticides',
-  'Maheshwara Fertilizers & Seeds',
-  'Others provide description',
-];
+type ActiveSection = 'dashboard' | 'entry' | 'history';
 
-type FertilizerUnit = 'mts' | 'bags';
-type LoadForm = {
-  fertilizer_type: string;
-  wholesaler_name: string;
-  wholesaler_description: string;
-  invoice_number: string;
-  invoice_date: string;
-  quantity: number;
+type DealerProfile = {
+  dealer_name: string;
+  ifms_id: string;
+  phone_number: string;
+  license_number: string;
+  location: string;
 };
 
-type DealerReceipt = {
-  id: string;
-  dealer_id: string;
-  fertilizer_type: string;
-  quantity_mts: number;
-  quantity_unit?: string;
-  quantity_bags?: number;
-  wholesaler_name?: string;
-  invoice_number?: string;
-  invoice_date?: string;
-  last_updated: string;
-  created_at: string;
+type StockForm = {
+  entry_date: string;
+  product_name: string;
+  grade: string;
+  crop: string;
+  variety: string;
+  lot_number: string;
+  batch_number: string;
+  company_name: string;
+  technical_name: string;
+  formulation: string;
+  opening_stock: number;
+  received_quantity: number;
+  sold_quantity: number;
+  unit: string;
+  remarks: string;
 };
+
+const categoryLabels: Record<StockCategory, string> = {
+  fertilizer: 'Fertilizer',
+  seed: 'Seed',
+  pesticide: 'Pesticide',
+};
+
+function initialForm(category: StockCategory, date = currentReportDate()): StockForm {
+  return {
+    entry_date: date,
+    product_name: productTypesForCategory(category)[0] || '',
+    grade: '',
+    crop: productTypesForCategory(category)[0] || '',
+    variety: '',
+    lot_number: '',
+    batch_number: '',
+    company_name: '',
+    technical_name: '',
+    formulation: '',
+    opening_stock: 0,
+    received_quantity: 0,
+    sold_quantity: 0,
+    unit: CATEGORY_UNITS[category][0],
+    remarks: '',
+  };
+}
 
 export function DealerStockPortal() {
-  const { dealerId, dealerName, user } = useAuth();
+  const { dealerId, dealerName, user, signOut } = useAuth();
+  const navigate = useNavigate();
   const { language } = useLanguage();
-  const category: StockCategory = 'fertilizer';
-  const [activeSection, setActiveSection] = useState<'receipts' | 'sales' | 'history'>('sales');
-  const [reportDate, setReportDate] = useState(currentReportDate());
-  const [rows, setRows] = useState<StockInventoryLine[]>([emptyInventoryRow(1, 'fertilizer')]);
-  const [recentDates, setRecentDates] = useState<string[]>([]);
-  const [allocation, setAllocation] = useState<{ fertilizer_type: string; quantity_mts: number }[]>([]);
-  const [dealerReceipts, setDealerReceipts] = useState<DealerReceipt[]>([]);
-  const [dealerIfmsId, setDealerIfmsId] = useState('');
+  const t = useCallback((english: string) => translateDealerText(english, language), [language]);
+  const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
+
+  const [category, setCategory] = useState<StockCategory>('fertilizer');
+  const [activeSection, setActiveSection] = useState<ActiveSection>('entry');
+  const [financialYear, setFinancialYear] = useState(financialYearForDate());
+  const [dealerProfile, setDealerProfile] = useState<DealerProfile | null>(null);
+  const [records, setRecords] = useState<StockInventoryLine[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [fertilizerQtyUnit, setFertilizerQtyUnit] = useState<FertilizerUnit>(() => {
-    const saved = localStorage.getItem('dealerFertilizerUnit');
-    return (saved === 'bags' || saved === 'mts') ? saved : 'mts';
-  });
   const [message, setMessage] = useState('');
-  const [loadForm, setLoadForm] = useState<LoadForm>({
-    fertilizer_type: 'Urea',
-    wholesaler_name: 'Markfed',
-    wholesaler_description: '',
-    invoice_number: '',
-    invoice_date: new Date().toISOString().slice(0, 10),
-    quantity: 0,
-  });
+  const [form, setForm] = useState<StockForm>(() => initialForm('fertilizer'));
 
-  // Save unit preference to localStorage
-  useEffect(() => {
-    localStorage.setItem('dealerFertilizerUnit', fertilizerQtyUnit);
-  }, [fertilizerQtyUnit]);
+  const firmName = dealerProfile?.dealer_name || dealerName || 'Dealer Firm';
+  const ifmsId = dealerProfile?.ifms_id || '-';
+  const closingStock = form.opening_stock + form.received_quantity - form.sold_quantity;
 
-  const isFertilizer = category === 'fertilizer';
-  const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
-  const qtyUnit = isFertilizer ? (fertilizerQtyUnit === 'bags' ? 'Bags' : 'MT') : '';
-
-  // Translation helper
-  const dt = useCallback((english: string) => translateDealerText(english, language), [language]);
-
-  const loadRecentDates = useCallback(async (cat: StockCategory) => {
+  const loadDealerProfile = useCallback(async () => {
     if (!dealerId) return;
     const { data } = await supabase
-      .from('stock_inventory_lines')
-      .select('report_date')
-      .eq('dealer_id', dealerId)
-      .eq('category', cat)
-      .order('report_date', { ascending: false })
-      .limit(30);
-
-    setRecentDates([...new Set((data || []).map((row) => row.report_date as string))]);
+      .from('dealers')
+      .select('dealer_name, ifms_id, phone_number, license_number, location')
+      .eq('id', dealerId)
+      .maybeSingle();
+    setDealerProfile((data || null) as DealerProfile | null);
   }, [dealerId]);
 
-  const buildRowsFromPreviousClosing = useCallback(async (cat: StockCategory, date: string) => {
-    if (!dealerId) return [emptyInventoryRow(1, cat, date)];
-    const prevDate = shiftReportDate(date, -1);
-    const { data } = await supabase
-      .from('stock_inventory_lines')
-      .select('product_type, closing_balance')
-      .eq('dealer_id', dealerId)
-      .eq('category', cat)
-      .eq('report_date', prevDate)
-      .order('serial_no');
-
-    if (!data?.length) return [emptyInventoryRow(1, cat, date)];
-
-    return data.map((item, index) => ({
-      ...emptyInventoryRow(index + 1, cat, date),
-      product_type: String(item.product_type || ''),
-      ...computeStockRow(Number(item.closing_balance || 0), 0, 0),
-    }));
-  }, [dealerId]);
-
-  const loadRows = useCallback(async (cat: StockCategory, date: string) => {
+  const loadRecords = useCallback(async () => {
     if (!dealerId) return;
+    const range = financialYearRange(financialYear);
     setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('stock_inventory_lines')
-        .select('*')
-        .eq('dealer_id', dealerId)
-        .eq('category', cat)
-        .eq('report_date', date)
-        .order('serial_no');
-
-      if (error) throw error;
-      setRows(data?.length ? data as StockInventoryLine[] : await buildRowsFromPreviousClosing(cat, date));
-    } catch (error) {
-      console.error(error);
-      setRows([emptyInventoryRow(1, cat, date)]);
-    } finally {
-      setLoading(false);
-    }
-  }, [buildRowsFromPreviousClosing, dealerId]);
-
-  const loadAllocation = useCallback(async () => {
-    if (!dealerId) return;
-    const [allocationRows, dealerRow] = await Promise.all([
-      fetchDealerFertilizerAllocation(dealerId).catch(() => []),
-      supabase.from('dealers').select('ifms_id').eq('id', dealerId).maybeSingle(),
-    ]);
-    setAllocation(allocationRows);
-    setDealerIfmsId(String(dealerRow.data?.ifms_id || ''));
-  }, [dealerId]);
-
-  const loadDealerReceipts = useCallback(async () => {
-    if (!dealerId) return;
     const { data, error } = await supabase
-      .from('dealer_stock_allocation')
-      .select('id, dealer_id, fertilizer_type, quantity_mts, quantity_unit, quantity_bags, wholesaler_name, invoice_number, invoice_date, last_updated, created_at')
+      .from('stock_inventory_lines')
+      .select('*')
       .eq('dealer_id', dealerId)
-      .order('invoice_date', { ascending: false, nullsFirst: false })
-      .order('last_updated', { ascending: false })
-      .range(0, 999);
+      .eq('category', category)
+      .gte('report_date', range.start)
+      .lte('report_date', range.end)
+      .order('report_date', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error(error);
-      setDealerReceipts([]);
-      return;
+      setRecords([]);
+    } else {
+      setRecords((data || []) as StockInventoryLine[]);
     }
-    setDealerReceipts((data || []) as DealerReceipt[]);
-  }, [dealerId]);
+    setLoading(false);
+  }, [category, dealerId, financialYear]);
 
   useEffect(() => {
     if (!dealerId) return;
-    void loadRecentDates(category);
-    void loadRows(category, reportDate);
-    void loadAllocation();
-    void loadDealerReceipts();
-  }, [dealerId, category, reportDate, loadAllocation, loadRecentDates, loadRows, loadDealerReceipts]);
+    void loadDealerProfile();
+  }, [dealerId, loadDealerProfile]);
 
-  const types = productTypesForCategory(category);
-  const isToday = reportDate === currentReportDate();
+  useEffect(() => {
+    void loadRecords();
+  }, [loadRecords]);
 
-  const toDisplayQuantity = (valueMts: number, productType: string) => {
-    if (!isFertilizer || fertilizerQtyUnit === 'mts') return Number(valueMts) || 0;
-    return (Number(valueMts) || 0) / fertilizerBagWeightMts(productType);
+  const switchCategory = (nextCategory: StockCategory) => {
+    setCategory(nextCategory);
+    setForm(initialForm(nextCategory, form.entry_date));
+    setActiveSection('entry');
   };
 
-  const fromDisplayQuantity = (value: number, productType: string) => {
-    if (!isFertilizer || fertilizerQtyUnit === 'mts') return Number(value) || 0;
-    return (Number(value) || 0) * fertilizerBagWeightMts(productType);
+  const updateForm = (patch: Partial<StockForm>) => {
+    setForm((current) => ({ ...current, ...patch }));
   };
 
-  const formatDisplayQuantity = (valueMts: number, productType: string) =>
-    isFertilizer && fertilizerQtyUnit === 'bags'
-      ? formatFertilizerQuantity(valueMts, productType, 'bags')
-      : (Number(valueMts) || 0).toFixed(2);
-
-  const filteredDealerReceipts = useMemo(() => {
-    return dealerReceipts;
-  }, [dealerReceipts]);
-
-  const dailyReceiptTotal = useMemo(() => 
-    dealerReceipts
-      .filter((item) => item.invoice_date === reportDate)
-      .reduce((sum, item) => sum + Number(item.quantity_mts || 0), 0),
-    [dealerReceipts, reportDate]
-  );
-  const dailySalesTotal = useMemo(() => 
-    rows.reduce((sum, row) => sum + Number(row.sales || 0), 0),
-    [rows]
-  );
-  const dailyEntryReceiptsTotal = useMemo(() => 
-    rows.reduce((sum, row) => sum + Number(row.receipts || 0), 0),
-    [rows]
-  );
-
-  const exportDealerData = useCallback(() => {
-    if (!filteredDealerReceipts.length && !rows.length) return;
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(
-      workbook,
-      XLSX.utils.json_to_sheet(filteredDealerReceipts.map((item, index) => ({
-        'S.No': index + 1,
-        Dealer: dealerName || '',
-        Fertilizer: item.fertilizer_type,
-        'Receipts (MT)': Number(item.quantity_mts || 0),
-        Bags: Number(item.quantity_bags || 0),
-        Wholesaler: item.wholesaler_name || '',
-        'Invoice No.': item.invoice_number || '',
-        'Invoice Date': item.invoice_date || '',
-      }))),
-      'Receipts'
-    );
-    XLSX.utils.book_append_sheet(
-      workbook,
-      XLSX.utils.json_to_sheet(rows.map((row, index) => ({
-        'S.No': index + 1,
-        Date: reportDate,
-        Category: category,
-        Type: row.product_type,
-        Opening: Number(row.opening_balance || 0),
-        Receipts: Number(row.receipts || 0),
-        Total: Number(row.total || 0),
-        Sales: Number(row.sales || 0),
-        Closing: Number(row.closing_balance || 0),
-      }))),
-      'Daily Stock'
-    );
-    XLSX.writeFile(workbook, `dealer-data-${new Date().toISOString().slice(0, 10)}.xlsx`);
-  }, [filteredDealerReceipts, rows, dealerName, reportDate, category]);
-
-  const updateRow = useCallback((index: number, patch: Partial<StockInventoryLine>) => {
-    setRows((current) =>
-      current.map((row, i) => {
-        if (i !== index) return row;
-        const merged = { ...row, ...patch };
-        return { ...merged, ...computeStockRow(merged.opening_balance, merged.receipts, merged.sales) };
-      })
-    );
-  }, []);
-
-  const addRow = useCallback(() => setRows((current) => [...current, emptyInventoryRow(current.length + 1, category, reportDate)]), [category, reportDate]);
-
-  const removeRow = useCallback((index: number) => {
-    setRows((current) => {
-      const next = current.filter((_, i) => i !== index);
-      return next.length ? next.map((row, i) => ({ ...row, serial_no: i + 1 })) : [emptyInventoryRow(1, category, reportDate)];
-    });
-  }, [category, reportDate]);
-
-  const applyYesterdayClosingAsOpening = useCallback(async () => {
-    setRows(await buildRowsFromPreviousClosing(category, reportDate));
-  }, [category, reportDate]);
-
-  const handleSaveDailyEntry = useCallback(async () => {
-    if (!dealerId) return;
-    
-    // Data integrity validation
-    for (const row of rows) {
-      const opening = Number(row.opening_balance) || 0;
-      const receipts = Number(row.receipts) || 0;
-      const sales = Number(row.sales) || 0;
-      const closing = Number(row.closing_balance) || 0;
-      
-      if (opening < 0) {
-        alert(`${dt('Opening stock cannot be negative')} - ${row.product_type}`);
-        return;
-      }
-      if (receipts < 0) {
-        alert(`${dt('Receipts cannot be negative')} - ${row.product_type}`);
-        return;
-      }
-      if (sales < 0) {
-        alert(`${dt('Sales cannot be negative')} - ${row.product_type}`);
-        return;
-      }
-      if (closing < 0) {
-        alert(`${dt('Closing stock cannot be negative')} - ${row.product_type}`);
-        return;
-      }
-      
-      // Validate the formula: Opening + Receipts - Sales = Closing
-      const expectedClosing = opening + receipts - sales;
-      if (Math.abs(closing - expectedClosing) > 0.01) {
-        alert(`${dt('Stock validation failed')} - ${row.product_type}: ${dt('Opening')} (${opening}) + ${dt('Receipts')} (${receipts}) - ${dt('Sales')} (${sales}) should equal ${dt('Closing Stock')} (${expectedClosing.toFixed(2)})`);
-        return;
-      }
+  const handleSubmit = async () => {
+    if (!dealerId || saving) return;
+    const computed = computeStockRow(form.opening_stock, form.received_quantity, form.sold_quantity);
+    if (computed.closing_balance < 0) {
+      alert(t('Closing stock cannot be negative'));
+      return;
     }
-    
-    setSaving(true);
-    try {
-      await supabase
-        .from('stock_inventory_lines')
-        .delete()
-        .eq('dealer_id', dealerId)
-        .eq('category', category)
-        .eq('report_date', reportDate);
-
-      const payload = rows.map((row, index) => {
-        const computed = computeStockRow(row.opening_balance, row.receipts, row.sales);
-        return {
-          dealer_id: dealerId,
-          category,
-          serial_no: index + 1,
-          product_type: row.product_type,
-          opening_balance: computed.opening_balance,
-          receipts: computed.receipts,
-          total: computed.total,
-          sales: computed.sales,
-          closing_balance: computed.closing_balance,
-          report_date: reportDate,
-          report_month: reportDateToMonth(reportDate),
-          submitted_by: user?.email || '',
-          updated_at: new Date().toISOString(),
-        };
-      });
-
-      const { error } = await supabase.from('stock_inventory_lines').insert(payload);
-      if (error) throw error;
-      setMessage(`${dt('Daily stock saved for')} ${formatReportDateLabel(reportDate, dateLocale)}.`);
-      await loadRecentDates(category);
-      await loadRows(category, reportDate);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Save failed';
-      alert(`Could not save: ${msg}`);
-    } finally {
-      setSaving(false);
-    }
-  }, [dealerId, rows, category, reportDate, user, dt, loadRecentDates, loadRows]);
-
-  const handleSaveLoad = useCallback(async () => {
-    if (!dealerId) return;
-    const fertilizerType = loadForm.fertilizer_type;
-    const loadMts = fertilizerQtyUnit === 'bags'
-      ? (Number(loadForm.quantity) || 0) * fertilizerBagWeightMts(fertilizerType)
-      : Number(loadForm.quantity) || 0;
-
-    const wholesalerName =
-      loadForm.wholesaler_name === 'Others provide description'
-        ? loadForm.wholesaler_description.trim()
-        : loadForm.wholesaler_name;
-
-    if (!wholesalerName || !loadForm.invoice_number.trim() || loadMts <= 0) {
-      alert(dt('Enter wholesaler, invoice number and valid quantity.'));
+    if (!form.product_name.trim()) {
+      alert('Select product name.');
       return;
     }
 
     setSaving(true);
     try {
-      const currentMts = Number(allocation.find((item) => item.fertilizer_type === fertilizerType)?.quantity_mts || 0);
-      await upsertDealerStockAllocation({
+      const payload = {
         dealer_id: dealerId,
-        fertilizer_type: fertilizerType,
-        quantity_mts: currentMts + loadMts,
-        wholesaler_name: wholesalerName,
-        invoice_number: loadForm.invoice_number.trim(),
-        invoice_date: loadForm.invoice_date,
-        quantity_unit: fertilizerQtyUnit === 'bags' ? 'Bags' : 'MT',
-        quantity_bags: fertilizerQtyUnit === 'bags'
-          ? Number(loadForm.quantity) || 0
-          : loadMts / fertilizerBagWeightMts(fertilizerType),
-      });
-      setMessage(`${fertilizerType} ${dt('Fertilizer')} ${dt('Receipts')} ${dt('saved')}.`);
-      setLoadForm((current) => ({ ...current, invoice_number: '', quantity: 0 }));
-      await loadAllocation();
-      await loadDealerReceipts();
+        category,
+        serial_no: 1,
+        product_type: form.product_name.trim(),
+        financial_year: financialYearForDate(form.entry_date),
+        entry_type: 'daily_stock',
+        firm_name: firmName,
+        ifms_id: ifmsId === '-' ? '' : ifmsId,
+        crop: category === 'seed' ? form.crop.trim() : '',
+        variety: category === 'seed' ? form.variety.trim() : form.grade.trim(),
+        lot_number: category === 'seed' ? form.lot_number.trim() : '',
+        batch_number: category === 'pesticide' ? form.batch_number.trim() : '',
+        company_name: category !== 'fertilizer' ? form.company_name.trim() : '',
+        technical_name: category === 'pesticide' ? form.technical_name.trim() : '',
+        formulation: category === 'pesticide' ? form.formulation.trim() : '',
+        opening_balance: computed.opening_balance,
+        receipts: computed.receipts,
+        total: computed.total,
+        sales: computed.sales,
+        closing_balance: computed.closing_balance,
+        unit: form.unit,
+        remarks: form.remarks.trim(),
+        report_date: form.entry_date,
+        report_month: form.entry_date.slice(0, 7),
+        submitted_by: user?.email || '',
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase.from('stock_inventory_lines').insert(payload);
+      if (error) throw error;
+
+      setMessage(`${categoryLabels[category]} daily stock saved for ${formatReportDateLabel(form.entry_date, dateLocale)}.`);
+      setForm(initialForm(category, form.entry_date));
+      await loadRecords();
+      setActiveSection('history');
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Could not save load';
-      alert(`Could not save load: ${msg}`);
+      const text = error instanceof Error ? error.message : 'Save failed';
+      alert(`Could not save: ${text}`);
     } finally {
       setSaving(false);
     }
-  }, [dealerId, loadForm, fertilizerQtyUnit, allocation, dt, loadAllocation, loadDealerReceipts]);
+  };
+
+  const handleBackToLogin = useCallback(async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  }, [navigate, signOut]);
+
+  const filteredRecords = useMemo(
+    () => records.filter((record) => record.category === category),
+    [category, records]
+  );
+
+  const summary = useMemo(() => {
+    const opening = filteredRecords.reduce((sum, row) => sum + Number(row.opening_balance || 0), 0);
+    const received = filteredRecords.reduce((sum, row) => sum + Number(row.receipts || 0), 0);
+    const sold = filteredRecords.reduce((sum, row) => sum + Number(row.sales || 0), 0);
+    return {
+      opening,
+      received,
+      sold,
+      closing: opening + received - sold,
+      entries: filteredRecords.length,
+    };
+  }, [filteredRecords]);
+
+  const exportRecords = () => {
+    if (!filteredRecords.length) {
+      alert('No data to export');
+      return;
+    }
+    const rows = filteredRecords.map((record) => ({
+      'Financial Year': record.financial_year || financialYearForDate(record.report_date),
+      'Entry Date': record.report_date || '',
+      Category: categoryLabels[record.category],
+      'Entry Type': record.entry_type || 'daily_stock',
+      'Firm Name': record.firm_name || firmName,
+      'IFMS ID': record.ifms_id || ifmsId,
+      'Product Name': record.product_type,
+      Crop: record.crop || '',
+      'Variety / Hybrid': record.variety || '',
+      'Lot Number': record.lot_number || '',
+      'Batch Number': record.batch_number || '',
+      'Company Name': record.company_name || '',
+      'Technical Name': record.technical_name || '',
+      Formulation: record.formulation || '',
+      'Opening Stock': record.opening_balance,
+      'Received Quantity': record.receipts,
+      'Sold Quantity': record.sales,
+      'Closing Stock': record.closing_balance,
+      Unit: record.unit || '',
+      'Invoice No': record.invoice_no || '',
+      'Invoice Date': record.invoice_date || '',
+      Supplier: record.supplier || '',
+      Remarks: record.remarks || '',
+    }));
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), 'Daily Stock');
+    XLSX.writeFile(workbook, `dealer-${category}-stock-${financialYear}.xlsx`);
+  };
 
   if (!dealerId) {
     return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-        {dt('Dealer account not linked. Please sign in with your registered phone number.')}
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">
+        {t('Dealer account not linked. Please sign in with your registered phone number.')}
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {/* Deep Blue Government Header */}
-      <div className="sticky top-0 z-30 rounded-lg bg-[#0B3D91] p-4 text-white shadow-lg">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-blue-200">{dt('Welcome')}</p>
-            <h1 className="text-xl font-black uppercase tracking-wide sm:text-2xl">{dealerName || 'Dealer Firm'}</h1>
-            {dealerIfmsId && (
-              <p className="mt-1 text-sm font-semibold text-blue-100">IFMS ID: {dealerIfmsId}</p>
-            )}
+      <section className="sticky top-0 z-30 rounded-lg bg-[#0B3D91] p-4 text-white shadow-lg">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-blue-200">{t('Welcome')}</p>
+            <h1 className="mt-1 text-xl font-black uppercase tracking-wide sm:text-2xl">{firmName}</h1>
+            <p className="mt-1 text-sm font-semibold text-blue-100">IFMS ID: {ifmsId}</p>
           </div>
-          {isFertilizer && (
-            <label className="flex items-center gap-2 rounded-lg border border-blue-400 bg-blue-900/50 px-3 py-2 text-sm font-bold text-white">
-              {dt('Unit')}
-              <select
-                value={fertilizerQtyUnit}
-                onChange={(event) => setFertilizerQtyUnit(event.target.value as FertilizerUnit)}
-                className="bg-transparent font-black text-white outline-none"
-              >
-                <option value="mts">MT</option>
-                <option value="bags">{dt('Bags')}</option>
-              </select>
-            </label>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {activeSection !== 'dashboard' && (
+              <button type="button" onClick={() => setActiveSection('dashboard')} className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-3 py-2 text-sm font-black hover:bg-white/20">
+                <ArrowLeft className="h-4 w-4" /> Back
+              </button>
+            )}
+            <button type="button" onClick={handleBackToLogin} className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-3 py-2 text-sm font-black hover:bg-white/20">
+              <Home className="h-4 w-4" /> Login/Home
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
 
       {message && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">
           {message}
         </div>
       )}
 
-      <div className="grid gap-3 md:grid-cols-2">
-        <SectionButton
-          active={activeSection === 'receipts'}
-          title={dt('Fertilizer Receipts')}
-          subtitle="Invoice-wise receipt entry"
-          tone="red"
-          onClick={() => setActiveSection('receipts')}
-        />
-        <SectionButton
-          active={activeSection === 'sales'}
-          title={dt('Daily Stock / Sales')}
-          subtitle="Opening, receipts, sales and closing"
-          tone="emerald"
-          onClick={() => setActiveSection('sales')}
-        />
-      </div>
-
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => setActiveSection('history')}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-        >
-          <History className="h-5 w-5" />
-          {dt('Stock Receipts & Sales History')}
-        </button>
-      </div>
-
-      <section className="grid gap-3 md:grid-cols-3">
-        <SummaryCard label={dt('Receipt invoices today')} value={`${dailyReceiptTotal.toFixed(2)} MT`} tone="emerald" />
-        <SummaryCard label={dt('Daily entry receipts')} value={`${dailyEntryReceiptsTotal.toFixed(2)} MT`} tone="sky" />
-        <SummaryCard label={dt('Daily sales')} value={`${dailySalesTotal.toFixed(2)} MT`} tone="amber" />
+      <section className="grid gap-2 sm:grid-cols-3">
+        {(['fertilizer', 'seed', 'pesticide'] as StockCategory[]).map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => switchCategory(item)}
+            className={`rounded-lg border p-3 text-left shadow-sm transition ${
+              category === item
+                ? 'border-emerald-500 bg-emerald-50 text-emerald-950'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300'
+            }`}
+          >
+            <p className="text-sm font-black">{categoryLabels[item]}</p>
+            <p className="mt-1 text-xs font-semibold opacity-70">Daily Stock Entry</p>
+          </button>
+        ))}
       </section>
 
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={exportDealerData}
-          className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:text-emerald-300"
-        >
-          <Download className="h-5 w-5" />
-          {dt('Export Excel')}
-        </button>
+      <section className="grid gap-3 md:grid-cols-5">
+        <SummaryCard label="Total Opening Stock" value={summary.opening.toFixed(2)} />
+        <SummaryCard label="Total Received" value={summary.received.toFixed(2)} />
+        <SummaryCard label="Total Sold" value={summary.sold.toFixed(2)} />
+        <SummaryCard label="Current Closing Stock" value={summary.closing.toFixed(2)} />
+        <SummaryCard label="Total Entries" value={String(summary.entries)} />
+      </section>
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <select value={financialYear} onChange={(event) => setFinancialYear(event.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold">
+          {FINANCIAL_YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
+        </select>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setActiveSection('entry')} className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white">Daily Stock Entry</button>
+          <button type="button" onClick={() => setActiveSection('history')} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-black text-slate-700">Stock Receipts & Sales</button>
+          <button type="button" onClick={exportRecords} className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700">
+            <Download className="h-4 w-4" /> Export to Excel
+          </button>
+        </div>
       </div>
 
-      {activeSection === 'receipts' && (
-        <section className="overflow-hidden rounded-xl border border-red-200 bg-white shadow-sm dark:border-red-900/70 dark:bg-slate-900">
-          <div className="flex w-full items-center justify-between gap-3 bg-red-50 p-3 text-left text-red-900 dark:bg-red-950/30 dark:text-red-100">
-            <span className="flex items-center gap-2">
-              <Truck className="h-5 w-5" />
-              <span className="text-sm font-black text-red-700 dark:text-red-200">{dt('Fertilizer Receipts')}</span>
-            </span>
-          </div>
-          <div className="p-3">
-              <div className="grid gap-2 md:grid-cols-3">
-                <CompactSelect
-                  label={dt('Fertilizer Type')}
-                  value={loadForm.fertilizer_type}
-                  onChange={(value) => setLoadForm({ ...loadForm, fertilizer_type: value })}
-                  options={[...FERTILIZER_TYPES]}
-                />
-                <CompactSelect
-                  label={dt('Wholesaler')}
-                  value={loadForm.wholesaler_name}
-                  onChange={(value) => setLoadForm({ ...loadForm, wholesaler_name: value, wholesaler_description: '' })}
-                  options={wholesalerOptions}
-                />
-                {loadForm.wholesaler_name === 'Others provide description' && (
-                  <CompactInput
-                    label="Wholesaler Description"
-                    value={loadForm.wholesaler_description}
-                    onChange={(value) => setLoadForm({ ...loadForm, wholesaler_description: value })}
-                  />
-                )}
-                <CompactInput
-                  label={dt('Invoice Number')}
-                  value={loadForm.invoice_number}
-                  onChange={(value) => setLoadForm({ ...loadForm, invoice_number: value })}
-                />
-                <CompactInput
-                  label={dt('Date')}
-                  type="date"
-                  value={loadForm.invoice_date}
-                  onChange={(value) => setLoadForm({ ...loadForm, invoice_date: value })}
-                />
-                <CompactInput
-                  label={`${dt('Quantity')} (${qtyUnit})`}
-                  type="number"
-                  value={String(loadForm.quantity)}
-                  onChange={(value) => setLoadForm({ ...loadForm, quantity: Number(value) || 0 })}
-                />
-                <div className="rounded-lg bg-white/75 p-2 dark:bg-slate-950/30">
-                  <p className="text-[10px] font-black uppercase text-red-700 dark:text-red-200">{dt('Current Balance')}</p>
-                  <p className="text-sm font-black text-slate-950 dark:text-white">
-                    {Number(allocation.find((item) => item.fertilizer_type === loadForm.fertilizer_type)?.quantity_mts || 0).toFixed(2)} MT
-                  </p>
-                  <p className="text-xs font-bold text-red-700 dark:text-red-200">
-                    {formatFertilizerQuantity(
-                      Number(allocation.find((item) => item.fertilizer_type === loadForm.fertilizer_type)?.quantity_mts || 0),
-                      loadForm.fertilizer_type,
-                      'bags'
-                    )} {dt('Bags')}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs font-bold text-red-800 dark:text-red-200">
-                  {dt('Receipt unit follows the selected page unit')}: {qtyUnit}. {dt('Converted MT')}: {
-                    (fertilizerQtyUnit === 'bags'
-                      ? (Number(loadForm.quantity) || 0) * fertilizerBagWeightMts(loadForm.fertilizer_type)
-                      : Number(loadForm.quantity) || 0
-                    ).toFixed(2)
-                  }
-                </p>
-                <button
-                  type="button"
-                  onClick={handleSaveLoad}
-                  disabled={saving}
-                  className="inline-flex items-center justify-center gap-1 rounded-lg bg-red-700 px-3 py-2 text-xs font-black text-white hover:bg-red-800 disabled:opacity-60"
-                >
-                  <Save className="h-3.5 w-3.5" />
-                  {dt('Save Receipt')}
-                </button>
-              </div>
-            </div>
+      {activeSection === 'dashboard' && (
+        <section className="rounded-lg border border-slate-200 bg-white p-4 text-sm font-semibold text-slate-600">
+          Choose Fertilizer, Seed, or Pesticide and open Daily Stock Entry. All submitted rows are visible under Stock Receipts & Sales.
         </section>
       )}
 
-      {activeSection === 'sales' && (
-        <>
-          <div className="portal-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
-              <Calendar className="h-5 w-5 text-emerald-600" />
-              <button type="button" onClick={() => setReportDate(shiftReportDate(reportDate, -1))} className="rounded-lg border border-slate-300 p-2 dark:border-slate-600">
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <input
-                type="date"
-                value={reportDate}
-                max={currentReportDate()}
-                onChange={(event) => setReportDate(event.target.value)}
-                className="rounded-xl border border-slate-300 px-3 py-2 font-semibold dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-              />
-              <button type="button" onClick={() => setReportDate(shiftReportDate(reportDate, 1))} disabled={reportDate >= currentReportDate()} className="rounded-lg border border-slate-300 p-2 disabled:opacity-40 dark:border-slate-600">
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              {!isToday && (
-                <button type="button" onClick={() => setReportDate(currentReportDate())} className="rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200">
-                  {dt('Today')}
-                </button>
-              )}
-            </div>
-            <p className="text-sm font-bold text-slate-600 dark:text-slate-400">
-              {formatReportDateLabel(reportDate, dateLocale)}
-              {recentDates.includes(reportDate) && <span className="ml-2 rounded-full bg-emerald-600 px-2 py-0.5 text-xs text-white">Saved</span>}
-            </p>
+      {activeSection === 'entry' && (
+        <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-4 flex items-center gap-2">
+            <PackageCheck className="h-5 w-5 text-emerald-700" />
+            <h2 className="text-base font-black text-slate-950">{categoryLabels[category]} Daily Stock Entry</h2>
           </div>
-
-          {loading ? (
-            <div className="flex h-36 items-center justify-center">
-              <div className="h-9 w-9 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
-            </div>
-          ) : (
-            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[900px] text-sm">
-                  <thead className="bg-slate-900 text-white sticky top-0">
-                    <tr>
-                      <th className="px-3 py-2 text-left">{dt('S.No')}</th>
-                      <th className="px-3 py-2 text-left">{dt('Type')}</th>
-                      <th className="px-3 py-2 text-left">{dt('Opening Stock')}{qtyUnit ? ` (${qtyUnit})` : ''}</th>
-                      <th className="px-3 py-2 text-left">{dt('Receipts')}{qtyUnit ? ` (${qtyUnit})` : ''}</th>
-                      <th className="px-3 py-2 text-left">{dt('Total Available')}{qtyUnit ? ` (${qtyUnit})` : ''}</th>
-                      <th className="px-3 py-2 text-left">{dt('Sales')}{qtyUnit ? ` (${qtyUnit})` : ''}</th>
-                      <th className="px-3 py-2 text-left">{dt('Closing Stock')}{qtyUnit ? ` (${qtyUnit})` : ''}</th>
-                      <th className="px-3 py-2" />
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {rows.map((row, index) => (
-                  <tr key={row.id || `${reportDate}-${index}`}>
-                    <td className="px-3 py-2 font-bold">{index + 1}</td>
-                    <td className="px-3 py-2">
-                      <select value={row.product_type} onChange={(event) => updateRow(index, { product_type: event.target.value })} className="w-full min-w-[8rem] rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
-                        {types.map((type) => <option key={type} value={type}>{type}</option>)}
-                      </select>
-                    </td>
-                    <QuantityCell value={toDisplayQuantity(row.opening_balance, row.product_type)} isBags={isFertilizer && fertilizerQtyUnit === 'bags'} onChange={(value) => updateRow(index, { opening_balance: fromDisplayQuantity(value, row.product_type) })} />
-                    <QuantityCell value={toDisplayQuantity(row.receipts, row.product_type)} isBags={isFertilizer && fertilizerQtyUnit === 'bags'} onChange={(value) => updateRow(index, { receipts: fromDisplayQuantity(value, row.product_type) })} />
-                    <td className="px-3 py-2 font-bold text-emerald-700 dark:text-emerald-400">{formatDisplayQuantity(row.total, row.product_type)} {qtyUnit}</td>
-                    <QuantityCell value={toDisplayQuantity(row.sales, row.product_type)} isBags={isFertilizer && fertilizerQtyUnit === 'bags'} onChange={(value) => updateRow(index, { sales: fromDisplayQuantity(value, row.product_type) })} />
-                    <td className="px-3 py-2 font-black text-slate-900 dark:text-white">{formatDisplayQuantity(row.closing_balance, row.product_type)} {qtyUnit}</td>
-                    <td className="px-3 py-2">
-                      <button type="button" onClick={() => removeRow(index)} className="rounded-lg p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid gap-3 md:grid-cols-3">
+            <CompactInput label="Entry Date" type="date" value={form.entry_date} onChange={(value) => updateForm({ entry_date: value })} />
+            {category === 'fertilizer' && (
+              <>
+                <CompactSelect label="Fertilizer Name" value={form.product_name} onChange={(value) => updateForm({ product_name: value })} options={productTypesForCategory('fertilizer')} />
+                <CompactInput label="Grade" value={form.grade} onChange={(value) => updateForm({ grade: value })} />
+              </>
+            )}
+            {category === 'seed' && (
+              <>
+                <CompactSelect label="Crop" value={form.crop} onChange={(value) => updateForm({ crop: value, product_name: value })} options={productTypesForCategory('seed')} />
+                <CompactInput label="Variety / Hybrid Name" value={form.variety} onChange={(value) => updateForm({ variety: value })} />
+                <CompactInput label="Lot Number" value={form.lot_number} onChange={(value) => updateForm({ lot_number: value })} />
+                <CompactInput label="Company Name" value={form.company_name} onChange={(value) => updateForm({ company_name: value })} />
+              </>
+            )}
+            {category === 'pesticide' && (
+              <>
+                <CompactSelect label="Product Name" value={form.product_name} onChange={(value) => updateForm({ product_name: value })} options={productTypesForCategory('pesticide')} />
+                <CompactInput label="Technical Name" value={form.technical_name} onChange={(value) => updateForm({ technical_name: value })} />
+                <CompactInput label="Formulation" value={form.formulation} onChange={(value) => updateForm({ formulation: value })} />
+                <CompactInput label="Batch Number" value={form.batch_number} onChange={(value) => updateForm({ batch_number: value })} />
+                <CompactInput label="Company Name" value={form.company_name} onChange={(value) => updateForm({ company_name: value })} />
+              </>
+            )}
+            <CompactSelect label="Unit" value={form.unit} onChange={(value) => updateForm({ unit: value })} options={CATEGORY_UNITS[category]} />
+            <CompactInput label="Opening Stock" type="number" value={String(form.opening_stock)} onChange={(value) => updateForm({ opening_stock: Number(value) || 0 })} />
+            <CompactInput label="Received Quantity" type="number" value={String(form.received_quantity)} onChange={(value) => updateForm({ received_quantity: Number(value) || 0 })} />
+            <CompactInput label="Sold Quantity" type="number" value={String(form.sold_quantity)} onChange={(value) => updateForm({ sold_quantity: Number(value) || 0 })} />
+            <label className="block">
+              <span className="mb-1 block text-[11px] font-black uppercase text-slate-500">Closing Stock</span>
+              <input readOnly value={closingStock.toFixed(2)} className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm font-black text-slate-950" />
+            </label>
+            <CompactInput label="Remarks" value={form.remarks} onChange={(value) => updateForm({ remarks: value })} />
           </div>
-          <div className="flex flex-wrap gap-2 border-t border-slate-100 p-3 dark:border-slate-800">
-            <button type="button" onClick={addRow} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold dark:border-slate-600">
-              <Plus className="h-4 w-4" /> {dt('Add row')}
-            </button>
-            <button type="button" onClick={applyYesterdayClosingAsOpening} className="inline-flex items-center gap-2 rounded-xl border border-amber-400 px-3 py-2 text-sm font-bold text-amber-900 dark:text-amber-200">
-              <Copy className="h-4 w-4" /> {dt('Opening from yesterday')}
-            </button>
-            <button type="button" onClick={handleSaveDailyEntry} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
-              <Save className="h-4 w-4" /> {saving ? 'Saving...' : dt('Save Entry')}
+          <div className="mt-4 flex justify-end">
+            <button type="button" onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white disabled:opacity-60">
+              <Save className="h-4 w-4" /> {saving ? 'Saving...' : 'Save Entry'}
             </button>
           </div>
         </section>
-          )}
-        </>
       )}
 
-      {activeSection === 'history' && <DealerHistory />}
+      {activeSection === 'history' && (
+        <HistoryTable loading={loading} records={filteredRecords} category={category} firmName={firmName} ifmsId={ifmsId} />
+      )}
     </div>
   );
 }
 
-function QuantityCell({ value, isBags, onChange }: { value: number; isBags: boolean; onChange: (value: number) => void }) {
+function HistoryTable({ loading, records, category, firmName, ifmsId }: { loading: boolean; records: StockInventoryLine[]; category: StockCategory; firmName: string; ifmsId: string }) {
+  if (loading) {
+    return <div className="flex h-40 items-center justify-center"><div className="h-9 w-9 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" /></div>;
+  }
+
   return (
-    <td className="px-3 py-2">
-      <input
-        type="number"
-        min={0}
-        step={isBags ? '1' : '0.01'}
-        value={value}
-        onChange={(event) => onChange(parseFloat(event.target.value) || 0)}
-        className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-      />
-    </td>
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-100 p-4">
+        <h2 className="text-base font-black text-slate-950">Stock Receipts & Sales</h2>
+        <p className="text-xs font-semibold text-slate-500">Daily Stock History | Receipts History | Sales History</p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1250px] text-sm">
+          <thead className="bg-slate-900 text-white">
+            <tr>
+              {['Financial Year', 'Entry Date', 'Category', 'Firm Name', 'IFMS ID', 'Product/Crop/Variety Name', 'Opening Stock', 'Received Quantity', 'Sold Quantity', 'Closing Stock', 'Unit', 'Batch/Lot/Invoice', 'Remarks'].map((head) => (
+                <th key={head} className="px-3 py-2 text-left">{head}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {records.map((record) => (
+              <tr key={record.id}>
+                <td className="px-3 py-2 font-bold">{record.financial_year || financialYearForDate(record.report_date)}</td>
+                <td className="px-3 py-2">{record.report_date}</td>
+                <td className="px-3 py-2">{categoryLabels[record.category]}</td>
+                <td className="px-3 py-2">{record.firm_name || firmName}</td>
+                <td className="px-3 py-2">{record.ifms_id || ifmsId}</td>
+                <td className="px-3 py-2 font-black">{category === 'seed' ? `${record.crop || record.product_type} ${record.variety || ''}`.trim() : record.product_type}</td>
+                <td className="px-3 py-2 text-right">{Number(record.opening_balance || 0).toFixed(2)}</td>
+                <td className="px-3 py-2 text-right">{Number(record.receipts || 0).toFixed(2)}</td>
+                <td className="px-3 py-2 text-right">{Number(record.sales || 0).toFixed(2)}</td>
+                <td className="px-3 py-2 text-right font-black">{Number(record.closing_balance || 0).toFixed(2)}</td>
+                <td className="px-3 py-2">{record.unit || '-'}</td>
+                <td className="px-3 py-2">{record.lot_number || record.batch_number || record.invoice_no || '-'}</td>
+                <td className="px-3 py-2">{record.remarks || '-'}</td>
+              </tr>
+            ))}
+            {!records.length && (
+              <tr>
+                <td colSpan={13} className="px-3 py-8 text-center text-sm font-semibold text-slate-500">No saved entries found for this category and financial year.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function SummaryCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-emerald-900 shadow-sm">
+      <p className="text-[10px] font-black uppercase tracking-wide opacity-75">{label}</p>
+      <p className="mt-1 text-xl font-black">{value}</p>
+    </div>
   );
 }
 
 function CompactInput({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (value: string) => void; type?: string }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>
-      <input
-        type={type}
-        min={type === 'number' ? '0' : undefined}
-        step={type === 'number' ? '0.01' : undefined}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-bold text-slate-950 outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-      />
+      <span className="mb-1 block text-[11px] font-black uppercase text-slate-500">{label}</span>
+      <input type={type} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.01' : undefined} value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-950 outline-none focus:border-emerald-500" />
     </label>
   );
 }
 
-function CompactSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
+function CompactSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: readonly string[] }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-bold text-slate-950 outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-      >
+      <span className="mb-1 block text-[11px] font-black uppercase text-slate-500">{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-950 outline-none focus:border-emerald-500">
         {options.map((option) => <option key={option} value={option}>{option}</option>)}
       </select>
     </label>
-  );
-}
-
-function SummaryCard({ label, value, tone }: { label: string; value: string; tone: 'emerald' | 'sky' | 'amber' }) {
-  const classes = {
-    emerald: 'border-emerald-100 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200',
-    sky: 'border-sky-100 bg-sky-50 text-sky-800 dark:border-sky-900 dark:bg-sky-950/30 dark:text-sky-200',
-    amber: 'border-amber-100 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200',
-  }[tone];
-
-  return (
-    <div className={`rounded-xl border p-4 shadow-sm ${classes}`}>
-      <p className="text-xs font-black uppercase tracking-wide opacity-80">{label}</p>
-      <p className="mt-2 text-2xl font-black">{value}</p>
-    </div>
-  );
-}
-
-function SectionButton({ active, title, subtitle, tone, onClick }: { active: boolean; title: string; subtitle: string; tone: 'red' | 'emerald' | 'amber' | 'sky'; onClick: () => void }) {
-  const toneClasses = {
-    red: active ? 'border-red-500 bg-red-50 dark:border-red-400 dark:bg-red-950/30' : 'border-slate-200 bg-white hover:border-red-300 hover:bg-red-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-red-400 dark:hover:bg-red-950/30',
-    emerald: active ? 'border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/30' : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-emerald-400 dark:hover:bg-emerald-950/30',
-    amber: active ? 'border-amber-500 bg-amber-50 dark:border-amber-400 dark:bg-amber-950/30' : 'border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-amber-400 dark:hover:bg-amber-950/30',
-    sky: active ? 'border-sky-500 bg-sky-50 dark:border-sky-400 dark:bg-sky-950/30' : 'border-slate-200 bg-white hover:border-sky-300 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-sky-400 dark:hover:bg-sky-950/30',
-  };
-
-  const iconClasses = {
-    red: active ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
-    emerald: active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
-    amber: active ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
-    sky: active ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
-  };
-
-  const icons = {
-    red: <PackageCheck className="h-6 w-6" />,
-    emerald: <Truck className="h-6 w-6" />,
-    amber: <PackageCheck className="h-6 w-6" />,
-    sky: <PackageCheck className="h-6 w-6" />,
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex items-center gap-3 rounded-lg border p-4 text-left shadow-sm transition ${toneClasses[tone]}`}
-    >
-      <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${iconClasses[tone]}`}>
-        {icons[tone]}
-      </div>
-      <div className="flex-1">
-        <h3 className="text-sm font-black text-slate-900 dark:text-white">{title}</h3>
-        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{subtitle}</p>
-      </div>
-    </button>
   );
 }

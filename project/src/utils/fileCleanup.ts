@@ -19,13 +19,7 @@ export function cleanupCanvas(canvas: HTMLCanvasElement | null) {
 }
 
 export function cleanupBlob(blob: Blob | null) {
-  // Blobs are automatically garbage collected when no longer referenced
-  // This function exists for explicit cleanup in critical paths
-  if (blob) {
-    // Force cleanup by creating a temporary reference and releasing it
-    // @ts-ignore - Intentional null assignment for cleanup
-    blob = null;
-  }
+  void blob;
 }
 
 export function cleanupWorker(worker: Worker | null) {

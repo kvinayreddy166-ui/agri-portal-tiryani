@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { ZoomIn, ZoomOut, ChevronLeft, ChevronRight, X, Download } from 'lucide-react';
-import { renderPdfPage } from '../../utils/pdfHelpers';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ZoomIn, ZoomOut, ChevronLeft, ChevronRight, X, Download, ExternalLink } from 'lucide-react';
+import { renderPdfPage, validatePdf } from '../../utils/pdfHelpers';
 import { cleanupObjectUrl, downloadBlob, makeSafeFileName } from '../../utils/fileCleanup';
 
 interface PdfPreviewProps {
@@ -17,6 +17,32 @@ export function PdfPreview({ file, onClose, onDownload, className = '' }: PdfPre
   const [scale, setScale] = useState(1.5);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
+
+  const renderPage = useCallback(async (pageNumber: number, nextScale = scale) => {
+    if (!canvasRef.current) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const canvas = await renderPdfPage(file, pageNumber, nextScale);
+      
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          canvasRef.current.width = canvas.width;
+          canvasRef.current.height = canvas.height;
+          ctx.drawImage(canvas, 0, 0);
+        }
+      }
+    } catch (err) {
+      console.error('Error rendering page:', err);
+      setError('Failed to render page. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [file, scale]);
 
   useEffect(() => {
     let mounted = true;
@@ -27,16 +53,13 @@ export function PdfPreview({ file, onClose, onDownload, className = '' }: PdfPre
         setLoading(true);
         setError(null);
 
-        // Create object URL for the file
         url = URL.createObjectURL(file);
+        setFallbackUrl(url);
 
-        // Load PDF to get page count
-        const pdfjs = await import('pdfjs-dist');
-        const loadingTask = pdfjs.getDocument({ url: url as string });
-        const pdf = await loadingTask.promise;
+        const info = await validatePdf(file);
 
         if (mounted) {
-          setTotalPages(pdf.numPages);
+          setTotalPages(info.pageCount);
           setCurrentPage(1);
         }
 
@@ -61,33 +84,9 @@ export function PdfPreview({ file, onClose, onDownload, className = '' }: PdfPre
       if (url) {
         cleanupObjectUrl(url);
       }
+      setFallbackUrl(null);
     };
-  }, [file]);
-
-  const renderPage = async (pageNumber: number) => {
-    if (!canvasRef.current) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const canvas = await renderPdfPage(file, pageNumber, scale);
-      
-      if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d');
-        if (ctx) {
-          canvasRef.current.width = canvas.width;
-          canvasRef.current.height = canvas.height;
-          ctx.drawImage(canvas, 0, 0);
-        }
-      }
-    } catch (err) {
-      console.error('Error rendering page:', err);
-      setError('Failed to render page. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [file, renderPage]);
 
   const handlePageChange = async (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
@@ -98,13 +97,13 @@ export function PdfPreview({ file, onClose, onDownload, className = '' }: PdfPre
   const handleZoomIn = async () => {
     const newScale = Math.min(scale + 0.25, 3);
     setScale(newScale);
-    await renderPage(currentPage);
+    await renderPage(currentPage, newScale);
   };
 
   const handleZoomOut = async () => {
     const newScale = Math.max(scale - 0.25, 0.5);
     setScale(newScale);
-    await renderPage(currentPage);
+    await renderPage(currentPage, newScale);
   };
 
   const handleDownload = () => {
@@ -194,8 +193,19 @@ export function PdfPreview({ file, onClose, onDownload, className = '' }: PdfPre
 
         {error && (
           <div className="flex h-full items-center justify-center">
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-700">
-              {error}
+            <div className="max-w-sm rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-bold text-red-700">
+              <p>{error}</p>
+              {fallbackUrl && (
+                <a
+                  href={fallbackUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-black text-red-700"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Open in new tab
+                </a>
+              )}
             </div>
           </div>
         )}

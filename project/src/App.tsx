@@ -25,12 +25,8 @@ const SubsidyTracking = lazy(() => import('./pages/SubsidyTracking').then((m) =>
 const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m) => ({ default: m.DealerStockPortal })));
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
-const OfficialDraftAutomation = lazy(() => import('./pages/OfficialDraftAutomation'));
 const StockAnalytics = lazy(() => import('./pages/StockAnalytics'));
 const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
-const CropDiagnosis = lazy(() =>
-  import('./pages/CropDiagnosis').then((m) => ({ default: m.CropDiagnosis }))
-);
 const CropAdminDashboard = lazy(() =>
   import('./pages/admin/CropAdminDashboard.jsx').then((m) => ({ default: m.CropAdminDashboard }))
 );
@@ -47,7 +43,13 @@ function PageLoader() {
 }
 
 const PUBLIC_VIEW_PAGES = new Set(['dealers']);
-const PUBLIC_AUTH_ROUTES = new Set(['/login', '/officer-toolkit/statutory-forms', '/officer-toolkit/acreage-calculator', '/officer-toolkit/official-drafts', '/officer-toolkit/pdf-tools']);
+const PUBLIC_AUTH_ROUTES = new Set([
+  '/login',
+  '/officer-toolkit',
+  '/officer-toolkit/statutory-forms',
+  '/officer-toolkit/acreage-calculator',
+  '/officer-toolkit/pdf-tools',
+]);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
 const PAGE_PATHS: Record<string, string> = {
@@ -75,9 +77,7 @@ const PAGE_PATHS: Record<string, string> = {
   subsidy: '/subsidy',
   'subsidy-nfsm': '/subsidy-nfsm',
   'subsidy-state-seed': '/subsidy-state-seed',
-  'crop-diagnosis': '/crop-diagnosis',
   'officer-toolkit': '/officer-toolkit',
-  'official-drafts': '/officer-toolkit/official-drafts',
   'acreage-calculator': '/acreage-calculator',
   'pdf-tools': '/officer-toolkit/pdf-tools',
   analytics: '/analytics',
@@ -100,7 +100,7 @@ function getHistoryIndex() {
 }
 
 function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
-  if (pathname === '/officer-toolkit/statutory-forms' || pathname === '/officer-toolkit/acreage-calculator' || pathname === '/officer-toolkit/official-drafts' || pathname === '/officer-toolkit/pdf-tools') {
+  if (pathname === '/officer-toolkit/statutory-forms' || pathname === '/officer-toolkit/acreage-calculator' || pathname === '/officer-toolkit/pdf-tools') {
     return '/officer-toolkit';
   }
   if (pathname === '/forms' || pathname === '/acreage-calculator') {
@@ -118,7 +118,7 @@ function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
 function getPageBackFallback(page: string, isDealerUser: boolean) {
   if (page === 'forms' || page === 'acreage-calculator') return '/officer-toolkit';
   if (page === 'officer-toolkit') return '/dashboard';
-  if (page.startsWith('crop-') && page !== 'crop-diagnosis') return '/crops';
+  if (page.startsWith('crop-')) return '/crops';
   if (page.startsWith('quality-')) return '/quality';
   if (page.startsWith('subsidy-')) return '/subsidy';
   return isDealerUser ? '/dealer-portal' : '/dashboard';
@@ -271,9 +271,7 @@ function AppContent() {
         'subsidy',
         'subsidy-nfsm',
         'subsidy-state-seed',
-        'crop-diagnosis',
         'officer-toolkit',
-        'official-drafts',
         'acreage-calculator',
         'pdf-tools',
         'analytics',
@@ -288,11 +286,9 @@ function AppContent() {
       const hashPage = location.hash.replace(/^#\/?/, '');
       
       // Handle nested routes for officer toolkit
-      let page = legacyPage || routePage || hashPage;
+      let page = routePage !== 'dashboard' ? routePage : legacyPage || routePage || hashPage;
       if (page === 'officer-toolkit/pdf-tools') {
         page = 'pdf-tools';
-      } else if (page === 'officer-toolkit/official-drafts') {
-        page = 'official-drafts';
       } else if (page === 'officer-toolkit/acreage-calculator') {
         page = 'acreage-calculator';
       }
@@ -408,6 +404,18 @@ function AppContent() {
     navigateToPage('dashboard', { replace: true });
   }, [currentPage, loading, location.pathname, navigateToPage, user]);
 
+  useEffect(() => {
+    if (loading || user) return;
+    if (
+      location.pathname.startsWith('/officer-toolkit/') &&
+      location.pathname !== '/officer-toolkit/pdf-tools' &&
+      location.pathname !== '/officer-toolkit/statutory-forms' &&
+      location.pathname !== '/officer-toolkit/acreage-calculator'
+    ) {
+      navigate('/officer-toolkit', { replace: true });
+    }
+  }, [loading, location.pathname, navigate, user]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
@@ -427,6 +435,24 @@ function AppContent() {
         {currentPage === 'dealers' ? <DealerManagement /> : null}
       </PublicReadOnlyShell>
     );
+  }
+
+  if (!user && (currentPage === 'officer-toolkit' || currentPage === 'pdf-tools')) {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        {currentPage === 'officer-toolkit' ? <OfficersToolkit /> : <PdfToolsPage />}
+      </Suspense>
+    );
+  }
+
+  if (
+    !user &&
+    location.pathname.startsWith('/officer-toolkit/') &&
+    location.pathname !== '/officer-toolkit/pdf-tools' &&
+    location.pathname !== '/officer-toolkit/statutory-forms' &&
+    location.pathname !== '/officer-toolkit/acreage-calculator'
+  ) {
+    return <PageLoader />;
   }
 
   if (!user) {
@@ -497,20 +523,8 @@ function AppContent() {
             initialProgram={currentPage === 'subsidy-state-seed' ? 'state_seed_cell' : 'nfsm'}
           />
         );
-      case 'crop-diagnosis':
-        return (
-          <Suspense fallback={<PageLoader />}>
-            <CropDiagnosis />
-          </Suspense>
-        );
       case 'officer-toolkit':
         return <OfficersToolkit />;
-      case 'official-drafts':
-        return (
-          <Suspense fallback={<PageLoader />}>
-            <OfficialDraftAutomation />
-          </Suspense>
-        );
       case 'acreage-calculator':
         return <AcreageCalculator />;
       case 'pdf-tools':

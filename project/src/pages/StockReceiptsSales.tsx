@@ -1,291 +1,251 @@
-import React, { useState, useEffect } from 'react';
-import { Download, Search, Calendar, Package } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Download, Filter, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { supabase } from '../lib/supabase';
+import {
+  FINANCIAL_YEARS,
+  StockCategory,
+  StockInventoryLine,
+  financialYearForDate,
+  financialYearRange,
+} from '../lib/stockInventory';
 
-interface Receipt {
+type DealerProfile = {
   id: string;
   dealer_name: string;
-  fertilizer_type: string;
-  quantity_mts: number;
-  wholesaler_name: string;
-  invoice_number: string;
-  invoice_date: string;
-  last_updated: string;
-}
+  ifms_id: string;
+};
 
-interface Sale {
-  id: string;
-  dealer_name: string;
-  fertilizer_type: string;
-  quantity_mts: number;
-  customer_name: string;
-  invoice_number: string;
-  sale_date: string;
-  last_updated: string;
-}
+type AdminStockRecord = StockInventoryLine & {
+  dealers?: DealerProfile | null;
+};
+
+const categoryLabels: Record<StockCategory, string> = {
+  fertilizer: 'Fertilizer',
+  seed: 'Seed',
+  pesticide: 'Pesticide',
+};
 
 export default function StockReceiptsSales() {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'receipts' | 'sales'>('receipts');
-  const [receipts, setReceipts] = useState<Receipt[]>([]);
-  const [sales, setSales] = useState<Sale[]>([]);
+  const [records, setRecords] = useState<AdminStockRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [financialYear, setFinancialYear] = useState(financialYearForDate());
+  const [category, setCategory] = useState<'all' | StockCategory>('all');
+  const [entryType, setEntryType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [financialYear, setFinancialYear] = useState('2024-25');
 
-  useEffect(() => {
-    fetchData();
+  const fetchData = useCallback(async () => {
+    const range = financialYearRange(financialYear);
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('stock_inventory_lines')
+      .select('*, dealers(id, dealer_name, ifms_id)')
+      .gte('report_date', range.start)
+      .lte('report_date', range.end)
+      .order('report_date', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error(error);
+      setRecords([]);
+    } else {
+      setRecords((data || []) as AdminStockRecord[]);
+    }
+    setLoading(false);
   }, [financialYear]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Fetch receipts for the dealer
-      const receiptsResponse = await fetch(`/api/dealer-stock?dealer_id=${user?.email}&financial_year=${financialYear}`);
-      if (receiptsResponse.ok) {
-        const receiptsData = await receiptsResponse.json();
-        setReceipts(receiptsData);
-      }
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
 
-      // Fetch sales for the dealer
-      const salesResponse = await fetch(`/api/dealer-sales?dealer_id=${user?.email}&financial_year=${financialYear}`);
-      if (salesResponse.ok) {
-        const salesData = await salesResponse.json();
-        setSales(salesData);
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
+  const filteredRecords = useMemo(() => {
+    const search = searchTerm.trim().toLowerCase();
+    return records.filter((record) => {
+      const dealerName = record.firm_name || record.dealers?.dealer_name || '';
+      const ifms = record.ifms_id || record.dealers?.ifms_id || '';
+      const haystack = [
+        dealerName,
+        ifms,
+        record.product_type,
+        record.crop,
+        record.variety,
+        record.company_name,
+        record.technical_name,
+        record.formulation,
+        record.lot_number,
+        record.batch_number,
+        record.invoice_no,
+        record.remarks,
+      ].join(' ').toLowerCase();
+      return (
+        (category === 'all' || record.category === category) &&
+        (entryType === 'all' || (record.entry_type || 'daily_stock') === entryType) &&
+        (!search || haystack.includes(search))
+      );
+    });
+  }, [category, entryType, records, searchTerm]);
+
+  const summary = useMemo(() => {
+    const opening = filteredRecords.reduce((sum, row) => sum + Number(row.opening_balance || 0), 0);
+    const received = filteredRecords.reduce((sum, row) => sum + Number(row.receipts || 0), 0);
+    const sold = filteredRecords.reduce((sum, row) => sum + Number(row.sales || 0), 0);
+    const dealerCount = new Set(filteredRecords.map((row) => row.dealer_id).filter(Boolean)).size;
+    const productCount = new Set(filteredRecords.map((row) => `${row.category}-${row.product_type}`).filter(Boolean)).size;
+    return {
+      opening,
+      received,
+      sold,
+      closing: opening + received - sold,
+      entries: filteredRecords.length,
+      dealers: dealerCount,
+      products: productCount,
+    };
+  }, [filteredRecords]);
+
+  const exportToExcel = () => {
+    if (!filteredRecords.length) {
+      alert('No data to export');
+      return;
     }
-  };
-
-  const filteredReceipts = receipts.filter(
-    (item) =>
-      item.dealer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.fertilizer_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.wholesaler_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.invoice_number && item.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  const filteredSales = sales.filter(
-    (item) =>
-      item.dealer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.fertilizer_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.invoice_number && item.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  const exportReceiptsToExcel = () => {
-    const data = filteredReceipts.map((item, index) => ({
-      'S.No': index + 1,
-      'Dealer': item.dealer_name,
-      'Fertilizer': item.fertilizer_type,
-      'Quantity (MT)': item.quantity_mts,
-      'Wholesaler': item.wholesaler_name,
-      'Invoice No.': item.invoice_number,
-      'Invoice Date': item.invoice_date,
-      'Last Updated': item.last_updated,
+    const rows = filteredRecords.map((record) => ({
+      'Financial Year': record.financial_year || financialYearForDate(record.report_date),
+      'Entry Date': record.report_date || '',
+      Category: categoryLabels[record.category],
+      'Entry Type': record.entry_type || 'daily_stock',
+      'Firm Name': record.firm_name || record.dealers?.dealer_name || '',
+      'IFMS ID': record.ifms_id || record.dealers?.ifms_id || '',
+      'Product Name': record.product_type,
+      Crop: record.crop || '',
+      'Variety / Hybrid': record.variety || '',
+      'Lot Number': record.lot_number || '',
+      'Batch Number': record.batch_number || '',
+      'Company Name': record.company_name || '',
+      'Technical Name': record.technical_name || '',
+      Formulation: record.formulation || '',
+      'Opening Stock': record.opening_balance,
+      'Received Quantity': record.receipts,
+      'Sold Quantity': record.sales,
+      'Closing Stock': record.closing_balance,
+      Unit: record.unit || '',
+      'Invoice No': record.invoice_no || '',
+      'Invoice Date': record.invoice_date || '',
+      Supplier: record.supplier || '',
+      Remarks: record.remarks || '',
     }));
-    downloadWorkbook(data, `stock-receipts-${financialYear}.xlsx`, 'Receipts');
-  };
-
-  const exportSalesToExcel = () => {
-    const data = filteredSales.map((item, index) => ({
-      'S.No': index + 1,
-      'Dealer': item.dealer_name,
-      'Fertilizer': item.fertilizer_type,
-      'Quantity (MT)': item.quantity_mts,
-      'Customer': item.customer_name,
-      'Invoice No.': item.invoice_number,
-      'Sale Date': item.sale_date,
-      'Last Updated': item.last_updated,
-    }));
-    downloadWorkbook(data, `stock-sales-${financialYear}.xlsx`, 'Sales');
-  };
-
-  const downloadWorkbook = (rows: Record<string, string | number>[], fileName: string, sheetName: string) => {
-    if (!rows.length) return;
-    const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-    XLSX.writeFile(workbook, fileName);
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), 'Stock Receipts Sales');
+    XLSX.writeFile(workbook, `stock-receipts-sales-${financialYear}.xlsx`);
   };
-
-  const formatDate = (value: string) => {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleDateString('en-IN');
-  };
-
-  if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-emerald-600"></div>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="page-title">Stock Receipts & Sales</h1>
-          <p className="page-subtitle">View your fertilizer receipts and sales with export options.</p>
-        </div>
-      </div>
-
-      {/* Tab Switching */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setActiveTab('receipts')}
-          className={`px-4 py-2 text-sm font-black transition ${
-            activeTab === 'receipts'
-              ? 'bg-emerald-600 text-white'
-              : 'bg-white text-slate-700 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'
-          }`}
-        >
-          Receipts
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('sales')}
-          className={`px-4 py-2 text-sm font-black transition ${
-            activeTab === 'sales'
-              ? 'bg-emerald-600 text-white'
-              : 'bg-white text-slate-700 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'
-          }`}
-        >
-          Sales
-        </button>
-      </div>
-
-      {/* Filters */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="relative w-full md:max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:ring-emerald-900/40"
-              placeholder={activeTab === 'receipts' ? 'Search fertilizer, wholesaler, or invoice' : 'Search fertilizer, customer, or invoice'}
-            />
+    <div className="space-y-4">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Admin stock module</p>
+            <h1 className="text-2xl font-black text-slate-950">Stock Receipts & Sales</h1>
+            <p className="text-sm font-semibold text-slate-500">All dealers, all categories, date-wise daily stock entries.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
-              <Calendar className="h-4 w-4" />
-              Financial Year
-              <select
-                value={financialYear}
-                onChange={(e) => setFinancialYear(e.target.value)}
-                className="bg-transparent text-slate-950 outline-none dark:text-white"
-              >
-                <option value="2024-25">2024-25</option>
-                <option value="2023-24">2023-24</option>
-                <option value="2022-23">2022-23</option>
-              </select>
-            </label>
-            <button
-              type="button"
-              onClick={activeTab === 'receipts' ? exportReceiptsToExcel : exportSalesToExcel}
-              disabled={activeTab === 'receipts' ? filteredReceipts.length === 0 : filteredSales.length === 0}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-emerald-300"
-            >
-              <Download className="h-4 w-4" />
-              Export to Excel
-            </button>
-          </div>
+          <button type="button" onClick={exportToExcel} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white">
+            <Download className="h-4 w-4" /> Export all/filtered data to Excel
+          </button>
         </div>
-      </div>
+      </section>
 
-      {/* Content */}
-      {activeTab === 'receipts' ? (
-        filteredReceipts.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-600">
-            <Package className="mx-auto mb-3 h-10 w-10 text-gray-300" />
-            <p className="font-semibold text-slate-600 dark:text-slate-300">No receipt entries found.</p>
+      <section className="grid gap-3 md:grid-cols-4 lg:grid-cols-7">
+        <SummaryCard label="Total Opening Stock" value={summary.opening.toFixed(2)} />
+        <SummaryCard label="Total Received" value={summary.received.toFixed(2)} />
+        <SummaryCard label="Total Sold" value={summary.sold.toFixed(2)} />
+        <SummaryCard label="Current Closing Stock" value={summary.closing.toFixed(2)} />
+        <SummaryCard label="Total Entries" value={String(summary.entries)} />
+        <SummaryCard label="Dealers" value={String(summary.dealers)} />
+        <SummaryCard label="Products" value={String(summary.products)} />
+      </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center gap-2">
+          <Filter className="h-5 w-5 text-emerald-700" />
+          <h2 className="text-base font-black text-slate-950">Filters</h2>
+        </div>
+        <div className="grid gap-2 md:grid-cols-5">
+          <select value={financialYear} onChange={(event) => setFinancialYear(event.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">
+            {FINANCIAL_YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
+          </select>
+          <select value={category} onChange={(event) => setCategory(event.target.value as 'all' | StockCategory)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">
+            <option value="all">All categories</option>
+            <option value="fertilizer">Fertilizer</option>
+            <option value="seed">Seed</option>
+            <option value="pesticide">Pesticide</option>
+          </select>
+          <select value={entryType} onChange={(event) => setEntryType(event.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">
+            <option value="all">All entry types</option>
+            <option value="daily_stock">Daily Stock</option>
+            <option value="receipt">Receipt</option>
+            <option value="sale">Sale</option>
+          </select>
+          <label className="relative md:col-span-2">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search dealer, IFMS, product, batch, lot, remarks" className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm font-bold" />
+          </label>
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 p-4">
+          <h2 className="text-base font-black text-slate-950">Daily Stock History | Receipts History | Sales History</h2>
+          <p className="text-xs font-semibold text-slate-500">Sorted by entry date descending.</p>
+        </div>
+        {loading ? (
+          <div className="flex h-48 items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
           </div>
         ) : (
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
-            <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-              <h2 className="text-sm font-black text-slate-950 dark:text-white">Stock Receipts</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-sm">
-                <thead className="bg-slate-900 text-xs uppercase text-white">
-                  <tr>
-                    <th className="px-4 py-3 text-left">S.No</th>
-                    <th className="px-4 py-3 text-left">Fertilizer</th>
-                    <th className="px-4 py-3 text-right">Quantity (MT)</th>
-                    <th className="px-4 py-3 text-left">Wholesaler</th>
-                    <th className="px-4 py-3 text-left">Invoice No.</th>
-                    <th className="px-4 py-3 text-left">Invoice Date</th>
-                    <th className="px-4 py-3 text-left">Last Updated</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {filteredReceipts.map((item, index) => (
-                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
-                      <td className="px-4 py-3 font-bold">{index + 1}</td>
-                      <td className="px-4 py-3 font-black text-slate-950 dark:text-white">{item.fertilizer_type}</td>
-                      <td className="px-4 py-3 text-right font-black text-emerald-700 dark:text-emerald-300">{item.quantity_mts.toFixed(2)}</td>
-                      <td className="px-4 py-3">{item.wholesaler_name || '-'}</td>
-                      <td className="px-4 py-3">{item.invoice_number || '-'}</td>
-                      <td className="px-4 py-3">{formatDate(item.invoice_date)}</td>
-                      <td className="px-4 py-3">{formatDate(item.last_updated)}</td>
-                    </tr>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1400px] text-sm">
+              <thead className="bg-slate-900 text-white">
+                <tr>
+                  {['Financial Year', 'Entry Date', 'Category', 'Firm Name', 'IFMS ID', 'Product/Crop/Variety Name', 'Opening Stock', 'Received Quantity', 'Sold Quantity', 'Closing Stock', 'Unit', 'Batch/Lot/Invoice', 'Remarks'].map((head) => (
+                    <th key={head} className="px-3 py-2 text-left">{head}</th>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )
-      ) : (
-        filteredSales.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-600">
-            <Package className="mx-auto mb-3 h-10 w-10 text-gray-300" />
-            <p className="font-semibold text-slate-600 dark:text-slate-300">No sales entries found.</p>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredRecords.map((record) => (
+                  <tr key={record.id}>
+                    <td className="px-3 py-2 font-bold">{record.financial_year || financialYearForDate(record.report_date)}</td>
+                    <td className="px-3 py-2">{record.report_date}</td>
+                    <td className="px-3 py-2">{categoryLabels[record.category]}</td>
+                    <td className="px-3 py-2">{record.firm_name || record.dealers?.dealer_name || '-'}</td>
+                    <td className="px-3 py-2">{record.ifms_id || record.dealers?.ifms_id || '-'}</td>
+                    <td className="px-3 py-2 font-black">{[record.product_type, record.crop, record.variety].filter(Boolean).join(' / ')}</td>
+                    <td className="px-3 py-2 text-right">{Number(record.opening_balance || 0).toFixed(2)}</td>
+                    <td className="px-3 py-2 text-right">{Number(record.receipts || 0).toFixed(2)}</td>
+                    <td className="px-3 py-2 text-right">{Number(record.sales || 0).toFixed(2)}</td>
+                    <td className="px-3 py-2 text-right font-black">{Number(record.closing_balance || 0).toFixed(2)}</td>
+                    <td className="px-3 py-2">{record.unit || '-'}</td>
+                    <td className="px-3 py-2">{record.lot_number || record.batch_number || record.invoice_no || '-'}</td>
+                    <td className="px-3 py-2">{record.remarks || '-'}</td>
+                  </tr>
+                ))}
+                {!filteredRecords.length && (
+                  <tr>
+                    <td colSpan={13} className="px-3 py-10 text-center text-sm font-semibold text-slate-500">No stock records match the selected filters.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
-            <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-              <h2 className="text-sm font-black text-slate-950 dark:text-white">Stock Sales</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-sm">
-                <thead className="bg-slate-900 text-xs uppercase text-white">
-                  <tr>
-                    <th className="px-4 py-3 text-left">S.No</th>
-                    <th className="px-4 py-3 text-left">Fertilizer</th>
-                    <th className="px-4 py-3 text-right">Quantity (MT)</th>
-                    <th className="px-4 py-3 text-left">Customer</th>
-                    <th className="px-4 py-3 text-left">Invoice No.</th>
-                    <th className="px-4 py-3 text-left">Sale Date</th>
-                    <th className="px-4 py-3 text-left">Last Updated</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {filteredSales.map((item, index) => (
-                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
-                      <td className="px-4 py-3 font-bold">{index + 1}</td>
-                      <td className="px-4 py-3 font-black text-slate-950 dark:text-white">{item.fertilizer_type}</td>
-                      <td className="px-4 py-3 text-right font-black text-emerald-700 dark:text-emerald-300">{item.quantity_mts.toFixed(2)}</td>
-                      <td className="px-4 py-3">{item.customer_name || '-'}</td>
-                      <td className="px-4 py-3">{item.invoice_number || '-'}</td>
-                      <td className="px-4 py-3">{formatDate(item.sale_date)}</td>
-                      <td className="px-4 py-3">{formatDate(item.last_updated)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )
-      )}
+        )}
+      </section>
+    </div>
+  );
+}
+
+function SummaryCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-emerald-900 shadow-sm">
+      <p className="text-[10px] font-black uppercase tracking-wide opacity-75">{label}</p>
+      <p className="mt-1 text-xl font-black">{value}</p>
     </div>
   );
 }

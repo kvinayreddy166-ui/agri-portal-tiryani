@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Download, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Download, Eye, RefreshCw, AlertTriangle } from 'lucide-react';
 import { PdfUploadBox } from './PdfUploadBox';
+import { PdfPreview } from './PdfPreview';
 import { extractTextFromPdf, getPdfInfo } from '../../utils/pdfHelpers';
+import { performOcrOnPdf, formatOcrText } from '../../utils/ocrHelpers';
 import { createDocxFromText, downloadDocx } from '../../utils/docxHelpers';
-import { makeSafeFileName, formatFileSize } from '../../utils/fileCleanup';
+import { downloadBlob, makeSafeFileName, formatFileSize } from '../../utils/fileCleanup';
 
 export function PdfToDocTool() {
   const [file, setFile] = useState<File | null>(null);
@@ -14,18 +16,22 @@ export function PdfToDocTool() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isScanned, setIsScanned] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [progress, setProgress] = useState('');
 
   const handleFileSelect = async (selectedFile: File) => {
     setFile(selectedFile);
     setResult(null);
     setError(null);
     setIsScanned(false);
+    setShowPreview(false);
+    setProgress('');
 
     try {
       const pdfInfo = await getPdfInfo(selectedFile);
       if (!pdfInfo.hasText) {
         setIsScanned(true);
-        setError('Scanned PDF detected. Please use OCR tool to extract text first.');
+        setError('This appears to be a scanned PDF. OCR is required to extract text.');
       }
     } catch (err) {
       console.error('Error checking PDF:', err);
@@ -37,6 +43,8 @@ export function PdfToDocTool() {
     setResult(null);
     setError(null);
     setIsScanned(false);
+    setShowPreview(false);
+    setProgress('');
   };
 
   const handleConvert = async () => {
@@ -46,10 +54,12 @@ export function PdfToDocTool() {
     setError(null);
 
     try {
-      const text = await extractTextFromPdf(file);
+      const text = isScanned
+        ? formatOcrText((await performOcrOnPdf(file, (state) => setProgress(state.status))).text)
+        : await extractTextFromPdf(file);
       
       if (!text || text.trim().length === 0) {
-        setError('No text found in PDF. Please use OCR tool for scanned documents.');
+        setError('No text found in PDF. Please use OCR Text Extraction for scanned documents.');
         setConverting(false);
         return;
       }
@@ -74,6 +84,11 @@ export function PdfToDocTool() {
     downloadDocx(result.docxBlob, fileName);
   };
 
+  const handleSourceDownload = () => {
+    if (!file) return;
+    downloadBlob(file, makeSafeFileName(file.name, 'source', 'pdf'));
+  };
+
   const handleReset = () => {
     setResult(null);
     setError(null);
@@ -96,35 +111,66 @@ export function PdfToDocTool() {
         accept="application/pdf"
       />
 
+      {file && (
+        <div className="flex flex-wrap gap-2 rounded-lg border border-slate-200 bg-white p-2">
+          <button
+            type="button"
+            onClick={() => setShowPreview((value) => !value)}
+            disabled={converting}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            <Eye className="h-4 w-4" />
+            {showPreview ? 'Hide Preview' : 'Preview PDF'}
+          </button>
+          <button
+            type="button"
+            onClick={handleSourceDownload}
+            disabled={converting}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            <Download className="h-4 w-4" />
+            Download Source
+          </button>
+        </div>
+      )}
+
+      {file && showPreview && (
+        <PdfPreview file={file} className="h-[520px]" />
+      )}
+
       {file && !result && (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-          {isScanned ? (
+          {isScanned && (
             <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
               <AlertTriangle className="h-4 w-4 flex-shrink-0 text-amber-700" />
               <div>
                 <p className="text-xs font-bold text-amber-800">Scanned PDF Detected</p>
                 <p className="text-xs font-semibold text-amber-700">
-                  This PDF has no selectable text. Please use the OCR tool to extract text first.
+                  This appears to be a scanned PDF. It will be converted with OCR.
                 </p>
               </div>
             </div>
-          ) : (
-            <button
-              type="button"
-              onClick={handleConvert}
-              disabled={converting}
-              className="w-full rounded-lg bg-emerald-700 px-4 py-2 text-xs font-black text-white hover:bg-emerald-800 disabled:opacity-50"
-            >
-              {converting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  Converting...
-                </span>
-              ) : (
-                'Convert to DOCX'
-              )}
-            </button>
           )}
+          {progress && (
+            <p className="mt-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-bold text-emerald-800">
+              {progress}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={handleConvert}
+            disabled={converting}
+            className="mt-3 w-full rounded-lg bg-emerald-700 px-4 py-2 text-xs font-black text-white hover:bg-emerald-800 disabled:opacity-50"
+          >
+            {converting ? (
+              <span className="flex items-center justify-center gap-2">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Converting...
+              </span>
+            ) : (
+              isScanned ? 'Convert with OCR to DOCX' : 'Convert to DOCX'
+            )}
+          </button>
         </div>
       )}
 

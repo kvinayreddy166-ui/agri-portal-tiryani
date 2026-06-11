@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Download, Copy, RefreshCw, FileText, File } from 'lucide-react';
+import { Copy, RefreshCw, FileText, File } from 'lucide-react';
 import { PdfUploadBox } from './PdfUploadBox';
-import { performOcr, formatOcrText } from '../../utils/ocrHelpers';
+import { performOcr, performOcrOnPdf, formatOcrText } from '../../utils/ocrHelpers';
 import { createDocxFromStructuredText, downloadDocx } from '../../utils/docxHelpers';
 import { makeSafeFileName, formatFileSize, downloadBlob } from '../../utils/fileCleanup';
 
@@ -15,7 +15,6 @@ export function OcrPdfTool() {
     docxBlob?: Blob;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [language, setLanguage] = useState<'eng' | 'tel' | 'eng+tel'>('eng+tel');
   const [copied, setCopied] = useState(false);
 
   const handleFileSelect = (selectedFile: File) => {
@@ -40,9 +39,10 @@ export function OcrPdfTool() {
     setProgress({ status: 'Initializing OCR...', progress: 0 });
 
     try {
-      const ocrResult = await performOcr(file, language, (p) => {
-        setProgress(p);
-      });
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      const ocrResult = isPdf
+        ? await performOcrOnPdf(file, setProgress)
+        : await performOcr(file, 'eng', setProgress);
 
       const formattedText = formatOcrText(ocrResult.text);
       
@@ -94,9 +94,9 @@ export function OcrPdfTool() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="mb-2 text-sm font-black text-slate-900">Scanned PDF OCR</h3>
+        <h3 className="mb-2 text-sm font-black text-slate-900">OCR Text Extraction</h3>
         <p className="mb-3 text-xs font-semibold text-slate-600">
-          Extract text from scanned PDFs using OCR (English & Telugu)
+          Extract text from scanned PDFs with high-resolution page rendering and contrast cleanup.
         </p>
       </div>
 
@@ -110,48 +110,8 @@ export function OcrPdfTool() {
 
       {file && !result && (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-          <div className="mb-3">
-            <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600">
-              Language
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setLanguage('eng')}
-                disabled={processing}
-                className={`rounded-lg border px-3 py-2 text-xs font-black transition-colors ${
-                  language === 'eng'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
-                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                } disabled:opacity-50`}
-              >
-                English
-              </button>
-              <button
-                type="button"
-                onClick={() => setLanguage('tel')}
-                disabled={processing}
-                className={`rounded-lg border px-3 py-2 text-xs font-black transition-colors ${
-                  language === 'tel'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
-                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                } disabled:opacity-50`}
-              >
-                Telugu
-              </button>
-              <button
-                type="button"
-                onClick={() => setLanguage('eng+tel')}
-                disabled={processing}
-                className={`rounded-lg border px-3 py-2 text-xs font-black transition-colors ${
-                  language === 'eng+tel'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
-                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                } disabled:opacity-50`}
-              >
-                Both
-              </button>
-            </div>
+          <div className="mb-3 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-bold text-slate-700">
+            English OCR mode uses 2.75x rendering, grayscale contrast boost, and page-by-page extraction for better accuracy.
           </div>
 
           {processing && progress.progress > 0 && (

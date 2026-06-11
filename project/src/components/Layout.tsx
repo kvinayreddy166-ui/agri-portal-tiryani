@@ -2,7 +2,7 @@ import React, { useMemo, useState, ReactNode } from 'react';
 import {
   ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Stethoscope, ClipboardList,
+  FolderOpen, Moon, Sun, Landmark, ClipboardList,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
 import { useAuth } from '../context/AuthContext';
@@ -36,7 +36,6 @@ const adminMenuItems = [
   { id: 'officer-toolkit', label: 'Officers Toolkit', icon: FileStack },
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
   { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
-  { id: 'crop-diagnosis', label: 'AI Crop Doctor', icon: Stethoscope },
   { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText },
   {
     id: 'quality',
@@ -257,7 +256,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
   const dashboard = { label: 'Dashboard', page: 'dashboard' };
   const toolkit = { label: 'Officers Toolkit', page: 'officer-toolkit' };
 
-  if (page.startsWith('crop-') && page !== 'crop-diagnosis') {
+  if (page.startsWith('crop-')) {
     const title = page === 'crop-admin' ? 'Crop Admin' : cropTitle(page);
     return {
       title,
@@ -296,7 +295,6 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     excel: { title: 'Office Records', breadcrumbs: [dashboard] },
     'file-directory': { title: 'Document Repository', breadcrumbs: [dashboard] },
     subsidy: { title: 'Subsidy & Schemes', breadcrumbs: [dashboard] },
-    'crop-diagnosis': { title: 'AI Crop Doctor', breadcrumbs: [dashboard] },
     analytics: { title: 'Report & Analytics', breadcrumbs: [dashboard] },
     settings: { title: 'Settings', breadcrumbs: [dashboard] },
   };
@@ -354,7 +352,6 @@ function translateMenu(label: string) {
     'Subsidy & Schemes': 'సబ్సిడీ & పథకాలు',
     NFSM: 'ఎన్.ఎఫ్.ఎస్.ఎం',
     'State Seed Cell': 'రాష్ట్ర విత్తన కార్యాలయం',
-    'AI Crop Doctor': 'ఏఐ పంట డాక్టర్',
     Seeds: 'విత్తనాలు',
     Pesticides: 'పురుగుమందులు',
     Fertilizers: 'ఎరువులు',
@@ -368,4 +365,3 @@ function translateMenu(label: string) {
   };
   return labels[label] ?? label;
 }
-

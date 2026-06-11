@@ -50,8 +50,7 @@ export async function createDocxFromText(text: string, title?: string): Promise<
     ],
   });
   
-  const buffer = await Packer.toBuffer(doc);
-  return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  return Packer.toBlob(doc);
 }
 
 export async function createDocxFromStructuredText(
@@ -151,8 +150,7 @@ export async function createDocxFromStructuredText(
     ],
   });
   
-  const buffer = await Packer.toBuffer(doc);
-  return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  return Packer.toBlob(doc);
 }
 
 export function downloadDocx(blob: Blob, fileName: string) {

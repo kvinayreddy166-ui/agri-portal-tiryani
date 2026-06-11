@@ -8,6 +8,22 @@ export interface StockInventoryLine {
   category: StockCategory;
   serial_no: number;
   product_type: string;
+  financial_year?: string;
+  entry_type?: 'daily_stock' | 'receipt' | 'sale';
+  firm_name?: string;
+  ifms_id?: string;
+  crop?: string;
+  variety?: string;
+  lot_number?: string;
+  batch_number?: string;
+  company_name?: string;
+  technical_name?: string;
+  formulation?: string;
+  unit?: string;
+  invoice_no?: string;
+  invoice_date?: string;
+  supplier?: string;
+  remarks?: string;
   opening_balance: number;
   receipts: number;
   total: number;
@@ -32,16 +48,23 @@ export const SEED_TYPES = [
   'Greengram',
   'Groundnut',
   'Sunflower',
-  'Other',
 ] as const;
 
 export const PESTICIDE_TYPES = [
-  'Insecticide',
-  'Fungicide',
-  'Herbicide',
-  'Bio-pesticide',
-  'Other',
+  'Chlorpyriphos',
+  'Imidacloprid',
+  'Mancozeb',
+  'Glyphosate',
+  'Emamectin Benzoate',
 ] as const;
+
+export const FINANCIAL_YEARS = ['2025-26', '2026-27', '2027-28', '2028-29', '2029-30', '2030-31'] as const;
+
+export const CATEGORY_UNITS: Record<StockCategory, string[]> = {
+  fertilizer: ['MT', 'Bags', 'Kg'],
+  seed: ['Packets', 'Kg', 'Qtls'],
+  pesticide: ['Litre', 'ml', 'Kg', 'Gram', 'Bottles'],
+};
 
 export function productTypesForCategory(category: StockCategory): string[] {
   switch (category) {
@@ -93,6 +116,20 @@ export function currentReportDate(): string {
   return `${y}-${m}-${d}`;
 }
 
+export function financialYearForDate(dateValue: string = currentReportDate()): string {
+  const [year, month] = dateValue.split('-').map(Number);
+  const startYear = month >= 4 ? year : year - 1;
+  return `${startYear}-${String((startYear + 1) % 100).padStart(2, '0')}`;
+}
+
+export function financialYearRange(financialYear: string): { start: string; end: string } {
+  const startYear = Number(financialYear.slice(0, 4));
+  return {
+    start: `${startYear}-04-01`,
+    end: `${startYear + 1}-03-31`,
+  };
+}
+
 export function reportDateToMonth(reportDate: string): string {
   return reportDate.slice(0, 7);
 }
@@ -127,6 +164,9 @@ export function emptyInventoryRow(
     category,
     serial_no: serialNo,
     product_type: types[0] || '',
+    financial_year: financialYearForDate(reportDate),
+    entry_type: 'daily_stock',
+    unit: CATEGORY_UNITS[category][0],
     opening_balance: 0,
     receipts: 0,
     total: 0,

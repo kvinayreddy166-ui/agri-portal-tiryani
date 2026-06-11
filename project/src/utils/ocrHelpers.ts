@@ -3,6 +3,7 @@
  */
 
 import Tesseract from 'tesseract.js';
+import { renderPdfPage, validatePdf } from './pdfHelpers';
 
 export interface OcrResult {
   text: string;
@@ -23,29 +24,21 @@ export async function performOcr(
   language: 'eng' | 'tel' | 'eng+tel' = 'eng+tel',
   onProgress?: (progress: OcrProgress) => void
 ): Promise<OcrResult> {
-  const worker = await Tesseract.createWorker(language);
+  const worker = await Tesseract.createWorker(language, undefined, {
+    logger: (message) => {
+      onProgress?.({
+        status: message.status,
+        progress: message.progress * 100,
+      });
+    },
+  });
   
   try {
-    const result = await worker.recognize(file, {}, {
-      logger: (m: any) => {
-        if (onProgress) {
-          onProgress({
-            status: m.status,
-            progress: m.progress * 100,
-          });
-        }
-      },
-    });
-    
-    const pages = result.data.pages.map((page: any) => ({
-      text: page.text,
-      confidence: page.confidence,
-    }));
-    
+    const result = await worker.recognize(file);
     return {
       text: result.data.text,
       confidence: result.data.confidence,
-      pages,
+      pages: [{ text: result.data.text, confidence: result.data.confidence }],
     };
   } finally {
     await worker.terminate();
@@ -57,33 +50,97 @@ export async function performOcrOnImage(
   language: 'eng' | 'tel' | 'eng+tel' = 'eng+tel',
   onProgress?: (progress: OcrProgress) => void
 ): Promise<OcrResult> {
-  const worker = await Tesseract.createWorker(language);
+  const worker = await Tesseract.createWorker(language, undefined, {
+    logger: (message) => {
+      onProgress?.({
+        status: message.status,
+        progress: message.progress * 100,
+      });
+    },
+  });
   
   try {
-    const result = await worker.recognize(imageData, {}, {
-      logger: (m: any) => {
-        if (onProgress) {
-          onProgress({
-            status: m.status,
-            progress: m.progress * 100,
-          });
-        }
-      },
-    });
-    
-    const pages = result.data.pages.map((page: any) => ({
-      text: page.text,
-      confidence: page.confidence,
-    }));
-    
+    const image = typeof imageData === 'string' ? imageData : imageDataToCanvas(imageData);
+    const result = await worker.recognize(image);
     return {
       text: result.data.text,
       confidence: result.data.confidence,
-      pages,
+      pages: [{ text: result.data.text, confidence: result.data.confidence }],
     };
   } finally {
     await worker.terminate();
   }
+}
+
+export async function performOcrOnPdf(
+  file: File,
+  onProgress?: (progress: OcrProgress) => void
+): Promise<OcrResult> {
+  const info = await validatePdf(file);
+  const worker = await Tesseract.createWorker('eng', undefined, {
+    logger: (message) => {
+      onProgress?.({
+        status: message.status,
+        progress: message.progress * 100,
+      });
+    },
+  });
+
+  try {
+    const pages: OcrResult['pages'] = [];
+    for (let pageNumber = 1; pageNumber <= info.pageCount; pageNumber += 1) {
+      onProgress?.({
+        status: `Preparing page ${pageNumber}/${info.pageCount}`,
+        progress: ((pageNumber - 1) / info.pageCount) * 100,
+      });
+      const canvas = await renderPdfPage(file, pageNumber, 2.75);
+      prepareCanvasForOcr(canvas);
+      const result = await worker.recognize(canvas);
+      pages.push({
+        text: result.data.text,
+        confidence: result.data.confidence,
+      });
+      canvas.width = 1;
+      canvas.height = 1;
+    }
+
+    const text = pages.map((page, index) => `Page ${index + 1}\n${page.text.trim()}`).join('\n\n');
+    const confidence = pages.length
+      ? pages.reduce((total, page) => total + page.confidence, 0) / pages.length
+      : 0;
+
+    return { text, confidence, pages };
+  } finally {
+    await worker.terminate();
+  }
+}
+
+function imageDataToCanvas(imageData: ImageData): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
+  const context = canvas.getContext('2d');
+  context?.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
+function prepareCanvasForOcr(canvas: HTMLCanvasElement) {
+  const context = canvas.getContext('2d');
+  if (!context) return;
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let index = 0; index < data.length; index += 4) {
+    const gray = 0.299 * data[index] + 0.587 * data[index + 1] + 0.114 * data[index + 2];
+    const boosted = Math.max(0, Math.min(255, (gray - 128) * 1.45 + 140));
+    const value = boosted > 185 ? 255 : boosted < 90 ? 0 : boosted;
+    data[index] = value;
+    data[index + 1] = value;
+    data[index + 2] = value;
+    data[index + 3] = 255;
+  }
+
+  context.putImageData(imageData, 0, 0);
 }
 
 export function formatOcrText(text: string): string {
