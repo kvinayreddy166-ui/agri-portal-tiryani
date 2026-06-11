@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   font-family: Inter, "Noto Sans Telugu", "Nirmala UI", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color: #0f172a;
