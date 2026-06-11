@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { BarChart3, Calendar, ChevronDown, FileSpreadsheet, Menu, Save, Table2, Truck, X } from 'lucide-react';
+import { BarChart3, Calendar, ChevronDown, FileSpreadsheet, Menu, Plus, Save, Table2, Trash2, Truck, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -41,8 +41,10 @@ type ReceiptForm = {
 };
 
 type DailyForm = {
+  id: string;
   date: string;
   product: string;
+  variety: string;
   openingMt: number;
   receiptsMt: number;
   salesMt: number;
@@ -58,6 +60,16 @@ type SavedFilter = {
   product: string;
   invoiceNo: string;
   source: string;
+};
+
+type ProductStat = {
+  product: string;
+  receipts: number;
+  sales: number;
+  stock: number;
+  receiptBags: number;
+  salesBags: number;
+  stockBags: number;
 };
 
 const COLORS = {
@@ -102,6 +114,20 @@ async function saveStockLine(payload: StockLinePayload) {
   if (error) throw error;
 }
 
+async function deleteStockLine(id: string) {
+  const { error: rpcError } = await supabase.rpc('delete_dealer_stock_line', { p_line_id: id });
+  if (!rpcError) return;
+
+  const rpcMissing =
+    rpcError.message?.toLowerCase().includes('function') ||
+    rpcError.message?.toLowerCase().includes('schema cache');
+
+  if (!rpcMissing) throw rpcError;
+
+  const { error } = await supabase.from('stock_inventory_lines').delete().eq('id', id);
+  if (error) throw error;
+}
+
 function emptyReceipt(category: StockCategory): ReceiptForm {
   return {
     date: currentReportDate(),
@@ -118,8 +144,10 @@ function emptyReceipt(category: StockCategory): ReceiptForm {
 
 function emptyDaily(category: StockCategory): DailyForm {
   return {
+    id: crypto.randomUUID(),
     date: currentReportDate(),
     product: productsFor(category)[0] || '',
+    variety: '',
     openingMt: 0,
     receiptsMt: 0,
     salesMt: 0,
@@ -140,9 +168,10 @@ export function DealerStockPortal() {
   const [recordsLoaded, setRecordsLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState('');
   const [message, setMessage] = useState('');
   const [receiptForm, setReceiptForm] = useState<ReceiptForm>(() => emptyReceipt('fertilizer'));
-  const [dailyForm, setDailyForm] = useState<DailyForm>(() => emptyDaily('fertilizer'));
+  const [dailyRows, setDailyRows] = useState<DailyForm[]>(() => [emptyDaily('fertilizer')]);
   const [receiptFilter, setReceiptFilter] = useState<SavedFilter>(() => emptyFilter());
   const [dailyFilter, setDailyFilter] = useState<SavedFilter>(() => emptyFilter());
   const [receiptFiltersOpen, setReceiptFiltersOpen] = useState(false);
@@ -188,7 +217,7 @@ export function DealerStockPortal() {
     setRecords([]);
     setRecordsLoaded(false);
     setReceiptForm(emptyReceipt(category));
-    setDailyForm(emptyDaily(category));
+    setDailyRows([emptyDaily(category)]);
     setUnit(CATEGORY_UNITS[category][0]);
     if (section === 'saved') void loadRecords();
   }, [category]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -249,45 +278,73 @@ export function DealerStockPortal() {
 
   const saveDaily = async () => {
     if (!dealerId || saving) return;
-    const computed = category === 'fertilizer'
-      ? computeStockRow(dailyForm.openingMt, dailyForm.receiptsMt, dailyForm.salesMt)
-      : computeStockRow(dailyForm.opening, dailyForm.receipts, dailyForm.sales);
+    const preparedRows = dailyRows
+      .filter((row) => row.product.trim())
+      .map((row, index) => {
+        const computed = category === 'fertilizer'
+          ? computeStockRow(row.openingMt, row.receiptsMt, row.salesMt)
+          : computeStockRow(row.opening, row.receipts, row.sales);
+        return { row, computed, serialNo: index + 1 };
+      });
 
-    if (computed.closing_balance < 0) {
+    if (!preparedRows.length) {
+      alert('Add at least one daily stock row.');
+      return;
+    }
+
+    if (preparedRows.some(({ computed }) => computed.closing_balance < 0)) {
       alert('Closing stock cannot be negative.');
       return;
     }
 
     setSaving(true);
     try {
-      const payload: StockLinePayload = {
+      const payloads: StockLinePayload[] = preparedRows.map(({ row, computed, serialNo }) => ({
         dealer_id: dealerId,
         category,
-        serial_no: 1,
-        product_type: dailyForm.product.trim(),
-        financial_year: financialYearForDate(dailyForm.date),
+        serial_no: serialNo,
+        product_type: row.product.trim(),
+        financial_year: financialYearForDate(row.date),
         entry_type: 'daily_stock',
         firm_name: firmName,
         ifms_id: category === 'fertilizer' ? ifmsId : '',
+        variety: category === 'seed' ? row.variety.trim() : '',
         opening_balance: computed.opening_balance,
         receipts: computed.receipts,
         total: computed.total,
         sales: computed.sales,
         closing_balance: computed.closing_balance,
         unit: category === 'fertilizer' ? 'MT' : unit,
-        report_date: dailyForm.date,
-        report_month: dailyForm.date.slice(0, 7),
+        report_date: row.date,
+        report_month: row.date.slice(0, 7),
         submitted_by: user?.email || '',
         updated_at: new Date().toISOString(),
-      };
-      await saveStockLine(payload);
+      }));
+      await Promise.all(payloads.map((payload) => saveStockLine(payload)));
       setMessage('Daily stock saved.');
-      setDailyForm(emptyDaily(category));
+      setDailyRows([emptyDaily(category)]);
       setRecordsLoaded(false);
     } catch (error) {
       alert(`Could not save daily stock: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const deleteEntry = async (row: StockInventoryLine) => {
+    if (!row.id || deletingId) return;
+    const confirmed = window.confirm('Delete this saved entry?');
+    if (!confirmed) return;
+
+    setDeletingId(row.id);
+    try {
+      await deleteStockLine(row.id);
+      setRecords((current) => current.filter((item) => item.id !== row.id));
+      setMessage('Saved entry deleted.');
+    } catch (error) {
+      alert(`Could not delete entry: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setDeletingId('');
     }
   };
 
@@ -300,6 +357,7 @@ export function DealerStockPortal() {
       <div className="sticky top-0 z-30 border-b border-emerald-900/10 bg-[#F4F8F5]/95 p-3 backdrop-blur">
         <div className="mb-2 flex items-start justify-between gap-2">
           <div className="min-w-0">
+            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Welcome</p>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="truncate text-base font-black uppercase sm:text-lg">{firmName}</h1>
               {category === 'fertilizer' && ifmsId && <span className="rounded-md bg-slate-950 px-2.5 py-1 text-xs font-black text-white">IFMS ID: {ifmsId}</span>}
@@ -337,7 +395,7 @@ export function DealerStockPortal() {
         {section === 'analytics' ? (
           <div className="grid gap-3 xl:grid-cols-[minmax(280px,0.8fr)_minmax(520px,1.2fr)]">
             <ReceiptEntryCard category={category} unit={unit} form={receiptForm} setForm={setReceiptForm} saving={saving} onSave={saveReceipt} />
-            <DailyEntryCard category={category} unit={unit} form={dailyForm} setForm={setDailyForm} saving={saving} onSave={saveDaily} />
+            <DailyEntryCard category={category} unit={unit} rows={dailyRows} setRows={setDailyRows} saving={saving} onSave={saveDaily} />
           </div>
         ) : (
           <SavedEntries
@@ -355,6 +413,8 @@ export function DealerStockPortal() {
             setReceiptFiltersOpen={setReceiptFiltersOpen}
             dailyFiltersOpen={dailyFiltersOpen}
             setDailyFiltersOpen={setDailyFiltersOpen}
+            deletingId={deletingId}
+            onDelete={deleteEntry}
           />
         )}
       </main>
@@ -390,12 +450,22 @@ function MenuButton({ icon, label, active, onClick }: { icon: React.ReactNode; l
 
 function ReceiptEntryCard({ category, unit, form, setForm, saving, onSave }: { category: StockCategory; unit: string; form: ReceiptForm; setForm: React.Dispatch<React.SetStateAction<ReceiptForm>>; saving: boolean; onSave: () => void }) {
   const update = (patch: Partial<ReceiptForm>) => setForm((current) => ({ ...current, ...patch }));
+  const [open, setOpen] = useState(category !== 'fertilizer');
   const quantityBags = mtToBags(form.quantityMt, form.product);
   const displayQty = category === 'fertilizer' && unit === 'Bags' ? Math.round(quantityBags) : form.quantityMt;
 
+  useEffect(() => {
+    setOpen(category !== 'fertilizer');
+  }, [category]);
+
   return (
     <section className="rounded-[14px] border border-red-100 bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
-      <h3 className="mb-3 flex items-center gap-2 text-sm font-black text-red-800"><Truck className="h-4 w-4" /> Receipts Entry</h3>
+      <button type="button" onClick={() => setOpen((value) => !value)} className="flex w-full items-center justify-between gap-2 text-left text-sm font-black text-red-800">
+        <span className="flex items-center gap-2"><Truck className="h-4 w-4" /> Receipts Entry</span>
+        <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <>
       <div className="grid gap-2 sm:grid-cols-2">
         <Field label="Date" type="date" value={form.date} onChange={(value) => update({ date: value })} />
         <ProductInput category={category} label={category === 'fertilizer' ? 'Fertilizer Name' : category === 'seed' ? 'Seed / Hybrid Name' : 'Pesticide Name'} value={form.product} onChange={(value) => update({ product: value })} />
@@ -421,44 +491,61 @@ function ReceiptEntryCard({ category, unit, form, setForm, saving, onSave }: { c
       <button type="button" onClick={onSave} disabled={saving} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-black text-white disabled:opacity-60" style={{ background: COLORS.danger }}>
         <Save className="h-4 w-4" /> Save Receipt
       </button>
+        </>
+      )}
     </section>
   );
 }
 
-function DailyEntryCard({ category, unit, form, setForm, saving, onSave }: { category: StockCategory; unit: string; form: DailyForm; setForm: React.Dispatch<React.SetStateAction<DailyForm>>; saving: boolean; onSave: () => void }) {
-  const update = (patch: Partial<DailyForm>) => setForm((current) => ({ ...current, ...patch }));
-  const computed = category === 'fertilizer'
-    ? computeStockRow(form.openingMt, form.receiptsMt, form.salesMt)
-    : computeStockRow(form.opening, form.receipts, form.sales);
-  const display = (value: number) => category === 'fertilizer' && unit === 'Bags' ? Math.round(mtToBags(value, form.product)) : Number(formatMt(value));
-  const parse = (value: number) => category === 'fertilizer' && unit === 'Bags' ? bagsToMt(value, form.product) : value;
+function DailyEntryCard({ category, unit, rows, setRows, saving, onSave }: { category: StockCategory; unit: string; rows: DailyForm[]; setRows: React.Dispatch<React.SetStateAction<DailyForm[]>>; saving: boolean; onSave: () => void }) {
+  const updateRow = (id: string, patch: Partial<DailyForm>) => setRows((current) => current.map((row) => row.id === id ? { ...row, ...patch } : row));
+  const addRow = () => setRows((current) => [...current, emptyDaily(category)]);
+  const removeRow = (id: string) => setRows((current) => current.length === 1 ? current : current.filter((row) => row.id !== id));
+  const display = (value: number, product: string) => category === 'fertilizer' && unit === 'Bags' ? Math.round(mtToBags(value, product)) : Number(formatMt(value));
+  const parse = (value: number, product: string) => category === 'fertilizer' && unit === 'Bags' ? bagsToMt(value, product) : value;
 
   return (
     <section className="rounded-[14px] border border-emerald-100 bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 text-sm font-black text-emerald-900"><Calendar className="h-4 w-4" /> Daily Stock / Sales Entry</h3>
-        <input type="date" value={form.date} onChange={(event) => update({ date: event.target.value })} className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-black" />
+        <button type="button" onClick={addRow} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-800">
+          <Plus className="h-3.5 w-3.5" /> Add row
+        </button>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] text-xs">
+        <table className="w-full min-w-[860px] text-xs">
           <thead className="sticky top-0 text-white" style={{ background: COLORS.text }}>
             <tr>
-              {['Product', `Opening (${unit})`, `Receipts (${unit})`, `Total (${unit})`, `Sales (${unit})`, `Closing (${unit})`].map((head) => <th key={head} className="px-2 py-2 text-left">{head}</th>)}
+              {['Date', 'Product', ...(category === 'seed' ? ['Variety / Hybrid'] : []), `Opening (${unit})`, `Receipts (${unit})`, `Total (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'].map((head) => <th key={head} className="px-2 py-2 text-left">{head}</th>)}
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b border-slate-100">
-              <td className="px-2 py-2"><ProductInput category={category} label="" value={form.product} onChange={(value) => update({ product: value })} /></td>
-              <td className="px-2 py-2"><NumberInput value={category === 'fertilizer' ? display(form.openingMt) : form.opening} onChange={(value) => category === 'fertilizer' ? update({ openingMt: parse(value) }) : update({ opening: value })} /></td>
-              <td className="px-2 py-2"><NumberInput value={category === 'fertilizer' ? display(form.receiptsMt) : form.receipts} onChange={(value) => category === 'fertilizer' ? update({ receiptsMt: parse(value) }) : update({ receipts: value })} /></td>
-              <td className="px-2 py-2 font-black text-emerald-800">{category === 'fertilizer' ? display(computed.total) : computed.total}</td>
-              <td className="px-2 py-2"><NumberInput value={category === 'fertilizer' ? display(form.salesMt) : form.sales} onChange={(value) => category === 'fertilizer' ? update({ salesMt: parse(value) }) : update({ sales: value })} /></td>
-              <td className="px-2 py-2 font-black">{category === 'fertilizer' ? display(computed.closing_balance) : computed.closing_balance}</td>
-            </tr>
+            {rows.map((row) => {
+              const computed = category === 'fertilizer'
+                ? computeStockRow(row.openingMt, row.receiptsMt, row.salesMt)
+                : computeStockRow(row.opening, row.receipts, row.sales);
+              return (
+                <tr key={row.id} className="border-b border-slate-100">
+                  <td className="px-2 py-2"><input type="date" value={row.date} onChange={(event) => updateRow(row.id, { date: event.target.value })} className="h-9 rounded-lg border border-slate-300 px-2 text-xs font-bold" /></td>
+                  <td className="px-2 py-2"><ProductInput category={category} label="" value={row.product} onChange={(value) => updateRow(row.id, { product: value })} /></td>
+                  {category === 'seed' && <td className="px-2 py-2"><input value={row.variety} onChange={(event) => updateRow(row.id, { variety: event.target.value })} className="h-9 w-36 rounded-lg border border-slate-300 px-2 text-xs font-bold outline-none focus:border-emerald-600" placeholder="Variety" /></td>}
+                  <td className="px-2 py-2"><NumberInput value={category === 'fertilizer' ? display(row.openingMt, row.product) : row.opening} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { openingMt: parse(value, row.product) }) : updateRow(row.id, { opening: value })} /></td>
+                  <td className="px-2 py-2"><NumberInput value={category === 'fertilizer' ? display(row.receiptsMt, row.product) : row.receipts} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { receiptsMt: parse(value, row.product) }) : updateRow(row.id, { receipts: value })} /></td>
+                  <td className="px-2 py-2 font-black text-emerald-800">{category === 'fertilizer' ? display(computed.total, row.product) : computed.total}</td>
+                  <td className="px-2 py-2"><NumberInput value={category === 'fertilizer' ? display(row.salesMt, row.product) : row.sales} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { salesMt: parse(value, row.product) }) : updateRow(row.id, { sales: value })} /></td>
+                  <td className="px-2 py-2 font-black">{category === 'fertilizer' ? display(computed.closing_balance, row.product) : computed.closing_balance}</td>
+                  <td className="px-2 py-2">
+                    <button type="button" onClick={() => removeRow(row.id)} disabled={rows.length === 1} className="rounded-lg border border-red-200 bg-white p-2 text-red-600 disabled:opacity-40">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
-      {category === 'fertilizer' && <p className="mt-2 text-xs font-bold text-slate-500">Auto Conversion: {formatMt(computed.closing_balance)} MT / {formatBags(mtToBags(computed.closing_balance, form.product))} Bags</p>}
+      {category === 'fertilizer' && <p className="mt-2 text-xs font-bold text-slate-500">Fertilizer values are saved in MT. Display follows selected unit.</p>}
       <button type="button" onClick={onSave} disabled={saving} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-black text-white disabled:opacity-60" style={{ background: COLORS.primary }}>
         <Save className="h-4 w-4" /> Save Daily Entry
       </button>
@@ -481,6 +568,8 @@ function SavedEntries(props: {
   setReceiptFiltersOpen: (open: boolean) => void;
   dailyFiltersOpen: boolean;
   setDailyFiltersOpen: (open: boolean) => void;
+  deletingId: string;
+  onDelete: (row: StockInventoryLine) => void;
 }) {
   const { category, unit, records, loading, receiptFilter, setReceiptFilter, dailyFilter, setDailyFilter } = props;
   const receiptRows = useFilteredRows(records, category, receiptFilter, 'receipt');
@@ -489,11 +578,13 @@ function SavedEntries(props: {
   const receiptSources = useOptions(records, category, 'receipt', 'source');
   const dailyProducts = useOptions(records, category, 'daily_stock', 'product');
   const summary = useMemo(() => buildSummary(dailyRows, receiptRows), [dailyRows, receiptRows]);
+  const productStats = useMemo(() => buildProductStats(dailyRows, receiptRows), [dailyRows, receiptRows]);
 
   return (
     <div className="space-y-3">
       {loading && <div className="rounded-xl bg-white p-3 text-sm font-bold text-slate-500">Loading saved entries...</div>}
       <SummaryCards summary={summary} category={category} unit={unit} />
+      <ProductWiseBars stats={productStats} category={category} unit={unit} />
       <SavedTableSection
         title="Saved Receipts"
         category={category}
@@ -507,6 +598,8 @@ function SavedEntries(props: {
         filtersOpen={props.receiptFiltersOpen}
         setFiltersOpen={props.setReceiptFiltersOpen}
         onExport={() => exportSavedRows('receipts', receiptRows, category, unit, props.firmName, props.ifmsId)}
+        deletingId={props.deletingId}
+        onDelete={props.onDelete}
       />
       <SavedTableSection
         title="Saved Daily Stock / Sales"
@@ -521,6 +614,8 @@ function SavedEntries(props: {
         filtersOpen={props.dailyFiltersOpen}
         setFiltersOpen={props.setDailyFiltersOpen}
         onExport={() => exportSavedRows('daily', dailyRows, category, unit, props.firmName, props.ifmsId)}
+        deletingId={props.deletingId}
+        onDelete={props.onDelete}
       />
     </div>
   );
@@ -539,6 +634,8 @@ function SavedTableSection(props: {
   filtersOpen: boolean;
   setFiltersOpen: (open: boolean) => void;
   onExport: () => void;
+  deletingId: string;
+  onDelete: (row: StockInventoryLine) => void;
 }) {
   return (
     <section className="rounded-[14px] bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
@@ -564,73 +661,76 @@ function SavedTableSection(props: {
         {props.type === 'receipt' && <Field label="Invoice Number" value={props.filter.invoiceNo} onChange={(value) => props.setFilter((current) => ({ ...current, invoiceNo: value }))} />}
         {props.type === 'receipt' && <SelectField label="Source / Wholesaler" value={props.filter.source || 'all'} onChange={(value) => props.setFilter((current) => ({ ...current, source: value }))} options={['all', ...props.sourceOptions]} display={(value) => value === 'all' ? 'All' : value} />}
       </div>
-      <SavedTable rows={props.rows} category={props.category} unit={props.unit} type={props.type} />
+      <SavedTable rows={props.rows} category={props.category} unit={props.unit} type={props.type} deletingId={props.deletingId} onDelete={props.onDelete} />
     </section>
   );
 }
 
-function SavedTable({ rows, category, unit, type }: { rows: StockInventoryLine[]; category: StockCategory; unit: string; type: 'receipt' | 'daily_stock' }) {
+function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows: StockInventoryLine[]; category: StockCategory; unit: string; type: 'receipt' | 'daily_stock'; deletingId: string; onDelete: (row: StockInventoryLine) => void }) {
   if (!rows.length) {
     return <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm font-bold text-slate-500">No saved entries found.</div>;
   }
 
+  const headers = type === 'receipt'
+    ? ['S.No', 'Date', 'Product', `Quantity (${unit})`, 'Invoice No', 'Invoice Date', 'Source', 'Remarks', 'Delete']
+    : ['S.No', 'Date', 'Product', `Opening (${unit})`, `Receipts (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'];
+
   return (
-    <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-      {rows.map((row, index) => (
-        <SavedEntryCard
-          key={row.id || `${row.report_date}-${row.product_type}-${index}`}
-          row={row}
-          index={index}
-          category={category}
-          unit={unit}
-          type={type}
-        />
-      ))}
+    <div className="overflow-x-auto rounded-xl border border-slate-200">
+      <table className="w-full min-w-[820px] text-xs">
+        <thead className={type === 'receipt' ? 'bg-red-800 text-white' : 'bg-emerald-900 text-white'}>
+          <tr>
+            {headers.map((header) => <th key={header} className="whitespace-nowrap px-2.5 py-2 text-left font-black">{header}</th>)}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 bg-white">
+          {rows.map((row, index) => (
+            <tr key={row.id || `${row.report_date}-${row.product_type}-${index}`} className={type === 'receipt' ? 'hover:bg-red-50/70' : 'hover:bg-emerald-50/70'}>
+              {savedTableCells(row, index, category, unit, type).map((cell, cellIndex) => (
+                <td key={`${row.id || index}-${cellIndex}`} className="whitespace-nowrap px-2.5 py-2 font-bold text-slate-700">{cell}</td>
+              ))}
+              <td className="px-2.5 py-2">
+                <button
+                  type="button"
+                  onClick={() => onDelete(row)}
+                  disabled={!row.id || deletingId === row.id}
+                  className="inline-flex items-center justify-center rounded-lg border border-red-200 bg-white p-2 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  title="Delete entry"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
 
-function SavedEntryCard({ row, index, category, unit, type }: { row: StockInventoryLine; index: number; category: StockCategory; unit: string; type: 'receipt' | 'daily_stock' }) {
-  const product = row.product_type || '-';
-  const accent = type === 'receipt' ? 'border-red-100 bg-red-50/70' : 'border-emerald-100 bg-emerald-50/70';
-  return (
-    <article className={`rounded-[14px] border p-3 shadow-sm ${accent}`}>
-      <div className="mb-2 flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-black text-slate-950">{index + 1}. {product}</p>
-          <p className="text-xs font-bold text-slate-500">{displayDate(row.report_date)}</p>
-        </div>
-        <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase text-slate-600 shadow-sm">
-          {type === 'receipt' ? 'Receipt' : 'Daily'}
-        </span>
-      </div>
-      {type === 'receipt' ? (
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <MiniMetric label="Quantity" value={displayQuantity(Number(row.receipts || 0), product, category, unit)} />
-          <MiniMetric label="Invoice No" value={row.invoice_no || '-'} />
-          <MiniMetric label="Invoice Date" value={displayDate(row.invoice_date)} />
-          <MiniMetric label="Source" value={row.supplier || '-'} />
-          {row.remarks && <div className="col-span-2"><MiniMetric label="Remarks" value={row.remarks} /></div>}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <MiniMetric label="Opening" value={displayQuantity(Number(row.opening_balance || 0), product, category, unit)} />
-          <MiniMetric label="Receipts" value={displayQuantity(Number(row.receipts || 0), product, category, unit)} />
-          <MiniMetric label="Sales" value={displayQuantity(Number(row.sales || 0), product, category, unit)} />
-          <MiniMetric label="Closing" value={displayQuantity(Number(row.closing_balance || 0), product, category, unit)} strong />
-        </div>
-      )}
-    </article>
-  );
-}
-
-function MiniMetric({ label, value, strong = false }: { label: string; value: string | number; strong?: boolean }) {
-  return (
-    <div className="rounded-lg bg-white/85 px-2.5 py-2">
-      <p className="text-[10px] font-black uppercase text-slate-500">{label}</p>
-      <p className={`mt-0.5 break-words text-sm ${strong ? 'font-black text-emerald-800' : 'font-bold text-slate-900'}`}>{value}</p>
-    </div>
-  );
+function savedTableCells(row: StockInventoryLine, index: number, category: StockCategory, unit: string, type: 'receipt' | 'daily_stock') {
+  const product = displayProduct(row);
+  if (type === 'receipt') {
+    return [
+      index + 1,
+      displayDate(row.report_date),
+      product,
+      displayQuantity(Number(row.receipts || 0), product, category, unit),
+      row.invoice_no || '-',
+      displayDate(row.invoice_date),
+      row.supplier || '-',
+      row.remarks || '-',
+    ];
+  }
+  return [
+    index + 1,
+    displayDate(row.report_date),
+    product,
+    displayQuantity(Number(row.opening_balance || 0), product, category, unit),
+    displayQuantity(Number(row.receipts || 0), product, category, unit),
+    displayQuantity(Number(row.sales || 0), product, category, unit),
+    displayQuantity(Number(row.closing_balance || 0), product, category, unit),
+  ];
 }
 
 function displayQuantity(value: number, product: string, category: StockCategory, unit: string) {
@@ -642,18 +742,54 @@ function displayQuantity(value: number, product: string, category: StockCategory
   return `${Number(value || 0).toFixed(2)} ${unit}`;
 }
 
-function SummaryCards({ summary, category, unit }: { summary: { receipts: number; sales: number; stock: number; products: number; receiptBags: number; salesBags: number; stockBags: number }; category: StockCategory; unit: string }) {
+function SummaryCards({ summary, category, unit }: { summary: { receipts: number; sales: number; stock: number; receiptBags: number; salesBags: number; stockBags: number }; category: StockCategory; unit: string }) {
   const display = (value: number, bags: number) => category === 'fertilizer' && unit === 'Bags'
     ? `${formatBags(bags)} Bags`
     : category === 'fertilizer'
       ? `${formatMt(value)} MT`
       : `${Number(value || 0).toFixed(2)} ${unit}`;
   return (
-    <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
       <Summary label="Receipts" value={display(summary.receipts, summary.receiptBags)} />
       <Summary label="Sales" value={display(summary.sales, summary.salesBags)} />
       <Summary label="Stock" value={display(summary.stock, summary.stockBags)} />
-      <Summary label="Products" value={String(summary.products)} />
+    </div>
+  );
+}
+
+function ProductWiseBars({ stats, category, unit }: { stats: ProductStat[]; category: StockCategory; unit: string }) {
+  if (!stats.length) return null;
+  const max = Math.max(...stats.map((item) => Math.max(item.receipts, item.sales, Math.abs(item.stock))), 1);
+  const display = (value: number, bags: number) => category === 'fertilizer' && unit === 'Bags'
+    ? `${formatBags(bags)} Bags`
+    : category === 'fertilizer'
+      ? `${formatMt(value)} MT`
+      : `${Number(value || 0).toFixed(2)} ${unit}`;
+  return (
+    <section className="rounded-[14px] bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
+      <h3 className="mb-2 text-sm font-black text-slate-950">Product-wise Receipts, Sales & Stock</h3>
+      <div className="grid gap-2 lg:grid-cols-2">
+        {stats.map((item) => (
+          <div key={item.product} className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
+            <p className="mb-2 truncate text-xs font-black text-slate-900">{item.product}</p>
+            <BarLine label="Receipts" color="bg-emerald-600" width={(item.receipts / max) * 100} value={display(item.receipts, item.receiptBags)} />
+            <BarLine label="Sales" color="bg-red-600" width={(item.sales / max) * 100} value={display(item.sales, item.salesBags)} />
+            <BarLine label="Stock" color="bg-slate-800" width={(Math.abs(item.stock) / max) * 100} value={display(item.stock, item.stockBags)} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function BarLine({ label, value, color, width }: { label: string; value: string; color: string; width: number }) {
+  return (
+    <div className="mb-1.5 grid grid-cols-[4.5rem_1fr_auto] items-center gap-2 text-[11px] font-bold">
+      <span className="text-slate-500">{label}</span>
+      <span className="h-2 overflow-hidden rounded-full bg-white">
+        <span className={`block h-full rounded-full ${color}`} style={{ width: `${Math.max(4, Math.min(100, width))}%` }} />
+      </span>
+      <span className="text-slate-800">{value}</span>
     </div>
   );
 }
@@ -744,8 +880,40 @@ function buildSummary(dailyRows: StockInventoryLine[], receiptRows: StockInvento
     dailyRows.reduce((sum, row) => sum + mtToBags(Number(row.receipts || 0), row.product_type), 0);
   const salesBags = dailyRows.reduce((sum, row) => sum + mtToBags(Number(row.sales || 0), row.product_type), 0);
   const stockBags = receiptBags - salesBags;
-  const products = new Set([...receiptRows, ...dailyRows].map((row) => row.product_type).filter(Boolean)).size;
-  return { receipts, sales, stock, products, receiptBags, salesBags, stockBags };
+  return { receipts, sales, stock, receiptBags, salesBags, stockBags };
+}
+
+function buildProductStats(dailyRows: StockInventoryLine[], receiptRows: StockInventoryLine[]): ProductStat[] {
+  const map = new Map<string, ProductStat>();
+  const ensure = (row: StockInventoryLine) => {
+    const product = displayProduct(row);
+    const current = map.get(product) || { product, receipts: 0, sales: 0, stock: 0, receiptBags: 0, salesBags: 0, stockBags: 0 };
+    map.set(product, current);
+    return current;
+  };
+
+  receiptRows.forEach((row) => {
+    const current = ensure(row);
+    const receipts = Number(row.receipts || 0);
+    current.receipts += receipts;
+    current.stock += receipts;
+    current.receiptBags += mtToBags(receipts, row.product_type);
+    current.stockBags += mtToBags(receipts, row.product_type);
+  });
+
+  dailyRows.forEach((row) => {
+    const current = ensure(row);
+    const receipts = Number(row.receipts || 0);
+    const sales = Number(row.sales || 0);
+    current.receipts += receipts;
+    current.sales += sales;
+    current.stock += receipts - sales;
+    current.receiptBags += mtToBags(receipts, row.product_type);
+    current.salesBags += mtToBags(sales, row.product_type);
+    current.stockBags += mtToBags(receipts - sales, row.product_type);
+  });
+
+  return [...map.values()].sort((a, b) => b.receipts + b.sales - (a.receipts + a.sales));
 }
 
 function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[], category: StockCategory, unit: string, firmName: string, ifmsId: string) {
@@ -756,10 +924,18 @@ function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[],
   const excelRows = rows.map((row, index) => type === 'receipts'
     ? receiptExcelRow(row, index, category, unit)
     : dailyExcelRow(row, index, category, unit));
-  const metadata = [['Firm Name', firmName], ['Category', CATEGORY_LABELS[category]], ['Generated Date', new Date().toLocaleString('en-IN')]];
-  if (category === 'fertilizer') metadata.splice(2, 0, ['IFMS ID', ifmsId || '']);
+  const metadata = [
+    ['TIRYANI PORTAL EMBLEM', '', '', '', 'Tiryani Agriculture Portal'],
+    ['Firm Name', firmName, '', '', 'Official Dealer Stock Register'],
+    ['Category', CATEGORY_LABELS[category], '', '', `Generated: ${new Date().toLocaleString('en-IN')}`],
+  ];
+  if (category === 'fertilizer') metadata.push(['IFMS ID', ifmsId || '']);
   const headers = Object.keys(excelRows[0]);
   const worksheet = XLSX.utils.aoa_to_sheet([...metadata, [], headers, ...excelRows.map((row) => headers.map((header) => row[header]))]);
+  worksheet['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
+    { s: { r: 0, c: 4 }, e: { r: 0, c: Math.max(4, headers.length - 1) } },
+  ];
   worksheet['!cols'] = headers.map((header) => ({ wch: Math.max(12, header.length + 2) }));
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, type === 'receipts' ? 'Saved Receipts' : 'Daily Stock');
@@ -769,7 +945,7 @@ function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[],
 function receiptExcelRow(row: StockInventoryLine, index: number, category: StockCategory, unit: string): Record<string, string | number> {
   const mt = Number(row.receipts || 0);
   const bags = mtToBags(mt, row.product_type);
-  const base: Record<string, string | number> = { 'S.No': index + 1, Date: displayDate(row.report_date), Product: row.product_type };
+  const base: Record<string, string | number> = { 'S.No': index + 1, 'Financial Year': row.financial_year || financialYearForDate(row.report_date || currentReportDate()), Date: displayDate(row.report_date), Product: displayProduct(row) };
   if (category === 'fertilizer') {
     if (unit === 'Bags') {
       base['Quantity Bags'] = formatBags(bags);
@@ -780,11 +956,11 @@ function receiptExcelRow(row: StockInventoryLine, index: number, category: Stock
     base.Quantity = Number(row.receipts || 0);
     base.Unit = row.unit || '';
   }
-  return { ...base, 'Invoice No': row.invoice_no || '', 'Invoice Date': displayDate(row.invoice_date), Source: row.supplier || '', Remarks: row.remarks || '', 'Financial Year': row.financial_year || financialYearForDate(row.report_date || currentReportDate()) };
+  return { ...base, 'Invoice No': row.invoice_no || '', 'Invoice Date': displayDate(row.invoice_date), Source: row.supplier || '', Remarks: row.remarks || '' };
 }
 
 function dailyExcelRow(row: StockInventoryLine, index: number, category: StockCategory, unit: string): Record<string, string | number> {
-  const base: Record<string, string | number> = { 'S.No': index + 1, Date: displayDate(row.report_date), Product: row.product_type };
+  const base: Record<string, string | number> = { 'S.No': index + 1, 'Financial Year': row.financial_year || financialYearForDate(row.report_date || currentReportDate()), Date: displayDate(row.report_date), Product: displayProduct(row) };
   if (category === 'fertilizer') {
     if (unit === 'Bags') {
       base['Opening Bags'] = formatBags(mtToBags(Number(row.opening_balance || 0), row.product_type));
@@ -804,7 +980,6 @@ function dailyExcelRow(row: StockInventoryLine, index: number, category: StockCa
     base.Closing = Number(row.closing_balance || 0);
     base.Unit = row.unit || unit;
   }
-  base['Financial Year'] = row.financial_year || financialYearForDate(row.report_date || currentReportDate());
   return base;
 }
 
@@ -823,4 +998,9 @@ function displayDate(value?: string) {
   if (!value) return '-';
   const [year, month, day] = value.slice(0, 10).split('-');
   return year && month && day ? `${day}/${month}/${year}` : value;
+}
+
+function displayProduct(row: StockInventoryLine) {
+  const product = row.product_type || '-';
+  return row.variety ? `${product} - ${row.variety}` : product;
 }
