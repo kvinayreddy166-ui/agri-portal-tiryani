@@ -9,13 +9,15 @@ import {
   ScanText,
   Eye,
   Shield,
-  ScanLine
+  ScanLine,
+  Scissors
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PdfCompressionTool } from '../components/pdf/PdfCompressionTool';
 import { PdfToDocTool } from '../components/pdf/PdfToDocTool';
 import { AiDocumentEnhancer } from '../components/pdf/AiDocumentEnhancer';
 import { PdfMergeTool } from '../components/pdf/PdfMergeTool';
+import { PdfSplitTool } from '../components/pdf/PdfSplitTool';
 import { OcrPdfTool } from '../components/pdf/OcrPdfTool';
 import { PdfPreview } from '../components/pdf/PdfPreview';
 import { PdfUploadBox } from '../components/pdf/PdfUploadBox';
@@ -28,6 +30,7 @@ type ToolType =
   | 'enhance'
   | 'scanned'
   | 'merge'
+  | 'split'
   | 'ocr';
 
 const tools: Array<{
@@ -65,6 +68,12 @@ const tools: Array<{
     name: 'Merge PDF',
     icon: <Merge className="h-5 w-5" />,
     description: 'Combine multiple PDF files into one document',
+  },
+  {
+    id: 'split',
+    name: 'Split PDF',
+    icon: <Scissors className="h-5 w-5" />,
+    description: 'Extract pages or split a PDF into smaller files',
   },
   {
     id: 'enhance',
@@ -156,6 +165,8 @@ export function PdfToolsPage() {
         return <OcrPdfTool />;
       case 'merge':
         return <PdfMergeTool />;
+      case 'split':
+        return <PdfSplitTool />;
       case 'enhance':
         return <AiDocumentEnhancer />;
       default:

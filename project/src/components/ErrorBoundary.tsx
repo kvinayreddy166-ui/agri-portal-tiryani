@@ -1,5 +1,6 @@
 import React, { Component, ReactNode } from 'react';
 import { PortalLogo } from './ui/PortalLogo';
+import { isRecoverableChunkError, recoverFromStaleAssets } from '../lib/pwaRecovery';
 
 interface Props {
   children: ReactNode;
@@ -18,6 +19,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('App error:', error, info.componentStack);
+    if (isRecoverableChunkError(error.message)) {
+      void recoverFromStaleAssets();
+    }
   }
 
   render() {

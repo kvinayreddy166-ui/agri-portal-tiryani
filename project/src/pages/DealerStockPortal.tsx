@@ -142,7 +142,7 @@ export function DealerStockPortal() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
-  const [showReceipts, setShowReceipts] = useState(false);
+  const [showReceipts, setShowReceipts] = useState(true);
   const [showSaved, setShowSaved] = useState(false);
   const [receiptForm, setReceiptForm] = useState<ReceiptForm>(() => emptyReceipt('fertilizer'));
   const [dailyForm, setDailyForm] = useState<DailyForm>(() => emptyDaily('fertilizer'));
@@ -362,61 +362,65 @@ export function DealerStockPortal() {
         </div>
       )}
 
-      <section className="overflow-hidden rounded-xl border border-red-200 bg-white shadow-sm">
-        <button
-          type="button"
-          onClick={() => setShowReceipts((value) => !value)}
-          className="flex w-full items-center justify-between bg-red-50 px-4 py-4 text-left text-red-800"
-        >
-          <span className="inline-flex items-center gap-2 text-sm font-black sm:text-base">
-            <Truck className="h-5 w-5" /> {CATEGORY_LABELS[category]} Receipts
-          </span>
-          <ChevronDown className={`h-5 w-5 transition ${showReceipts ? 'rotate-180' : ''}`} />
-        </button>
-        {showReceipts && (
-          <div className="p-3 sm:p-4">
-            <ReceiptEntryForm
-              category={category}
-              unit={unit}
-              form={receiptForm}
-              setForm={setReceiptForm}
-              saving={saving}
-              onSave={saveReceipt}
-            />
-          </div>
-        )}
-      </section>
+      <div className="grid gap-4 xl:grid-cols-[minmax(320px,0.85fr)_minmax(560px,1.15fr)]">
+        <section className="overflow-hidden rounded-xl border border-red-200 bg-white shadow-sm">
+          <button
+            type="button"
+            onClick={() => setShowReceipts((value) => !value)}
+            className="flex w-full items-center justify-between bg-red-50 px-4 py-3 text-left text-red-800"
+          >
+            <span className="inline-flex items-center gap-2 text-sm font-black">
+              <Truck className="h-5 w-5" /> {CATEGORY_LABELS[category]} Receipts
+            </span>
+            <ChevronDown className={`h-5 w-5 transition ${showReceipts ? 'rotate-180' : ''}`} />
+          </button>
+          {showReceipts && (
+            <div className="p-3">
+              <ReceiptEntryForm
+                category={category}
+                unit={unit}
+                form={receiptForm}
+                setForm={setReceiptForm}
+                saving={saving}
+                onSave={saveReceipt}
+              />
+            </div>
+          )}
+        </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <Calendar className="h-5 w-5 text-emerald-700" />
-            <button type="button" onClick={() => setDailyForm((current) => ({ ...current, date: shiftReportDate(current.date, -1) }))} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white">
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <input
-              type="date"
-              value={dailyForm.date}
-              onChange={(event) => setDailyForm((current) => ({ ...current, date: event.target.value }))}
-              className="h-11 rounded-xl border border-slate-300 bg-white px-4 text-base font-black text-slate-950 sm:text-lg"
-            />
-            <button type="button" onClick={() => setDailyForm((current) => ({ ...current, date: shiftReportDate(current.date, 1) }))} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400">
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </div>
-          <p className="text-sm font-black text-slate-700">{formatReportDateLabel(dailyForm.date, 'en-IN')}</p>
+        <div className="space-y-3">
+          <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <Calendar className="h-5 w-5 text-emerald-700" />
+                <button type="button" onClick={() => setDailyForm((current) => ({ ...current, date: shiftReportDate(current.date, -1) }))} className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white">
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <input
+                  type="date"
+                  value={dailyForm.date}
+                  onChange={(event) => setDailyForm((current) => ({ ...current, date: event.target.value }))}
+                  className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-base font-black text-slate-950"
+                />
+                <button type="button" onClick={() => setDailyForm((current) => ({ ...current, date: shiftReportDate(current.date, 1) }))} className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400">
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+              <p className="text-sm font-black text-slate-700">{formatReportDateLabel(dailyForm.date, 'en-IN')}</p>
+            </div>
+          </section>
+
+          <DailyStockTable
+            category={category}
+            unit={unit}
+            form={dailyForm}
+            setForm={setDailyForm}
+            closing={dailyClosing}
+            saving={saving}
+            onSave={saveDaily}
+          />
         </div>
-      </section>
-
-      <DailyStockTable
-        category={category}
-        unit={unit}
-        form={dailyForm}
-        setForm={setDailyForm}
-        closing={dailyClosing}
-        saving={saving}
-        onSave={saveDaily}
-      />
+      </div>
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <button
@@ -703,9 +707,9 @@ function SavedEntriesPanel({
 
   const receipts = useMemo(() => {
     const range = financialYearRange(receiptFilters.financialYear);
-    const productQuery = receiptFilters.product.trim().toLowerCase();
+    const productQuery = receiptFilters.product === 'all' ? '' : receiptFilters.product.trim().toLowerCase();
     const invoiceQuery = receiptFilters.invoiceNo.trim().toLowerCase();
-    const sourceQuery = receiptFilters.source.trim().toLowerCase();
+    const sourceQuery = receiptFilters.source === 'all' ? '' : receiptFilters.source.trim().toLowerCase();
     return records.filter((record) => {
       const date = record.report_date || '';
       const label = savedRecordTitle(record, category).toLowerCase();
@@ -725,7 +729,7 @@ function SavedEntriesPanel({
 
   const daily = useMemo(() => {
     const range = financialYearRange(dailyFilters.financialYear);
-    const productQuery = dailyFilters.product.trim().toLowerCase();
+    const productQuery = dailyFilters.product === 'all' ? '' : dailyFilters.product.trim().toLowerCase();
     return records.filter((record) => {
       const date = record.report_date || '';
       const label = savedRecordTitle(record, category).toLowerCase();
@@ -765,6 +769,19 @@ function SavedEntriesPanel({
     });
   };
 
+  const receiptProductOptions = useMemo(
+    () => ['all', ...uniqueOptions(records.filter((record) => (record.entry_type || 'daily_stock') === 'receipt').map((record) => savedRecordTitle(record, category)))],
+    [category, records]
+  );
+  const receiptSourceOptions = useMemo(
+    () => ['all', ...uniqueOptions(records.filter((record) => (record.entry_type || 'daily_stock') === 'receipt').map((record) => record.supplier || '').filter(Boolean))],
+    [records]
+  );
+  const dailyProductOptions = useMemo(
+    () => ['all', ...uniqueOptions(records.filter((record) => (record.entry_type || 'daily_stock') !== 'receipt').map((record) => savedRecordTitle(record, category)))],
+    [category, records]
+  );
+
   return (
     <div className="space-y-4 border-t border-slate-100 bg-[#f6fbf8] p-3">
       {loading && <div className="rounded-lg bg-white p-4 text-center text-sm font-bold text-slate-500">Loading saved entries...</div>}
@@ -775,9 +792,9 @@ function SavedEntriesPanel({
           <SelectField label="Financial Year" value={receiptFilters.financialYear} onChange={(value) => { setReceiptFilters((current) => ({ ...current, financialYear: value })); setFinancialYear(value); }} options={FINANCIAL_YEARS} />
           <Field label="From Date" type="date" value={receiptFilters.fromDate} onChange={(value) => setReceiptFilters((current) => ({ ...current, fromDate: value }))} />
           <Field label="To Date" type="date" value={receiptFilters.toDate} onChange={(value) => setReceiptFilters((current) => ({ ...current, toDate: value }))} />
-          <Field label={category === 'seed' ? 'Crop / Variety / Lot' : category === 'pesticide' ? 'Product / Technical / Batch' : 'Fertilizer Name'} value={receiptFilters.product} onChange={(value) => setReceiptFilters((current) => ({ ...current, product: value }))} />
+          <SelectField label={category === 'seed' ? 'Crop / Variety / Lot' : category === 'pesticide' ? 'Product / Technical / Batch' : 'Fertilizer Name'} value={receiptFilters.product || 'all'} onChange={(value) => setReceiptFilters((current) => ({ ...current, product: value }))} options={receiptProductOptions} display={(value) => value === 'all' ? 'All' : value} />
           <Field label="Invoice No." value={receiptFilters.invoiceNo} onChange={(value) => setReceiptFilters((current) => ({ ...current, invoiceNo: value }))} />
-          <Field label={category === 'fertilizer' ? 'Wholesaler' : 'Source Company'} value={receiptFilters.source} onChange={(value) => setReceiptFilters((current) => ({ ...current, source: value }))} />
+          <SelectField label={category === 'fertilizer' ? 'Wholesaler' : 'Source Company'} value={receiptFilters.source || 'all'} onChange={(value) => setReceiptFilters((current) => ({ ...current, source: value }))} options={receiptSourceOptions} display={(value) => value === 'all' ? 'All' : value} />
         </div>
         <SavedGroup rows={receipts} category={category} unit={unit} empty="No saved receipts found." tone="receipt" />
       </section>
@@ -788,7 +805,7 @@ function SavedEntriesPanel({
           <SelectField label="Financial Year" value={dailyFilters.financialYear} onChange={(value) => { setDailyFilters((current) => ({ ...current, financialYear: value })); setFinancialYear(value); }} options={FINANCIAL_YEARS} />
           <Field label="From Date" type="date" value={dailyFilters.fromDate} onChange={(value) => setDailyFilters((current) => ({ ...current, fromDate: value }))} />
           <Field label="To Date" type="date" value={dailyFilters.toDate} onChange={(value) => setDailyFilters((current) => ({ ...current, toDate: value }))} />
-          <Field label={category === 'seed' ? 'Crop / Variety / Lot' : category === 'pesticide' ? 'Product / Technical / Batch' : 'Fertilizer Name'} value={dailyFilters.product} onChange={(value) => setDailyFilters((current) => ({ ...current, product: value }))} />
+          <SelectField label={category === 'seed' ? 'Crop / Variety / Lot' : category === 'pesticide' ? 'Product / Technical / Batch' : 'Fertilizer Name'} value={dailyFilters.product || 'all'} onChange={(value) => setDailyFilters((current) => ({ ...current, product: value }))} options={dailyProductOptions} display={(value) => value === 'all' ? 'All' : value} />
         </div>
         <SavedGroup rows={daily} category={category} unit={unit} empty="No daily stock entries found." tone="daily" />
       </section>
@@ -815,28 +832,32 @@ function SavedSectionHeader({ title, count, onExport }: { title: string; count: 
 }
 
 function SavedGroup({ rows, category, unit, empty, tone }: { rows: StockInventoryLine[]; category: StockCategory; unit: string; empty: string; tone: 'receipt' | 'daily' }) {
-  const cardTone = tone === 'receipt'
-    ? 'border-red-100 bg-white shadow-red-900/5'
-    : 'border-emerald-100 bg-white shadow-emerald-900/5';
-  const titleTone = tone === 'receipt' ? 'text-red-900' : 'text-emerald-900';
+  const rowTone = tone === 'receipt'
+    ? 'border-red-100 bg-white'
+    : 'border-emerald-100 bg-white';
+  const badgeTone = tone === 'receipt'
+    ? 'bg-red-100 text-red-800'
+    : 'bg-emerald-100 text-emerald-800';
 
   return (
     <div className="space-y-2 p-1 pt-2">
         {!rows.length && <EmptyText text={empty} />}
         {rows.map((record) => (
-          <div key={record.id || `${record.report_date}-${record.product_type}`} className={`rounded-xl border p-3 shadow-sm ${cardTone}`}>
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <p className={`text-base font-black leading-tight ${titleTone}`}>{savedRecordTitle(record, category)}</p>
-              <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-black uppercase text-slate-600">
+          <div key={record.id || `${record.report_date}-${record.product_type}`} className={`rounded-lg border px-3 py-2 ${rowTone}`}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black leading-tight text-slate-950">{savedRecordTitle(record, category)}</p>
+                <p className="mt-0.5 text-[11px] font-bold text-slate-500">{record.report_date || '-'}</p>
+              </div>
+              <span className={`rounded-full px-2 py-1 text-[10px] font-black uppercase ${badgeTone}`}>
                 {(record.entry_type || 'daily_stock') === 'receipt' ? 'Receipt' : 'Daily Stock'}
               </span>
             </div>
-            <div className="mt-2 grid gap-1.5 text-xs sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-2 flex flex-wrap gap-1.5 text-[11px]">
               {savedRecordFields(record, category, unit).map(([label, value]) => (
-                <div key={label} className="rounded-md bg-white px-2 py-1.5">
-                  <p className="font-black uppercase text-slate-500">{label}</p>
-                  <p className="mt-0.5 break-words font-bold text-slate-950">{value}</p>
-                </div>
+                <span key={label} className="rounded-md bg-slate-50 px-2 py-1 font-bold text-slate-700">
+                  <span className="font-black text-slate-500">{label}: </span>{value}
+                </span>
               ))}
             </div>
           </div>
@@ -1063,6 +1084,10 @@ function savedRecordTitle(record: StockInventoryLine, category: StockCategory): 
   if (category === 'seed') return [record.crop || record.product_type, record.variety, record.lot_number].filter(Boolean).join(' / ');
   if (category === 'pesticide') return [record.product_type, record.technical_name, record.batch_number].filter(Boolean).join(' / ');
   return record.product_type || 'Product';
+}
+
+function uniqueOptions(values: string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 }
 
 function formatDisplayQuantity(value: number, category: StockCategory, unit: string, productName: string): string {

@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { Download, RefreshCw, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Download, Eye, RefreshCw, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
 import { mergePdfs } from '../../utils/pdfHelpers';
-import { downloadBlob, formatFileSize, validateFileSize, validateFileType } from '../../utils/fileCleanup';
+import { cleanupObjectUrl, downloadBlob, formatFileSize, validateFileSize, validateFileType } from '../../utils/fileCleanup';
 
 export function PdfMergeTool() {
   const [files, setFiles] = useState<File[]>([]);
   const [merging, setMerging] = useState(false);
   const [result, setResult] = useState<Blob | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => () => cleanupObjectUrl(previewUrl || undefined), [previewUrl]);
 
   const handleFileSelect = (selectedFile: File) => {
     // Validate file
@@ -30,6 +33,8 @@ export function PdfMergeTool() {
   const handleRemoveFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
     setResult(null);
+    cleanupObjectUrl(previewUrl || undefined);
+    setPreviewUrl(null);
   };
 
   const handleMoveUp = (index: number) => {
@@ -60,6 +65,8 @@ export function PdfMergeTool() {
     try {
       const mergedBlob = await mergePdfs(files);
       setResult(mergedBlob);
+      cleanupObjectUrl(previewUrl || undefined);
+      setPreviewUrl(URL.createObjectURL(mergedBlob));
     } catch (err) {
       console.error('Merge error:', err);
       setError('Failed to merge PDFs. Please try again.');
@@ -76,6 +83,8 @@ export function PdfMergeTool() {
   const handleReset = () => {
     setFiles([]);
     setResult(null);
+    cleanupObjectUrl(previewUrl || undefined);
+    setPreviewUrl(null);
     setError(null);
   };
 
@@ -197,6 +206,15 @@ export function PdfMergeTool() {
               Successfully merged {files.length} PDF files
             </p>
           </div>
+
+          {previewUrl && (
+            <div className="mb-3">
+              <p className="mb-1 flex items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-600">
+                <Eye className="h-3 w-3" /> Preview
+              </p>
+              <iframe title="Merged PDF preview" src={previewUrl} className="h-72 w-full rounded-lg border border-emerald-200 bg-white" />
+            </div>
+          )}
 
           <div className="flex gap-2">
             <button

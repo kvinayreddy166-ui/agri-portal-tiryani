@@ -30,11 +30,11 @@ export function installPwaRecovery() {
   });
 }
 
-function isRecoverableChunkError(message: string) {
+export function isRecoverableChunkError(message: string) {
   return CHUNK_ERROR_PATTERNS.some((pattern) => pattern.test(message));
 }
 
-async function recoverFromStaleAssets() {
+export async function recoverFromStaleAssets() {
   if (!shouldAttemptRecovery()) return;
 
   try {

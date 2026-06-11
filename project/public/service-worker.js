@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tiryani-portal-v7';
+const CACHE_VERSION = 'tiryani-portal-v9';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -68,7 +68,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (url.origin === self.location.origin && url.pathname.startsWith('/assets/')) {
-    event.respondWith(cacheFirst(request, RUNTIME_CACHE));
+    event.respondWith(networkFirst(request, undefined, RUNTIME_CACHE, MAX_RUNTIME_ENTRIES));
     return;
   }
 

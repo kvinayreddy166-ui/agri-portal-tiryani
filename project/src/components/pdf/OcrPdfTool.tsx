@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Copy, RefreshCw, FileText, File } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Copy, Download, Eye, RefreshCw, FileText, File } from 'lucide-react';
 import { PdfUploadBox } from './PdfUploadBox';
+import { PdfPreview } from './PdfPreview';
 import { performOcr, performOcrOnPdf, formatOcrText } from '../../utils/ocrHelpers';
 import { createDocxFromStructuredText, downloadDocx } from '../../utils/docxHelpers';
-import { makeSafeFileName, formatFileSize, downloadBlob } from '../../utils/fileCleanup';
+import { cleanupObjectUrl, makeSafeFileName, formatFileSize, downloadBlob } from '../../utils/fileCleanup';
 
 export function OcrPdfTool() {
   const [file, setFile] = useState<File | null>(null);
@@ -16,12 +17,19 @@ export function OcrPdfTool() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => () => cleanupObjectUrl(imagePreviewUrl || undefined), [imagePreviewUrl]);
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
     setResult(null);
     setError(null);
     setProgress({ status: '', progress: 0 });
+    setShowPreview(false);
+    cleanupObjectUrl(imagePreviewUrl || undefined);
+    setImagePreviewUrl(selectedFile.type.startsWith('image/') ? URL.createObjectURL(selectedFile) : null);
   };
 
   const handleClear = () => {
@@ -29,6 +37,9 @@ export function OcrPdfTool() {
     setResult(null);
     setError(null);
     setProgress({ status: '', progress: 0 });
+    setShowPreview(false);
+    cleanupObjectUrl(imagePreviewUrl || undefined);
+    setImagePreviewUrl(null);
   };
 
   const handleOcr = async () => {
@@ -86,6 +97,12 @@ export function OcrPdfTool() {
     downloadDocx(result.docxBlob, fileName);
   };
 
+  const handleDownloadSource = () => {
+    if (!file) return;
+    const extension = file.name.split('.').pop() || (file.type.startsWith('image/') ? 'png' : 'pdf');
+    downloadBlob(file, makeSafeFileName(file.name, 'source', extension));
+  };
+
   const handleReset = () => {
     setResult(null);
     setError(null);
@@ -107,6 +124,35 @@ export function OcrPdfTool() {
         disabled={processing}
         accept="application/pdf,image/jpeg,image/jpg,image/png"
       />
+
+      {file && (
+        <div className="flex flex-wrap gap-2 rounded-lg border border-slate-200 bg-white p-2">
+          <button
+            type="button"
+            onClick={() => setShowPreview((value) => !value)}
+            disabled={processing}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            <Eye className="h-4 w-4" />
+            {showPreview ? 'Hide Preview' : 'Preview Source'}
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadSource}
+            disabled={processing}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            <Download className="h-4 w-4" />
+            Download Source
+          </button>
+        </div>
+      )}
+
+      {file && showPreview && (
+        file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+          ? <PdfPreview file={file} className="h-[520px]" />
+          : imagePreviewUrl && <img src={imagePreviewUrl} alt="OCR source preview" className="max-h-[520px] w-full rounded-lg border border-slate-200 object-contain" />
+      )}
 
       {file && !result && (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
