@@ -31,6 +31,13 @@ body {
 }
 
 @layer components {
+  .table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .portal-card {
     @apply rounded-lg border border-slate-200/80 bg-white shadow-sm shadow-slate-200/50 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/50;
   }
