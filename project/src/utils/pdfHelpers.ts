@@ -79,6 +79,24 @@ function copyBuffer(buffer: ArrayBuffer) {
   return new Uint8Array(buffer.slice(0));
 }
 
+async function savePdfSafely(pdfDoc: PDFDocument, options: { useObjectStreams?: boolean; addDefaultPage?: boolean } = {}) {
+  try {
+    return await pdfDoc.save({
+      useObjectStreams: options.useObjectStreams ?? true,
+      addDefaultPage: options.addDefaultPage,
+      updateFieldAppearances: false,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (!message.toLowerCase().includes('getorinsert')) throw error;
+    return pdfDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: options.addDefaultPage,
+      updateFieldAppearances: false,
+    });
+  }
+}
+
 export async function validatePdf(file: File): Promise<PdfInfo> {
   if (!file) throw new Error('Please select a PDF file.');
   if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
@@ -132,7 +150,7 @@ export async function compressTextPdf(
   output.setModificationDate(new Date(0));
 
   onProgress?.('Rebuilding optimized PDF streams', 75);
-  const bytes = await output.save({ useObjectStreams: true, addDefaultPage: false });
+  const bytes = await savePdfSafely(output, { useObjectStreams: true, addDefaultPage: false });
   const blob = new Blob([bytes], { type: 'application/pdf' });
   return buildStats(blob, file.size, source.getPageCount(), 'Text PDF cleanup', null, null, true, false, started);
 }
@@ -169,7 +187,14 @@ export async function compressPdf(file: File, optionsOrTarget: CompressionOption
 
   const info = await validatePdf(file);
   if (info.kind === 'text' && !options.forceRasterize && !RASTERIZING_LEVELS.has(options.level)) {
-    return compressTextPdf(file, options.onProgress);
+    try {
+      return await compressTextPdf(file, options.onProgress);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (!message.toLowerCase().includes('getorinsert')) throw error;
+      options.onProgress?.('PDF has incompatible form data. Rebuilding pages safely.', 35);
+      return compressScannedPdf(file, { ...options, forceRasterize: true });
+    }
   }
   return compressScannedPdf(file, options);
 }
@@ -183,10 +208,16 @@ export async function targetSizeCompression(
   const started = performance.now();
   let best: CompressionStats | null = null;
 
-  const textPass = await compressTextPdf(file, options.onProgress);
-  best = textPass;
-  if (!options.forceRasterize && textPass.compressedSize <= targetBytes) {
-    return { ...textPass, targetAchieved: true, level: `Target ${targetSizeKB} KB` };
+  try {
+    const textPass = await compressTextPdf(file, options.onProgress);
+    best = textPass;
+    if (!options.forceRasterize && textPass.compressedSize <= targetBytes) {
+      return { ...textPass, targetAchieved: true, level: `Target ${targetSizeKB} KB` };
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (!message.toLowerCase().includes('getorinsert')) throw error;
+    options.onProgress?.('PDF has incompatible form data. Trying raster compression.', 30);
   }
 
   for (let index = 0; index < TARGET_READABLE_PRESETS.length; index += 1) {
@@ -281,7 +312,7 @@ async function rasterizePdf(
   options.onProgress?.('Finalizing PDF', 96);
   output.setProducer('Tiryani Agriculture PDF Tools');
   output.setCreator('Tiryani Agriculture PDF Tools');
-  const bytes = await output.save({ useObjectStreams: true, addDefaultPage: false });
+  const bytes = await savePdfSafely(output, { useObjectStreams: true, addDefaultPage: false });
   const blob = new Blob([bytes], { type: 'application/pdf' });
   return buildStats(blob, file.size, pdf.numPages, options.label, options.dpi, options.quality, false, true, started);
 }
@@ -379,7 +410,7 @@ export async function mergePdfs(files: File[]): Promise<Blob> {
     const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
     pages.forEach((page) => mergedPdf.addPage(page));
   }
-  const mergedPdfBytes = await mergedPdf.save({ useObjectStreams: true });
+  const mergedPdfBytes = await savePdfSafely(mergedPdf, { useObjectStreams: true });
   return new Blob([mergedPdfBytes], { type: 'application/pdf' });
 }
 
@@ -394,7 +425,7 @@ export async function splitPdf(file: File, pageRanges: Array<{ start: number; en
       Array.from({ length: range.end - range.start + 1 }, (_, i) => range.start + i - 1)
     );
     pages.forEach((page) => newPdf.addPage(page));
-    const pdfBytes = await newPdf.save({ useObjectStreams: true });
+    const pdfBytes = await savePdfSafely(newPdf, { useObjectStreams: true });
     blobs.push(new Blob([pdfBytes], { type: 'application/pdf' }));
   }
   return blobs;

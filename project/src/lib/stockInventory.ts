@@ -61,9 +61,9 @@ export const PESTICIDE_TYPES = [
 export const FINANCIAL_YEARS = ['2025-26', '2026-27', '2027-28', '2028-29', '2029-30', '2030-31'] as const;
 
 export const CATEGORY_UNITS: Record<StockCategory, string[]> = {
-  fertilizer: ['MT', 'Bags', 'Kg'],
-  seed: ['Packets', 'Kg', 'Qtls'],
-  pesticide: ['Litre', 'ml', 'Kg', 'Gram', 'Bottles'],
+  fertilizer: ['MT', 'Bags'],
+  seed: ['Bags', 'Kg', 'Quintal'],
+  pesticide: ['Ltr'],
 };
 
 export function productTypesForCategory(category: StockCategory): string[] {

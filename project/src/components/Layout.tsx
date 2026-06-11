@@ -50,7 +50,6 @@ const adminMenuItems = [
 
 const dealerMenuItems = [
   { id: 'stock-analytics', label: 'Stock Analytics', icon: PackageCheck },
-  { id: 'stock-receipts-sales', label: 'Stock Receipts & Sales', icon: ClipboardList },
 ];
 
 const menuItems = adminMenuItems;
