@@ -3,7 +3,6 @@ import { Download, Eye, RefreshCw, AlertTriangle } from 'lucide-react';
 import { PdfUploadBox } from './PdfUploadBox';
 import { PdfPreview } from './PdfPreview';
 import { extractTextFromPdf, getPdfInfo } from '../../utils/pdfHelpers';
-import { performOcrOnPdf, formatOcrText } from '../../utils/ocrHelpers';
 import { createDocxFromText, downloadDocx } from '../../utils/docxHelpers';
 import { downloadBlob, makeSafeFileName, formatFileSize } from '../../utils/fileCleanup';
 
@@ -17,7 +16,6 @@ export function PdfToDocTool() {
   const [error, setError] = useState<string | null>(null);
   const [isScanned, setIsScanned] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [progress, setProgress] = useState('');
 
   const handleFileSelect = async (selectedFile: File) => {
     setFile(selectedFile);
@@ -25,13 +23,12 @@ export function PdfToDocTool() {
     setError(null);
     setIsScanned(false);
     setShowPreview(false);
-    setProgress('');
 
     try {
       const pdfInfo = await getPdfInfo(selectedFile);
       if (!pdfInfo.hasText) {
         setIsScanned(true);
-        setError('This appears to be a scanned PDF. OCR is required to extract text.');
+        setError('This PDF does not contain selectable text. Please use a text-based PDF.');
       }
     } catch (err) {
       console.error('Error checking PDF:', err);
@@ -44,7 +41,6 @@ export function PdfToDocTool() {
     setError(null);
     setIsScanned(false);
     setShowPreview(false);
-    setProgress('');
   };
 
   const handleConvert = async () => {
@@ -54,12 +50,16 @@ export function PdfToDocTool() {
     setError(null);
 
     try {
-      const text = isScanned
-        ? formatOcrText((await performOcrOnPdf(file, (state) => setProgress(state.status))).text)
-        : await extractTextFromPdf(file);
+      if (isScanned) {
+        setError('This PDF does not contain selectable text. Please use a text-based PDF.');
+        setConverting(false);
+        return;
+      }
+
+      const text = await extractTextFromPdf(file);
       
       if (!text || text.trim().length === 0) {
-        setError('No text found in PDF. Please use OCR Text Extraction for scanned documents.');
+        setError('No selectable text found in this PDF.');
         setConverting(false);
         return;
       }
@@ -144,17 +144,12 @@ export function PdfToDocTool() {
             <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
               <AlertTriangle className="h-4 w-4 flex-shrink-0 text-amber-700" />
               <div>
-                <p className="text-xs font-bold text-amber-800">Scanned PDF Detected</p>
+                <p className="text-xs font-bold text-amber-800">No Selectable Text Detected</p>
                 <p className="text-xs font-semibold text-amber-700">
-                  This appears to be a scanned PDF. It will be converted with OCR.
+                  This tool converts text-based PDFs only.
                 </p>
               </div>
             </div>
-          )}
-          {progress && (
-            <p className="mt-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-bold text-emerald-800">
-              {progress}
-            </p>
           )}
           <button
             type="button"
@@ -168,7 +163,7 @@ export function PdfToDocTool() {
                 Converting...
               </span>
             ) : (
-              isScanned ? 'Convert with OCR to DOCX' : 'Convert to DOCX'
+              'Convert to DOCX'
             )}
           </button>
         </div>

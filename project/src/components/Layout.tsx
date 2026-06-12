@@ -44,7 +44,7 @@ const adminMenuItems = [
   },
   { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor },
   { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true },
-  { id: 'analytics', label: 'Report & Analytics', icon: BarChart3 },
+  { id: 'analytics', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
@@ -284,7 +284,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     excel: { title: 'Office Records', breadcrumbs: [dashboard] },
     'file-directory': { title: 'Document Repository', breadcrumbs: [dashboard] },
     subsidy: { title: 'Subsidy & Schemes', breadcrumbs: [dashboard] },
-    analytics: { title: 'Report & Analytics', breadcrumbs: [dashboard] },
+    analytics: { title: 'Reports', breadcrumbs: [dashboard] },
     settings: { title: 'Settings', breadcrumbs: [dashboard] },
   };
 

@@ -130,7 +130,7 @@ export function PdfUploadBox({
               <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-bold text-slate-700">
                 <span className="rounded bg-white/80 px-2 py-1">{formatFileSize(currentFile.size)}</span>
                 {pdfInfo && <span className="rounded bg-white/80 px-2 py-1">{pdfInfo.pageCount} pages</span>}
-                {pdfInfo && <span className="rounded bg-white/80 px-2 py-1">{pdfInfo.hasText ? 'Text PDF' : 'Scanned PDF'}</span>}
+                {pdfInfo && <span className="rounded bg-white/80 px-2 py-1">{pdfInfo.hasText ? 'Text PDF' : 'Image PDF'}</span>}
               </div>
               <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-slate-600">
                 <CalendarDays className="h-3 w-3" />

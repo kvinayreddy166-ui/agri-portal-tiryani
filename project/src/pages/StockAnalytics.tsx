@@ -263,10 +263,10 @@ function CommandCenter() {
   const expiredLicenses = useMemo(() => licenseRows.filter((row) => row.status === 'Expired'), [licenseRows]);
   const expiringLicenses = useMemo(() => licenseRows.filter((row) => row.status === 'Expiring in 60 days'), [licenseRows]);
   const submissionRows = useMemo(() => buildSubmissionRows(filteredDealers, lastByDealer, activeToday, submittedToday, submissionTab), [activeToday, filteredDealers, lastByDealer, submissionTab, submittedToday]);
-  const nilStockRows = useMemo(() => buildNilStockRows(filteredDealers, stockRows, lastByDealer), [filteredDealers, lastByDealer, stockRows]);
+  const nilStockRows = useMemo(() => buildNilStockRows(filteredDealers, filteredRows), [filteredDealers, filteredRows]);
   const idleRows = useMemo(() => buildIdleRows(filteredDealers, lastByDealer, filters.idleDays), [filteredDealers, filters.idleDays, lastByDealer]);
-  const ureaNoSalesRows = useMemo(() => buildUreaNoSalesRows(filteredDealers, stockRows, filters.idleDays), [filteredDealers, filters.idleDays, stockRows]);
-  const ureaStockRows = useMemo(() => buildUreaStockRanking(filteredDealers, stockRows), [filteredDealers, stockRows]);
+  const ureaNoSalesRows = useMemo(() => buildUreaNoSalesRows(filteredDealers, filteredRows, filters.idleDays), [filteredDealers, filteredRows, filters.idleDays]);
+  const ureaStockRows = useMemo(() => buildUreaStockRanking(filteredDealers, filteredRows), [filteredDealers, filteredRows]);
   const ureaSalesRows = useMemo(() => buildUreaSalesRanking(filteredDealers, filteredRows), [filteredDealers, filteredRows]);
   const weeklyReceipts = useMemo(() => buildWeeklyReceiptRanking(filteredRows, dealerMap), [dealerMap, filteredRows]);
   const weeklyTopSellers = useMemo(() => buildWeeklyTopSellers(filteredRows, dealerMap), [dealerMap, filteredRows]);
@@ -343,7 +343,7 @@ function CommandCenter() {
         <DashboardListCard
           title="Current Nil Stock"
           tone="red"
-          rows={nilStockRows.map((row) => [row.name, <DayPill key={row.name} days={row.daysIdle} tone="redSoft" />])}
+          rows={nilStockRows.map((row) => [row.name, row.product, <DayPill key={`${row.id}-${row.product}`} days={row.daysIdle} tone="redSoft" />])}
         />
         <DashboardListCard
           title="Urea Stock (Ranking)"
@@ -370,7 +370,7 @@ function CommandCenter() {
           headers={['Dealer', 'Quantity']}
           rows={weeklyReceipts.map((row) => [row.name, <BlueNumber key={`${row.name}-${row.product}`} value={row.receipts} />])}
         />
-        <WeeklyTopSellersCard data={weeklyTopSellers} />
+        <WeeklyTopSellersCard rows={weeklyTopSellers} />
       </section>
     </div>
   );
@@ -467,29 +467,23 @@ function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRow
   );
 }
 
-function WeeklyTopSellersCard({ data }: { data: ReturnType<typeof buildWeeklyTopSellers> }) {
-  const productRows = (['Urea', 'DAP', 'SSP', 'MOP', 'Complexes'] as const).map((product) => {
-    const all = Object.values(data).flat();
-    const match = all.find((row) => product === 'Complexes' ? !['urea', 'dap', 'ssp', 'mop'].includes(row.product.toLowerCase()) : row.product.toLowerCase().includes(product.toLowerCase()));
-    return { product, name: match?.name || 'No Sales', sales: match?.sales || 0 };
-  });
-
+function WeeklyTopSellersCard({ rows }: { rows: ReturnType<typeof buildWeeklyTopSellers> }) {
   return (
     <section className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 shadow-sm">
       <h2 className="mb-2 border-b border-emerald-100 pb-2 text-sm font-black uppercase tracking-wide text-emerald-700">Week&apos;s Top Sellers By Category</h2>
       <div className="space-y-1">
-        {productRows.map((row, index) => (
-          <div key={row.product} className="grid grid-cols-[1fr_1.3fr] items-center gap-2 border-b border-white/80 px-1 py-2 text-xs last:border-b-0">
+        {rows.length ? rows.map((row, index) => (
+          <div key={`${row.category}-${row.product}`} className="grid grid-cols-[1fr_1.3fr] items-center gap-2 border-b border-white/80 px-1 py-2 text-xs last:border-b-0">
             <div className="flex items-center gap-2 font-black text-emerald-700">
-              <span className={`h-2.5 w-2.5 rounded-full ${['bg-blue-500', 'bg-emerald-600', 'bg-cyan-500', 'bg-yellow-400', 'bg-slate-500'][index]}`} />
-              {row.product}
+              <span className={`h-2.5 w-2.5 rounded-full ${['bg-blue-500', 'bg-emerald-600', 'bg-cyan-500', 'bg-yellow-400', 'bg-slate-500'][index % 5]}`} />
+              {CATEGORY_LABELS[row.category]}: {row.product}
             </div>
             <div className="text-right">
               <p className="font-black text-emerald-700">{row.name}</p>
-              <p className="text-sm font-bold text-slate-500">{formatWhole(row.sales)} Bags</p>
+              <p className="text-sm font-bold text-slate-500">{formatWhole(row.sales)} Sales</p>
             </div>
           </div>
-        ))}
+        )) : <EmptyCardMessage />}
       </div>
     </section>
   );
@@ -598,7 +592,7 @@ function buildLastByDealer(rows: StockRow[]) {
   return map;
 }
 
-function buildCurrentStockByDealer(rows: StockRow[]) {
+function buildLatestByDealerProduct(rows: StockRow[]) {
   const latestByDealerProduct = new Map<string, StockRow>();
   rows.forEach((row) => {
     if (!row.dealer_id) return;
@@ -606,17 +600,7 @@ function buildCurrentStockByDealer(rows: StockRow[]) {
     const current = latestByDealerProduct.get(key);
     if (!current || (row.report_date || '') > (current.report_date || '')) latestByDealerProduct.set(key, row);
   });
-
-  const totals = new Map<string, { stock: number; lastDate: string }>();
-  latestByDealerProduct.forEach((row) => {
-    const dealerId = row.dealer_id || '';
-    const current = totals.get(dealerId) || { stock: 0, lastDate: '' };
-    current.stock += Number(row.closing_balance || 0);
-    if ((row.report_date || '') > current.lastDate) current.lastDate = row.report_date || '';
-    totals.set(dealerId, current);
-  });
-
-  return totals;
+  return latestByDealerProduct;
 }
 
 function buildLicenseRows(dealers: DealerRow[]) {
@@ -652,15 +636,21 @@ function buildSubmissionRows(dealers: DealerRow[], lastByDealer: Map<string, Sto
     }));
 }
 
-function buildNilStockRows(dealers: DealerRow[], rows: StockRow[], lastByDealer: Map<string, StockRow>) {
-  const currentStockByDealer = buildCurrentStockByDealer(rows);
-  return dealers
-    .map((dealer) => {
-      const current = currentStockByDealer.get(dealer.id);
-      const lastDate = current?.lastDate || lastByDealer.get(dealer.id)?.report_date || '';
-      return { name: dealer.dealer_name, stock: Number(current?.stock || 0), lastDate, daysIdle: daysBetween(lastDate) };
+function buildNilStockRows(dealers: DealerRow[], rows: StockRow[]) {
+  const dealerIds = new Set(dealers.map((dealer) => dealer.id));
+  return Array.from(buildLatestByDealerProduct(rows).values())
+    .filter((row) => dealerIds.has(row.dealer_id || '') && Number(row.closing_balance || 0) === 0)
+    .map((row) => {
+      const dealer = dealers.find((item) => item.id === row.dealer_id);
+      return {
+        id: row.dealer_id || '',
+        name: dealer?.dealer_name || 'Unknown dealer',
+        product: `${CATEGORY_LABELS[row.category]} - ${row.product_type || '-'}`,
+        lastDate: row.report_date || '',
+        daysIdle: daysBetween(row.report_date),
+      };
     })
-    .filter((row) => row.stock === 0);
+    .sort((a, b) => b.daysIdle - a.daysIdle || a.name.localeCompare(b.name));
 }
 
 function buildIdleRows(dealers: DealerRow[], lastByDealer: Map<string, StockRow>, idleDays: number) {
@@ -685,7 +675,7 @@ function buildUreaNoSalesRows(dealers: DealerRow[], rows: StockRow[], idleDays: 
 function buildUreaStockRanking(dealers: DealerRow[], rows: StockRow[]) {
   return dealers
     .map((dealer) => {
-      const ureaRows = rows.filter((row) => row.dealer_id === dealer.id && row.product_type?.toLowerCase() === 'urea');
+      const ureaRows = rows.filter((row) => row.category === 'fertilizer' && row.dealer_id === dealer.id && row.product_type?.toLowerCase() === 'urea');
       const latest = ureaRows.sort((a, b) => (b.report_date || '').localeCompare(a.report_date || ''))[0];
       return { id: dealer.id, name: dealer.dealer_name, stock: Number(latest?.closing_balance || 0), lastDate: latest?.report_date || '' };
     })
@@ -695,34 +685,76 @@ function buildUreaStockRanking(dealers: DealerRow[], rows: StockRow[]) {
 
 function buildUreaSalesRanking(dealers: DealerRow[], rows: StockRow[]) {
   return dealers
+    .filter((dealer) => (dealer.dealer_category || 'fertilizer') === 'fertilizer')
     .map((dealer) => ({
       name: dealer.dealer_name,
-      sales: rows.filter((row) => row.dealer_id === dealer.id && row.product_type?.toLowerCase() === 'urea').reduce((sum, row) => sum + Number(row.sales || 0), 0),
+      sales: rows.filter((row) => row.category === 'fertilizer' && row.dealer_id === dealer.id && row.product_type?.toLowerCase() === 'urea').reduce((sum, row) => sum + Number(row.sales || 0), 0),
     }))
-    .filter((row) => row.sales > 0)
     .sort((a, b) => b.sales - a.sales);
 }
 
 function buildWeeklyReceiptRanking(rows: StockRow[], dealerMap: Map<string, DealerRow>) {
   const cutoff = shiftDate(today(), -6);
-  return rows
-    .filter((row) => (row.report_date || '') >= cutoff && Number(row.receipts || 0) > 0)
-    .map((row) => ({ name: dealerMap.get(row.dealer_id || '')?.dealer_name || 'Unknown dealer', product: row.product_type || '-', receipts: Number(row.receipts || 0), week: weekLabel(row.report_date) }))
+  const totals = new Map<string, { name: string; receipts: number; products: Set<string> }>();
+  rows
+    .filter((row) => isReceiptRow(row) && (row.report_date || '') >= cutoff && Number(row.receipts || 0) > 0)
+    .forEach((row) => {
+      const dealerId = row.dealer_id || 'unknown';
+      const current = totals.get(dealerId) || {
+        name: dealerMap.get(dealerId)?.dealer_name || 'Unknown dealer',
+        receipts: 0,
+        products: new Set<string>(),
+      };
+      current.receipts += Number(row.receipts || 0);
+      current.products.add(row.product_type || '-');
+      totals.set(dealerId, current);
+    });
+  return Array.from(totals.values())
+    .map((row) => ({ name: row.name, product: Array.from(row.products).join(', '), receipts: row.receipts, week: weekLabel(today()) }))
     .sort((a, b) => b.receipts - a.receipts)
     .slice(0, 12);
 }
 
 function buildWeeklyTopSellers(rows: StockRow[], dealerMap: Map<string, DealerRow>) {
   const cutoff = shiftDate(today(), -6);
-  const result: Record<StockCategory, { name: string; product: string; sales: number; week: string }[]> = { fertilizer: [], seed: [], pesticide: [] };
-  (['fertilizer', 'seed', 'pesticide'] as StockCategory[]).forEach((category) => {
-    result[category] = rows
-      .filter((row) => row.category === category && (row.report_date || '') >= cutoff && Number(row.sales || 0) > 0)
-      .map((row) => ({ name: dealerMap.get(row.dealer_id || '')?.dealer_name || 'Unknown dealer', product: row.product_type || '-', sales: Number(row.sales || 0), week: weekLabel(row.report_date) }))
-      .sort((a, b) => b.sales - a.sales)
-      .slice(0, 8);
+  const grouped = new Map<string, { category: StockCategory; product: string; dealerId: string; name: string; sales: number; week: string }>();
+  rows
+    .filter((row) => (row.report_date || '') >= cutoff && Number(row.sales || 0) > 0)
+    .forEach((row) => {
+      const dealerId = row.dealer_id || 'unknown';
+      const product = row.product_type || '-';
+      const key = `${row.category}:${product}:${dealerId}`;
+      const current = grouped.get(key) || {
+        category: row.category,
+        product,
+        dealerId,
+        name: dealerMap.get(dealerId)?.dealer_name || 'Unknown dealer',
+        sales: 0,
+        week: weekLabel(row.report_date),
+      };
+      current.sales += Number(row.sales || 0);
+      grouped.set(key, current);
+    });
+
+  const topByProduct = new Map<string, { category: StockCategory; product: string; name: string; sales: number; week: string }>();
+  grouped.forEach((row) => {
+    const key = `${row.category}:${row.product}`;
+    const current = topByProduct.get(key);
+    if (!current || row.sales > current.sales) {
+      topByProduct.set(key, {
+        category: row.category,
+        product: row.product,
+        name: row.name,
+        sales: row.sales,
+        week: row.week,
+      });
+    }
   });
-  return result;
+  return Array.from(topByProduct.values()).sort((a, b) => a.category.localeCompare(b.category) || b.sales - a.sales);
+}
+
+function isReceiptRow(row: StockRow) {
+  return row.entry_type === 'receipt' || (Number(row.receipts || 0) > 0 && Number(row.sales || 0) === 0 && Number(row.opening_balance || 0) === 0);
 }
 
 function shiftDate(dateValue: string, days: number) {

@@ -6,6 +6,7 @@ import { useLanguage } from '../context/LanguageContext';
 const toolkitItems = [
   {
     title: 'Statutory Forms',
+    description: 'Prepare and download field forms.',
     path: '/officer-toolkit/statutory-forms',
     icon: FileText,
     tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
@@ -13,6 +14,7 @@ const toolkitItems = [
   },
   {
     title: 'Acreage Calculator',
+    description: 'Calculate acreage from field entries.',
     path: '/officer-toolkit/acreage-calculator',
     icon: Calculator,
     tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
@@ -20,6 +22,7 @@ const toolkitItems = [
   },
   {
     title: 'PDF Tools',
+    description: 'Compress, merge, split, and preview PDFs.',
     path: '/officer-toolkit/pdf-tools',
     icon: FileText,
     tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
@@ -70,7 +73,7 @@ export function OfficersToolkit() {
               </span>
               <span className="min-w-0">
                 <span className="block text-sm font-black">{t(item.title, item.title)}</span>
-                <span className="mt-0.5 block text-xs font-semibold opacity-75">{t('Open', 'Open')}</span>
+                <span className="mt-0.5 block text-xs font-semibold opacity-75">{t(item.description, item.description)}</span>
               </span>
             </button>
           ))}

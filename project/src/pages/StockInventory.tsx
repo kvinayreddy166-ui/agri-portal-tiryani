@@ -42,6 +42,20 @@ const reportDateInFinancialYear = (value: string, financialYear: string) => {
   return date >= from && date <= to;
 };
 
+const financialYearBounds = (financialYear: string) => {
+  const start = Number(financialYear.slice(0, 4));
+  return {
+    start: `${start}-04-01`,
+    end: `${start + 1}-03-31`,
+  };
+};
+
+const monthEndDate = (monthValue: string) => {
+  const [year, month] = monthValue.split('-').map(Number);
+  if (!year || !month) return currentReportDate();
+  return new Date(year, month, 0).toISOString().slice(0, 10);
+};
+
 interface InventoryRow {
   id: string;
   dealer_id: string;
@@ -72,7 +86,8 @@ export function StockInventory() {
   const [fertilizerFilter, setFertilizerFilter] = useState('all');
   const [dealerFilter, setDealerFilter] = useState('all');
   const [searchInput, setSearchInput] = useState('');
-  const [appliedSearchTerm, setAppliedSearchTerm] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
@@ -80,24 +95,23 @@ export function StockInventory() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      const fyBounds = financialYearBounds(financialYear);
+      const periodStart = fromDate || (toDate ? fyBounds.start : viewMode === 'day' ? reportDate : `${reportMonth}-01`);
+      const periodEnd = toDate || (fromDate ? fyBounds.end : viewMode === 'day' ? reportDate : monthEndDate(reportMonth));
       let query = supabase
         .from('stock_inventory_lines')
         .select('id, dealer_id, category, serial_no, product_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month, dealers(dealer_name)')
         .order('report_date', { ascending: false })
         .order('dealers(dealer_name)', { ascending: true })
         .order('serial_no')
+        .gte('report_date', periodStart)
+        .lte('report_date', periodEnd)
         .range(0, 999);
-
-      if (viewMode === 'day') {
-        query = query.eq('report_date', reportDate);
-      } else {
-        query = query.eq('report_month', reportMonth);
-      }
 
       query = query.eq('category', category);
 
       const data = await cachedSupabaseRows<InventoryRow>(
-        `stock-inventory:${category}:${viewMode}:${viewMode === 'day' ? reportDate : reportMonth}:v2`,
+        `stock-inventory:${category}:${viewMode}:${periodStart}:${periodEnd}:v3`,
         () => query,
         []
       );
@@ -108,7 +122,7 @@ export function StockInventory() {
     } finally {
       setLoading(false);
     }
-  }, [category, reportDate, reportMonth, viewMode]);
+  }, [category, financialYear, fromDate, reportDate, reportMonth, toDate, viewMode]);
 
   useEffect(() => {
     void fetchData();
@@ -136,17 +150,21 @@ export function StockInventory() {
   }, [rows]);
 
   const dealerFilteredRows = useMemo(() => {
-    const yearRows = rows.filter((row) => reportDateInFinancialYear(row.report_date, financialYear));
+    const yearRows = rows.filter((row) => (
+      reportDateInFinancialYear(row.report_date, financialYear) &&
+      (!fromDate || row.report_date >= fromDate) &&
+      (!toDate || row.report_date <= toDate)
+    ));
     if (dealerFilter === 'all') return yearRows;
     return yearRows.filter((row) => row.dealer_id === dealerFilter);
-  }, [dealerFilter, financialYear, rows]);
+  }, [dealerFilter, financialYear, fromDate, rows, toDate]);
 
   const filteredRows = useMemo(() => {
     const fertilizerRows =
       fertilizerFilter === 'all'
         ? dealerFilteredRows
         : dealerFilteredRows.filter((row) => row.category !== 'fertilizer' || row.product_type === fertilizerFilter);
-    const search = appliedSearchTerm.trim().toLowerCase();
+    const search = searchInput.trim().toLowerCase();
     if (!search) return fertilizerRows;
     return fertilizerRows.filter((row) => {
       const invoiceNumber = String((row as InventoryRow & { invoice_number?: string }).invoice_number || '');
@@ -159,7 +177,7 @@ export function StockInventory() {
         invoiceNumber.toLowerCase().includes(search)
       );
     });
-  }, [appliedSearchTerm, dealerFilteredRows, fertilizerFilter]);
+  }, [dealerFilteredRows, fertilizerFilter, searchInput]);
   const pageCount = Math.max(1, Math.ceil(filteredRows.length / STOCK_ROWS_PAGE_SIZE));
   const paginatedRows = filteredRows.slice(
     currentPage * STOCK_ROWS_PAGE_SIZE,
@@ -168,7 +186,7 @@ export function StockInventory() {
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [appliedSearchTerm, category, dealerFilter, fertilizerFilter, financialYear, reportDate, reportMonth, viewMode]);
+  }, [category, dealerFilter, fertilizerFilter, financialYear, fromDate, reportDate, reportMonth, searchInput, toDate, viewMode]);
 
   const chartQuantity = useCallback((line: InventoryRow, value: number) => {
     if (line.category === 'fertilizer' && fertilizerQtyUnit === 'bags') {
@@ -189,7 +207,7 @@ export function StockInventory() {
       const lines = dealerFilteredRows.filter((row) => row.category === category && row.product_type === product);
       return {
         product,
-        receipts: lines.reduce((sum, row) => sum + chartQuantity(row, row.receipts), 0),
+        total: lines.reduce((sum, row) => sum + chartQuantity(row, row.total), 0),
         sales: lines.reduce((sum, row) => sum + chartQuantity(row, row.sales), 0),
         closing: lines.reduce((sum, row) => sum + chartQuantity(row, row.closing_balance), 0),
       };
@@ -199,7 +217,7 @@ export function StockInventory() {
   const chartRows = useMemo(
     () => stockSummary.map((item) => ({
       product: item.product,
-      Receipts: Number(item.receipts.toFixed(2)),
+      Total: Number(item.total.toFixed(2)),
       Sales: Number(item.sales.toFixed(2)),
       Closing: Number(item.closing.toFixed(2)),
     })),
@@ -243,6 +261,8 @@ export function StockInventory() {
       ['Financial Year', financialYear],
       ['Report Mode', viewMode === 'day' ? 'Day' : 'Month'],
       ['Report Period', viewMode === 'day' ? reportDate : reportMonth],
+      ['From Date', fromDate || ''],
+      ['To Date', toDate || ''],
       ['Dealer Filter', dealerFilter === 'all' ? 'All dealers' : dealerOptions.find(([id]) => id === dealerFilter)?.[1] || dealerFilter],
       ['Product Filter', category === 'fertilizer' ? fertilizerFilter : 'All'],
       ['Unit', quantityUnit || 'As submitted'],
@@ -269,7 +289,7 @@ export function StockInventory() {
     const summaryRows = chartRows.map((item, index) => ({
       'S.No': index + 1,
       Product: item.product,
-      Receipts: item.Receipts,
+      Total: item.Total,
       Sales: item.Sales,
       Closing: item.Closing,
     }));
@@ -287,7 +307,7 @@ export function StockInventory() {
     const summaryTotalRow = {
       'S.No': 'TOTAL',
       Product: '',
-      Receipts: totalValue(summaryRows, 'Receipts'),
+      Total: totalValue(summaryRows, 'Total'),
       Sales: totalValue(summaryRows, 'Sales'),
       Closing: totalValue(summaryRows, 'Closing'),
     };
@@ -372,16 +392,10 @@ export function StockInventory() {
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') setAppliedSearchTerm(searchInput);
-              }}
               placeholder="Search dealer, firm, fertilizer, invoice, date"
               className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
             />
           </div>
-          <IconButton label="Search" tone="primary" onClick={() => setAppliedSearchTerm(searchInput)}>
-            <Search className="h-4 w-4" />
-          </IconButton>
         </div>
         <button
           type="button"
@@ -416,6 +430,20 @@ export function StockInventory() {
             className="rounded-xl border border-slate-300 px-4 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
           />
         )}
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          aria-label="From Date"
+          className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+        />
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+          aria-label="To Date"
+          className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+        />
         {STOCK_CATEGORIES.map((item) => (
           <button
             key={item.id}
@@ -493,7 +521,7 @@ export function StockInventory() {
                 contentStyle={{ borderRadius: 12, border: '1px solid #dbe7df', fontSize: 12, fontWeight: 700 }}
               />
               <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
-              <Bar dataKey="Receipts" fill="#2563eb" radius={[5, 5, 0, 0]} />
+              <Bar dataKey="Total" fill="#2563eb" radius={[5, 5, 0, 0]} />
               <Bar dataKey="Sales" fill="#f59e0b" radius={[5, 5, 0, 0]} />
               <Bar dataKey="Closing" fill="#0b7a5c" radius={[5, 5, 0, 0]} />
             </BarChart>

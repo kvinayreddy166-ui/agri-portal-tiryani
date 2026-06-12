@@ -81,7 +81,7 @@ export function PdfCompressionTool() {
       if (compressionResult.warning) setError(compressionResult.warning);
     } catch (err) {
       console.error('Compression error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to compress PDF. Please try again.');
+      setError('Could not compress this PDF in the selected mode. Try Small Size or Extreme mode.');
     } finally {
       setCompressing(false);
     }

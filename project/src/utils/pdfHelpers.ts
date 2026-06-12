@@ -85,15 +85,6 @@ function isPdfComputedError(error: unknown) {
   return normalized.includes('getorinsert') || normalized.includes('getorinsertcomputed');
 }
 
-function tryFlattenForm(pdfDoc: PDFDocument) {
-  try {
-    const form = pdfDoc.getForm();
-    form.flatten({ updateFieldAppearances: false });
-  } catch {
-    // Some PDFs do not have AcroForm data or contain malformed form dictionaries.
-  }
-}
-
 async function savePdfSafely(pdfDoc: PDFDocument, options: { useObjectStreams?: boolean; addDefaultPage?: boolean } = {}) {
   try {
     return await pdfDoc.save({
@@ -103,17 +94,11 @@ async function savePdfSafely(pdfDoc: PDFDocument, options: { useObjectStreams?: 
     });
   } catch (error) {
     if (!isPdfComputedError(error)) throw error;
-    tryFlattenForm(pdfDoc);
-    try {
-      return await pdfDoc.save({
-        useObjectStreams: false,
-        addDefaultPage: options.addDefaultPage,
-        updateFieldAppearances: false,
-      });
-    } catch (fallbackError) {
-      if (!isPdfComputedError(fallbackError)) throw fallbackError;
-      throw fallbackError;
-    }
+    return pdfDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: options.addDefaultPage,
+      updateFieldAppearances: false,
+    });
   }
 }
 
@@ -153,22 +138,12 @@ export async function compressTextPdf(
   onProgress?: CompressionOptions['onProgress']
 ): Promise<CompressionStats> {
   const started = performance.now();
-  onProgress?.('Cleaning metadata and unused objects', 20);
+  onProgress?.('Rebuilding PDF pages', 20);
   const original = await file.arrayBuffer();
   const source = await PDFDocument.load(copyBuffer(original), { ignoreEncryption: true });
-  tryFlattenForm(source);
   const output = await PDFDocument.create();
   const pages = await output.copyPages(source, source.getPageIndices());
   pages.forEach((page) => output.addPage(page));
-
-  output.setTitle('');
-  output.setAuthor('');
-  output.setSubject('');
-  output.setKeywords([]);
-  output.setProducer('Tiryani Agriculture PDF Tools');
-  output.setCreator('Tiryani Agriculture PDF Tools');
-  output.setCreationDate(new Date(0));
-  output.setModificationDate(new Date(0));
 
   onProgress?.('Rebuilding optimized PDF streams', 75);
   const bytes = await savePdfSafely(output, { useObjectStreams: true, addDefaultPage: false });
@@ -329,8 +304,6 @@ async function rasterizePdf(
   }
 
   options.onProgress?.('Finalizing PDF', 96);
-  output.setProducer('Tiryani Agriculture PDF Tools');
-  output.setCreator('Tiryani Agriculture PDF Tools');
   const bytes = await savePdfSafely(output, { useObjectStreams: true, addDefaultPage: false });
   const blob = new Blob([bytes], { type: 'application/pdf' });
   return buildStats(blob, file.size, pdf.numPages, options.label, options.dpi, options.quality, false, true, started);
@@ -426,7 +399,6 @@ export async function mergePdfs(files: File[]): Promise<Blob> {
   for (const file of files) {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await PDFDocument.load(copyBuffer(arrayBuffer), { ignoreEncryption: true });
-    tryFlattenForm(pdf);
     const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
     pages.forEach((page) => mergedPdf.addPage(page));
   }
@@ -437,7 +409,6 @@ export async function mergePdfs(files: File[]): Promise<Blob> {
 export async function splitPdf(file: File, pageRanges: Array<{ start: number; end: number }>): Promise<Blob[]> {
   const arrayBuffer = await file.arrayBuffer();
   const pdfDoc = await PDFDocument.load(copyBuffer(arrayBuffer), { ignoreEncryption: true });
-  tryFlattenForm(pdfDoc);
   const blobs: Blob[] = [];
   for (const range of pageRanges) {
     const newPdf = await PDFDocument.create();

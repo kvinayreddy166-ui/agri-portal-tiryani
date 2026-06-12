@@ -6,7 +6,6 @@ import {
   FileEdit, 
   Sparkles, 
   Merge,
-  ScanText,
   Eye,
   Shield,
   Scissors
@@ -17,7 +16,6 @@ import { PdfToDocTool } from '../components/pdf/PdfToDocTool';
 import { AiDocumentEnhancer } from '../components/pdf/AiDocumentEnhancer';
 import { PdfMergeTool } from '../components/pdf/PdfMergeTool';
 import { PdfSplitTool } from '../components/pdf/PdfSplitTool';
-import { OcrPdfTool } from '../components/pdf/OcrPdfTool';
 import { PdfPreview } from '../components/pdf/PdfPreview';
 import { PdfUploadBox } from '../components/pdf/PdfUploadBox';
 import { cleanupObjectUrl } from '../utils/fileCleanup';
@@ -28,8 +26,7 @@ type ToolType =
   | 'toDoc'
   | 'enhance'
   | 'merge'
-  | 'split'
-  | 'ocr';
+  | 'split';
 
 const tools: Array<{
   id: ToolType;
@@ -47,19 +44,13 @@ const tools: Array<{
     id: 'compress',
     name: 'Compress PDF',
     icon: <Minimize2 className="h-5 w-5" />,
-    description: 'Clean metadata, optimize streams, and rebuild scanned files',
+    description: 'Reduce PDF file size and rebuild scanned files',
   },
   {
     id: 'toDoc',
     name: 'PDF to DOCX',
     icon: <FileEdit className="h-5 w-5" />,
     description: 'Convert PDF to editable DOCX',
-  },
-  {
-    id: 'ocr',
-    name: 'OCR Text Extraction',
-    icon: <ScanText className="h-5 w-5" />,
-    description: 'High-accuracy text extraction from scanned PDFs',
   },
   {
     id: 'merge',
@@ -152,8 +143,6 @@ export function PdfToolsPage() {
         return <PdfCompressionTool />;
       case 'toDoc':
         return <PdfToDocTool />;
-      case 'ocr':
-        return <OcrPdfTool />;
       case 'merge':
         return <PdfMergeTool />;
       case 'split':
