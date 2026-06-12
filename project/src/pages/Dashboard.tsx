@@ -11,6 +11,32 @@ import { PortalLogo } from '../components/ui/PortalLogo';
 import { cachedSupabaseRows, cachedSupabaseValue } from '../lib/offlineCache';
 import { fetchSiteHitSummary, SiteHitSummary } from '../lib/siteHits';
 
+type FarmerDashboardRow = {
+  s_no?: number;
+  farmer_name_english?: string;
+  father_or_husband_name_english?: string;
+  aadhaar_no?: string;
+  ppb_no?: string;
+  phone_number?: string;
+  crop?: string;
+  extent?: number;
+  village_english?: string;
+};
+
+type FarmerDashboardCrop = {
+  id: string;
+  crop_name: string;
+  acreage: number;
+};
+
+type FarmerDashboardStats = {
+  totalFarmers: number;
+  totalExtent: number;
+  cropRows: FarmerDashboardCrop[];
+};
+
+let farmerDashboardSeedCache: FarmerDashboardRow[] | null = null;
+
 export function Dashboard() {
   const { isAdminUser } = useAuth();
   const { t } = useLanguage();
@@ -20,6 +46,7 @@ export function Dashboard() {
   const [schemeBeneficiaries, setSchemeBeneficiaries] = useState<SchemeBeneficiary[]>([]);
   const [mandalData, setMandalData] = useState<MandalOverview | null>(null);
   const [siteHitSummary, setSiteHitSummary] = useState<SiteHitSummary | null>(null);
+  const [farmerStats, setFarmerStats] = useState<FarmerDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingCrop, setEditingCrop] = useState<string | null>(null);
   const [editingScheme, setEditingScheme] = useState<string | null>(null);
@@ -39,7 +66,7 @@ export function Dashboard() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [cropsRes, schemesRes, contentRes, beneficiariesRes, dailyFertilizers, hitsRes] = await Promise.all([
+      const [cropsRes, schemesRes, contentRes, beneficiariesRes, dailyFertilizers, hitsRes, farmerStatsRes] = await Promise.all([
         cachedSupabaseRows<Crop>(
           'dashboard:crops:v2',
           () => supabase.from('crops').select('id, crop_name, acreage, description, image_url, created_at').order('crop_name'),
@@ -62,6 +89,7 @@ export function Dashboard() {
         ),
         fetchDailyFertilizerStockSummary().catch(() => []),
         fetchSiteHitSummary().catch(() => null),
+        fetchFarmerDashboardStats().catch(() => null),
       ]);
 
       setCrops(cropsRes);
@@ -70,6 +98,7 @@ export function Dashboard() {
       setSchemeBeneficiaries(beneficiariesRes);
       setMandalData(contentRes?.content || null);
       setSiteHitSummary(hitsRes);
+      setFarmerStats(farmerStatsRes);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -81,7 +110,10 @@ export function Dashboard() {
     void fetchDashboardData();
   }, [fetchDashboardData]);
 
-  const totalAcreage = crops.reduce((sum, crop) => sum + crop.acreage, 0);
+  const dashboardCrops = farmerStats?.cropRows.length ? farmerStats.cropRows : crops;
+  const totalAcreage = farmerStats ? farmerStats.totalExtent : crops.reduce((sum, crop) => sum + crop.acreage, 0);
+  const dashboardTotalFarmers = farmerStats?.totalFarmers ?? mandalData?.total_farmers ?? 0;
+  const dashboardCultivableArea = farmerStats?.totalExtent ?? mandalData?.cultivable_area ?? 0;
   const highestFertilizerStock = Math.max(...fertilizers.map((item) => item.quantity_available), 1);
   const openBeneficiaryForm = (schemeId: string) => {
     setEditingScheme(schemeId);
@@ -255,14 +287,14 @@ export function Dashboard() {
                 <Users className="w-14 h-14" />
               </div>
               <p className="text-xs opacity-90 relative z-10">{t('Total Farmers', 'మొత్తం రైతులు')}</p>
-              <p className="text-2xl font-bold mt-1 relative z-10">{mandalData.total_farmers.toLocaleString()}</p>
+              <p className="text-2xl font-bold mt-1 relative z-10">{dashboardTotalFarmers.toLocaleString('en-IN')}</p>
             </div>
             <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
               <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
                 <TrendingUp className="w-14 h-14" />
               </div>
               <p className="text-xs opacity-90 relative z-10">{t('Cultivable Area', 'సాగు విస్తీర్ణం')}</p>
-              <p className="text-2xl font-bold mt-1 relative z-10">{mandalData.cultivable_area.toLocaleString()}</p>
+              <p className="text-2xl font-bold mt-1 relative z-10">{formatDashboardNumber(dashboardCultivableArea)}</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
@@ -312,7 +344,7 @@ export function Dashboard() {
           {t('Major Crops', 'ప్రధాన పంటలు')} - {t('Total', 'మొత్తం')}: {totalAcreage.toLocaleString()} {t('acres', 'ఎకరాలు')}
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {crops.map((crop, idx) => {
+          {dashboardCrops.map((crop, idx) => {
             const gradients = [
               'from-emerald-500 to-emerald-600',
               'from-teal-500 to-teal-600',
@@ -322,7 +354,7 @@ export function Dashboard() {
             ];
             return (
               <div key={crop.id} className={`group relative overflow-hidden rounded-lg bg-gradient-to-br ${gradients[idx % gradients.length]} p-3 text-white shadow-md cursor-pointer hover:shadow-lg transition-all`}>
-                {isAdminUser && (
+                {isAdminUser && !farmerStats?.cropRows.length && (
                   <button
                     onClick={() => setEditingCrop(editingCrop === crop.id ? null : crop.id)}
                     className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 bg-white/20 p-1 rounded transition-opacity"
@@ -601,4 +633,93 @@ export function Dashboard() {
       </div>
     </div>
   );
+}
+
+async function fetchFarmerDashboardStats(): Promise<FarmerDashboardStats | null> {
+  let rows: FarmerDashboardRow[] = [];
+  const { data, error } = await supabase
+    .from('farmer_database')
+    .select('s_no, farmer_name_english, father_or_husband_name_english, aadhaar_no, ppb_no, phone_number, crop, extent, village_english')
+    .limit(25000);
+
+  if (!error && data?.length) rows = data as FarmerDashboardRow[];
+  if (!rows.length) rows = await loadFarmerDashboardSeed();
+  return rows.length ? buildFarmerDashboardStats(rows) : null;
+}
+
+async function loadFarmerDashboardSeed(): Promise<FarmerDashboardRow[]> {
+  if (farmerDashboardSeedCache) return farmerDashboardSeedCache;
+  try {
+    const response = await fetch('/farmer_database_seed.json', { cache: 'force-cache' });
+    if (!response.ok) return [];
+    const rows = await response.json() as FarmerDashboardRow[];
+    farmerDashboardSeedCache = rows;
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
+function buildFarmerDashboardStats(rows: FarmerDashboardRow[]): FarmerDashboardStats {
+  const farmers = new Set<string>();
+  const cropExtent = new Map<string, number>();
+  let totalExtent = 0;
+
+  rows.forEach((row) => {
+    farmers.add(farmerDashboardIdentity(row));
+    const extent = safeDashboardNumber(row.extent);
+    totalExtent += extent;
+    const crop = String(row.crop || 'Not specified').trim() || 'Not specified';
+    cropExtent.set(crop, (cropExtent.get(crop) || 0) + extent);
+  });
+
+  const cropRows = Array.from(cropExtent.entries())
+    .map(([crop_name, acreage]) => ({
+      id: `farmer-crop-${crop_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      crop_name,
+      acreage: Math.round(acreage * 100) / 100,
+    }))
+    .sort((a, b) => b.acreage - a.acreage)
+    .slice(0, 5);
+
+  return {
+    totalFarmers: farmers.size,
+    totalExtent: Math.round(totalExtent * 100) / 100,
+    cropRows,
+  };
+}
+
+function farmerDashboardIdentity(row: FarmerDashboardRow) {
+  if (row.ppb_no) return `ppb:${normalizeDashboardCode(row.ppb_no)}`;
+  if (row.aadhaar_no) return `aadhaar:${normalizeDashboardDigits(row.aadhaar_no)}`;
+  if (row.phone_number) return `phone:${normalizeDashboardDigits(row.phone_number)}`;
+  return [
+    'name',
+    searchableDashboardText(row.farmer_name_english),
+    searchableDashboardText(row.father_or_husband_name_english),
+    searchableDashboardText(row.village_english),
+  ].join(':');
+}
+
+function normalizeDashboardDigits(value: unknown) {
+  return String(value ?? '').replace(/\D/g, '');
+}
+
+function normalizeDashboardCode(value: unknown) {
+  return String(value ?? '').trim().toUpperCase().replace(/\s+/g, '');
+}
+
+function searchableDashboardText(value: unknown) {
+  return String(value ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function safeDashboardNumber(value: unknown) {
+  const parsed = Number(String(value ?? '').replace(/,/g, '').trim());
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatDashboardNumber(value: number) {
+  return value.toLocaleString('en-IN', {
+    maximumFractionDigits: 2,
+  });
 }

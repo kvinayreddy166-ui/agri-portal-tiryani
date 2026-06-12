@@ -8,7 +8,9 @@ import {
   Upload,
   X,
   MessageSquare,
+  MessageCircle,
   Phone,
+  PhoneCall,
   Save,
 } from 'lucide-react';
 import {
@@ -234,6 +236,7 @@ export function FarmerDatabase() {
   const villageLabelMap = useMemo(() => optionLabelMap(optionRows, 'village_english', 'village_telugu'), [optionRows]);
   const groups = useMemo(() => groupFarmerRows(rows), [rows]);
   const analytics = useMemo(() => buildAnalytics(analyticsRows), [analyticsRows]);
+  const farmerSummary = useMemo(() => buildFarmerSummary(analyticsRows), [analyticsRows]);
   const villageFarmerChart = useMemo(
     () => localizeChartRows(analytics.villageFarmers, villageLabelMap, showTelugu),
     [analytics.villageFarmers, showTelugu, villageLabelMap]
@@ -424,6 +427,19 @@ export function FarmerDatabase() {
         </section>
       )}
 
+      <section className="grid gap-3 sm:grid-cols-2">
+        <SummaryCard
+          label={uiLabel('Total Farmers', showTelugu)}
+          value={farmerSummary.totalFarmers.toLocaleString('en-IN')}
+          hint={uiLabel('Unique farmer records', showTelugu)}
+        />
+        <SummaryCard
+          label={uiLabel('Total Acres', showTelugu)}
+          value={formatExtent(farmerSummary.totalExtent)}
+          hint={uiLabel('Cultivable area from farmer database', showTelugu)}
+        />
+      </section>
+
       <section className="grid gap-3 xl:grid-cols-3">
         <ChartCard title={uiLabel('Village-wise Total Farmers', showTelugu)}>
           <SimpleBarChart data={villageFarmerChart} dataKey="farmers" nameKey="name" />
@@ -460,6 +476,16 @@ export function FarmerDatabase() {
                 </div>
                 <div className="flex items-center justify-between gap-2 sm:justify-end">
                   <span className="rounded-full bg-emerald-50 px-2 py-1 font-black text-emerald-700">{formatExtent(group.totalExtent)} ac</span>
+                  {phoneLink(group.phoneNumber) && (
+                    <a href={phoneLink(group.phoneNumber)} className="icon-action" aria-label="Call farmer" title="Call farmer">
+                      <PhoneCall className="h-4 w-4" />
+                    </a>
+                  )}
+                  {whatsappLink(group.phoneNumber) && (
+                    <a href={whatsappLink(group.phoneNumber)} target="_blank" rel="noreferrer" className="icon-action text-emerald-700" aria-label="WhatsApp farmer" title="WhatsApp farmer">
+                      <MessageCircle className="h-4 w-4" />
+                    </a>
+                  )}
                   <button type="button" onClick={() => openDetails(group)} className="icon-action" aria-label="View details"><Eye className="h-4 w-4" /></button>
                 </div>
               </div>
@@ -578,6 +604,30 @@ function buildAnalytics(rows: FarmerRow[]) {
   };
 }
 
+function buildFarmerSummary(rows: FarmerRow[]) {
+  const farmers = new Set<string>();
+  const totalExtent = rows.reduce((sum, row) => {
+    farmers.add(row.identity_key || farmerIdentityKey(row));
+    return sum + Number(row.extent || 0);
+  }, 0);
+  return {
+    totalFarmers: farmers.size,
+    totalExtent: Math.round(totalExtent * 100) / 100,
+  };
+}
+
+function phoneLink(value: string) {
+  const digits = normalizeDigits(value);
+  return digits ? `tel:${digits}` : '';
+}
+
+function whatsappLink(value: string) {
+  const digits = normalizeDigits(value);
+  if (!digits) return '';
+  const phone = digits.length === 10 ? `91${digits}` : digits;
+  return `https://wa.me/${phone}`;
+}
+
 function SimpleBarChart({ data, dataKey, nameKey }: { data: Record<string, string | number>[]; dataKey: string; nameKey: string }) {
   const width = Math.max(420, data.length * 64);
   return (
@@ -603,6 +653,16 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 
 function PreviewMetric({ label, value }: { label: string; value: number }) {
   return <div className="rounded-lg bg-white/80 p-2"><p className="text-[10px] uppercase text-slate-500">{label}</p><p className="text-lg font-black">{value.toLocaleString('en-IN')}</p></div>;
+}
+
+function SummaryCard({ label, value, hint }: { label: string; value: string; hint: string }) {
+  return (
+    <div className="rounded-xl border border-emerald-100 bg-white p-3 shadow-sm">
+      <p className="text-[11px] font-black uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 text-2xl font-black text-emerald-700">{value}</p>
+      <p className="mt-0.5 text-xs font-semibold text-slate-500">{hint}</p>
+    </div>
+  );
 }
 
 function LoadingSkeleton() {
@@ -716,6 +776,10 @@ function uiLabel(label: string, showTelugu: boolean) {
     'Crop-wise Total Extent': 'పంటల వారీ మొత్తం విస్తీర్ణం',
     'Crop-wise Farmer Count': 'పంటల వారీ రైతుల సంఖ్య',
     'Village-wise Cultivated Extent': 'గ్రామాల వారీ సాగు విస్తీర్ణం',
+    'Total Farmers': 'మొత్తం రైతులు',
+    'Total Acres': 'మొత్తం ఎకరాలు',
+    'Unique farmer records': 'ప్రత్యేక రైతు రికార్డులు',
+    'Cultivable area from farmer database': 'రైతు డేటాబేస్ నుండి సాగు విస్తీర్ణం',
     Survey: 'సర్వే',
     Phone: 'ఫోన్',
     Aadhaar: 'ఆధార్',
