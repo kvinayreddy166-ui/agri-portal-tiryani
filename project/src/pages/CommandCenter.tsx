@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import { AlertCircle, TrendingUp, Package, Clock, Users, Shield, ArrowUpDown, Calendar, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertCircle, TrendingUp, Package, Clock, Users, Shield, ArrowUpDown, Calendar, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { currentReportDate, financialYearForDate, fertilizerMtsToBags, fertilizerBagWeightMts } from '../lib/stockInventory';
 
 interface CommandCenterFilters {
@@ -42,17 +41,7 @@ interface StockInventoryLine {
   created_at: string;
 }
 
-interface DealerStockAllocation {
-  id: string;
-  dealer_id: string;
-  fertilizer_type: string;
-  quantity_mts: number;
-  quantity_bags?: number;
-  created_at: string;
-}
-
 export function CommandCenter() {
-  const { isAdminUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<CommandCenterFilters>({
     category: 'all',
@@ -69,21 +58,18 @@ export function CommandCenter() {
   // Data states for all sections
   const [dealers, setDealers] = useState<Dealer[]>([]);
   const [stockInventory, setStockInventory] = useState<StockInventoryLine[]>([]);
-  const [stockAllocations, setStockAllocations] = useState<DealerStockAllocation[]>([]);
 
   // Fetch all data
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [dealersRes, stockRes, allocationRes] = await Promise.all([
+      const [dealersRes, stockRes] = await Promise.all([
         supabase.from('dealers').select('*').order('dealer_name'),
         supabase.from('stock_inventory_lines').select('*').order('report_date', { ascending: false }).limit(1000),
-        supabase.from('dealer_stock_allocation').select('*').order('created_at', { ascending: false }).limit(1000),
       ]);
 
       if (dealersRes.data) setDealers(dealersRes.data);
       if (stockRes.data) setStockInventory(stockRes.data);
-      if (allocationRes.data) setStockAllocations(allocationRes.data);
     } catch (error) {
       console.error('Error fetching Command Center data:', error);
     } finally {
@@ -96,24 +82,6 @@ export function CommandCenter() {
   }, [fetchData]);
 
   // Filtered data based on current filters
-  const filteredDealers = useMemo(() => {
-    let result = dealers;
-    
-    if (filters.category !== 'all') {
-      result = result.filter(d => d.dealer_category === filters.category);
-    }
-    
-    if (filters.village !== 'all') {
-      result = result.filter(d => d.location.toLowerCase().includes(filters.village.toLowerCase()));
-    }
-    
-    if (filters.dealer !== 'all') {
-      result = result.filter(d => d.id === filters.dealer);
-    }
-    
-    return result;
-  }, [dealers, filters]);
-
   const filteredStock = useMemo(() => {
     let result = stockInventory;
     
@@ -140,20 +108,6 @@ export function CommandCenter() {
     
     return result;
   }, [stockInventory, filters]);
-
-  const filteredAllocations = useMemo(() => {
-    let result = stockAllocations;
-    
-    if (filters.product !== 'all') {
-      result = result.filter(a => a.fertilizer_type === filters.product);
-    }
-    
-    if (filters.dealer !== 'all') {
-      result = result.filter(a => a.dealer_id === filters.dealer);
-    }
-    
-    return result;
-  }, [stockAllocations, filters]);
 
   // Helper function to get dealer name by ID
   const getDealerName = useCallback((dealerId: string) => {
@@ -230,14 +184,12 @@ export function CommandCenter() {
   // SECTION 5: Not Logged In > 48 Hrs
   // Note: Since we don't have explicit login activity tracking, we'll use last stock submission as proxy
   const notLoggedInDealers = useMemo(() => {
-    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
-    
     return dealers.map(dealer => {
       const lastSubmission = filteredStock
         .filter(s => s.dealer_id === dealer.id)
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
       
-      const lastActivityDate = lastSubmission?.created_at || dealer.created_at;
+      const lastActivityDate = lastSubmission?.created_at || dealer.expiry_date;
       const daysIdle = daysBetween(lastActivityDate, new Date().toISOString());
       
       return {
@@ -340,8 +292,6 @@ export function CommandCenter() {
     const dealerReceiptsMap = new Map<string, { dealer: string; bags: number }>();
     
     recentReceipts.forEach(stock => {
-      const isUrea = stock.product_type.toLowerCase() === 'urea';
-      const bagWeight = isUrea ? fertilizerBagWeightMts(stock.product_type) : 0.05;
       const bags = fertilizerMtsToBags(stock.receipts, stock.product_type);
       
       const existing = dealerReceiptsMap.get(stock.dealer_id);
@@ -780,7 +730,7 @@ export function CommandCenter() {
         <div className="bg-[#F8FBFA] rounded-2xl p-6 border border-[#0B7A5C]/15 shadow-sm">
           <h2 className="text-xl font-black text-[#0F172A] mb-4 flex items-center gap-2">
             <Clock className="w-6 h-6 text-[#F59E0B]" />
-            NOT LOGGED IN > 48 HRS
+            NOT LOGGED IN &gt; 48 HRS
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full">
