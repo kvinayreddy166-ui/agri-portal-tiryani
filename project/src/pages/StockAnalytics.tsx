@@ -66,6 +66,7 @@ export default function StockAnalytics() {
   const { isDealerUser } = useAuth();
   const [stockTab, setStockTab] = useState<StockTab>('fertilizer');
   const [commandOpen, setCommandOpen] = useState(true);
+  const [dealerMonitoringOpen, setDealerMonitoringOpen] = useState(true);
   const [stockToolsOpen, setStockToolsOpen] = useState(false);
 
   if (isDealerUser) {
@@ -82,14 +83,32 @@ export default function StockAnalytics() {
         >
           <div>
             <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Command Center</p>
-            <h2 className="text-lg font-black text-slate-950">Dealer Stock Monitoring</h2>
+            <h2 className="text-lg font-black text-slate-950">Officer Command Center</h2>
           </div>
           <ChevronDown className={`h-5 w-5 text-emerald-800 transition ${commandOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {commandOpen && (
           <div className="space-y-3 border-t border-emerald-50 p-2 sm:p-3">
-            <CommandCenter />
+            <section className="overflow-hidden rounded-xl border border-emerald-200 bg-white">
+              <button
+                type="button"
+                onClick={() => setDealerMonitoringOpen((value) => !value)}
+                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+              >
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Dealer Monitoring</p>
+                  <h3 className="text-base font-black text-slate-950">Dealer Monitoring</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-emerald-800 transition ${dealerMonitoringOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {dealerMonitoringOpen && (
+                <div className="border-t border-emerald-100 p-2 sm:p-3">
+                  <CommandCenter />
+                </div>
+              )}
+            </section>
 
             <section className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70">
               <button
