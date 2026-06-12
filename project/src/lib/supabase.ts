@@ -65,6 +65,10 @@ export const isAdmin = (email: string | undefined) => {
   return email?.trim().toLowerCase() === 'k.vinayreddy166@gmail.com';
 };
 
+export const isTestUser = (email: string | undefined) => {
+  return email?.trim().toLowerCase() === 'test@gmail.com';
+};
+
 export const isDealerUser = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
   return user?.user_metadata?.role === 'dealer';
 };

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, isAdmin, isDealerUser, getDealerIdFromUser, clearPersistedSupabaseAuth } from '../lib/supabase';
+import { supabase, isAdmin, isTestUser, isDealerUser, getDealerIdFromUser, clearPersistedSupabaseAuth } from '../lib/supabase';
 import {
   DEALER_DEFAULT_PASSWORD,
   dealerEmailFromPhone,
@@ -17,6 +17,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdminUser: boolean;
+  isTestUser: boolean;
   isDealerUser: boolean;
   dealerId: string | null;
   dealerName: string | null;
@@ -32,6 +33,7 @@ function applySession(
   setSession: (s: Session | null) => void,
   setUser: (u: User | null) => void,
   setIsAdminUser: (v: boolean) => void,
+  setIsTestUser: (v: boolean) => void,
   setIsDealer: (v: boolean) => void,
   setDealerId: (v: string | null) => void,
   setDealerName: (v: string | null) => void
@@ -41,6 +43,7 @@ function applySession(
   setSession(newSession);
   setUser(newUser);
   setIsAdminUser(isAdmin(newUser?.email));
+  setIsTestUser(isTestUser(newUser?.email));
   const dealer = isDealerUser(newUser);
   setIsDealer(dealer);
   setDealerId(dealer ? getDealerIdFromUser(newUser) : null);
@@ -52,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [isTestUserFlag, setIsTestUserFlag] = useState(false);
   const [isDealerUserFlag, setIsDealerUserFlag] = useState(false);
   const [dealerId, setDealerId] = useState<string | null>(null);
   const [dealerName, setDealerName] = useState<string | null>(null);
@@ -64,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const finishLoading = (sess: Session | null) => {
       if (!mounted) return;
       window.clearTimeout(timeout);
-      applySession(sess, setSession, setUser, setIsAdminUser, setIsDealerUserFlag, setDealerId, setDealerName);
+      applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
       setLoading(false);
     };
 
@@ -126,6 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession,
         setUser,
         setIsAdminUser,
+        setIsTestUserFlag,
         setIsDealerUserFlag,
         setDealerId,
         setDealerName
@@ -182,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession,
           setUser,
           setIsAdminUser,
+          setIsTestUserFlag,
           setIsDealerUserFlag,
           setDealerId,
           setDealerName
@@ -282,6 +288,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         loading,
         isAdminUser,
+        isTestUser: isTestUserFlag,
         isDealerUser: isDealerUserFlag,
         dealerId,
         dealerName,

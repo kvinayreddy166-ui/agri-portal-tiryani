@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { Building2, Eye, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
+import { Building2, Eye, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../lib/fertilizerStock';
 import { useAuth } from '../context/AuthContext';
@@ -12,8 +13,9 @@ import { cachedSupabaseRows, cachedSupabaseValue } from '../lib/offlineCache';
 import { fetchSiteHitSummary, SiteHitSummary } from '../lib/siteHits';
 
 export function Dashboard() {
-  const { isAdminUser } = useAuth();
+  const { isAdminUser, isTestUser } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [crops, setCrops] = useState<Crop[]>([]);
   const [fertilizers, setFertilizers] = useState<DailyFertilizerStockSummary[]>([]);
   const [schemes, setSchemes] = useState<Scheme[]>([]);
@@ -211,6 +213,34 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Command Center Card - Admin and Test Users Only */}
+      {(isAdminUser || isTestUser) && (
+        <div className="dashboard-rise dashboard-delay-1">
+          <button
+            onClick={() => navigate('/command-center')}
+            className="w-full relative overflow-hidden rounded-2xl border-2 border-[#0B7A5C]/20 bg-gradient-to-br from-[#F8FBFA] to-white p-6 text-left shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0B7A5C]/5 to-transparent" />
+            <div className="relative flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0B7A5C] text-white shadow-lg">
+                <Shield className="h-8 w-8" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-black text-[#0B7A5C]">📊 COMMAND CENTER</h2>
+                <p className="mt-1 text-sm font-semibold text-[#64748B]">Agriculture Monitoring Dashboard</p>
+              </div>
+              <div className="hidden sm:block">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0B7A5C]/10 text-[#0B7A5C]">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </button>
+        </div>
+      )}
 
       <div className="dashboard-rise dashboard-delay-1 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <GoogleMapWidget />
