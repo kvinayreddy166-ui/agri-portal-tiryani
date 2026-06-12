@@ -29,7 +29,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { downloadFileFromUrl } from '../lib/fileBlob';
-import { fetchSiteHitSummary, SiteHitSummary } from '../lib/siteHits';
+import { fetchSiteHitSummary, recordSiteHit, SiteHitSummary } from '../lib/siteHits';
 import { FormDownload } from '../types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
@@ -181,6 +181,7 @@ export function Login() {
   };
 
   const openOfficerToolkit = () => {
+    void recordSiteHit({ path: '/officer-toolkit', countOncePerSession: false });
     navigate('/officer-toolkit');
   };
 
@@ -324,6 +325,8 @@ export function Login() {
           ? t('Admin login failed. Please check the admin email and password.', 'Admin login failed. Please check the admin email and password.')
           : t('Login failed. Please use the assigned test login details.', 'Login failed. Please use the assigned test login details.')
       );
+    } else if (normalizedEmail === TEST_EMAIL) {
+      void recordSiteHit({ path: '/login/test-login', countOncePerSession: false });
     }
 
     setLoading(false);
@@ -798,14 +801,6 @@ export function Login() {
                 <p className="mt-1 text-sm font-bold text-emerald-700">
                   {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
                 </p>
-                {siteHitSummary && (
-                  <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/95 px-2.5 py-1.5 text-[11px] font-black text-emerald-800 shadow-sm">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                      <Eye className="h-3.5 w-3.5" />
-                    </span>
-                    <span>{siteHitSummary.totalViews.toLocaleString()} Hits</span>
-                  </div>
-                )}
               </div>
               <button
                 type="button"
@@ -929,6 +924,14 @@ export function Login() {
             )}
 
             <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 sm:mb-16">
+              {siteHitSummary && (
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/95 px-3 py-1.5 text-[11px] font-black text-emerald-800 shadow-sm">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                    <Eye className="h-3.5 w-3.5" />
+                  </span>
+                  <span>{siteHitSummary.totalViews.toLocaleString()} Hits</span>
+                </div>
+              )}
               <p className="font-black text-emerald-700">version-1.0.1</p>
               <p>© 2026- Tiryani Agri portal- Department of Agriculture, Telangana</p>
               <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>

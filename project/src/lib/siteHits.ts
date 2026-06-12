@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 
 const VISITOR_ID_KEY = 'tiryani-site-visitor-id';
 const SESSION_HIT_KEY = 'tiryani-site-hit-recorded';
+const PREVIOUS_SITE_VISIT_BASELINE = 1000;
 
 export interface SiteHitSummary {
   totalViews: number;
@@ -10,17 +11,20 @@ export interface SiteHitSummary {
   lastViewedAt: string | null;
 }
 
-export async function recordSiteHit() {
+export async function recordSiteHit(options: { path?: string; countOncePerSession?: boolean } = {}) {
   if (typeof window === 'undefined') return;
-  if (window.sessionStorage.getItem(SESSION_HIT_KEY)) return;
+  const countOncePerSession = options.countOncePerSession ?? true;
+  if (countOncePerSession && window.sessionStorage.getItem(SESSION_HIT_KEY)) return;
 
-  window.sessionStorage.setItem(SESSION_HIT_KEY, '1');
+  if (countOncePerSession) {
+    window.sessionStorage.setItem(SESSION_HIT_KEY, '1');
+  }
   const visitorId = getVisitorId();
 
   try {
     await supabase.from('site_hits').insert([{
       visitor_id: visitorId,
-      path: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+      path: options.path || `${window.location.pathname}${window.location.search}${window.location.hash}`,
     }]);
   } catch {
     // Analytics must never block opening the app.
@@ -53,7 +57,7 @@ export async function fetchSiteHitSummary(): Promise<SiteHitSummary> {
   const lastViewedAt = recentRows[0]?.viewed_at || null;
 
   return {
-    totalViews: totalResult.count || 0,
+    totalViews: PREVIOUS_SITE_VISIT_BASELINE + (totalResult.count || 0),
     uniqueVisitors,
     todayViews: todayResult.count || 0,
     lastViewedAt,
