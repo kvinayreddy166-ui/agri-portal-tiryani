@@ -112,7 +112,7 @@ async function savePdfSafely(pdfDoc: PDFDocument, options: { useObjectStreams?: 
       });
     } catch (fallbackError) {
       if (!isPdfComputedError(fallbackError)) throw fallbackError;
-      throw new Error('This PDF has incompatible form data. Flatten the form fields or use scanned PDF optimization, then try again.');
+      throw fallbackError;
     }
   }
 }

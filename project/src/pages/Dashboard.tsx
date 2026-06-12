@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
+import { Building2, Eye, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../lib/fertilizerStock';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,7 @@ import { GoogleMapWidget } from '../components/dashboard/GoogleMapWidget';
 import { WeatherWidget } from '../components/dashboard/WeatherWidget';
 import { PortalLogo } from '../components/ui/PortalLogo';
 import { cachedSupabaseRows, cachedSupabaseValue } from '../lib/offlineCache';
+import { fetchSiteHitSummary, SiteHitSummary } from '../lib/siteHits';
 
 export function Dashboard() {
   const { isAdminUser } = useAuth();
@@ -18,6 +19,7 @@ export function Dashboard() {
   const [schemes, setSchemes] = useState<Scheme[]>([]);
   const [schemeBeneficiaries, setSchemeBeneficiaries] = useState<SchemeBeneficiary[]>([]);
   const [mandalData, setMandalData] = useState<MandalOverview | null>(null);
+  const [siteHitSummary, setSiteHitSummary] = useState<SiteHitSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingCrop, setEditingCrop] = useState<string | null>(null);
   const [editingScheme, setEditingScheme] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export function Dashboard() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [cropsRes, schemesRes, contentRes, beneficiariesRes, dailyFertilizers] = await Promise.all([
+      const [cropsRes, schemesRes, contentRes, beneficiariesRes, dailyFertilizers, hitsRes] = await Promise.all([
         cachedSupabaseRows<Crop>(
           'dashboard:crops:v2',
           () => supabase.from('crops').select('id, crop_name, acreage, description, image_url, created_at').order('crop_name'),
@@ -59,6 +61,7 @@ export function Dashboard() {
           []
         ),
         fetchDailyFertilizerStockSummary().catch(() => []),
+        fetchSiteHitSummary().catch(() => null),
       ]);
 
       setCrops(cropsRes);
@@ -66,6 +69,7 @@ export function Dashboard() {
       setSchemes(schemesRes);
       setSchemeBeneficiaries(beneficiariesRes);
       setMandalData(contentRes?.content || null);
+      setSiteHitSummary(hitsRes);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -203,6 +207,26 @@ export function Dashboard() {
         <GoogleMapWidget />
         <WeatherWidget />
       </div>
+
+      {siteHitSummary && (
+        <div className="dashboard-rise dashboard-delay-1 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl border border-emerald-100 bg-white p-3 shadow-sm shadow-emerald-100/60 dark:border-slate-700 dark:bg-slate-900">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                <Eye className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Site Hits
+                </p>
+                <p className="text-2xl font-black text-slate-950 dark:text-white">
+                  {siteHitSummary.totalViews.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mandal Overview */}
       {mandalData && (

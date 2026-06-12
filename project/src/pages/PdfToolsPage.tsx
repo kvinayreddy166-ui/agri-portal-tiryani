@@ -9,7 +9,6 @@ import {
   ScanText,
   Eye,
   Shield,
-  ScanLine,
   Scissors
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +27,6 @@ type ToolType =
   | 'compress'
   | 'toDoc'
   | 'enhance'
-  | 'scanned'
   | 'merge'
   | 'split'
   | 'ocr';
@@ -80,12 +78,6 @@ const tools: Array<{
     name: 'PDF Enhancement',
     icon: <Sparkles className="h-5 w-5" />,
     description: 'Sharpen, grayscale, black-and-white, and improve scans',
-  },
-  {
-    id: 'scanned',
-    name: 'Scanned PDF Optimization',
-    icon: <ScanLine className="h-5 w-5" />,
-    description: 'DPI, JPEG quality, grayscale, and black-and-white modes',
   },
 ];
 
@@ -157,7 +149,6 @@ export function PdfToolsPage() {
           </div>
         );
       case 'compress':
-      case 'scanned':
         return <PdfCompressionTool />;
       case 'toDoc':
         return <PdfToDocTool />;

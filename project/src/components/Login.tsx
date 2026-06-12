@@ -29,7 +29,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { downloadFileFromUrl } from '../lib/fileBlob';
-import { fetchSiteHitSummary, recordSiteHit, SiteHitSummary } from '../lib/siteHits';
+import { recordSiteHit } from '../lib/siteHits';
 import { FormDownload } from '../types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
@@ -123,7 +123,6 @@ export function Login() {
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installMessage, setInstallMessage] = useState<string | null>(null);
-  const [siteHitSummary, setSiteHitSummary] = useState<SiteHitSummary | null>(null);
   const [appInstalled, setAppInstalled] = useState(
     () => window.matchMedia?.('(display-mode: standalone)').matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
   );
@@ -143,20 +142,6 @@ export function Login() {
   const previewOverlay = useBackButtonOverlay('public-file-preview', () => setPreviewForm(null));
   const pdfToolOverlay = useBackButtonOverlay('public-pdf-tool', () => setPdfToolOpen(false));
   const grievanceOverlay = useBackButtonOverlay('public-grievance', () => setGrievanceOpen(false));
-
-  useEffect(() => {
-    let mounted = true;
-    fetchSiteHitSummary()
-      .then((summary) => {
-        if (mounted) setSiteHitSummary(summary);
-      })
-      .catch(() => {
-        if (mounted) setSiteHitSummary(null);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   useEffect(() => {
     savePublicToolkitState({ statutoryFolder, statutoryPage, acreInput });
@@ -924,14 +909,6 @@ export function Login() {
             )}
 
             <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 sm:mb-16">
-              {siteHitSummary && (
-                <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/95 px-3 py-1.5 text-[11px] font-black text-emerald-800 shadow-sm">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                    <Eye className="h-3.5 w-3.5" />
-                  </span>
-                  <span>{siteHitSummary.totalViews.toLocaleString()} Hits</span>
-                </div>
-              )}
               <p className="font-black text-emerald-700">version-1.0.1</p>
               <p>© 2026- Tiryani Agri portal- Department of Agriculture, Telangana</p>
               <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
