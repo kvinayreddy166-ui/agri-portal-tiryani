@@ -185,7 +185,6 @@ function CommandCenter() {
   }), [dealerMap, filters, stockRows, submittedToday]);
 
   const lastByDealer = useMemo(() => buildLastByDealer(stockRows), [stockRows]);
-  const categoryStats = useMemo(() => buildCategoryStats(filteredDealers, stockRows, submittedToday, filters.idleDays), [filteredDealers, stockRows, submittedToday, filters.idleDays]);
   const licenseRows = useMemo(() => buildLicenseRows(filteredDealers), [filteredDealers]);
   const licenseCounters = useMemo(() => buildLicenseCounters(filteredDealers), [filteredDealers]);
   const expiredLicenses = useMemo(() => licenseRows.filter((row) => row.status === 'Expired'), [licenseRows]);
@@ -225,14 +224,24 @@ function CommandCenter() {
 
       {loading && <div className="rounded-xl bg-white p-4 text-sm font-bold text-slate-500">Loading command center...</div>}
 
-      <section className="grid gap-3 md:grid-cols-3">
-        {categoryStats.map((item) => (
-          <CategoryStatusCard key={item.category} item={item} />
-        ))}
+      <section className="grid gap-3 xl:grid-cols-2">
+        <section className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 p-3">
+            <div>
+              <h2 className="text-sm font-black text-slate-950">Dealer Submission List</h2>
+              <p className="text-xs font-bold text-slate-500">Today: {today()}</p>
+            </div>
+            <div className="grid grid-cols-2 rounded-lg border border-slate-200 p-1 text-xs font-black">
+              <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'updated' ? 'bg-emerald-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('updated')}>Updated</button>
+              <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'pending' ? 'bg-red-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('pending')}>Pending</button>
+            </div>
+          </div>
+          <SimpleTable headers={['S.No', 'Dealer/Firm', 'Last Submitted Date', 'Status']} rows={submissionRows.map((row, index) => [index + 1, row.name, row.lastDate || '-', row.status])} />
+        </section>
+        <LicenseCounterCard counters={licenseCounters} />
       </section>
 
       <section className="grid gap-3 xl:grid-cols-2">
-        <LicenseCounterCard counters={licenseCounters} />
         <DashboardListCard
           title="Expired Licenses"
           tone="red"
@@ -274,19 +283,6 @@ function CommandCenter() {
           headers={['Dealer', 'Sales']}
           rows={ureaSalesRows.map((row) => [row.name, <BlueNumber key={row.name} value={row.sales} />])}
         />
-        <section className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-slate-100 p-3">
-            <div>
-              <h2 className="text-sm font-black text-slate-950">Dealer Submission List</h2>
-              <p className="text-xs font-bold text-slate-500">Today: {today()}</p>
-            </div>
-            <div className="grid grid-cols-2 rounded-lg border border-slate-200 p-1 text-xs font-black">
-              <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'updated' ? 'bg-emerald-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('updated')}>Updated</button>
-              <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'pending' ? 'bg-red-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('pending')}>Pending</button>
-            </div>
-          </div>
-          <SimpleTable headers={['S.No', 'Dealer/Firm', 'Last Submitted Date', 'Status']} rows={submissionRows.map((row, index) => [index + 1, row.name, row.lastDate || '-', row.status])} />
-        </section>
       </section>
 
       <section className="grid gap-3 xl:grid-cols-2">
@@ -312,26 +308,6 @@ function StockSwitch({ title, description, active, icon, onClick }: { title: str
       </div>
     </button>
   );
-}
-
-function CategoryStatusCard({ item }: { item: ReturnType<typeof buildCategoryStats>[number] }) {
-  return (
-    <div className="rounded-xl border border-emerald-100 bg-white p-3 shadow-sm">
-      <h3 className="text-sm font-black text-slate-950">{item.label} Dealers</h3>
-      <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-        <Metric label="Total" value={item.total} />
-        <Metric label="Active" value={item.active} />
-        <Metric label="Submitted Today" value={item.submittedToday} />
-        <Metric label="Pending Today" value={item.pendingToday} />
-        <Metric label="Nil Stock" value={item.nilStock} />
-        <Metric label="Idle 3 Days" value={item.idle} />
-      </div>
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: number }) {
-  return <div className="rounded-lg bg-[#F4F8F5] p-2"><p className="font-black text-slate-950">{value}</p><p className="font-bold text-slate-500">{label}</p></div>;
 }
 
 function LicenseCounterCard({ counters }: { counters: { label: string; value: number }[] }) {
@@ -534,23 +510,6 @@ function buildLastByDealer(rows: StockRow[]) {
     if (!current || (row.report_date || '') > (current.report_date || '')) map.set(row.dealer_id, row);
   });
   return map;
-}
-
-function buildCategoryStats(dealers: DealerRow[], rows: StockRow[], submittedToday: Set<string>, idleDays: number) {
-  const lastByDealer = buildLastByDealer(rows);
-  return (['fertilizer', 'seed', 'pesticide'] as StockCategory[]).map((category) => {
-    const categoryDealers = dealers.filter((dealer) => (dealer.dealer_category || 'fertilizer') === category);
-    return {
-      category,
-      label: CATEGORY_LABELS[category],
-      total: categoryDealers.length,
-      active: categoryDealers.filter((dealer) => lastByDealer.has(dealer.id)).length,
-      submittedToday: categoryDealers.filter((dealer) => submittedToday.has(dealer.id)).length,
-      pendingToday: categoryDealers.filter((dealer) => !submittedToday.has(dealer.id)).length,
-      nilStock: categoryDealers.filter((dealer) => Number(lastByDealer.get(dealer.id)?.closing_balance || 0) === 0).length,
-      idle: categoryDealers.filter((dealer) => daysBetween(lastByDealer.get(dealer.id)?.report_date) >= idleDays).length,
-    };
-  });
 }
 
 function buildLicenseRows(dealers: DealerRow[]) {

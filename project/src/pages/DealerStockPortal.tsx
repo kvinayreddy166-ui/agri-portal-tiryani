@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { BarChart3, Calendar, ChevronDown, FileSpreadsheet, Menu, Plus, Save, Table2, Trash2, Truck, X } from 'lucide-react';
+import { Calendar, ChevronDown, FileSpreadsheet, Menu, Plus, Save, Table2, Trash2, Truck, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -17,8 +17,7 @@ import { supabase } from '../lib/supabase';
 import { bagsToMt, formatBags, formatMt, mtToBags } from '../utils/fertilizerUnits';
 import { currentFinancialYear } from '../utils/financialYear';
 
-type Section = 'analytics' | 'saved';
-type AnalyticsTab = 'receipts' | 'stock';
+type Section = 'entry' | 'saved';
 
 type DealerProfile = {
   dealer_name?: string;
@@ -270,8 +269,7 @@ function emptyDaily(category: StockCategory): DailyForm {
 
 export function DealerStockPortal() {
   const { dealerId, dealerName, user } = useAuth();
-  const [section, setSection] = useState<Section>('analytics');
-  const [analyticsTab, setAnalyticsTab] = useState<AnalyticsTab>('receipts');
+  const [section, setSection] = useState<Section>('entry');
   const [menuOpen, setMenuOpen] = useState(false);
   const [category, setCategory] = useState<StockCategory>('fertilizer');
   const [unit, setUnit] = useState(CATEGORY_UNITS.fertilizer[0]);
@@ -482,7 +480,7 @@ export function DealerStockPortal() {
             </button>
             {menuOpen && (
               <div className="absolute right-0 top-11 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-                <MenuButton icon={<BarChart3 className="h-4 w-4" />} label="Stock Analytics" active={section === 'analytics'} onClick={() => { setSection('analytics'); setMenuOpen(false); }} />
+                <MenuButton icon={<Truck className="h-4 w-4" />} label="Receipts & Daily Stock" active={section === 'entry'} onClick={() => { setSection('entry'); setMenuOpen(false); }} />
                 <MenuButton icon={<Table2 className="h-4 w-4" />} label="Saved Entries" active={section === 'saved'} onClick={() => { setSection('saved'); setMenuOpen(false); void loadRecords(); }} />
               </div>
             )}
@@ -493,7 +491,7 @@ export function DealerStockPortal() {
 
       <main className="w-full max-w-full space-y-2 overflow-hidden px-1.5 py-2 sm:px-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-black">{section === 'analytics' ? 'Stock Analytics' : 'Saved Entries'}</h2>
+          <h2 className="text-base font-black">{section === 'entry' ? 'Receipts & Daily Stock' : 'Saved Entries'}</h2>
           <label className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-black shadow-sm">
             Unit
             <select value={unit} onChange={(event) => setUnit(event.target.value)} className="bg-transparent outline-none">
@@ -504,13 +502,10 @@ export function DealerStockPortal() {
 
         {message && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">{message}</div>}
 
-        {section === 'analytics' ? (
-          <DealerAnalyticsWorkArea
-            analyticsTab={analyticsTab}
-            setAnalyticsTab={setAnalyticsTab}
+        {section === 'entry' ? (
+          <DealerEntryWorkArea
             category={category}
             unit={unit}
-            records={records}
             receiptForm={receiptForm}
             setReceiptForm={setReceiptForm}
             dailyRows={dailyRows}
@@ -518,8 +513,6 @@ export function DealerStockPortal() {
             saving={saving}
             onSaveReceipt={saveReceipt}
             onSaveDaily={saveDaily}
-            deletingId={deletingId}
-            onDelete={deleteEntry}
           />
         ) : (
           <SavedEntries
@@ -564,12 +557,9 @@ const CategoryTabs = memo(function CategoryTabs({ category, onChange }: { catego
   );
 });
 
-function DealerAnalyticsWorkArea(props: {
-  analyticsTab: AnalyticsTab;
-  setAnalyticsTab: (tab: AnalyticsTab) => void;
+function DealerEntryWorkArea(props: {
   category: StockCategory;
   unit: string;
-  records: StockInventoryLine[];
   receiptForm: ReceiptForm;
   setReceiptForm: React.Dispatch<React.SetStateAction<ReceiptForm>>;
   dailyRows: DailyForm[];
@@ -577,100 +567,12 @@ function DealerAnalyticsWorkArea(props: {
   saving: boolean;
   onSaveReceipt: () => void;
   onSaveDaily: () => void;
-  deletingId: string;
-  onDelete: (row: StockInventoryLine) => void;
 }) {
-  const receiptRows = useMemo(
-    () => props.records.filter((row) => row.category === props.category && isReceiptRow(row)),
-    [props.category, props.records]
-  );
-  const stockRows = useMemo(
-    () => props.records.filter((row) => row.category === props.category && !isReceiptRow(row)),
-    [props.category, props.records]
-  );
-  const receiptStats = useMemo(() => buildProductStats([], receiptRows), [receiptRows]);
-  const stockStats = useMemo(() => buildProductStats(stockRows, []), [stockRows]);
-
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-1.5">
-        <AnalyticsSwitchCard
-          title="Fertilizer Tracking"
-          subtitle={`${receiptRows.length} receipts`}
-          active={props.analyticsTab === 'receipts'}
-          onClick={() => props.setAnalyticsTab('receipts')}
-          tone="red"
-        />
-        <AnalyticsSwitchCard
-          title="Stock Inventory"
-          subtitle={`${stockRows.length} daily entries`}
-          active={props.analyticsTab === 'stock'}
-          onClick={() => props.setAnalyticsTab('stock')}
-          tone="green"
-        />
-      </div>
-
-      {props.analyticsTab === 'receipts' ? (
-        <div className="grid min-w-0 gap-2 xl:grid-cols-[minmax(280px,0.75fr)_minmax(520px,1.25fr)]">
-          <ReceiptEntryCard category={props.category} unit={props.unit} form={props.receiptForm} setForm={props.setReceiptForm} saving={props.saving} onSave={props.onSaveReceipt} />
-          <TrackingPanel
-            title="Saved Receipt Entries"
-            rows={receiptRows}
-            stats={receiptStats}
-            category={props.category}
-            unit={props.unit}
-            type="receipt"
-            deletingId={props.deletingId}
-            onDelete={props.onDelete}
-          />
-        </div>
-      ) : (
-        <div className="grid min-w-0 gap-2 xl:grid-cols-[minmax(520px,1.25fr)_minmax(280px,0.75fr)]">
-          <DailyEntryCard category={props.category} unit={props.unit} rows={props.dailyRows} setRows={props.setDailyRows} saving={props.saving} onSave={props.onSaveDaily} />
-          <TrackingPanel
-            title="Saved Daily Stock / Sales"
-            rows={stockRows}
-            stats={stockStats}
-            category={props.category}
-            unit={props.unit}
-            type="daily_stock"
-            deletingId={props.deletingId}
-            onDelete={props.onDelete}
-          />
-        </div>
-      )}
+      <ReceiptEntryCard category={props.category} unit={props.unit} form={props.receiptForm} setForm={props.setReceiptForm} saving={props.saving} onSave={props.onSaveReceipt} />
+      <DailyEntryCard category={props.category} unit={props.unit} rows={props.dailyRows} setRows={props.setDailyRows} saving={props.saving} onSave={props.onSaveDaily} />
     </div>
-  );
-}
-
-function AnalyticsSwitchCard({ title, subtitle, active, onClick, tone }: { title: string; subtitle: string; active: boolean; onClick: () => void; tone: 'red' | 'green' }) {
-  const activeClass = tone === 'red' ? 'border-red-700 bg-red-700 text-white' : 'border-emerald-700 bg-emerald-700 text-white';
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-xl border px-2.5 py-2 text-left shadow-sm transition ${active ? activeClass : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-300'}`}
-    >
-      <p className="truncate text-sm font-black">{title}</p>
-      <p className={`mt-0.5 truncate text-[11px] font-bold ${active ? 'text-white/85' : 'text-slate-500'}`}>{subtitle}</p>
-    </button>
-  );
-}
-
-function TrackingPanel({ title, rows, stats, category, unit, type, deletingId, onDelete }: { title: string; rows: StockInventoryLine[]; stats: ProductStat[]; category: StockCategory; unit: string; type: 'receipt' | 'daily_stock'; deletingId: string; onDelete: (row: StockInventoryLine) => void }) {
-  return (
-    <section className="min-w-0 overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
-      <div className="border-b border-slate-100 px-3 py-2">
-        <h3 className="text-sm font-black text-slate-950">{title}</h3>
-        <p className="text-xs font-bold text-slate-500">{rows.length} records with product-wise chart</p>
-      </div>
-      <div className="grid gap-2 p-2 lg:grid-cols-[0.85fr_1.15fr]">
-        <CompactBars stats={stats} category={category} unit={unit} />
-        <div className="min-w-0 overflow-hidden rounded-xl border border-slate-100">
-          <SavedTable rows={rows} category={category} unit={unit} type={type} deletingId={deletingId} onDelete={onDelete} />
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -1020,55 +922,6 @@ function SummaryCards({ summary, category, unit }: { summary: { receipts: number
       <Summary label="Receipts" value={display(summary.receipts, summary.receiptBags)} />
       <Summary label="Sales" value={display(summary.sales, summary.salesBags)} />
       <Summary label="Stock" value={display(summary.stock, summary.stockBags)} />
-    </div>
-  );
-}
-
-function CompactBars({ stats, category, unit }: { stats: ProductStat[]; category: StockCategory; unit: string }) {
-  if (!stats.length) {
-    return <div className="rounded-xl bg-slate-50 p-3 text-center text-xs font-bold text-slate-500">No chart data available.</div>;
-  }
-
-  const topStats = stats.slice(0, 6);
-  const max = Math.max(...topStats.map((item) => Math.max(item.receipts, item.sales, Math.abs(item.stock))), 1);
-  const display = (value: number, bags: number) => category === 'fertilizer' && unit === 'Bags'
-    ? `${formatBags(bags)} Bags`
-    : category === 'fertilizer'
-      ? `${formatMt(value)} MT`
-      : `${Number(value || 0).toFixed(2)} ${unit}`;
-
-  return (
-    <div className="rounded-xl bg-slate-50 p-2.5">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-xs font-black uppercase text-slate-600">Product Chart</p>
-        <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-slate-500">Top {topStats.length}</span>
-      </div>
-      <div className="space-y-2">
-        {topStats.map((item) => (
-          <div key={item.product}>
-            <div className="mb-1 flex items-center justify-between gap-2 text-[11px] font-black">
-              <span className="truncate text-slate-800">{item.product}</span>
-              <span className="shrink-0 text-slate-500">{display(Math.max(item.receipts, item.stock), Math.max(item.receiptBags, item.stockBags))}</span>
-            </div>
-            <div className="grid gap-1">
-              <MiniBar label="R" color="bg-emerald-600" width={(item.receipts / max) * 100} />
-              <MiniBar label="S" color="bg-red-600" width={(item.sales / max) * 100} />
-              <MiniBar label="C" color="bg-slate-800" width={(Math.abs(item.stock) / max) * 100} />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MiniBar({ label, color, width }: { label: string; color: string; width: number }) {
-  return (
-    <div className="grid grid-cols-[1rem_1fr] items-center gap-1">
-      <span className="text-[10px] font-black text-slate-400">{label}</span>
-      <span className="h-1.5 overflow-hidden rounded-full bg-white">
-        <span className={`block h-full rounded-full ${color}`} style={{ width: `${Math.max(3, Math.min(100, width))}%` }} />
-      </span>
     </div>
   );
 }
