@@ -1,8 +1,8 @@
 {
-  "name": "Tiryani Agriculture Portal",
-  "short_name": "Tiryani Agri",
+  "name": "tiryaniportal - Tiryani Agriculture Portal",
+  "short_name": "tiryaniportal",
   "id": "/",
-  "description": "Information Management System for Tiryani Agriculture Office.",
+  "description": "tiryaniportal - Official Information Management System for Tiryani Agriculture Office.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
