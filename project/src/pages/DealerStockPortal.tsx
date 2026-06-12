@@ -404,8 +404,8 @@ export function DealerStockPortal() {
       return;
     }
 
-    if (preparedRows.some(({ computed }) => computed.closing_balance < 0)) {
-      alert('Closing stock cannot be negative.');
+    if (preparedRows.some(({ computed }) => computed.sales > computed.total || computed.closing_balance < 0)) {
+      alert('Sales cannot be more than total stock. Closing stock must be Total - Sales.');
       return;
     }
 
@@ -512,6 +512,7 @@ export function DealerStockPortal() {
             setReceiptForm={setReceiptForm}
             dailyRows={dailyRows}
             setDailyRows={setDailyRows}
+            records={records}
             saving={saving}
             onSaveReceipt={saveReceipt}
             onSaveDaily={saveDaily}
@@ -566,6 +567,7 @@ function DealerEntryWorkArea(props: {
   setReceiptForm: React.Dispatch<React.SetStateAction<ReceiptForm>>;
   dailyRows: DailyForm[];
   setDailyRows: React.Dispatch<React.SetStateAction<DailyForm[]>>;
+  records: StockInventoryLine[];
   saving: boolean;
   onSaveReceipt: () => void;
   onSaveDaily: () => void;
@@ -573,7 +575,7 @@ function DealerEntryWorkArea(props: {
   return (
     <div className="space-y-2">
       <ReceiptEntryCard category={props.category} unit={props.unit} form={props.receiptForm} setForm={props.setReceiptForm} saving={props.saving} onSave={props.onSaveReceipt} />
-      <DailyEntryCard category={props.category} unit={props.unit} rows={props.dailyRows} setRows={props.setDailyRows} saving={props.saving} onSave={props.onSaveDaily} />
+      <DailyEntryCard category={props.category} unit={props.unit} rows={props.dailyRows} setRows={props.setDailyRows} records={props.records} saving={props.saving} onSave={props.onSaveDaily} />
     </div>
   );
 }
@@ -635,12 +637,30 @@ function ReceiptEntryCard({ category, unit, form, setForm, saving, onSave }: { c
   );
 }
 
-function DailyEntryCard({ category, unit, rows, setRows, saving, onSave }: { category: StockCategory; unit: string; rows: DailyForm[]; setRows: React.Dispatch<React.SetStateAction<DailyForm[]>>; saving: boolean; onSave: () => void }) {
-  const updateRow = (id: string, patch: Partial<DailyForm>) => setRows((current) => current.map((row) => row.id === id ? { ...row, ...patch } : row));
-  const addRow = () => setRows((current) => [...current, emptyDaily(category)]);
+function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave }: { category: StockCategory; unit: string; rows: DailyForm[]; setRows: React.Dispatch<React.SetStateAction<DailyForm[]>>; records: StockInventoryLine[]; saving: boolean; onSave: () => void }) {
+  const withCarriedOpening = (row: DailyForm) => {
+    const previousClosing = previousDailyClosing(records, category, row.product, row.date);
+    if (previousClosing === null) return row;
+    return category === 'fertilizer'
+      ? { ...row, openingMt: previousClosing }
+      : { ...row, opening: previousClosing };
+  };
+  const updateRow = (id: string, patch: Partial<DailyForm>) => setRows((current) => current.map((row) => {
+    if (row.id !== id) return row;
+    const next = { ...row, ...patch };
+    return patch.date !== undefined || patch.product !== undefined ? withCarriedOpening(next) : next;
+  }));
+  const addRow = () => setRows((current) => [...current, withCarriedOpening(emptyDaily(category))]);
   const removeRow = (id: string) => setRows((current) => current.length === 1 ? current : current.filter((row) => row.id !== id));
   const display = (value: number, product: string) => category === 'fertilizer' && unit === 'Bags' ? Math.round(mtToBags(value, product)) : Number(formatMt(value));
   const parse = (value: number, product: string) => category === 'fertilizer' && unit === 'Bags' ? bagsToMt(value, product) : value;
+
+  useEffect(() => {
+    setRows((current) => current.map((row) => {
+      const isEmptyOpening = category === 'fertilizer' ? Number(row.openingMt || 0) === 0 : Number(row.opening || 0) === 0;
+      return isEmptyOpening ? withCarriedOpening(row) : row;
+    }));
+  }, [category, records]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <section className="rounded-[14px] border border-emerald-100 bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
@@ -837,7 +857,7 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
 
   const headers = type === 'receipt'
     ? ['S.No', 'Date', 'Product', `Quantity (${unit})`, 'Invoice No', 'Invoice Date', 'Wholesaler / Source', 'Remarks', 'Delete']
-    : ['S.No', 'Date', 'Product', `Opening (${unit})`, `Receipts (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'];
+    : ['S.No', 'Date', 'Product', `Opening (${unit})`, `Receipts (${unit})`, `Total (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'];
 
   return (
     <div className="table-scroll border-t border-slate-200">
@@ -899,6 +919,7 @@ function savedTableCells(row: StockInventoryLine, index: number, category: Stock
     product,
     displayQuantity(Number(row.opening_balance || 0), product, category, unit),
     displayQuantity(Number(row.receipts || 0), product, category, unit),
+    displayQuantity(Number(row.total || 0), product, category, unit),
     displayQuantity(Number(row.sales || 0), product, category, unit),
     displayQuantity(Number(row.closing_balance || 0), product, category, unit),
   ];
@@ -1066,6 +1087,22 @@ function isReceiptRow(row: StockInventoryLine) {
   return receipts > 0 && opening === 0 && sales === 0 && total === receipts && closing === receipts;
 }
 
+function previousDailyClosing(records: StockInventoryLine[], category: StockCategory, product: string, date: string): number | null {
+  const normalizedProduct = product.trim().toLowerCase();
+  if (!normalizedProduct || !date) return null;
+
+  const previous = records
+    .filter((row) => (
+      row.category === category &&
+      !isReceiptRow(row) &&
+      (row.product_type || '').trim().toLowerCase() === normalizedProduct &&
+      (row.report_date || '') < date
+    ))
+    .sort((a, b) => (b.report_date || '').localeCompare(a.report_date || ''))[0];
+
+  return previous ? Number(previous.closing_balance || 0) : null;
+}
+
 function buildSummary(dailyRows: StockInventoryLine[], receiptRows: StockInventoryLine[]) {
   const receipts = receiptRows.reduce((sum, row) => sum + Number(row.receipts || 0), 0) + dailyRows.reduce((sum, row) => sum + Number(row.receipts || 0), 0);
   const sales = dailyRows.reduce((sum, row) => sum + Number(row.sales || 0), 0);
@@ -1128,7 +1165,7 @@ function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[],
   const headers = Object.keys(excelRows[0]);
   const totalColumns = type === 'receipts'
     ? headers.filter((header) => header.includes('Quantity'))
-    : headers.filter((header) => ['Opening', 'Receipts', 'Sales', 'Closing'].some((label) => header.includes(label)));
+    : headers.filter((header) => ['Opening', 'Receipts', 'Total', 'Sales', 'Closing'].some((label) => header.includes(label)));
   const totalRow = headers.reduce((row, header) => {
     row[header] = header === 'S.No' ? 'TOTAL' : totalColumns.includes(header) ? totalValue(excelRows, header) : '';
     return row;
@@ -1177,17 +1214,20 @@ function dailyExcelRow(row: StockInventoryLine, index: number, category: StockCa
     if (unit === 'Bags') {
       base['Opening Bags'] = formatBags(mtToBags(Number(row.opening_balance || 0), row.product_type));
       base['Receipts Bags'] = formatBags(mtToBags(Number(row.receipts || 0), row.product_type));
+      base['Total Bags'] = formatBags(mtToBags(Number(row.total || 0), row.product_type));
       base['Sales Bags'] = formatBags(mtToBags(Number(row.sales || 0), row.product_type));
       base['Closing Bags'] = formatBags(mtToBags(Number(row.closing_balance || 0), row.product_type));
     } else {
       base['Opening MT'] = formatMt(Number(row.opening_balance || 0));
       base['Receipts MT'] = formatMt(Number(row.receipts || 0));
+      base['Total MT'] = formatMt(Number(row.total || 0));
       base['Sales MT'] = formatMt(Number(row.sales || 0));
       base['Closing MT'] = formatMt(Number(row.closing_balance || 0));
     }
   } else {
     base.Opening = Number(row.opening_balance || 0);
     base.Receipts = Number(row.receipts || 0);
+    base.Total = Number(row.total || 0);
     base.Sales = Number(row.sales || 0);
     base.Closing = Number(row.closing_balance || 0);
     base.Unit = row.unit || unit;
