@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Download, Filter, Search } from 'lucide-react';
+import { FileSpreadsheet, Filter, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
 import {
@@ -9,6 +9,8 @@ import {
   financialYearForDate,
   financialYearRange,
 } from '../lib/stockInventory';
+import { IconButton } from '../components/ui/DesignSystem';
+import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../utils/excelTotals';
 
 type DealerProfile = {
   id: string;
@@ -33,6 +35,8 @@ export default function StockReceiptsSales() {
   const [category, setCategory] = useState<'all' | StockCategory>('all');
   const [entryType, setEntryType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   const fetchData = useCallback(async () => {
     const range = financialYearRange(financialYear);
@@ -80,10 +84,12 @@ export default function StockReceiptsSales() {
       return (
         (category === 'all' || record.category === category) &&
         (entryType === 'all' || (record.entry_type || 'daily_stock') === entryType) &&
+        (!fromDate || (record.report_date || '') >= fromDate) &&
+        (!toDate || (record.report_date || '') <= toDate) &&
         (!search || haystack.includes(search))
       );
     });
-  }, [category, entryType, records, searchTerm]);
+  }, [category, entryType, fromDate, records, searchTerm, toDate]);
 
   const summary = useMemo(() => {
     const opening = filteredRecords.reduce((sum, row) => sum + Number(row.opening_balance || 0), 0);
@@ -166,7 +172,22 @@ export default function StockReceiptsSales() {
       Remarks: record.remarks || '',
     }));
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), 'Stock Receipts Sales');
+    const totalColumns = ['Opening Stock', 'Received Quantity', 'Sold Quantity', 'Closing Stock'];
+    appendSheetWithTotals(workbook, 'Stock Receipts Sales', rows, totalColumns);
+    appendSummarySheet(workbook, 'Stock Receipts & Sales Summary', [
+      ['Financial Year', financialYear],
+      ['From Date', fromDate || financialYearRange(financialYear).start],
+      ['To Date', toDate || financialYearRange(financialYear).end],
+      ['Category', category === 'all' ? 'All categories' : categoryLabels[category]],
+      ['Entry Type', entryType === 'all' ? 'All entry types' : entryType],
+      ['Search', searchTerm || ''],
+      ['Total Entries', rows.length],
+      ['Total Opening Stock', totalValue(rows, 'Opening Stock')],
+      ['Total Received Quantity', totalValue(rows, 'Received Quantity')],
+      ['Total Sold Quantity', totalValue(rows, 'Sold Quantity')],
+      ['Total Closing Stock', totalValue(rows, 'Closing Stock')],
+      ['Generated On', new Date().toLocaleString('en-IN')],
+    ]);
     XLSX.writeFile(workbook, `stock-receipts-sales-${financialYear}.xlsx`);
   };
 
@@ -179,9 +200,9 @@ export default function StockReceiptsSales() {
             <h1 className="text-2xl font-black text-slate-950">Stock Receipts & Sales</h1>
             <p className="text-sm font-semibold text-slate-500">All dealers, all categories, date-wise daily stock entries.</p>
           </div>
-          <button type="button" onClick={exportToExcel} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white">
-            <Download className="h-4 w-4" /> Export all/filtered data to Excel
-          </button>
+          <IconButton label="Export all/filtered data to Excel" tone="excel" onClick={exportToExcel}>
+            <FileSpreadsheet className="h-4 w-4" />
+          </IconButton>
         </div>
       </section>
 
@@ -207,10 +228,12 @@ export default function StockReceiptsSales() {
           <Filter className="h-5 w-5 text-emerald-700" />
           <h2 className="text-base font-black text-slate-950">Filters</h2>
         </div>
-        <div className="grid gap-2 md:grid-cols-5">
+        <div className="grid gap-2 md:grid-cols-7">
           <select value={financialYear} onChange={(event) => setFinancialYear(event.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">
             {FINANCIAL_YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
+          <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold" aria-label="From Date" />
+          <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold" aria-label="To Date" />
           <select value={category} onChange={(event) => setCategory(event.target.value as 'all' | StockCategory)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">
             <option value="all">All categories</option>
             <option value="fertilizer">Fertilizer</option>

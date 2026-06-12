@@ -1,6 +1,7 @@
 import React, { ButtonHTMLAttributes, ReactNode } from 'react';
 
 type Tone = 'primary' | 'secondary' | 'danger' | 'warning';
+type IconTone = Tone | 'excel' | 'sky' | 'slate';
 
 export function AppCard({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <section className={`app-card ${className}`}>{children}</section>;
@@ -118,6 +119,39 @@ export function ActionButton({
 
   return (
     <button type="button" className={`action-button ${toneClass} ${className}`} {...props}>
+      {children}
+    </button>
+  );
+}
+
+export function IconButton({
+  label,
+  tone = 'secondary',
+  className = '',
+  children,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  label: string;
+  tone?: IconTone;
+}) {
+  const toneClass = {
+    primary: 'border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800',
+    secondary: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800',
+    danger: 'border-red-200 bg-white text-red-600 hover:bg-red-50 dark:border-red-900/60 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-950/40',
+    warning: 'border-amber-200 bg-white text-amber-700 hover:bg-amber-50 dark:border-amber-900/60 dark:bg-slate-900 dark:text-amber-300 dark:hover:bg-amber-950/30',
+    excel: 'border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800',
+    sky: 'border-sky-200 bg-white text-sky-700 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-900 dark:text-sky-300 dark:hover:bg-slate-800',
+    slate: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800',
+  }[tone];
+
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-sm font-black shadow-sm transition disabled:opacity-50 ${toneClass} ${className}`}
+      {...props}
+    >
       {children}
     </button>
   );

@@ -16,6 +16,8 @@ import {
 import { supabase } from '../lib/supabase';
 import { bagsToMt, formatBags, formatMt, mtToBags } from '../utils/fertilizerUnits';
 import { currentFinancialYear } from '../utils/financialYear';
+import { IconButton } from '../components/ui/DesignSystem';
+import { appendSummarySheet, totalValue } from '../utils/excelTotals';
 
 type Section = 'entry' | 'saved';
 
@@ -810,9 +812,9 @@ function SavedTableSection(props: {
           <button type="button" onClick={() => props.setFiltersOpen(!props.filtersOpen)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black">
             Filters <ChevronDown className={`h-3 w-3 transition ${props.filtersOpen ? 'rotate-180' : ''}`} />
           </button>
-          <button type="button" onClick={props.onExport} className="inline-flex items-center gap-1 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white">
-            <FileSpreadsheet className="h-3 w-3" /> Export Excel
-          </button>
+          <IconButton label="Export Excel" tone="excel" onClick={props.onExport} className="h-9 w-9">
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+          </IconButton>
         </div>
       </div>
       <div className={`${props.filtersOpen ? 'grid' : 'hidden md:grid'} mb-2 gap-2 px-2 md:grid-cols-6`}>
@@ -1124,7 +1126,14 @@ function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[],
   ];
   if (category === 'fertilizer') metadata.push(['IFMS ID', ifmsId || '']);
   const headers = Object.keys(excelRows[0]);
-  const worksheet = XLSX.utils.aoa_to_sheet([...metadata, [], headers, ...excelRows.map((row) => headers.map((header) => row[header]))]);
+  const totalColumns = type === 'receipts'
+    ? headers.filter((header) => header.includes('Quantity'))
+    : headers.filter((header) => ['Opening', 'Receipts', 'Sales', 'Closing'].some((label) => header.includes(label)));
+  const totalRow = headers.reduce((row, header) => {
+    row[header] = header === 'S.No' ? 'TOTAL' : totalColumns.includes(header) ? totalValue(excelRows, header) : '';
+    return row;
+  }, {} as Record<string, string | number>);
+  const worksheet = XLSX.utils.aoa_to_sheet([...metadata, [], headers, ...[...excelRows, totalRow].map((row) => headers.map((header) => row[header]))]);
   worksheet['!merges'] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
     { s: { r: 0, c: 4 }, e: { r: 0, c: Math.max(4, headers.length - 1) } },
@@ -1132,6 +1141,15 @@ function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[],
   worksheet['!cols'] = headers.map((header) => ({ wch: Math.max(12, header.length + 2) }));
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, type === 'receipts' ? 'Saved Receipts' : 'Daily Stock');
+  appendSummarySheet(workbook, `${CATEGORY_LABELS[category]} ${type === 'receipts' ? 'Receipts' : 'Daily Stock'} Summary`, [
+    ['Firm Name', firmName],
+    ['Category', CATEGORY_LABELS[category]],
+    ['IFMS ID', category === 'fertilizer' ? ifmsId || '' : ''],
+    ['Unit', unit],
+    ['Total Records', excelRows.length],
+    ...totalColumns.map((column): [string, number] => [`Total ${column}`, totalValue(excelRows, column)]),
+    ['Generated On', new Date().toLocaleString('en-IN')],
+  ]);
   XLSX.writeFile(workbook, `${CATEGORY_LABELS[category].toLowerCase()}-${type}-${Date.now()}.xlsx`);
 }
 

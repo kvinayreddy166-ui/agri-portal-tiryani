@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Eye, Loader2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { FilePreviewModal } from './FilePreviewModal';
 import { resolveFileIdentity } from '../../lib/fileTypes';
 import { downloadFileFromUrl } from '../../lib/fileBlob';
@@ -26,6 +26,7 @@ export function FileActionButtons({
   const iconClass = 'h-4 w-4';
   const btnClass = size === 'sm' ? 'h-8 w-8 rounded-md' : 'h-9 w-9 rounded-lg';
   const resolvedType = resolveFileIdentity(fileName, fileType, fileUrl).resolvedType;
+  const DownloadIcon = resolvedType === 'excel' ? FileSpreadsheet : Download;
 
   const handleView = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -70,7 +71,7 @@ export function FileActionButtons({
           {downloading ? (
             <Loader2 className={`${iconClass} animate-spin`} />
           ) : (
-            <Download className={iconClass} />
+            <DownloadIcon className={iconClass} />
           )}
         </button>
       </div>

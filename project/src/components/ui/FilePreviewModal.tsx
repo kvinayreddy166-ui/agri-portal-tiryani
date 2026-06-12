@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Download, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
+import { X, Download, ExternalLink, FileSpreadsheet, Loader2, RefreshCw } from 'lucide-react';
 import { resolveFileIdentity } from '../../lib/fileTypes';
 import {
   getGoogleViewerEmbedUrl,
@@ -54,6 +54,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
   const showImageInline = isImage && previewSrc && !loading && !loadFailed;
   const showPdfInline = isPdf && previewSrc && !loading && !loadFailed && !pdfUseEmbed;
   const showExcelTable = useExcelPreview && excelData && !loading && !loadFailed;
+  const DownloadIcon = isSpreadsheet ? FileSpreadsheet : Download;
   const showEmbed =
     !loading &&
     !loadFailed &&
@@ -186,11 +187,11 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
               type="button"
               onClick={handleDownload}
               disabled={downloading}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-sky-700 disabled:opacity-50 dark:bg-sky-500 dark:hover:bg-sky-600"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600 text-white transition hover:bg-sky-700 disabled:opacity-50 dark:bg-sky-500 dark:hover:bg-sky-600"
               title="Download file"
+              aria-label="Download file"
             >
-              {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-              Download
+              {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <DownloadIcon className="h-4 w-4" />}
             </button>
             {!hideOpenInNewTab && !isSpreadsheet && (
               <a
@@ -340,7 +341,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
                   disabled={downloading}
                   className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white hover:bg-sky-700 disabled:opacity-50"
                 >
-                  {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}
+                  {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <DownloadIcon className="h-5 w-5" />}
                   Download file
                 </button>
                 {!hideOpenInNewTab && !isSpreadsheet && (

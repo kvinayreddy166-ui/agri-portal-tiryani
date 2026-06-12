@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { CheckCircle2, Download, ImagePlus, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
+import { CheckCircle2, FileSpreadsheet, ImagePlus, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { useCropData } from '../../hooks/useCropData';
 import {
   createCropRecord,
@@ -12,6 +12,7 @@ import {
   uploadCropImage,
 } from '../../services/cropService';
 import { validateImageUploadFile } from '../../lib/fileTypes';
+import { IconButton } from '../../components/ui/DesignSystem';
 
 const NORMALIZED_TABLES = [
   ['crop_varieties', 'Varieties'],
@@ -298,14 +299,12 @@ export function CropAdminDashboard() {
                 className="min-h-11 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
               />
             )}
-            <button onClick={reload} disabled={!canEditSelectedCrop} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black disabled:opacity-50 dark:border-slate-700 dark:text-white">
+            <IconButton label="Refresh" tone="secondary" onClick={reload} disabled={!canEditSelectedCrop}>
               <RefreshCw className="h-4 w-4" />
-              Refresh
-            </button>
-            <button disabled={!crop} onClick={() => crop && exportCropWorkbook(crop)} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white disabled:opacity-50">
-              <Download className="h-4 w-4" />
-              Export Excel
-            </button>
+            </IconButton>
+            <IconButton label="Export Excel" tone="excel" disabled={!crop} onClick={() => crop && exportCropWorkbook(crop)}>
+              <FileSpreadsheet className="h-4 w-4" />
+            </IconButton>
           </div>
         </div>
         {(statusMessage || uploadError) && (

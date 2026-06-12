@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { FERTILIZER_TYPES } from '../lib/constants';
 import { cachedSupabaseRows } from '../lib/offlineCache';
+import { IconButton } from '../components/ui/DesignSystem';
+import { totalValue } from '../utils/excelTotals';
 import {
   STOCK_CATEGORIES,
   StockCategory,
@@ -282,9 +284,27 @@ export function StockInventory() {
       Closing: item.Closing,
     }));
 
+    const totalColumns = ['Opening', 'Receipts', 'Total', 'Sales', 'Closing'];
+    const totalRow = Object.keys(tableRows[0]).reduce((row, key) => {
+      row[key as keyof typeof tableRows[number]] =
+        key === 'S.No'
+          ? 'TOTAL'
+          : totalColumns.includes(key)
+            ? totalValue(tableRows, key)
+            : '';
+      return row;
+    }, {} as Record<string, string | number>);
+    const summaryTotalRow = {
+      'S.No': 'TOTAL',
+      Product: '',
+      Receipts: totalValue(summaryRows, 'Receipts'),
+      Sales: totalValue(summaryRows, 'Sales'),
+      Closing: totalValue(summaryRows, 'Closing'),
+    };
+
     const workbook = XLSX.utils.book_new();
     const stockSheet = XLSX.utils.aoa_to_sheet(metadataRows);
-    XLSX.utils.sheet_add_json(stockSheet, tableRows, { origin: `A${metadataRows.length + 1}`, skipHeader: false });
+    XLSX.utils.sheet_add_json(stockSheet, [...tableRows, totalRow], { origin: `A${metadataRows.length + 1}`, skipHeader: false });
     stockSheet['!cols'] = [
       { wch: 8 },
       { wch: 14 },
@@ -302,7 +322,7 @@ export function StockInventory() {
     ];
     XLSX.utils.book_append_sheet(workbook, stockSheet, 'Daily Stock');
 
-    const summarySheet = XLSX.utils.json_to_sheet(summaryRows);
+    const summarySheet = XLSX.utils.json_to_sheet([...summaryRows, summaryTotalRow]);
     summarySheet['!cols'] = [{ wch: 8 }, { wch: 22 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
     XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
 
@@ -323,25 +343,12 @@ export function StockInventory() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={exportToExcel}
-            disabled={!filteredRows.length}
-            title={t('Export to Excel', 'Export to Excel')}
-            aria-label={t('Export to Excel', 'Export to Excel')}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-700 text-white shadow-sm hover:bg-emerald-800 disabled:opacity-50"
-          >
+          <IconButton label={t('Export to Excel', 'Export to Excel')} tone="excel" onClick={exportToExcel} disabled={!filteredRows.length}>
             <FileSpreadsheet className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={fetchData}
-            title={t('Refresh', 'Refresh')}
-            aria-label={t('Refresh', 'Refresh')}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 text-slate-700 dark:border-slate-600 dark:text-slate-200"
-          >
+          </IconButton>
+          <IconButton label={t('Refresh', 'Refresh')} tone="secondary" onClick={fetchData}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+          </IconButton>
           <label className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
             FY
             <select
@@ -363,15 +370,9 @@ export function StockInventory() {
             <h2 className="text-sm font-black text-slate-950 dark:text-white">Filters</h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Search and filter dealer stock records</p>
           </div>
-          <button
-            type="button"
-            onClick={() => setFiltersOpen((value) => !value)}
-            title="Filters"
-            aria-label="Filters"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
-          >
+          <IconButton label="Filters" tone="secondary" onClick={() => setFiltersOpen((value) => !value)} className="h-9 w-9">
             <ChevronDown className={`h-3.5 w-3.5 transition ${filtersOpen ? 'rotate-180' : ''}`} />
-          </button>
+          </IconButton>
         </div>
       <div className={`${filtersOpen ? 'flex' : 'hidden'} mt-3 flex-wrap items-center gap-3`}>
         <div className="flex w-full flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:w-auto md:flex-row md:items-center">
@@ -388,24 +389,12 @@ export function StockInventory() {
               className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
             />
           </div>
-          <button
-            type="button"
-            onClick={() => setAppliedSearchTerm(searchInput)}
-            title="Search"
-            aria-label="Search"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-700 text-white hover:bg-emerald-800"
-          >
+          <IconButton label="Search" tone="primary" onClick={() => setAppliedSearchTerm(searchInput)}>
             <Search className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={resetFilters}
-            title="Reset"
-            aria-label="Reset filters"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
-          >
+          </IconButton>
+          <IconButton label="Reset filters" tone="secondary" onClick={resetFilters}>
             <RotateCcw className="h-4 w-4" />
-          </button>
+          </IconButton>
         </div>
         <button
           type="button"

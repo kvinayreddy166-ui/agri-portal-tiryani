@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BarChart3, ChevronDown, Download, Package, Plus, Search, Trash2, X } from 'lucide-react';
+import { BarChart3, ChevronDown, FileSpreadsheet, Package, Plus, Search, Trash2, X } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
@@ -9,6 +9,8 @@ import { FERTILIZER_TYPES } from '../lib/constants';
 import { syncFertilizerStockTable } from '../lib/fertilizerStock';
 import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
 import { useVirtualRows } from '../hooks/useVirtualRows';
+import { IconButton } from '../components/ui/DesignSystem';
+import { appendSheetWithTotals, appendSummarySheet, totalValue, type ExcelRow } from '../utils/excelTotals';
 
 const fertilizers = [...FERTILIZER_TYPES];
 
@@ -61,6 +63,8 @@ export function StockManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [financialYear, setFinancialYear] = useState(currentFinancialYear());
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [dealerFilter, setDealerFilter] = useState('all');
   const [fertilizerFilter, setFertilizerFilter] = useState('all');
   const [wholesalerFilter, setWholesalerFilter] = useState('all');
@@ -180,6 +184,8 @@ export function StockManagement() {
       (dealerFilter === 'all' || item.dealer_id === dealerFilter) &&
       (fertilizerFilter === 'all' || item.fertilizer_type === fertilizerFilter) &&
       (wholesalerFilter === 'all' || (item.wholesaler_name || '').trim() === wholesalerFilter) &&
+      (!fromDate || (item.invoice_date || item.last_updated || '') >= fromDate) &&
+      (!toDate || (item.invoice_date || item.last_updated || '') <= toDate) &&
       ((item.dealer_name || '').toLowerCase().includes(search) ||
       item.fertilizer_type.toLowerCase().includes(search) ||
       (item.invoice_number || '').toLowerCase().includes(search) ||
@@ -187,7 +193,7 @@ export function StockManagement() {
       (item.last_updated || '').toLowerCase().includes(search) ||
       (item.wholesaler_name || '').toLowerCase().includes(search))
     ));
-  }, [dealerFilter, fertilizerFilter, financialYearStock, searchTerm, wholesalerFilter]);
+  }, [dealerFilter, fertilizerFilter, financialYearStock, fromDate, searchTerm, toDate, wholesalerFilter]);
 
   const fertilizerSummary = useMemo(() => fertilizers.map((fertilizer) => {
     const items = filteredStock.filter((item) => item.fertilizer_type === fertilizer);
@@ -265,7 +271,18 @@ export function StockManagement() {
         Updated: item.last_updated || '',
       })),
       `fertilizer-receipts-${financialYear}.xlsx`,
-      'Filtered Receipts'
+      'Filtered Receipts',
+      ['Receipts (MT)'],
+      [
+        ['Financial Year', financialYear],
+        ['From Date', fromDate || ''],
+        ['To Date', toDate || ''],
+        ['Dealer Filter', dealerFilter === 'all' ? 'All dealers' : dealerOptions.find(([id]) => id === dealerFilter)?.[1] || dealerFilter],
+        ['Fertilizer Filter', fertilizerFilter === 'all' ? 'All fertilizers' : fertilizerFilter],
+        ['Wholesaler Filter', wholesalerFilter === 'all' ? 'All wholesalers' : wholesalerFilter],
+        ['Total Entries', filteredStock.length],
+        ['Total Receipts (MT)', totalReceipts.toFixed(2)],
+      ]
     );
   };
 
@@ -278,7 +295,15 @@ export function StockManagement() {
         Fertilizers: item.fertilizerCount,
       })),
       `dealer-wise-fertilizer-receipts-${financialYear}.xlsx`,
-      'Dealer Wise Receipts'
+      'Dealer Wise Receipts',
+      ['Receipts (MT)', 'Fertilizers'],
+      [
+        ['Financial Year', financialYear],
+        ['From Date', fromDate || ''],
+        ['To Date', toDate || ''],
+        ['Total Dealers', dealerSummary.length],
+        ['Total Receipts (MT)', totalReceipts.toFixed(2)],
+      ]
     );
   };
 
@@ -307,24 +332,12 @@ export function StockManagement() {
               <p className="page-subtitle">Fertilizer receipts, dealer load entries, and current balance.</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={exportFilteredReceipts}
-                disabled={filteredStock.length === 0}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-emerald-300"
-              >
-                <Download className="h-4 w-4" />
-                Export Filtered
-              </button>
-              <button
-                type="button"
-                onClick={exportDealerWiseReceipts}
-                disabled={dealerSummary.length === 0}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-black text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-sky-300"
-              >
-                <Download className="h-4 w-4" />
-                Export Dealer-wise
-              </button>
+              <IconButton label="Export filtered Excel" tone="excel" onClick={exportFilteredReceipts} disabled={filteredStock.length === 0}>
+                <FileSpreadsheet className="h-4 w-4" />
+              </IconButton>
+              <IconButton label="Export dealer-wise Excel" tone="sky" onClick={exportDealerWiseReceipts} disabled={dealerSummary.length === 0}>
+                <FileSpreadsheet className="h-4 w-4" />
+              </IconButton>
               {isAdminUser && (
                 <button
                   onClick={() => setShowAddForm(true)}
@@ -343,13 +356,9 @@ export function StockManagement() {
                 <h2 className="text-sm font-black text-slate-950 dark:text-white">Filters</h2>
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Showing {filteredStock.length} of {financialYearStock.length} receipt entries</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setFiltersOpen((value) => !value)}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
-              >
-                Filters <ChevronDown className={`h-3.5 w-3.5 transition ${filtersOpen ? 'rotate-180' : ''}`} />
-              </button>
+              <IconButton label="Filters" tone="secondary" onClick={() => setFiltersOpen((value) => !value)} className="h-9 w-9">
+                <ChevronDown className={`h-3.5 w-3.5 transition ${filtersOpen ? 'rotate-180' : ''}`} />
+              </IconButton>
             </div>
           <div className={`${filtersOpen ? 'flex' : 'hidden'} mt-3 flex-col gap-3 md:flex-row md:items-center md:justify-between`}>
             <div className="relative w-full md:max-w-md">
@@ -375,6 +384,20 @@ export function StockManagement() {
                   ))}
                 </select>
               </label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                aria-label="From Date"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              />
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                aria-label="To Date"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              />
               <label className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                 Dealer
                 <select
@@ -694,10 +717,20 @@ function GroupedTotalsTable({
   );
 }
 
-function downloadWorkbook(rows: Record<string, string | number>[], fileName: string, sheetName: string) {
+function downloadWorkbook(
+  rows: ExcelRow[],
+  fileName: string,
+  sheetName: string,
+  totalColumns: string[],
+  summaryRows: Array<[string, string | number]>
+) {
   if (!rows.length) return;
-  const worksheet = XLSX.utils.json_to_sheet(rows);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  appendSheetWithTotals(workbook, sheetName, rows, totalColumns);
+  appendSummarySheet(workbook, `${sheetName} Summary`, [
+    ...summaryRows,
+    ...totalColumns.map((column): [string, number] => [`Total ${column}`, totalValue(rows, column)]),
+    ['Generated On', new Date().toLocaleString('en-IN')],
+  ]);
   XLSX.writeFile(workbook, fileName);
 }

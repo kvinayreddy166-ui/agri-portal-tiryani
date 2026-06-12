@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ClipboardList, Filter, PackageCheck, RefreshCw } from 'lucide-react';
 import { StockManagement } from './StockManagement';
 import { StockInventory } from './StockInventory';
+import { IconButton } from '../components/ui/DesignSystem';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
@@ -277,12 +278,12 @@ function CommandCenter() {
             <h1 className="text-base font-black text-slate-950">Monitoring Filters</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={loadData} title="Refresh" aria-label="Refresh command center" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700">
+            <IconButton label="Refresh command center" tone="secondary" onClick={loadData} className="h-9 w-9">
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-            </button>
-            <button type="button" onClick={() => setFiltersOpen((value) => !value)} title="Filters" aria-label="Filters" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700">
+            </IconButton>
+            <IconButton label="Filters" tone="secondary" onClick={() => setFiltersOpen((value) => !value)} className="h-9 w-9">
               {filtersOpen ? <ChevronDown className="h-3.5 w-3.5 rotate-180 transition" /> : <Filter className="h-3.5 w-3.5" />}
-            </button>
+            </IconButton>
           </div>
         </div>
         <div className={`${filtersOpen ? 'grid' : 'hidden'} mt-3 gap-2 md:grid-cols-4 xl:grid-cols-8`}>

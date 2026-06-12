@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
-import { BarChart3, ChevronLeft, ChevronRight, Download, Search, RotateCcw, Filter, ArrowUpDown } from 'lucide-react';
+import { BarChart3, ChevronLeft, ChevronRight, FileSpreadsheet, Search, RotateCcw, Filter, ArrowUpDown } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { translateDealerText } from '../lib/dealerTranslations';
 import { supabase } from '../lib/supabase';
+import { IconButton } from '../components/ui/DesignSystem';
+import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../utils/excelTotals';
 
 type FertilizerUnit = 'mts' | 'bags';
 
@@ -324,7 +326,25 @@ export function DealerHistory() {
       Remarks: record.remarks || '',
     }));
 
-    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(exportRows), 'Stock Receipts Sales');
+    const totalColumns = ['Opening Stock', 'Received Quantity', 'Sold Quantity', 'Closing Stock'];
+    appendSheetWithTotals(workbook, 'Stock Receipts Sales', exportRows, totalColumns, 'Date');
+    appendSummarySheet(workbook, 'Dealer Stock History Summary', [
+      ['Firm Name', dealerProfile?.dealer_name || dealerName || ''],
+      ['IFMS ID', dealerProfile?.ifms_id || ''],
+      ['From Date', fromDate || ''],
+      ['To Date', toDate || ''],
+      ['Product Filter', selectedProduct || 'All products'],
+      ['Entry Type Filter', selectedEntryType || 'All entry types'],
+      ['Invoice Filter', invoiceFilter || ''],
+      ['Month Filter', selectedMonth || 'All months'],
+      ['Year Filter', selectedYear || 'All years'],
+      ['Total Records', exportRows.length],
+      ['Total Opening Stock', totalValue(exportRows, 'Opening Stock')],
+      ['Total Received Quantity', totalValue(exportRows, 'Received Quantity')],
+      ['Total Sold Quantity', totalValue(exportRows, 'Sold Quantity')],
+      ['Total Closing Stock', totalValue(exportRows, 'Closing Stock')],
+      ['Generated On', new Date().toLocaleString('en-IN')],
+    ]);
     XLSX.writeFile(workbook, `stock-receipts-sales-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
@@ -482,14 +502,9 @@ export function DealerHistory() {
                 <option value="">{t('Financial Year')}</option>
                 {years.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
+              <IconButton label={t('Reset')} tone="secondary" onClick={resetFilters}>
                 <RotateCcw className="h-4 w-4" />
-                {t('Reset')}
-              </button>
+              </IconButton>
             </div>
           </div>
         </div>
@@ -497,14 +512,9 @@ export function DealerHistory() {
 
       {/* Export Button */}
       <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={exportToExcel}
-          className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:text-emerald-300"
-        >
-          <Download className="h-5 w-5" />
-          Export to Excel
-        </button>
+        <IconButton label="Export to Excel" tone="excel" onClick={exportToExcel}>
+          <FileSpreadsheet className="h-4 w-4" />
+        </IconButton>
       </div>
 
       {/* Results count */}
