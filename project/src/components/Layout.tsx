@@ -1,6 +1,6 @@
 import React, { useMemo, useState, ReactNode } from 'react';
 import {
-  ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
+  ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, ClipboardList,
 } from 'lucide-react';
@@ -54,7 +54,7 @@ const dealerMenuItems = [
 
 const menuItems = adminMenuItems;
 
-export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }: LayoutProps) {
+export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const sidebarOverlay = useBackButtonOverlay('app-sidebar', () => setSidebarOpen(false));
   const { user, isAdminUser, isDealerUser, dealerName } = useAuth();
@@ -209,14 +209,6 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
         <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
           {currentPage !== 'dashboard' && currentPage !== 'dealer-portal' && (
             <div className="mb-4 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={onBack}
-                className="inline-flex min-h-11 w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </button>
               <nav className="flex flex-wrap items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400" aria-label="Breadcrumb">
                 {pageMeta.breadcrumbs.map((item, index) => (
                   <React.Fragment key={`${item.label}-${index}`}>

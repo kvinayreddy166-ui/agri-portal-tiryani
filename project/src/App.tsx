@@ -33,9 +33,6 @@ const CropAdminDashboard = lazy(() =>
 const PdfToolsPage = lazy(() =>
   import('./pages/PdfToolsPage').then((m) => ({ default: m.PdfToolsPage }))
 );
-const CommandCenter = lazy(() =>
-  import('./pages/CommandCenter').then((m) => ({ default: m.CommandCenter }))
-);
 
 function PageLoader() {
   return (
@@ -57,7 +54,6 @@ const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
 const PAGE_PATHS: Record<string, string> = {
   dashboard: '/dashboard',
-  'command-center': '/command-center',
   'stock-analytics': '/stock-analytics',
   'stock-receipts-sales': '/stock-receipts-sales',
   'dealer-portal': '/dealer-portal',
@@ -252,7 +248,6 @@ function AppContent() {
     () =>
       new Set([
         'dashboard',
-        'command-center',
         'stock-analytics',
         'stock-receipts-sales',
         'dealer-portal',
@@ -472,12 +467,6 @@ function AppContent() {
     switch (currentPage) {
       case 'dashboard':
         return <Dashboard />;
-      case 'command-center':
-        return (
-          <Suspense fallback={<PageLoader />}>
-            <CommandCenter />
-          </Suspense>
-        );
       case 'stock-analytics':
         return (
           <Suspense fallback={<PageLoader />}>

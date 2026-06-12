@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BarChart3, ChevronDown, ClipboardList, Filter, PackageCheck, ShieldAlert } from 'lucide-react';
+import { ChevronDown, ClipboardList, Filter, PackageCheck } from 'lucide-react';
 import { StockManagement } from './StockManagement';
 import { StockInventory } from './StockInventory';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +12,6 @@ import {
   financialYearRange,
 } from '../lib/stockInventory';
 
-type MainTab = 'command' | 'stock';
 type StockTab = 'fertilizer' | 'inventory';
 type SubmissionTab = 'updated' | 'pending';
 type CategoryFilter = 'all' | StockCategory;
@@ -59,11 +58,12 @@ const CATEGORY_LABELS: Record<StockCategory, string> = {
   pesticide: 'Pesticide',
 };
 
-const today = () => new Date().toISOString().slice(0, 10);
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export default function StockAnalytics() {
   const { isDealerUser } = useAuth();
-  const [mainTab, setMainTab] = useState<MainTab>('command');
   const [stockTab, setStockTab] = useState<StockTab>('fertilizer');
 
   if (isDealerUser) {
@@ -71,35 +71,32 @@ export default function StockAnalytics() {
   }
 
   return (
-    <div className="max-w-full overflow-hidden" style={{ background: THEME.bg }}>
-      <div className="mb-3 grid grid-cols-2 gap-2">
-        <TopSwitch title="Command Center" active={mainTab === 'command'} icon={<ShieldAlert className="h-4 w-4" />} onClick={() => setMainTab('command')} />
-        <TopSwitch title="Stock Analytics" active={mainTab === 'stock'} icon={<BarChart3 className="h-4 w-4" />} onClick={() => setMainTab('stock')} />
-      </div>
+    <div className="max-w-full space-y-4 overflow-hidden" style={{ background: THEME.bg }}>
+      <CommandCenter />
 
-      {mainTab === 'command' ? (
-        <CommandCenter />
-      ) : (
-        <div className="space-y-3">
-          <div className="grid gap-2 sm:grid-cols-2">
-            <StockSwitch
-              title="Fertilizer Tracking"
-              description="Track fertilizer stock and movements"
-              active={stockTab === 'fertilizer'}
-              icon={<PackageCheck className="h-5 w-5" />}
-              onClick={() => setStockTab('fertilizer')}
-            />
-            <StockSwitch
-              title="Stock Inventory"
-              description="View and manage stock inventory"
-              active={stockTab === 'inventory'}
-              icon={<ClipboardList className="h-5 w-5" />}
-              onClick={() => setStockTab('inventory')}
-            />
-          </div>
-          {stockTab === 'fertilizer' ? <StockManagement /> : <StockInventory />}
+      <section className="space-y-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Stock Analytics</p>
+          <h2 className="text-lg font-black text-slate-950">Stock Tools</h2>
         </div>
-      )}
+        <div className="grid gap-2 sm:grid-cols-2">
+          <StockSwitch
+            title="Fertilizer Tracking"
+            description="Track fertilizer stock and movements"
+            active={stockTab === 'fertilizer'}
+            icon={<PackageCheck className="h-5 w-5" />}
+            onClick={() => setStockTab('fertilizer')}
+          />
+          <StockSwitch
+            title="Stock Inventory"
+            description="View and manage stock inventory"
+            active={stockTab === 'inventory'}
+            icon={<ClipboardList className="h-5 w-5" />}
+            onClick={() => setStockTab('inventory')}
+          />
+        </div>
+        {stockTab === 'fertilizer' ? <StockManagement /> : <StockInventory />}
+      </section>
     </div>
   );
 }
@@ -274,14 +271,6 @@ function CommandCenter() {
         ))}
       </section>
     </div>
-  );
-}
-
-function TopSwitch({ title, active, icon, onClick }: { title: string; active: boolean; icon: React.ReactNode; onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick} className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-black shadow-sm ${active ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-slate-200 bg-white text-slate-800'}`}>
-      {icon}{title}
-    </button>
   );
 }
 
