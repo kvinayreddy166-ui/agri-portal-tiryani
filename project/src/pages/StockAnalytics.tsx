@@ -111,6 +111,7 @@ export default function StockAnalytics() {
                       title="Fertilizer Tracking"
                       description="Track fertilizer stock and movements"
                       active={stockTab === 'fertilizer'}
+                      tone="red"
                       icon={<PackageCheck className="h-5 w-5" />}
                       onClick={() => setStockTab('fertilizer')}
                     />
@@ -118,6 +119,7 @@ export default function StockAnalytics() {
                       title="Stock Inventory"
                       description="View and manage stock inventory"
                       active={stockTab === 'inventory'}
+                      tone="green"
                       icon={<ClipboardList className="h-5 w-5" />}
                       onClick={() => setStockTab('inventory')}
                     />
@@ -330,12 +332,16 @@ function CommandCenter() {
   );
 }
 
-function StockSwitch({ title, description, active, icon, onClick }: { title: string; description: string; active: boolean; icon: React.ReactNode; onClick: () => void }) {
+function StockSwitch({ title, description, active, tone, icon, onClick }: { title: string; description: string; active: boolean; tone: 'red' | 'green'; icon: React.ReactNode; onClick: () => void }) {
+  const titleClass = tone === 'red' ? 'text-red-700' : 'text-emerald-700';
+  const iconClass = tone === 'red'
+    ? active ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700'
+    : active ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700';
   return (
     <button type="button" onClick={onClick} className={`flex min-w-[16rem] flex-1 items-center gap-3 rounded-lg border p-3 text-left shadow-sm transition ${active ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50'}`}>
-      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>{icon}</div>
+      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconClass}`}>{icon}</div>
       <div className="min-w-0">
-        <h3 className="truncate text-sm font-black text-slate-900">{title}</h3>
+        <h3 className={`truncate text-sm font-black ${titleClass}`}>{title}</h3>
         <p className="truncate text-xs font-semibold text-slate-500">{description}</p>
       </div>
     </button>

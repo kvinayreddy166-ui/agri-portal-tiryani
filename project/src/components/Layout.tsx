@@ -1,6 +1,6 @@
 import React, { useMemo, useState, ReactNode } from 'react';
 import {
-  ChevronRight, Menu, X, LayoutDashboard, UsersRound, BrainCircuit, FileStack,
+  ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, ClipboardList,
 } from 'lucide-react';
@@ -20,6 +20,7 @@ interface LayoutProps {
 
 const adminMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck },
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
   {
     id: 'crops',
@@ -269,7 +270,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
   }
 
   const meta: Record<string, { title: string; breadcrumbs: BreadcrumbItem[] }> = {
-    'stock-analytics': { title: 'Stock Analytics', breadcrumbs: [dashboard] },
+    'stock-analytics': { title: 'Command Center', breadcrumbs: [dashboard] },
     'stock-receipts-sales': { title: 'Stock Receipts & Sales', breadcrumbs: [dashboard] },
     'dealer-portal': { title: 'Stock Analytics', breadcrumbs: [dashboard] },
     dealers: { title: 'Dealers Directory', breadcrumbs: [dashboard] },
@@ -321,6 +322,7 @@ function subsidyTitle(page: string) {
 function translateMenu(label: string) {
   const labels: Record<string, string> = {
     Dashboard: 'డ్యాష్ బోర్డ్',
+    'Command Center': 'కమాండ్ సెంటర్',
     'Stock Analytics': 'స్టాక్ విశ్లేషణలు',
     'Stock Receipts & Sales': 'స్టాక్ రసీట్లు & అమ్మకాలు',
     'Stock Inventory': 'స్టాక్ ఇన్వెంటరీ',

@@ -11,10 +11,8 @@ import { PortalLogo } from '../components/ui/PortalLogo';
 import { cachedSupabaseRows, cachedSupabaseValue } from '../lib/offlineCache';
 import { fetchSiteHitSummary, SiteHitSummary } from '../lib/siteHits';
 
-const StockAnalyticsPanel = React.lazy(() => import('./StockAnalytics'));
-
 export function Dashboard() {
-  const { isAdminUser, isTestUser } = useAuth();
+  const { isAdminUser } = useAuth();
   const { t } = useLanguage();
   const [crops, setCrops] = useState<Crop[]>([]);
   const [fertilizers, setFertilizers] = useState<DailyFertilizerStockSummary[]>([]);
@@ -213,14 +211,6 @@ export function Dashboard() {
           </div>
         </div>
       </div>
-
-      {(isAdminUser || isTestUser) && (
-        <div className="dashboard-rise dashboard-delay-1">
-          <React.Suspense fallback={<div className="rounded-xl bg-white p-4 text-sm font-bold text-slate-500">Loading stock command center...</div>}>
-            <StockAnalyticsPanel />
-          </React.Suspense>
-        </div>
-      )}
 
       <div className="dashboard-rise dashboard-delay-1 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <GoogleMapWidget />
