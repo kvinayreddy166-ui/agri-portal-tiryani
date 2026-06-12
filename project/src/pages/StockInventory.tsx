@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BarChart3, ChevronDown, FileSpreadsheet, FolderOpen, RefreshCw, RotateCcw, Search, Trash2 } from 'lucide-react';
+import { BarChart3, ChevronDown, FileSpreadsheet, FolderOpen, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -169,16 +169,6 @@ export function StockInventory() {
   useEffect(() => {
     setCurrentPage(0);
   }, [appliedSearchTerm, category, dealerFilter, fertilizerFilter, financialYear, reportDate, reportMonth, viewMode]);
-
-  const resetFilters = () => {
-    setSearchInput('');
-    setAppliedSearchTerm('');
-    setDealerFilter('all');
-    setFertilizerFilter('all');
-    setFinancialYear(currentFinancialYear());
-    setReportDate(currentReportDate());
-    setReportMonth(currentReportDate().slice(0, 7));
-  };
 
   const chartQuantity = useCallback((line: InventoryRow, value: number) => {
     if (line.category === 'fertilizer' && fertilizerQtyUnit === 'bags') {
@@ -391,9 +381,6 @@ export function StockInventory() {
           </div>
           <IconButton label="Search" tone="primary" onClick={() => setAppliedSearchTerm(searchInput)}>
             <Search className="h-4 w-4" />
-          </IconButton>
-          <IconButton label="Reset filters" tone="secondary" onClick={resetFilters}>
-            <RotateCcw className="h-4 w-4" />
           </IconButton>
         </div>
         <button

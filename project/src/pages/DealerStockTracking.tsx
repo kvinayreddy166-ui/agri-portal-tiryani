@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Package, Search, Save, X, TrendingUp } from 'lucide-react';
+import { Plus, Edit2, Trash2, Package, Search, Save, X, TrendingUp, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Dealer } from '../types/database';
+import { IconButton } from '../components/ui/DesignSystem';
 
 interface DealerStockAllocation {
   id: string;
@@ -31,10 +32,24 @@ export function DealerStockTracking() {
   const fertilizers = ['Urea', 'DAP', 'Potash', 'SSP', 'Complex'];
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
+  }, []);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('dealer-stock-tracking-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dealer_stock_allocation' }, () => {
+        void fetchData();
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [dealersRes, stockRes] = await Promise.all([
         supabase.from('dealers').select('id, dealer_name').order('dealer_name'),
@@ -73,7 +88,7 @@ export function DealerStockTracking() {
       if (error) throw error;
       setShowAddForm(false);
       setFormData({ dealer_id: '', fertilizer_type: 'Urea', quantity_mts: 0 });
-      fetchData();
+      void fetchData();
     } catch (error) {
       console.error('Error adding stock:', error);
       alert('Failed to add stock allocation');
@@ -95,7 +110,7 @@ export function DealerStockTracking() {
 
       if (error) throw error;
       setEditingId(null);
-      fetchData();
+      void fetchData();
     } catch (error) {
       console.error('Error updating stock:', error);
       alert('Failed to update stock');
@@ -112,7 +127,7 @@ export function DealerStockTracking() {
         .eq('id', id);
 
       if (error) throw error;
-      fetchData();
+      void fetchData();
     } catch (error) {
       console.error('Error deleting stock:', error);
       alert('Failed to delete stock');
@@ -187,15 +202,20 @@ export function DealerStockTracking() {
             className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           />
         </div>
-        {isAdminUser && (
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all font-semibold"
-          >
-            <Plus className="w-5 h-5" />
-            Add Allocation
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          <IconButton label="Refresh stock tracking" tone="secondary" onClick={fetchData}>
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </IconButton>
+          {isAdminUser && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all font-semibold"
+            >
+              <Plus className="w-5 h-5" />
+              Add Allocation
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Add Form Modal */}

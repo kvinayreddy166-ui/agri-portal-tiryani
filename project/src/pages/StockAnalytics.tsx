@@ -231,14 +231,16 @@ function CommandCenter() {
   const dealerOptions = useMemo(() => dealers.map((dealer) => ({ id: dealer.id, name: dealer.dealer_name })).sort((a, b) => a.name.localeCompare(b.name)), [dealers]);
   const villageOptions = useMemo(() => unique(dealers.map((dealer) => dealer.location || '').filter(Boolean)), [dealers]);
   const submittedToday = useMemo(() => new Set(stockRows.filter((row) => row.report_date === today()).map((row) => row.dealer_id || '')), [stockRows]);
+  const loggedInToday = useMemo(() => new Set(dealers.filter((dealer) => dateOnly(dealer.last_login_at) === today()).map((dealer) => dealer.id)), [dealers]);
+  const activeToday = useMemo(() => new Set([...submittedToday, ...loggedInToday]), [loggedInToday, submittedToday]);
 
   const filteredDealers = useMemo(() => dealers.filter((dealer) => (
     (filters.category === 'all' || (dealer.dealer_category || 'fertilizer') === filters.category) &&
     (filters.dealer === 'all' || dealer.id === filters.dealer) &&
     (filters.village === 'all' || dealer.location === filters.village) &&
     (filters.submissionStatus === 'all' ||
-      (filters.submissionStatus === 'updated' ? submittedToday.has(dealer.id) : !submittedToday.has(dealer.id)))
-  )), [dealers, filters.category, filters.dealer, filters.submissionStatus, filters.village, submittedToday]);
+      (filters.submissionStatus === 'updated' ? activeToday.has(dealer.id) : !activeToday.has(dealer.id)))
+  )), [activeToday, dealers, filters.category, filters.dealer, filters.submissionStatus, filters.village]);
 
   const filteredRows = useMemo(() => stockRows.filter((row) => {
     const dealer = dealerMap.get(row.dealer_id || '');
@@ -251,16 +253,16 @@ function CommandCenter() {
       (filters.dealer === 'all' || row.dealer_id === filters.dealer) &&
       (filters.village === 'all' || dealer?.location === filters.village) &&
       (filters.submissionStatus === 'all' ||
-        (filters.submissionStatus === 'updated' ? submittedToday.has(row.dealer_id || '') : !submittedToday.has(row.dealer_id || '')))
+        (filters.submissionStatus === 'updated' ? activeToday.has(row.dealer_id || '') : !activeToday.has(row.dealer_id || '')))
     );
-  }), [dealerMap, filters, stockRows, submittedToday]);
+  }), [activeToday, dealerMap, filters, stockRows]);
 
   const lastByDealer = useMemo(() => buildLastByDealer(stockRows), [stockRows]);
   const licenseRows = useMemo(() => buildLicenseRows(filteredDealers), [filteredDealers]);
   const licenseCounters = useMemo(() => buildLicenseCounters(filteredDealers), [filteredDealers]);
   const expiredLicenses = useMemo(() => licenseRows.filter((row) => row.status === 'Expired'), [licenseRows]);
   const expiringLicenses = useMemo(() => licenseRows.filter((row) => row.status === 'Expiring in 60 days'), [licenseRows]);
-  const submissionRows = useMemo(() => buildSubmissionRows(filteredDealers, lastByDealer, submittedToday, submissionTab), [filteredDealers, lastByDealer, submissionTab, submittedToday]);
+  const submissionRows = useMemo(() => buildSubmissionRows(filteredDealers, lastByDealer, activeToday, submittedToday, submissionTab), [activeToday, filteredDealers, lastByDealer, submissionTab, submittedToday]);
   const nilStockRows = useMemo(() => buildNilStockRows(filteredDealers, stockRows, lastByDealer), [filteredDealers, lastByDealer, stockRows]);
   const idleRows = useMemo(() => buildIdleRows(filteredDealers, lastByDealer, filters.idleDays), [filteredDealers, filters.idleDays, lastByDealer]);
   const ureaNoSalesRows = useMemo(() => buildUreaNoSalesRows(filteredDealers, stockRows, filters.idleDays), [filteredDealers, filters.idleDays, stockRows]);
@@ -301,8 +303,8 @@ function CommandCenter() {
       {loading && <div className="rounded-xl bg-white p-4 text-sm font-bold text-slate-500">Loading command center...</div>}
 
       <section className="grid gap-3 xl:grid-cols-2">
-        <section className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-slate-100 p-3">
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
             <div>
               <h2 className="text-sm font-black text-slate-950">Dealer Submission List</h2>
               <p className="text-xs font-bold text-slate-500">Today: {today()}</p>
@@ -392,13 +394,13 @@ function StockSwitch({ title, description, active, tone, icon, onClick }: { titl
 
 function LicenseCounterCard({ counters }: { counters: { label: string; value: number }[] }) {
   return (
-    <section className="rounded-[22px] border border-blue-200 bg-blue-50/60 p-4 shadow-sm">
-      <h2 className="mb-4 text-sm font-black uppercase tracking-wide text-blue-700">License Counter</h2>
-      <div className="space-y-3">
+    <section className="rounded-xl border border-blue-200 bg-blue-50/60 p-3 shadow-sm">
+      <h2 className="mb-2 text-sm font-black uppercase tracking-wide text-blue-700">License Counter</h2>
+      <div className="space-y-2">
         {counters.map((item) => (
-          <div key={item.label} className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-800 shadow-sm">
+          <div key={item.label} className="flex items-center justify-between rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-800 shadow-sm">
             <span>{item.label}</span>
-            <span className="text-lg font-black">{item.value}</span>
+            <span className="text-base font-black">{item.value}</span>
           </div>
         ))}
       </div>
@@ -409,8 +411,8 @@ function LicenseCounterCard({ counters }: { counters: { label: string; value: nu
 function DashboardListCard({ title, tone, headers, rows }: { title: string; tone: 'red' | 'green' | 'blue'; headers?: string[]; rows: React.ReactNode[][] }) {
   const toneClass = cardTone(tone);
   return (
-    <section className={`overflow-hidden rounded-[22px] border p-4 shadow-sm ${toneClass.card}`}>
-      <div className="mb-4 flex items-center justify-between gap-2 border-b border-current/10 pb-3">
+    <section className={`overflow-hidden rounded-xl border p-3 shadow-sm ${toneClass.card}`}>
+      <div className="mb-2 flex items-center justify-between gap-2 border-b border-current/10 pb-2">
         <h2 className={`text-sm font-black uppercase tracking-wide ${toneClass.title}`}>{title}</h2>
         {rows.length > 0 && tone === 'red' && <span className="rounded-lg bg-red-600 px-3 py-1 text-xs font-black text-white">{rows.length} Dealers</span>}
       </div>
@@ -420,9 +422,9 @@ function DashboardListCard({ title, tone, headers, rows }: { title: string; tone
           <span className="text-right">{headers[1]}</span>
         </div>
       )}
-      <div className="max-h-[28rem] overflow-y-auto pr-1">
+      <div className="max-h-72 overflow-y-auto pr-1">
         {rows.length ? rows.map((row, index) => (
-          <div key={index} className={`grid grid-cols-[1fr_auto] items-center gap-3 px-1 py-2.5 text-sm ${index % 8 === 7 ? 'bg-slate-200/60' : ''}`}>
+          <div key={index} className={`grid grid-cols-[1fr_auto] items-center gap-2 px-1 py-1.5 text-xs ${index % 8 === 7 ? 'bg-slate-200/60' : ''}`}>
             <div className="min-w-0 font-black text-slate-900">
               {row[0]}
               {row[2] && <div className="mt-0.5 text-xs font-bold text-slate-500">{row[1]}</div>}
@@ -437,8 +439,8 @@ function DashboardListCard({ title, tone, headers, rows }: { title: string; tone
 
 function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRows> }) {
   return (
-    <section className="overflow-hidden rounded-[22px] border border-red-200 bg-red-50/40 p-4 shadow-sm">
-      <div className="mb-4 flex items-center justify-between gap-2 border-b border-red-100 pb-3">
+    <section className="overflow-hidden rounded-xl border border-red-200 bg-red-50/40 p-3 shadow-sm">
+      <div className="mb-2 flex items-center justify-between gap-2 border-b border-red-100 pb-2">
         <h2 className="text-sm font-black uppercase tracking-wide text-red-600">Urea: No Sales Alert</h2>
         <span className="rounded-lg bg-red-600 px-3 py-1 text-xs font-black text-white">{rows.length} Dealers</span>
       </div>
@@ -448,9 +450,9 @@ function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRow
         <span className="text-center">Last Sale Date</span>
         <span className="text-right">Days Idle</span>
       </div>
-      <div className="max-h-[36rem] overflow-y-auto pr-1">
+      <div className="max-h-80 overflow-y-auto pr-1">
         {rows.length ? rows.map((row, index) => (
-          <div key={row.id} className={`grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] items-center gap-2 px-1 py-2.5 text-sm ${index % 8 === 7 ? 'bg-slate-200/60' : ''}`}>
+          <div key={row.id} className={`grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] items-center gap-2 px-1 py-1.5 text-xs ${index % 8 === 7 ? 'bg-slate-200/60' : ''}`}>
             <div className="min-w-0">
               <p className="break-words font-black text-slate-950">{row.name}</p>
               <p className="text-xs font-bold text-slate-500">{row.mobile || '-'}</p>
@@ -473,11 +475,11 @@ function WeeklyTopSellersCard({ data }: { data: ReturnType<typeof buildWeeklyTop
   });
 
   return (
-    <section className="rounded-[22px] border border-emerald-200 bg-emerald-50/60 p-4 shadow-sm">
-      <h2 className="mb-4 border-b border-emerald-100 pb-3 text-sm font-black uppercase tracking-wide text-emerald-700">Week&apos;s Top Sellers By Category</h2>
+    <section className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 shadow-sm">
+      <h2 className="mb-2 border-b border-emerald-100 pb-2 text-sm font-black uppercase tracking-wide text-emerald-700">Week&apos;s Top Sellers By Category</h2>
       <div className="space-y-1">
         {productRows.map((row, index) => (
-          <div key={row.product} className="grid grid-cols-[1fr_1.3fr] items-center gap-3 border-b border-white/80 px-1 py-3 last:border-b-0">
+          <div key={row.product} className="grid grid-cols-[1fr_1.3fr] items-center gap-2 border-b border-white/80 px-1 py-2 text-xs last:border-b-0">
             <div className="flex items-center gap-2 font-black text-emerald-700">
               <span className={`h-2.5 w-2.5 rounded-full ${['bg-blue-500', 'bg-emerald-600', 'bg-cyan-500', 'bg-yellow-400', 'bg-slate-500'][index]}`} />
               {row.product}
@@ -503,7 +505,7 @@ function DayPill({ days, tone }: { days: number; tone: 'red' | 'redSoft' | 'blue
 }
 
 function EmptyCardMessage() {
-  return <div className="rounded-xl bg-white/70 p-4 text-center text-sm font-bold text-slate-500">No records found.</div>;
+  return <div className="rounded-lg bg-white/70 p-3 text-center text-xs font-bold text-slate-500">No records found.</div>;
 }
 
 function cardTone(tone: 'red' | 'green' | 'blue') {
@@ -565,6 +567,10 @@ function formatShortDate(value?: string | null) {
   const date = new Date(value.slice(0, 10));
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' }).replace(/ /g, '-');
+}
+
+function dateOnly(value?: string | null) {
+  return value ? value.slice(0, 10) : '';
 }
 
 function daysBetween(date?: string | null) {
@@ -636,10 +642,14 @@ function buildLicenseCounters(dealers: DealerRow[]) {
   ];
 }
 
-function buildSubmissionRows(dealers: DealerRow[], lastByDealer: Map<string, StockRow>, submittedToday: Set<string>, tab: SubmissionTab) {
+function buildSubmissionRows(dealers: DealerRow[], lastByDealer: Map<string, StockRow>, activeToday: Set<string>, submittedToday: Set<string>, tab: SubmissionTab) {
   return dealers
-    .filter((dealer) => tab === 'updated' ? submittedToday.has(dealer.id) : !submittedToday.has(dealer.id))
-    .map((dealer) => ({ name: dealer.dealer_name, lastDate: lastByDealer.get(dealer.id)?.report_date || '', status: tab === 'updated' ? 'Updated' : 'Pending' }));
+    .filter((dealer) => tab === 'updated' ? activeToday.has(dealer.id) : !activeToday.has(dealer.id))
+    .map((dealer) => ({
+      name: dealer.dealer_name,
+      lastDate: lastByDealer.get(dealer.id)?.report_date || dateOnly(dealer.last_login_at),
+      status: tab === 'updated' ? submittedToday.has(dealer.id) ? 'Updated' : 'Logged In' : 'Pending',
+    }));
 }
 
 function buildNilStockRows(dealers: DealerRow[], rows: StockRow[], lastByDealer: Map<string, StockRow>) {

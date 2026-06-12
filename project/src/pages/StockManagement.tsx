@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BarChart3, ChevronDown, FileSpreadsheet, Package, Plus, Search, Trash2, X } from 'lucide-react';
+import { BarChart3, ChevronDown, FileSpreadsheet, Package, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
@@ -78,6 +78,22 @@ export function StockManagement() {
 
   useEffect(() => {
     void fetchData();
+  }, []);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('fertilizer-tracking-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dealer_stock_allocation' }, () => {
+        void fetchData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_inventory_lines' }, () => {
+        void fetchData();
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchData = async () => {
@@ -286,27 +302,6 @@ export function StockManagement() {
     );
   };
 
-  const exportDealerWiseReceipts = () => {
-    downloadWorkbook(
-      dealerSummary.map((item, index) => ({
-        'S.No': index + 1,
-        Dealer: titleCase(item.dealer),
-        'Receipts (MT)': Number(item.receipts.toFixed(2)),
-        Fertilizers: item.fertilizerCount,
-      })),
-      `dealer-wise-fertilizer-receipts-${financialYear}.xlsx`,
-      'Dealer Wise Receipts',
-      ['Receipts (MT)', 'Fertilizers'],
-      [
-        ['Financial Year', financialYear],
-        ['From Date', fromDate || ''],
-        ['To Date', toDate || ''],
-        ['Total Dealers', dealerSummary.length],
-        ['Total Receipts (MT)', totalReceipts.toFixed(2)],
-      ]
-    );
-  };
-
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -332,10 +327,10 @@ export function StockManagement() {
               <p className="page-subtitle">Fertilizer receipts, dealer load entries, and current balance.</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <IconButton label="Export filtered Excel" tone="excel" onClick={exportFilteredReceipts} disabled={filteredStock.length === 0}>
-                <FileSpreadsheet className="h-4 w-4" />
+              <IconButton label="Refresh fertilizer tracking" tone="secondary" onClick={fetchData}>
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               </IconButton>
-              <IconButton label="Export dealer-wise Excel" tone="sky" onClick={exportDealerWiseReceipts} disabled={dealerSummary.length === 0}>
+              <IconButton label="Export filtered Excel" tone="excel" onClick={exportFilteredReceipts} disabled={filteredStock.length === 0}>
                 <FileSpreadsheet className="h-4 w-4" />
               </IconButton>
               {isAdminUser && (
