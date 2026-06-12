@@ -187,6 +187,9 @@ function CommandCenter() {
   const lastByDealer = useMemo(() => buildLastByDealer(stockRows), [stockRows]);
   const categoryStats = useMemo(() => buildCategoryStats(filteredDealers, stockRows, submittedToday, filters.idleDays), [filteredDealers, stockRows, submittedToday, filters.idleDays]);
   const licenseRows = useMemo(() => buildLicenseRows(filteredDealers), [filteredDealers]);
+  const licenseCounters = useMemo(() => buildLicenseCounters(filteredDealers), [filteredDealers]);
+  const expiredLicenses = useMemo(() => licenseRows.filter((row) => row.status === 'Expired'), [licenseRows]);
+  const expiringLicenses = useMemo(() => licenseRows.filter((row) => row.status === 'Expiring in 60 days'), [licenseRows]);
   const submissionRows = useMemo(() => buildSubmissionRows(filteredDealers, lastByDealer, submittedToday, submissionTab), [filteredDealers, lastByDealer, submissionTab, submittedToday]);
   const nilStockRows = useMemo(() => buildNilStockRows(filteredDealers, lastByDealer), [filteredDealers, lastByDealer]);
   const idleRows = useMemo(() => buildIdleRows(filteredDealers, lastByDealer, filters.idleDays), [filteredDealers, filters.idleDays, lastByDealer]);
@@ -222,15 +225,56 @@ function CommandCenter() {
 
       {loading && <div className="rounded-xl bg-white p-4 text-sm font-bold text-slate-500">Loading command center...</div>}
 
-      <section className="grid gap-2 md:grid-cols-3">
+      <section className="grid gap-3 md:grid-cols-3">
         {categoryStats.map((item) => (
           <CategoryStatusCard key={item.category} item={item} />
         ))}
       </section>
 
       <section className="grid gap-3 xl:grid-cols-2">
-        <DataTable title="License Expiry Alerts" headers={['S.No', 'Dealer Name', 'Category', 'Validity Date', 'Status']} rows={licenseRows.map((row, index) => [index + 1, row.name, row.category, row.date || '-', <StatusPill key={row.name} status={row.status} />])} />
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <LicenseCounterCard counters={licenseCounters} />
+        <DashboardListCard
+          title="Expired Licenses"
+          tone="red"
+          headers={['Dealer', 'Valid Upto']}
+          rows={expiredLicenses.map((row) => [row.name, formatShortDate(row.date)])}
+        />
+        <DashboardListCard
+          title="Expiring Soon (60 Days)"
+          tone="green"
+          headers={['Dealer', 'Valid Upto']}
+          rows={expiringLicenses.map((row) => [row.name, formatShortDate(row.date)])}
+        />
+        <DashboardListCard
+          title={`Not Logged In > ${filters.idleDays * 24} Hrs`}
+          tone="blue"
+          rows={idleRows.map((row) => [row.name, row.mobile || '-', <DayPill key={row.name} days={row.daysIdle} tone="blue" />])}
+        />
+      </section>
+
+      <section className="grid gap-3 xl:grid-cols-2">
+        <DashboardListCard
+          title="Current Nil Stock"
+          tone="red"
+          rows={nilStockRows.map((row) => [row.name, <DayPill key={row.name} days={row.daysIdle} tone="redSoft" />])}
+        />
+        <DashboardListCard
+          title="Urea Stock (Ranking)"
+          tone="green"
+          rows={ureaStockRows.map((row) => [row.name, <BlueNumber key={row.name} value={row.stock} />])}
+        />
+      </section>
+
+      <UreaNoSalesCard rows={ureaNoSalesRows} />
+
+      <section className="grid gap-3 xl:grid-cols-2">
+        <DashboardListCard
+          title="Urea Sales Ranking"
+          tone="green"
+          headers={['Dealer', 'Sales']}
+          rows={ureaSalesRows.map((row) => [row.name, <BlueNumber key={row.name} value={row.sales} />])}
+        />
+        <section className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 p-3">
             <div>
               <h2 className="text-sm font-black text-slate-950">Dealer Submission List</h2>
@@ -246,29 +290,13 @@ function CommandCenter() {
       </section>
 
       <section className="grid gap-3 xl:grid-cols-2">
-        <DataTable title="Current Nil Stock Dealers" headers={['S.No', 'Dealer/Firm', 'Current Stock', 'Last Updated']} rows={nilStockRows.map((row, index) => [index + 1, row.name, row.stock.toFixed(2), row.lastDate || '-'])} />
-        <DataTable title={`Not Logged In / Submitted ${filters.idleDays} Days`} headers={['S.No', 'Dealer/Firm', 'Last Login', 'Days Idle', 'Mobile']} rows={idleRows.map((row, index) => [index + 1, row.name, row.lastDate || '-', row.daysIdle, row.mobile || '-'])} />
-      </section>
-
-      <section className="grid gap-3 xl:grid-cols-2">
-        <DataTable title="Urea No Sales Dealers Alert" headers={['S.No', 'Dealer/Firm', 'Current Urea Stock', 'Last Sale Date', 'Days Idle', 'Alert']} rows={ureaNoSalesRows.map((row, index) => [index + 1, row.name, row.stock.toFixed(2), row.lastSale || '-', row.daysIdle, 'No urea sales'])} />
-        <DataTable title="Urea Stock Ranking" headers={['Rank', 'Dealer/Firm', 'Current Urea Stock', 'Last Updated']} rows={ureaStockRows.map((row, index) => [index + 1, row.name, row.stock.toFixed(2), row.lastDate || '-'])} />
-      </section>
-
-      <section className="grid gap-3 xl:grid-cols-2">
-        <DataTable title="Urea Sales Ranking" headers={['Rank', 'Dealer/Firm', 'Urea Sales', 'Period']} rows={ureaSalesRows.map((row, index) => [index + 1, row.name, row.sales.toFixed(2), filters.financialYear])} />
-        <DataTable title="Highest Stock Received By Week" headers={['Rank', 'Dealer/Firm', 'Product', 'Quantity Received', 'Week']} rows={weeklyReceipts.map((row, index) => [index + 1, row.name, row.product, row.receipts.toFixed(2), row.week])} />
-      </section>
-
-      <section className="grid gap-3 xl:grid-cols-3">
-        {(['fertilizer', 'seed', 'pesticide'] as StockCategory[]).map((category) => (
-          <DataTable
-            key={category}
-            title={`${CATEGORY_LABELS[category]} Top Seller`}
-            headers={['Rank', 'Dealer/Firm', 'Product', 'Sales Quantity', 'Week']}
-            rows={(weeklyTopSellers[category] || []).map((row, index) => [index + 1, row.name, row.product, row.sales.toFixed(2), row.week])}
-          />
-        ))}
+        <DashboardListCard
+          title="Highest Stock Received (7 Days)"
+          tone="blue"
+          headers={['Dealer', 'Quantity']}
+          rows={weeklyReceipts.map((row) => [row.name, <BlueNumber key={`${row.name}-${row.product}`} value={row.receipts} />])}
+        />
+        <WeeklyTopSellersCard data={weeklyTopSellers} />
       </section>
     </div>
   );
@@ -306,15 +334,126 @@ function Metric({ label, value }: { label: string; value: number }) {
   return <div className="rounded-lg bg-[#F4F8F5] p-2"><p className="font-black text-slate-950">{value}</p><p className="font-bold text-slate-500">{label}</p></div>;
 }
 
-function DataTable({ title, headers, rows }: { title: string; headers: string[]; rows: React.ReactNode[][] }) {
+function LicenseCounterCard({ counters }: { counters: { label: string; value: number }[] }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 p-3">
-        <h2 className="text-sm font-black text-slate-950">{title}</h2>
+    <section className="rounded-[22px] border border-blue-200 bg-blue-50/60 p-4 shadow-sm">
+      <h2 className="mb-4 text-sm font-black uppercase tracking-wide text-blue-700">License Counter</h2>
+      <div className="space-y-3">
+        {counters.map((item) => (
+          <div key={item.label} className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-800 shadow-sm">
+            <span>{item.label}</span>
+            <span className="text-lg font-black">{item.value}</span>
+          </div>
+        ))}
       </div>
-      <SimpleTable headers={headers} rows={rows} />
     </section>
   );
+}
+
+function DashboardListCard({ title, tone, headers, rows }: { title: string; tone: 'red' | 'green' | 'blue'; headers?: string[]; rows: React.ReactNode[][] }) {
+  const toneClass = cardTone(tone);
+  return (
+    <section className={`overflow-hidden rounded-[22px] border p-4 shadow-sm ${toneClass.card}`}>
+      <div className="mb-4 flex items-center justify-between gap-2 border-b border-current/10 pb-3">
+        <h2 className={`text-sm font-black uppercase tracking-wide ${toneClass.title}`}>{title}</h2>
+        {rows.length > 0 && tone === 'red' && <span className="rounded-lg bg-red-600 px-3 py-1 text-xs font-black text-white">{rows.length} Dealers</span>}
+      </div>
+      {headers && (
+        <div className="mb-2 grid grid-cols-[1fr_auto] gap-3 px-1 text-xs font-black uppercase text-slate-500">
+          <span>{headers[0]}</span>
+          <span className="text-right">{headers[1]}</span>
+        </div>
+      )}
+      <div className="max-h-[28rem] overflow-y-auto pr-1">
+        {rows.length ? rows.map((row, index) => (
+          <div key={index} className={`grid grid-cols-[1fr_auto] items-center gap-3 px-1 py-2.5 text-sm ${index % 8 === 7 ? 'bg-slate-200/60' : ''}`}>
+            <div className="min-w-0 font-black text-slate-900">
+              {row[0]}
+              {row[2] && <div className="mt-0.5 text-xs font-bold text-slate-500">{row[1]}</div>}
+            </div>
+            <div className="shrink-0 text-right font-black">{row[2] || row[1]}</div>
+          </div>
+        )) : <EmptyCardMessage />}
+      </div>
+    </section>
+  );
+}
+
+function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRows> }) {
+  return (
+    <section className="overflow-hidden rounded-[22px] border border-red-200 bg-red-50/40 p-4 shadow-sm">
+      <div className="mb-4 flex items-center justify-between gap-2 border-b border-red-100 pb-3">
+        <h2 className="text-sm font-black uppercase tracking-wide text-red-600">Urea: No Sales Alert</h2>
+        <span className="rounded-lg bg-red-600 px-3 py-1 text-xs font-black text-white">{rows.length} Dealers</span>
+      </div>
+      <div className="grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] gap-2 px-1 pb-2 text-xs font-black text-slate-950">
+        <span>Dealer Name</span>
+        <span className="text-right">Current Stock</span>
+        <span className="text-center">Last Sale Date</span>
+        <span className="text-right">Days Idle</span>
+      </div>
+      <div className="max-h-[36rem] overflow-y-auto pr-1">
+        {rows.length ? rows.map((row, index) => (
+          <div key={row.id} className={`grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] items-center gap-2 px-1 py-2.5 text-sm ${index % 8 === 7 ? 'bg-slate-200/60' : ''}`}>
+            <div className="min-w-0">
+              <p className="break-words font-black text-slate-950">{row.name}</p>
+              <p className="text-xs font-bold text-slate-500">{row.mobile || '-'}</p>
+            </div>
+            <BlueNumber value={row.stock} />
+            <span className="text-center font-bold text-slate-900">{formatShortDate(row.lastSale)}</span>
+            <div className="text-right"><DayPill days={row.daysIdle} tone="red" /></div>
+          </div>
+        )) : <EmptyCardMessage />}
+      </div>
+    </section>
+  );
+}
+
+function WeeklyTopSellersCard({ data }: { data: ReturnType<typeof buildWeeklyTopSellers> }) {
+  const productRows = (['Urea', 'DAP', 'SSP', 'MOP', 'Complexes'] as const).map((product) => {
+    const all = Object.values(data).flat();
+    const match = all.find((row) => product === 'Complexes' ? !['urea', 'dap', 'ssp', 'mop'].includes(row.product.toLowerCase()) : row.product.toLowerCase().includes(product.toLowerCase()));
+    return { product, name: match?.name || 'No Sales', sales: match?.sales || 0 };
+  });
+
+  return (
+    <section className="rounded-[22px] border border-emerald-200 bg-emerald-50/60 p-4 shadow-sm">
+      <h2 className="mb-4 border-b border-emerald-100 pb-3 text-sm font-black uppercase tracking-wide text-emerald-700">Week&apos;s Top Sellers By Category</h2>
+      <div className="space-y-1">
+        {productRows.map((row, index) => (
+          <div key={row.product} className="grid grid-cols-[1fr_1.3fr] items-center gap-3 border-b border-white/80 px-1 py-3 last:border-b-0">
+            <div className="flex items-center gap-2 font-black text-emerald-700">
+              <span className={`h-2.5 w-2.5 rounded-full ${['bg-blue-500', 'bg-emerald-600', 'bg-cyan-500', 'bg-yellow-400', 'bg-slate-500'][index]}`} />
+              {row.product}
+            </div>
+            <div className="text-right">
+              <p className="font-black text-emerald-700">{row.name}</p>
+              <p className="text-sm font-bold text-slate-500">{formatWhole(row.sales)} Bags</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function BlueNumber({ value }: { value: number }) {
+  return <span className="text-right text-base font-black text-blue-600">{formatWhole(value)}</span>;
+}
+
+function DayPill({ days, tone }: { days: number; tone: 'red' | 'redSoft' | 'blue' }) {
+  const cls = tone === 'blue' ? 'bg-blue-100 text-blue-700' : tone === 'redSoft' ? 'bg-red-100 text-red-600' : 'bg-red-600 text-white';
+  return <span className={`inline-flex rounded-lg px-3 py-1 text-xs font-black ${cls}`}>{days} Days</span>;
+}
+
+function EmptyCardMessage() {
+  return <div className="rounded-xl bg-white/70 p-4 text-center text-sm font-bold text-slate-500">No records found.</div>;
+}
+
+function cardTone(tone: 'red' | 'green' | 'blue') {
+  if (tone === 'red') return { card: 'border-red-200 bg-red-50/40', title: 'text-red-600' };
+  if (tone === 'blue') return { card: 'border-blue-200 bg-blue-50/60', title: 'text-blue-700' };
+  return { card: 'border-emerald-200 bg-emerald-50/60', title: 'text-emerald-700' };
 }
 
 function SimpleTable({ headers, rows }: { headers: string[]; rows: React.ReactNode[][] }) {
@@ -335,11 +474,6 @@ function SimpleTable({ headers, rows }: { headers: string[]; rows: React.ReactNo
       </table>
     </div>
   );
-}
-
-function StatusPill({ status }: { status: string }) {
-  const cls = status === 'Expired' ? 'bg-red-100 text-red-800' : status === 'Expiring in 60 days' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800';
-  return <span className={`rounded-full px-2 py-1 text-[11px] font-black ${cls}`}>{status}</span>;
 }
 
 function Select({ label, value, onChange, options, display }: { label: string; value: string; onChange: (value: string) => void; options: string[]; display?: (value: string) => string }) {
@@ -364,6 +498,17 @@ function Input({ label, type, value, onChange }: { label: string; type: string; 
 
 function unique(values: string[]) {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+}
+
+function formatWhole(value: number) {
+  return Math.round(Number(value || 0)).toLocaleString('en-IN');
+}
+
+function formatShortDate(value?: string | null) {
+  if (!value) return '-';
+  const date = new Date(value.slice(0, 10));
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' }).replace(/ /g, '-');
 }
 
 function daysBetween(date?: string | null) {
@@ -423,6 +568,14 @@ function buildLicenseRows(dealers: DealerRow[]) {
   }).sort((a, b) => a.status.localeCompare(b.status));
 }
 
+function buildLicenseCounters(dealers: DealerRow[]) {
+  return [
+    { label: 'Fertilizer', value: dealers.filter((dealer) => (dealer.dealer_category || 'fertilizer') === 'fertilizer').length },
+    { label: 'Seeds', value: dealers.filter((dealer) => dealer.dealer_category === 'seed').length },
+    { label: 'Pesticides', value: dealers.filter((dealer) => dealer.dealer_category === 'pesticide').length },
+  ];
+}
+
 function buildSubmissionRows(dealers: DealerRow[], lastByDealer: Map<string, StockRow>, submittedToday: Set<string>, tab: SubmissionTab) {
   return dealers
     .filter((dealer) => tab === 'updated' ? submittedToday.has(dealer.id) : !submittedToday.has(dealer.id))
@@ -431,7 +584,10 @@ function buildSubmissionRows(dealers: DealerRow[], lastByDealer: Map<string, Sto
 
 function buildNilStockRows(dealers: DealerRow[], lastByDealer: Map<string, StockRow>) {
   return dealers
-    .map((dealer) => ({ name: dealer.dealer_name, stock: Number(lastByDealer.get(dealer.id)?.closing_balance || 0), lastDate: lastByDealer.get(dealer.id)?.report_date || '' }))
+    .map((dealer) => {
+      const lastDate = lastByDealer.get(dealer.id)?.report_date || '';
+      return { name: dealer.dealer_name, stock: Number(lastByDealer.get(dealer.id)?.closing_balance || 0), lastDate, daysIdle: daysBetween(lastDate) };
+    })
     .filter((row) => row.stock === 0);
 }
 
@@ -449,7 +605,7 @@ function buildUreaNoSalesRows(dealers: DealerRow[], rows: StockRow[], idleDays: 
     .map((row) => {
       const dealerRows = rows.filter((item) => item.dealer_id === row.id && item.product_type?.toLowerCase() === 'urea' && Number(item.sales || 0) > 0);
       const lastSale = dealerRows[0]?.report_date || '';
-      return { ...row, lastSale, daysIdle: daysBetween(lastSale) };
+      return { ...row, mobile: dealers.find((dealer) => dealer.id === row.id)?.phone_number || '', lastSale, daysIdle: daysBetween(lastSale) };
     })
     .filter((row) => row.stock > 0 && row.daysIdle >= idleDays);
 }
