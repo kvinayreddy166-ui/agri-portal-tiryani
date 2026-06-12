@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BarChart3, ChevronDown, FolderOpen, RefreshCw, RotateCcw, Search, Trash2 } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { BarChart3, ChevronDown, FileSpreadsheet, FolderOpen, RefreshCw, RotateCcw, Search, Trash2 } from 'lucide-react';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -11,6 +11,7 @@ import {
   StockCategory,
   currentReportDate,
   formatFertilizerQuantity,
+  fertilizerMtsToBags,
   formatReportDateLabel,
 } from '../lib/stockInventory';
 
@@ -111,6 +112,19 @@ export function StockInventory() {
     void fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    const channel = supabase
+      .channel(`stock-inventory-live-${category}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_inventory_lines' }, () => {
+        void fetchData();
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [category, fetchData]);
+
   const dealerOptions = useMemo(() => {
     const map = new Map<string, string>();
     for (const row of rows) {
@@ -164,25 +178,40 @@ export function StockInventory() {
     setReportMonth(currentReportDate().slice(0, 7));
   };
 
-  const fertilizerSummary = useMemo(() => {
-    const fertilizers = fertilizerFilter === 'all' ? FERTILIZER_TYPES : [fertilizerFilter];
-    return fertilizers.map((fertilizer) => {
-      const lines = dealerFilteredRows.filter((row) => row.category === 'fertilizer' && row.product_type === fertilizer);
+  const chartQuantity = useCallback((line: InventoryRow, value: number) => {
+    if (line.category === 'fertilizer' && fertilizerQtyUnit === 'bags') {
+      return Math.round(fertilizerMtsToBags(value, line.product_type));
+    }
+    return Number(value || 0);
+  }, [fertilizerQtyUnit]);
+
+  const stockSummary = useMemo(() => {
+    const products =
+      category === 'fertilizer'
+        ? fertilizerFilter === 'all'
+          ? FERTILIZER_TYPES
+          : [fertilizerFilter]
+        : Array.from(new Set(dealerFilteredRows.filter((row) => row.category === category).map((row) => row.product_type))).sort();
+
+    return products.map((product) => {
+      const lines = dealerFilteredRows.filter((row) => row.category === category && row.product_type === product);
       return {
-        fertilizer,
-        sales: lines.reduce((sum, row) => sum + Number(row.sales || 0), 0),
-        closing: lines.reduce((sum, row) => sum + Number(row.closing_balance || 0), 0),
+        product,
+        receipts: lines.reduce((sum, row) => sum + chartQuantity(row, row.receipts), 0),
+        sales: lines.reduce((sum, row) => sum + chartQuantity(row, row.sales), 0),
+        closing: lines.reduce((sum, row) => sum + chartQuantity(row, row.closing_balance), 0),
       };
     });
-  }, [dealerFilteredRows, fertilizerFilter]);
+  }, [category, chartQuantity, dealerFilteredRows, fertilizerFilter]);
 
   const chartRows = useMemo(
-    () => fertilizerSummary.map((item) => ({
-      fertilizer: item.fertilizer,
+    () => stockSummary.map((item) => ({
+      product: item.product,
+      Receipts: Number(item.receipts.toFixed(2)),
       Sales: Number(item.sales.toFixed(2)),
       Closing: Number(item.closing.toFixed(2)),
     })),
-    [fertilizerSummary]
+    [stockSummary]
   );
 
   const formatQuantity = (line: InventoryRow, value: number) => {
@@ -207,38 +236,125 @@ export function StockInventory() {
     await fetchData();
   };
 
+  const exportToExcel = async () => {
+    if (!filteredRows.length) {
+      alert('No records to export.');
+      return;
+    }
+
+    const XLSX = await import('xlsx');
+    const quantityUnit = category === 'fertilizer' ? (fertilizerQtyUnit === 'bags' ? 'Bags' : 'MT') : '';
+    const metadataRows = [
+      ['Tiryani Agriculture Portal'],
+      ['Dealer Daily Stock Inventory'],
+      ['Category', titleCase(category)],
+      ['Financial Year', financialYear],
+      ['Report Mode', viewMode === 'day' ? 'Day' : 'Month'],
+      ['Report Period', viewMode === 'day' ? reportDate : reportMonth],
+      ['Dealer Filter', dealerFilter === 'all' ? 'All dealers' : dealerOptions.find(([id]) => id === dealerFilter)?.[1] || dealerFilter],
+      ['Product Filter', category === 'fertilizer' ? fertilizerFilter : 'All'],
+      ['Unit', quantityUnit || 'As submitted'],
+      ['Generated On', new Date().toLocaleString('en-IN')],
+      [],
+    ];
+
+    const tableRows = filteredRows.map((line, index) => ({
+      'S.No': index + 1,
+      'Financial Year': financialYear,
+      Date: line.report_date,
+      Month: line.report_month,
+      Category: titleCase(line.category),
+      Dealer: titleCase(line.dealers?.dealer_name || 'Unknown'),
+      Type: line.product_type,
+      Unit: unitLabelForLine(line) || '',
+      Opening: formatQuantity(line, line.opening_balance),
+      Receipts: formatQuantity(line, line.receipts),
+      Total: formatQuantity(line, line.total),
+      Sales: formatQuantity(line, line.sales),
+      Closing: formatQuantity(line, line.closing_balance),
+    }));
+
+    const summaryRows = chartRows.map((item, index) => ({
+      'S.No': index + 1,
+      Product: item.product,
+      Receipts: item.Receipts,
+      Sales: item.Sales,
+      Closing: item.Closing,
+    }));
+
+    const workbook = XLSX.utils.book_new();
+    const stockSheet = XLSX.utils.aoa_to_sheet(metadataRows);
+    XLSX.utils.sheet_add_json(stockSheet, tableRows, { origin: `A${metadataRows.length + 1}`, skipHeader: false });
+    stockSheet['!cols'] = [
+      { wch: 8 },
+      { wch: 14 },
+      { wch: 12 },
+      { wch: 10 },
+      { wch: 12 },
+      { wch: 28 },
+      { wch: 18 },
+      { wch: 10 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+    ];
+    XLSX.utils.book_append_sheet(workbook, stockSheet, 'Daily Stock');
+
+    const summarySheet = XLSX.utils.json_to_sheet(summaryRows);
+    summarySheet['!cols'] = [{ wch: 8 }, { wch: 22 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+
+    const safePeriod = (viewMode === 'day' ? reportDate : reportMonth).replace(/[^0-9-]/g, '');
+    XLSX.writeFile(workbook, `dealer_daily_stock_${category}_${safePeriod}.xlsx`);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-3xl font-black text-slate-950 dark:text-white">
-            <FolderOpen className="h-8 w-8 text-emerald-600" />
+          <h1 className="flex items-center gap-2 text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
+            <FolderOpen className="h-6 w-6 text-emerald-600" />
             {t('Dealer Daily Stock', 'Dealer Daily Stock')}
           </h1>
-          <p className="mt-1 text-slate-600 dark:text-slate-400">
+          <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
             {t('View dealer daily stock submissions as a table list.', 'View dealer daily stock submissions as a table list.')}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={fetchData}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 font-bold dark:border-slate-600"
-        >
-          <RefreshCw className="h-4 w-4" />
-          {t('Refresh', 'Refresh')}
-        </button>
-        <label className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
-          Financial Year
-          <select
-            value={financialYear}
-            onChange={(e) => setFinancialYear(e.target.value)}
-            className="bg-transparent font-black text-slate-950 outline-none dark:text-white"
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={exportToExcel}
+            disabled={!filteredRows.length}
+            title={t('Export to Excel', 'Export to Excel')}
+            aria-label={t('Export to Excel', 'Export to Excel')}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-700 text-white shadow-sm hover:bg-emerald-800 disabled:opacity-50"
           >
-            {FINANCIAL_YEAR_OPTIONS.map((year) => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-        </label>
+            <FileSpreadsheet className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={fetchData}
+            title={t('Refresh', 'Refresh')}
+            aria-label={t('Refresh', 'Refresh')}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 text-slate-700 dark:border-slate-600 dark:text-slate-200"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <label className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
+            FY
+            <select
+              value={financialYear}
+              onChange={(e) => setFinancialYear(e.target.value)}
+              className="bg-transparent font-black text-slate-950 outline-none dark:text-white"
+            >
+              {FINANCIAL_YEAR_OPTIONS.map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </label>
+        </div>
       </div>
 
       <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
@@ -250,9 +366,11 @@ export function StockInventory() {
           <button
             type="button"
             onClick={() => setFiltersOpen((value) => !value)}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
+            title="Filters"
+            aria-label="Filters"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
           >
-            Filters <ChevronDown className={`h-3.5 w-3.5 transition ${filtersOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`h-3.5 w-3.5 transition ${filtersOpen ? 'rotate-180' : ''}`} />
           </button>
         </div>
       <div className={`${filtersOpen ? 'flex' : 'hidden'} mt-3 flex-wrap items-center gap-3`}>
@@ -273,18 +391,20 @@ export function StockInventory() {
           <button
             type="button"
             onClick={() => setAppliedSearchTerm(searchInput)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800"
+            title="Search"
+            aria-label="Search"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-700 text-white hover:bg-emerald-800"
           >
             <Search className="h-4 w-4" />
-            Search
           </button>
           <button
             type="button"
             onClick={resetFilters}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+            title="Reset"
+            aria-label="Reset filters"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <RotateCcw className="h-4 w-4" />
-            Reset
           </button>
         </div>
         <button
@@ -376,26 +496,34 @@ export function StockInventory() {
       </div>
       </section>
 
-      {category === 'fertilizer' && (
-        <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
+      <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
             <BarChart3 className="h-5 w-5 text-emerald-600" />
-            Fertilizer Sales and Closing Chart
+            Stock Movement Chart
           </h2>
-          <div className="h-44">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartRows} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="fertilizer" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(value) => `${Number(value ?? 0).toFixed(2)} MT`} />
-                <Bar dataKey="Sales" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Closing" fill="#059669" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
-      )}
+          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700">
+            {filteredRows.length} records
+          </span>
+        </div>
+        <div className="h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartRows} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis dataKey="product" tick={{ fontSize: 10 }} interval={0} angle={-15} textAnchor="end" height={46} />
+              <YAxis tick={{ fontSize: 10 }} />
+              <Tooltip
+                formatter={(value) => `${Number(value ?? 0).toFixed(category === 'fertilizer' && fertilizerQtyUnit === 'bags' ? 0 : 2)} ${category === 'fertilizer' ? unitLabelForLine({ category: 'fertilizer', product_type: 'Urea' } as InventoryRow) : ''}`}
+                contentStyle={{ borderRadius: 12, border: '1px solid #dbe7df', fontSize: 12, fontWeight: 700 }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
+              <Bar dataKey="Receipts" fill="#2563eb" radius={[5, 5, 0, 0]} />
+              <Bar dataKey="Sales" fill="#f59e0b" radius={[5, 5, 0, 0]} />
+              <Bar dataKey="Closing" fill="#0b7a5c" radius={[5, 5, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
 
       {loading ? (
         <div className="flex h-48 items-center justify-center">
@@ -413,38 +541,38 @@ export function StockInventory() {
       ) : (
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="table-scroll">
-            <table className="w-full min-w-[860px] text-sm">
-              <thead className="bg-slate-900 text-xs uppercase text-white">
+            <table className="w-full min-w-[820px] text-xs">
+              <thead className="sticky top-0 z-10 bg-slate-900 text-[11px] uppercase text-white">
                 <tr>
-                  <th className="px-3 py-2 text-left">S.No</th>
-                  <th className="px-3 py-2 text-left">Dealer</th>
-                  <th className="px-3 py-2 text-left">Type</th>
-                  <th className="px-3 py-2 text-right">Opening</th>
-                  <th className="px-3 py-2 text-right">Receipts</th>
-                  <th className="px-3 py-2 text-right">Total</th>
-                  <th className="px-3 py-2 text-right">Sales</th>
-                  <th className="px-3 py-2 text-right">Closing</th>
-                  {isAdminUser && <th className="px-3 py-2 text-center">Delete</th>}
+                  <th className="px-2 py-1.5 text-left">S.No</th>
+                  <th className="px-2 py-1.5 text-left">Dealer</th>
+                  <th className="px-2 py-1.5 text-left">Type</th>
+                  <th className="px-2 py-1.5 text-right">Opening</th>
+                  <th className="px-2 py-1.5 text-right">Receipts</th>
+                  <th className="px-2 py-1.5 text-right">Total</th>
+                  <th className="px-2 py-1.5 text-right">Sales</th>
+                  <th className="px-2 py-1.5 text-right">Closing</th>
+                  {isAdminUser && <th className="px-2 py-1.5 text-center">Delete</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {paginatedRows.map((line, index) => (
                   <tr key={line.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
-                    <td className="px-3 py-2 font-bold">{currentPage * STOCK_ROWS_PAGE_SIZE + index + 1}</td>
-                    <td className="px-3 py-2 font-black text-slate-950 dark:text-white">{titleCase(line.dealers?.dealer_name || 'Unknown')}</td>
-                    <td className="px-3 py-2 font-semibold">
+                    <td className="px-2 py-1.5 font-bold">{currentPage * STOCK_ROWS_PAGE_SIZE + index + 1}</td>
+                    <td className="max-w-[220px] truncate px-2 py-1.5 font-black text-slate-950 dark:text-white">{titleCase(line.dealers?.dealer_name || 'Unknown')}</td>
+                    <td className="px-2 py-1.5 font-semibold">
                       {line.product_type}
                       {unitLabelForLine(line) ? ` (${unitLabelForLine(line)})` : ''}
                     </td>
-                    <td className="px-3 py-2 text-right">{formatQuantity(line, line.opening_balance)}</td>
-                    <td className="px-3 py-2 text-right">{formatQuantity(line, line.receipts)}</td>
-                    <td className="px-3 py-2 text-right font-bold">{formatQuantity(line, line.total)}</td>
-                    <td className="px-3 py-2 text-right">{formatQuantity(line, line.sales)}</td>
-                    <td className="px-3 py-2 text-right font-black text-emerald-700 dark:text-emerald-400">
+                    <td className="px-2 py-1.5 text-right">{formatQuantity(line, line.opening_balance)}</td>
+                    <td className="px-2 py-1.5 text-right">{formatQuantity(line, line.receipts)}</td>
+                    <td className="px-2 py-1.5 text-right font-bold">{formatQuantity(line, line.total)}</td>
+                    <td className="px-2 py-1.5 text-right">{formatQuantity(line, line.sales)}</td>
+                    <td className="px-2 py-1.5 text-right font-black text-emerald-700 dark:text-emerald-400">
                       {formatQuantity(line, line.closing_balance)}
                     </td>
                     {isAdminUser && (
-                      <td className="px-3 py-2 text-center">
+                      <td className="px-2 py-1.5 text-center">
                         <button
                           type="button"
                           onClick={() => handleDeleteLine(line)}

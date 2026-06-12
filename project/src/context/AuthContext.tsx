@@ -50,6 +50,14 @@ function applySession(
   setDealerName(dealer ? (newUser?.user_metadata?.dealer_name as string) || null : null);
 }
 
+async function recordDealerLogin(dealerId: string | null) {
+  if (!dealerId) return;
+  const { error } = await supabase.rpc('record_dealer_login', { p_dealer_id: dealerId });
+  if (error && !error.message?.toLowerCase().includes('function')) {
+    console.warn('Dealer login timestamp was not recorded:', error.message);
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -182,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password: dealerPassword,
         });
         if (error) return { error };
+        const signedDealerId = dealerId || getDealerIdFromUser(data.session?.user);
         applySession(
           data.session ?? null,
           setSession,
@@ -192,6 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setDealerId,
           setDealerName
         );
+        void recordDealerLogin(signedDealerId);
         return { error: null };
       };
 

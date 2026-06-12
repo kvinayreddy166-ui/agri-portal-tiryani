@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ClipboardList, Filter, PackageCheck } from 'lucide-react';
+import { ChevronDown, ClipboardList, Filter, PackageCheck, RefreshCw } from 'lucide-react';
 import { StockManagement } from './StockManagement';
 import { StockInventory } from './StockInventory';
 import { useAuth } from '../context/AuthContext';
@@ -23,6 +23,7 @@ type DealerRow = {
   expiry_date?: string | null;
   location?: string | null;
   phone_number?: string | null;
+  last_login_at?: string | null;
 };
 
 type StockRow = StockInventoryLine & {
@@ -178,7 +179,7 @@ function CommandCenter() {
     const [dealersRes, stockRes] = await Promise.all([
       supabase
         .from('dealers')
-        .select('id, dealer_name, dealer_category, expiry_date, location, phone_number')
+        .select('id, dealer_name, dealer_category, expiry_date, location, phone_number, last_login_at')
         .order('dealer_name'),
       supabase
         .from('stock_inventory_lines')
@@ -206,6 +207,22 @@ function CommandCenter() {
 
   useEffect(() => {
     void loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('command-center-stock-inventory')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_inventory_lines' }, () => {
+        void loadData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dealers' }, () => {
+        void loadData();
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, [loadData]);
 
   const dealerMap = useMemo(() => new Map(dealers.map((dealer) => [dealer.id, dealer])), [dealers]);
@@ -243,7 +260,7 @@ function CommandCenter() {
   const expiredLicenses = useMemo(() => licenseRows.filter((row) => row.status === 'Expired'), [licenseRows]);
   const expiringLicenses = useMemo(() => licenseRows.filter((row) => row.status === 'Expiring in 60 days'), [licenseRows]);
   const submissionRows = useMemo(() => buildSubmissionRows(filteredDealers, lastByDealer, submittedToday, submissionTab), [filteredDealers, lastByDealer, submissionTab, submittedToday]);
-  const nilStockRows = useMemo(() => buildNilStockRows(filteredDealers, lastByDealer), [filteredDealers, lastByDealer]);
+  const nilStockRows = useMemo(() => buildNilStockRows(filteredDealers, stockRows, lastByDealer), [filteredDealers, lastByDealer, stockRows]);
   const idleRows = useMemo(() => buildIdleRows(filteredDealers, lastByDealer, filters.idleDays), [filteredDealers, filters.idleDays, lastByDealer]);
   const ureaNoSalesRows = useMemo(() => buildUreaNoSalesRows(filteredDealers, stockRows, filters.idleDays), [filteredDealers, filters.idleDays, stockRows]);
   const ureaStockRows = useMemo(() => buildUreaStockRanking(filteredDealers, stockRows), [filteredDealers, stockRows]);
@@ -259,9 +276,14 @@ function CommandCenter() {
             <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Filters</p>
             <h1 className="text-base font-black text-slate-950">Monitoring Filters</h1>
           </div>
-          <button type="button" onClick={() => setFiltersOpen((value) => !value)} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black">
-            <Filter className="h-3.5 w-3.5" /> Filters <ChevronDown className={`h-3.5 w-3.5 transition ${filtersOpen ? 'rotate-180' : ''}`} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={loadData} title="Refresh" aria-label="Refresh command center" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700">
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button type="button" onClick={() => setFiltersOpen((value) => !value)} title="Filters" aria-label="Filters" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700">
+              {filtersOpen ? <ChevronDown className="h-3.5 w-3.5 rotate-180 transition" /> : <Filter className="h-3.5 w-3.5" />}
+            </button>
+          </div>
         </div>
         <div className={`${filtersOpen ? 'grid' : 'hidden'} mt-3 gap-2 md:grid-cols-4 xl:grid-cols-8`}>
           <Select label="Category" value={filters.category} onChange={(value) => setFilters((current) => ({ ...current, category: value as CategoryFilter }))} options={['all', 'fertilizer', 'seed', 'pesticide']} />
@@ -569,6 +591,27 @@ function buildLastByDealer(rows: StockRow[]) {
   return map;
 }
 
+function buildCurrentStockByDealer(rows: StockRow[]) {
+  const latestByDealerProduct = new Map<string, StockRow>();
+  rows.forEach((row) => {
+    if (!row.dealer_id) return;
+    const key = `${row.dealer_id}:${row.category}:${(row.product_type || '').toLowerCase()}`;
+    const current = latestByDealerProduct.get(key);
+    if (!current || (row.report_date || '') > (current.report_date || '')) latestByDealerProduct.set(key, row);
+  });
+
+  const totals = new Map<string, { stock: number; lastDate: string }>();
+  latestByDealerProduct.forEach((row) => {
+    const dealerId = row.dealer_id || '';
+    const current = totals.get(dealerId) || { stock: 0, lastDate: '' };
+    current.stock += Number(row.closing_balance || 0);
+    if ((row.report_date || '') > current.lastDate) current.lastDate = row.report_date || '';
+    totals.set(dealerId, current);
+  });
+
+  return totals;
+}
+
 function buildLicenseRows(dealers: DealerRow[]) {
   return dealers.map((dealer) => {
     const idle = daysBetween(dealer.expiry_date);
@@ -598,11 +641,13 @@ function buildSubmissionRows(dealers: DealerRow[], lastByDealer: Map<string, Sto
     .map((dealer) => ({ name: dealer.dealer_name, lastDate: lastByDealer.get(dealer.id)?.report_date || '', status: tab === 'updated' ? 'Updated' : 'Pending' }));
 }
 
-function buildNilStockRows(dealers: DealerRow[], lastByDealer: Map<string, StockRow>) {
+function buildNilStockRows(dealers: DealerRow[], rows: StockRow[], lastByDealer: Map<string, StockRow>) {
+  const currentStockByDealer = buildCurrentStockByDealer(rows);
   return dealers
     .map((dealer) => {
-      const lastDate = lastByDealer.get(dealer.id)?.report_date || '';
-      return { name: dealer.dealer_name, stock: Number(lastByDealer.get(dealer.id)?.closing_balance || 0), lastDate, daysIdle: daysBetween(lastDate) };
+      const current = currentStockByDealer.get(dealer.id);
+      const lastDate = current?.lastDate || lastByDealer.get(dealer.id)?.report_date || '';
+      return { name: dealer.dealer_name, stock: Number(current?.stock || 0), lastDate, daysIdle: daysBetween(lastDate) };
     })
     .filter((row) => row.stock === 0);
 }
@@ -610,7 +655,7 @@ function buildNilStockRows(dealers: DealerRow[], lastByDealer: Map<string, Stock
 function buildIdleRows(dealers: DealerRow[], lastByDealer: Map<string, StockRow>, idleDays: number) {
   return dealers
     .map((dealer) => {
-      const lastDate = lastByDealer.get(dealer.id)?.report_date || '';
+      const lastDate = dealer.last_login_at || lastByDealer.get(dealer.id)?.report_date || '';
       return { name: dealer.dealer_name, lastDate, daysIdle: daysBetween(lastDate), mobile: dealer.phone_number || '' };
     })
     .filter((row) => row.daysIdle >= idleDays);
@@ -648,21 +693,30 @@ function buildUreaSalesRanking(dealers: DealerRow[], rows: StockRow[]) {
 }
 
 function buildWeeklyReceiptRanking(rows: StockRow[], dealerMap: Map<string, DealerRow>) {
+  const cutoff = shiftDate(today(), -6);
   return rows
-    .filter((row) => Number(row.receipts || 0) > 0)
+    .filter((row) => (row.report_date || '') >= cutoff && Number(row.receipts || 0) > 0)
     .map((row) => ({ name: dealerMap.get(row.dealer_id || '')?.dealer_name || 'Unknown dealer', product: row.product_type || '-', receipts: Number(row.receipts || 0), week: weekLabel(row.report_date) }))
     .sort((a, b) => b.receipts - a.receipts)
     .slice(0, 12);
 }
 
 function buildWeeklyTopSellers(rows: StockRow[], dealerMap: Map<string, DealerRow>) {
+  const cutoff = shiftDate(today(), -6);
   const result: Record<StockCategory, { name: string; product: string; sales: number; week: string }[]> = { fertilizer: [], seed: [], pesticide: [] };
   (['fertilizer', 'seed', 'pesticide'] as StockCategory[]).forEach((category) => {
     result[category] = rows
-      .filter((row) => row.category === category && Number(row.sales || 0) > 0)
+      .filter((row) => row.category === category && (row.report_date || '') >= cutoff && Number(row.sales || 0) > 0)
       .map((row) => ({ name: dealerMap.get(row.dealer_id || '')?.dealer_name || 'Unknown dealer', product: row.product_type || '-', sales: Number(row.sales || 0), week: weekLabel(row.report_date) }))
       .sort((a, b) => b.sales - a.sales)
       .slice(0, 8);
   });
   return result;
+}
+
+function shiftDate(dateValue: string, days: number) {
+  const [year, month, day] = dateValue.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + days);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
