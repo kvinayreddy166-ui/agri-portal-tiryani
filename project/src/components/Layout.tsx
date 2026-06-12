@@ -1,6 +1,6 @@
 import React, { useMemo, useState, ReactNode } from 'react';
 import {
-  ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
+  ChevronRight, Menu, X, LayoutDashboard, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, ClipboardList,
 } from 'lucide-react';
@@ -20,7 +20,6 @@ interface LayoutProps {
 
 const adminMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'stock-analytics', label: 'Stock Analytics', icon: PackageCheck },
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
   {
     id: 'crops',
@@ -48,9 +47,7 @@ const adminMenuItems = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
-const dealerMenuItems = [
-  { id: 'stock-analytics', label: 'Stock Analytics', icon: PackageCheck },
-];
+const dealerMenuItems = [] as typeof adminMenuItems;
 
 const menuItems = adminMenuItems;
 

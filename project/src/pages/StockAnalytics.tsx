@@ -65,6 +65,8 @@ function today() {
 export default function StockAnalytics() {
   const { isDealerUser } = useAuth();
   const [stockTab, setStockTab] = useState<StockTab>('fertilizer');
+  const [commandOpen, setCommandOpen] = useState(true);
+  const [stockToolsOpen, setStockToolsOpen] = useState(false);
 
   if (isDealerUser) {
     return <StockManagement />;
@@ -72,30 +74,60 @@ export default function StockAnalytics() {
 
   return (
     <div className="max-w-full space-y-4 overflow-hidden" style={{ background: THEME.bg }}>
-      <CommandCenter />
+      <section className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
+        <button
+          type="button"
+          onClick={() => setCommandOpen((value) => !value)}
+          className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+        >
+          <div>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Command Center</p>
+            <h2 className="text-lg font-black text-slate-950">Dealer Stock Monitoring</h2>
+          </div>
+          <ChevronDown className={`h-5 w-5 text-emerald-800 transition ${commandOpen ? 'rotate-180' : ''}`} />
+        </button>
 
-      <section className="space-y-3">
-        <div>
-          <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Stock Analytics</p>
-          <h2 className="text-lg font-black text-slate-950">Stock Tools</h2>
-        </div>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <StockSwitch
-            title="Fertilizer Tracking"
-            description="Track fertilizer stock and movements"
-            active={stockTab === 'fertilizer'}
-            icon={<PackageCheck className="h-5 w-5" />}
-            onClick={() => setStockTab('fertilizer')}
-          />
-          <StockSwitch
-            title="Stock Inventory"
-            description="View and manage stock inventory"
-            active={stockTab === 'inventory'}
-            icon={<ClipboardList className="h-5 w-5" />}
-            onClick={() => setStockTab('inventory')}
-          />
-        </div>
-        {stockTab === 'fertilizer' ? <StockManagement /> : <StockInventory />}
+        {commandOpen && (
+          <div className="space-y-3 border-t border-emerald-50 p-2 sm:p-3">
+            <CommandCenter />
+
+            <section className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70">
+              <button
+                type="button"
+                onClick={() => setStockToolsOpen((value) => !value)}
+                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+              >
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Stock Analytics</p>
+                  <h3 className="text-base font-black text-slate-950">Fertilizer Tracking & Stock Inventory</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-slate-700 transition ${stockToolsOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {stockToolsOpen && (
+                <div className="space-y-3 border-t border-slate-200 p-2 sm:p-3">
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    <StockSwitch
+                      title="Fertilizer Tracking"
+                      description="Track fertilizer stock and movements"
+                      active={stockTab === 'fertilizer'}
+                      icon={<PackageCheck className="h-5 w-5" />}
+                      onClick={() => setStockTab('fertilizer')}
+                    />
+                    <StockSwitch
+                      title="Stock Inventory"
+                      description="View and manage stock inventory"
+                      active={stockTab === 'inventory'}
+                      icon={<ClipboardList className="h-5 w-5" />}
+                      onClick={() => setStockTab('inventory')}
+                    />
+                  </div>
+                  {stockTab === 'fertilizer' ? <StockManagement /> : <StockInventory />}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
       </section>
     </div>
   );
@@ -203,14 +235,14 @@ function CommandCenter() {
       <section className="rounded-xl border border-emerald-100 bg-white p-3 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Command Center</p>
-            <h1 className="text-xl font-black text-slate-950">Dealer Stock Monitoring</h1>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Filters</p>
+            <h1 className="text-base font-black text-slate-950">Monitoring Filters</h1>
           </div>
           <button type="button" onClick={() => setFiltersOpen((value) => !value)} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black">
             <Filter className="h-3.5 w-3.5" /> Filters <ChevronDown className={`h-3.5 w-3.5 transition ${filtersOpen ? 'rotate-180' : ''}`} />
           </button>
         </div>
-        <div className={`${filtersOpen ? 'grid' : 'hidden md:grid'} mt-3 gap-2 md:grid-cols-4 xl:grid-cols-8`}>
+        <div className={`${filtersOpen ? 'grid' : 'hidden'} mt-3 gap-2 md:grid-cols-4 xl:grid-cols-8`}>
           <Select label="Category" value={filters.category} onChange={(value) => setFilters((current) => ({ ...current, category: value as CategoryFilter }))} options={['all', 'fertilizer', 'seed', 'pesticide']} />
           <Select label="Financial Year" value={filters.financialYear} onChange={(value) => setFilters((current) => ({ ...current, financialYear: value }))} options={[...FINANCIAL_YEARS]} />
           <Input label="From Date" type="date" value={filters.fromDate} onChange={(value) => setFilters((current) => ({ ...current, fromDate: value }))} />
@@ -300,7 +332,7 @@ function CommandCenter() {
 
 function StockSwitch({ title, description, active, icon, onClick }: { title: string; description: string; active: boolean; icon: React.ReactNode; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className={`flex items-center gap-3 rounded-lg border p-3 text-left shadow-sm transition ${active ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50'}`}>
+    <button type="button" onClick={onClick} className={`flex min-w-[16rem] flex-1 items-center gap-3 rounded-lg border p-3 text-left shadow-sm transition ${active ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50'}`}>
       <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>{icon}</div>
       <div className="min-w-0">
         <h3 className="truncate text-sm font-black text-slate-900">{title}</h3>

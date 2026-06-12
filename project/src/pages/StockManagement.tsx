@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BarChart3, Download, Package, Plus, Search, Trash2, X } from 'lucide-react';
+import { BarChart3, ChevronDown, Download, Package, Plus, Search, Trash2, X } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
@@ -64,6 +64,7 @@ export function StockManagement() {
   const [dealerFilter, setDealerFilter] = useState('all');
   const [fertilizerFilter, setFertilizerFilter] = useState('all');
   const [wholesalerFilter, setWholesalerFilter] = useState('all');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     dealer_id: '',
@@ -336,8 +337,21 @@ export function StockManagement() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/50">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/50">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="text-sm font-black text-slate-950 dark:text-white">Filters</h2>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Showing {filteredStock.length} of {financialYearStock.length} receipt entries</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFiltersOpen((value) => !value)}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
+              >
+                Filters <ChevronDown className={`h-3.5 w-3.5 transition ${filtersOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+          <div className={`${filtersOpen ? 'flex' : 'hidden'} mt-3 flex-col gap-3 md:flex-row md:items-center md:justify-between`}>
             <div className="relative w-full md:max-w-md">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
@@ -400,9 +414,6 @@ export function StockManagement() {
                   ))}
                 </select>
               </label>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                Showing {filteredStock.length} of {financialYearStock.length} receipt entries
-              </p>
             </div>
           </div>
           </div>

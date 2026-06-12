@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BarChart3, FolderOpen, RefreshCw, RotateCcw, Search, Trash2 } from 'lucide-react';
+import { BarChart3, ChevronDown, FolderOpen, RefreshCw, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -70,6 +70,7 @@ export function StockInventory() {
   const [dealerFilter, setDealerFilter] = useState('all');
   const [searchInput, setSearchInput] = useState('');
   const [appliedSearchTerm, setAppliedSearchTerm] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const dateLocale = language === 'te' ? 'te-IN' : 'en-IN';
 
@@ -240,7 +241,21 @@ export function StockInventory() {
         </label>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-black text-slate-950 dark:text-white">Filters</h2>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Search and filter dealer stock records</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((value) => !value)}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
+          >
+            Filters <ChevronDown className={`h-3.5 w-3.5 transition ${filtersOpen ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+      <div className={`${filtersOpen ? 'flex' : 'hidden'} mt-3 flex-wrap items-center gap-3`}>
         <div className="flex w-full flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:w-auto md:flex-row md:items-center">
           <div className="relative w-full md:w-80">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -359,6 +374,7 @@ export function StockInventory() {
           </label>
         )}
       </div>
+      </section>
 
       {category === 'fertilizer' && (
         <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
