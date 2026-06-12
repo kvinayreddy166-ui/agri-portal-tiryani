@@ -2,7 +2,7 @@ import React, { useMemo, useState, ReactNode } from 'react';
 import {
   ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, ClipboardList,
+  FolderOpen, Moon, Sun, Landmark, Database,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
 import { useAuth } from '../context/AuthContext';
@@ -22,16 +22,11 @@ const adminMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck },
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
+  { id: 'farmer-database', label: 'Farmer Database', icon: Database },
   {
     id: 'crops',
     label: 'Crop Intelligence',
     icon: BrainCircuit,
-  },
-  {
-    id: 'crop-admin',
-    label: 'Crop Admin',
-    icon: ClipboardList,
-    adminOnly: true,
   },
   { id: 'officer-toolkit', label: 'Officers Toolkit', icon: FileStack },
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
@@ -274,6 +269,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     'stock-receipts-sales': { title: 'Stock Receipts & Sales', breadcrumbs: [dashboard] },
     'dealer-portal': { title: 'Stock Analytics', breadcrumbs: [dashboard] },
     dealers: { title: 'Dealers Directory', breadcrumbs: [dashboard] },
+    'farmer-database': { title: 'Farmer Database', breadcrumbs: [dashboard] },
     crops: { title: 'Crop Intelligence', breadcrumbs: [dashboard] },
     'officer-toolkit': { title: 'Officers Toolkit', breadcrumbs: [dashboard] },
     forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit] },
@@ -329,6 +325,7 @@ function translateMenu(label: string) {
     'My Stock Entry': 'నా స్టాక్ ఎంట్రీ',
     'Dealers Directory': 'డీలర్ల డైరెక్టరీ',
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
+    'Farmer Database': 'రైతుల డేటాబేస్',
     'Crop Intelligence': 'పంట ఇంటెలిజెన్స్',
     'Crop Admin': 'పంట అడ్మిన్',
     'Officers Toolkit': 'Officers Toolkit',

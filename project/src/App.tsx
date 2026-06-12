@@ -15,6 +15,7 @@ const CropManagement = lazy(() => import('./pages/CropManagement').then((m) => (
 const FormsDownloads = lazy(() => import('./pages/FormsDownloads').then((m) => ({ default: m.FormsDownloads })));
 const ExcelUploads = lazy(() => import('./pages/ExcelUploads').then((m) => ({ default: m.ExcelUploads })));
 const Analytics = lazy(() => import('./pages/Analytics').then((m) => ({ default: m.Analytics })));
+const FarmerDatabase = lazy(() => import('./pages/FarmerDatabase').then((m) => ({ default: m.FarmerDatabase })));
 const Settings = lazy(() => import('./pages/Settings').then((m) => ({ default: m.Settings })));
 const QualityControl = lazy(() => import('./pages/QualityControl').then((m) => ({ default: m.QualityControl })));
 const QualityControlHub = lazy(() => import('./pages/QualityControlHub').then((m) => ({ default: m.QualityControlHub })));
@@ -58,6 +59,7 @@ const PAGE_PATHS: Record<string, string> = {
   'stock-receipts-sales': '/stock-receipts-sales',
   'dealer-portal': '/dealer-portal',
   dealers: '/dealers',
+  'farmer-database': '/farmer-database',
   crops: '/crops',
   'crop-admin': '/crop-admin',
   'crop-cotton': '/crop-cotton',
@@ -252,6 +254,7 @@ function AppContent() {
         'stock-receipts-sales',
         'dealer-portal',
         'dealers',
+        'farmer-database',
         'crops',
         'crop-admin',
         'crop-cotton',
@@ -483,6 +486,8 @@ function AppContent() {
         return <DealerStockPortal />;
       case 'dealers':
         return <DealerManagement />;
+      case 'farmer-database':
+        return <FarmerDatabase />;
       case 'crops':
         return <CropManagement />;
       case 'crop-admin':

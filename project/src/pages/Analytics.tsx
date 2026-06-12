@@ -1,21 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
 import * as XLSX from 'xlsx';
-import { BarChart3, Eye, FileSpreadsheet, FileText, Filter, RefreshCw } from 'lucide-react';
+import { Eye, FileSpreadsheet, FileText, Filter, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { StockCategory, currentReportDate, shiftReportDate } from '../lib/stockInventory';
@@ -58,6 +43,9 @@ type StockRow = {
   total?: number | null;
   sales?: number | null;
   closing_balance?: number | null;
+  invoice_date?: string | null;
+  invoice_no?: string | null;
+  supplier?: string | null;
   report_date?: string | null;
   report_month?: string | null;
   financial_year?: string | null;
@@ -114,10 +102,8 @@ const REPORTS: Array<{ key: ReportKey; title: string; description: string; categ
   { key: 'inspection', title: 'Inspection Reports', description: 'Inspection-style sample records with remarks and form status.', category: 'quality' },
 ];
 
-const COLORS = ['#0b7a5c', '#2563eb', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2'];
-
-const today = currentReportDate();
-const defaultFromDate = shiftReportDate(today, -30);
+const defaultFromDate = '';
+const defaultToDate = '';
 
 const titleCase = (value = '') =>
   value.toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -131,7 +117,7 @@ export function Analytics() {
   const [loading, setLoading] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [fromDate, setFromDate] = useState(defaultFromDate);
-  const [toDate, setToDate] = useState(today);
+  const [toDate, setToDate] = useState(defaultToDate);
   const [dealerId, setDealerId] = useState('all');
   const [category, setCategory] = useState<'all' | StockCategory | 'quality'>('all');
   const [product, setProduct] = useState('all');
@@ -140,44 +126,17 @@ export function Analytics() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [dealersRes, stockRes, receiptsRes, qualityRes] = await Promise.all([
-        supabase
-          .from('dealers')
-          .select('id, dealer_name, ifms_id, phone_number, license_number, expiry_date, location, dealer_category')
-          .order('dealer_name')
-          .limit(1000),
-        supabase
-          .from('stock_inventory_lines')
-          .select('id, dealer_id, category, product_type, entry_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month, financial_year, unit, created_at')
-          .gte('report_date', fromDate || '1900-01-01')
-          .lte('report_date', toDate || '2999-12-31')
-          .order('report_date', { ascending: false })
-          .limit(5000),
-        supabase
-          .from('dealer_stock_allocation')
-          .select('id, dealer_id, fertilizer_type, quantity_mts, quantity_bags, quantity_unit, wholesaler_name, invoice_number, invoice_date, last_updated, created_at')
-          .gte('invoice_date', fromDate || '1900-01-01')
-          .lte('invoice_date', toDate || '2999-12-31')
-          .order('invoice_date', { ascending: false, nullsFirst: false })
-          .limit(5000),
-        supabase
-          .from('quality_control_samples')
-          .select('id, category, financial_year, dealer_name, license_number, phone_number, location, sample_date, form_url, remarks, created_at')
-          .gte('sample_date', fromDate || '1900-01-01')
-          .lte('sample_date', toDate || '2999-12-31')
-          .order('sample_date', { ascending: false })
-          .limit(1000),
+      const [dealerData, stockData, receiptData, qualityData] = await Promise.all([
+        fetchDealerRows(),
+        fetchStockRows(),
+        fetchReceiptRows(),
+        fetchQualityRows(),
       ]);
 
-      if (dealersRes.error) throw dealersRes.error;
-      if (stockRes.error) throw stockRes.error;
-      if (receiptsRes.error) throw receiptsRes.error;
-      if (qualityRes.error) throw qualityRes.error;
-
-      setDealers((dealersRes.data || []) as DealerRow[]);
-      setStockRows((stockRes.data || []) as StockRow[]);
-      setReceiptRows((receiptsRes.data || []) as ReceiptRow[]);
-      setQualityRows((qualityRes.data || []) as QualityRow[]);
+      setDealers(dealerData);
+      setStockRows(stockData);
+      setReceiptRows(receiptData);
+      setQualityRows(qualityData);
     } catch (error) {
       console.error('Error loading reports:', error);
       setDealers([]);
@@ -187,7 +146,7 @@ export function Analytics() {
     } finally {
       setLoading(false);
     }
-  }, [fromDate, toDate]);
+  }, []);
 
   useEffect(() => {
     void loadData();
@@ -208,21 +167,24 @@ export function Analytics() {
   )), [category, dealerId, dealers]);
 
   const filteredStock = useMemo(() => stockRows.filter((row) => (
+    dateInRange(stockRowDate(row), fromDate, toDate) &&
     (dealerId === 'all' || row.dealer_id === dealerId) &&
     (category === 'all' || category === 'quality' || row.category === category) &&
     (product === 'all' || row.product_type === product)
-  )), [category, dealerId, product, stockRows]);
+  )), [category, dealerId, fromDate, product, stockRows, toDate]);
 
   const filteredReceipts = useMemo(() => receiptRows.filter((row) => (
+    dateInRange(receiptRowDate(row), fromDate, toDate) &&
     (dealerId === 'all' || row.dealer_id === dealerId) &&
     (category === 'all' || category === 'fertilizer') &&
     (product === 'all' || row.fertilizer_type === product)
-  )), [category, dealerId, product, receiptRows]);
+  )), [category, dealerId, fromDate, product, receiptRows, toDate]);
 
   const filteredQuality = useMemo(() => qualityRows.filter((row) => (
+    dateInRange(qualityRowDate(row), fromDate, toDate) &&
     (category === 'all' || category === 'quality' || row.category === category || `${row.category}s` === category) &&
     (product === 'all' || titleCase(row.category || '') === product)
-  )), [category, product, qualityRows]);
+  )), [category, fromDate, product, qualityRows, toDate]);
 
   const currentReport = REPORTS.find((report) => report.key === reportType) || REPORTS[1];
   const reportRows = useMemo(
@@ -230,44 +192,6 @@ export function Analytics() {
     [dealerMap, filteredDealers, filteredQuality, filteredReceipts, filteredStock, reportType]
   );
   const previewRows = reportRows.slice(0, 50);
-
-  const categoryChartRows = useMemo(() => {
-    const map = new Map<string, { category: string; total: number; sales: number; closing: number }>();
-    filteredStock.forEach((row) => {
-      const key = titleCase(row.category);
-      const current = map.get(key) || { category: key, total: 0, sales: 0, closing: 0 };
-      current.total += Number(row.total || 0);
-      current.sales += Number(row.sales || 0);
-      current.closing += Number(row.closing_balance || 0);
-      map.set(key, current);
-    });
-    return Array.from(map.values());
-  }, [filteredStock]);
-
-  const trendRows = useMemo(() => {
-    const map = new Map<string, { date: string; sales: number; receipts: number }>();
-    filteredStock.forEach((row) => {
-      const date = row.report_date || row.created_at?.slice(0, 10) || '';
-      if (!date) return;
-      const current = map.get(date) || { date, sales: 0, receipts: 0 };
-      current.sales += Number(row.sales || 0);
-      current.receipts += Number(row.receipts || 0);
-      map.set(date, current);
-    });
-    return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
-  }, [filteredStock]);
-
-  const dealerChartRows = useMemo(() => {
-    const map = new Map<string, { dealer: string; closing: number; sales: number }>();
-    filteredStock.forEach((row) => {
-      const name = dealerMap.get(row.dealer_id || '')?.dealer_name || 'Unknown';
-      const current = map.get(name) || { dealer: titleCase(name), closing: 0, sales: 0 };
-      current.closing += Number(row.closing_balance || 0);
-      current.sales += Number(row.sales || 0);
-      map.set(name, current);
-    });
-    return Array.from(map.values()).sort((a, b) => b.closing - a.closing).slice(0, 10);
-  }, [dealerMap, filteredStock]);
 
   const downloadExcel = () => {
     if (!reportRows.length) {
@@ -382,47 +306,6 @@ export function Analytics() {
         <Metric title="Quality Samples" value={filteredQuality.length} />
       </section>
 
-      <section className="grid gap-3 xl:grid-cols-3">
-        <ChartCard title="Category Stock Movement">
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={categoryChartRows}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="category" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="sales" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="closing" fill="#0b7a5c" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-        <ChartCard title="Daily Sales Trend">
-          <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={trendRows}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="sales" stroke="#dc2626" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="receipts" stroke="#2563eb" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
-        <ChartCard title="Dealer Current Stock">
-          <ResponsiveContainer width="100%" height={240}>
-            <PieChart>
-              <Pie data={dealerChartRows} dataKey="closing" nameKey="dealer" innerRadius={45} outerRadius={86} paddingAngle={2}>
-                {dealerChartRows.map((row, index) => <Cell key={row.dealer} fill={COLORS[index % COLORS.length]} />)}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </section>
-
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 p-3">
           <div>
@@ -489,7 +372,7 @@ function buildReportRows(
     case 'fertilizer-receipts':
       return receiptRows.map((row, index) => ({
         'S.No': index + 1,
-        Date: row.invoice_date || row.created_at?.slice(0, 10) || '',
+        Date: receiptRowDate(row),
         Dealer: titleCase(dealerMap.get(row.dealer_id || '')?.dealer_name || 'Unknown'),
         Fertilizer: row.fertilizer_type || '',
         'Quantity MT': round(row.quantity_mts),
@@ -511,7 +394,7 @@ function buildReportRows(
     case 'urea-sales-ranking':
       return ureaSalesRows(dealers, stockRows);
     case 'highest-stock-received-7-days':
-      return highestReceiptsRows(stockRows, dealerMap);
+      return highestReceiptsRows(stockRows, receiptRows, dealerMap);
     case 'weekly-top-sellers':
       return weeklyTopSellerRows(stockRows, dealerMap);
     case 'seed-stock-sales':
@@ -523,7 +406,7 @@ function buildReportRows(
     case 'inspection':
       return qualityRows.map((row, index) => ({
         'S.No': index + 1,
-        Date: row.sample_date || row.created_at?.slice(0, 10) || '',
+        Date: qualityRowDate(row),
         Category: titleCase(row.category || ''),
         Dealer: titleCase(row.dealer_name || ''),
         License: row.license_number || '',
@@ -537,10 +420,75 @@ function buildReportRows(
   }
 }
 
+async function fetchDealerRows(): Promise<DealerRow[]> {
+  const primary = await supabase
+    .from('dealers')
+    .select('id, dealer_name, ifms_id, phone_number, license_number, expiry_date, location, dealer_category')
+    .order('dealer_name')
+    .limit(2000);
+  if (!primary.error) return (primary.data || []) as DealerRow[];
+
+  console.warn('Dealer report query fallback:', primary.error);
+  const fallback = await supabase
+    .from('dealers')
+    .select('id, dealer_name, ifms_id, phone_number, license_number, expiry_date, location')
+    .order('dealer_name')
+    .limit(2000);
+  return (fallback.data || []) as DealerRow[];
+}
+
+async function fetchStockRows(): Promise<StockRow[]> {
+  const primary = await supabase
+    .from('stock_inventory_lines')
+    .select('id, dealer_id, category, product_type, entry_type, opening_balance, receipts, total, sales, closing_balance, invoice_date, invoice_no, supplier, report_date, report_month, financial_year, unit, created_at')
+    .order('report_date', { ascending: false, nullsFirst: false })
+    .limit(10000);
+  if (!primary.error) return (primary.data || []) as StockRow[];
+
+  console.warn('Stock report query fallback:', primary.error);
+  const fallback = await supabase
+    .from('stock_inventory_lines')
+    .select('id, dealer_id, category, product_type, entry_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month, financial_year, created_at')
+    .limit(10000);
+  return (fallback.data || []) as StockRow[];
+}
+
+async function fetchReceiptRows(): Promise<ReceiptRow[]> {
+  const primary = await supabase
+    .from('dealer_stock_allocation')
+    .select('id, dealer_id, fertilizer_type, quantity_mts, quantity_bags, quantity_unit, wholesaler_name, invoice_number, invoice_date, last_updated, created_at')
+    .order('invoice_date', { ascending: false, nullsFirst: false })
+    .limit(10000);
+  if (!primary.error) return (primary.data || []) as ReceiptRow[];
+
+  console.warn('Receipt report query fallback:', primary.error);
+  const fallback = await supabase
+    .from('dealer_stock_allocation')
+    .select('id, dealer_id, fertilizer_type, quantity_mts, quantity_bags, wholesaler_name, invoice_number, last_updated, created_at')
+    .limit(10000);
+  return (fallback.data || []) as ReceiptRow[];
+}
+
+async function fetchQualityRows(): Promise<QualityRow[]> {
+  const primary = await supabase
+    .from('quality_control_samples')
+    .select('id, category, financial_year, dealer_name, license_number, phone_number, location, sample_date, form_url, remarks, created_at')
+    .order('sample_date', { ascending: false, nullsFirst: false })
+    .limit(3000);
+  if (!primary.error) return (primary.data || []) as QualityRow[];
+
+  console.warn('Quality report query fallback:', primary.error);
+  const fallback = await supabase
+    .from('quality_control_samples')
+    .select('id, category, financial_year, dealer_name, license_number, phone_number, location, form_url, remarks, created_at')
+    .limit(3000);
+  return (fallback.data || []) as QualityRow[];
+}
+
 function stockReportRow(dealerMap: Map<string, DealerRow>) {
   return (row: StockRow, index: number): ReportRow => ({
     'S.No': index + 1,
-    Date: row.report_date || row.created_at?.slice(0, 10) || '',
+    Date: stockRowDate(row),
     Category: titleCase(row.category),
     Dealer: titleCase(dealerMap.get(row.dealer_id || '')?.dealer_name || 'Unknown'),
     Product: row.product_type || '',
@@ -554,7 +502,7 @@ function stockReportRow(dealerMap: Map<string, DealerRow>) {
 function qualityReportRow(row: QualityRow, index: number): ReportRow {
   return {
     'S.No': index + 1,
-    Date: row.sample_date || row.created_at?.slice(0, 10) || '',
+    Date: qualityRowDate(row),
     Category: titleCase(row.category || ''),
     Dealer: titleCase(row.dealer_name || ''),
     License: row.license_number || '',
@@ -569,7 +517,7 @@ function latestRows(rows: StockRow[]) {
   rows.forEach((row) => {
     const key = `${row.dealer_id}:${row.category}:${(row.product_type || '').toLowerCase()}`;
     const current = map.get(key);
-    if (!current || (row.report_date || '') > (current.report_date || '')) map.set(key, row);
+    if (!current || stockRowDate(row) > stockRowDate(current)) map.set(key, row);
   });
   return Array.from(map.values());
 }
@@ -587,13 +535,19 @@ function ureaSalesRows(dealers: DealerRow[], rows: StockRow[]): ReportRow[] {
     .sort((a, b) => Number(b.Sales) - Number(a.Sales));
 }
 
-function highestReceiptsRows(rows: StockRow[], dealerMap: Map<string, DealerRow>): ReportRow[] {
+function highestReceiptsRows(rows: StockRow[], receiptRows: ReceiptRow[], dealerMap: Map<string, DealerRow>): ReportRow[] {
   const cutoff = shiftReportDate(currentReportDate(), -6);
   const map = new Map<string, { dealer: string; receipts: number }>();
-  rows.filter((row) => isReceiptRow(row) && (row.report_date || '') >= cutoff).forEach((row) => {
+  rows.filter((row) => isReceiptRow(row) && stockRowDate(row) >= cutoff).forEach((row) => {
     const id = row.dealer_id || 'unknown';
     const current = map.get(id) || { dealer: titleCase(dealerMap.get(id)?.dealer_name || 'Unknown'), receipts: 0 };
     current.receipts += Number(row.receipts || 0);
+    map.set(id, current);
+  });
+  receiptRows.filter((row) => (receiptRowDate(row) || '') >= cutoff).forEach((row) => {
+    const id = row.dealer_id || 'unknown';
+    const current = map.get(id) || { dealer: titleCase(dealerMap.get(id)?.dealer_name || 'Unknown'), receipts: 0 };
+    current.receipts += Number(row.quantity_mts || row.quantity_bags || 0);
     map.set(id, current);
   });
   return Array.from(map.values()).sort((a, b) => b.receipts - a.receipts).map((row, index) => ({
@@ -606,7 +560,7 @@ function highestReceiptsRows(rows: StockRow[], dealerMap: Map<string, DealerRow>
 function weeklyTopSellerRows(rows: StockRow[], dealerMap: Map<string, DealerRow>): ReportRow[] {
   const cutoff = shiftReportDate(currentReportDate(), -6);
   const grouped = new Map<string, { category: StockCategory; product: string; dealer: string; sales: number }>();
-  rows.filter((row) => (row.report_date || '') >= cutoff && Number(row.sales || 0) > 0).forEach((row) => {
+  rows.filter((row) => stockRowDate(row) >= cutoff && Number(row.sales || 0) > 0).forEach((row) => {
     const product = row.product_type || '';
     const dealer = titleCase(dealerMap.get(row.dealer_id || '')?.dealer_name || 'Unknown');
     const key = `${row.category}:${product}:${row.dealer_id}`;
@@ -651,18 +605,6 @@ function Metric({ title, value }: { title: string; value: number }) {
   );
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-      <h2 className="mb-2 flex items-center gap-2 text-sm font-black text-slate-950">
-        <BarChart3 className="h-4 w-4 text-emerald-700" />
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
 function reportMetadataRows(title: string, fromDate: string, toDate: string, generatedBy: string) {
   return [
     ['Tiryani Agriculture Portal'],
@@ -695,4 +637,23 @@ function trimText(value: string, max: number) {
 function round(value: unknown) {
   const number = Number(value || 0);
   return Math.round(number * 100) / 100;
+}
+
+function dateInRange(dateValue: string, fromDate: string, toDate: string) {
+  if (!dateValue) return true;
+  if (fromDate && dateValue < fromDate) return false;
+  if (toDate && dateValue > toDate) return false;
+  return true;
+}
+
+function stockRowDate(row: StockRow) {
+  return row.report_date || row.invoice_date || row.created_at?.slice(0, 10) || '';
+}
+
+function receiptRowDate(row: ReceiptRow) {
+  return row.invoice_date || row.last_updated?.slice(0, 10) || row.created_at?.slice(0, 10) || '';
+}
+
+function qualityRowDate(row: QualityRow) {
+  return row.sample_date || row.created_at?.slice(0, 10) || '';
 }

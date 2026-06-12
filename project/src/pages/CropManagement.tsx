@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { BrainCircuit, Leaf } from 'lucide-react';
+import { BrainCircuit, ClipboardList, Leaf } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { CropIntelligencePage } from './crops/CropIntelligencePage.jsx';
 
@@ -14,6 +16,8 @@ const cropTabs = [
 export function CropManagement() {
   const [activeCrop, setActiveCrop] = useState(cropTabs[0].id);
   const { t } = useLanguage();
+  const { isAdminUser } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="grid gap-3 xl:grid-cols-[15rem_1fr]">
@@ -26,6 +30,23 @@ export function CropManagement() {
             </h1>
           </div>
         </div>
+        {isAdminUser && (
+          <button
+            type="button"
+            onClick={() => navigate('/crop-admin')}
+            className="w-full rounded-lg border border-amber-200 bg-amber-50 p-3 text-left text-amber-950 shadow-sm transition hover:border-amber-300 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
+          >
+            <div className="flex items-center gap-2">
+              <div className="rounded-lg bg-white/80 p-1.5 text-amber-700 dark:bg-amber-900/50 dark:text-amber-200">
+                <ClipboardList className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm font-black">{t('Crop Admin', 'పంట అడ్మిన్')}</p>
+                <p className="text-xs font-semibold opacity-80">{t('Switch to admin tools', 'అడ్మిన్ సాధనాలకు మారండి')}</p>
+              </div>
+            </div>
+          </button>
+        )}
         {cropTabs.map((crop) => {
           const active = activeCrop === crop.id;
           const label = t(crop.label, crop.labelTe);

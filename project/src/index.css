@@ -254,6 +254,47 @@ main,
     transform: scale(0.985);
   }
 
+  .icon-action {
+    display: inline-flex;
+    height: 2.5rem;
+    width: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(11, 122, 92, 0.2);
+    background: #ffffff;
+    color: var(--agri-primary);
+    font-weight: 900;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .icon-action:hover {
+    border-color: rgba(11, 122, 92, 0.42);
+    background: rgba(236, 253, 245, 0.92);
+  }
+
+  .icon-action:active {
+    transform: scale(0.985);
+  }
+
+  .filter-select {
+    min-height: 2.625rem;
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    background: #ffffff;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+    color: #0f172a;
+    outline: none;
+  }
+
+  .filter-select:focus {
+    border-color: var(--agri-primary);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.14);
+  }
+
   .action-button-primary {
     border: 1px solid var(--agri-primary);
     background: var(--agri-primary);
