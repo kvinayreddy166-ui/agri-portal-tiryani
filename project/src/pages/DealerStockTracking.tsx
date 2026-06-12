@@ -264,7 +264,7 @@ export function DealerStockTracking() {
 
       {/* Stock Table */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-        <div className="overflow-x-auto">
+        <div className="table-scroll">
           <table className="w-full">
             <thead className="bg-gradient-to-r from-slate-900 to-slate-800 text-white">
               <tr>

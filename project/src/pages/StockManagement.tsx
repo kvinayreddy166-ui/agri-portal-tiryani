@@ -548,7 +548,7 @@ export function StockManagement() {
             <div className="border-b border-slate-100 px-3 py-2 dark:border-slate-800">
               <h2 className="text-sm font-black text-slate-950 dark:text-white">Fertilizer-wise Receipts Summary</h2>
             </div>
-            <div className="overflow-x-auto">
+            <div className="table-scroll">
               <table className="w-full min-w-[520px] text-sm">
                 <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800">
                   <tr>
@@ -574,7 +574,7 @@ export function StockManagement() {
             <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
               <h2 className="text-sm font-black text-slate-950 dark:text-white">Fertilizer Receipts</h2>
             </div>
-            <div className="overflow-x-auto" {...receiptRows.containerProps}>
+            <div className="table-scroll" {...receiptRows.containerProps}>
               <table className="w-full min-w-[1040px] text-sm">
                 <thead className="bg-slate-900 text-xs uppercase text-white">
                   <tr>
@@ -662,7 +662,7 @@ function GroupedTotalsTable({
       <div className="border-b border-slate-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-sm font-black text-slate-950 dark:text-white">{title}</h2>
       </div>
-      <div className="overflow-x-auto">
+      <div className="table-scroll">
         <table className="w-full min-w-[440px] text-sm">
           <thead className="bg-slate-50 text-[11px] uppercase text-slate-500 dark:bg-slate-800">
             <tr>

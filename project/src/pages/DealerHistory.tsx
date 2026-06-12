@@ -514,7 +514,7 @@ export function DealerHistory() {
 
       {/* History Table */}
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <div className="overflow-x-auto">
+        <div className="table-scroll">
           <table className="w-full min-w-[1000px] text-sm">
             <thead className="bg-slate-900 text-white sticky top-0">
               <tr>

@@ -203,8 +203,8 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
         </div>
       </aside>
 
-      <main className="min-h-[calc(100vh-4.25rem)]">
-        <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
+      <main className="min-h-[calc(100vh-4.25rem)] max-w-full overflow-x-hidden">
+        <div className="mx-auto w-full max-w-7xl overflow-x-hidden p-3 sm:p-4 md:p-5 lg:p-6">
           {currentPage !== 'dashboard' && currentPage !== 'dealer-portal' && (
             <div className="mb-4 flex flex-col gap-2">
               <nav className="flex flex-wrap items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400" aria-label="Breadcrumb">

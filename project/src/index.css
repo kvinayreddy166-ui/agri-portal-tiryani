@@ -2,24 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --agri-primary: #0b7a5c;
+  --agri-secondary: #0f9d58;
+  --agri-blue: #2563eb;
+  --agri-danger: #dc2626;
+  --agri-warning: #f59e0b;
+  --agri-bg: #f4f8f5;
+  --agri-card: #ffffff;
+  --agri-text: #0f172a;
+  --agri-muted: #64748b;
+  --agri-border: rgba(15, 23, 42, 0.08);
+  --agri-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+  --agri-radius: 16px;
+  --agri-radius-mobile: 14px;
+  --agri-focus: 0 0 0 4px rgba(11, 122, 92, 0.14);
+}
+
 html,
 body,
 #root {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  font-family: Inter, system-ui, sans-serif;
+  background: var(--agri-bg);
+  color: var(--agri-text);
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+  min-width: 0;
 }
 
 body {
-  font-family: Inter, "Noto Sans Telugu", "Nirmala UI", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #0f172a;
-  background: #eef6f0;
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  color: var(--agri-text);
+  background: var(--agri-bg);
   font-synthesis-weight: none;
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
@@ -30,6 +52,48 @@ body {
   background: #020617;
 }
 
+.dark .portal-card,
+.dark .app-card,
+.dark .filter-panel {
+  border-color: rgba(148, 163, 184, 0.2);
+  background: #0f172a;
+  color: #e2e8f0;
+  box-shadow: 0 2px 10px rgba(2, 6, 23, 0.35);
+}
+
+.dark .stat-card {
+  border-color: rgba(15, 157, 88, 0.25);
+  background: linear-gradient(135deg, #0f172a 0%, rgba(15, 157, 88, 0.14) 100%);
+  color: #e2e8f0;
+}
+
+.dark .page-title,
+.dark .portal-section-title,
+.dark .section-title,
+.dark .card-title {
+  color: #f8fafc;
+}
+
+.dark .page-subtitle,
+.dark .muted-text {
+  color: #cbd5e1;
+}
+
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+}
+
+main,
+.dashboard-shell,
+.min-h-screen {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 @layer components {
   .table-scroll {
     width: 100%;
@@ -38,20 +102,244 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 
+  .table-scroll table,
+  .overflow-x-auto > table {
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+
+  .table-scroll thead,
+  .overflow-x-auto > table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .table-scroll th,
+  .overflow-x-auto > table th {
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+
+  .table-scroll td,
+  .overflow-x-auto > table td {
+    font-size: 0.8125rem;
+    vertical-align: top;
+  }
+
+  .table-scroll tbody tr:nth-child(even),
+  .overflow-x-auto > table tbody tr:nth-child(even) {
+    background: rgba(244, 248, 245, 0.75);
+  }
+
+  .table-scroll tbody tr:hover,
+  .overflow-x-auto > table tbody tr:hover {
+    background: rgba(15, 157, 88, 0.08);
+  }
+
   .portal-card {
-    @apply rounded-lg border border-slate-200/80 bg-white shadow-sm shadow-slate-200/50 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/50;
+    border-radius: var(--agri-radius);
+    border: 1px solid var(--agri-border);
+    background: var(--agri-card);
+    box-shadow: var(--agri-shadow);
+    color: var(--agri-text);
   }
 
   .portal-section-title {
-    @apply text-2xl font-black tracking-tight text-slate-950 dark:text-white;
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    color: var(--agri-text);
   }
 
   .page-title {
-    @apply text-3xl font-black tracking-tight text-slate-950 dark:text-white;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    color: var(--agri-text);
   }
 
   .page-subtitle {
-    @apply mt-1 text-slate-600 dark:text-slate-300;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--agri-muted);
+  }
+
+  .app-card {
+    border-radius: var(--agri-radius);
+    border: 1px solid var(--agri-border);
+    background: var(--agri-card);
+    box-shadow: var(--agri-shadow);
+    padding: 1rem;
+    color: var(--agri-text);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-title {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+    font-weight: 800;
+    color: var(--agri-text);
+  }
+
+  .card-title {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 800;
+    color: var(--agri-text);
+  }
+
+  .muted-text {
+    color: var(--agri-muted);
+  }
+
+  .stat-card {
+    border-radius: var(--agri-radius);
+    border: 1px solid rgba(15, 157, 88, 0.16);
+    background: linear-gradient(135deg, #ffffff 0%, rgba(15, 157, 88, 0.08) 100%);
+    box-shadow: var(--agri-shadow);
+    padding: 1rem;
+  }
+
+  .filter-panel {
+    border-radius: var(--agri-radius);
+    border: 1px solid var(--agri-border);
+    background: var(--agri-card);
+    box-shadow: var(--agri-shadow);
+    padding: 1rem;
+  }
+
+  .empty-state {
+    border-radius: var(--agri-radius);
+    border: 1px dashed rgba(100, 116, 139, 0.35);
+    background: rgba(255, 255, 255, 0.72);
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--agri-muted);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .action-button {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .action-button:active {
+    transform: scale(0.985);
+  }
+
+  .action-button-primary {
+    border: 1px solid var(--agri-primary);
+    background: var(--agri-primary);
+    color: #ffffff;
+  }
+
+  .action-button-secondary {
+    border: 1px solid rgba(11, 122, 92, 0.25);
+    background: #ffffff;
+    color: var(--agri-primary);
+  }
+
+  .action-button-danger {
+    border: 1px solid var(--agri-danger);
+    background: var(--agri-danger);
+    color: #ffffff;
+  }
+
+  .action-button-warning {
+    border: 1px solid var(--agri-warning);
+    background: var(--agri-warning);
+    color: #111827;
+  }
+
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: 0.75rem;
+  }
+}
+
+label {
+  min-width: 0;
+}
+
+label > span,
+.field-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: var(--agri-muted);
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--agri-primary) !important;
+  box-shadow: var(--agri-focus);
+  outline: none;
+}
+
+button {
+  letter-spacing: 0;
+}
+
+@media (max-width: 640px) {
+  .portal-card,
+  .app-card,
+  .filter-panel,
+  .stat-card {
+    border-radius: var(--agri-radius-mobile);
+    padding: 0.75rem;
+  }
+
+  .page-title {
+    font-size: 1.375rem;
+    line-height: 1.75rem;
+  }
+
+  .portal-section-title,
+  .section-title {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  .table-scroll table,
+  .overflow-x-auto > table {
+    font-size: 0.75rem;
   }
 }
 

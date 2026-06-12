@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { Building2, Eye, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
+import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../lib/fertilizerStock';
 import { useAuth } from '../context/AuthContext';
@@ -9,7 +9,6 @@ import { GoogleMapWidget } from '../components/dashboard/GoogleMapWidget';
 import { WeatherWidget } from '../components/dashboard/WeatherWidget';
 import { PortalLogo } from '../components/ui/PortalLogo';
 import { cachedSupabaseRows, cachedSupabaseValue } from '../lib/offlineCache';
-import { fetchSiteHitSummary, SiteHitSummary } from '../lib/siteHits';
 
 export function Dashboard() {
   const { isAdminUser } = useAuth();
@@ -19,7 +18,6 @@ export function Dashboard() {
   const [schemes, setSchemes] = useState<Scheme[]>([]);
   const [schemeBeneficiaries, setSchemeBeneficiaries] = useState<SchemeBeneficiary[]>([]);
   const [mandalData, setMandalData] = useState<MandalOverview | null>(null);
-  const [siteHitSummary, setSiteHitSummary] = useState<SiteHitSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingCrop, setEditingCrop] = useState<string | null>(null);
   const [editingScheme, setEditingScheme] = useState<string | null>(null);
@@ -39,7 +37,7 @@ export function Dashboard() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [cropsRes, schemesRes, contentRes, beneficiariesRes, dailyFertilizers, hitsRes] = await Promise.all([
+      const [cropsRes, schemesRes, contentRes, beneficiariesRes, dailyFertilizers] = await Promise.all([
         cachedSupabaseRows<Crop>(
           'dashboard:crops:v2',
           () => supabase.from('crops').select('id, crop_name, acreage, description, image_url, created_at').order('crop_name'),
@@ -61,7 +59,6 @@ export function Dashboard() {
           []
         ),
         fetchDailyFertilizerStockSummary().catch(() => []),
-        isAdminUser ? fetchSiteHitSummary().catch(() => null) : Promise.resolve(null),
       ]);
 
       setCrops(cropsRes);
@@ -69,13 +66,12 @@ export function Dashboard() {
       setSchemes(schemesRes);
       setSchemeBeneficiaries(beneficiariesRes);
       setMandalData(contentRes?.content || null);
-      setSiteHitSummary(hitsRes);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
-  }, [isAdminUser]);
+  }, []);
 
   useEffect(() => {
     void fetchDashboardData();
@@ -83,15 +79,6 @@ export function Dashboard() {
 
   const totalAcreage = crops.reduce((sum, crop) => sum + crop.acreage, 0);
   const highestFertilizerStock = Math.max(...fertilizers.map((item) => item.quantity_available), 1);
-  const lastViewedLabel = siteHitSummary?.lastViewedAt
-    ? new Date(siteHitSummary.lastViewedAt).toLocaleString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : 'No visits yet';
-
   const openBeneficiaryForm = (schemeId: string) => {
     setEditingScheme(schemeId);
     setBeneficiaryForm({
@@ -217,34 +204,6 @@ export function Dashboard() {
         <WeatherWidget />
       </div>
 
-      {isAdminUser && siteHitSummary && (
-        <div className="dashboard-rise dashboard-delay-1 grid grid-cols-1 gap-3 md:grid-cols-4">
-          <div className="rounded-xl border border-emerald-100 bg-white p-4 shadow-sm shadow-emerald-100/60 transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                <Eye className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Site Hits</p>
-                <p className="text-2xl font-black text-slate-950 dark:text-white">{siteHitSummary.totalViews.toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">People Viewed</p>
-            <p className="mt-2 text-2xl font-black text-slate-950 dark:text-white">{siteHitSummary.uniqueVisitors.toLocaleString()}</p>
-          </div>
-          <div className="rounded-xl border border-amber-100 bg-white p-4 shadow-sm shadow-amber-100/60 transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Today</p>
-            <p className="mt-2 text-2xl font-black text-slate-950 dark:text-white">{siteHitSummary.todayViews.toLocaleString()}</p>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm shadow-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Last Access</p>
-            <p className="mt-2 text-sm font-black text-slate-950 dark:text-white">{lastViewedLabel}</p>
-          </div>
-        </div>
-      )}
-
       {/* Mandal Overview */}
       {mandalData && (
         <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
@@ -356,28 +315,28 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="dashboard-rise dashboard-delay-3 portal-card p-4">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div className="dashboard-rise dashboard-delay-3 portal-card p-3">
+        <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-xl font-black tracking-tight text-gray-900 dark:text-white">
-              <PackageCheck className="w-6 h-6 text-emerald-600" />
+            <h2 className="flex items-center gap-2 text-lg font-black tracking-tight text-gray-900 dark:text-white">
+              <PackageCheck className="w-5 h-5 text-emerald-600" />
               {t('Fertilizer Availability', 'ఎరువుల లభ్యత')}
             </h2>
-            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+            <p className="mt-0.5 text-[11px] text-gray-500 dark:text-slate-400">
               {t(
                 'Fertilizer availability from dealer daily closing balance in MT',
                 'Fertilizer availability from dealer daily closing balance in MT'
               )}
             </p>
           </div>
-          <div className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+          <div className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
             {fertilizers.length} {t('fertilizer types', 'ఎరువుల రకాలు')}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-5">
           {fertilizers.length === 0 && (
-            <div className="md:col-span-2 xl:col-span-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 p-5 text-center text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-300">
+            <div className="col-span-2 md:col-span-3 xl:col-span-5 rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-center text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-300">
               {t(
                 'No dealer daily fertilizer entries found yet.',
                 'No dealer daily fertilizer entries found yet.'
@@ -405,31 +364,31 @@ export function Dashboard() {
             return (
               <div
                 key={fertilizer.id}
-                className="rounded-xl border border-gray-100 bg-gradient-to-br from-white to-emerald-50/50 p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:from-slate-900 dark:to-slate-800/80"
+                className="rounded-xl border border-gray-100 bg-gradient-to-br from-white to-emerald-50/50 p-2 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:from-slate-900 dark:to-slate-800/80"
               >
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <div>
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <div className="min-w-0">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                       {t('Fertilizer', 'ఎరువు')}
                     </p>
-                    <h3 className="mt-0.5 text-base font-black text-gray-950 dark:text-white">
+                    <h3 className="mt-0.5 truncate text-sm font-black text-gray-950 dark:text-white">
                       {fertilizer.fertilizer_type}
                     </h3>
                   </div>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${statusClass}`}>
+                  <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${statusClass}`}>
                     {status}
                   </span>
                 </div>
-                <div className="flex items-end justify-between gap-3">
-                  <p className="text-2xl font-black tracking-tight text-gray-950 dark:text-white">
+                <div className="flex items-end justify-between gap-2">
+                  <p className="text-lg font-black tracking-tight text-gray-950 dark:text-white">
                     {fertilizer.quantity_available.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
                   </p>
-                  <p className="mb-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">MT</p>
+                  <p className="mb-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">MT</p>
                 </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-700">
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-700">
                   <div
                     className="dashboard-bar h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
                     style={{ width: `${percentage}%` }}

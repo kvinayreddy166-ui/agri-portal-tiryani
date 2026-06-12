@@ -3,7 +3,7 @@ import React from 'react';
 export function FertilizerTable({ fertilizers = [], onEdit, isTelugu = false }) {
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-      <div className="overflow-x-auto">
+      <div className="table-scroll">
         <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-700">
           <thead className="bg-slate-50 text-left text-xs font-black uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-300">
             <tr>

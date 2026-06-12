@@ -412,7 +412,7 @@ export function StockInventory() {
         </div>
       ) : (
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <div className="overflow-x-auto">
+          <div className="table-scroll">
             <table className="w-full min-w-[860px] text-sm">
               <thead className="bg-slate-900 text-xs uppercase text-white">
                 <tr>

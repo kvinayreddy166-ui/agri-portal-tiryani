@@ -501,7 +501,7 @@ export function DealerManagement() {
       )}
 
       <div className="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <div className="overflow-x-auto">
+        <div className="table-scroll">
           <table className="w-full min-w-[820px] text-sm">
             <thead className="bg-gray-50 dark:bg-slate-800">
               <tr>

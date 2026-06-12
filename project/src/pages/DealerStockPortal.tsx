@@ -674,7 +674,7 @@ function DailyEntryCard({ category, unit, rows, setRows, saving, onSave }: { cat
           );
         })}
       </div>
-      <div className="hidden max-w-full overflow-x-auto md:block">
+      <div className="table-scroll hidden md:block">
         <table className="w-full min-w-[860px] text-xs">
           <thead className="sticky top-0 text-white" style={{ background: COLORS.text }}>
             <tr>
@@ -838,7 +838,7 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
     : ['S.No', 'Date', 'Product', `Opening (${unit})`, `Receipts (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'];
 
   return (
-    <div className="max-w-full overflow-x-auto border-t border-slate-200">
+    <div className="table-scroll border-t border-slate-200">
       <table className={`w-full text-xs ${type === 'receipt' ? 'min-w-[1080px]' : 'min-w-[900px]'}`}>
         <thead className={type === 'receipt' ? 'bg-red-800 text-white' : 'bg-emerald-900 text-white'}>
           <tr>

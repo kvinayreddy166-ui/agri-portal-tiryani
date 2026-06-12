@@ -29,6 +29,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { downloadFileFromUrl } from '../lib/fileBlob';
+import { fetchSiteHitSummary, SiteHitSummary } from '../lib/siteHits';
 import { FormDownload } from '../types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
@@ -122,6 +123,7 @@ export function Login() {
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installMessage, setInstallMessage] = useState<string | null>(null);
+  const [siteHitSummary, setSiteHitSummary] = useState<SiteHitSummary | null>(null);
   const [appInstalled, setAppInstalled] = useState(
     () => window.matchMedia?.('(display-mode: standalone)').matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
   );
@@ -141,6 +143,20 @@ export function Login() {
   const previewOverlay = useBackButtonOverlay('public-file-preview', () => setPreviewForm(null));
   const pdfToolOverlay = useBackButtonOverlay('public-pdf-tool', () => setPdfToolOpen(false));
   const grievanceOverlay = useBackButtonOverlay('public-grievance', () => setGrievanceOpen(false));
+
+  useEffect(() => {
+    let mounted = true;
+    fetchSiteHitSummary()
+      .then((summary) => {
+        if (mounted) setSiteHitSummary(summary);
+      })
+      .catch(() => {
+        if (mounted) setSiteHitSummary(null);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     savePublicToolkitState({ statutoryFolder, statutoryPage, acreInput });
@@ -546,7 +562,7 @@ export function Login() {
             ))}
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+          <div className="table-scroll rounded-lg border border-slate-200 bg-white">
             <table className="w-full min-w-[430px] table-fixed text-left">
               <thead className="sticky top-0 z-10 bg-slate-900 text-xs font-bold text-white sm:text-sm">
                 <tr>
@@ -782,6 +798,14 @@ export function Login() {
                 <p className="mt-1 text-sm font-bold text-emerald-700">
                   {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
                 </p>
+                {siteHitSummary && (
+                  <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/95 px-2.5 py-1.5 text-[11px] font-black text-emerald-800 shadow-sm">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                      <Eye className="h-3.5 w-3.5" />
+                    </span>
+                    <span>{siteHitSummary.totalViews.toLocaleString()} Hits</span>
+                  </div>
+                )}
               </div>
               <button
                 type="button"

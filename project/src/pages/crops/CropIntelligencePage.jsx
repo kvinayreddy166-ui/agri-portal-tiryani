@@ -430,7 +430,7 @@ function ResponsiveTable({ columns, rows = [], emptyText }) {
 
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
-      <div className="hidden overflow-x-auto md:block">
+      <div className="table-scroll hidden md:block">
         <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-700">
           <thead className="bg-slate-50 text-left text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-300">
             <tr>

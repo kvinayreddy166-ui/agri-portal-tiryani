@@ -240,7 +240,7 @@ export default function StockReceiptsSales() {
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="table-scroll">
             <table className="w-full min-w-[1400px] text-sm">
               <thead className="bg-slate-900 text-white">
                 <tr>

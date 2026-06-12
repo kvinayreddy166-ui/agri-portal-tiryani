@@ -79,6 +79,21 @@ function copyBuffer(buffer: ArrayBuffer) {
   return new Uint8Array(buffer.slice(0));
 }
 
+function isPdfComputedError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error || '');
+  const normalized = message.toLowerCase().replace(/\s+/g, '');
+  return normalized.includes('getorinsert') || normalized.includes('getorinsertcomputed');
+}
+
+function tryFlattenForm(pdfDoc: PDFDocument) {
+  try {
+    const form = pdfDoc.getForm();
+    form.flatten({ updateFieldAppearances: false });
+  } catch {
+    // Some PDFs do not have AcroForm data or contain malformed form dictionaries.
+  }
+}
+
 async function savePdfSafely(pdfDoc: PDFDocument, options: { useObjectStreams?: boolean; addDefaultPage?: boolean } = {}) {
   try {
     return await pdfDoc.save({
@@ -87,13 +102,18 @@ async function savePdfSafely(pdfDoc: PDFDocument, options: { useObjectStreams?: 
       updateFieldAppearances: false,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : '';
-    if (!message.toLowerCase().includes('getorinsert')) throw error;
-    return pdfDoc.save({
-      useObjectStreams: false,
-      addDefaultPage: options.addDefaultPage,
-      updateFieldAppearances: false,
-    });
+    if (!isPdfComputedError(error)) throw error;
+    tryFlattenForm(pdfDoc);
+    try {
+      return await pdfDoc.save({
+        useObjectStreams: false,
+        addDefaultPage: options.addDefaultPage,
+        updateFieldAppearances: false,
+      });
+    } catch (fallbackError) {
+      if (!isPdfComputedError(fallbackError)) throw fallbackError;
+      throw new Error('This PDF has incompatible form data. Flatten the form fields or use scanned PDF optimization, then try again.');
+    }
   }
 }
 
@@ -136,6 +156,7 @@ export async function compressTextPdf(
   onProgress?.('Cleaning metadata and unused objects', 20);
   const original = await file.arrayBuffer();
   const source = await PDFDocument.load(copyBuffer(original), { ignoreEncryption: true });
+  tryFlattenForm(source);
   const output = await PDFDocument.create();
   const pages = await output.copyPages(source, source.getPageIndices());
   pages.forEach((page) => output.addPage(page));
@@ -190,8 +211,7 @@ export async function compressPdf(file: File, optionsOrTarget: CompressionOption
     try {
       return await compressTextPdf(file, options.onProgress);
     } catch (error) {
-      const message = error instanceof Error ? error.message : '';
-      if (!message.toLowerCase().includes('getorinsert')) throw error;
+      if (!isPdfComputedError(error)) throw error;
       options.onProgress?.('PDF has incompatible form data. Rebuilding pages safely.', 35);
       return compressScannedPdf(file, { ...options, forceRasterize: true });
     }
@@ -215,8 +235,7 @@ export async function targetSizeCompression(
       return { ...textPass, targetAchieved: true, level: `Target ${targetSizeKB} KB` };
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : '';
-    if (!message.toLowerCase().includes('getorinsert')) throw error;
+    if (!isPdfComputedError(error)) throw error;
     options.onProgress?.('PDF has incompatible form data. Trying raster compression.', 30);
   }
 
@@ -407,6 +426,7 @@ export async function mergePdfs(files: File[]): Promise<Blob> {
   for (const file of files) {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await PDFDocument.load(copyBuffer(arrayBuffer), { ignoreEncryption: true });
+    tryFlattenForm(pdf);
     const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
     pages.forEach((page) => mergedPdf.addPage(page));
   }
@@ -417,6 +437,7 @@ export async function mergePdfs(files: File[]): Promise<Blob> {
 export async function splitPdf(file: File, pageRanges: Array<{ start: number; end: number }>): Promise<Blob[]> {
   const arrayBuffer = await file.arrayBuffer();
   const pdfDoc = await PDFDocument.load(copyBuffer(arrayBuffer), { ignoreEncryption: true });
+  tryFlattenForm(pdfDoc);
   const blobs: Blob[] = [];
   for (const range of pageRanges) {
     const newPdf = await PDFDocument.create();

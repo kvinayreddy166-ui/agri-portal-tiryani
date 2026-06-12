@@ -471,7 +471,7 @@ export function FormsDownloads() {
 
         {selectedForms.length > 0 ? (
           <>
-          <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-slate-700">
+          <div className="table-scroll rounded-lg border border-gray-100 dark:border-slate-700">
             <table className="min-w-[720px] w-full border-collapse text-left">
               <thead className="bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                 <tr>
