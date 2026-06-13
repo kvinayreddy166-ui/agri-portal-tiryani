@@ -25,6 +25,7 @@ const FileDirectory = lazy(() => import('./pages/FileDirectory').then((m) => ({ 
 const SubsidyTracking = lazy(() => import('./pages/SubsidyTracking').then((m) => ({ default: m.SubsidyTracking })));
 const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m) => ({ default: m.DealerStockPortal })));
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
+const FertilizerCalculator = lazy(() => import('./pages/FertilizerCalculator').then((m) => ({ default: m.FertilizerCalculator })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
 const StockAnalytics = lazy(() => import('./pages/StockAnalytics'));
 const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
@@ -45,6 +46,7 @@ const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit',
   '/officer-toolkit/statutory-forms',
   '/officer-toolkit/acreage-calculator',
+  '/officer-toolkit/fertilizer-calculator',
 ]);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
@@ -76,6 +78,7 @@ const PAGE_PATHS: Record<string, string> = {
   'subsidy-state-seed': '/subsidy-state-seed',
   'officer-toolkit': '/officer-toolkit',
   'acreage-calculator': '/acreage-calculator',
+  'fertilizer-calculator': '/officer-toolkit/fertilizer-calculator',
   analytics: '/analytics',
   settings: '/settings',
 };
@@ -96,7 +99,11 @@ function getHistoryIndex() {
 }
 
 function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
-  if (pathname === '/officer-toolkit/statutory-forms' || pathname === '/officer-toolkit/acreage-calculator') {
+  if (
+    pathname === '/officer-toolkit/statutory-forms' ||
+    pathname === '/officer-toolkit/acreage-calculator' ||
+    pathname === '/officer-toolkit/fertilizer-calculator'
+  ) {
     return '/officer-toolkit';
   }
   if (pathname === '/forms' || pathname === '/acreage-calculator') {
@@ -112,7 +119,7 @@ function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
 }
 
 function getPageBackFallback(page: string, isDealerUser: boolean) {
-  if (page === 'forms' || page === 'acreage-calculator') return '/officer-toolkit';
+  if (page === 'forms' || page === 'acreage-calculator' || page === 'fertilizer-calculator') return '/officer-toolkit';
   if (page === 'officer-toolkit') return '/dashboard';
   if (page.startsWith('crop-')) return '/crops';
   if (page.startsWith('quality-')) return '/quality';
@@ -270,6 +277,7 @@ function AppContent() {
         'subsidy-state-seed',
         'officer-toolkit',
         'acreage-calculator',
+        'fertilizer-calculator',
         'analytics',
         'settings',
       ]),
@@ -285,6 +293,9 @@ function AppContent() {
       let page = routePage !== 'dashboard' ? routePage : legacyPage || routePage || hashPage;
       if (page === 'officer-toolkit/acreage-calculator') {
         page = 'acreage-calculator';
+      }
+      if (page === 'officer-toolkit/fertilizer-calculator') {
+        page = 'fertilizer-calculator';
       }
       
       return validPages.has(page) ? page : 'dashboard';
@@ -403,7 +414,8 @@ function AppContent() {
     if (
       location.pathname.startsWith('/officer-toolkit/') &&
       location.pathname !== '/officer-toolkit/statutory-forms' &&
-      location.pathname !== '/officer-toolkit/acreage-calculator'
+      location.pathname !== '/officer-toolkit/acreage-calculator' &&
+      location.pathname !== '/officer-toolkit/fertilizer-calculator'
     ) {
       navigate('/officer-toolkit', { replace: true });
     }
@@ -442,7 +454,8 @@ function AppContent() {
     !user &&
     location.pathname.startsWith('/officer-toolkit/') &&
     location.pathname !== '/officer-toolkit/statutory-forms' &&
-    location.pathname !== '/officer-toolkit/acreage-calculator'
+    location.pathname !== '/officer-toolkit/acreage-calculator' &&
+    location.pathname !== '/officer-toolkit/fertilizer-calculator'
   ) {
     return <PageLoader />;
   }
@@ -521,6 +534,8 @@ function AppContent() {
         return <OfficersToolkit />;
       case 'acreage-calculator':
         return <AcreageCalculator />;
+      case 'fertilizer-calculator':
+        return <FertilizerCalculator />;
       case 'analytics':
         return <Analytics />;
       case 'settings':

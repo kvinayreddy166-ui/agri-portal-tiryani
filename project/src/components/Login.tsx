@@ -6,6 +6,7 @@ import {
   Download,
   Eye,
   FileText,
+  FlaskConical,
   Globe2,
   Loader2,
   LockKeyhole,
@@ -42,6 +43,9 @@ const FertilizerStatutoryPdfTool = lazy(() =>
 );
 const SeedForms = lazy(() =>
   import('../pages/SeedForms').then((module) => ({ default: module.SeedForms }))
+);
+const FertilizerCalculator = lazy(() =>
+  import('../pages/FertilizerCalculator').then((module) => ({ default: module.FertilizerCalculator }))
 );
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
@@ -114,6 +118,7 @@ export function Login() {
   const showOfficerToolkit = location.pathname === '/officer-toolkit';
   const showStatutoryForms = location.pathname === '/officer-toolkit/statutory-forms';
   const calculatorOpen = location.pathname === '/officer-toolkit/acreage-calculator';
+  const fertilizerCalculatorOpen = location.pathname === '/officer-toolkit/fertilizer-calculator';
   const [statutoryFolder, setStatutoryFolder] = useState(() => loadPublicToolkitState().statutoryFolder || 'fertilizers');
   const [statutoryPage, setStatutoryPage] = useState(() => loadPublicToolkitState().statutoryPage || 0);
   const [statutoryForms, setStatutoryForms] = useState<FormDownload[]>([]);
@@ -172,6 +177,10 @@ export function Login() {
 
   const openAcreageCalculator = () => {
     navigate('/officer-toolkit/acreage-calculator', { state: { from: 'officer-toolkit' } });
+  };
+
+  const openFertilizerCalculator = () => {
+    navigate('/officer-toolkit/fertilizer-calculator', { state: { from: 'officer-toolkit' } });
   };
 
   const closeAcreageCalculator = () => {
@@ -425,7 +434,7 @@ export function Login() {
           </div>
 
           <section className="rounded-lg border border-[#d8cfb2] bg-[#f4efdf] p-2.5">
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-3">
             <button
               type="button"
               onClick={openStatutoryForms}
@@ -448,7 +457,20 @@ export function Login() {
                 <Calculator className="h-5 w-5" />
               </span>
               <span>
-                <span className="block text-sm font-black">{t('Acerage Calculator', 'Acerage Calculator')}</span>
+                <span className="block text-sm font-black">{t('Acreage Calculator', 'Acreage Calculator')}</span>
+                <span className="mt-0.5 block text-xs font-semibold text-stone-600">Open</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={openFertilizerCalculator}
+              className="flex min-h-16 items-center gap-3 rounded-lg border border-[#d8cfb2] bg-white px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#fbf7ea]"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-white">
+                <FlaskConical className="h-5 w-5" />
+              </span>
+              <span>
+                <span className="block text-sm font-black">{t('Fertilizer Calculator', 'Fertilizer Calculator')}</span>
                 <span className="mt-0.5 block text-xs font-semibold text-stone-600">Open</span>
               </span>
             </button>
@@ -459,7 +481,7 @@ export function Login() {
     );
   }
 
-  if (showStatutoryForms || calculatorOpen) {
+  if (showStatutoryForms || calculatorOpen || fertilizerCalculatorOpen) {
     return (
       <div className="min-h-screen bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24">
         <div className="mx-auto w-full max-w-4xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
@@ -475,7 +497,11 @@ export function Login() {
               </button>
               <div>
                 <h1 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  {showStatutoryForms ? t('Statutory Forms', 'చట్టబద్ధ ఫారాలు') : t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+                  {showStatutoryForms
+                    ? t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')
+                    : fertilizerCalculatorOpen
+                      ? t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')
+                      : t('Acreage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
                 </h1>
               </div>
             </div>
@@ -513,11 +539,21 @@ export function Login() {
               }`}
             >
               <Calculator className="h-4 w-4" />
-              {t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+              {t('Acreage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+            </button>
+            <button
+              type="button"
+              onClick={openFertilizerCalculator}
+              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 transition ${
+                fertilizerCalculatorOpen ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600 hover:bg-white/70'
+              }`}
+            >
+              <FlaskConical className="h-4 w-4" />
+              {t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')}
             </button>
           </div>
 
-          <div className={calculatorOpen ? 'hidden' : ''}>
+          <div className={calculatorOpen || fertilizerCalculatorOpen ? 'hidden' : ''}>
           <div className="mb-3 grid grid-cols-3 gap-1.5">
             {STATUTORY_FOLDERS.map((folder) => (
               <button
@@ -648,6 +684,11 @@ export function Login() {
                 Read values: {acreCalculation.count} item{acreCalculation.count === 1 ? '' : 's'}
               </div>
             </div>
+          )}
+          {fertilizerCalculatorOpen && (
+            <Suspense fallback={<div className="flex h-40 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-emerald-700" /></div>}>
+              <FertilizerCalculator />
+            </Suspense>
           )}
         </div>
         {showStatutoryForms && previewForm?.file_url && (

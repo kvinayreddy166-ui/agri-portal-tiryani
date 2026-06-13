@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calculator, ShieldCheck, FileText } from 'lucide-react';
+import { Calculator, FlaskConical, ShieldCheck, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -13,12 +13,20 @@ const toolkitItems = [
     iconTone: 'bg-[#a9842f] text-white',
   },
   {
-    title: 'Acerage Calculator',
+    title: 'Acreage Calculator',
     description: 'Calculate acreage from field entries.',
     path: '/officer-toolkit/acreage-calculator',
     icon: Calculator,
     tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
     iconTone: 'bg-stone-600 text-white',
+  },
+  {
+    title: 'Fertilizer Calculator',
+    description: 'Calculate nutrients, bags, split doses, and exports.',
+    path: '/officer-toolkit/fertilizer-calculator',
+    icon: FlaskConical,
+    tone: 'border-[#d8cfb2] bg-white text-stone-800 hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800',
+    iconTone: 'bg-emerald-700 text-white',
   },
 ];
 
@@ -44,7 +52,7 @@ export function OfficersToolkit() {
           </div>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid gap-2 sm:grid-cols-3">
           {toolkitItems.map((item) => (
             <button
               key={item.path}
