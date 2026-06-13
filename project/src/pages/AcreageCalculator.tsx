@@ -19,7 +19,7 @@ export function AcreageCalculator() {
             <Calculator className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-950 dark:text-white">Acreage Calculator</h1>
+            <h1 className="text-2xl font-black text-slate-950 dark:text-white">Acerage Calculator</h1>
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">Add acres.guntas values and convert to total acres and hectares.</p>
           </div>
         </div>

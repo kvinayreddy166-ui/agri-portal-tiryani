@@ -2,7 +2,7 @@ import React, { useMemo, useState, ReactNode } from 'react';
 import {
   ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Database,
+  FolderOpen, Moon, Sun, Landmark, Database, MessageCircle,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
 import { useAuth } from '../context/AuthContext';
@@ -109,6 +109,16 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+            <a
+              href="https://whatsapp.com/channel/0029Vb61tsc59PwZEKYH3A0A"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
+              aria-label="WhatsApp Channel"
+              title={t('WhatsApp Channel', 'వాట్సప్ ఛానెల్')}
+            >
+              <MessageCircle className="h-4 w-4" />
+            </a>
             <button
               type="button"
               onClick={toggleTheme}
@@ -273,7 +283,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     crops: { title: 'Crop Intelligence', breadcrumbs: [dashboard] },
     'officer-toolkit': { title: 'Officers Toolkit', breadcrumbs: [dashboard] },
     forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit] },
-    'acreage-calculator': { title: 'Acreage Calculator', breadcrumbs: [dashboard, toolkit] },
+    'acreage-calculator': { title: 'Acerage Calculator', breadcrumbs: [dashboard, toolkit] },
     'gos-circulars': { title: 'GOs & Circulars', breadcrumbs: [dashboard] },
     quality: { title: 'Quality Control', breadcrumbs: [dashboard] },
     'farm-mechanization': { title: 'Farm Mechanization', breadcrumbs: [dashboard] },
@@ -330,7 +340,7 @@ function translateMenu(label: string) {
     'Crop Admin': 'పంట అడ్మిన్',
     'Officers Toolkit': 'Officers Toolkit',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
-    'Acreage Calculator': 'ఎకరాల కాలిక్యులేటర్',
+    'Acerage Calculator': 'ఎకరాల కాలిక్యులేటర్',
     'GOs & Circulars': 'జీ.ఓలు & సర్క్యులర్లు',
     'Quality Control': 'నాణ్యత నియంత్రణ',
     'Farm Mechanization': 'వ్యవసాయ యాంత్రీకరణ',

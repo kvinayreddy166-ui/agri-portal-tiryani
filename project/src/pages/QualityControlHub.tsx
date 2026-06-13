@@ -1,17 +1,43 @@
 import React, { useState } from 'react';
 import { FlaskConical, ShieldCheck, Sprout } from 'lucide-react';
 import { QualityControl } from './QualityControl';
+import { useLanguage } from '../context/LanguageContext';
 
 type QualityCategory = 'seeds' | 'pesticides' | 'fertilizers';
 
-const qualityTabs: Array<{ id: QualityCategory; label: string; icon: React.ElementType; tone: string; activeTone: string }> = [
-  { id: 'seeds', label: 'Seeds', icon: Sprout, tone: 'border-emerald-200 bg-emerald-50 text-emerald-800', activeTone: 'border-emerald-700 bg-emerald-700 text-white' },
-  { id: 'pesticides', label: 'Pesticides', icon: ShieldCheck, tone: 'border-sky-200 bg-sky-50 text-sky-800', activeTone: 'border-sky-700 bg-sky-700 text-white' },
-  { id: 'fertilizers', label: 'Fertilizers', icon: FlaskConical, tone: 'border-amber-200 bg-amber-50 text-amber-900', activeTone: 'border-amber-700 bg-amber-600 text-white' },
+const qualityTabs: Array<{ id: QualityCategory; label: string; telugu: string; icon: React.ElementType; tone: string; iconTone: string; activeTone: string }> = [
+  {
+    id: 'seeds',
+    label: 'Seeds',
+    telugu: 'విత్తనాలు',
+    icon: Sprout,
+    tone: 'border-emerald-100 bg-white text-slate-900 hover:border-emerald-300 hover:bg-emerald-50/70',
+    iconTone: 'bg-emerald-50 text-emerald-700',
+    activeTone: 'border-emerald-700 bg-emerald-700 text-white',
+  },
+  {
+    id: 'pesticides',
+    label: 'Pesticides',
+    telugu: 'పురుగుమందులు',
+    icon: ShieldCheck,
+    tone: 'border-emerald-100 bg-white text-slate-900 hover:border-teal-300 hover:bg-teal-50/70',
+    iconTone: 'bg-teal-50 text-teal-700',
+    activeTone: 'border-teal-700 bg-teal-700 text-white',
+  },
+  {
+    id: 'fertilizers',
+    label: 'Fertilizers',
+    telugu: 'ఎరువులు',
+    icon: FlaskConical,
+    tone: 'border-emerald-100 bg-white text-slate-900 hover:border-lime-300 hover:bg-lime-50/70',
+    iconTone: 'bg-lime-50 text-lime-700',
+    activeTone: 'border-lime-700 bg-lime-700 text-white',
+  },
 ];
 
 export function QualityControlHub() {
   const [activeCategory, setActiveCategory] = useState<QualityCategory>('seeds');
+  const { t } = useLanguage();
 
   return (
     <div className="grid gap-3 xl:grid-cols-[16rem_1fr]">
@@ -28,12 +54,14 @@ export function QualityControlHub() {
                 active ? tab.activeTone : `${tab.tone} dark:border-slate-700 dark:bg-slate-900 dark:text-white`
               }`}
             >
-              <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${active ? 'bg-white/15' : 'bg-white/80'}`}>
+              <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${active ? 'bg-white/15 text-white' : tab.iconTone}`}>
                 <Icon className="h-5 w-5" />
               </div>
               <div>
-                <p className="truncate text-sm font-black">{tab.label}</p>
-                <p className={`text-[11px] font-bold ${active ? 'text-white/80' : 'text-slate-500'}`}>{active ? 'Selected' : 'View records'}</p>
+                <p className="truncate text-sm font-black">{t(tab.label, tab.telugu)}</p>
+                <p className={`text-[11px] font-bold ${active ? 'text-white/80' : 'text-slate-500'}`}>
+                  {active ? t('Selected', 'ఎంచుకున్నారు') : t('View records', 'రికార్డులు చూడండి')}
+                </p>
               </div>
             </button>
           );

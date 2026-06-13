@@ -111,7 +111,7 @@ export function Dashboard() {
   }, [fetchDashboardData]);
 
   const dashboardCrops = farmerStats?.cropRows.length ? farmerStats.cropRows : crops;
-  const totalAcreage = farmerStats ? farmerStats.totalExtent : crops.reduce((sum, crop) => sum + crop.acreage, 0);
+  const totalAcreage = farmerStats ? farmerStats.totalExtent : crops.reduce((sum, crop) => sum + extentToGuntas(crop.acreage), 0);
   const dashboardTotalFarmers = farmerStats?.totalFarmers ?? mandalData?.total_farmers ?? 0;
   const dashboardCultivableArea = farmerStats?.totalExtent ?? mandalData?.cultivable_area ?? 0;
   const highestFertilizerStock = Math.max(...fertilizers.map((item) => item.quantity_available), 1);
@@ -341,7 +341,7 @@ export function Dashboard() {
       <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-emerald-600" />
-          {t('Major Crops', 'ప్రధాన పంటలు')} - {t('Total', 'మొత్తం')}: {totalAcreage.toLocaleString()} {t('acres', 'ఎకరాలు')}
+          {t('Major Crops', 'ప్రధాన పంటలు')} - {t('Total', 'మొత్తం')}: {formatDashboardNumber(totalAcreage)} {t('acres', 'ఎకరాలు')}
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {dashboardCrops.map((crop, idx) => {
@@ -363,7 +363,7 @@ export function Dashboard() {
                   </button>
                 )}
                 <p className="text-xs opacity-90">{crop.crop_name}</p>
-                <p className="text-2xl font-bold mt-1">{crop.acreage.toLocaleString()}</p>
+                <p className="text-2xl font-bold mt-1">{formatDashboardNumber(crop.acreage)}</p>
                 <p className="text-[10px] opacity-75">{t('acres', 'ఎకరాలు')}</p>
               </div>
             );
@@ -667,7 +667,7 @@ function buildFarmerDashboardStats(rows: FarmerDashboardRow[]): FarmerDashboardS
 
   rows.forEach((row) => {
     farmers.add(farmerDashboardIdentity(row));
-    const extent = safeDashboardNumber(row.extent);
+    const extent = extentToGuntas(safeDashboardNumber(row.extent));
     totalExtent += extent;
     const crop = String(row.crop || 'Not specified').trim() || 'Not specified';
     cropExtent.set(crop, (cropExtent.get(crop) || 0) + extent);
@@ -677,14 +677,14 @@ function buildFarmerDashboardStats(rows: FarmerDashboardRow[]): FarmerDashboardS
     .map(([crop_name, acreage]) => ({
       id: `farmer-crop-${crop_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
       crop_name,
-      acreage: Math.round(acreage * 100) / 100,
+      acreage: guntasToExtent(acreage),
     }))
     .sort((a, b) => b.acreage - a.acreage)
     .slice(0, 5);
 
   return {
     totalFarmers: farmers.size,
-    totalExtent: Math.round(totalExtent * 100) / 100,
+    totalExtent: guntasToExtent(totalExtent),
     cropRows,
   };
 }
@@ -719,7 +719,21 @@ function safeDashboardNumber(value: unknown) {
 }
 
 function formatDashboardNumber(value: number) {
-  return value.toLocaleString('en-IN', {
-    maximumFractionDigits: 2,
-  });
+  const num = Number(value || 0);
+  const acrePart = Math.floor(num);
+  const guntaPart = Math.round((num - acrePart) * 100);
+  return `${acrePart}.${String(guntaPart).padStart(2, '0')}`;
+}
+
+function extentToGuntas(value: number): number {
+  const num = Number(value || 0);
+  const acrePart = Math.floor(num);
+  const guntaPart = Math.round((num - acrePart) * 100);
+  return acrePart * 40 + guntaPart;
+}
+
+function guntasToExtent(totalGuntas: number): number {
+  const acres = Math.floor(totalGuntas / 40);
+  const guntas = totalGuntas % 40;
+  return acres + (guntas / 100);
 }

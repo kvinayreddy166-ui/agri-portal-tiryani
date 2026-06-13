@@ -265,7 +265,7 @@ export function StockManagement() {
     fertilizer: item.fertilizer,
     Receipts: Number(item.receipts.toFixed(2)),
   }));
-  const receiptRows = useVirtualRows(filteredStock, { rowHeight: 44, viewportHeight: 560 });
+  const receiptRows = useVirtualRows(filteredStock, { rowHeight: 34, viewportHeight: 480 });
   const receiptColumnCount = isAdminUser ? 9 : 8;
 
   const formatDate = (value?: string) => {
@@ -589,22 +589,22 @@ export function StockManagement() {
           </section>
 
           <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
-            <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+            <div className="border-b border-slate-100 px-3 py-2 dark:border-slate-800">
               <h2 className="text-sm font-black text-slate-950 dark:text-white">Fertilizer Receipts</h2>
             </div>
             <div className="table-scroll" {...receiptRows.containerProps}>
-              <table className="w-full min-w-[1040px] text-sm">
-                <thead className="bg-slate-900 text-xs uppercase text-white">
+              <table className="w-full min-w-[980px] text-xs">
+                <thead className="bg-slate-900 text-[10px] uppercase tracking-wide text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left">S.No</th>
-                    <th className="px-4 py-3 text-left">Dealer</th>
-                    <th className="px-4 py-3 text-left">Fertilizer</th>
-                    <th className="px-4 py-3 text-right">Receipts (MT)</th>
-                    <th className="px-4 py-3 text-left">Wholesaler</th>
-                    <th className="px-4 py-3 text-left">Invoice No.</th>
-                    <th className="px-4 py-3 text-left">Invoice Date</th>
-                    <th className="px-4 py-3 text-left">Updated</th>
-                    {isAdminUser && <th className="px-4 py-3 text-center">Delete</th>}
+                    <th className="px-2.5 py-2 text-left">S.No</th>
+                    <th className="px-2.5 py-2 text-left">Dealer</th>
+                    <th className="px-2.5 py-2 text-left">Fertilizer</th>
+                    <th className="px-2.5 py-2 text-right">Receipts (MT)</th>
+                    <th className="px-2.5 py-2 text-left">Wholesaler</th>
+                    <th className="px-2.5 py-2 text-left">Invoice No.</th>
+                    <th className="px-2.5 py-2 text-left">Invoice Date</th>
+                    <th className="px-2.5 py-2 text-left">Updated</th>
+                    {isAdminUser && <th className="px-2.5 py-2 text-center">Delete</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -614,26 +614,26 @@ export function StockManagement() {
                     </tr>
                   )}
                   {receiptRows.virtualRows.map(({ row: item, index }) => (
-                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
-                      <td className="px-4 py-3 font-bold">{index + 1}</td>
-                      <td className="px-4 py-3 font-black text-slate-950 dark:text-white">{titleCase(item.dealer_name || 'Unknown dealer')}</td>
-                      <td className="px-4 py-3 font-semibold">{item.fertilizer_type}</td>
-                      <td className="px-4 py-3 text-right font-black text-emerald-700 dark:text-emerald-300">
+                    <tr key={item.id} className="hover:bg-emerald-50/50 dark:hover:bg-slate-800/60">
+                      <td className="px-2.5 py-1.5 font-bold">{index + 1}</td>
+                      <td className="max-w-[260px] px-2.5 py-1.5 font-black leading-tight text-slate-950 dark:text-white">{titleCase(item.dealer_name || 'Unknown dealer')}</td>
+                      <td className="px-2.5 py-1.5 font-semibold">{item.fertilizer_type}</td>
+                      <td className="px-2.5 py-1.5 text-right font-black text-emerald-700 dark:text-emerald-300">
                         {Number(item.quantity_mts || 0).toFixed(2)}
                       </td>
-                      <td className="px-4 py-3">{item.wholesaler_name || '-'}</td>
-                      <td className="px-4 py-3">{item.invoice_number || '-'}</td>
-                      <td className="px-4 py-3">{formatDate(item.invoice_date)}</td>
-                      <td className="px-4 py-3">{formatDate(item.last_updated)}</td>
+                      <td className="max-w-[220px] truncate px-2.5 py-1.5">{item.wholesaler_name || '-'}</td>
+                      <td className="px-2.5 py-1.5">{item.invoice_number || '-'}</td>
+                      <td className="px-2.5 py-1.5">{formatDate(item.invoice_date)}</td>
+                      <td className="px-2.5 py-1.5">{formatDate(item.last_updated)}</td>
                       {isAdminUser && (
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-2.5 py-1.5 text-center">
                           <button
                             type="button"
                             onClick={() => handleDelete(item.id)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
                             aria-label="Delete fertilizer receipt"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </td>
                       )}
