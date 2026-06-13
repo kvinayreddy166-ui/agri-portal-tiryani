@@ -12,7 +12,6 @@ import {
   LockKeyhole,
   LogIn,
   Mail,
-  MessageCircle,
   MessageSquareText,
   Phone,
   Send,
@@ -51,6 +50,14 @@ const FertilizerCalculator = lazy(() =>
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
 const TEST_EMAIL = 'test@gmail.com';
 const TEST_PASSWORD = 'Test@123';
+
+function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true" className={className} fill="currentColor">
+      <path d="M16.03 3.2A12.73 12.73 0 0 0 5.11 22.5L3.7 28.8l6.45-1.52a12.74 12.74 0 1 0 5.88-24.08Zm0 2.34a10.4 10.4 0 1 1-5.08 19.47l-.4-.23-3.9.92.86-3.8-.25-.41A10.39 10.39 0 0 1 16.03 5.54Zm-4.3 5.12c-.22 0-.58.08-.88.42-.3.33-1.16 1.13-1.16 2.76 0 1.62 1.18 3.19 1.34 3.41.17.22 2.28 3.65 5.63 4.97 2.78 1.09 3.35.87 3.95.81.6-.05 1.95-.79 2.22-1.56.28-.77.28-1.43.2-1.57-.08-.14-.3-.22-.63-.39-.33-.16-1.95-.96-2.25-1.07-.3-.11-.52-.17-.74.16-.22.33-.85 1.07-1.04 1.29-.19.22-.38.25-.71.08-.33-.16-1.39-.51-2.64-1.63-.98-.87-1.64-1.95-1.83-2.28-.19-.33-.02-.51.14-.67.15-.15.33-.38.49-.57.16-.19.22-.33.33-.55.11-.22.06-.41-.03-.57-.08-.17-.74-1.79-1.02-2.45-.27-.64-.54-.55-.74-.56h-.64Z" />
+    </svg>
+  );
+}
 
 const STATUTORY_FOLDERS = [
   { id: 'fertilizers', label: 'Fertilizer', telugu: 'ఎరువులు' },
@@ -426,7 +433,7 @@ export function Login() {
                   aria-label="WhatsApp Channel"
                   title={t('WhatsApp Channel', 'వాట్సప్ ఛానెల్')}
                 >
-                  <MessageCircle className="h-4 w-4" />
+                  <WhatsAppIcon className="h-4 w-4" />
                 </a>
                 <PortalLogo size="md" />
               </div>
@@ -825,7 +832,7 @@ export function Login() {
                   aria-label="WhatsApp Channel"
                   title={t('WhatsApp Channel', 'వాట్సప్ ఛానెల్')}
                 >
-                  <MessageCircle className="h-4 w-4" />
+                  <WhatsAppIcon className="h-4 w-4" />
                 </a>
                 <button
                   type="button"
