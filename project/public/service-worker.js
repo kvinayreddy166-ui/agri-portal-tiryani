@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tiryani-portal-v11';
+const CACHE_VERSION = 'tiryani-portal-v12';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const API_CACHE = `${CACHE_VERSION}-api`;
