@@ -496,20 +496,6 @@ export function Login() {
                 <span className="mt-0.5 block text-xs font-semibold text-stone-600">Open</span>
               </span>
             </button>
-            <a
-              href={UREA_DASHBOARD_LOGIN_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex min-h-16 items-center gap-3 rounded-lg border border-[#d8cfb2] bg-white px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#fbf7ea]"
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-700 text-white">
-                <Globe2 className="h-5 w-5" />
-              </span>
-              <span>
-                <span className="block text-sm font-black">{t('Urea Dashboard', 'Urea Dashboard')}</span>
-                <span className="mt-0.5 block text-xs font-semibold text-stone-600">{t('External login', 'External login')}</span>
-              </span>
-            </a>
           </div>
           </section>
         </div>
@@ -874,6 +860,16 @@ export function Login() {
               </div>
             </div>
 
+            <a
+              href={UREA_DASHBOARD_LOGIN_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mb-3 flex items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-black text-sky-900 transition hover:bg-sky-100"
+            >
+              <Globe2 className="h-4 w-4" />
+              {t('Open Urea Dashboard Login', 'Open Urea Dashboard Login')}
+            </a>
+
             <section className="mb-3 rounded-lg border border-[#d8cfb2] bg-[#f4efdf] p-2.5 shadow-sm">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
@@ -937,16 +933,6 @@ export function Login() {
               </p>
               <h3 className="mt-1 text-2xl font-black text-slate-950">{t('Welcome', 'స్వాగతం')}</h3>
             </div>
-
-            <a
-              href={UREA_DASHBOARD_LOGIN_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mb-3 flex items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-black text-sky-900 transition hover:bg-sky-100"
-            >
-              <Globe2 className="h-4 w-4" />
-              {t('Open Urea Dashboard Login', 'Open Urea Dashboard Login')}
-            </a>
 
             {error && (
               <div className="mb-4 flex gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

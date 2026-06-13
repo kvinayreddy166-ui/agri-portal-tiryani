@@ -27,7 +27,6 @@ const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const FertilizerCalculator = lazy(() => import('./pages/FertilizerCalculator').then((m) => ({ default: m.FertilizerCalculator })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
-const UreaDashboardReports = lazy(() => import('./pages/UreaDashboardReports').then((m) => ({ default: m.UreaDashboardReports })));
 const StockAnalytics = lazy(() => import('./pages/StockAnalytics'));
 const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const CropAdminDashboard = lazy(() =>
@@ -80,7 +79,6 @@ const PAGE_PATHS: Record<string, string> = {
   'officer-toolkit': '/officer-toolkit',
   'acreage-calculator': '/acreage-calculator',
   'fertilizer-calculator': '/officer-toolkit/fertilizer-calculator',
-  'urea-dashboard-reports': '/urea-dashboard-reports',
   analytics: '/analytics',
   settings: '/settings',
 };
@@ -280,7 +278,6 @@ function AppContent() {
         'officer-toolkit',
         'acreage-calculator',
         'fertilizer-calculator',
-        'urea-dashboard-reports',
         'analytics',
         'settings',
       ]),
@@ -542,12 +539,6 @@ function AppContent() {
         return <AcreageCalculator />;
       case 'fertilizer-calculator':
         return <FertilizerCalculator />;
-      case 'urea-dashboard-reports':
-        return isAdminUser ? (
-          <Suspense fallback={<PageLoader />}>
-            <UreaDashboardReports />
-          </Suspense>
-        ) : <Dashboard />;
       case 'analytics':
         return <Analytics />;
       case 'settings':

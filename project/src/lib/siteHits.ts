@@ -32,6 +32,17 @@ export async function recordSiteHit(options: { path?: string; countOncePerSessio
 }
 
 export async function fetchSiteHitSummary(): Promise<SiteHitSummary> {
+  const rpcResult = await supabase.rpc('get_site_hit_summary');
+  if (!rpcResult.error && rpcResult.data) {
+    const row = Array.isArray(rpcResult.data) ? rpcResult.data[0] : rpcResult.data;
+    return {
+      totalViews: Number(row?.total_views || PREVIOUS_SITE_VISIT_BASELINE),
+      uniqueVisitors: Number(row?.unique_visitors || 0),
+      todayViews: Number(row?.today_views || 0),
+      lastViewedAt: row?.last_viewed_at || null,
+    };
+  }
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
