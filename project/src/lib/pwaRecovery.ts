@@ -50,11 +50,13 @@ export async function recoverFromStaleAssets() {
     }
 
     const registrations = await navigator.serviceWorker?.getRegistrations?.();
-    await Promise.all((registrations || []).map((registration) => registration.update()));
+    await Promise.all((registrations || []).map((registration) => registration.unregister()));
   } catch {
     // Reloading with network cache bypass is still the best recovery path.
   } finally {
-    window.location.reload();
+    const url = new URL(window.location.href);
+    url.searchParams.set('refresh', String(Date.now()));
+    window.location.replace(url.toString());
   }
 }
 

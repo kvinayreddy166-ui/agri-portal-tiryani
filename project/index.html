@@ -57,19 +57,11 @@
     </div>
     <script>
       (function () {
-        var recoveryKey = 'tiryani-startup-recovery-v1';
+        var recoveryKey = 'tiryani-startup-recovery-v2';
         window.__TIRYANI_APP_BOOTED__ = false;
-        window.setTimeout(function () {
-          if (window.__TIRYANI_APP_BOOTED__) return;
-          var loader = document.getElementById('startup-loader');
-          if (!loader) return;
-          var alreadyTried = sessionStorage.getItem(recoveryKey);
-          if (alreadyTried) {
-            loader.innerHTML = '<img src="/images/agri-emblem-192.webp" alt="Tiryani Agriculture Portal" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:14px;font-weight:700">App update is ready. Please refresh once.</div><button onclick="location.reload()" style="border:0;border-radius:10px;background:#047857;color:white;padding:10px 16px;font-weight:800">Refresh</button>';
-            return;
-          }
-          sessionStorage.setItem(recoveryKey, '1');
-          Promise.resolve()
+
+        function hardRefresh() {
+          return Promise.resolve()
             .then(function () {
               if (!('serviceWorker' in navigator)) return;
               return navigator.serviceWorker.getRegistrations().then(function (registrations) {
@@ -89,7 +81,23 @@
               url.searchParams.set('refresh', String(Date.now()));
               window.location.replace(url.toString());
             });
-        }, 5000);
+        }
+
+        window.__TIRYANI_FORCE_REFRESH__ = hardRefresh;
+
+        window.setTimeout(function () {
+          if (window.__TIRYANI_APP_BOOTED__) return;
+          var loader = document.getElementById('startup-loader');
+          if (!loader) return;
+          var attempts = Number(sessionStorage.getItem(recoveryKey) || 0);
+          if (attempts >= 2) {
+            loader.innerHTML = '<img src="/images/agri-emblem-192.webp" alt="Tiryani Agriculture Portal" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:14px;font-weight:700">App is taking longer than expected.</div><button onclick="window.__TIRYANI_FORCE_REFRESH__ && window.__TIRYANI_FORCE_REFRESH__()" style="border:0;border-radius:10px;background:#047857;color:white;padding:10px 16px;font-weight:800">Refresh App</button>';
+            return;
+          }
+          sessionStorage.setItem(recoveryKey, String(attempts + 1));
+          loader.innerHTML = '<img src="/images/agri-emblem-192.webp" alt="Tiryani Agriculture Portal" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:14px;font-weight:700">Updating app. Please wait...</div>';
+          hardRefresh();
+        }, 12000);
       })();
     </script>
     <script type="module" src="/src/main.tsx"></script>

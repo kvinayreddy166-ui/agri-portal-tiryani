@@ -14,6 +14,12 @@ declare global {
 
 installPwaRecovery();
 window.__TIRYANI_APP_BOOTED__ = true;
+try {
+  window.sessionStorage.removeItem('tiryani-startup-recovery-v1');
+  window.sessionStorage.removeItem('tiryani-startup-recovery-v2');
+} catch {
+  // Startup recovery state is best-effort only.
+}
 
 const recordInitialSiteHit = () => {
   void recordSiteHit();

@@ -34,6 +34,8 @@ const emptyForm = {
 
 const STATE_KEY = 'tiryani-statutory-forms-state';
 const FORMS_PAGE_SIZE = 12;
+const FORM_COLUMNS = 'id, title, label, description, file_url, file_type, category, created_at';
+const FORM_COLUMNS_WITHOUT_LABEL = 'id, title, description, file_url, file_type, category, created_at';
 
 export function FormsDownloads() {
   const { isAdminUser } = useAuth();
@@ -75,7 +77,7 @@ export function FormsDownloads() {
     try {
       const from = currentPage * FORMS_PAGE_SIZE;
       const to = from + FORMS_PAGE_SIZE - 1;
-      const [countResults, pageResult] = await Promise.all([
+      const [countResults, initialPageResult] = await Promise.all([
         Promise.all(
           folders.map(async (folder) => {
             const { count } = await supabase
@@ -87,11 +89,21 @@ export function FormsDownloads() {
         ),
         supabase
           .from('forms_downloads')
-          .select('id, title, label, description, file_url, file_type, category, created_at', { count: 'exact' })
+          .select(FORM_COLUMNS, { count: 'exact' })
           .eq('category', selectedFolder)
           .order('created_at', { ascending: false })
           .range(from, to),
       ]);
+
+      let pageResult = initialPageResult;
+      if (pageResult.error && isMissingLabelColumnError(pageResult.error)) {
+        pageResult = await supabase
+          .from('forms_downloads')
+          .select(FORM_COLUMNS_WITHOUT_LABEL, { count: 'exact' })
+          .eq('category', selectedFolder)
+          .order('created_at', { ascending: false })
+          .range(from, to);
+      }
 
       if (pageResult.error) throw pageResult.error;
       setFolderCounts(Object.fromEntries(countResults));
@@ -203,9 +215,17 @@ export function FormsDownloads() {
         category: newForm.category,
       };
 
-      const { error } = editingFormId
+      let { error } = editingFormId
         ? await supabase.from('forms_downloads').update(payload).eq('id', editingFormId)
         : await supabase.from('forms_downloads').insert([payload]);
+
+      if (error && isMissingLabelColumnError(error)) {
+        const { label: _label, ...legacyPayload } = payload;
+        const legacyResult = editingFormId
+          ? await supabase.from('forms_downloads').update(legacyPayload).eq('id', editingFormId)
+          : await supabase.from('forms_downloads').insert([legacyPayload]);
+        error = legacyResult.error;
+      }
 
       if (error) throw error;
 
@@ -563,6 +583,16 @@ export function FormsDownloads() {
       </section>
     </div>
   );
+}
+
+function isMissingLabelColumnError(error: unknown) {
+  const message = typeof error === 'object' && error && 'message' in error
+    ? String((error as { message?: unknown }).message || '')
+    : String(error || '');
+  const code = typeof error === 'object' && error && 'code' in error
+    ? String((error as { code?: unknown }).code || '')
+    : '';
+  return code === 'PGRST204' || /label/i.test(message) && /column|schema|cache|not found|does not exist/i.test(message);
 }
 
 function PaginationControls({

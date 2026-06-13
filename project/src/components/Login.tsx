@@ -67,6 +67,8 @@ const STATUTORY_FOLDERS = [
 
 const PUBLIC_TOOLKIT_STATE_KEY = 'tiryani-public-officer-toolkit-state';
 const PUBLIC_FORMS_PAGE_SIZE = 10;
+const PUBLIC_FORM_COLUMNS = 'id, title, label, description, file_url, file_type, category, created_at';
+const PUBLIC_FORM_COLUMNS_WITHOUT_LABEL = 'id, title, description, file_url, file_type, category, created_at';
 
 const TELANGANA_DISTRICTS = [
   'Adilabad',
@@ -234,11 +236,21 @@ export function Login() {
 
     const fetchForms = async () => {
       setFormsLoading(true);
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('forms_downloads')
-        .select('id, title, label, description, file_url, file_type, category, created_at')
+        .select(PUBLIC_FORM_COLUMNS)
         .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
         .order('created_at', { ascending: false });
+
+      if (error && isMissingPublicLabelColumnError(error)) {
+        const fallback = await supabase
+          .from('forms_downloads')
+          .select(PUBLIC_FORM_COLUMNS_WITHOUT_LABEL)
+          .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
+          .order('created_at', { ascending: false });
+        data = fallback.data;
+        error = fallback.error;
+      }
 
       if (error) {
         console.error('Error fetching statutory forms:', error);
@@ -1211,4 +1223,14 @@ function calculateAcreValues(input: string) {
     formatted: `${acres}.${String(guntas).padStart(2, '0')}`,
     hectares: (decimalAcres * 0.40468564224).toFixed(4),
   };
+}
+
+function isMissingPublicLabelColumnError(error: unknown) {
+  const message = typeof error === 'object' && error && 'message' in error
+    ? String((error as { message?: unknown }).message || '')
+    : String(error || '');
+  const code = typeof error === 'object' && error && 'code' in error
+    ? String((error as { code?: unknown }).code || '')
+    : '';
+  return code === 'PGRST204' || (/label/i.test(message) && /column|schema|cache|not found|does not exist/i.test(message));
 }
