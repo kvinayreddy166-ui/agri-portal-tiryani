@@ -175,7 +175,7 @@ export function Login() {
 
   const openOfficerToolkit = () => {
     void recordSiteHit({ path: '/officer-toolkit', countOncePerSession: false });
-    navigate('/officer-toolkit');
+    navigate('/officer-toolkit', { state: { from: 'login' } });
   };
 
   const openStatutoryForms = () => {
@@ -236,7 +236,7 @@ export function Login() {
       setFormsLoading(true);
       const { data, error } = await supabase
         .from('forms_downloads')
-        .select('id, title, description, file_url, file_type, category, created_at')
+        .select('id, title, label, description, file_url, file_type, category, created_at')
         .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
         .order('created_at', { ascending: false });
 
@@ -604,7 +604,7 @@ export function Login() {
                       <td className="px-2.5 py-2 align-middle">
                         <div className="flex w-full min-w-0 items-center gap-2 text-left">
                           <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                          <span className="block min-w-0 truncate text-sm font-bold text-slate-950 sm:text-base">{form.title}</span>
+                          <span className="block min-w-0 truncate text-sm font-bold text-slate-950 sm:text-base">{form.label || form.title}</span>
                         </div>
                       </td>
                       <td className="px-2.5 py-2 align-middle">

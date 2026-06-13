@@ -99,6 +99,7 @@ export interface SchemeBeneficiary {
 export interface FormDownload {
   id: string;
   title: string;
+  label?: string | null;
   description: string;
   file_url: string | null;
   file_type: string;

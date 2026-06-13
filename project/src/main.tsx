@@ -13,8 +13,18 @@ declare global {
 }
 
 installPwaRecovery();
-void recordSiteHit();
 window.__TIRYANI_APP_BOOTED__ = true;
+
+const recordInitialSiteHit = () => {
+  void recordSiteHit();
+};
+
+const requestIdle = window.requestIdleCallback;
+if (requestIdle) {
+  requestIdle(recordInitialSiteHit, { timeout: 2500 });
+} else {
+  setTimeout(recordInitialSiteHit, 1500);
+}
 
 const rootEl = document.getElementById('root');
 if (!rootEl) {

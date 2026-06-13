@@ -66,7 +66,7 @@ export function Dashboard() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [cropsRes, schemesRes, contentRes, beneficiariesRes, dailyFertilizers, hitsRes, farmerStatsRes] = await Promise.all([
+      const [cropsRes, schemesRes, contentRes, beneficiariesRes] = await Promise.all([
         cachedSupabaseRows<Crop>(
           'dashboard:crops:v2',
           () => supabase.from('crops').select('id, crop_name, acreage, description, image_url, created_at').order('crop_name'),
@@ -87,20 +87,25 @@ export function Dashboard() {
           () => supabase.from('scheme_beneficiaries').select('id, scheme_id, financial_year, beneficiaries_count, notes, created_at, created_by').order('financial_year', { ascending: false }).limit(80),
           []
         ),
+      ]);
+
+      setCrops(cropsRes);
+      setSchemes(schemesRes);
+      setSchemeBeneficiaries(beneficiariesRes);
+      setMandalData(contentRes?.content || null);
+      setLoading(false);
+
+      const [dailyFertilizers, hitsRes, farmerStatsRes] = await Promise.all([
         fetchDailyFertilizerStockSummary().catch(() => []),
         fetchSiteHitSummary().catch(() => null),
         fetchFarmerDashboardStats().catch(() => null),
       ]);
-
-      setCrops(cropsRes);
       setFertilizers(dailyFertilizers);
-      setSchemes(schemesRes);
-      setSchemeBeneficiaries(beneficiariesRes);
-      setMandalData(contentRes?.content || null);
       setSiteHitSummary(hitsRes);
       setFarmerStats(farmerStatsRes);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setLoading(false);
     } finally {
       setLoading(false);
     }

@@ -2,7 +2,7 @@ import React, { useMemo, useState, ReactNode } from 'react';
 import {
   ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Database, MessageCircle,
+  FolderOpen, Moon, Sun, Landmark, Database,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
 import { useAuth } from '../context/AuthContext';
@@ -109,16 +109,6 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-            <a
-              href="https://whatsapp.com/channel/0029Vb61tsc59PwZEKYH3A0A"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
-              aria-label="WhatsApp Channel"
-              title={t('WhatsApp Channel', 'వాట్సప్ ఛానెల్')}
-            >
-              <MessageCircle className="h-4 w-4" />
-            </a>
             <button
               type="button"
               onClick={toggleTheme}

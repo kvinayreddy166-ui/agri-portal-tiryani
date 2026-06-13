@@ -29,5 +29,21 @@ export default defineConfig({
     sourcemap: false,
     target: 'es2020',
     chunkSizeWarningLimit: 650,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('xlsx')) return 'office-xlsx';
+          if (id.includes('jspdf') || id.includes('pdf-lib') || id.includes('pdfjs-dist') || id.includes('html2canvas')) {
+            return 'pdf-tools';
+          }
+          if (id.includes('recharts') || id.includes('d3-')) return 'charts';
+          if (id.includes('@supabase')) return 'supabase';
+          if (id.includes('lucide-react')) return 'icons';
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'react-vendor';
+          return 'vendor';
+        },
+      },
+    },
   },
 });

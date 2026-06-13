@@ -648,16 +648,16 @@ export function FertilizerCalculator() {
       is_active: true,
     };
     if (!payload.name) return;
-    const query = grade.id
-      ? supabase.from('fertilizer_grades').update(payload).eq('id', grade.id)
-      : supabase.from('fertilizer_grades').insert(payload).select().single();
-    const { error } = await query;
+    const shouldUpdate = Boolean(grade.id && !grade.id.startsWith('local-'));
+    const { error } = shouldUpdate
+      ? await supabase.from('fertilizer_grades').update(payload).eq('id', grade.id)
+      : await supabase.from('fertilizer_grades').insert(payload);
     if (error) {
       alert('Could not save fertilizer grade. Please apply the Supabase migration first.');
       return;
     }
     setGrades((current) => {
-      if (grade.id) {
+      if (shouldUpdate) {
         return current.map((item) => item.id === grade.id ? { ...item, ...payload } : item);
       }
       return [...current, { ...payload, id: `local-${payload.name}` }];
@@ -680,16 +680,16 @@ export function FertilizerCalculator() {
       is_active: true,
     };
     if (!payload.crop_name) return;
-    const query = crop.id
-      ? supabase.from('crop_fertilizer_recommendations').update(payload).eq('id', crop.id)
-      : supabase.from('crop_fertilizer_recommendations').insert(payload).select().single();
-    const { error } = await query;
+    const shouldUpdate = Boolean(crop.id && !crop.id.startsWith('local-'));
+    const { error } = shouldUpdate
+      ? await supabase.from('crop_fertilizer_recommendations').update(payload).eq('id', crop.id)
+      : await supabase.from('crop_fertilizer_recommendations').insert(payload);
     if (error) {
       alert('Could not save crop recommendation. Please apply the Supabase migration first.');
       return;
     }
     setRecommendations((current) => {
-      if (crop.id) {
+      if (shouldUpdate) {
         return current.map((item) => item.id === crop.id ? { ...item, ...payload } : item);
       }
       return [...current, { ...payload, id: `local-${payload.crop_name}` }];

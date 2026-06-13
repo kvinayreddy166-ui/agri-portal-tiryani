@@ -1,6 +1,6 @@
 import React from 'react';
-import { Calculator, FlaskConical, ShieldCheck, FileText } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Calculator, FlaskConical, ShieldCheck, FileText, ArrowLeft } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
 const toolkitItems = [
@@ -32,24 +32,38 @@ const toolkitItems = [
 
 export function OfficersToolkit() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
+  const fromLogin = location.state?.from === 'login';
 
   return (
     <div className="min-h-screen bg-[#eef6f0] p-3 dark:bg-slate-950 sm:p-4">
     <div className="mx-auto max-w-2xl">
       <section className="rounded-lg border border-[#d8cfb2] bg-[#f4efdf] p-3 shadow-sm dark:border-stone-700 dark:bg-stone-900 sm:p-4">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#a9842f] text-white">
-            <ShieldCheck className="h-5 w-5" />
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#a9842f] text-white">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-black uppercase tracking-wide text-stone-600 dark:text-stone-200">
+                {t('Officer Toolkit', 'Officer Toolkit')}
+              </p>
+              <p className="mt-0.5 text-sm font-semibold text-stone-500 dark:text-stone-300">
+                {t('Choose a field tool to continue.', 'Choose a field tool to continue.')}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-wide text-stone-600 dark:text-stone-200">
-              {t('Officer Toolkit', 'Officer Toolkit')}
-            </p>
-            <p className="mt-0.5 text-sm font-semibold text-stone-500 dark:text-stone-300">
-              {t('Choose a field tool to continue.', 'Choose a field tool to continue.')}
-            </p>
-          </div>
+          {fromLogin && (
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t('Back to Login', 'లాగిన్‌కి తిరిగి వెళ్లు')}
+            </button>
+          )}
         </div>
 
         <div className="grid gap-2 sm:grid-cols-3">

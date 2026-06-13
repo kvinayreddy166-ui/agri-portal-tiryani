@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import type * as XLSX from 'xlsx';
 
 export type FarmerImportRow = {
   s_no: number;
@@ -25,10 +25,11 @@ type RawRow = Record<string, unknown>;
 type RawArrayRow = unknown[];
 
 export async function parseFarmerWorkbook(file: File): Promise<FarmerImportRow[]> {
+  const XLSX = await import('xlsx');
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array' });
-  const englishRows = sheetRows(workbook, workbook.SheetNames[0]);
-  const teluguRows = workbook.SheetNames[1] ? sheetArrayRows(workbook, workbook.SheetNames[1]) : [];
+  const englishRows = sheetRows(XLSX, workbook, workbook.SheetNames[0]);
+  const teluguRows = workbook.SheetNames[1] ? sheetArrayRows(XLSX, workbook, workbook.SheetNames[1]) : [];
   const teluguBySerial = new Map(teluguRows.map((row) => [normalText(row[0]), row]));
   const seen = new Set<string>();
   const parsed: FarmerImportRow[] = [];
@@ -144,16 +145,16 @@ function buildFarmerImportRow(row: RawRow, telugu: RawArrayRow, sNo: number): Fa
   return { ...base, search_text, identity_key, row_hash };
 }
 
-function sheetRows(workbook: XLSX.WorkBook, sheetName: string): RawRow[] {
+function sheetRows(xlsx: typeof XLSX, workbook: XLSX.WorkBook, sheetName: string): RawRow[] {
   const worksheet = workbook.Sheets[sheetName];
   if (!worksheet) return [];
-  return XLSX.utils.sheet_to_json<RawRow>(worksheet, { defval: '', raw: false });
+  return xlsx.utils.sheet_to_json<RawRow>(worksheet, { defval: '', raw: false });
 }
 
-function sheetArrayRows(workbook: XLSX.WorkBook, sheetName: string): RawArrayRow[] {
+function sheetArrayRows(xlsx: typeof XLSX, workbook: XLSX.WorkBook, sheetName: string): RawArrayRow[] {
   const worksheet = workbook.Sheets[sheetName];
   if (!worksheet) return [];
-  return XLSX.utils.sheet_to_json<RawArrayRow>(worksheet, { header: 1, defval: '', raw: false }).slice(1);
+  return xlsx.utils.sheet_to_json<RawArrayRow>(worksheet, { header: 1, defval: '', raw: false }).slice(1);
 }
 
 function numberValue(value: unknown) {

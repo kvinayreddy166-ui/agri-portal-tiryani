@@ -25,6 +25,7 @@ const folders = [
 
 const emptyForm = {
   title: '',
+  label: '',
   description: '',
   file_url: '',
   file_type: 'pdf',
@@ -86,7 +87,7 @@ export function FormsDownloads() {
         ),
         supabase
           .from('forms_downloads')
-          .select('id, title, description, file_url, file_type, category, created_at', { count: 'exact' })
+          .select('id, title, label, description, file_url, file_type, category, created_at', { count: 'exact' })
           .eq('category', selectedFolder)
           .order('created_at', { ascending: false })
           .range(from, to),
@@ -195,6 +196,7 @@ export function FormsDownloads() {
 
       const payload = {
         title: newForm.title.trim(),
+        label: newForm.label.trim(),
         description: newForm.description.trim(),
         file_url: fileUrl,
         file_type: fileType,
@@ -239,6 +241,7 @@ export function FormsDownloads() {
   const openEditForm = (form: FormDownload) => {
     setNewForm({
       title: form.title,
+      label: form.label || '',
       description: form.description || '',
       file_url: form.file_url || '',
       file_type: form.file_type || 'pdf',
@@ -355,7 +358,18 @@ export function FormsDownloads() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="mb-1 block text-sm font-bold text-gray-700">{t('Description', 'వివరణ')}</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700">{t('Public label', 'Public label')}</label>
+                <input
+                  type="text"
+                  value={newForm.label}
+                  onChange={(e) => setNewForm({ ...newForm, label: e.target.value })}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  placeholder={t('Optional shorter name shown to users', 'Optional shorter name shown to users')}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm font-bold text-gray-700">{t('Description', 'Description')}</label>
                 <textarea
                   value={newForm.description}
                   onChange={(e) => setNewForm({ ...newForm, description: e.target.value })}
@@ -462,11 +476,19 @@ export function FormsDownloads() {
       )}
 
       <section className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <div className="mb-3">
-          <h2 className="text-xl font-black text-gray-950 dark:text-white">{t(activeFolder.label, activeFolder.telugu)}</h2>
-          <p className="text-sm text-gray-500 dark:text-slate-300">
-            {totalForms} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
-          </p>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-black text-gray-950 dark:text-white">{t(activeFolder.label, activeFolder.telugu)}</h2>
+            <p className="text-sm text-gray-500 dark:text-slate-300">
+              {totalForms} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
+            </p>
+          </div>
+          {isAdminUser && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-black text-emerald-800">
+              <Edit2 className="h-3.5 w-3.5" />
+              {t('Admin Editable', 'అడ్మిన్ ఎడిట్ చేయగలరు')}
+            </span>
+          )}
         </div>
 
         {selectedForms.length > 0 ? (
@@ -488,7 +510,12 @@ export function FormsDownloads() {
                     <td className="px-3 py-2">
                       <div className="flex min-w-0 items-center gap-3">
                         <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                        <h3 className="max-w-[28rem] truncate text-sm font-black text-gray-950 dark:text-white">{form.title}</h3>
+                        <div className="min-w-0">
+                          <h3 className="max-w-[28rem] truncate text-sm font-black text-gray-950 dark:text-white">{form.label || form.title}</h3>
+                          {form.label && form.label !== form.title && (
+                            <p className="max-w-[28rem] truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{form.title}</p>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-slate-400">

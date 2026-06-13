@@ -294,6 +294,9 @@ function AppContent() {
       if (page === 'officer-toolkit/acreage-calculator') {
         page = 'acreage-calculator';
       }
+      if (page === 'officer-toolkit/statutory-forms') {
+        page = 'forms';
+      }
       if (page === 'officer-toolkit/fertilizer-calculator') {
         page = 'fertilizer-calculator';
       }
