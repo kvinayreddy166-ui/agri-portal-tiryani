@@ -267,6 +267,7 @@ export function SeedForms() {
             <Input label="Variety" value={form.variety} onChange={(value) => setField('variety', value)} />
             <Input label="Lot No. of sample" value={form.lotNo} onChange={(value) => setField('lotNo', value)} />
             <Input label="Quantity of sample drawn" value={form.quantityDrawn} onChange={(value) => setField('quantityDrawn', value)} />
+            <Input label="Quantity of sample in lot" value={form.quantityInLot} onChange={(value) => setField('quantityInLot', value)} />
             <SelectWithOther label="Class / Origin of seed" valueKey="seedClass" otherKey="seedClassOther" form={form} setField={setField} options={classOptions} />
             <Input label="Date of packing" type="date" value={form.packingDate} onChange={(value) => setField('packingDate', value)} />
             <Input label="Stock position" value={form.stockPosition} onChange={(value) => setField('stockPosition', value)} />
@@ -575,6 +576,7 @@ function drawInfoSlips(doc, form, addPageBefore) {
       testRequired: test,
       testRequiredOther: '',
       quantityDrawn: cottonSlipQuantity(r.crop, test) || form.quantityDrawn,
+      quantityInLot: form.quantityInLot,
     });
   });
 }
@@ -593,7 +595,7 @@ function drawInformationSlip(doc, form) {
     ['6. Origin / Class of seed', r.seedClass],
     ['7. Lot No. of Sample', r.lotNo],
     ['8. Code No. of Sample', r.codeNo],
-    ['9. Quantity of sample drawn', r.quantityDrawn],
+    ['9. Quantity of sample in lot', r.quantityInLot || r.quantityDrawn],
     ['10. Kind of test required', r.testRequired],
     ['11. Remarks', r.remarks],
   ]);
