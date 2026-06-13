@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calculator, FlaskConical, ShieldCheck, FileText, ArrowLeft } from 'lucide-react';
+import { Calculator, FlaskConical, ShieldCheck, FileText, ArrowLeft, Globe2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -29,6 +29,7 @@ const toolkitItems = [
     iconTone: 'bg-emerald-700 text-white',
   },
 ];
+const UREA_DASHBOARD_LOGIN_URL = 'http://74.225.14.186:8025/login';
 
 export function OfficersToolkit() {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ export function OfficersToolkit() {
           )}
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-2 sm:grid-cols-2">
           {toolkitItems.map((item) => (
             <button
               key={item.path}
@@ -83,6 +84,20 @@ export function OfficersToolkit() {
               </span>
             </button>
           ))}
+          <a
+            href={UREA_DASHBOARD_LOGIN_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex min-h-16 items-center gap-3 rounded-lg border border-[#d8cfb2] bg-white px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#fbf7ea] dark:border-stone-700 dark:bg-slate-900 dark:text-stone-100 dark:hover:bg-slate-800"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-700 text-white">
+              <Globe2 className="h-5 w-5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-black">{t('Urea Dashboard', 'Urea Dashboard')}</span>
+              <span className="mt-0.5 block text-xs font-semibold opacity-75">{t('External login', 'External login')}</span>
+            </span>
+          </a>
         </div>
       </section>
     </div>

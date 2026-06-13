@@ -7,7 +7,7 @@ const PDF_FONT = 'times';
 const PDF_BODY_SIZE = 13.4;
 const PDF_TITLE_SIZE = 16.4;
 const PDF_SUBTITLE_SIZE = 14.4;
-const FORM_II_COTTON_QUANTITY = '25 grams * 3';
+const FORM_II_COTTON_QUANTITY = '25 G * 3';
 
 const cropOptions = ['Paddy', 'Cotton', 'Maize', 'Redgram', 'Greengram', 'Blackgram', 'Soybean', 'Bengalgram', 'Jowar', 'Other'];
 const natureOptions = ['Seed sample', 'Truthfully Labelled Seed', 'Certified Seed', 'Foundation Seed', 'Hybrid Seed', 'Other'];
@@ -595,7 +595,7 @@ function drawInformationSlip(doc, form) {
     ['6. Origin / Class of seed', r.seedClass],
     ['7. Lot No. of Sample', r.lotNo],
     ['8. Code No. of Sample', r.codeNo],
-    ['9. Quantity of sample in lot', r.quantityInLot || r.quantityDrawn],
+    ['9. Quantity of sample in lot', r.quantityInLot],
     ['10. Kind of test required', r.testRequired],
     ['11. Remarks', r.remarks],
   ]);
