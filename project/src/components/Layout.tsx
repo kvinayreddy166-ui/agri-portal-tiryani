@@ -23,6 +23,7 @@ const adminMenuItems = [
   { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck },
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
   { id: 'farmer-database', label: 'Farmer Database', icon: Database },
+  { id: 'urea-dashboard-reports', label: 'Urea Dashboard Reports', icon: PackageCheck, adminOnly: true },
   {
     id: 'crops',
     label: 'Crop Intelligence',
@@ -272,6 +273,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     'farmer-database': { title: 'Farmer Database', breadcrumbs: [dashboard] },
     crops: { title: 'Crop Intelligence', breadcrumbs: [dashboard] },
     'officer-toolkit': { title: 'Officers Toolkit', breadcrumbs: [dashboard] },
+    'urea-dashboard-reports': { title: 'Urea Dashboard Reports', breadcrumbs: [dashboard, toolkit] },
     forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit] },
     'acreage-calculator': { title: 'Acerage Calculator', breadcrumbs: [dashboard, toolkit] },
     'gos-circulars': { title: 'GOs & Circulars', breadcrumbs: [dashboard] },
@@ -326,6 +328,7 @@ function translateMenu(label: string) {
     'Dealers Directory': 'డీలర్ల డైరెక్టరీ',
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
     'Farmer Database': 'రైతుల డేటాబేస్',
+    'Urea Dashboard Reports': 'Urea Dashboard Reports',
     'Crop Intelligence': 'పంట ఇంటెలిజెన్స్',
     'Crop Admin': 'పంట అడ్మిన్',
     'Officers Toolkit': 'Officers Toolkit',

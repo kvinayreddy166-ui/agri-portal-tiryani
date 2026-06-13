@@ -6,6 +6,7 @@ import {
   Plus,
   RefreshCw,
   Save,
+  Trash2,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -665,6 +666,26 @@ export function FertilizerCalculator() {
     setGradeDraft({ name: '', n: 0, p: 0, k: 0, s: 0, bag_kg: 50 });
   };
 
+  const deleteGrade = async (grade: FertilizerGrade) => {
+    if (!window.confirm(`Delete fertilizer label "${grade.name}"?`)) return;
+    const key = gradeKey(grade);
+    const serverId = grade.id && !grade.id.startsWith('local-') ? grade.id : null;
+
+    if (serverId) {
+      const deleteResponse = await supabase.from('fertilizer_grades').delete().eq('id', serverId);
+      if (deleteResponse.error) {
+        const inactiveResponse = await supabase.from('fertilizer_grades').update({ is_active: false }).eq('id', serverId);
+        if (inactiveResponse.error) {
+          alert('Could not delete fertilizer label. Please check Supabase admin permissions.');
+          return;
+        }
+      }
+    }
+
+    setGrades((current) => current.filter((item) => gradeKey(item) !== key));
+    setSelectedKeys((current) => current.filter((item) => item !== key));
+  };
+
   const saveCrop = async (crop: CropRecommendation) => {
     const payload = {
       crop_name: crop.crop_name.trim(),
@@ -695,6 +716,24 @@ export function FertilizerCalculator() {
       return [...current, { ...payload, id: `local-${payload.crop_name}` }];
     });
     setCropDraft({ crop_name: '', crop: '', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 0, p: 0, k: 0, area_unit: 'acre', split_plan: DEFAULT_SPLIT });
+  };
+
+  const deleteCrop = async (crop: CropRecommendation) => {
+    if (!window.confirm(`Delete crop recommendation "${crop.crop_name}"?`)) return;
+    const serverId = crop.id && !crop.id.startsWith('local-') ? crop.id : null;
+
+    if (serverId) {
+      const deleteResponse = await supabase.from('crop_fertilizer_recommendations').delete().eq('id', serverId);
+      if (deleteResponse.error) {
+        const inactiveResponse = await supabase.from('crop_fertilizer_recommendations').update({ is_active: false }).eq('id', serverId);
+        if (inactiveResponse.error) {
+          alert('Could not delete crop recommendation. Please check Supabase admin permissions.');
+          return;
+        }
+      }
+    }
+
+    setRecommendations((current) => current.filter((item) => (item.id || item.crop_name) !== (crop.id || crop.crop_name)));
   };
 
   const exportExcel = async () => {
@@ -1009,8 +1048,8 @@ export function FertilizerCalculator() {
         <section className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 shadow-sm sm:p-4">
           <h2 className="mb-3 text-base font-black text-emerald-950">Admin Panel</h2>
           <div className="grid gap-3 lg:grid-cols-2">
-            <AdminGradeEditor grades={grades} draft={gradeDraft} onDraftChange={setGradeDraft} onSave={saveGrade} loading={loadingData} />
-            <AdminCropEditor crops={recommendations} draft={cropDraft} onDraftChange={setCropDraft} onSave={saveCrop} />
+            <AdminGradeEditor grades={grades} draft={gradeDraft} onDraftChange={setGradeDraft} onSave={saveGrade} onDelete={deleteGrade} loading={loadingData} />
+            <AdminCropEditor crops={recommendations} draft={cropDraft} onDraftChange={setCropDraft} onSave={saveCrop} onDelete={deleteCrop} />
           </div>
         </section>
       )}
@@ -1048,12 +1087,14 @@ function AdminGradeEditor({
   draft,
   onDraftChange,
   onSave,
+  onDelete,
   loading,
 }: {
   grades: FertilizerGrade[];
   draft: FertilizerGrade;
   onDraftChange: (grade: FertilizerGrade) => void;
   onSave: (grade: FertilizerGrade) => void;
+  onDelete: (grade: FertilizerGrade) => void;
   loading: boolean;
 }) {
   return (
@@ -1067,21 +1108,26 @@ function AdminGradeEditor({
       </div>
       <div className="mt-3 max-h-64 space-y-2 overflow-y-auto">
         {grades.map((grade) => (
-          <EditableGradeRow key={gradeKey(grade)} grade={grade} onSave={onSave} />
+          <EditableGradeRow key={gradeKey(grade)} grade={grade} onSave={onSave} onDelete={onDelete} />
         ))}
       </div>
     </div>
   );
 }
 
-function EditableGradeRow({ grade, onSave }: { grade: FertilizerGrade; onSave: (grade: FertilizerGrade) => void }) {
+function EditableGradeRow({ grade, onSave, onDelete }: { grade: FertilizerGrade; onSave: (grade: FertilizerGrade) => void; onDelete: (grade: FertilizerGrade) => void }) {
   const [value, setValue] = useState(grade);
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
       <EditorInputs value={value} onChange={setValue} />
-      <button type="button" onClick={() => onSave(value)} className="mt-2 inline-flex items-center gap-1 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-black text-white">
-        <Save className="h-3.5 w-3.5" /> Save
-      </button>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-black text-white">
+          <Save className="h-3.5 w-3.5" /> Save
+        </button>
+        <button type="button" onClick={() => onDelete(grade)} className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-black text-white">
+          <Trash2 className="h-3.5 w-3.5" /> Delete
+        </button>
+      </div>
     </div>
   );
 }
@@ -1103,11 +1149,13 @@ function AdminCropEditor({
   draft,
   onDraftChange,
   onSave,
+  onDelete,
 }: {
   crops: CropRecommendation[];
   draft: CropRecommendation;
   onDraftChange: (crop: CropRecommendation) => void;
   onSave: (crop: CropRecommendation) => void;
+  onDelete: (crop: CropRecommendation) => void;
 }) {
   return (
     <div className="rounded-xl border border-white bg-white p-3">
@@ -1118,21 +1166,26 @@ function AdminCropEditor({
       </button>
       <div className="mt-3 max-h-64 space-y-2 overflow-y-auto">
         {crops.map((crop) => (
-          <EditableCropRow key={crop.id || crop.crop_name} crop={crop} onSave={onSave} />
+          <EditableCropRow key={crop.id || crop.crop_name} crop={crop} onSave={onSave} onDelete={onDelete} />
         ))}
       </div>
     </div>
   );
 }
 
-function EditableCropRow({ crop, onSave }: { crop: CropRecommendation; onSave: (crop: CropRecommendation) => void }) {
+function EditableCropRow({ crop, onSave, onDelete }: { crop: CropRecommendation; onSave: (crop: CropRecommendation) => void; onDelete: (crop: CropRecommendation) => void }) {
   const [value, setValue] = useState(crop);
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
       <CropInputs value={value} onChange={setValue} />
-      <button type="button" onClick={() => onSave(value)} className="mt-2 inline-flex items-center gap-1 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-black text-white">
-        <Save className="h-3.5 w-3.5" /> Save
-      </button>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-black text-white">
+          <Save className="h-3.5 w-3.5" /> Save
+        </button>
+        <button type="button" onClick={() => onDelete(crop)} className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-black text-white">
+          <Trash2 className="h-3.5 w-3.5" /> Delete
+        </button>
+      </div>
     </div>
   );
 }
