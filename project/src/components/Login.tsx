@@ -236,11 +236,13 @@ export function Login() {
 
     const fetchForms = async () => {
       setFormsLoading(true);
-      let { data, error } = await supabase
+      const initialResult = await supabase
         .from('forms_downloads')
         .select(PUBLIC_FORM_COLUMNS)
         .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
         .order('created_at', { ascending: false });
+      let data = initialResult.data as FormDownload[] | null;
+      let error: unknown = initialResult.error;
 
       if (error && isMissingPublicLabelColumnError(error)) {
         const fallback = await supabase
@@ -248,7 +250,7 @@ export function Login() {
           .select(PUBLIC_FORM_COLUMNS_WITHOUT_LABEL)
           .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
           .order('created_at', { ascending: false });
-        data = fallback.data;
+        data = fallback.data as FormDownload[] | null;
         error = fallback.error;
       }
 

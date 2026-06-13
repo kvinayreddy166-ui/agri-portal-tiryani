@@ -95,7 +95,11 @@ export function FormsDownloads() {
           .range(from, to),
       ]);
 
-      let pageResult = initialPageResult;
+      let pageResult: {
+        data: unknown[] | null;
+        error: unknown;
+        count: number | null;
+      } = initialPageResult;
       if (pageResult.error && isMissingLabelColumnError(pageResult.error)) {
         pageResult = await supabase
           .from('forms_downloads')
@@ -108,7 +112,7 @@ export function FormsDownloads() {
       if (pageResult.error) throw pageResult.error;
       setFolderCounts(Object.fromEntries(countResults));
       setTotalForms(pageResult.count || 0);
-      setForms(pageResult.data || []);
+      setForms((pageResult.data || []) as FormDownload[]);
     } catch (error) {
       console.error('Error fetching forms:', error);
       setFetchError(error instanceof Error ? error.message : 'Unable to load downloads.');
