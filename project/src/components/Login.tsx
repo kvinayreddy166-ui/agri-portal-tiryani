@@ -860,16 +860,6 @@ export function Login() {
               </div>
             </div>
 
-            <a
-              href={UREA_DASHBOARD_LOGIN_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mb-3 flex items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-black text-sky-900 transition hover:bg-sky-100"
-            >
-              <Globe2 className="h-4 w-4" />
-              {t('Open Urea Dashboard Login', 'Open Urea Dashboard Login')}
-            </a>
-
             <section className="mb-3 rounded-lg border border-[#d8cfb2] bg-[#f4efdf] p-2.5 shadow-sm">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>

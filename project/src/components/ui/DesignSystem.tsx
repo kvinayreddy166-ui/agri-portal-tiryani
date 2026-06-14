@@ -4,7 +4,11 @@ type Tone = 'primary' | 'secondary' | 'danger' | 'warning';
 type IconTone = Tone | 'excel' | 'sky' | 'slate';
 
 export function AppCard({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section className={`app-card ${className}`}>{children}</section>;
+  return (
+    <section className={`app-card modern-card ${className}`}>
+      {children}
+    </section>
+  );
 }
 
 export function SectionHeader({
@@ -44,15 +48,15 @@ export function StatCard({
   tone?: Tone | 'blue';
 }) {
   const toneClass = {
-    primary: 'border-emerald-200 bg-emerald-50/70 text-emerald-900',
-    secondary: 'border-green-200 bg-green-50/70 text-green-900',
-    blue: 'border-blue-200 bg-blue-50/70 text-blue-900',
-    danger: 'border-red-200 bg-red-50/70 text-red-900',
-    warning: 'border-amber-200 bg-amber-50/70 text-amber-950',
+    primary: 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/70 text-emerald-900',
+    secondary: 'border-green-200 bg-gradient-to-br from-green-50 to-green-100/70 text-green-900',
+    blue: 'border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100/70 text-blue-900',
+    danger: 'border-red-200 bg-gradient-to-br from-red-50 to-red-100/70 text-red-900',
+    warning: 'border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/70 text-amber-950',
   }[tone];
 
   return (
-    <article className={`stat-card ${toneClass}`}>
+    <article className={`stat-card modern-stat-card ${toneClass}`}>
       <p className="text-xs font-black uppercase tracking-wide opacity-75">{label}</p>
       <p className="mt-1 text-2xl font-black leading-tight">{value}</p>
       {helper && <p className="mt-1 text-xs font-bold opacity-75">{helper}</p>}
@@ -111,10 +115,10 @@ export function ActionButton({
   tone?: Tone;
 }) {
   const toneClass = {
-    primary: 'action-button-primary',
-    secondary: 'action-button-secondary',
-    danger: 'action-button-danger',
-    warning: 'action-button-warning',
+    primary: 'action-button-primary modern-action-button',
+    secondary: 'action-button-secondary modern-action-button',
+    danger: 'action-button-danger modern-action-button',
+    warning: 'action-button-warning modern-action-button',
   }[tone];
 
   return (

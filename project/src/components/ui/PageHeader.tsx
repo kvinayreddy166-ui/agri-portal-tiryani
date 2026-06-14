@@ -10,7 +10,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ eyebrow, title, description, actions, badge }: PageHeaderProps) {
   return (
-    <div className="portal-card animate-fade-in flex flex-col gap-3 p-4 md:flex-row md:items-end md:justify-between">
+    <div className="portal-card modern-card animate-fade-in flex flex-col gap-3 p-4 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
         {eyebrow && (
           <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{eyebrow}</p>

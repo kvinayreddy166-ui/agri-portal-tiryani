@@ -26,8 +26,14 @@ body,
   max-width: 100%;
   overflow-x: hidden;
   font-family: Inter, system-ui, sans-serif;
-  background: var(--agri-bg);
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 50%, #ecfeff 100%);
   color: var(--agri-text);
+}
+
+.dark html,
+.dark body,
+.dark #root {
+  background: linear-gradient(135deg, #0f172a 0%, #022c22 50%, #0f172a 100%);
 }
 
 *,
@@ -183,6 +189,25 @@ main,
     color: var(--agri-text);
   }
 
+  .modern-card {
+    border-radius: 1rem;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: linear-gradient(135deg, #ffffff 0%, rgba(16, 185, 129, 0.03) 100%);
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .modern-card:hover {
+    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .dark .modern-card {
+    border-color: rgba(16, 185, 129, 0.3);
+    background: linear-gradient(135deg, #0f172a 0%, rgba(16, 185, 129, 0.08) 100%);
+    box-shadow: 0 4px 20px rgba(2, 6, 23, 0.4);
+  }
+
   .section-header {
     display: flex;
     align-items: center;
@@ -215,6 +240,19 @@ main,
     background: linear-gradient(135deg, #ffffff 0%, rgba(15, 157, 88, 0.08) 100%);
     box-shadow: var(--agri-shadow);
     padding: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .modern-stat-card {
+    border-radius: 1rem;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .modern-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
   }
 
   .filter-panel {
@@ -247,11 +285,21 @@ main,
     font-size: 0.875rem;
     font-weight: 800;
     line-height: 1;
-    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
   }
 
   .action-button:active {
     transform: scale(0.985);
+  }
+
+  .modern-action-button {
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+    transition: all 0.2s ease;
+  }
+
+  .modern-action-button:hover {
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    transform: translateY(-1px);
   }
 
   .icon-action {
@@ -423,6 +471,22 @@ button {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Page transitions */
+.page-transition {
+  animation: pageSlideIn 0.4s ease-out;
+}
+
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Focus visible */
 :focus-visible {
   outline: 2px solid #059669;
@@ -444,6 +508,58 @@ button {
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
 }
+
+/* Modern agricultural theme animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+/* Staggered animation delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
 
 @keyframes dashboardRise {
   from {
