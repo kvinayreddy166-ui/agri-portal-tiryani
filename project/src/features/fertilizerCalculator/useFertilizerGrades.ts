@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { DEFAULT_GRADES, REMOVED_FERTILIZER_GRADES } from './fertilizerData';
+import { DEFAULT_GRADES } from './fertilizerData';
 import { numberValue } from './fertilizerEngine';
 import type { FertilizerGrade } from './fertilizerTypes';
 
@@ -36,7 +36,6 @@ export async function loadFertilizerGrades(): Promise<FertilizerGrade[]> {
   }
 
   return response.data
-    .filter((row: GradeRow) => !REMOVED_FERTILIZER_GRADES.has(row.name.trim()))
     .map((row: GradeRow) => ({
       id: row.id,
       name: row.name,

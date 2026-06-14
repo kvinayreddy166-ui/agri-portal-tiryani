@@ -7,7 +7,7 @@
 -- Create fertilizer_grades table
 CREATE TABLE IF NOT EXISTS fertilizer_grades (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
+  name TEXT NOT NULL UNIQUE,
   n NUMERIC NOT NULL DEFAULT 0,
   p NUMERIC NOT NULL DEFAULT 0,
   k NUMERIC NOT NULL DEFAULT 0,

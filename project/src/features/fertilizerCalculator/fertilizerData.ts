@@ -2,7 +2,7 @@ import type { CropRecommendation, FertilizerGrade, SplitDose } from './fertilize
 
 export const PRIMARY_NUTRIENTS = ['n', 'p', 'k'] as const;
 export const KNOWN_NUTRIENTS = ['n', 'p', 'k', 's', 'zn', 'b', 'fe', 'mg', 'ca', 'mn', 'cu', 'mo', 'si', 'organicCarbon'] as const;
-export const REMOVED_FERTILIZER_GRADES = new Set(['20:20:0', '24:24:0', '28:28:0']);
+export const REMOVED_FERTILIZER_GRADES = new Set(['16:20:0:13', '20:20:0:13', '20:20:0', '24:24:0', '28:28:0']);
 
 export const NUTRIENT_LABELS: Record<string, string> = {
   n: 'N',
@@ -31,18 +31,18 @@ export const DEFAULT_SPLIT: SplitDose[] = [
 
 export const DEFAULT_GRADES: FertilizerGrade[] = [
   { name: 'Urea', n: 46, p: 0, k: 0, s: 0, bag_kg: 45, composition: { n: 46 } },
+  { name: 'Ammonium Sulphate', n: 21, p: 0, k: 0, s: 24, bag_kg: 50, composition: { n: 21, s: 24 } },
   { name: 'DAP', n: 18, p: 46, k: 0, s: 0, bag_kg: 50, composition: { n: 18, p: 46 } },
   { name: 'MOP', n: 0, p: 0, k: 60, s: 0, bag_kg: 50, composition: { k: 60 } },
   { name: 'SSP', n: 0, p: 16, k: 0, s: 0, bag_kg: 50, composition: { p: 16 } },
+  { name: 'TSP', n: 0, p: 46, k: 0, s: 0, bag_kg: 50, composition: { p: 46 } },
   { name: '10:26:26', n: 10, p: 26, k: 26, s: 0, bag_kg: 50, composition: { n: 10, p: 26, k: 26 } },
   { name: '12:32:16', n: 12, p: 32, k: 16, s: 0, bag_kg: 50, composition: { n: 12, p: 32, k: 16 } },
   { name: '14:35:14', n: 14, p: 35, k: 14, s: 0, bag_kg: 50, composition: { n: 14, p: 35, k: 14 } },
   { name: '15:15:15', n: 15, p: 15, k: 15, s: 0, bag_kg: 50, composition: { n: 15, p: 15, k: 15 } },
   { name: '16:16:16', n: 16, p: 16, k: 16, s: 0, bag_kg: 50, composition: { n: 16, p: 16, k: 16 } },
-  { name: '16:20:0:13', n: 16, p: 20, k: 0, s: 13, bag_kg: 50, composition: { n: 16, p: 20, s: 13 } },
   { name: '17:17:17', n: 17, p: 17, k: 17, s: 0, bag_kg: 50, composition: { n: 17, p: 17, k: 17 } },
   { name: '19:19:19', n: 19, p: 19, k: 19, s: 0, bag_kg: 50, composition: { n: 19, p: 19, k: 19 } },
-  { name: '20:20:0:13', n: 20, p: 20, k: 0, s: 13, bag_kg: 50, composition: { n: 20, p: 20, s: 13 } },
   { name: '28:28:28', n: 28, p: 28, k: 28, s: 0, bag_kg: 50, composition: { n: 28, p: 28, k: 28 } },
 ];
 

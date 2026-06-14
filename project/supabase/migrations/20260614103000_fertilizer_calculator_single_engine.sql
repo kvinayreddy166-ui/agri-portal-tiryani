@@ -36,10 +36,13 @@ create policy "fertilizer calculation records admin write"
 
 update public.fertilizer_grades
 set is_active = false, updated_at = now()
-where name in ('20:20:0', '24:24:0', '28:28:0');
+where name in ('16:20:0:13', '20:20:0:13', '20:20:0', '24:24:0', '28:28:0');
 
 insert into public.fertilizer_grades (name, n, p, k, s, bag_kg, composition, is_active)
-values ('28:28:28', 28, 28, 28, 0, 50, '{"n":28,"p":28,"k":28,"N":28,"P2O5":28,"K2O":28}'::jsonb, true)
+values
+  ('Ammonium Sulphate', 21, 0, 0, 24, 50, '{"n":21,"s":24,"N":21,"S":24}'::jsonb, true),
+  ('TSP', 0, 46, 0, 0, 50, '{"p":46,"P2O5":46}'::jsonb, true),
+  ('28:28:28', 28, 28, 28, 0, 50, '{"n":28,"p":28,"k":28,"N":28,"P2O5":28,"K2O":28}'::jsonb, true)
 on conflict (name) do update set
   n = excluded.n,
   p = excluded.p,

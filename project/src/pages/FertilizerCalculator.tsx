@@ -557,6 +557,145 @@ function mergeRecommendationsWithDefaults(rows: CropRecommendation[]) {
   return [...merged.values()].sort((a, b) => a.crop_name.localeCompare(b.crop_name));
 }
 
+function supabaseErrorMessage(error: unknown) {
+  if (!error) return 'Unknown Supabase error';
+  if (typeof error === 'string') return error;
+  if (typeof error === 'object') {
+    const details = error as { message?: string; details?: string; hint?: string; code?: string };
+    return [details.message, details.details, details.hint, details.code ? `Code: ${details.code}` : ''].filter(Boolean).join(' ');
+  }
+  return String(error);
+}
+
+function isMissingColumnError(error: unknown, column: string) {
+  const message = supabaseErrorMessage(error).toLowerCase();
+  return message.includes(column.toLowerCase()) || message.includes('schema cache') || message.includes('column');
+}
+
+function isMissingConflictTargetError(error: unknown) {
+  const message = supabaseErrorMessage(error).toLowerCase();
+  return message.includes('42p10') || message.includes('unique') || message.includes('constraint') || message.includes('conflict');
+}
+
+function mergeGradeIntoList(list: FertilizerGrade[], grade: FertilizerGrade) {
+  if (!grade.name) return list;
+  const byName = grade.name.trim().toLowerCase();
+  const next = list.filter((item) => item.name.trim().toLowerCase() !== byName);
+  next.push(grade);
+  return next.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function mergeRecommendationIntoList(list: CropRecommendation[], recommendation: CropRecommendation) {
+  const key = recommendationMergeKey(recommendation);
+  const next = list.filter((item) => recommendationMergeKey(item) !== key);
+  next.push(recommendation);
+  return next.sort((a, b) => a.crop_name.localeCompare(b.crop_name));
+}
+
+async function loadCropRecommendations() {
+  let response: any = await supabase
+    .from('crop_fertilizer_recommendations')
+    .select('id, crop_name, crop, zone, season, variety, n, p, k, nutrients, area_unit, split_plan, is_active')
+    .order('crop_name');
+
+  if (response.error) {
+    response = await supabase
+      .from('crop_fertilizer_recommendations')
+      .select('id, crop_name, crop, zone, season, variety, n, p, k, area_unit, split_plan, is_active')
+      .order('crop_name');
+  }
+
+  if (response.error) return DEFAULT_RECOMMENDATIONS;
+
+  return mergeRecommendationsWithDefaults((response.data || []).map((row: any) => ({
+    id: row.id,
+    crop_name: row.crop_name,
+    crop: row.crop || row.crop_name,
+    zone: row.zone || 'All Zones',
+    season: row.season || 'Vanakalam',
+    variety: row.variety || 'Normal',
+    n: numberValue(row.n),
+    p: numberValue(row.p),
+    k: numberValue(row.k),
+    nutrients: typeof row.nutrients === 'object' && row.nutrients ? row.nutrients as Record<string, number> : undefined,
+    area_unit: row.area_unit || 'acre',
+    split_plan: Array.isArray(row.split_plan) ? row.split_plan as SplitDose[] : DEFAULT_SPLIT,
+    is_active: row.is_active,
+  })));
+}
+
+async function saveFertilizerGradeRecord(
+  payload: Omit<FertilizerGrade, 'id'> & { composition: Record<string, number>; is_active: boolean },
+  grade: FertilizerGrade
+) {
+  const serverId = grade.id && !grade.id.startsWith('local-') ? grade.id : null;
+  const { composition: _composition, ...legacyPayload } = payload;
+  const writePayload = async (record: typeof payload | typeof legacyPayload) => {
+    if (serverId) {
+      return supabase.from('fertilizer_grades').update(record).eq('id', serverId);
+    }
+
+    const upsertResponse = await supabase.from('fertilizer_grades').upsert(record, { onConflict: 'name' });
+    if (!upsertResponse.error || !isMissingConflictTargetError(upsertResponse.error)) return upsertResponse;
+
+    const existing = await supabase
+      .from('fertilizer_grades')
+      .select('id')
+      .eq('name', payload.name)
+      .limit(1)
+      .maybeSingle();
+    if (existing.error) return existing;
+    if (existing.data?.id) {
+      return supabase.from('fertilizer_grades').update(record).eq('id', existing.data.id);
+    }
+    return supabase.from('fertilizer_grades').insert(record);
+  };
+
+  let response = await writePayload(payload);
+  if (response.error && isMissingColumnError(response.error, 'composition')) {
+    response = await writePayload(legacyPayload);
+  }
+  return response;
+}
+
+async function saveCropRecommendationRecord(
+  payload: Omit<CropRecommendation, 'id'> & { nutrients: Record<string, number>; is_active: boolean },
+  crop: CropRecommendation
+) {
+  const serverId = crop.id && !crop.id.startsWith('local-') ? crop.id : null;
+  const { nutrients: _nutrients, ...legacyPayload } = payload;
+  const writePayload = async (record: typeof payload | typeof legacyPayload) => {
+    if (serverId) {
+      return supabase.from('crop_fertilizer_recommendations').update(record).eq('id', serverId);
+    }
+
+    const upsertResponse = await supabase.from('crop_fertilizer_recommendations').upsert(record, { onConflict: 'crop_name' });
+    if (!upsertResponse.error || !isMissingConflictTargetError(upsertResponse.error)) return upsertResponse;
+
+    const existing = await supabase
+      .from('crop_fertilizer_recommendations')
+      .select('id')
+      .eq('crop_name', payload.crop_name)
+      .eq('crop', payload.crop)
+      .eq('zone', payload.zone)
+      .eq('season', payload.season)
+      .eq('variety', payload.variety)
+      .limit(1)
+      .maybeSingle();
+    if (existing.error) return existing;
+    if (existing.data?.id) {
+      return supabase.from('crop_fertilizer_recommendations').update(record).eq('id', existing.data.id);
+    }
+    return supabase.from('crop_fertilizer_recommendations').insert(record);
+  };
+
+  let response = await writePayload(payload);
+  if (response.error && isMissingColumnError(response.error, 'nutrients')) {
+    response = await writePayload(legacyPayload);
+  }
+  return response;
+}
+
 function uniqueValues(values: Array<string | undefined>) {
   return [...new Set(values.filter((value): value is string => Boolean(value)))];
 }
@@ -599,7 +738,7 @@ function recommendationNpkLabel(recommendation: CropRecommendation) {
 export function FertilizerCalculator() {
   const { isAdminUser, user } = useAuth();
   const { language, toggleLanguage } = useLanguage();
-  const [mode, setMode] = useState<'simple' | 'crop'>('simple');
+  const [mode, setMode] = useState<'simple' | 'crop'>('crop');
   const [simpleTab, setSimpleTab] = useState<'forward' | 'reverse'>('forward');
   const [grades, setGrades] = useState<FertilizerGrade[]>(DEFAULT_GRADES);
   const [recommendations, setRecommendations] = useState<CropRecommendation[]>(DEFAULT_RECOMMENDATIONS);
@@ -620,38 +759,14 @@ export function FertilizerCalculator() {
   useEffect(() => {
     const loadCalculatorData = async () => {
       setLoadingData(true);
-      const cropQuery = supabase.from('crop_fertilizer_recommendations').select('id, crop_name, crop, zone, season, variety, n, p, k, nutrients, area_unit, split_plan, is_active').order('crop_name');
-      let [loadedGrades, cropResponse]: [FertilizerGrade[], any] = await Promise.all([loadFertilizerGrades(), cropQuery]);
-
-      if (cropResponse.error) {
-        cropResponse = await supabase.from('crop_fertilizer_recommendations').select('id, crop_name, crop, zone, season, variety, n, p, k, area_unit, split_plan, is_active').order('crop_name');
-      }
+      const [loadedGrades, loadedRecommendations] = await Promise.all([loadFertilizerGrades(), loadCropRecommendations()]);
 
       setGrades(loadedGrades);
       setSelectedKeys((current) => {
         const kept = current.filter((key) => loadedGrades.some((grade) => gradeKey(grade) === key));
         return kept.length ? kept : getInitialSelected(loadedGrades);
       });
-
-      if (!cropResponse.error) {
-        setRecommendations(
-          mergeRecommendationsWithDefaults((cropResponse.data || []).map((row: any) => ({
-            id: row.id,
-            crop_name: row.crop_name,
-            crop: row.crop || row.crop_name,
-            zone: row.zone || 'All Zones',
-            season: row.season || 'Vanakalam',
-            variety: row.variety || 'Normal',
-            n: numberValue(row.n),
-            p: numberValue(row.p),
-            k: numberValue(row.k),
-            nutrients: typeof row.nutrients === 'object' && row.nutrients ? row.nutrients as Record<string, number> : undefined,
-            area_unit: row.area_unit || 'acre',
-            split_plan: Array.isArray(row.split_plan) ? row.split_plan as SplitDose[] : DEFAULT_SPLIT,
-            is_active: row.is_active,
-          })))
-        );
-      }
+      setRecommendations(loadedRecommendations);
       setLoadingData(false);
     };
 
@@ -692,6 +807,10 @@ export function FertilizerCalculator() {
     ),
     [recommendationsForCrop, selectedSeason]
   );
+  const adminCropOptions = useMemo(() => uniqueValues([...recommendations.map(recommendationCrop), 'Cotton', 'Paddy', 'Maize', 'Redgram', 'Greengram', 'Sesamum']), [recommendations]);
+  const adminZoneOptions = useMemo(() => uniqueValues([...recommendations.map((recommendation) => recommendation.zone), 'All Zones', 'Northern Telangana', 'Central Telangana', 'Southern Telangana']), [recommendations]);
+  const adminSeasonOptions = useMemo(() => uniqueValues([...recommendations.map((recommendation) => recommendation.season), 'Vanakalam', 'Yasangi', 'All Seasons']), [recommendations]);
+  const adminVarietyOptions = useMemo(() => uniqueValues([...recommendations.map((recommendation) => recommendation.variety), 'Normal', 'Hybrid', 'Sweet Corn', 'Pop Corn', 'Baby Corn', 'Long Duration']), [recommendations]);
   const selectedRecommendation = useMemo(
     () =>
       recommendationsForCrop.find((recommendation) =>
@@ -782,7 +901,7 @@ export function FertilizerCalculator() {
   };
 
   const resetCalculator = () => {
-    setMode('simple');
+    setMode('crop');
     setSimpleTab('forward');
     setRequired({ n: 48, p: 24, k: 24 });
     setSelectedKeys(getInitialSelected(grades));
@@ -812,26 +931,23 @@ export function FertilizerCalculator() {
       is_active: true,
     };
     if (!payload.name) return;
-    const shouldUpdate = Boolean(grade.id && !grade.id.startsWith('local-'));
-    let { error } = shouldUpdate
-      ? await supabase.from('fertilizer_grades').update(payload).eq('id', grade.id)
-      : await supabase.from('fertilizer_grades').insert(payload);
-    if (error && /composition/i.test(error.message || '')) {
-      const { composition: _composition, ...legacyPayload } = payload;
-      const retry = shouldUpdate
-        ? await supabase.from('fertilizer_grades').update(legacyPayload).eq('id', grade.id)
-        : await supabase.from('fertilizer_grades').insert(legacyPayload);
-      error = retry.error;
-    }
+    const { error } = await saveFertilizerGradeRecord(payload, grade);
     if (error) {
-      alert('Could not save fertilizer grade. Please apply the Supabase migration first.');
+      alert(`Could not save fertilizer grade: ${supabaseErrorMessage(error)}`);
       return;
     }
-    setGrades((current) => {
-      if (shouldUpdate) {
-        return current.map((item) => item.id === grade.id ? { ...item, ...payload } : item);
-      }
-      return [...current, { ...payload, id: `local-${payload.name}` }];
+    const savedGrade: FertilizerGrade = {
+      ...grade,
+      ...payload,
+      composition: payload.composition,
+      is_active: true,
+    };
+    const refreshedGrades = await loadFertilizerGrades();
+    const visibleGrades = mergeGradeIntoList(refreshedGrades, savedGrade);
+    setGrades(visibleGrades);
+    setSelectedKeys((current) => {
+      const kept = current.filter((key) => visibleGrades.some((item) => gradeKey(item) === key));
+      return kept.length ? kept : getInitialSelected(visibleGrades);
     });
     setSaveNotice({
       type: 'grade',
@@ -857,7 +973,8 @@ export function FertilizerCalculator() {
       }
     }
 
-    setGrades((current) => current.filter((item) => gradeKey(item) !== key));
+    const refreshedGrades = await loadFertilizerGrades();
+    setGrades(refreshedGrades.filter((item) => gradeKey(item) !== key));
     setSelectedKeys((current) => current.filter((item) => item !== key));
   };
 
@@ -882,27 +999,19 @@ export function FertilizerCalculator() {
       is_active: true,
     };
     if (!payload.crop_name) return;
-    const shouldUpdate = Boolean(crop.id && !crop.id.startsWith('local-'));
-    let { error } = shouldUpdate
-      ? await supabase.from('crop_fertilizer_recommendations').update(payload).eq('id', crop.id)
-      : await supabase.from('crop_fertilizer_recommendations').insert(payload);
-    if (error && /nutrients/i.test(error.message || '')) {
-      const { nutrients: _nutrients, ...legacyPayload } = payload;
-      const retry = shouldUpdate
-        ? await supabase.from('crop_fertilizer_recommendations').update(legacyPayload).eq('id', crop.id)
-        : await supabase.from('crop_fertilizer_recommendations').insert(legacyPayload);
-      error = retry.error;
-    }
+    const { error } = await saveCropRecommendationRecord(payload, crop);
     if (error) {
-      alert('Could not save crop recommendation. Please apply the Supabase migration first.');
+      alert(`Could not save crop recommendation: ${supabaseErrorMessage(error)}`);
       return;
     }
-    setRecommendations((current) => {
-      if (shouldUpdate) {
-        return current.map((item) => item.id === crop.id ? { ...item, ...payload } : item);
-      }
-      return [...current, { ...payload, id: `local-${payload.crop_name}` }];
-    });
+    const savedRecommendation: CropRecommendation = {
+      ...crop,
+      ...payload,
+      nutrients: payload.nutrients,
+      is_active: true,
+    };
+    const refreshedRecommendations = await loadCropRecommendations();
+    setRecommendations(mergeRecommendationIntoList(refreshedRecommendations, savedRecommendation));
     setSaveNotice({
       type: 'crop',
       label: payload.crop_name,
@@ -926,7 +1035,8 @@ export function FertilizerCalculator() {
       }
     }
 
-    setRecommendations((current) => current.filter((item) => (item.id || item.crop_name) !== (crop.id || crop.crop_name)));
+    const refreshedRecommendations = await loadCropRecommendations();
+    setRecommendations(refreshedRecommendations.filter((item) => (item.id || item.crop_name) !== (crop.id || crop.crop_name)));
   };
 
   const exportPdf = async () => {
@@ -1349,7 +1459,14 @@ export function FertilizerCalculator() {
           </div>
           <div className="grid gap-3 lg:grid-cols-2">
             <AdminGradeEditor grades={grades} draft={gradeDraft} onDraftChange={setGradeDraft} onSave={saveGrade} onDelete={deleteGrade} loading={loadingData} />
-            <AdminCropEditor crops={recommendations} draft={cropDraft} onDraftChange={setCropDraft} onSave={saveCrop} onDelete={deleteCrop} />
+            <AdminCropEditor
+              crops={recommendations}
+              draft={cropDraft}
+              onDraftChange={setCropDraft}
+              onSave={saveCrop}
+              onDelete={deleteCrop}
+              options={{ crops: adminCropOptions, zones: adminZoneOptions, seasons: adminSeasonOptions, varieties: adminVarietyOptions }}
+            />
           </div>
         </section>
       )}
@@ -1461,34 +1578,36 @@ function AdminCropEditor({
   onDraftChange,
   onSave,
   onDelete,
+  options,
 }: {
   crops: CropRecommendation[];
   draft: CropRecommendation;
   onDraftChange: (crop: CropRecommendation) => void;
   onSave: (crop: CropRecommendation) => void;
   onDelete: (crop: CropRecommendation) => void;
+  options: CropInputOptions;
 }) {
   return (
     <div className="rounded-xl border border-white bg-white p-3">
       <h3 className="mb-2 text-sm font-black">Crop Recommendations</h3>
-      <CropInputs value={draft} onChange={onDraftChange} />
+      <CropInputs value={draft} onChange={onDraftChange} options={options} />
       <button type="button" onClick={() => onSave(draft)} className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white">
         <Plus className="h-4 w-4" /> Add Crop
       </button>
       <div className="mt-3 max-h-64 space-y-2 overflow-y-auto">
         {crops.map((crop) => (
-          <EditableCropRow key={crop.id || crop.crop_name} crop={crop} onSave={onSave} onDelete={onDelete} />
+          <EditableCropRow key={crop.id || crop.crop_name} crop={crop} onSave={onSave} onDelete={onDelete} options={options} />
         ))}
       </div>
     </div>
   );
 }
 
-function EditableCropRow({ crop, onSave, onDelete }: { crop: CropRecommendation; onSave: (crop: CropRecommendation) => void; onDelete: (crop: CropRecommendation) => void }) {
+function EditableCropRow({ crop, onSave, onDelete, options }: { crop: CropRecommendation; onSave: (crop: CropRecommendation) => void; onDelete: (crop: CropRecommendation) => void; options: CropInputOptions }) {
   const [value, setValue] = useState(crop);
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
-      <CropInputs value={value} onChange={setValue} />
+      <CropInputs value={value} onChange={setValue} options={options} />
       <div className="mt-2 flex flex-wrap gap-2">
         <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-black text-white">
           <Save className="h-3.5 w-3.5" /> Save
@@ -1501,18 +1620,35 @@ function EditableCropRow({ crop, onSave, onDelete }: { crop: CropRecommendation;
   );
 }
 
-function CropInputs({ value, onChange }: { value: CropRecommendation; onChange: (crop: CropRecommendation) => void }) {
+type CropInputOptions = {
+  crops: string[];
+  zones: string[];
+  seasons: string[];
+  varieties: string[];
+};
+
+function CropInputs({ value, onChange, options }: { value: CropRecommendation; onChange: (crop: CropRecommendation) => void; options: CropInputOptions }) {
   return (
     <div className="grid grid-cols-6 gap-1.5">
       <input value={value.crop_name} onChange={(event) => onChange({ ...value, crop_name: event.target.value })} placeholder="Title" className="col-span-2 rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
-      <input value={value.crop || ''} onChange={(event) => onChange({ ...value, crop: event.target.value })} placeholder="Crop" className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
-      <input value={value.zone || ''} onChange={(event) => onChange({ ...value, zone: event.target.value })} placeholder="Zone" className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
-      <input value={value.season || ''} onChange={(event) => onChange({ ...value, season: event.target.value })} placeholder="Season" className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
-      <input value={value.variety || ''} onChange={(event) => onChange({ ...value, variety: event.target.value })} placeholder="Variety" className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
+      <AdminSelect value={value.crop || ''} options={options.crops} placeholder="Crop" onChange={(crop) => onChange({ ...value, crop })} />
+      <AdminSelect value={value.zone || ''} options={options.zones} placeholder="Zone" onChange={(zone) => onChange({ ...value, zone })} />
+      <AdminSelect value={value.season || ''} options={options.seasons} placeholder="Season" onChange={(season) => onChange({ ...value, season })} />
+      <AdminSelect value={value.variety || ''} options={options.varieties} placeholder="Variety" onChange={(variety) => onChange({ ...value, variety })} />
       {(['n', 'p', 'k'] as const).map((key) => (
         <input key={key} type="number" value={value[key]} onChange={(event) => onChange({ ...value, [key]: numberValue(event.target.value) })} placeholder={key.toUpperCase()} className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
       ))}
     </div>
+  );
+}
+
+function AdminSelect({ value, options, placeholder, onChange }: { value: string; options: string[]; placeholder: string; onChange: (value: string) => void }) {
+  const selectOptions = value && !options.includes(value) ? [value, ...options] : options;
+  return (
+    <select value={value} onChange={(event) => onChange(event.target.value)} className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-bold">
+      <option value="">{placeholder}</option>
+      {selectOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+    </select>
   );
 }
 
