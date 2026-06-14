@@ -44,7 +44,7 @@ const SeedForms = lazy(() =>
   import('../pages/SeedForms').then((module) => ({ default: module.SeedForms }))
 );
 const FertilizerCalculator = lazy(() =>
-  import('../pages/FertilizerCalculator').then((module) => ({ default: module.FertilizerCalculator }))
+  import('../features/fertilizerCalculator/FertilizerCalculatorCore').then((module) => ({ default: module.FertilizerCalculatorCore }))
 );
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';

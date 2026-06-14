@@ -1,6 +1,5 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
 import {
-  FileSpreadsheet,
   FileText,
   Leaf,
   Plus,
@@ -11,39 +10,24 @@ import {
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-
-type Nutrients = {
-  n: number;
-  p: number;
-  k: number;
-};
-
-type FertilizerGrade = Nutrients & {
-  id?: string;
-  name: string;
-  s: number;
-  bag_kg: number;
-  is_active?: boolean;
-};
-
-type SplitDose = {
-  stage: string;
-  nPct: number;
-  pPct: number;
-  kPct: number;
-};
-
-type CropRecommendation = Nutrients & {
-  id?: string;
-  crop_name: string;
-  crop?: string;
-  zone?: string;
-  season?: string;
-  variety?: string;
-  area_unit?: string;
-  split_plan?: SplitDose[];
-  is_active?: boolean;
-};
+import {
+  DEFAULT_GRADES,
+  DEFAULT_RECOMMENDATIONS,
+  DEFAULT_SPLIT,
+  type CropRecommendation,
+  type FertilizerGrade,
+  type SplitDose,
+} from '../lib/fertilizerCalculatorData';
+import {
+  calculateFertilizers,
+  emptyNutrients,
+  gradeComposition,
+  numberValue,
+  round,
+  visibleNutrientKeys,
+  type Nutrients,
+} from '../features/fertilizerCalculator/fertilizerEngine';
+import { loadFertilizerGrades } from '../features/fertilizerCalculator/useFertilizerGrades';
 
 type FertilizerResult = {
   grade: FertilizerGrade;
@@ -81,87 +65,6 @@ const AGRONOMIC_NOTES_TE = [
   'ఎరువులను తగిన తేమ ఉన్న సమయంలో వేయడం ఉత్తమం.',
 ];
 
-const DEFAULT_SPLIT: SplitDose[] = [
-  { stage: 'Basal', nPct: 30, pPct: 100, kPct: 50 },
-  { stage: '20 DAS', nPct: 25, pPct: 0, kPct: 20 },
-  { stage: '40 DAS', nPct: 25, pPct: 0, kPct: 20 },
-  { stage: '60 DAS', nPct: 20, pPct: 0, kPct: 10 },
-  { stage: '80 DAS', nPct: 0, pPct: 0, kPct: 0 },
-];
-
-const DEFAULT_GRADES: FertilizerGrade[] = [
-  { name: 'Urea', n: 46, p: 0, k: 0, s: 0, bag_kg: 45 },
-  { name: 'Ammonium Sulphate', n: 21, p: 0, k: 0, s: 24, bag_kg: 50 },
-  { name: 'DAP', n: 18, p: 46, k: 0, s: 0, bag_kg: 50 },
-  { name: 'MOP', n: 0, p: 0, k: 60, s: 0, bag_kg: 50 },
-  { name: 'SSP', n: 0, p: 16, k: 0, s: 0, bag_kg: 50 },
-  { name: 'TSP', n: 0, p: 46, k: 0, s: 0, bag_kg: 50 },
-  { name: '10:26:26', n: 10, p: 26, k: 26, s: 0, bag_kg: 50 },
-  { name: '12:32:16', n: 12, p: 32, k: 16, s: 0, bag_kg: 50 },
-  { name: '14:35:14', n: 14, p: 35, k: 14, s: 0, bag_kg: 50 },
-  { name: '15:15:15', n: 15, p: 15, k: 15, s: 0, bag_kg: 50 },
-  { name: '16:16:16', n: 16, p: 16, k: 16, s: 0, bag_kg: 50 },
-  { name: '16:20:0:13', n: 16, p: 20, k: 0, s: 13, bag_kg: 50 },
-  { name: '17:17:17', n: 17, p: 17, k: 17, s: 0, bag_kg: 50 },
-  { name: '19:19:19', n: 19, p: 19, k: 19, s: 0, bag_kg: 50 },
-  { name: '20:20:0:13', n: 20, p: 20, k: 0, s: 13, bag_kg: 50 },
-  { name: '20:20:0', n: 20, p: 20, k: 0, s: 0, bag_kg: 50 },
-  { name: '24:24:0', n: 24, p: 24, k: 0, s: 0, bag_kg: 50 },
-  { name: '28:28:0', n: 28, p: 28, k: 0, s: 0, bag_kg: 50 },
-];
-
-const COTTON_SPLIT: SplitDose[] = [
-  { stage: 'Basal', nPct: 0, pPct: 100, kPct: 0 },
-  { stage: '20 DAS', nPct: 25, pPct: 0, kPct: 25 },
-  { stage: '40 DAS', nPct: 25, pPct: 0, kPct: 25 },
-  { stage: '60 DAS', nPct: 25, pPct: 0, kPct: 25 },
-  { stage: '80 DAS', nPct: 25, pPct: 0, kPct: 25 },
-];
-
-const PADDY_SPLIT: SplitDose[] = [
-  { stage: 'Before transplanting / final puddling', nPct: 34, pPct: 100, kPct: 100 },
-  { stage: 'Active tillering stage', nPct: 33, pPct: 0, kPct: 0 },
-  { stage: 'Panicle initiation stage', nPct: 33, pPct: 0, kPct: 0 },
-];
-
-const PADDY_LONG_DURATION_SPLIT: SplitDose[] = [
-  { stage: 'Before transplanting / final puddling', nPct: 25, pPct: 100, kPct: 100 },
-  { stage: '15-20 days after first split', nPct: 25, pPct: 0, kPct: 0 },
-  { stage: '15-20 days after second split', nPct: 25, pPct: 0, kPct: 0 },
-  { stage: 'Panicle initiation stage', nPct: 25, pPct: 0, kPct: 0 },
-];
-
-const MAIZE_SPLIT: SplitDose[] = [
-  { stage: 'Basal at sowing', nPct: 34, pPct: 100, kPct: 50 },
-  { stage: 'Knee-high stage', nPct: 33, pPct: 0, kPct: 0 },
-  { stage: 'Flowering / tasseling stage', nPct: 33, pPct: 0, kPct: 50 },
-];
-
-const BASAL_SPLIT: SplitDose[] = [
-  { stage: 'Basal before sowing', nPct: 100, pPct: 100, kPct: 100 },
-];
-
-const DEFAULT_RECOMMENDATIONS: CropRecommendation[] = [
-  { crop_name: 'Cotton - Normal', crop: 'Cotton', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 36, p: 18, k: 18, area_unit: 'acre', split_plan: COTTON_SPLIT },
-  { crop_name: 'Cotton - Hybrid', crop: 'Cotton', zone: 'All Zones', season: 'Vanakalam', variety: 'Hybrid', n: 48, p: 24, k: 24, area_unit: 'acre', split_plan: COTTON_SPLIT },
-  { crop_name: 'Paddy Vanakalam - Northern Telangana', crop: 'Paddy', zone: 'Northern Telangana', season: 'Vanakalam', variety: 'Normal', n: 48, p: 20, k: 16, area_unit: 'acre', split_plan: PADDY_SPLIT },
-  { crop_name: 'Paddy Vanakalam - Central Telangana', crop: 'Paddy', zone: 'Central Telangana', season: 'Vanakalam', variety: 'Normal', n: 48, p: 20, k: 16, area_unit: 'acre', split_plan: PADDY_SPLIT },
-  { crop_name: 'Paddy Vanakalam - Southern Telangana', crop: 'Paddy', zone: 'Southern Telangana', season: 'Vanakalam', variety: 'Normal', n: 48, p: 24, k: 16, area_unit: 'acre', split_plan: PADDY_SPLIT },
-  { crop_name: 'Paddy Yasangi - All Zones', crop: 'Paddy', zone: 'All Zones', season: 'Yasangi', variety: 'Normal', n: 60, p: 24, k: 16, area_unit: 'acre', split_plan: PADDY_SPLIT },
-  { crop_name: 'Paddy Long Duration - All Zones', crop: 'Paddy', zone: 'All Zones', season: 'All Seasons', variety: 'Long Duration', n: 60, p: 24, k: 16, area_unit: 'acre', split_plan: PADDY_LONG_DURATION_SPLIT },
-  { crop_name: 'Maize Kharif - Normal', crop: 'Maize', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 80, p: 24, k: 20, area_unit: 'acre', split_plan: MAIZE_SPLIT },
-  { crop_name: 'Maize Kharif - Sweet Corn', crop: 'Maize', zone: 'All Zones', season: 'Vanakalam', variety: 'Sweet Corn', n: 72, p: 24, k: 20, area_unit: 'acre', split_plan: MAIZE_SPLIT },
-  { crop_name: 'Maize Kharif - Pop Corn', crop: 'Maize', zone: 'All Zones', season: 'Vanakalam', variety: 'Pop Corn', n: 32, p: 24, k: 20, area_unit: 'acre', split_plan: MAIZE_SPLIT },
-  { crop_name: 'Maize Kharif - Baby Corn', crop: 'Maize', zone: 'All Zones', season: 'Vanakalam', variety: 'Baby Corn', n: 48, p: 20, k: 16, area_unit: 'acre', split_plan: MAIZE_SPLIT },
-  { crop_name: 'Maize Yasangi - Normal', crop: 'Maize', zone: 'All Zones', season: 'Yasangi', variety: 'Normal', n: 90, p: 32, k: 32, area_unit: 'acre', split_plan: MAIZE_SPLIT },
-  { crop_name: 'Maize Yasangi - Sweet Corn', crop: 'Maize', zone: 'All Zones', season: 'Yasangi', variety: 'Sweet Corn', n: 80, p: 24, k: 20, area_unit: 'acre', split_plan: MAIZE_SPLIT },
-  { crop_name: 'Maize Yasangi - Pop Corn', crop: 'Maize', zone: 'All Zones', season: 'Yasangi', variety: 'Pop Corn', n: 40, p: 24, k: 20, area_unit: 'acre', split_plan: MAIZE_SPLIT },
-  { crop_name: 'Maize Yasangi - Baby Corn', crop: 'Maize', zone: 'All Zones', season: 'Yasangi', variety: 'Baby Corn', n: 70, p: 24, k: 20, area_unit: 'acre', split_plan: MAIZE_SPLIT },
-  { crop_name: 'Redgram', crop: 'Redgram', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 8, p: 20, k: 0, area_unit: 'acre', split_plan: BASAL_SPLIT },
-  { crop_name: 'Greengram', crop: 'Greengram', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 8, p: 20, k: 0, area_unit: 'acre', split_plan: BASAL_SPLIT },
-  { crop_name: 'Sesamum', crop: 'Sesamum', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 16, p: 8, k: 8, area_unit: 'acre', split_plan: BASAL_SPLIT },
-];
-
 const PRESETS = [
   { label: '48:24:24', n: 48, p: 24, k: 24 },
   { label: '36:18:18', n: 36, p: 18, k: 18 },
@@ -171,93 +74,16 @@ const PRESETS = [
   { label: '8:20:0', n: 8, p: 20, k: 0 },
 ];
 
-const numberValue = (value: string | number) => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const round = (value: number, digits = 2) => Number(value.toFixed(digits));
-
-const emptyNutrients = (): Nutrients => ({ n: 0, p: 0, k: 0 });
-
 function gradeKey(grade: FertilizerGrade) {
   return grade.id || grade.name;
 }
 
 function getGradeLabel(grade: FertilizerGrade) {
-  return grade.s > 0 ? `${grade.name} (${grade.n}:${grade.p}:${grade.k}:${grade.s})` : `${grade.name} (${grade.n}:${grade.p}:${grade.k})`;
-}
-
-function calculateFertilizers(required: Nutrients, selected: FertilizerGrade[]) {
-  const quantities = new Map<string, number>();
-  const remaining = { ...required };
-  const pickBest = (nutrient: keyof Nutrients) => {
-    return [...selected]
-      .filter((grade) => grade[nutrient] > 0)
-      .sort((a, b) => b[nutrient] - a[nutrient])[0];
-  };
-  const addQuantity = (grade: FertilizerGrade, kg: number) => {
-    if (kg <= 0) return;
-    const key = gradeKey(grade);
-    quantities.set(key, (quantities.get(key) || 0) + kg);
-    remaining.n -= kg * (grade.n / 100);
-    remaining.p -= kg * (grade.p / 100);
-    remaining.k -= kg * (grade.k / 100);
-  };
-
-  if (selected.length === 1) {
-    const grade = selected[0];
-    const kg = Math.max(
-      grade.n > 0 ? required.n / (grade.n / 100) : 0,
-      grade.p > 0 ? required.p / (grade.p / 100) : 0,
-      grade.k > 0 ? required.k / (grade.k / 100) : 0
-    );
-    addQuantity(grade, kg);
-  } else {
-    const phosphorusGrade = pickBest('p');
-    if (phosphorusGrade && remaining.p > 0) addQuantity(phosphorusGrade, remaining.p / (phosphorusGrade.p / 100));
-    const potashGrade = pickBest('k');
-    if (potashGrade && remaining.k > 0) addQuantity(potashGrade, remaining.k / (potashGrade.k / 100));
-    const nitrogenGrade = pickBest('n');
-    if (nitrogenGrade && remaining.n > 0) addQuantity(nitrogenGrade, remaining.n / (nitrogenGrade.n / 100));
-  }
-
-  const results = selected.map((grade) => {
-    const kg = quantities.get(gradeKey(grade)) || 0;
-    return {
-      grade,
-      kg,
-      bags: grade.bag_kg > 0 ? kg / grade.bag_kg : 0,
-      supplied: {
-        n: kg * (grade.n / 100),
-        p: kg * (grade.p / 100),
-        k: kg * (grade.k / 100),
-      },
-    };
-  });
-  const supplied = results.reduce(
-    (total, row) => ({
-      n: total.n + row.supplied.n,
-      p: total.p + row.supplied.p,
-      k: total.k + row.supplied.k,
-    }),
-    emptyNutrients()
-  );
-
-  return {
-    results,
-    supplied,
-    balance: {
-      n: Math.max(0, required.n - supplied.n),
-      p: Math.max(0, required.p - supplied.p),
-      k: Math.max(0, required.k - supplied.k),
-    },
-    excess: {
-      n: Math.max(0, supplied.n - required.n),
-      p: Math.max(0, supplied.p - required.p),
-      k: Math.max(0, supplied.k - required.k),
-    },
-  };
+  const composition = gradeComposition(grade);
+  const entries = visibleNutrientKeys(composition)
+    .filter((nutrient) => numberValue(composition[nutrient]) > 0)
+    .map((nutrient) => `${nutrient.toUpperCase()} ${round(composition[nutrient])}`);
+  return entries.length ? `${grade.name} (${entries.join(', ')})` : grade.name;
 }
 
 function getAcres(areaValue: number, unit: string) {
@@ -280,7 +106,10 @@ function formatSelectedArea(area: { value: number; unit: string }, language: 'en
 }
 
 function formatNutrients(nutrients: Nutrients) {
-  return `N ${round(nutrients.n)} kg, P2O5 ${round(nutrients.p)} kg, K2O ${round(nutrients.k)} kg`;
+  return visibleNutrientKeys(nutrients)
+    .filter((nutrient) => numberValue(nutrients[nutrient]) > 0 || ['n', 'p', 'k'].includes(nutrient))
+    .map((nutrient) => `${nutrient === 'p' ? 'P2O5' : nutrient === 'k' ? 'K2O' : nutrient.toUpperCase()} ${round(numberValue(nutrients[nutrient]))} kg`)
+    .join(', ');
 }
 
 function formatNutrientLinesTe(nutrients: Nutrients) {
@@ -289,6 +118,25 @@ function formatNutrientLinesTe(nutrients: Nutrients) {
     `🔹 భాస్వరం (P₂O₅) : ${round(nutrients.p)} కిలోలు`,
     `🔹 పొటాష్ (K₂O) : ${round(nutrients.k)} కిలోలు`,
   ];
+}
+
+function compositionToText(composition?: Record<string, number>) {
+  return Object.entries(composition || {})
+    .filter(([key, value]) => !['n', 'p', 'k', 's'].includes(key) && numberValue(value) > 0)
+    .map(([key, value]) => `${key}:${value}`)
+    .join(', ');
+}
+
+function parseCompositionText(value: string) {
+  return value
+    .split(/[,;\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .reduce<Record<string, number>>((total, item) => {
+      const [key, amount] = item.split(/[:=]/).map((part) => part.trim());
+      if (key && numberValue(amount) > 0) total[key] = numberValue(amount);
+      return total;
+    }, {});
 }
 
 function fertilizerNameTe(name: string) {
@@ -565,7 +413,7 @@ function buildFertilizerReportHtml(text: string, language: 'en' | 'te') {
   };
 
   return `
-    <div class="fertilizer-pdf ${language === 'te' ? 'telugu' : ''}">
+    <div class="fertilizer-pdf ${language === 'te' ? 'telugu' : 'english'}">
       <header>
         <h1>${escapeHtml(stripWhatsAppMarkdown(title).trim())}</h1>
         <p>${escapeHtml(stripWhatsAppMarkdown(subtitle).trim())}</p>
@@ -642,7 +490,36 @@ function createFertilizerReportElement(html: string) {
       }
       .fertilizer-pdf .mono {
         white-space: pre-wrap;
+        overflow-wrap: anywhere;
         font-weight: 800;
+      }
+      .fertilizer-pdf.english {
+        padding: 18px;
+        line-height: 1.18;
+      }
+      .fertilizer-pdf.english header {
+        margin-bottom: 7px;
+      }
+      .fertilizer-pdf.english h1 {
+        font-size: 20px;
+      }
+      .fertilizer-pdf.english header p {
+        font-size: 13px;
+      }
+      .fertilizer-pdf.english .card {
+        margin-bottom: 6px;
+        padding: 7px 9px;
+      }
+      .fertilizer-pdf.english h2 {
+        margin-bottom: 4px;
+        font-size: 12.5px;
+      }
+      .fertilizer-pdf.english p {
+        font-size: 9.5px;
+      }
+      .fertilizer-pdf.english .strong {
+        margin-top: 4px;
+        font-size: 10px;
       }
     </style>
     ${html}
@@ -654,6 +531,30 @@ function createFertilizerReportElement(html: string) {
 function getInitialSelected(grades: FertilizerGrade[]) {
   const defaultNames = new Set(['DAP', 'Urea', 'MOP']);
   return grades.filter((grade) => defaultNames.has(grade.name)).map(gradeKey);
+}
+
+function recommendationMergeKey(recommendation: CropRecommendation) {
+  return [
+    recommendation.crop_name,
+    recommendation.crop || '',
+    recommendation.zone || '',
+    recommendation.season || '',
+    recommendation.variety || '',
+  ].join('|').trim().toLowerCase();
+}
+
+function mergeRecommendationsWithDefaults(rows: CropRecommendation[]) {
+  const activeRows = rows.filter((row) => row.is_active !== false);
+  const inactiveKeys = new Set(rows.filter((row) => row.is_active === false).map(recommendationMergeKey));
+  const merged = new Map<string, CropRecommendation>();
+
+  DEFAULT_RECOMMENDATIONS.forEach((recommendation) => {
+    const key = recommendationMergeKey(recommendation);
+    if (!inactiveKeys.has(key)) merged.set(key, recommendation);
+  });
+  activeRows.forEach((recommendation) => merged.set(recommendationMergeKey(recommendation), recommendation));
+
+  return [...merged.values()].sort((a, b) => a.crop_name.localeCompare(b.crop_name));
 }
 
 function uniqueValues(values: Array<string | undefined>) {
@@ -696,7 +597,7 @@ function recommendationNpkLabel(recommendation: CropRecommendation) {
 }
 
 export function FertilizerCalculator() {
-  const { isAdminUser } = useAuth();
+  const { isAdminUser, user } = useAuth();
   const { language, toggleLanguage } = useLanguage();
   const [mode, setMode] = useState<'simple' | 'crop'>('simple');
   const [simpleTab, setSimpleTab] = useState<'forward' | 'reverse'>('forward');
@@ -713,46 +614,42 @@ export function FertilizerCalculator() {
   const [area, setArea] = useState({ value: 1, unit: 'acres' });
   const [gradeDraft, setGradeDraft] = useState<FertilizerGrade>({ name: '', n: 0, p: 0, k: 0, s: 0, bag_kg: 50 });
   const [cropDraft, setCropDraft] = useState<CropRecommendation>({ crop_name: '', n: 0, p: 0, k: 0, area_unit: 'acre', split_plan: DEFAULT_SPLIT });
+  const [saveNotice, setSaveNotice] = useState<{ type: 'grade' | 'crop'; label: string; details: string } | null>(null);
+  const [savedCalculations, setSavedCalculations] = useState<Array<{ id: string; input: unknown; output: unknown; created_at: string }>>([]);
 
   useEffect(() => {
     const loadCalculatorData = async () => {
       setLoadingData(true);
-      const [gradeResponse, cropResponse] = await Promise.all([
-        supabase.from('fertilizer_grades').select('id, name, n, p, k, s, bag_kg, is_active').eq('is_active', true).order('name'),
-        supabase.from('crop_fertilizer_recommendations').select('id, crop_name, crop, zone, season, variety, n, p, k, area_unit, split_plan, is_active').eq('is_active', true).order('crop_name'),
-      ]);
+      const cropQuery = supabase.from('crop_fertilizer_recommendations').select('id, crop_name, crop, zone, season, variety, n, p, k, nutrients, area_unit, split_plan, is_active').order('crop_name');
+      let [loadedGrades, cropResponse]: [FertilizerGrade[], any] = await Promise.all([loadFertilizerGrades(), cropQuery]);
 
-      if (!gradeResponse.error && gradeResponse.data?.length) {
-        const loadedGrades = gradeResponse.data.map((row) => ({
-          id: row.id,
-          name: row.name,
-          n: numberValue(row.n),
-          p: numberValue(row.p),
-          k: numberValue(row.k),
-          s: numberValue(row.s),
-          bag_kg: numberValue(row.bag_kg) || 50,
-          is_active: row.is_active,
-        }));
-        setGrades(loadedGrades);
-        setSelectedKeys((current) => current.filter((key) => loadedGrades.some((grade) => gradeKey(grade) === key)));
+      if (cropResponse.error) {
+        cropResponse = await supabase.from('crop_fertilizer_recommendations').select('id, crop_name, crop, zone, season, variety, n, p, k, area_unit, split_plan, is_active').order('crop_name');
       }
 
-      if (!cropResponse.error && cropResponse.data?.length) {
+      setGrades(loadedGrades);
+      setSelectedKeys((current) => {
+        const kept = current.filter((key) => loadedGrades.some((grade) => gradeKey(grade) === key));
+        return kept.length ? kept : getInitialSelected(loadedGrades);
+      });
+
+      if (!cropResponse.error) {
         setRecommendations(
-          cropResponse.data.map((row) => ({
-          id: row.id,
-          crop_name: row.crop_name,
-          crop: row.crop || row.crop_name,
-          zone: row.zone || 'All Zones',
-          season: row.season || 'Vanakalam',
-          variety: row.variety || 'Normal',
-          n: numberValue(row.n),
+          mergeRecommendationsWithDefaults((cropResponse.data || []).map((row: any) => ({
+            id: row.id,
+            crop_name: row.crop_name,
+            crop: row.crop || row.crop_name,
+            zone: row.zone || 'All Zones',
+            season: row.season || 'Vanakalam',
+            variety: row.variety || 'Normal',
+            n: numberValue(row.n),
             p: numberValue(row.p),
             k: numberValue(row.k),
+            nutrients: typeof row.nutrients === 'object' && row.nutrients ? row.nutrients as Record<string, number> : undefined,
             area_unit: row.area_unit || 'acre',
             split_plan: Array.isArray(row.split_plan) ? row.split_plan as SplitDose[] : DEFAULT_SPLIT,
             is_active: row.is_active,
-          }))
+          })))
         );
       }
       setLoadingData(false);
@@ -760,6 +657,20 @@ export function FertilizerCalculator() {
 
     void loadCalculatorData();
   }, []);
+
+  const refreshSavedCalculations = async () => {
+    if (!isAdminUser) return;
+    const { data, error } = await supabase
+      .from('fertilizer_calculation_records')
+      .select('id, input, output, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5);
+    if (!error) setSavedCalculations(data || []);
+  };
+
+  useEffect(() => {
+    void refreshSavedCalculations();
+  }, [isAdminUser]);
 
   const selectedGrades = useMemo(
     () => grades.filter((grade) => selectedKeys.includes(gradeKey(grade))),
@@ -795,11 +706,15 @@ export function FertilizerCalculator() {
   );
   const recommendationNutrients = useMemo(() => {
     const acres = Math.max(0, getAcres(area.value, area.unit));
-    return {
+    const base: Nutrients = {
       n: selectedRecommendation.n * acres,
       p: selectedRecommendation.p * acres,
       k: selectedRecommendation.k * acres,
     };
+    Object.entries(selectedRecommendation.nutrients || {}).forEach(([nutrient, value]) => {
+      base[nutrient] = numberValue(value) * acres;
+    });
+    return base;
   }, [area, selectedRecommendation]);
   const recommendationCalculation = useMemo(
     () => calculateFertilizers(recommendationNutrients, selectedGrades),
@@ -807,11 +722,14 @@ export function FertilizerCalculator() {
   );
   const splitFertilizerPlan = useMemo(
     () => (selectedRecommendation.split_plan || DEFAULT_SPLIT).map((dose) => {
-      const doseNutrients = {
+      const doseNutrients: Nutrients = {
         n: recommendationNutrients.n * dose.nPct / 100,
         p: recommendationNutrients.p * dose.pPct / 100,
         k: recommendationNutrients.k * dose.kPct / 100,
       };
+      Object.entries(dose.nutrientsPct || {}).forEach(([nutrient, percent]) => {
+        doseNutrients[nutrient] = numberValue(recommendationNutrients[nutrient]) * numberValue(percent) / 100;
+      });
       return {
         dose,
         nutrients: doseNutrients,
@@ -884,13 +802,27 @@ export function FertilizerCalculator() {
       k: numberValue(grade.k),
       s: numberValue(grade.s),
       bag_kg: numberValue(grade.bag_kg) || 50,
+      composition: {
+        n: numberValue(grade.n),
+        p: numberValue(grade.p),
+        k: numberValue(grade.k),
+        s: numberValue(grade.s),
+        ...(grade.composition || {}),
+      },
       is_active: true,
     };
     if (!payload.name) return;
     const shouldUpdate = Boolean(grade.id && !grade.id.startsWith('local-'));
-    const { error } = shouldUpdate
+    let { error } = shouldUpdate
       ? await supabase.from('fertilizer_grades').update(payload).eq('id', grade.id)
       : await supabase.from('fertilizer_grades').insert(payload);
+    if (error && /composition/i.test(error.message || '')) {
+      const { composition: _composition, ...legacyPayload } = payload;
+      const retry = shouldUpdate
+        ? await supabase.from('fertilizer_grades').update(legacyPayload).eq('id', grade.id)
+        : await supabase.from('fertilizer_grades').insert(legacyPayload);
+      error = retry.error;
+    }
     if (error) {
       alert('Could not save fertilizer grade. Please apply the Supabase migration first.');
       return;
@@ -900,6 +832,11 @@ export function FertilizerCalculator() {
         return current.map((item) => item.id === grade.id ? { ...item, ...payload } : item);
       }
       return [...current, { ...payload, id: `local-${payload.name}` }];
+    });
+    setSaveNotice({
+      type: 'grade',
+      label: payload.name,
+      details: `Grade ${payload.n}:${payload.p}:${payload.k}${payload.s ? `:${payload.s}` : ''} | ${payload.bag_kg} kg bag`,
     });
     setGradeDraft({ name: '', n: 0, p: 0, k: 0, s: 0, bag_kg: 50 });
   };
@@ -934,15 +871,28 @@ export function FertilizerCalculator() {
       n: numberValue(crop.n),
       p: numberValue(crop.p),
       k: numberValue(crop.k),
+      nutrients: {
+        n: numberValue(crop.n),
+        p: numberValue(crop.p),
+        k: numberValue(crop.k),
+        ...(crop.nutrients || {}),
+      },
       area_unit: 'acre',
       split_plan: crop.split_plan || DEFAULT_SPLIT,
       is_active: true,
     };
     if (!payload.crop_name) return;
     const shouldUpdate = Boolean(crop.id && !crop.id.startsWith('local-'));
-    const { error } = shouldUpdate
+    let { error } = shouldUpdate
       ? await supabase.from('crop_fertilizer_recommendations').update(payload).eq('id', crop.id)
       : await supabase.from('crop_fertilizer_recommendations').insert(payload);
+    if (error && /nutrients/i.test(error.message || '')) {
+      const { nutrients: _nutrients, ...legacyPayload } = payload;
+      const retry = shouldUpdate
+        ? await supabase.from('crop_fertilizer_recommendations').update(legacyPayload).eq('id', crop.id)
+        : await supabase.from('crop_fertilizer_recommendations').insert(legacyPayload);
+      error = retry.error;
+    }
     if (error) {
       alert('Could not save crop recommendation. Please apply the Supabase migration first.');
       return;
@@ -952,6 +902,11 @@ export function FertilizerCalculator() {
         return current.map((item) => item.id === crop.id ? { ...item, ...payload } : item);
       }
       return [...current, { ...payload, id: `local-${payload.crop_name}` }];
+    });
+    setSaveNotice({
+      type: 'crop',
+      label: payload.crop_name,
+      details: `${payload.crop} | ${payload.season} | ${payload.zone} | ${payload.variety} | N:P:K ${payload.n}:${payload.p}:${payload.k}`,
     });
     setCropDraft({ crop_name: '', crop: '', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 0, p: 0, k: 0, area_unit: 'acre', split_plan: DEFAULT_SPLIT });
   };
@@ -972,34 +927,6 @@ export function FertilizerCalculator() {
     }
 
     setRecommendations((current) => current.filter((item) => (item.id || item.crop_name) !== (crop.id || crop.crop_name)));
-  };
-
-  const exportExcel = async () => {
-    const XLSX = await import('xlsx');
-    const workbook = XLSX.utils.book_new();
-    const summary = [
-      ['Smart Fertilizer Calculator'],
-      ['Generated By', 'K. Vinay Reddy, MAO, Tiryani'],
-      ['Generated Date', new Date().toLocaleString()],
-      [],
-      ['Required N', round(activeRequired.n), 'Required P2O5', round(activeRequired.p), 'Required K2O', round(activeRequired.k)],
-      ['Supplied N', round(activeCalculation.supplied.n), 'Supplied P2O5', round(activeCalculation.supplied.p), 'Supplied K2O', round(activeCalculation.supplied.k)],
-      ['Balance N', round(activeCalculation.balance.n), 'Balance P2O5', round(activeCalculation.balance.p), 'Balance K2O', round(activeCalculation.balance.k)],
-      ['Excess N', round(activeCalculation.excess.n), 'Excess P2O5', round(activeCalculation.excess.p), 'Excess K2O', round(activeCalculation.excess.k)],
-    ];
-    const rows = activeCalculation.results.map((row) => ({
-      Fertilizer: row.grade.name,
-      Grade: row.grade.s > 0 ? `${row.grade.n}:${row.grade.p}:${row.grade.k}:${row.grade.s}` : `${row.grade.n}:${row.grade.p}:${row.grade.k}`,
-      'Bag Kg': row.grade.bag_kg,
-      'Required Kg': round(row.kg),
-      Bags: round(row.bags),
-      'N Supplied': round(row.supplied.n),
-      'P Supplied': round(row.supplied.p),
-      'K Supplied': round(row.supplied.k),
-    }));
-    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(summary), 'Summary');
-    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), 'Calculation');
-    XLSX.writeFile(workbook, `fertilizer-calculator-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const exportPdf = async () => {
@@ -1034,6 +961,25 @@ export function FertilizerCalculator() {
     const footerHeight = 24;
     const imageWidth = pageWidth - margin * 2;
     const pageImageHeight = pageHeight - margin * 2 - footerHeight;
+
+    if (language === 'en') {
+      const naturalImageHeight = (canvas.height / canvas.width) * imageWidth;
+      const fitScale = Math.min(1, pageImageHeight / naturalImageHeight);
+      const fittedWidth = imageWidth * fitScale;
+      const fittedHeight = naturalImageHeight * fitScale;
+      const x = margin + (imageWidth - fittedWidth) / 2;
+      doc.addImage(canvas.toDataURL('image/png'), 'PNG', x, margin, fittedWidth, fittedHeight);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(4, 120, 87);
+      doc.text('Tiryani Agriculture Portal | Generated by K. Vinay Reddy, MAO, Tiryani', pageWidth / 2, pageHeight - 16, { align: 'center' });
+      doc.setFontSize(7);
+      doc.setTextColor(71, 85, 105);
+      doc.text('Page 1 of 1', pageWidth / 2, pageHeight - 7, { align: 'center' });
+      doc.save(`fertilizer-calculator-${new Date().toISOString().slice(0, 10)}.pdf`);
+      return;
+    }
+
     const sourcePageHeight = Math.floor((pageImageHeight / imageWidth) * canvas.width);
     const pageCount = Math.max(1, Math.ceil(canvas.height / sourcePageHeight));
 
@@ -1076,6 +1022,44 @@ export function FertilizerCalculator() {
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
   };
 
+  const saveCalculation = async () => {
+    const input = {
+      mode,
+      simpleTab,
+      area,
+      required: activeRequired,
+      selectedRecommendation,
+      selectedGrades,
+    };
+    const output = {
+      supplied: activeCalculation.supplied,
+      balance: activeCalculation.balance,
+      excess: activeCalculation.excess,
+      remarks: activeCalculation.remarks,
+      results: activeCalculation.results.map((row) => ({
+        fertilizer: row.grade.name,
+        kg: row.kg,
+        bags: row.bags,
+        supplied: row.supplied,
+      })),
+    };
+    const { error } = await supabase.from('fertilizer_calculation_records').insert({
+      input,
+      output,
+      created_by: user?.id || null,
+    });
+    if (error) {
+      alert('Could not save calculation. Please apply the latest Supabase migration.');
+      return;
+    }
+    setSaveNotice({
+      type: 'crop',
+      label: 'Saved successfully',
+      details: `${mode === 'crop' ? recommendationLabel(selectedRecommendation) : 'Custom nutrients'} | ${formatNutrients(activeRequired)}`,
+    });
+    await refreshSavedCalculations();
+  };
+
   return (
     <div className="mx-auto max-w-7xl space-y-2 text-slate-950 sm:space-y-3">
       <section className="rounded-xl border border-emerald-100 bg-white p-2 shadow-sm sm:p-3">
@@ -1084,12 +1068,9 @@ export function FertilizerCalculator() {
               {language === 'te' ? 'English' : 'తెలుగు'}
             </button>
         </div>
-        <div className="mt-2 grid grid-cols-4 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
+        <div className="mt-2 grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
             <button type="button" onClick={exportPdf} className="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-600 px-2 py-1.5 text-white sm:px-3" aria-label="Export PDF" title="PDF">
               <FileText className="h-4 w-4" />
-            </button>
-            <button type="button" onClick={exportExcel} className="inline-flex min-h-9 items-center justify-center rounded-lg bg-emerald-700 px-2 py-1.5 text-white sm:px-3" aria-label="Export Excel" title="Excel">
-              <FileSpreadsheet className="h-4 w-4" />
             </button>
             <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-9 items-center justify-center rounded-lg bg-green-600 px-2 py-1.5 text-white sm:px-3" aria-label="Share on WhatsApp" title="WhatsApp">
               <WhatsAppIcon className="h-4 w-4" />
@@ -1291,6 +1272,11 @@ export function FertilizerCalculator() {
             <SummaryTile title="Excess" values={activeCalculation.excess} tone="bg-amber-50 text-amber-900 border-amber-100" />
             <SummaryTile title="Supplied" values={activeCalculation.supplied} tone="bg-emerald-50 text-emerald-900 border-emerald-100" />
           </div>
+          {activeCalculation.remarks.length > 0 && (
+            <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs font-bold text-amber-950">
+              {activeCalculation.remarks.map((remark) => <p key={remark}>{remark}</p>)}
+            </div>
+          )}
         </div>
       </section>
 
@@ -1334,6 +1320,33 @@ export function FertilizerCalculator() {
       {isAdminUser && (
         <section className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 shadow-sm sm:p-4">
           <h2 className="mb-3 text-base font-black text-emerald-950">Admin Panel</h2>
+          {saveNotice && (
+            <div className="mb-3 rounded-lg border border-emerald-300 bg-white p-3 text-emerald-950 shadow-sm">
+              <p className="text-sm font-black">Saved successfully</p>
+              <p className="mt-1 text-sm font-bold">{saveNotice.label}</p>
+              <p className="text-xs font-semibold text-emerald-800">{saveNotice.details}</p>
+            </div>
+          )}
+          <div className="mb-3 rounded-lg border border-white bg-white p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-black text-slate-950">Save Current Calculation</p>
+                <p className="text-xs font-semibold text-slate-500">Stores complete input and output including dynamic nutrients.</p>
+              </div>
+              <button type="button" onClick={saveCalculation} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white">
+                <Save className="h-4 w-4" /> Save Calculation
+              </button>
+            </div>
+            {savedCalculations.length > 0 && (
+              <div className="mt-3 grid gap-2">
+                {savedCalculations.map((entry) => (
+                  <div key={entry.id} className="rounded-md border border-slate-200 bg-slate-50 p-2 text-xs font-bold text-slate-700">
+                    Saved: {new Date(entry.created_at).toLocaleString()}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="grid gap-3 lg:grid-cols-2">
             <AdminGradeEditor grades={grades} draft={gradeDraft} onDraftChange={setGradeDraft} onSave={saveGrade} onDelete={deleteGrade} loading={loadingData} />
             <AdminCropEditor crops={recommendations} draft={cropDraft} onDraftChange={setCropDraft} onSave={saveCrop} onDelete={deleteCrop} />
@@ -1364,7 +1377,12 @@ function SummaryTile({ title, values, tone }: { title: string; values: Nutrients
   return (
     <div className={`rounded-lg border p-3 ${tone}`}>
       <p className="text-xs font-black uppercase">{title}</p>
-      <p className="mt-1 text-xs font-bold">N {round(values.n)} | P {round(values.p)} | K {round(values.k)}</p>
+      <p className="mt-1 text-xs font-bold">
+        {visibleNutrientKeys(values)
+          .filter((nutrient) => numberValue(values[nutrient]) > 0 || ['n', 'p', 'k'].includes(nutrient))
+          .map((nutrient) => `${nutrient.toUpperCase()} ${round(numberValue(values[nutrient]))}`)
+          .join(' | ')}
+      </p>
     </div>
   );
 }
@@ -1427,6 +1445,12 @@ function EditorInputs({ value, onChange }: { value: FertilizerGrade; onChange: (
         <input key={key} type="number" value={value[key]} onChange={(event) => onChange({ ...value, [key]: numberValue(event.target.value) })} placeholder={key.toUpperCase()} className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
       ))}
       <input type="number" value={value.bag_kg} onChange={(event) => onChange({ ...value, bag_kg: numberValue(event.target.value) })} placeholder="Bag" className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
+      <input
+        defaultValue={compositionToText(value.composition)}
+        onChange={(event) => onChange({ ...value, composition: parseCompositionText(event.target.value) })}
+        placeholder="Extra nutrients Zn:1, B:0.5"
+        className="col-span-6 rounded-md border border-slate-200 px-2 py-1 text-xs font-bold"
+      />
     </div>
   );
 }

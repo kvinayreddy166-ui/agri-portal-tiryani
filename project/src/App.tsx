@@ -25,7 +25,7 @@ const FileDirectory = lazy(() => import('./pages/FileDirectory').then((m) => ({ 
 const SubsidyTracking = lazy(() => import('./pages/SubsidyTracking').then((m) => ({ default: m.SubsidyTracking })));
 const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m) => ({ default: m.DealerStockPortal })));
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
-const FertilizerCalculator = lazy(() => import('./pages/FertilizerCalculator').then((m) => ({ default: m.FertilizerCalculator })));
+const FertilizerCalculator = lazy(() => import('./features/fertilizerCalculator/FertilizerCalculatorCore').then((m) => ({ default: m.FertilizerCalculatorCore })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
 const StockAnalytics = lazy(() => import('./pages/StockAnalytics'));
 const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
