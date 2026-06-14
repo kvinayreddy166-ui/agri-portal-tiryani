@@ -479,7 +479,7 @@ export function Login() {
                 <Calculator className="h-5 w-5" />
               </span>
               <span>
-                <span className="block text-sm font-black">{t('Acreage Calculator', 'Acreage Calculator')}</span>
+                <span className="block text-sm font-black">{t('Acerage Calculator', 'Acerage Calculator')}</span>
                 <span className="mt-0.5 block text-xs font-semibold text-stone-600">Open</span>
               </span>
             </button>
@@ -523,7 +523,7 @@ export function Login() {
                     ? t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')
                     : fertilizerCalculatorOpen
                       ? t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')
-                      : t('Acreage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+                      : t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
                 </h1>
               </div>
             </div>
@@ -561,7 +561,7 @@ export function Login() {
               }`}
             >
               <Calculator className="h-4 w-4" />
-              {t('Acreage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+              {t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
             </button>
             <button
               type="button"
@@ -773,134 +773,54 @@ export function Login() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24 lg:p-4 lg:pb-24">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(4,120,87,0.08),rgba(14,165,233,0.08)_48%,rgba(250,204,21,0.08))]" />
 
-      <div className="relative grid w-full max-w-5xl overflow-hidden rounded-lg border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm lg:grid-cols-[1fr_0.95fr]">
-        <section className="relative hidden min-h-[600px] flex-col justify-between overflow-hidden bg-emerald-950 p-7 text-white lg:flex">
-          <img src="/images/rice.webp" alt="" decoding="async" className="absolute inset-x-0 top-0 h-[50%] w-full object-cover opacity-95" />
-          <img src="/images/cotton.webp" alt="" decoding="async" className="absolute inset-x-0 bottom-0 h-[50%] w-full object-cover opacity-95" />
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/82 via-emerald-900/58 to-slate-900/30" />
-
-          <div className="relative">
-            <div className="mb-5 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur-md">
-              <PortalLogo size="sm" className="ring-white/30" />
-              {t('Department of Agriculture', 'వ్యవసాయ శాఖ')}
-            </div>
-            <h1 className="max-w-lg text-4xl font-black leading-[1.1] tracking-tight">
-              {t('Tiryani Agriculture Portal', 'తిర్యాణి వ్యవసాయ పోర్టల్')}
-            </h1>
-            <p className="mt-3 text-lg font-semibold text-emerald-100">
-              {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
-            </p>
-            <p className="mt-5 max-w-lg text-base leading-relaxed text-emerald-50/95">
-              {t(
-                'A secure workspace for fertilizer, dealer, and crop management for Tiryani Mandal.',
-                'తిర్యాణి మండలానికి ఎరువులు, డీలర్లు మరియు పంటల నిర్వహణ కోసం సురక్షిత వ్యవస్థ.'
-              )}
-            </p>
-          </div>
-
-          <div className="relative grid gap-2">
-            <div className="rounded-xl border border-white/15 bg-white/10 p-3 backdrop-blur-md">
-              <div className="mb-2 flex items-center gap-2 font-semibold">
-                <ShieldCheck className="h-5 w-5 text-emerald-200" />
-                {t('Admin access', 'అధికారి ప్రవేశం')}
-              </div>
-              <p className="text-sm text-emerald-50/90">
-                {t('Full access to manage stock, dealers, crops, and uploads.', 'స్టాక్, డీలర్లు, పంటలు మరియు అప్లోడ్లను నిర్వహించడానికి పూర్తి ప్రవేశం.')}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={openOfficerToolkit}
-              className="hidden rounded-xl border border-white/15 bg-white/10 p-3 text-left backdrop-blur-md transition hover:bg-white/15"
-            >
-              <div className="mb-2 flex items-center gap-2 font-semibold">
-                <FileText className="h-5 w-5 text-cyan-200" />
-                {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
-              </div>
-              <p className="text-sm text-emerald-50/90">
-                {t('Fertilizer, seed, and pesticide forms for public view and download.', 'ఎరువులు, విత్తనాలు మరియు పురుగుమందుల ఫారాలను చూడండి, డౌన్లోడ్ చేయండి.')}
-              </p>
-            </button>
-          </div>
-        </section>
-
-        <section className="flex flex-col justify-start p-4 sm:p-6 lg:p-7">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm animate-fadeIn">
+        <section className="flex flex-col justify-start p-6 sm:p-8 lg:p-10">
           <div className="mx-auto w-full max-w-md">
-            <div className="mb-4 flex items-start justify-between gap-4">
+            <div className="mb-6 flex flex-col items-center gap-4 text-center animate-slide-up">
+              <div className="login-logo-hero inline-flex">
+                <PortalLogo size="lg" />
+              </div>
               <div>
-                <div className="login-logo-hero mb-2 inline-flex">
-                  <PortalLogo size="lg" />
-                </div>
-                <h2 className="whitespace-nowrap text-lg font-black tracking-tight text-slate-950 sm:text-2xl">
+                <h2 className="whitespace-nowrap text-xl font-black tracking-tight text-slate-950 sm:text-2xl">
                   {t('Tiryani Agriculture Portal', 'తిర్యాణి వ్యవసాయ పోర్టల్')}
                 </h2>
                 <p className="mt-1 text-sm font-bold text-emerald-700">
                   {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <a
-                  href="https://whatsapp.com/channel/0029Vb61tsc59PwZEKYH3A0A"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 p-2.5 text-emerald-800 transition hover:bg-emerald-100"
-                  aria-label="WhatsApp Channel"
-                  title={t('WhatsApp Channel', 'వాట్సప్ ఛానెల్')}
-                >
-                  <WhatsAppIcon className="h-4 w-4" />
-                </a>
-                <button
-                  type="button"
-                  onClick={toggleLanguage}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
-                >
-                  <Globe2 className="h-4 w-4" />
-                  {language === 'en' ? 'త' : 'E'}
-                </button>
-              </div>
             </div>
 
-            <section className="mb-3 rounded-lg border border-[#d8cfb2] bg-[#f4efdf] p-2.5 shadow-sm">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-black uppercase tracking-wide text-stone-600">
-                    {t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}
-                  </p>
-                  <p className="text-xs font-semibold text-stone-500">
-                    {t('Quick field tools before sign in', 'లాగిన్ ముందు త్వరిత ఫీల్డ్ సాధనాలు')}
-                  </p>
-                </div>
-                <ShieldCheck className="h-5 w-5 text-[#a9842f]" />
-              </div>
+            <div className="absolute top-6 right-6 flex items-center gap-2 animate-slide-up delay-100">
+              <a
+                href="https://whatsapp.com/channel/0029Vb61tsc59PwZEKYH3A0A"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 p-2.5 text-emerald-800 transition hover:bg-emerald-100"
+                aria-label="WhatsApp Channel"
+                title={t('WhatsApp Channel', 'వాట్సప్ ఛానెల్')}
+              >
+                <WhatsAppIcon className="h-4 w-4" />
+              </a>
               <button
                 type="button"
-                onClick={openOfficerToolkit}
-                className="flex min-h-14 w-full items-center gap-3 rounded-lg border border-[#d8cfb2] bg-white px-3 py-2.5 text-left text-sm font-black text-stone-800 transition hover:bg-[#fbf7ea]"
+                onClick={toggleLanguage}
+                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
               >
-                <ShieldCheck className="h-5 w-5 shrink-0 text-[#a9842f]" />
-                <span>{t('Open Officer Toolkit', 'అధికారుల టూల్‌కిట్ తెరవండి')}</span>
+                <Globe2 className="h-4 w-4" />
+                {language === 'en' ? 'తె' : 'E'}
               </button>
-              <div className="hidden">
-                <button
-                  type="button"
-                  onClick={openStatutoryForms}
-                  className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-left text-sm font-black text-emerald-900 transition hover:bg-emerald-100"
-                >
-                  <FileText className="h-5 w-5 shrink-0" />
-                  <span>{t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={openAcreageCalculator}
-                  className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 px-3 py-3 text-left text-sm font-black text-sky-900 transition hover:bg-sky-100"
-                >
-                  <Calculator className="h-5 w-5 shrink-0" />
-                  <span>{t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}</span>
-                </button>
-              </div>
-            </section>
+            </div>
 
-            <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-bold">
+            <button
+              type="button"
+              onClick={openOfficerToolkit}
+              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-800 shadow-sm transition hover:bg-emerald-100 hover:border-emerald-300 animate-slide-up delay-200"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span>{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
+            </button>
+
+            <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-bold animate-slide-up delay-300">
               <button
                 type="button"
                 onClick={() => setLoginMode('staff')}
@@ -917,7 +837,7 @@ export function Login() {
               </button>
             </div>
 
-            <div className="mb-3">
+            <div className="mb-3 animate-slide-up delay-400">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
                 {loginMode === 'dealer' ? t('Dealer login', 'డీలర్ లాగిన్') : t('Secure sign in', 'సురక్షిత లాగిన్')}
               </p>
@@ -925,13 +845,13 @@ export function Login() {
             </div>
 
             {error && (
-              <div className="mb-4 flex gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mb-4 flex gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-slide-up">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-2">
+            <form onSubmit={handleSubmit} className="space-y-2 animate-slide-up delay-500">
               {loginMode === 'dealer' ? (
                 <>
                   <LoginField label={t('Registered phone (Dealers Directory)', 'నమోదైన ఫోన్ (డీలర్ల డైరెక్టరీ)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
@@ -957,7 +877,7 @@ export function Login() {
             </form>
 
             {loginMode === 'staff' && (
-              <div className="mt-3 rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950">
+              <div className="mt-3 rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950 animate-slide-up delay-600">
                 <p className="flex items-center gap-2 font-bold">
                   <UserRoundCheck className="h-4 w-4" />
                   {t('Test login', 'పరీక్ష లాగిన్')}
@@ -971,7 +891,7 @@ export function Login() {
               </div>
             )}
 
-            <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 sm:mb-16">
+            <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 sm:mb-16 animate-slide-up delay-600">
               <p className="font-black text-emerald-700">version-1.0.1</p>
               <p>© 2026- Tiryani Agri portal- Department of Agriculture, Telangana</p>
               <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
@@ -1009,7 +929,7 @@ export function Login() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <h3 className="flex items-center gap-2 text-lg font-black text-slate-950">
                 <Calculator className="h-5 w-5 text-sky-700" />
-                {t('Acres Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+                {t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
               </h3>
               <button type="button" onClick={closeAcreageCalculator} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100">
                 <ArrowLeft className="h-4 w-4" />

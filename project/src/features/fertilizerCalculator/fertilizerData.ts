@@ -1,4 +1,4 @@
-import type { CropRecommendation, FertilizerGrade, SplitDose } from './fertilizerTypes';
+import type { CropRecommendation, FertilizerGrade, SplitDose, NutrientComposition } from './fertilizerTypes';
 
 export const PRIMARY_NUTRIENTS = ['n', 'p', 'k'] as const;
 export const KNOWN_NUTRIENTS = ['n', 'p', 'k', 's', 'zn', 'b', 'fe', 'mg', 'ca', 'mn', 'cu', 'mo', 'si', 'organicCarbon'] as const;
@@ -46,8 +46,15 @@ export const DEFAULT_GRADES: FertilizerGrade[] = [
   { name: '28:28:28', n: 28, p: 28, k: 28, s: 0, bag_kg: 50, composition: { n: 28, p: 28, k: 28 } },
 ];
 
-export const COTTON_SPLIT: SplitDose[] = [
-  { stage: 'Basal', nPct: 0, pPct: 100, kPct: 0 },
+export const COTTON_NORMAL_SPLIT: SplitDose[] = [
+  { stage: 'Basal (at sowing)', nPct: 0, pPct: 100, kPct: 0, notes: 'Apply entire phosphorus dose before ploughing/basal' },
+  { stage: '30 DAS', nPct: 33.33, pPct: 0, kPct: 33.33 },
+  { stage: '60 DAS', nPct: 33.33, pPct: 0, kPct: 33.33 },
+  { stage: '90 DAS', nPct: 33.34, pPct: 0, kPct: 33.34 },
+];
+
+export const COTTON_HYBRID_SPLIT: SplitDose[] = [
+  { stage: 'Basal (at sowing)', nPct: 0, pPct: 100, kPct: 0, notes: 'Apply entire phosphorus dose before ploughing/basal' },
   { stage: '20 DAS', nPct: 25, pPct: 0, kPct: 25 },
   { stage: '40 DAS', nPct: 25, pPct: 0, kPct: 25 },
   { stage: '60 DAS', nPct: 25, pPct: 0, kPct: 25 },
@@ -68,18 +75,24 @@ export const PADDY_LONG_DURATION_SPLIT: SplitDose[] = [
 ];
 
 export const MAIZE_SPLIT: SplitDose[] = [
-  { stage: 'Basal at sowing', nPct: 34, pPct: 100, kPct: 50 },
-  { stage: 'Knee-high stage', nPct: 33, pPct: 0, kPct: 0 },
-  { stage: 'Flowering / tasseling stage', nPct: 33, pPct: 0, kPct: 50 },
+  { stage: 'Basal (at sowing)', nPct: 33.33, pPct: 100, kPct: 50 },
+  { stage: 'Knee-high stage', nPct: 33.33, pPct: 0, kPct: 0 },
+  { stage: 'Tasseling/Flowering', nPct: 33.34, pPct: 0, kPct: 50 },
 ];
 
 export const BASAL_SPLIT: SplitDose[] = [
   { stage: 'Basal before sowing', nPct: 100, pPct: 100, kPct: 100 },
 ];
 
+export const GROUNDNUT_SPLIT: SplitDose[] = [
+  { stage: 'Basal (at sowing)', nPct: 53.33, pPct: 100, kPct: 100, notes: 'Apply basal dose: 8 kg N, 16 kg P, 20 kg K per acre' },
+  { stage: '30 DAS (Early Flowering)', nPct: 46.67, pPct: 0, kPct: 0, notes: 'Apply 7 kg N per acre as top dressing' },
+  { stage: 'Peak Flowering', nPct: 0, pPct: 0, kPct: 0, gypsum_kg: 200, notes: 'Apply 200 kg Gypsum per acre. Place gypsum near root zone and carry out earthing-up/light intercultivation for better peg penetration and pod development' },
+];
+
 export const DEFAULT_RECOMMENDATIONS: CropRecommendation[] = [
-  { crop_name: 'Cotton - Normal', crop: 'Cotton', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 36, p: 18, k: 18, area_unit: 'acre', nutrients: { n: 36, p: 18, k: 18 }, split_plan: COTTON_SPLIT },
-  { crop_name: 'Cotton - Hybrid', crop: 'Cotton', zone: 'All Zones', season: 'Vanakalam', variety: 'Hybrid', n: 48, p: 24, k: 24, area_unit: 'acre', nutrients: { n: 48, p: 24, k: 24 }, split_plan: COTTON_SPLIT },
+  { crop_name: 'Cotton - Normal', crop: 'Cotton', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 36, p: 18, k: 18, area_unit: 'acre', nutrients: { n: 36, p: 18, k: 18 }, split_plan: COTTON_NORMAL_SPLIT },
+  { crop_name: 'Cotton - Hybrid', crop: 'Cotton', zone: 'All Zones', season: 'Vanakalam', variety: 'Hybrid', n: 48, p: 24, k: 24, area_unit: 'acre', nutrients: { n: 48, p: 24, k: 24 }, split_plan: COTTON_HYBRID_SPLIT },
   { crop_name: 'Paddy Vanakalam - Northern Telangana', crop: 'Paddy', zone: 'Northern Telangana', season: 'Vanakalam', variety: 'Normal', n: 48, p: 20, k: 16, area_unit: 'acre', nutrients: { n: 48, p: 20, k: 16 }, split_plan: PADDY_SPLIT },
   { crop_name: 'Paddy Vanakalam - Central Telangana', crop: 'Paddy', zone: 'Central Telangana', season: 'Vanakalam', variety: 'Normal', n: 48, p: 20, k: 16, area_unit: 'acre', nutrients: { n: 48, p: 20, k: 16 }, split_plan: PADDY_SPLIT },
   { crop_name: 'Paddy Vanakalam - Southern Telangana', crop: 'Paddy', zone: 'Southern Telangana', season: 'Vanakalam', variety: 'Normal', n: 48, p: 24, k: 16, area_unit: 'acre', nutrients: { n: 48, p: 24, k: 16 }, split_plan: PADDY_SPLIT },
@@ -93,6 +106,7 @@ export const DEFAULT_RECOMMENDATIONS: CropRecommendation[] = [
   { crop_name: 'Maize Yasangi - Sweet Corn', crop: 'Maize', zone: 'All Zones', season: 'Yasangi', variety: 'Sweet Corn', n: 80, p: 24, k: 20, area_unit: 'acre', nutrients: { n: 80, p: 24, k: 20 }, split_plan: MAIZE_SPLIT },
   { crop_name: 'Maize Yasangi - Pop Corn', crop: 'Maize', zone: 'All Zones', season: 'Yasangi', variety: 'Pop Corn', n: 40, p: 24, k: 20, area_unit: 'acre', nutrients: { n: 40, p: 24, k: 20 }, split_plan: MAIZE_SPLIT },
   { crop_name: 'Maize Yasangi - Baby Corn', crop: 'Maize', zone: 'All Zones', season: 'Yasangi', variety: 'Baby Corn', n: 70, p: 24, k: 20, area_unit: 'acre', nutrients: { n: 70, p: 24, k: 20 }, split_plan: MAIZE_SPLIT },
+  { crop_name: 'Groundnut', crop: 'Groundnut', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 15, p: 16, k: 20, area_unit: 'acre', nutrients: { base_n: 8, base_p: 16, base_k: 20, top_dressing_n_kg: 7, gypsum_kg: 200, gypsum_notes: 'Apply 200 kg Gypsum per acre at peak flowering stage. Place gypsum near root zone and carry out earthing-up/light intercultivation for better peg penetration and pod development' } as unknown as NutrientComposition, split_plan: GROUNDNUT_SPLIT },
   { crop_name: 'Redgram', crop: 'Redgram', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 8, p: 20, k: 0, area_unit: 'acre', nutrients: { n: 8, p: 20, k: 0 }, split_plan: BASAL_SPLIT },
   { crop_name: 'Greengram', crop: 'Greengram', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 8, p: 20, k: 0, area_unit: 'acre', nutrients: { n: 8, p: 20, k: 0 }, split_plan: BASAL_SPLIT },
   { crop_name: 'Sesamum', crop: 'Sesamum', zone: 'All Zones', season: 'Vanakalam', variety: 'Normal', n: 16, p: 8, k: 8, area_unit: 'acre', nutrients: { n: 16, p: 8, k: 8 }, split_plan: BASAL_SPLIT },

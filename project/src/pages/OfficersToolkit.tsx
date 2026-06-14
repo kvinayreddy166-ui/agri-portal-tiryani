@@ -14,8 +14,8 @@ const toolkitItems = [
     bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
   },
   {
-    title: 'Acreage Calculator',
-    description: 'Calculate acreage from field entries.',
+    title: 'Acerage Calculator',
+    description: 'Calculate acerage from field entries.',
     path: '/officer-toolkit/acreage-calculator',
     icon: Calculator,
     category: 'internal',
@@ -217,7 +217,7 @@ export function OfficersToolkit() {
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-2xl font-black text-slate-900 dark:text-white">
-                    {t('Officers Toolkit', 'ఆఫీసర్స్ టూల్కిట్')}
+                    {t('Officer Toolkit', 'ఆఫీసర్ టూల్కిట్')}
                   </h1>
                   <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
                     {t('Agricultural Tools & Government Portals', 'వ్యవసాయ పనిముట్లు & ప్రభుత్వ పోర్టల్స్')}

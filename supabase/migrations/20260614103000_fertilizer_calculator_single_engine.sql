@@ -70,3 +70,68 @@ on conflict (name) do update set
   composition = excluded.composition,
   is_active = true,
   updated_at = now();
+
+-- Update maize split dosage schedule
+update public.crop_fertilizer_recommendations
+set split_plan = '[
+  {"stage": "Basal (at sowing)", "nPct": 33.33, "pPct": 100, "kPct": 50},
+  {"stage": "Knee-high stage", "nPct": 33.33, "pPct": 0, "kPct": 0},
+  {"stage": "Tasseling/Flowering", "nPct": 33.34, "pPct": 0, "kPct": 50}
+]'::jsonb,
+updated_at = now()
+where crop_name = 'Maize';
+
+-- Update cotton fertilizer recommendations
+-- Cotton Normal Variety: 36:18:18 with 3 equal splits at 30, 60, 90 DAS
+update public.crop_fertilizer_recommendations
+set n = 36, p = 18, k = 18,
+    split_plan = '[
+      {"stage": "Basal (at sowing)", "nPct": 0, "pPct": 100, "kPct": 0, "notes": "Apply entire phosphorus dose before ploughing/basal"},
+      {"stage": "30 DAS", "nPct": 33.33, "pPct": 0, "kPct": 33.33},
+      {"stage": "60 DAS", "nPct": 33.33, "pPct": 0, "kPct": 33.33},
+      {"stage": "90 DAS", "nPct": 33.34, "pPct": 0, "kPct": 33.34}
+    ]'::jsonb,
+    updated_at = now()
+where crop_name = 'Cotton' and variety = 'Normal';
+
+-- Cotton Hybrid: 48:24:24 with 4 equal splits at 20, 40, 60, 80 DAS
+update public.crop_fertilizer_recommendations
+set n = 48, p = 24, k = 24,
+    split_plan = '[
+      {"stage": "Basal (at sowing)", "nPct": 0, "pPct": 100, "kPct": 0, "notes": "Apply entire phosphorus dose before ploughing/basal"},
+      {"stage": "20 DAS", "nPct": 25, "pPct": 0, "kPct": 25},
+      {"stage": "40 DAS", "nPct": 25, "pPct": 0, "kPct": 25},
+      {"stage": "60 DAS", "nPct": 25, "pPct": 0, "kPct": 25},
+      {"stage": "80 DAS", "nPct": 25, "pPct": 0, "kPct": 25}
+    ]'::jsonb,
+    updated_at = now()
+where crop_name = 'Cotton' and variety = 'Hybrid';
+
+-- Add groundnut (peanut) fertilizer recommendation
+insert into public.crop_fertilizer_recommendations (crop_name, crop, zone, season, variety, n, p, k, area_unit, split_plan, nutrients, is_active)
+values (
+  'Groundnut',
+  'Groundnut',
+  'All Zones',
+  'Vanakalam',
+  'Normal',
+  15,
+  16,
+  20,
+  'acre',
+  '[
+    {"stage": "Basal (at sowing)", "nPct": 53.33, "pPct": 100, "kPct": 100, "notes": "Apply basal dose: 8 kg N, 16 kg P, 20 kg K per acre"},
+    {"stage": "30 DAS (Early Flowering)", "nPct": 46.67, "pPct": 0, "kPct": 0, "notes": "Apply 7 kg N per acre as top dressing"},
+    {"stage": "Peak Flowering", "nPct": 0, "pPct": 0, "kPct": 0, "gypsum_kg": 200, "notes": "Apply 200 kg Gypsum per acre. Place gypsum near root zone and carry out earthing-up/light intercultivation for better peg penetration and pod development"}
+  ]'::jsonb,
+  '{"base_n": 8, "base_p": 16, "base_k": 20, "top_dressing_n_kg": 7, "gypsum_kg": 200, "gypsum_notes": "Apply 200 kg Gypsum per acre at peak flowering stage. Place gypsum near root zone and carry out earthing-up/light intercultivation for better peg penetration and pod development"}'::jsonb,
+  true
+)
+on conflict (crop_name, zone, season, variety) do update set
+  n = excluded.n,
+  p = excluded.p,
+  k = excluded.k,
+  split_plan = excluded.split_plan,
+  nutrients = excluded.nutrients,
+  is_active = true,
+  updated_at = now();

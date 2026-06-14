@@ -27,6 +27,9 @@ export type SplitDose = {
   pPct: number;
   kPct: number;
   nutrientsPct?: NutrientComposition;
+  notes?: string;
+  top_dressing_n_kg?: number;
+  gypsum_kg?: number;
 };
 
 export type CropRecommendation = Nutrients & {

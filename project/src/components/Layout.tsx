@@ -28,7 +28,7 @@ const adminMenuItems = [
     label: 'Crop Intelligence',
     icon: BrainCircuit,
   },
-  { id: 'officer-toolkit', label: 'Officers Toolkit', icon: FileStack },
+  { id: 'officer-toolkit', label: 'Officer Toolkit', icon: FileStack },
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
   { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
   { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText },
@@ -238,7 +238,7 @@ type BreadcrumbItem = {
 
 function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem[] } {
   const dashboard = { label: 'Dashboard', page: 'dashboard' };
-  const toolkit = { label: 'Officers Toolkit', page: 'officer-toolkit' };
+  const toolkit = { label: 'Officer Toolkit', page: 'officer-toolkit' };
 
   if (page.startsWith('crop-')) {
     const title = page === 'crop-admin' ? 'Crop Admin' : cropTitle(page);
@@ -271,7 +271,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     dealers: { title: 'Dealers Directory', breadcrumbs: [dashboard] },
     'farmer-database': { title: 'Farmer Database', breadcrumbs: [dashboard] },
     crops: { title: 'Crop Intelligence', breadcrumbs: [dashboard] },
-    'officer-toolkit': { title: 'Officers Toolkit', breadcrumbs: [dashboard] },
+    'officer-toolkit': { title: 'Officer Toolkit', breadcrumbs: [dashboard] },
     forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit] },
     'acreage-calculator': { title: 'Acerage Calculator', breadcrumbs: [dashboard, toolkit] },
     'gos-circulars': { title: 'GOs & Circulars', breadcrumbs: [dashboard] },
@@ -328,7 +328,7 @@ function translateMenu(label: string) {
     'Farmer Database': 'రైతుల డేటాబేస్',
     'Crop Intelligence': 'పంట ఇంటెలిజెన్స్',
     'Crop Admin': 'పంట అడ్మిన్',
-    'Officers Toolkit': 'Officers Toolkit',
+    'Officer Toolkit': 'Officer Toolkit',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
     'Acerage Calculator': 'ఎకరాల కాలిక్యులేటర్',
     'GOs & Circulars': 'జీ.ఓలు & సర్క్యులర్లు',
