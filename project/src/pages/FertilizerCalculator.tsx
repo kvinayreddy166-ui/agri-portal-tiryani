@@ -405,7 +405,10 @@ function buildWhatsAppText(input: FertilizerReportInput) {
 
   if (language === 'te') {
     const crop = recommendationCrop(selectedRecommendation);
-    const targetNutrients = mode === 'crop' ? recommendationNutrients : required;
+    const perAcreNutrients = mode === 'crop'
+      ? { n: selectedRecommendation.n, p: selectedRecommendation.p, k: selectedRecommendation.k }
+      : required;
+    const totalNutrients = mode === 'crop' ? recommendationNutrients : required;
     const lines = [
       '🌾 స్మార్ట్ ఎరువుల కాలిక్యులేటర్',
       '',
@@ -419,14 +422,14 @@ function buildWhatsAppText(input: FertilizerReportInput) {
       mode === 'crop' ? `రకం: ${varietyNameTe(selectedRecommendation.variety)}` : '',
       mode === 'crop' ? `ఎంపిక చేసిన విస్తీర్ణం: ${formatSelectedArea(area, 'te')}` : '',
       '',
+      mode === 'crop' ? `మొత్తం అవసరం (${formatSelectedArea(area, 'te')} కోసం):` : '',
+      ...(mode === 'crop' ? formatNutrientLinesTe(totalNutrients) : []),
+      '',
       'వ్యవసాయ విశ్వవిద్యాలయ సిఫారసు',
       '',
       'ఎకరానికి సిఫారసు చేయబడిన పోషకాలు (N:P:K)',
       '',
-      ...formatNutrientLinesTe(targetNutrients),
-      '',
-      mode === 'crop' ? `మొత్తం అవసరం (${formatSelectedArea(area, 'te')} కోసం):` : '',
-      ...(mode === 'crop' ? formatNutrientLinesTe(recommendationNutrients) : []),
+      ...formatNutrientLinesTe(perAcreNutrients),
       '',
       '---',
       '',
@@ -497,6 +500,7 @@ function buildWhatsAppText(input: FertilizerReportInput) {
       ? `Agriculture University recommendation: ${recommendationLabel(selectedRecommendation)} - ${recommendationNpkLabel(selectedRecommendation)} per acre`
       : 'Selected nutrient requirement',
     mode === 'crop' ? `Selected area: ${formatSelectedArea(area, 'en')}` : '',
+    mode === 'crop' ? `Total requirement for selected area: ${formatNutrients(recommendationNutrients)}` : '',
     `Required: ${formatNutrients(mode === 'crop' ? recommendationNutrients : required)}`,
     `Supplied: ${formatNutrients(supplied)}`,
     `Balance: ${formatNutrients(balance)}`,
@@ -530,6 +534,121 @@ function stripWhatsAppMarkdown(value: string) {
 
 function isPdfHeading(line: string) {
   return /^---|^─/.test(line) || /^(🌾|తిర్యాణి వ్యవసాయ పోర్టల్|పంట వివరాలు|వ్యవసాయ విశ్వవిద్యాలయ|✅|📊|📈|🧪|🌱|⚠️|తయారు చేసినది|Smart|Important|Fertilizer|Generated)/.test(stripWhatsAppMarkdown(line).trim());
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function buildFertilizerReportHtml(text: string, language: 'en' | 'te') {
+  const sections = text.split(/\n---\n/g).map((section) => section.trim()).filter(Boolean);
+  const [titleBlock, ...bodySections] = sections;
+  const titleLines = (titleBlock || '').split('\n').filter(Boolean);
+  const title = titleLines.shift() || 'Smart Fertilizer Calculator';
+  const subtitle = titleLines.shift() || 'Tiryani Agriculture Portal';
+  const firstSection = titleLines.join('\n').trim();
+  const allSections = [firstSection, ...bodySections].filter(Boolean);
+
+  const renderLine = (line: string) => {
+    const clean = stripWhatsAppMarkdown(line).trim();
+    if (!clean) return '';
+    if (isPdfHeading(line)) return `<h2>${escapeHtml(clean)}</h2>`;
+    if (/^\|/.test(line)) return `<p class="mono">${escapeHtml(clean.replace(/\s*\|\s*/g, '   ').replace(/^---.*$/, ''))}</p>`;
+    if (/^(🔹|✅|•)/.test(line)) return `<p class="bullet">${escapeHtml(clean)}</p>`;
+    if (/^\d+\./.test(clean) || clean === 'లక్ష్యం' || clean === 'వేయవలసిన ఎరువులు') return `<p class="strong">${escapeHtml(clean)}</p>`;
+    return `<p>${escapeHtml(clean)}</p>`;
+  };
+
+  return `
+    <div class="fertilizer-pdf ${language === 'te' ? 'telugu' : ''}">
+      <header>
+        <h1>${escapeHtml(stripWhatsAppMarkdown(title).trim())}</h1>
+        <p>${escapeHtml(stripWhatsAppMarkdown(subtitle).trim())}</p>
+      </header>
+      ${allSections.map((section) => `
+        <section class="card">
+          ${section.split('\n').map(renderLine).join('')}
+        </section>
+      `).join('')}
+    </div>
+  `;
+}
+
+function createFertilizerReportElement(html: string) {
+  const container = document.createElement('div');
+  container.style.position = 'fixed';
+  container.style.left = '-10000px';
+  container.style.top = '0';
+  container.style.width = '794px';
+  container.style.background = '#eef6f0';
+  container.innerHTML = `
+    <style>
+      .fertilizer-pdf {
+        box-sizing: border-box;
+        width: 794px;
+        padding: 22px;
+        background: #eef6f0;
+        color: #0f172a;
+        font-family: Arial, "Noto Sans Telugu", "Nirmala UI", "Gautami", sans-serif;
+        line-height: 1.28;
+      }
+      .fertilizer-pdf header {
+        margin-bottom: 10px;
+        text-align: center;
+        color: #047857;
+      }
+      .fertilizer-pdf h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 900;
+      }
+      .fertilizer-pdf header p {
+        margin: 2px 0 0;
+        font-size: 15px;
+        font-weight: 800;
+      }
+      .fertilizer-pdf .card {
+        margin: 0 0 8px;
+        padding: 8px 10px;
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 3px 10px rgba(15, 118, 110, 0.06);
+      }
+      .fertilizer-pdf h2 {
+        margin: 0 0 5px;
+        color: #047857;
+        font-size: 14px;
+        font-weight: 900;
+      }
+      .fertilizer-pdf p {
+        margin: 1px 0;
+        font-size: 10.5px;
+        font-weight: 600;
+      }
+      .fertilizer-pdf .strong {
+        margin-top: 5px;
+        font-size: 11.5px;
+        font-weight: 900;
+      }
+      .fertilizer-pdf .bullet {
+        padding-left: 4px;
+        font-weight: 700;
+      }
+      .fertilizer-pdf .mono {
+        white-space: pre-wrap;
+        font-weight: 800;
+      }
+    </style>
+    ${html}
+  `;
+  document.body.appendChild(container);
+  return container;
 }
 
 function getInitialSelected(grades: FertilizerGrade[]) {
@@ -885,7 +1004,6 @@ export function FertilizerCalculator() {
 
   const exportPdf = async () => {
     const { jsPDF } = await import('jspdf');
-    const doc = new jsPDF();
     const text = buildWhatsAppText({
       language,
       mode,
@@ -899,27 +1017,45 @@ export function FertilizerCalculator() {
       recommendationNutrients,
       splitPlan: splitFertilizerPlan,
     });
-    const lines = text.split('\n');
-    let y = 16;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
-    lines.forEach((line) => {
-      const cleanLine = stripWhatsAppMarkdown(line).trim();
-      if (!cleanLine) {
-        y += 4;
-        return;
-      }
-      if (y > 282) {
-        doc.addPage();
-        y = 16;
-      }
-      const heading = isPdfHeading(line);
-      doc.setFont('helvetica', heading ? 'bold' : 'normal');
-      doc.setFontSize(heading ? 13 : 10.5);
-      const wrapped = doc.splitTextToSize(cleanLine, 180);
-      doc.text(wrapped, 14, y);
-      y += wrapped.length * (heading ? 6.5 : 5.5) + (heading ? 2 : 0);
+    const html2canvas = (await import('html2canvas')).default;
+    const reportElement = createFertilizerReportElement(buildFertilizerReportHtml(text, language));
+    const canvas = await html2canvas(reportElement, {
+      backgroundColor: '#eef6f0',
+      scale: 2,
+      useCORS: true,
+      logging: false,
     });
+    reportElement.remove();
+
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 18;
+    const footerHeight = 24;
+    const imageWidth = pageWidth - margin * 2;
+    const pageImageHeight = pageHeight - margin * 2 - footerHeight;
+    const sourcePageHeight = Math.floor((pageImageHeight / imageWidth) * canvas.width);
+    const pageCount = Math.max(1, Math.ceil(canvas.height / sourcePageHeight));
+
+    for (let page = 0; page < pageCount; page += 1) {
+      if (page > 0) doc.addPage();
+      const sourceY = page * sourcePageHeight;
+      const sliceHeight = Math.min(sourcePageHeight, canvas.height - sourceY);
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = sliceHeight;
+      const context = pageCanvas.getContext('2d');
+      context?.drawImage(canvas, 0, sourceY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+      const imageHeight = (sliceHeight / canvas.width) * imageWidth;
+      doc.addImage(pageCanvas.toDataURL('image/png'), 'PNG', margin, margin, imageWidth, imageHeight);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(4, 120, 87);
+      doc.text('Tiryani Agriculture Portal | Generated by K. Vinay Reddy, MAO, Tiryani', pageWidth / 2, pageHeight - 16, { align: 'center' });
+      doc.setFontSize(7);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Page ${page + 1} of ${pageCount}`, pageWidth / 2, pageHeight - 7, { align: 'center' });
+    }
     doc.save(`fertilizer-calculator-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
