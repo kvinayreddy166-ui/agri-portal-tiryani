@@ -74,9 +74,9 @@ on conflict (name) do update set
 -- Update maize split dosage schedule
 update public.crop_fertilizer_recommendations
 set split_plan = '[
-  {"stage": "Basal (at sowing)", "nPct": 33.33, "pPct": 100, "kPct": 50},
+  {"stage": "Sowing/Basal application", "nPct": 33.33, "pPct": 100, "kPct": 50},
   {"stage": "Knee-high stage", "nPct": 33.33, "pPct": 0, "kPct": 0},
-  {"stage": "Tasseling/Flowering", "nPct": 33.34, "pPct": 0, "kPct": 50}
+  {"stage": "Tasseling/Flowering stage", "nPct": 33.34, "pPct": 0, "kPct": 50}
 ]'::jsonb,
 updated_at = now()
 where crop_name = 'Maize';

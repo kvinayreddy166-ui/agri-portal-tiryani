@@ -83,7 +83,7 @@ insert into public.crop_fertilizer_recommendations (crop_name, n, p, k, area_uni
 values
   ('Cotton', 48, 24, 24, 'acre', '[{"stage":"Basal","nPct":30,"pPct":100,"kPct":50},{"stage":"20 DAS","nPct":25,"pPct":0,"kPct":20},{"stage":"40 DAS","nPct":25,"pPct":0,"kPct":20},{"stage":"60 DAS","nPct":20,"pPct":0,"kPct":10},{"stage":"80 DAS","nPct":0,"pPct":0,"kPct":0}]'::jsonb, true),
   ('Paddy', 48, 20, 16, 'acre', '[{"stage":"Before transplanting / final puddling","nPct":34,"pPct":100,"kPct":100},{"stage":"Active tillering stage","nPct":33,"pPct":0,"kPct":0},{"stage":"Panicle initiation stage","nPct":33,"pPct":0,"kPct":0}]'::jsonb, true),
-  ('Maize', 80, 24, 20, 'acre', '[{"stage":"Basal at sowing","nPct":34,"pPct":100,"kPct":50},{"stage":"Knee-high stage","nPct":33,"pPct":0,"kPct":0},{"stage":"Flowering / tasseling stage","nPct":33,"pPct":0,"kPct":50}]'::jsonb, true),
+  ('Maize', 80, 24, 20, 'acre', '[{"stage":"Sowing/Basal application","nPct":33.33,"pPct":100,"kPct":50},{"stage":"Knee-high stage","nPct":33.33,"pPct":0,"kPct":0},{"stage":"Tasseling/Flowering stage","nPct":33.34,"pPct":0,"kPct":50}]'::jsonb, true),
   ('Redgram', 16, 8, 8, 'acre', '[{"stage":"Basal","nPct":100,"pPct":100,"kPct":100}]'::jsonb, true),
   ('Greengram', 8, 20, 0, 'acre', '[{"stage":"Basal","nPct":100,"pPct":100,"kPct":100}]'::jsonb, true),
   ('Sesamum', 16, 8, 8, 'acre', '[{"stage":"Basal","nPct":30,"pPct":100,"kPct":50},{"stage":"20 DAS","nPct":25,"pPct":0,"kPct":20},{"stage":"40 DAS","nPct":25,"pPct":0,"kPct":20},{"stage":"60 DAS","nPct":20,"pPct":0,"kPct":10},{"stage":"80 DAS","nPct":0,"pPct":0,"kPct":0}]'::jsonb, true)
