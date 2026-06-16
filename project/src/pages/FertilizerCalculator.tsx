@@ -80,6 +80,123 @@ const AGRONOMIC_NOTES_TE = [
   'ఎరువులను తగిన తేమ ఉన్న సమయంలో వేయడం ఉత్తమం.',
 ];
 
+const UI_LABELS = {
+  en: {
+    farmerDetails: 'Farmer Details (Optional)',
+    farmerName: 'Farmer Name',
+    village: 'Village',
+    ppbNumber: 'PPB Number',
+    surveyNumber: 'Survey Number',
+    mobileNumber: 'Mobile Number',
+    acreage: 'Acreage',
+    optional: 'Optional',
+    syncsWithCalculator: 'Syncs with calculator',
+    mode1Simple: 'Mode 1: Simple',
+    mode2Crop: 'Mode 2: Crop',
+    requiredToFertilizer: 'Required to Fertilizer',
+    bagsToNutrients: 'Bags to Nutrients',
+    nitrogen: 'Nitrogen (N)',
+    phosphorus: 'Phosphorus (P2O5)',
+    potash: 'Potash (K2O)',
+    crop: 'Crop',
+    zone: 'Zone',
+    season: 'Season',
+    variety: 'Variety',
+    area: 'Area',
+    unit: 'Unit',
+    acres: 'Acres',
+    hectares: 'Hectares',
+    guntas: 'Guntas',
+    availableFertilizers: 'Available Fertilizers',
+    default: 'Default',
+    kgBag: 'kg bag',
+    bags: 'Bags',
+    liveCalculation: 'Live Calculation',
+    reverseCalculation: 'Reverse Calculation',
+    nSupplied: 'N supplied',
+    pSupplied: 'P supplied',
+    kSupplied: 'K supplied',
+    nitrogenSupplied: 'Nitrogen supplied',
+    phosphorusSupplied: 'Phosphorus supplied',
+    potashSupplied: 'Potash supplied',
+    fertilizer: 'Fertilizer',
+    kg: 'Kg',
+    balance: 'Balance',
+    excess: 'Excess',
+    supplied: 'Supplied',
+    smartSplitDosePlanner: 'Smart Split Dose Planner - Fertilizer Quantities',
+    target: 'Target',
+    noFertilizerRequired: 'No fertilizer required in this split.',
+    importantAgronomicNote: 'Important Agronomic Note',
+    adminPanel: 'Admin Panel',
+    fertilizerQuantityBreakdown: 'Fertilizer Quantity and Breakdown',
+    savedSuccessfully: 'Saved successfully',
+    saveCurrentCalculation: 'Save Current Calculation',
+    storesCompleteInput: 'Stores complete input and output including dynamic nutrients.',
+    saveCalculation: 'Save Calculation',
+    saved: 'Saved:',
+    agricultureUniversityRecommendation: 'Agriculture University recommendation for',
+    perAcre: 'per acre. Current area requirement is calculated with the upper recommended dose:',
+  },
+  te: {
+    farmerDetails: 'రైతు వివరాలు (ఐచ్ఛికం)',
+    farmerName: 'రైతు పేరు',
+    village: 'గ్రామం',
+    ppbNumber: 'PPB నంబర్',
+    surveyNumber: 'సర్వే నంబర్',
+    mobileNumber: 'మొబైల్ నంబర్',
+    acreage: 'విస్తీర్ణం',
+    optional: 'ఐచ్ఛికం',
+    syncsWithCalculator: 'కాలిక్యులేటర్‌తో సింక్',
+    mode1Simple: 'మోడ్ 1: సింపుల్',
+    mode2Crop: 'మోడ్ 2: పంట',
+    requiredToFertilizer: 'అవసరం నుండి ఎరువులు',
+    bagsToNutrients: 'బస్తాల నుండి పోషకాలు',
+    nitrogen: 'నత్రజని (N)',
+    phosphorus: 'భాస్వరం (P2O5)',
+    potash: 'పొటాష్ (K2O)',
+    crop: 'పంట',
+    zone: 'ప్రాంతం',
+    season: 'సీజన్',
+    variety: 'రకం',
+    area: 'విస్తీర్ణం',
+    unit: 'యూనిట్',
+    acres: 'ఎకరాలు',
+    hectares: 'హెక్టార్లు',
+    guntas: 'గుంటలు',
+    availableFertilizers: 'అందుబాటులో ఉన్న ఎరువులు',
+    default: 'డిఫాల్ట్',
+    kgBag: 'కిలో బస్తా',
+    bags: 'బస్తాలు',
+    liveCalculation: 'లైవ్ కాలిక్యులేషన్',
+    reverseCalculation: 'రివర్స్ కాలిక్యులేషన్',
+    nSupplied: 'N సరఫరా',
+    pSupplied: 'P సరఫరా',
+    kSupplied: 'K సరఫరా',
+    nitrogenSupplied: 'నత్రజని సరఫరా',
+    phosphorusSupplied: 'భాస్వరం సరఫరా',
+    potashSupplied: 'పొటాష్ సరఫరా',
+    fertilizer: 'ఎరువు',
+    kg: 'కిలో',
+    balance: 'సమతుల్యత',
+    excess: 'అధికం',
+    supplied: 'సరఫరా',
+    smartSplitDosePlanner: 'స్మార్ట్ స్ప్లిట్ డోస్ ప్లానర్ - ఎరువుల పరిమాణం',
+    target: 'లక్ష్యం',
+    noFertilizerRequired: 'ఈ స్ప్లిట్‌లో ఎరువులు అవసరం లేదు.',
+    importantAgronomicNote: 'ముఖ్యమైన వ్యవసాయ సూచన',
+    adminPanel: 'అడ్మిన్ ప్యానెల్',
+    fertilizerQuantityBreakdown: 'ఎరువుల పరిమాణం మరియు వివరణ',
+    savedSuccessfully: 'విజయవంతంగా సేవ్ చేయబడింది',
+    saveCurrentCalculation: 'ప్రస్తుత కాలిక్యులేషన్‌ను సేవ్ చేయండి',
+    storesCompleteInput: 'డైనమిక్ పోషకాలతో సహా పూర్తి ఇన్‌పుట్ మరియు అవుట్‌పుట్‌ను నిలువ చేస్తుంది.',
+    saveCalculation: 'కాలిక్యులేషన్ సేవ్ చేయండి',
+    saved: 'సేవ్ చేయబడింది:',
+    agricultureUniversityRecommendation: 'వ్యవసాయ విశ్వవిద్యాలయ సిఫారసు',
+    perAcre: 'ఎకరానికి. ప్రస్తుత విస్తీర్ణం అవసరం ఎగువ సిఫారసు మోతాదుతో లెక్కించబడింది:',
+  },
+};
+
 const PRESETS = [
   { label: '48:24:24', n: 48, p: 24, k: 24 },
   { label: '36:18:18', n: 36, p: 18, k: 18 },
@@ -1737,7 +1854,7 @@ export function FertilizerCalculator() {
           >
             <span className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              Farmer Details (Optional)
+              {UI_LABELS[language].farmerDetails}
             </span>
             {showFarmerDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
@@ -1747,7 +1864,7 @@ export function FertilizerCalculator() {
               onClick={resetFarmerDetails}
               disabled={isResettingFarmer}
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-black text-slate-700 disabled:opacity-50"
-              title="Reset Farmer Details"
+              title={language === 'te' ? 'రైతు వివరాలను రీసెట్ చేయండి' : 'Reset Farmer Details'}
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isResettingFarmer ? 'animate-spin' : ''}`} />
             </button>
@@ -1756,63 +1873,63 @@ export function FertilizerCalculator() {
         {showFarmerDetails && (
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
-              <span className="text-xs font-black uppercase text-slate-600">Farmer Name</span>
+              <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].farmerName}</span>
               <input
                 type="text"
                 value={farmerDetails.farmerName}
                 onChange={(e) => setFarmerDetails(prev => ({ ...prev, farmerName: e.target.value }))}
                 className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
-                placeholder="Optional"
+                placeholder={UI_LABELS[language].optional}
               />
             </label>
             <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
-              <span className="text-xs font-black uppercase text-slate-600">Village</span>
+              <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].village}</span>
               <input
                 type="text"
                 value={farmerDetails.village}
                 onChange={(e) => setFarmerDetails(prev => ({ ...prev, village: e.target.value }))}
                 className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
-                placeholder="Optional"
+                placeholder={UI_LABELS[language].optional}
               />
             </label>
             <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
-              <span className="text-xs font-black uppercase text-slate-600">PPB Number</span>
+              <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].ppbNumber}</span>
               <input
                 type="text"
                 value={farmerDetails.ppbNumber}
                 onChange={(e) => setFarmerDetails(prev => ({ ...prev, ppbNumber: e.target.value }))}
                 className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
-                placeholder="Optional"
+                placeholder={UI_LABELS[language].optional}
               />
             </label>
             <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
-              <span className="text-xs font-black uppercase text-slate-600">Survey Number</span>
+              <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].surveyNumber}</span>
               <input
                 type="text"
                 value={farmerDetails.surveyNumber}
                 onChange={(e) => setFarmerDetails(prev => ({ ...prev, surveyNumber: e.target.value }))}
                 className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
-                placeholder="Optional"
+                placeholder={UI_LABELS[language].optional}
               />
             </label>
             <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
-              <span className="text-xs font-black uppercase text-slate-600">Mobile Number</span>
+              <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].mobileNumber}</span>
               <input
                 type="tel"
                 value={farmerDetails.mobileNumber}
                 onChange={(e) => handleMobileNumberChange(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
-                placeholder="Optional"
+                placeholder={UI_LABELS[language].optional}
               />
             </label>
             <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
-              <span className="text-xs font-black uppercase text-slate-600">Acreage</span>
+              <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].acreage}</span>
               <input
                 type="number"
                 value={farmerDetails.acreage}
                 onChange={(e) => handleFarmerAcreageChange(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
-                placeholder="Syncs with calculator"
+                placeholder={UI_LABELS[language].syncsWithCalculator}
               />
             </label>
           </div>
@@ -1823,10 +1940,10 @@ export function FertilizerCalculator() {
         <div className="rounded-xl border border-emerald-100 bg-white p-2 shadow-sm sm:p-4">
           <div className="mb-2 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-xs font-black sm:mb-3 sm:text-sm">
             <button type="button" onClick={() => setMode('simple')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${mode === 'simple' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}>
-              Mode 1: Simple
+              {UI_LABELS[language].mode1Simple}
             </button>
             <button type="button" onClick={() => setMode('crop')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${mode === 'crop' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}>
-              Mode 2: Crop
+              {UI_LABELS[language].mode2Crop}
             </button>
           </div>
 
@@ -1834,10 +1951,10 @@ export function FertilizerCalculator() {
             <div className="space-y-2 sm:space-y-3">
               <div className="grid grid-cols-2 rounded-xl bg-emerald-50 p-1 text-xs font-black sm:text-sm">
                 <button type="button" onClick={() => setSimpleTab('forward')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${simpleTab === 'forward' ? 'bg-white text-emerald-800 shadow-sm' : 'text-emerald-700'}`}>
-                  Required to Fertilizer
+                  {UI_LABELS[language].requiredToFertilizer}
                 </button>
                 <button type="button" onClick={() => setSimpleTab('reverse')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${simpleTab === 'reverse' ? 'bg-white text-emerald-800 shadow-sm' : 'text-emerald-700'}`}>
-                  Bags to Nutrients
+                  {UI_LABELS[language].bagsToNutrients}
                 </button>
               </div>
 
@@ -1846,7 +1963,7 @@ export function FertilizerCalculator() {
                   <div className="grid gap-1.5 sm:grid-cols-3 sm:gap-2">
                     {(['n', 'p', 'k'] as const).map((key) => (
                       <label key={key} className="block rounded-lg border border-slate-200 bg-slate-50 p-2 sm:p-3">
-                        <span className="text-xs font-black uppercase text-slate-600">{key === 'n' ? 'Nitrogen (N)' : key === 'p' ? 'Phosphorus (P2O5)' : 'Potash (K2O)'}</span>
+                        <span className="text-xs font-black uppercase text-slate-600">{key === 'n' ? UI_LABELS[language].nitrogen : key === 'p' ? UI_LABELS[language].phosphorus : UI_LABELS[language].potash}</span>
                         <input
                           type="number"
                           value={required[key]}
@@ -1870,14 +1987,14 @@ export function FertilizerCalculator() {
                     <label key={gradeKey(grade)} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
                       <span className="min-w-0">
                         <span className="block text-sm font-black">{grade.name}</span>
-                        <span className="text-xs font-bold text-slate-500">{grade.bag_kg} kg bag</span>
+                        <span className="text-xs font-bold text-slate-500">{grade.bag_kg} {UI_LABELS[language].kgBag}</span>
                       </span>
                       <input
                         type="number"
                         min="0"
                         value={reverseBags[gradeKey(grade)] || ''}
                         onChange={(event) => setReverseBags((current) => ({ ...current, [gradeKey(grade)]: numberValue(event.target.value) }))}
-                        placeholder="Bags"
+                        placeholder={UI_LABELS[language].bags}
                         className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-right font-black outline-none focus:border-emerald-500"
                       />
                     </label>
@@ -1889,7 +2006,7 @@ export function FertilizerCalculator() {
             <div className="space-y-2 sm:space-y-3">
               <div className="flex gap-2 overflow-x-auto pb-2">
                 <label className="flex-shrink-0 block rounded-lg border border-slate-200 bg-slate-50 p-2 sm:p-3 w-36">
-                  <span className="text-xs font-black uppercase text-slate-600">Crop</span>
+                  <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].crop}</span>
                   <select
                     value={selectedCrop}
                     onChange={(event) => setSelectedCrop(event.target.value)}
@@ -1899,38 +2016,38 @@ export function FertilizerCalculator() {
                   </select>
                 </label>
                 <label className="flex-shrink-0 block rounded-lg border border-slate-200 bg-slate-50 p-2 sm:p-3 w-36">
-                  <span className="text-xs font-black uppercase text-slate-600">Zone</span>
+                  <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].zone}</span>
                   <select value={selectedZone} onChange={(event) => setSelectedZone(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-black outline-none focus:border-emerald-500">
                     {zoneOptions.map((zone) => <option key={zone} value={zone}>{zone}</option>)}
                   </select>
                 </label>
                 <label className="flex-shrink-0 block rounded-lg border border-slate-200 bg-slate-50 p-2 sm:p-3 w-36">
-                  <span className="text-xs font-black uppercase text-slate-600">Season</span>
+                  <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].season}</span>
                   <select value={selectedSeason} onChange={(event) => setSelectedSeason(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-black outline-none focus:border-emerald-500">
                     {seasonOptions.map((season) => <option key={season} value={season}>{season}</option>)}
                   </select>
                 </label>
                 <label className="flex-shrink-0 block rounded-lg border border-slate-200 bg-slate-50 p-2 sm:p-3 w-36">
-                  <span className="text-xs font-black uppercase text-slate-600">Variety</span>
+                  <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].variety}</span>
                   <select value={selectedVariety} onChange={(event) => setSelectedVariety(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-black outline-none focus:border-emerald-500">
                     {varietyOptions.map((variety) => <option key={variety} value={variety}>{variety}</option>)}
                   </select>
                 </label>
                 <label className="flex-shrink-0 block rounded-lg border border-slate-200 bg-slate-50 p-2 sm:p-3 w-36">
-                  <span className="text-xs font-black uppercase text-slate-600">Area</span>
+                  <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].area}</span>
                   <input type="number" value={area.value} onChange={(event) => setArea((current) => ({ ...current, value: numberValue(event.target.value) }))} className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-black outline-none focus:border-emerald-500" />
                 </label>
                 <label className="flex-shrink-0 block rounded-lg border border-slate-200 bg-slate-50 p-2 sm:p-3 w-36">
-                  <span className="text-xs font-black uppercase text-slate-600">Unit</span>
+                  <span className="text-xs font-black uppercase text-slate-600">{UI_LABELS[language].unit}</span>
                   <select value={area.unit} onChange={(event) => setArea((current) => ({ ...current, unit: event.target.value }))} className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-black outline-none focus:border-emerald-500">
-                    <option value="acres">Acres</option>
-                    <option value="hectares">Hectares</option>
-                    <option value="guntas">Guntas</option>
+                    <option value="acres">{UI_LABELS[language].acres}</option>
+                    <option value="hectares">{UI_LABELS[language].hectares}</option>
+                    <option value="guntas">{UI_LABELS[language].guntas}</option>
                   </select>
                 </label>
               </div>
               <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold text-emerald-950">
-                Agriculture University recommendation for {recommendationLabel(selectedRecommendation)}: {recommendationNpkLabel(selectedRecommendation)} per acre. Current area requirement is calculated with the upper recommended dose: {formatNutrients(recommendationNutrients)}.
+                {UI_LABELS[language].agricultureUniversityRecommendation} {recommendationLabel(selectedRecommendation)}: {recommendationNpkLabel(selectedRecommendation)} {UI_LABELS[language].perAcre} {formatNutrients(recommendationNutrients)}.
               </div>
             </div>
           )}
@@ -1938,9 +2055,9 @@ export function FertilizerCalculator() {
 
         <div className="rounded-xl border border-emerald-100 bg-white p-2 shadow-sm sm:p-4">
           <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
-            <h2 className="text-base font-black">Available Fertilizers</h2>
+            <h2 className="text-base font-black">{UI_LABELS[language].availableFertilizers}</h2>
             <button type="button" onClick={() => setSelectedKeys(getInitialSelected(grades))} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-black text-slate-600">
-              <RefreshCw className="h-3.5 w-3.5" /> Default
+              <RefreshCw className="h-3.5 w-3.5" /> {UI_LABELS[language].default}
             </button>
           </div>
           <div className="grid max-h-[18rem] gap-1.5 overflow-y-auto pr-1 sm:max-h-[23rem] sm:grid-cols-2 sm:gap-2">
@@ -1952,7 +2069,7 @@ export function FertilizerCalculator() {
                 className={`rounded-lg border p-2.5 text-left transition ${selectedKeys.includes(gradeKey(grade)) ? 'border-emerald-600 bg-emerald-50 text-emerald-950' : 'border-slate-200 bg-slate-50 text-slate-700'}`}
               >
                 <span className="block text-sm font-black">{grade.name}</span>
-                <span className="text-xs font-bold">{getGradeLabel(grade)} | {grade.bag_kg} kg bag</span>
+                <span className="text-xs font-bold">{getGradeLabel(grade)} | {grade.bag_kg} {UI_LABELS[language].kgBag}</span>
               </button>
             ))}
           </div>
@@ -1961,31 +2078,31 @@ export function FertilizerCalculator() {
 
       <section className="grid gap-2 sm:gap-3 lg:grid-cols-[0.8fr_1.2fr]">
         <div className="rounded-xl border border-emerald-100 bg-white p-2 shadow-sm sm:p-4">
-          <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">{simpleTab === 'reverse' && mode === 'simple' ? 'Reverse Calculation' : 'Live Calculation'}</h2>
+          <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">{simpleTab === 'reverse' && mode === 'simple' ? UI_LABELS[language].reverseCalculation : UI_LABELS[language].liveCalculation}</h2>
           {simpleTab === 'reverse' && mode === 'simple' ? (
             <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
-              <NutrientGauge label="Nitrogen supplied" value={reverseTotals.n} max={Math.max(reverseTotals.n, 1)} color="emerald" />
-              <NutrientGauge label="Phosphorus supplied" value={reverseTotals.p} max={Math.max(reverseTotals.p, 1)} color="sky" />
-              <NutrientGauge label="Potash supplied" value={reverseTotals.k} max={Math.max(reverseTotals.k, 1)} color="amber" />
+              <NutrientGauge label={UI_LABELS[language].nitrogenSupplied} value={reverseTotals.n} max={Math.max(reverseTotals.n, 1)} color="emerald" />
+              <NutrientGauge label={UI_LABELS[language].phosphorusSupplied} value={reverseTotals.p} max={Math.max(reverseTotals.p, 1)} color="sky" />
+              <NutrientGauge label={UI_LABELS[language].potashSupplied} value={reverseTotals.k} max={Math.max(reverseTotals.k, 1)} color="amber" />
             </div>
           ) : (
             <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
-              <NutrientGauge label="N supplied" value={activeCalculation.supplied.n} max={Math.max(activeRequired.n, activeCalculation.supplied.n, 1)} color="emerald" />
-              <NutrientGauge label="P supplied" value={activeCalculation.supplied.p} max={Math.max(activeRequired.p, activeCalculation.supplied.p, 1)} color="sky" />
-              <NutrientGauge label="K supplied" value={activeCalculation.supplied.k} max={Math.max(activeRequired.k, activeCalculation.supplied.k, 1)} color="amber" />
+              <NutrientGauge label={UI_LABELS[language].nSupplied} value={activeCalculation.supplied.n} max={Math.max(activeRequired.n, activeCalculation.supplied.n, 1)} color="emerald" />
+              <NutrientGauge label={UI_LABELS[language].pSupplied} value={activeCalculation.supplied.p} max={Math.max(activeRequired.p, activeCalculation.supplied.p, 1)} color="sky" />
+              <NutrientGauge label={UI_LABELS[language].kSupplied} value={activeCalculation.supplied.k} max={Math.max(activeRequired.k, activeCalculation.supplied.k, 1)} color="amber" />
             </div>
           )}
         </div>
 
         <div className="rounded-xl border border-emerald-100 bg-white p-2 shadow-sm sm:p-4">
-          <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">Fertilizer Quantity and Breakdown</h2>
+          <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">{UI_LABELS[language].fertilizerQuantityBreakdown}</h2>
           <div className="table-scroll overflow-x-auto rounded-lg border border-slate-200">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="bg-slate-900 text-xs font-black text-white">
                 <tr>
-                  <th className="px-3 py-2">Fertilizer</th>
-                  <th className="px-3 py-2 text-right">Kg</th>
-                  <th className="px-3 py-2 text-right">Bags</th>
+                  <th className="px-3 py-2">{UI_LABELS[language].fertilizer}</th>
+                  <th className="px-3 py-2 text-right">{UI_LABELS[language].kg}</th>
+                  <th className="px-3 py-2 text-right">{UI_LABELS[language].bags}</th>
                   <th className="px-3 py-2 text-right">N</th>
                   <th className="px-3 py-2 text-right">P</th>
                   <th className="px-3 py-2 text-right">K</th>
@@ -2006,9 +2123,9 @@ export function FertilizerCalculator() {
             </table>
           </div>
           <div className="mt-2 grid gap-1.5 sm:mt-3 sm:grid-cols-3 sm:gap-2">
-            <SummaryTile title="Balance" values={activeCalculation.balance} tone="bg-red-50 text-red-900 border-red-100" />
-            <SummaryTile title="Excess" values={activeCalculation.excess} tone="bg-amber-50 text-amber-900 border-amber-100" />
-            <SummaryTile title="Supplied" values={activeCalculation.supplied} tone="bg-emerald-50 text-emerald-900 border-emerald-100" />
+            <SummaryTile title={UI_LABELS[language].balance} values={activeCalculation.balance} tone="bg-red-50 text-red-900 border-red-100" />
+            <SummaryTile title={UI_LABELS[language].excess} values={activeCalculation.excess} tone="bg-amber-50 text-amber-900 border-amber-100" />
+            <SummaryTile title={UI_LABELS[language].supplied} values={activeCalculation.supplied} tone="bg-emerald-50 text-emerald-900 border-emerald-100" />
           </div>
           {activeCalculation.remarks.length > 0 && (
             <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs font-bold text-amber-950">
@@ -2020,13 +2137,13 @@ export function FertilizerCalculator() {
 
       {mode === 'crop' && (
         <section className="rounded-xl border border-emerald-100 bg-white p-2 shadow-sm sm:p-4">
-          <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">Smart Split Dose Planner - Fertilizer Quantities</h2>
+          <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">{UI_LABELS[language].smartSplitDosePlanner}</h2>
           <div className="grid gap-1.5 sm:gap-2 md:grid-cols-2 xl:grid-cols-4">
             {splitFertilizerPlan.map(({ dose, nutrients, calculation: doseCalculation }) => (
               <div key={dose.stage} className="rounded-lg border border-slate-200 bg-slate-50 p-2 sm:p-3">
                 <p className="text-sm font-black text-slate-950">{dose.stage}</p>
                 <p className="mt-1 text-[11px] font-bold text-slate-500">
-                  Target: N {round(nutrients.n)} | P {round(nutrients.p)} | K {round(nutrients.k)}
+                  {UI_LABELS[language].target}: N {round(nutrients.n)} | P {round(nutrients.p)} | K {round(nutrients.k)}
                 </p>
                 {dose.notes && (
                   <p className="mt-1 text-[10px] font-semibold text-amber-700">{dose.notes}</p>
@@ -2042,11 +2159,11 @@ export function FertilizerCalculator() {
                     doseCalculation.results.filter((row) => row.kg > 0.01).map((row) => (
                       <div key={gradeKey(row.grade)} className="flex items-center justify-between gap-2 rounded-md bg-white px-2 py-1 text-xs font-black">
                         <span className="truncate">{row.grade.name}</span>
-                        <span className="shrink-0 text-emerald-800">{round(row.kg)} kg / {round(row.bags)} bags</span>
+                        <span className="shrink-0 text-emerald-800">{round(row.kg)} {UI_LABELS[language].kg} / {round(row.bags)} {UI_LABELS[language].bags}</span>
                       </div>
                     ))
                   ) : (
-                    <p className="rounded-md bg-white px-2 py-1 text-xs font-bold text-slate-500">No fertilizer required in this split.</p>
+                    <p className="rounded-md bg-white px-2 py-1 text-xs font-bold text-slate-500">{UI_LABELS[language].noFertilizerRequired}</p>
                   )}
                 </div>
               </div>
@@ -2056,7 +2173,7 @@ export function FertilizerCalculator() {
       )}
 
       <section className="rounded-xl border border-amber-200 bg-amber-50 p-2 text-amber-950 shadow-sm sm:p-4">
-          <h2 className="mb-2 flex items-center gap-2 text-sm font-black sm:text-base"><Leaf className="h-5 w-5" /> {language === 'te' ? 'ముఖ్యమైన వ్యవసాయ సూచనలు' : 'Important Agronomic Note'}</h2>
+          <h2 className="mb-2 flex items-center gap-2 text-sm font-black sm:text-base"><Leaf className="h-5 w-5" /> {UI_LABELS[language].importantAgronomicNote}</h2>
           <ul className="space-y-1 text-sm font-bold">
             {(language === 'te' ? AGRONOMIC_NOTES_TE : AGRONOMIC_NOTES_EN).map((note) => (
               <li key={note}>{note}</li>
@@ -2066,10 +2183,10 @@ export function FertilizerCalculator() {
 
       {isAdminUser && (
         <section className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 shadow-sm sm:p-4">
-          <h2 className="mb-3 text-base font-black text-emerald-950">Admin Panel</h2>
+          <h2 className="mb-3 text-base font-black text-emerald-950">{UI_LABELS[language].adminPanel}</h2>
           {saveNotice && (
             <div className="mb-3 rounded-lg border border-emerald-300 bg-white p-3 text-emerald-950 shadow-sm">
-              <p className="text-sm font-black">Saved successfully</p>
+              <p className="text-sm font-black">{UI_LABELS[language].savedSuccessfully}</p>
               <p className="mt-1 text-sm font-bold">{saveNotice.label}</p>
               <p className="text-xs font-semibold text-emerald-800">{saveNotice.details}</p>
             </div>
@@ -2077,18 +2194,18 @@ export function FertilizerCalculator() {
           <div className="mb-3 rounded-lg border border-white bg-white p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-sm font-black text-slate-950">Save Current Calculation</p>
-                <p className="text-xs font-semibold text-slate-500">Stores complete input and output including dynamic nutrients.</p>
+                <p className="text-sm font-black text-slate-950">{UI_LABELS[language].saveCurrentCalculation}</p>
+                <p className="text-xs font-semibold text-slate-500">{UI_LABELS[language].storesCompleteInput}</p>
               </div>
               <button type="button" onClick={saveCalculation} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white">
-                <Save className="h-4 w-4" /> Save Calculation
+                <Save className="h-4 w-4" /> {UI_LABELS[language].saveCalculation}
               </button>
             </div>
             {savedCalculations.length > 0 && (
               <div className="mt-3 grid gap-2">
                 {savedCalculations.map((entry) => (
                   <div key={entry.id} className="rounded-md border border-slate-200 bg-slate-50 p-2 text-xs font-bold text-slate-700">
-                    Saved: {new Date(entry.created_at).toLocaleString()}
+                    {UI_LABELS[language].saved} {new Date(entry.created_at).toLocaleString()}
                   </div>
                 ))}
               </div>

@@ -32,7 +32,7 @@ const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const CropAdminDashboard = lazy(() =>
   import('./pages/admin/CropAdminDashboard.jsx').then((m) => ({ default: m.CropAdminDashboard }))
 );
-const PestDiseaseGuide = lazy(() => import('./pages/PestDiseaseGuide').then((m) => ({ default: m.PestDiseaseGuide })));
+const PestDiseaseGuide = lazy(() => import('./pages/PestDiseaseGuide').then((m) => ({ default: m.PestDiseaseGuide }))); const UreaDashboard = lazy(() => import('./pages/UreaDashboard').then((m) => ({ default: m.UreaDashboard })));
 function PageLoader() {
   return (
     <div className="flex h-64 items-center justify-center">
@@ -83,6 +83,7 @@ const PAGE_PATHS: Record<string, string> = {
   analytics: '/analytics',
   settings: '/settings',
   'pest-disease-guide': '/pest-disease-guide',
+  'urea-dashboard': '/urea-dashboard',
 };
 
 function pageToPath(page: string) {
@@ -283,6 +284,7 @@ function AppContent() {
         'analytics',
         'settings',
         'pest-disease-guide',
+        'urea-dashboard',
       ]),
     []
   );
@@ -551,6 +553,14 @@ function AppContent() {
           <Suspense fallback={<PageLoader />}>
             <PestDiseaseGuide />
           </Suspense>
+        );
+      case 'urea-dashboard':
+        return isAdminUser ? (
+          <Suspense fallback={<PageLoader />}>
+            <UreaDashboard />
+          </Suspense>
+        ) : (
+          <Dashboard />
         );
       default:
         return <Dashboard />;
