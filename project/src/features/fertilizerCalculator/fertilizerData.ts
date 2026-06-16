@@ -47,14 +47,14 @@ export const DEFAULT_GRADES: FertilizerGrade[] = [
 ];
 
 export const COTTON_NORMAL_SPLIT: SplitDose[] = [
-  { stage: 'Basal (at sowing)', nPct: 0, pPct: 100, kPct: 0, notes: 'Apply entire phosphorus dose before ploughing/basal' },
+  { stage: 'Basal (at sowing)', nPct: 0, pPct: 100, kPct: 0 },
   { stage: '30 DAS', nPct: 33.33, pPct: 0, kPct: 33.33 },
   { stage: '60 DAS', nPct: 33.33, pPct: 0, kPct: 33.33 },
   { stage: '90 DAS', nPct: 33.34, pPct: 0, kPct: 33.34 },
 ];
 
 export const COTTON_HYBRID_SPLIT: SplitDose[] = [
-  { stage: 'Basal (at sowing)', nPct: 0, pPct: 100, kPct: 0, notes: 'Apply entire phosphorus dose before ploughing/basal' },
+  { stage: 'Basal (at sowing)', nPct: 0, pPct: 100, kPct: 0 },
   { stage: '20 DAS', nPct: 25, pPct: 0, kPct: 25 },
   { stage: '40 DAS', nPct: 25, pPct: 0, kPct: 25 },
   { stage: '60 DAS', nPct: 25, pPct: 0, kPct: 25 },
@@ -75,9 +75,9 @@ export const PADDY_LONG_DURATION_SPLIT: SplitDose[] = [
 ];
 
 export const MAIZE_SPLIT: SplitDose[] = [
-  { stage: 'Basal (at sowing)', nPct: 33.33, pPct: 100, kPct: 50 },
+  { stage: 'Sowing/Basal application', nPct: 33.33, pPct: 100, kPct: 50 },
   { stage: 'Knee-high stage', nPct: 33.33, pPct: 0, kPct: 0 },
-  { stage: 'Tasseling/Flowering', nPct: 33.34, pPct: 0, kPct: 50 },
+  { stage: 'Tasseling/Flowering stage', nPct: 33.34, pPct: 0, kPct: 50 },
 ];
 
 export const BASAL_SPLIT: SplitDose[] = [

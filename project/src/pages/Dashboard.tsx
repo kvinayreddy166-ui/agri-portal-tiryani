@@ -247,25 +247,6 @@ export function Dashboard() {
         <WeatherWidget />
       </div>
 
-      {siteHitSummary && (
-        <div className="dashboard-rise dashboard-delay-1 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl border border-emerald-100 bg-white p-3 shadow-sm shadow-emerald-100/60 dark:border-slate-700 dark:bg-slate-900">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                <Eye className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  Site Hits
-                </p>
-                <p className="text-2xl font-black text-slate-950 dark:text-white">
-                  {siteHitSummary.totalViews.toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Mandal Overview */}
       {mandalData && (

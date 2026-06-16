@@ -29,7 +29,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { downloadFileFromUrl } from '../lib/fileBlob';
-import { recordSiteHit } from '../lib/siteHits';
+import { recordSiteHit, fetchSiteHitSummary, SiteHitSummary } from '../lib/siteHits';
 import { FormDownload } from '../types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
@@ -141,6 +141,7 @@ export function Login() {
   const [appInstalled, setAppInstalled] = useState(
     () => window.matchMedia?.('(display-mode: standalone)').matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
   );
+  const [siteHitSummary, setSiteHitSummary] = useState<SiteHitSummary | null>(null);
   const [grievance, setGrievance] = useState({
     farmer_name: '',
     mobile: '',
@@ -231,6 +232,10 @@ export function Login() {
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, [t]);
+
+  useEffect(() => {
+    void fetchSiteHitSummary().then(setSiteHitSummary).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!showStatutoryForms) return;
@@ -807,7 +812,7 @@ export function Login() {
                 className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
               >
                 <Globe2 className="h-4 w-4" />
-                {language === 'en' ? 'తె' : 'E'}
+                {language === 'en' ? 'తె' : 'EN'}
               </button>
             </div>
 
@@ -888,6 +893,14 @@ export function Login() {
                 <p>
                   <span className="font-semibold">Password:</span> {TEST_PASSWORD}
                 </p>
+              </div>
+            )}
+
+            {siteHitSummary && (
+              <div className="mt-3 flex items-center gap-2 text-sm text-emerald-700 animate-slide-up delay-700">
+                <Eye className="h-4 w-4" />
+                <span className="font-semibold">{t('Site Hits', 'సైట్ హిట్స్')}:</span>
+                <span className="font-black">{siteHitSummary.totalViews.toLocaleString()}</span>
               </div>
             )}
 

@@ -6,6 +6,12 @@ import {
   RefreshCw,
   Save,
   Trash2,
+  ChevronDown,
+  ChevronUp,
+  User,
+  MapPin,
+  Phone,
+  FileText as FileTextIcon,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -40,6 +46,15 @@ type SplitFertilizerPlanRow = {
   dose: SplitDose;
   nutrients: Nutrients;
   calculation: ReturnType<typeof calculateFertilizers>;
+};
+
+type FarmerDetails = {
+  farmerName: string;
+  village: string;
+  ppbNumber: string;
+  surveyNumber: string;
+  mobileNumber: string;
+  acreage: string;
 };
 
 function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
@@ -233,6 +248,7 @@ type FertilizerReportInput = {
   selectedRecommendation: CropRecommendation;
   recommendationNutrients: Nutrients;
   splitPlan: SplitFertilizerPlanRow[];
+  farmerDetails?: FarmerDetails;
 };
 
 function buildWhatsAppText(input: FertilizerReportInput) {
@@ -248,6 +264,7 @@ function buildWhatsAppText(input: FertilizerReportInput) {
   selectedRecommendation,
   recommendationNutrients,
   splitPlan,
+  farmerDetails,
   } = input;
   const fertilizerRows = formatFertilizerRows(results, language);
 
@@ -257,147 +274,139 @@ function buildWhatsAppText(input: FertilizerReportInput) {
       ? { n: selectedRecommendation.n, p: selectedRecommendation.p, k: selectedRecommendation.k }
       : required;
     const totalNutrients = mode === 'crop' ? recommendationNutrients : required;
+    
+    // Build farmer details lines
+    const farmerLines = [];
+    if (farmerDetails?.farmerName) farmerLines.push(`👨‍🌾 రైతు: ${farmerDetails.farmerName}`);
+    if (farmerDetails?.village) farmerLines.push(`🏡 గ్రామం: ${farmerDetails.village}`);
+    if (farmerDetails?.ppbNumber) farmerLines.push(`📘 PPB: ${farmerDetails.ppbNumber}`);
+    if (farmerDetails?.surveyNumber) farmerLines.push(`🧾 సర్వే నం: ${farmerDetails.surveyNumber}`);
+    if (farmerDetails?.mobileNumber) farmerLines.push(`📞 మొబైల్: ${farmerDetails.mobileNumber}`);
+    if (farmerDetails?.acreage) farmerLines.push(`📏 విస్తీర్ణం: ${farmerDetails.acreage} ఎకరా`);
+    
     const lines = [
-      '🌾 స్మార్ట్ ఎరువుల కాలిక్యులేటర్',
+      '*🌾 స్మార్ట్ ఎరువుల కాలిక్యులేటర్*',
       '',
-      'తిర్యాణి వ్యవసాయ పోర్టల్',
+      '*తిర్యాణి వ్యవసాయ పోర్టల్*',
       '',
-      'పంట వివరాలు',
+      '━━━━━━━━━━━━━━',
       '',
-      mode === 'crop' ? `పంట: ${cropNameTe(crop)} (${crop})` : 'పంట: ఎంపిక చేసిన పోషక అవసరం',
-      mode === 'crop' ? `సీజన్: ${seasonNameTe(selectedRecommendation.season)}` : '',
-      mode === 'crop' ? `ప్రాంతం: ${zoneNameTe(selectedRecommendation.zone)}` : '',
-      mode === 'crop' ? `రకం: ${varietyNameTe(selectedRecommendation.variety)}` : '',
-      mode === 'crop' ? `ఎంపిక చేసిన విస్తీర్ణం: ${formatSelectedArea(area, 'te')}` : '',
+      ...farmerLines,
+      farmerLines.length > 0 ? '━━━━━━━━━━━━━━' : '',
       '',
-      mode === 'crop' ? `మొత్తం అవసరం (${formatSelectedArea(area, 'te')} కోసం):` : '',
-      ...(mode === 'crop' ? formatNutrientLinesTe(totalNutrients) : []),
+      mode === 'crop' ? `🌱 పంట: ${cropNameTe(crop)} (${crop})` : '🌱 పంట: ఎంపిక చేసిన పోషక అవసరం',
+      mode === 'crop' ? `🌦 సీజన్: ${seasonNameTe(selectedRecommendation.season)}` : '',
+      mode === 'crop' ? `📍 ప్రాంతం: ${zoneNameTe(selectedRecommendation.zone)}` : '',
+      mode === 'crop' ? `🌿 రకం: ${varietyNameTe(selectedRecommendation.variety)}` : '',
+      mode === 'crop' ? `📏 విస్తీర్ణం: ${formatSelectedArea(area, 'te')}` : '',
       '',
-      'వ్యవసాయ విశ్వవిద్యాలయ సిఫారసు',
+      '━━━━━━━━━━━━━━',
       '',
-      'ఎకరానికి సిఫారసు చేయబడిన పోషకాలు (N:P:K)',
+      '*🎯 సిఫారసు చేయబడిన పోషకాలు*',
       '',
       ...formatNutrientLinesTe(perAcreNutrients),
       '',
-      '---',
+      '━━━━━━━━━━━━━━',
       '',
-      '✅ పోషకాల సరఫరా',
+      '*🧪 ఎరువుల అవసరం*',
       '',
-      ...formatNutrientLinesTe(supplied),
-      '',
-      '---',
-      '',
-      '📊 పోషకాల లోటు',
-      '',
-      ...formatNutrientLinesTe(balance),
-      '',
-      '---',
-      '',
-      '📈 పోషకాల అధిక సరఫరా',
-      '',
-      ...formatNutrientLinesTe(excess),
-      '',
-      '---',
-      '',
-      '🧪 అవసరమైన ఎరువుల పరిమాణం',
-      '',
-      '| ఎరువు | పరిమాణం | బస్తాలు |',
-      '| --- | --- | --- |',
-      ...(results.filter((row) => row.kg > 0.01).map((row) => `| ${fertilizerNameTe(row.grade.name)} | ${round(row.kg)} కిలోలు | ${round(row.bags)} బస్తాలు |`)),
+      ...(results.filter((row) => row.kg > 0.01).map((row) => `📦 ${fertilizerNameTe(row.grade.name)}: ${round(row.kg)} కిలోలు (${round(row.bags)} బస్తాలు)`)),
       ...(fertilizerRows.length ? [] : ['ఎరువు అవసరం లేదు.']),
-      '',
-      '---',
     ];
 
     if (mode === 'crop') {
-      lines.push('', '🌱 విడతల వారీ ఎరువుల మోతాదు', '');
+      lines.push('', '━━━━━━━━━━━━━━', '', '*🌱 విడతల వారీ ఎరువుల మోతాదు*', '');
       splitPlan.forEach(({ dose, nutrients, calculation }, index) => {
         const rows = formatFertilizerRows(calculation.results, language);
-        lines.push(`${index + 1}. ${stageNameTe(dose.stage)}`, '');
-        lines.push('లక్ష్యం', '', ...formatNutrientLinesTe(nutrients).filter((line) => !line.includes(': 0 కిలోలు')), '');
-        lines.push('వేయవలసిన ఎరువులు', '');
-        lines.push(...(rows.length ? rows.map((row) => `• ${row}`) : ['• ఈ విడతలో ఎరువు అవసరం లేదు.']));
-        lines.push('', '---', '');
+        lines.push('', '━━━━━━━━━━━━━━', '', `*🌿 ${stageNameTe(dose.stage)}*`, '');
+        lines.push('*🎯 లక్ష్యం*', '', ...formatNutrientLinesTe(nutrients).filter((line) => !line.includes(': 0 కిలోలు')), '');
+        lines.push('*📦 వేయవలసిన ఎరువులు*', '');
+        lines.push(...(rows.length ? rows.map((row) => `📦 ${row}`) : ['ఈ విడతలో ఎరువు అవసరం లేదు.']));
       });
     }
 
-    lines.push(
-      '⚠️ ముఖ్యమైన వ్యవసాయ సూచనలు',
-      '',
-      ...AGRONOMIC_NOTES_TE.map((note) => `✅ ${note}`),
-      '',
-      '────────────────────────────────',
-      '',
-      'తయారు చేసినది',
-      '',
-      'కె. వినయ్ రెడ్డి',
-      'మండల వ్యవసాయ అధికారి (MAO)',
-      'తిర్యాణి మండలం',
-      'కొమురం భీం ఆసిఫాబాద్ జిల్లా',
-      '',
-      '🌾 తిర్యాణి వ్యవసాయ పోర్టల్',
-      '',
-      '────────────────────────────────'
-    );
+    lines.push('', '━━━━━━━━━━━━━━', '', '*⚠️ ముఖ్యమైన వ్యవసాయ సూచనలు*', '', ...AGRONOMIC_NOTES_TE.map((note) => `• ${note}`), '', '━━━━━━━━━━━━━━', '', '*📱 తయారు చేసినది*', '', '*కె. వినయ్ రెడ్డి*', '*మండల వ్యవసాయ అధికారి (MAO)*', '*తిర్యాణి మండలం*', '*కొమురం భీం ఆసిఫాబాద్ జిల్లా*', '', '*🌾 తిర్యాణి వ్యవసాయ పోర్టల్*', '', '━━━━━━━━━━━━━━');
     return lines.filter((line, index, all) => line !== '' || all[index - 1] !== '').join('\n');
   }
 
+  const crop = recommendationCrop(selectedRecommendation);
+  const perAcreNutrients = mode === 'crop'
+    ? { n: selectedRecommendation.n, p: selectedRecommendation.p, k: selectedRecommendation.k }
+    : required;
+
+  // Build farmer details lines
+  const farmerLines = [];
+  if (farmerDetails?.farmerName) farmerLines.push(`👨‍🌾 Farmer: ${farmerDetails.farmerName}`);
+  if (farmerDetails?.village) farmerLines.push(`🏡 Village: ${farmerDetails.village}`);
+  if (farmerDetails?.ppbNumber) farmerLines.push(`📘 PPB: ${farmerDetails.ppbNumber}`);
+  if (farmerDetails?.surveyNumber) farmerLines.push(`🧾 Survey No: ${farmerDetails.surveyNumber}`);
+  if (farmerDetails?.mobileNumber) farmerLines.push(`📞 Mobile: ${farmerDetails.mobileNumber}`);
+  if (farmerDetails?.acreage) farmerLines.push(`📏 Area: ${farmerDetails.acreage} Acre`);
+
   const lines = [
-    '*Smart Fertilizer Calculator - Tiryani Agriculture Portal*',
+    '*🌾 Smart Fertilizer Calculator*',
     '',
-    mode === 'crop'
-      ? `*Agriculture University recommendation:* ${recommendationLabel(selectedRecommendation)} - ${recommendationNpkLabel(selectedRecommendation)} per acre`
-      : '*Selected nutrient requirement*',
-    mode === 'crop' ? `*Selected area:* ${formatSelectedArea(area, 'en')}` : '',
-    mode === 'crop' ? `*Total requirement for selected area:* ${formatNutrients(recommendationNutrients)}` : '',
+    '*Tiryani Agriculture Portal*',
     '',
-    '*Nutrient Balance Summary*',
-    '| Nutrient | Required | Supplied | Balance | Excess |',
-    '| --- | --- | --- | --- | --- |',
-    `| N | ${round(required.n)} kg | ${round(supplied.n)} kg | ${round(balance.n)} kg | ${round(excess.n)} kg |`,
-    `| P₂O₅ | ${round(required.p)} kg | ${round(supplied.p)} kg | ${round(balance.p)} kg | ${round(excess.p)} kg |`,
-    `| K₂O | ${round(required.k)} kg | ${round(supplied.k)} kg | ${round(balance.k)} kg | ${round(excess.k)} kg |`,
+    '━━━━━━━━━━━━━━',
     '',
-    '*Fertilizer Requirements*',
-    '| Fertilizer | Quantity (kg) | Bags |',
-    '| --- | --- | --- |',
-    ...(results.filter((row) => row.kg > 0.01).map((row) => `| ${row.grade.name} | ${round(row.kg)} kg | ${round(row.bags)} bags |`)),
-    ...(results.filter((row) => row.kg > 0.01).length === 0 ? ['| No fertilizer required | - | - |'] : []),
+    ...farmerLines,
+    farmerLines.length > 0 ? '━━━━━━━━━━━━━━' : '',
+    '',
+    mode === 'crop' ? `🌱 Crop: ${crop}` : '🌱 Crop: Custom Nutrients',
+    mode === 'crop' ? `🌦 Season: ${selectedRecommendation.season}` : '',
+    mode === 'crop' ? `📍 Zone: ${selectedRecommendation.zone}` : '',
+    mode === 'crop' ? `🌿 Variety: ${selectedRecommendation.variety}` : '',
+    mode === 'crop' ? `📏 Area: ${formatSelectedArea(area, 'en')}` : '',
+    '',
+    '━━━━━━━━━━━━━━',
+    '',
+    '*🎯 Recommended Nutrients*',
+    '',
+    `N: ${round(perAcreNutrients.n)} kg`,
+    `P₂O₅: ${round(perAcreNutrients.p)} kg`,
+    `K₂O: ${round(perAcreNutrients.k)} kg`,
+    '',
+    '━━━━━━━━━━━━━━',
+    '',
+    '*🧪 Fertilizer Requirements*',
+    '',
+    ...(results.filter((row) => row.kg > 0.01).map((row) => `📦 ${row.grade.name}: ${round(row.kg)} kg (${round(row.bags)} Bags)`)),
+    ...(results.filter((row) => row.kg > 0.01).length === 0 ? ['No fertilizer required'] : []),
   ];
 
   if (mode === 'crop') {
-    lines.push('', '*Smart Split Dose Plan*');
+    lines.push('', '━━━━━━━━━━━━━━', '', '*🌱 Split Dose Plan*', '');
     splitPlan.forEach(({ dose, nutrients, calculation }, index) => {
       const rows = formatFertilizerRows(calculation.results, language);
-      lines.push(``, `*${index + 1}. ${dose.stage}*`);
-      lines.push('| Nutrient | Target |');
-      lines.push('| --- | --- |');
-      lines.push(`| N | ${round(nutrients.n)} kg |`);
-      lines.push(`| P₂O₅ | ${round(nutrients.p)} kg |`);
-      lines.push(`| K₂O | ${round(nutrients.k)} kg |`);
-      if (dose.notes) lines.push(``, `*Note:* ${dose.notes}`);
-      if (dose.gypsum_kg) lines.push(`*Gypsum:* ${dose.gypsum_kg} kg`);
-      if (dose.top_dressing_n_kg) lines.push(`*Top dressing:* ${dose.top_dressing_n_kg} kg N`);
-      lines.push('', '*Fertilizers for this split:*');
-      lines.push('| Fertilizer | Quantity (kg) | Bags |');
-      lines.push('| --- | --- | --- |');
+      lines.push('', '━━━━━━━━━━━━━━', '', `*🌿 ${dose.stage}*`, '');
+      
+      const nutrientTargets = [];
+      if (nutrients.n > 0) nutrientTargets.push(`N: ${round(nutrients.n)} kg`);
+      if (nutrients.p > 0) nutrientTargets.push(`P₂O₅: ${round(nutrients.p)} kg`);
+      if (nutrients.k > 0) nutrientTargets.push(`K₂O: ${round(nutrients.k)} kg`);
+      
+      if (nutrientTargets.length > 0) {
+        lines.push('*🎯 Target*', '', ...nutrientTargets, '');
+      }
+      
+      if (dose.notes) lines.push(`📝 ${dose.notes}`, '');
+      if (dose.gypsum_kg) lines.push(`🧪 Gypsum: ${dose.gypsum_kg} kg`, '');
+      if (dose.top_dressing_n_kg) lines.push(`🌱 Top dressing: ${dose.top_dressing_n_kg} kg N`, '');
+      
+      lines.push('*📦 Fertilizers*', '');
       if (rows.length) {
         rows.forEach((row) => {
-          const match = row.match(/(.+?):\s*([\d.]+)\s*kg\s*\/\s*([\d.]+)\s*bags/);
-          if (match) {
-            lines.push(`| ${match[1]} | ${match[2]} kg | ${match[3]} bags |`);
-          }
+          lines.push(`📦 ${row}`);
         });
       } else {
-        lines.push('| No fertilizer required | - | - |');
+        lines.push('No fertilizer required');
       }
     });
   }
 
-  lines.push('', '*Important Agronomic Notes*');
-  AGRONOMIC_NOTES_EN.forEach((note) => lines.push(`• ${note}`));
-  lines.push('', '*Generated by K. Vinay Reddy, MAO, Tiryani*');
-  return lines.join('\n');
+  lines.push('', '━━━━━━━━━━━━━━', '', '*⚠️ Important Notes*', '', ...AGRONOMIC_NOTES_EN.map((note) => `• ${note}`), '', '━━━━━━━━━━━━━━', '', '*📱 Generated by*', '', '*K. Vinay Reddy, MAO, Tiryani*', '*Tiryani Mandal*', '*Kumram Bheem Asifabad District*', '', '*🌾 Tiryani Agriculture Portal*', '', '━━━━━━━━━━━━━━');
+  return lines.filter((line, index, all) => line !== '' || all[index - 1] !== '').join('\n');
 }
 
 function stripWhatsAppMarkdown(value: string) {
@@ -408,7 +417,58 @@ function stripWhatsAppMarkdown(value: string) {
     .replace(/\|/g, '  ');
 }
 
-function buildFertilizerReportHtml(input: FertilizerReportInput, language: 'en' | 'te') {
+function generatePdfFilename(farmerDetails?: FarmerDetails): string {
+  let filename = '';
+  
+  // Priority 1: Farmer Name + Village
+  if (farmerDetails?.farmerName && farmerDetails?.village) {
+    filename = `${farmerDetails.farmerName}_${farmerDetails.village}`;
+  }
+  // Priority 2: Farmer Name only
+  else if (farmerDetails?.farmerName) {
+    filename = farmerDetails.farmerName;
+  }
+  // Priority 3: Village only
+  else if (farmerDetails?.village) {
+    filename = farmerDetails.village;
+  }
+  // Priority 4: Date fallback
+  else {
+    const date = new Date();
+    filename = date.toISOString().split('T')[0];
+  }
+  
+  // Add suffix
+  filename += '_Fertilizer_Calculation';
+  
+  // Replace spaces with underscores
+  filename = filename.replace(/\s+/g, '_');
+  
+  // Remove invalid characters: / \ : * ? " < > |
+  filename = filename.replace(/[\/\\:*?"<>|]/g, '');
+  
+  // Remove duplicate underscores
+  filename = filename.replace(/_+/g, '_');
+  
+  // Trim leading/trailing underscores
+  filename = filename.replace(/^_|_$/g, '');
+  
+  // Maximum filename length 80 characters
+  if (filename.length > 80) {
+    filename = filename.substring(0, 80);
+    // Ensure we don't cut in the middle of a word
+    const lastUnderscore = filename.lastIndexOf('_');
+    if (lastUnderscore > 40) {
+      filename = filename.substring(0, lastUnderscore);
+    }
+  }
+  
+  return `${filename}.pdf`;
+}
+
+type AutoFitLevel = 0 | 1 | 2 | 3 | 4;
+
+function buildFertilizerReportHtml(input: FertilizerReportInput, language: 'en' | 'te', autoFitLevel: AutoFitLevel = 0) {
   const {
     mode,
     area,
@@ -419,6 +479,7 @@ function buildFertilizerReportHtml(input: FertilizerReportInput, language: 'en' 
     excess,
     selectedRecommendation,
     splitPlan,
+    farmerDetails,
   } = input;
 
   const totalBags = results.reduce((sum, row) => sum + row.bags, 0);
@@ -494,103 +555,80 @@ function buildFertilizerReportHtml(input: FertilizerReportInput, language: 'en' 
 
   const filteredSplitPlan = splitPlan.filter(({ dose }) => formatStageName(dose.stage) !== null);
 
+  // Agronomic Notes handling based on auto-fit level
+  const agronomicNotes = language === 'te' ? AGRONOMIC_NOTES_TE : AGRONOMIC_NOTES_EN;
+  let displayAgronomicNotes = agronomicNotes;
+  if (autoFitLevel >= 4) {
+    // Level 4: Hide Agronomic Notes completely
+    displayAgronomicNotes = [];
+  } else if (autoFitLevel >= 3) {
+    // Level 3: Show only first 2 notes
+    displayAgronomicNotes = agronomicNotes.slice(0, 2);
+  } else if (autoFitLevel >= 2) {
+    // Level 2: Show only first 3 notes
+    displayAgronomicNotes = agronomicNotes.slice(0, 3);
+  }
+
+  // Build farmer details string for PDF
+  const farmerDetailsParts = [];
+  if (farmerDetails?.farmerName) farmerDetailsParts.push(`Farmer: ${farmerDetails.farmerName}`);
+  if (farmerDetails?.village) farmerDetailsParts.push(`Village: ${farmerDetails.village}`);
+  if (farmerDetails?.ppbNumber) farmerDetailsParts.push(`PPB: ${farmerDetails.ppbNumber}`);
+  if (farmerDetails?.surveyNumber) farmerDetailsParts.push(`Survey: ${farmerDetails.surveyNumber}`);
+  if (farmerDetails?.mobileNumber) farmerDetailsParts.push(`Mobile: ${farmerDetails.mobileNumber}`);
+  if (farmerDetails?.acreage) farmerDetailsParts.push(`Area: ${farmerDetails.acreage} Acre`);
+
   return `
     <div class="fertilizer-pdf ${language === 'te' ? 'telugu' : 'english'}">
       <header>
-        <div class="header-icon">🌾</div>
-        <h1>${labels.title}</h1>
-        <p>${labels.subtitle}</p>
+        <div class="header-content">
+          <div class="header-icon">🌾</div>
+          <div class="header-text">
+            <h1>${labels.title}</h1>
+            <p>${labels.subtitle}</p>
+          </div>
+        </div>
       </header>
 
-      <section class="crop-info">
-        <div class="crop-details">
-          ${mode === 'crop' ? `
-            <div class="detail-row">
-              <span class="label">${labels.universityRec}:</span>
-              <span class="value">${recommendationLabel(selectedRecommendation)} - ${recommendationNpkLabel(selectedRecommendation)}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">${labels.crop}:</span>
-              <span class="value">${selectedRecommendation.crop}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">${labels.season}:</span>
-              <span class="value">${selectedRecommendation.season}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">${labels.selectedArea}:</span>
-              <span class="value">${formatSelectedArea(area, language)}</span>
-            </div>
-          ` : `
-            <div class="detail-row">
-              <span class="label">${labels.selectedArea}:</span>
-              <span class="value">${formatSelectedArea(area, language)}</span>
-            </div>
-          `}
-        </div>
+      ${farmerDetailsParts.length > 0 ? `
+        <section class="farmer-details-section">
+          <div class="farmer-details-text">${farmerDetailsParts.join(' | ')}</div>
+        </section>
+      ` : ''}
+
+      <section class="info-table-section">
+        <table class="info-table">
+          <tbody>
+            ${mode === 'crop' ? `
+              <tr>
+                <td class="info-label">${labels.universityRec}</td>
+                <td class="info-value">${recommendationLabel(selectedRecommendation)} - ${recommendationNpkLabel(selectedRecommendation)}</td>
+              </tr>
+              <tr>
+                <td class="info-label">${labels.crop}</td>
+                <td class="info-value">${selectedRecommendation.crop}</td>
+              </tr>
+              <tr>
+                <td class="info-label">${labels.season}</td>
+                <td class="info-value">${selectedRecommendation.season}</td>
+              </tr>
+              <tr>
+                <td class="info-label">${labels.selectedArea}</td>
+                <td class="info-value">${formatSelectedArea(area, language)}</td>
+              </tr>
+            ` : `
+              <tr>
+                <td class="info-label">${labels.selectedArea}</td>
+                <td class="info-value">${formatSelectedArea(area, language)}</td>
+              </tr>
+            `}
+          </tbody>
+        </table>
       </section>
 
-      <section class="dashboard-cards">
-        <div class="card">
-          <div class="card-icon">📐</div>
-          <div class="card-title">${labels.selectedArea}</div>
-          <div class="card-value">${formatSelectedArea(area, language)}</div>
-        </div>
-        <div class="card">
-          <div class="card-icon">📊</div>
-          <div class="card-title">${labels.totalReq}</div>
-          <div class="card-nutrients">
-            <div>N = ${round(required.n)} kg</div>
-            <div>P₂O₅ = ${round(required.p)} kg</div>
-            <div>K₂O = ${round(required.k)} kg</div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-icon">✅</div>
-          <div class="card-title">${labels.nutrientsSupplied}</div>
-          <div class="card-nutrients">
-            <div>N = ${round(supplied.n)} kg</div>
-            <div>P₂O₅ = ${round(supplied.p)} kg</div>
-            <div>K₂O = ${round(supplied.k)} kg</div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-icon">⚖️</div>
-          <div class="card-title">${labels.balance}</div>
-          <div class="card-nutrients">
-            <div style="color: ${getBalanceColor(balance.n)}">N = ${round(balance.n)} kg</div>
-            <div style="color: ${getBalanceColor(balance.p)}">P₂O₅ = ${round(balance.p)} kg</div>
-            <div style="color: ${getBalanceColor(balance.k)}">K₂O = ${round(balance.k)} kg</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="fertilizer-section">
-        <h2>${labels.fertilizerReq}</h2>
-        <div class="fertilizer-cards">
-          ${results.filter((row) => row.kg > 0.01).map((row) => `
-            <div class="fertilizer-card">
-              <div class="fertilizer-name">${row.grade.name}</div>
-              <div class="fertilizer-grade">${row.grade.n}:${row.grade.p}:${row.grade.k}</div>
-              <div class="fertilizer-details">
-                <div><span class="label">${labels.required}:</span> ${round(row.kg)} kg</div>
-                <div><span class="label">${labels.bags}:</span> ${round(row.bags)}</div>
-              </div>
-            </div>
-          `).join('')}
-          <div class="fertilizer-card total-bags">
-            <div class="fertilizer-name">${labels.totalBags}</div>
-            <div class="fertilizer-grade">—</div>
-            <div class="fertilizer-details">
-              <div class="total-value">${round(totalBags)}</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="balance-table-section">
+      <section class="nutrient-summary-section">
         <h2>${labels.nutrientBalance}</h2>
-        <table class="balance-table">
+        <table class="nutrient-table">
           <thead>
             <tr>
               <th>Nutrient</th>
@@ -626,314 +664,347 @@ function buildFertilizerReportHtml(input: FertilizerReportInput, language: 'en' 
         </table>
       </section>
 
+      <section class="fertilizer-table-section">
+        <h2>${labels.fertilizerReq}</h2>
+        <table class="fertilizer-table">
+          <thead>
+            <tr>
+              <th>Fertilizer</th>
+              <th>Grade</th>
+              <th>Quantity (kg)</th>
+              <th>Bags</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${results.filter((row) => row.kg > 0.01).map((row) => `
+              <tr>
+                <td>${row.grade.name}</td>
+                <td>${row.grade.n}:${row.grade.p}:${row.grade.k}</td>
+                <td>${round(row.kg)}</td>
+                <td>${round(row.bags)}</td>
+              </tr>
+            `).join('')}
+            <tr class="total-row">
+              <td colspan="3"><strong>${labels.totalBags}</strong></td>
+              <td><strong>${round(totalBags)}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
       ${mode === 'crop' && filteredSplitPlan.length > 0 ? `
         <section class="split-dose-section">
           <h2>${labels.splitDosePlan}</h2>
-          <div class="split-dose-grid">
-            ${filteredSplitPlan.map(({ dose, nutrients, calculation }, index) => {
-              const stageName = formatStageName(dose.stage);
-              if (!stageName) return '';
-              const rows = formatFertilizerRows(calculation.results, language);
-              return `
-                <div class="split-dose-card">
-                  <div class="split-dose-header">${stageName}</div>
-                  <div class="split-dose-nutrients">
-                    <div>N = ${round(nutrients.n)} kg</div>
-                    <div>P₂O₅ = ${round(nutrients.p)} kg</div>
-                    <div>K₂O = ${round(nutrients.k)} kg</div>
-                  </div>
-                  ${dose.notes ? `<div class="split-dose-note">${dose.notes}</div>` : ''}
-                  ${dose.gypsum_kg ? `<div class="split-dose-note">Gypsum: ${dose.gypsum_kg} kg</div>` : ''}
-                  ${dose.top_dressing_n_kg ? `<div class="split-dose-note">Top dressing: ${dose.top_dressing_n_kg} kg N</div>` : ''}
-                  <div class="split-dose-fertilizers">
-                    ${rows.length ? rows.map((row) => `<div>${row}</div>`).join('') : '<div>No fertilizer required</div>'}
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
+          <table class="split-dose-table">
+            <thead>
+              <tr>
+                <th>Stage</th>
+                <th>N (kg)</th>
+                <th>P₂O₅ (kg)</th>
+                <th>K₂O (kg)</th>
+                <th>Fertilizers</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredSplitPlan.map(({ dose, nutrients, calculation }) => {
+                const stageName = formatStageName(dose.stage);
+                if (!stageName) return '';
+                const rows = formatFertilizerRows(calculation.results, language);
+                return `
+                  <tr>
+                    <td><strong>${stageName}</strong></td>
+                    <td>${round(nutrients.n)}</td>
+                    <td>${round(nutrients.p)}</td>
+                    <td>${round(nutrients.k)}</td>
+                    <td>${rows.length ? rows.join(', ') : 'None'}</td>
+                  </tr>
+                  ${dose.notes ? `
+                    <tr>
+                      <td colspan="5" class="note-row">${dose.notes}</td>
+                    </tr>
+                  ` : ''}
+                  ${dose.gypsum_kg ? `
+                    <tr>
+                      <td colspan="5" class="note-row">Gypsum: ${dose.gypsum_kg} kg</td>
+                    </tr>
+                  ` : ''}
+                  ${dose.top_dressing_n_kg ? `
+                    <tr>
+                      <td colspan="5" class="note-row">Top dressing: ${dose.top_dressing_n_kg} kg N</td>
+                    </tr>
+                  ` : ''}
+                `;
+              }).join('')}
+            </tbody>
+          </table>
         </section>
       ` : ''}
 
-      <section class="notes-section">
-        <h2>${labels.agronomicNotes}</h2>
-        <div class="notes-box">
-          ${(language === 'te' ? AGRONOMIC_NOTES_TE : AGRONOMIC_NOTES_EN).slice(0, 4).map((note) => `<div class="note-item">• ${note}</div>`).join('')}
-        </div>
-      </section>
+      ${displayAgronomicNotes.length > 0 ? `
+        <section class="notes-section">
+          <h2>${labels.agronomicNotes}</h2>
+          <table class="notes-table">
+            <tbody>
+              ${displayAgronomicNotes.map((note) => `
+                <tr>
+                  <td>• ${note}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </section>
+      ` : ''}
 
       <footer>
-        <div class="footer-content">
-          <div class="footer-label">${labels.generatedBy}</div>
-          <div class="footer-officer">${labels.officer}</div>
-          <div class="footer-mao">${labels.mao}</div>
-          <div class="footer-location">${labels.mandal}, ${labels.district}</div>
-          <div class="footer-portal">${labels.subtitle}</div>
-        </div>
+        <table class="footer-table">
+          <tbody>
+            <tr>
+              <td class="footer-label">${labels.generatedBy}</td>
+              <td class="footer-officer">${labels.officer}</td>
+            </tr>
+            <tr>
+              <td class="footer-label">${labels.mao}</td>
+              <td class="footer-location">${labels.mandal}, ${labels.district}</td>
+            </tr>
+            <tr>
+              <td colspan="2" class="footer-portal">${labels.subtitle}</td>
+            </tr>
+          </tbody>
+        </table>
       </footer>
     </div>
   `;
 }
 
-function createFertilizerReportElement(html: string) {
+function createFertilizerReportElement(html: string, autoFitLevel: AutoFitLevel = 0) {
   const container = document.createElement('div');
   container.style.position = 'fixed';
   container.style.left = '-10000px';
   container.style.top = '0';
   container.style.width = '794px';
   container.style.background = '#f8fafc';
+  
+  // Auto-fit spacing values based on level
+  const spacing = {
+    padding: autoFitLevel >= 1 ? '12px' : '16px',
+    sectionMargin: autoFitLevel >= 1 ? '12px' : '16px',
+    cardPadding: autoFitLevel >= 2 ? '10px' : '12px',
+    tablePadding: autoFitLevel >= 2 ? '4px 8px' : '6px 10px',
+    headerMargin: autoFitLevel >= 1 ? '12px' : '16px',
+    h2Margin: autoFitLevel >= 1 ? '8px 0 6px' : '12px 0 8px',
+    h2Padding: autoFitLevel >= 1 ? '4px 0 4px' : '6px 0 6px',
+  };
+  
   container.innerHTML = `
     <style>
       .fertilizer-pdf {
         box-sizing: border-box;
         width: 794px;
-        padding: 12px;
-        background: #f8fafc;
+        padding: ${spacing.padding};
+        background: #ffffff;
         color: #0f172a;
         font-family: 'Inter', Arial, "Noto Sans Telugu", "Nirmala UI", "Gautami", sans-serif;
-        line-height: 1.2;
+        line-height: 1.4;
       }
       .fertilizer-pdf header {
-        margin-bottom: 8px;
+        margin-bottom: ${spacing.headerMargin};
         text-align: center;
         color: #0f766e;
-        border-bottom: 2px solid #16a34a;
-        padding-bottom: 6px;
-        position: relative;
+        border-bottom: 3px solid #16a34a;
+        padding-bottom: 12px;
+      }
+      .fertilizer-pdf .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
       }
       .fertilizer-pdf .header-icon {
-        font-size: 24px;
-        margin-bottom: 4px;
+        font-size: 32px;
+      }
+      .fertilizer-pdf .header-text {
+        text-align: left;
       }
       .fertilizer-pdf h1 {
         margin: 0;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 900;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
         color: #0f766e;
       }
       .fertilizer-pdf header p {
-        margin: 2px 0 0;
-        font-size: 10px;
+        margin: 4px 0 0;
+        font-size: 12px;
         font-weight: 700;
         color: #16a34a;
       }
-      .fertilizer-pdf .crop-info {
-        margin-bottom: 8px;
-        padding: 6px 8px;
-        background: #ffffff;
-        border: 1px solid #bbf7d0;
-        border-radius: 6px;
-      }
-      .fertilizer-pdf .detail-row {
-        display: flex;
-        justify-content: space-between;
-        margin: 2px 0;
-        font-size: 9px;
-      }
-      .fertilizer-pdf .label {
-        font-weight: 700;
-        color: #0f766e;
-      }
-      .fertilizer-pdf .value {
-        font-weight: 600;
-        color: #1e293b;
-      }
-      .fertilizer-pdf .dashboard-cards {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
-        margin-bottom: 8px;
-      }
-      .fertilizer-pdf .card {
-        padding: 6px;
-        background: #ffffff;
+      .fertilizer-pdf .farmer-details-section {
+        margin-bottom: ${spacing.sectionMargin};
+        padding: 8px 12px;
+        background: #f0fdf4;
         border: 1px solid #86efac;
         border-radius: 6px;
-        text-align: center;
       }
-      .fertilizer-pdf .card-icon {
-        font-size: 16px;
-        margin-bottom: 2px;
-      }
-      .fertilizer-pdf .card-title {
-        font-size: 7px;
-        font-weight: 900;
-        color: #0f766e;
-        margin-bottom: 3px;
-        text-transform: uppercase;
-      }
-      .fertilizer-pdf .card-value {
+      .fertilizer-pdf .farmer-details-text {
         font-size: 10px;
-        font-weight: 700;
-        color: #1e293b;
-      }
-      .fertilizer-pdf .card-nutrients {
-        font-size: 7px;
         font-weight: 600;
         color: #1e293b;
-        line-height: 1.3;
-      }
-      .fertilizer-pdf .fertilizer-section {
-        margin-bottom: 8px;
+        line-height: 1.4;
       }
       .fertilizer-pdf h2 {
-        margin: 0 0 6px;
+        margin: ${spacing.h2Margin};
         color: #0f766e;
-        font-size: 10px;
+        font-size: 14px;
         font-weight: 900;
         text-transform: uppercase;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: ${spacing.h2Padding};
       }
-      .fertilizer-pdf .fertilizer-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-        gap: 6px;
+      .fertilizer-pdf .info-table-section {
+        margin-bottom: ${spacing.sectionMargin};
       }
-      .fertilizer-pdf .fertilizer-card {
-        padding: 5px;
-        background: #ffffff;
-        border: 1px solid #86efac;
-        border-radius: 6px;
-        text-align: center;
+      .fertilizer-pdf .info-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
       }
-      .fertilizer-pdf .fertilizer-name {
-        font-size: 8px;
+      .fertilizer-pdf .info-table td {
+        padding: ${spacing.tablePadding};
+        border: 1px solid #e2e8f0;
+      }
+      .fertilizer-pdf .info-label {
         font-weight: 900;
         color: #0f766e;
-        margin-bottom: 2px;
+        width: 40%;
+        background: #f0fdf4;
       }
-      .fertilizer-pdf .fertilizer-grade {
-        font-size: 7px;
-        font-weight: 700;
-        color: #16a34a;
-        margin-bottom: 3px;
-      }
-      .fertilizer-pdf .fertilizer-details {
-        font-size: 7px;
+      .fertilizer-pdf .info-value {
         font-weight: 600;
         color: #1e293b;
       }
-      .fertilizer-pdf .total-bags {
-        background: #f0fdf4;
-        border-color: #16a34a;
+      .fertilizer-pdf .nutrient-summary-section {
+        margin-bottom: ${spacing.sectionMargin};
       }
-      .fertilizer-pdf .total-value {
-        font-size: 14px;
-        font-weight: 900;
-        color: #0f766e;
-      }
-      .fertilizer-pdf .balance-table-section {
-        margin-bottom: 8px;
-      }
-      .fertilizer-pdf .balance-table {
+      .fertilizer-pdf .nutrient-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 7px;
+        font-size: 11px;
       }
-      .fertilizer-pdf .balance-table th {
+      .fertilizer-pdf .nutrient-table th {
         background: #f0fdf4;
         color: #0f766e;
         font-weight: 900;
-        padding: 3px 4px;
-        border: 1px solid #86efac;
+        padding: ${spacing.tablePadding};
+        border: 2px solid #86efac;
+        text-align: center;
+      }
+      .fertilizer-pdf .nutrient-table td {
+        padding: ${spacing.tablePadding};
+        border: 1px solid #e2e8f0;
+        font-weight: 600;
+        text-align: center;
+      }
+      .fertilizer-pdf .fertilizer-table-section {
+        margin-bottom: ${spacing.sectionMargin};
+      }
+      .fertilizer-pdf .fertilizer-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+      .fertilizer-pdf .fertilizer-table th {
+        background: #f0fdf4;
+        color: #0f766e;
+        font-weight: 900;
+        padding: ${spacing.tablePadding};
+        border: 2px solid #86efac;
+        text-align: center;
+      }
+      .fertilizer-pdf .fertilizer-table td {
+        padding: ${spacing.tablePadding};
+        border: 1px solid #e2e8f0;
+        font-weight: 600;
+        text-align: center;
+      }
+      .fertilizer-pdf .total-row {
+        background: #f0fdf4;
+        font-weight: 900;
+      }
+      .fertilizer-pdf .split-dose-section {
+        margin-bottom: ${spacing.sectionMargin};
+      }
+      .fertilizer-pdf .split-dose-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10px;
+      }
+      .fertilizer-pdf .split-dose-table th {
+        background: #f0fdf4;
+        color: #0f766e;
+        font-weight: 900;
+        padding: ${spacing.tablePadding};
+        border: 2px solid #86efac;
+        text-align: center;
+      }
+      .fertilizer-pdf .split-dose-table td {
+        padding: ${spacing.tablePadding};
+        border: 1px solid #e2e8f0;
+        font-weight: 600;
+        text-align: center;
+      }
+      .fertilizer-pdf .note-row {
+        background: #fef9c3;
+        font-size: 9px;
+        font-weight: 600;
+        color: #854d0e;
         text-align: left;
       }
-      .fertilizer-pdf .balance-table td {
-        padding: 2px 4px;
+      .fertilizer-pdf .notes-section {
+        margin-bottom: ${spacing.sectionMargin};
+      }
+      .fertilizer-pdf .notes-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10px;
+      }
+      .fertilizer-pdf .notes-table td {
+        padding: ${spacing.tablePadding};
         border: 1px solid #e2e8f0;
         font-weight: 600;
       }
-      .fertilizer-pdf .split-dose-section {
-        margin-bottom: 8px;
-      }
-      .fertilizer-pdf .split-dose-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
-      }
-      .fertilizer-pdf .split-dose-card {
-        padding: 5px;
-        background: #ffffff;
-        border: 1px solid #86efac;
-        border-radius: 6px;
-      }
-      .fertilizer-pdf .split-dose-header {
-        font-size: 8px;
-        font-weight: 900;
-        color: #0f766e;
-        margin-bottom: 3px;
-        text-transform: uppercase;
-      }
-      .fertilizer-pdf .split-dose-nutrients {
-        font-size: 7px;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 3px;
-        line-height: 1.3;
-      }
-      .fertilizer-pdf .split-dose-note {
-        font-size: 6px;
-        font-weight: 600;
-        color: #16a34a;
-        margin-bottom: 2px;
-      }
-      .fertilizer-pdf .split-dose-fertilizers {
-        font-size: 6px;
-        font-weight: 600;
-        color: #1e293b;
-        line-height: 1.2;
-      }
-      .fertilizer-pdf .notes-section {
-        margin-bottom: 8px;
-      }
-      .fertilizer-pdf .notes-box {
-        padding: 5px 6px;
-        background: #fef9c3;
-        border: 1px solid #facc15;
-        border-radius: 6px;
-      }
-      .fertilizer-pdf .note-item {
-        font-size: 7px;
-        font-weight: 600;
-        color: #1e293b;
-        margin: 1px 0;
-      }
       .fertilizer-pdf footer {
-        margin-top: 8px;
-        padding-top: 6px;
-        border-top: 1px solid #86efac;
-        text-align: center;
+        margin-top: ${spacing.sectionMargin};
+        padding-top: 12px;
+        border-top: 2px solid #86efac;
+      }
+      .fertilizer-pdf .footer-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10px;
+      }
+      .fertilizer-pdf .footer-table td {
+        padding: 4px 8px;
+        font-weight: 600;
       }
       .fertilizer-pdf .footer-label {
-        font-size: 7px;
         font-weight: 900;
         color: #0f766e;
-        margin-bottom: 2px;
+        width: 30%;
       }
       .fertilizer-pdf .footer-officer {
-        font-size: 8px;
         font-weight: 700;
         color: #1e293b;
-        margin-bottom: 1px;
-      }
-      .fertilizer-pdf .footer-mao {
-        font-size: 7px;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 1px;
       }
       .fertilizer-pdf .footer-location {
-        font-size: 7px;
         font-weight: 600;
         color: #1e293b;
-        margin-bottom: 1px;
       }
       .fertilizer-pdf .footer-portal {
-        font-size: 7px;
         font-weight: 700;
         color: #16a34a;
+        text-align: center;
       }
       .fertilizer-pdf.telugu {
         font-family: "Noto Sans Telugu", "Nirmala UI", "Gautami", Arial, sans-serif;
@@ -946,7 +1017,7 @@ function createFertilizerReportElement(html: string) {
 }
 
 function getInitialSelected(grades: FertilizerGrade[]) {
-  const defaultNames = new Set(['DAP', 'Urea', 'MOP']);
+  const defaultNames = new Set(['SSP', 'Urea', 'MOP']);
   return grades.filter((grade) => defaultNames.has(grade.name)).map(gradeKey);
 }
 
@@ -1172,6 +1243,43 @@ export function FertilizerCalculator() {
   const [cropDraft, setCropDraft] = useState<CropRecommendation>({ crop_name: '', n: 0, p: 0, k: 0, area_unit: 'acre', split_plan: DEFAULT_SPLIT });
   const [saveNotice, setSaveNotice] = useState<{ type: 'grade' | 'crop'; label: string; details: string } | null>(null);
   const [savedCalculations, setSavedCalculations] = useState<Array<{ id: string; input: unknown; output: unknown; created_at: string }>>([]);
+  const [farmerDetails, setFarmerDetails] = useState<FarmerDetails>({
+    farmerName: '',
+    village: '',
+    ppbNumber: '',
+    surveyNumber: '',
+    mobileNumber: '',
+    acreage: '',
+  });
+  const [showFarmerDetails, setShowFarmerDetails] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [isResettingFarmer, setIsResettingFarmer] = useState(false);
+
+  // Two-way acreage sync
+  useEffect(() => {
+    if (farmerDetails.acreage && farmerDetails.acreage !== String(area.value)) {
+      setFarmerDetails(prev => ({ ...prev, acreage: String(area.value) }));
+    }
+  }, [area.value]);
+
+  const handleFarmerAcreageChange = (value: string) => {
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue) && numValue > 0) {
+      setArea(prev => ({ ...prev, value: numValue }));
+    }
+    setFarmerDetails(prev => ({ ...prev, acreage: value }));
+  };
+
+  const handleMobileNumberChange = (value: string) => {
+    // Only validate if entered
+    if (value === '') {
+      setFarmerDetails(prev => ({ ...prev, mobileNumber: value }));
+      return;
+    }
+    // Allow only digits, max 10 digits
+    const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
+    setFarmerDetails(prev => ({ ...prev, mobileNumber: digitsOnly }));
+  };
 
   useEffect(() => {
     const loadCalculatorData = async () => {
@@ -1321,7 +1429,8 @@ export function FertilizerCalculator() {
     setSimpleTab('forward');
   };
 
-  const resetCalculator = () => {
+  const resetCalculator = async () => {
+    setIsResetting(true);
     setMode('crop');
     setSimpleTab('forward');
     setRequired({ n: 48, p: 24, k: 24 });
@@ -1332,6 +1441,24 @@ export function FertilizerCalculator() {
     setSelectedSeason('Vanakalam');
     setSelectedVariety('Hybrid');
     setArea({ value: 1, unit: 'acres' });
+    // Small delay to show spinning animation
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setIsResetting(false);
+  };
+
+  const resetFarmerDetails = async () => {
+    setIsResettingFarmer(true);
+    setFarmerDetails({
+      farmerName: '',
+      village: '',
+      ppbNumber: '',
+      surveyNumber: '',
+      mobileNumber: '',
+      acreage: '',
+    });
+    // Small delay to show spinning animation
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setIsResettingFarmer(false);
   };
 
   const saveGrade = async (grade: FertilizerGrade) => {
@@ -1462,55 +1589,47 @@ export function FertilizerCalculator() {
 
   const exportPdf = async () => {
     const { jsPDF } = await import('jspdf');
-    const text = buildWhatsAppText({
-      language,
-      mode,
-      area,
-      required: activeRequired,
-      results: activeCalculation.results,
-      supplied: activeCalculation.supplied,
-      balance: activeCalculation.balance,
-      excess: activeCalculation.excess,
-      selectedRecommendation,
-      recommendationNutrients,
-      splitPlan: splitFertilizerPlan,
-    });
     const html2canvas = (await import('html2canvas')).default;
-    const reportElement = createFertilizerReportElement(buildFertilizerReportHtml({
-      language,
-      mode,
-      area,
-      required,
-      results: activeCalculation.results,
-      supplied: activeCalculation.supplied,
-      balance: activeCalculation.balance,
-      excess: activeCalculation.excess,
-      selectedRecommendation,
-      recommendationNutrients,
-      splitPlan: splitFertilizerPlan,
-    }, language));
-    const canvas = await html2canvas(reportElement, {
-      backgroundColor: '#eef6f0',
-      scale: 2,
-      useCORS: true,
-      logging: false,
-    });
-    reportElement.remove();
+    
+    // Function to generate PDF with auto-fit level
+    const generatePdfWithAutoFit = async (autoFitLevel: AutoFitLevel): Promise<boolean> => {
+      const reportElement = createFertilizerReportElement(buildFertilizerReportHtml({
+        language,
+        mode,
+        area,
+        required: activeRequired,
+        results: activeCalculation.results,
+        supplied: activeCalculation.supplied,
+        balance: activeCalculation.balance,
+        excess: activeCalculation.excess,
+        selectedRecommendation,
+        recommendationNutrients,
+        splitPlan: splitFertilizerPlan,
+        farmerDetails,
+      }, language, autoFitLevel), autoFitLevel);
+      
+      const canvas = await html2canvas(reportElement, {
+        backgroundColor: '#eef6f0',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      reportElement.remove();
 
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 18;
-    const footerHeight = 24;
-    const imageWidth = pageWidth - margin * 2;
-    const pageImageHeight = pageHeight - margin * 2 - footerHeight;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 18;
+      const footerHeight = 24;
+      const imageWidth = pageWidth - margin * 2;
+      const pageImageHeight = pageHeight - margin * 2 - footerHeight;
 
-    if (language === 'en') {
       const naturalImageHeight = (canvas.height / canvas.width) * imageWidth;
       const fitScale = Math.min(1, pageImageHeight / naturalImageHeight);
       const fittedWidth = imageWidth * fitScale;
       const fittedHeight = naturalImageHeight * fitScale;
       const x = margin + (imageWidth - fittedWidth) / 2;
+      
       doc.addImage(canvas.toDataURL('image/png'), 'PNG', x, margin, fittedWidth, fittedHeight);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
@@ -1519,33 +1638,17 @@ export function FertilizerCalculator() {
       doc.setFontSize(7);
       doc.setTextColor(71, 85, 105);
       doc.text('Page 1 of 1', pageWidth / 2, pageHeight - 7, { align: 'center' });
-      doc.save(`fertilizer-calculator-${new Date().toISOString().slice(0, 10)}.pdf`);
-      return;
-    }
+      doc.save(generatePdfFilename(farmerDetails));
+      
+      // Return true if content fits on one page (fitScale >= 0.95 to allow small margin)
+      return fitScale >= 0.95;
+    };
 
-    const sourcePageHeight = Math.floor((pageImageHeight / imageWidth) * canvas.width);
-    const pageCount = Math.max(1, Math.ceil(canvas.height / sourcePageHeight));
-
-    for (let page = 0; page < pageCount; page += 1) {
-      if (page > 0) doc.addPage();
-      const sourceY = page * sourcePageHeight;
-      const sliceHeight = Math.min(sourcePageHeight, canvas.height - sourceY);
-      const pageCanvas = document.createElement('canvas');
-      pageCanvas.width = canvas.width;
-      pageCanvas.height = sliceHeight;
-      const context = pageCanvas.getContext('2d');
-      context?.drawImage(canvas, 0, sourceY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
-      const imageHeight = (sliceHeight / canvas.width) * imageWidth;
-      doc.addImage(pageCanvas.toDataURL('image/png'), 'PNG', margin, margin, imageWidth, imageHeight);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.setTextColor(4, 120, 87);
-      doc.text('Tiryani Agriculture Portal | Generated by K. Vinay Reddy, MAO, Tiryani', pageWidth / 2, pageHeight - 16, { align: 'center' });
-      doc.setFontSize(7);
-      doc.setTextColor(71, 85, 105);
-      doc.text(`Page ${page + 1} of ${pageCount}`, pageWidth / 2, pageHeight - 7, { align: 'center' });
+    // Try auto-fit levels incrementally until content fits
+    for (let level = 0; level <= 4; level++) {
+      const fits = await generatePdfWithAutoFit(level as AutoFitLevel);
+      if (fits) break;
     }
-    doc.save(`fertilizer-calculator-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   const shareWhatsApp = () => {
@@ -1605,23 +1708,115 @@ export function FertilizerCalculator() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-2 text-slate-950 sm:space-y-3">
+      <section className="rounded-xl border border-emerald-100 bg-white p-1.5 shadow-sm">
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex gap-1">
+            <button type="button" onClick={exportPdf} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-600 px-2 py-1 text-white" aria-label="Export PDF" title="PDF">
+              <FileText className="h-3.5 w-3.5" />
+            </button>
+            <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-green-600 px-2 py-1 text-white" aria-label="Share on WhatsApp" title="WhatsApp">
+              <WhatsAppIcon className="h-3.5 w-3.5" />
+            </button>
+            <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-700 disabled:opacity-50">
+              <RefreshCw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+          <button type="button" onClick={toggleLanguage} className="inline-flex min-h-7 items-center justify-center rounded-lg border border-emerald-200 bg-white px-2 py-1 text-[10px] font-black text-emerald-800">
+              {language === 'te' ? 'EN' : 'తె'}
+            </button>
+        </div>
+      </section>
+
+      {/* Farmer Details Section */}
       <section className="rounded-xl border border-emerald-100 bg-white p-2 shadow-sm sm:p-3">
-        <div className="flex justify-end">
-          <button type="button" onClick={toggleLanguage} className="inline-flex min-h-8 items-center justify-center rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-black text-emerald-800">
-              {language === 'te' ? 'English' : 'తెలుగు'}
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setShowFarmerDetails(!showFarmerDetails)}
+            className="flex flex-1 items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-sm font-black text-emerald-800"
+          >
+            <span className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Farmer Details (Optional)
+            </span>
+            {showFarmerDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+          {showFarmerDetails && (
+            <button
+              type="button"
+              onClick={resetFarmerDetails}
+              disabled={isResettingFarmer}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-black text-slate-700 disabled:opacity-50"
+              title="Reset Farmer Details"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isResettingFarmer ? 'animate-spin' : ''}`} />
             </button>
+          )}
         </div>
-        <div className="mt-2 grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
-            <button type="button" onClick={exportPdf} className="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-600 px-2 py-1.5 text-white sm:px-3" aria-label="Export PDF" title="PDF">
-              <FileText className="h-4 w-4" />
-            </button>
-            <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-9 items-center justify-center rounded-lg bg-green-600 px-2 py-1.5 text-white sm:px-3" aria-label="Share on WhatsApp" title="WhatsApp">
-              <WhatsAppIcon className="h-4 w-4" />
-            </button>
-            <button type="button" onClick={resetCalculator} className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-black text-slate-700 sm:px-3 sm:text-sm">
-              <RefreshCw className="h-4 w-4" /> Reset
-            </button>
-        </div>
+        {showFarmerDetails && (
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
+              <span className="text-xs font-black uppercase text-slate-600">Farmer Name</span>
+              <input
+                type="text"
+                value={farmerDetails.farmerName}
+                onChange={(e) => setFarmerDetails(prev => ({ ...prev, farmerName: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
+                placeholder="Optional"
+              />
+            </label>
+            <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
+              <span className="text-xs font-black uppercase text-slate-600">Village</span>
+              <input
+                type="text"
+                value={farmerDetails.village}
+                onChange={(e) => setFarmerDetails(prev => ({ ...prev, village: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
+                placeholder="Optional"
+              />
+            </label>
+            <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
+              <span className="text-xs font-black uppercase text-slate-600">PPB Number</span>
+              <input
+                type="text"
+                value={farmerDetails.ppbNumber}
+                onChange={(e) => setFarmerDetails(prev => ({ ...prev, ppbNumber: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
+                placeholder="Optional"
+              />
+            </label>
+            <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
+              <span className="text-xs font-black uppercase text-slate-600">Survey Number</span>
+              <input
+                type="text"
+                value={farmerDetails.surveyNumber}
+                onChange={(e) => setFarmerDetails(prev => ({ ...prev, surveyNumber: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
+                placeholder="Optional"
+              />
+            </label>
+            <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
+              <span className="text-xs font-black uppercase text-slate-600">Mobile Number</span>
+              <input
+                type="tel"
+                value={farmerDetails.mobileNumber}
+                onChange={(e) => handleMobileNumberChange(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
+                placeholder="Optional"
+              />
+            </label>
+            <label className="block rounded-lg border border-slate-200 bg-slate-50 p-2">
+              <span className="text-xs font-black uppercase text-slate-600">Acreage</span>
+              <input
+                type="number"
+                value={farmerDetails.acreage}
+                onChange={(e) => handleFarmerAcreageChange(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-black outline-none focus:border-emerald-500"
+                placeholder="Syncs with calculator"
+              />
+            </label>
+          </div>
+        )}
       </section>
 
       <section className="grid gap-2 sm:gap-3 lg:grid-cols-[1.05fr_0.95fr]">

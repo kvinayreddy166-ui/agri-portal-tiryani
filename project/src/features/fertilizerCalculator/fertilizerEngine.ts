@@ -123,7 +123,7 @@ export function calculateFertilizers(requiredInput: Nutrients, selected: Fertili
   }, emptyNutrients());
 
   const balance = allKeys.reduce<Nutrients>((total, nutrient) => {
-    total[nutrient] = Math.max(0, numberValue(required[nutrient]) - numberValue(supplied[nutrient]));
+    total[nutrient] = numberValue(required[nutrient]) - numberValue(supplied[nutrient]);
     return total;
   }, emptyNutrients());
   const excess = allKeys.reduce<Nutrients>((total, nutrient) => {
