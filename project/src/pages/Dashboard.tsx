@@ -326,23 +326,24 @@ export function Dashboard() {
       )}
 
       {/* Crop Statistics */}
-      <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <TrendingUp className="w-6 h-6 text-emerald-600" />
-            {t('Major Crops', 'ప్రధాన పంటలు')} - {t('Total', 'మొత్తం')}: {formatDashboardNumber(totalAcreage)} {t('acres', 'ఎకరాలు')}
-          </h2>
-          <button
-            onClick={() => navigate('/pest-disease-guide')}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-md transition hover:shadow-lg hover:scale-105"
-          >
-            <Bug className="w-4 h-4" />
-            {t('Pest & Disease Guide', 'పురుగు & వ్యాధి గైడ్')}
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {dashboardCrops.map((crop, idx) => {
+      {dashboardCrops.length > 0 && (
+        <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-emerald-600" />
+              {t('Major Crops', 'ప్రధాన పంటలు')} - {t('Total', 'మొత్తం')}: {formatDashboardNumber(totalAcreage)} {t('acres', 'ఎకరాలు')}
+            </h2>
+            <button
+              onClick={() => navigate('/pest-disease-guide')}
+              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-md transition hover:shadow-lg hover:scale-105"
+            >
+              <Bug className="w-4 h-4" />
+              {t('Pest & Disease Guide', 'పురుగు & వ్యాధి గైడ్')}
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {dashboardCrops.map((crop, idx) => {
             const gradients = [
               'from-emerald-500 to-emerald-600',
               'from-teal-500 to-teal-600',
@@ -368,8 +369,10 @@ export function Dashboard() {
           })}
         </div>
       </div>
+      )}
 
-      <div className="dashboard-rise dashboard-delay-3 portal-card p-3">
+      {fertilizers.length > 0 && (
+        <div className="dashboard-rise dashboard-delay-3 portal-card p-3">
         <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-black tracking-tight text-gray-900 dark:text-white">
@@ -453,9 +456,11 @@ export function Dashboard() {
           })}
         </div>
       </div>
+      )}
 
       {/* Government Schemes */}
-      <div className="dashboard-rise dashboard-delay-3 portal-card p-4">
+      {schemes.length > 0 && (
+        <div className="dashboard-rise dashboard-delay-3 portal-card p-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Users className="w-6 h-6 text-emerald-600" />
           {t('Government Schemes', 'ప్రభుత్వ పథకాలు')}
@@ -629,6 +634,7 @@ export function Dashboard() {
           })}
         </div>
       </div>
+      )}
     </div>
   );
 }

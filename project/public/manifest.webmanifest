@@ -1,51 +1,55 @@
 {
-  "name": "tiryaniportal - Tiryani Agriculture Portal",
-  "short_name": "tiryaniportal",
+  "name": "Tiryani Agriculture Portal",
+  "short_name": "Tiryani Agri",
   "id": "/",
-  "description": "tiryaniportal - Official Information Management System for Tiryani Agriculture Office.",
+  "description": "Agriculture Department Digital Platform - Official Information Management System for Tiryani Agriculture Office",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#eef6f0",
-  "theme_color": "#047857",
+  "background_color": "#ffffff",
+  "theme_color": "#0f766e",
   "icons": [
     {
-      "src": "/images/agri-emblem-192.webp",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/webp",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/images/agri-emblem-512.webp",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/webp",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/images/agri-emblem-192.webp",
+      "src": "/icons/icon-maskable-192x192.png",
       "sizes": "192x192",
-      "type": "image/webp",
+      "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/images/agri-emblem-512.webp",
+      "src": "/icons/icon-maskable-512x512.png",
       "sizes": "512x512",
-      "type": "image/webp",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "/screenshots/mobile.png",
-      "sizes": "390x844",
+      "src": "/screenshots/mobile-home.png",
+      "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow"
     },
     {
-      "src": "/screenshots/desktop.png",
-      "sizes": "1920x1080",
+      "src": "/screenshots/desktop-dashboard.png",
+      "sizes": "1440x900",
       "type": "image/png",
       "form_factor": "wide"
     }
-  ]
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "orientation": "portrait-primary",
+  "dir": "ltr",
+  "lang": "en"
 }

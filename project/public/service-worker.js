@@ -1,14 +1,22 @@
-const CACHE_VERSION = 'tiryani-portal-v13';
+const CACHE_VERSION = 'tiryani-portal-v14';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const API_CACHE = `${CACHE_VERSION}-api`;
+const IMAGE_CACHE = `${CACHE_VERSION}-images`;
+const FONT_CACHE = `${CACHE_VERSION}-fonts`;
 const MAX_RUNTIME_ENTRIES = 120;
 const MAX_API_ENTRIES = 80;
+const MAX_IMAGE_ENTRIES = 200;
+const MAX_FONT_ENTRIES = 20;
 
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/icon-maskable-192x192.png',
+  '/icons/icon-maskable-512x512.png',
   '/images/agri-emblem.webp',
   '/images/agri-emblem-192.webp',
   '/images/agri-emblem-512.webp',
@@ -19,6 +27,10 @@ const STATIC_ASSETS = [
   '/images/pulses.webp',
   '/images/oilseeds.webp',
   '/images/greengram.webp',
+  '/images/file-icons/doc.png',
+  '/images/file-icons/excel.png',
+  '/images/file-icons/image.png',
+  '/images/file-icons/pdf.png',
 ];
 
 self.addEventListener('install', (event) => {
@@ -60,28 +72,49 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
+  // Navigation requests - network first with offline fallback
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirst(request));
+    event.respondWith(networkFirst(request, '/index.html'));
     return;
   }
 
+  // Build assets - cache first
   if (url.origin === self.location.origin && url.pathname.startsWith('/assets/')) {
     event.respondWith(cacheFirst(request, RUNTIME_CACHE));
     return;
   }
 
+  // Images - cache first with larger cache size
   if (
     url.origin === self.location.origin &&
     (url.pathname.startsWith('/images/') ||
-      url.pathname.startsWith('/data/') ||
-      url.pathname === '/manifest.webmanifest')
+      url.pathname.startsWith('/icons/') ||
+      url.pathname.startsWith('/screenshots/'))
   ) {
-    event.respondWith(staleWhileRevalidate(request));
+    event.respondWith(cacheFirst(request, IMAGE_CACHE, MAX_IMAGE_ENTRIES));
     return;
   }
 
+  // Data files - stale while revalidate
+  if (
+    url.origin === self.location.origin &&
+    (url.pathname.startsWith('/data/') ||
+      url.pathname === '/manifest.webmanifest')
+  ) {
+    event.respondWith(staleWhileRevalidate(request, RUNTIME_CACHE));
+    return;
+  }
+
+  // Fonts - cache first
+  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
+    event.respondWith(cacheFirst(request, FONT_CACHE, MAX_FONT_ENTRIES));
+    return;
+  }
+
+  // Supabase API - network first with API cache
   if (isSupabaseGet(url)) {
     event.respondWith(networkFirst(request, undefined, API_CACHE, MAX_API_ENTRIES));
+    return;
   }
 });
 
@@ -112,24 +145,24 @@ async function networkFirst(
   }
 }
 
-async function cacheFirst(request, cacheName = RUNTIME_CACHE) {
+async function cacheFirst(request, cacheName = RUNTIME_CACHE, maxEntries = MAX_RUNTIME_ENTRIES) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
 
   const response = await fetch(request);
   await putSafe(cache, request, response);
-  trimCache(cacheName, MAX_RUNTIME_ENTRIES).catch(() => undefined);
+  trimCache(cacheName, maxEntries).catch(() => undefined);
   return response;
 }
 
-async function staleWhileRevalidate(request, cacheName = RUNTIME_CACHE) {
+async function staleWhileRevalidate(request, cacheName = RUNTIME_CACHE, maxEntries = MAX_RUNTIME_ENTRIES) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   const fresh = fetch(request)
     .then(async (response) => {
       await putSafe(cache, request, response);
-      trimCache(cacheName, MAX_RUNTIME_ENTRIES).catch(() => undefined);
+      trimCache(cacheName, maxEntries).catch(() => undefined);
       return response;
     })
     .catch(() => cached);

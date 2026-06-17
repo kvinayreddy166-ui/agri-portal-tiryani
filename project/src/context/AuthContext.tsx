@@ -16,6 +16,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  authChecked: boolean;
+  appReady: boolean;
   isAdminUser: boolean;
   isTestUser: boolean;
   isDealerUser: boolean;
@@ -62,6 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [appReady, setAppReady] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isTestUserFlag, setIsTestUserFlag] = useState(false);
   const [isDealerUserFlag, setIsDealerUserFlag] = useState(false);
@@ -72,19 +76,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true;
     let subscription: { unsubscribe: () => void } | null = null;
     let timeout = 0;
+    let forceTimeout = 0;
 
     const finishLoading = (sess: Session | null) => {
       if (!mounted) return;
       window.clearTimeout(timeout);
+      window.clearTimeout(forceTimeout);
       console.log('AuthContext: finishLoading called with session:', sess);
       applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
       setLoading(false);
+      setAuthChecked(true);
+      setAppReady(true);
     };
 
     timeout = window.setTimeout(() => {
       console.log('AuthContext: 1000ms timeout fired, forcing loading to false');
       finishLoading(null);
     }, 1000);
+
+    // Fallback timeout to ensure loading is always set to false
+    forceTimeout = window.setTimeout(() => {
+      console.log('AuthContext: 5000ms force timeout fired, ensuring loading is false');
+      if (mounted) {
+        setLoading(false);
+        setAuthChecked(true);
+        setAppReady(true);
+      }
+    }, 5000);
 
     try {
       console.log('AuthContext: Starting getSession...');
@@ -101,7 +119,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const authState = supabase.auth.onAuthStateChange((_event, sess) => {
         console.log('AuthContext: onAuthStateChange called with event:', _event, 'session:', sess);
-        finishLoading(sess);
+        applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
+        setAuthChecked(true);
+        setAppReady(true);
       });
       subscription = authState.data.subscription;
     } catch (err) {
@@ -112,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       mounted = false;
       window.clearTimeout(timeout);
+      window.clearTimeout(forceTimeout);
       subscription?.unsubscribe();
     };
   }, []);
@@ -304,6 +325,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         session,
         loading,
+        authChecked,
+        appReady,
         isAdminUser,
         isTestUser: isTestUserFlag,
         isDealerUser: isDealerUserFlag,

@@ -162,7 +162,7 @@ main,
   .portal-section-title {
     font-size: 1.125rem;
     line-height: 1.5rem;
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: 0;
     color: var(--agri-text);
   }
@@ -170,7 +170,7 @@ main,
   .page-title {
     font-size: 1.5rem;
     line-height: 2rem;
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: 0;
     color: var(--agri-text);
   }
@@ -192,7 +192,7 @@ main,
   }
 
   .modern-card {
-    border-radius: 1rem;
+    border-radius: 1.5rem;
     border: 1px solid rgba(16, 185, 129, 0.2);
     background: linear-gradient(135deg, #ffffff 0%, rgba(16, 185, 129, 0.03) 100%);
     box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
@@ -221,14 +221,14 @@ main,
   .section-title {
     font-size: 1.125rem;
     line-height: 1.5rem;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--agri-text);
   }
 
   .card-title {
     font-size: 1rem;
     line-height: 1.5rem;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--agri-text);
   }
 
@@ -246,7 +246,7 @@ main,
   }
 
   .modern-stat-card {
-    border-radius: 1rem;
+    border-radius: 1.5rem;
     border: 1px solid rgba(16, 185, 129, 0.25);
     box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);
     transition: all 0.3s ease;
@@ -411,6 +411,11 @@ button {
     padding: 0.75rem;
   }
 
+  .modern-card,
+  .modern-stat-card {
+    border-radius: 1rem;
+  }
+
   .page-title {
     font-size: 1.375rem;
     line-height: 1.75rem;
@@ -425,6 +430,63 @@ button {
   .table-scroll table,
   .overflow-x-auto > table {
     font-size: 0.75rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .section-header > div:last-child {
+    width: 100%;
+  }
+
+  .filter-panel > div {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 425px) {
+  .page-title {
+    font-size: 1.25rem;
+    line-height: 1.625rem;
+  }
+
+  .portal-section-title,
+  .section-title {
+    font-size: 0.9375rem;
+    line-height: 1.375rem;
+  }
+
+  .table-scroll table,
+  .overflow-x-auto > table {
+    font-size: 0.6875rem;
+  }
+
+  .action-button {
+    font-size: 0.8125rem;
+    padding: 0.5625rem 0.75rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .page-title {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
+  .stat-card {
+    padding: 0.625rem;
+  }
+
+  .stat-card p:first-child {
+    font-size: 0.6875rem;
+  }
+
+  .stat-card p:nth-child(2) {
+    font-size: 1.5rem;
   }
 }
 

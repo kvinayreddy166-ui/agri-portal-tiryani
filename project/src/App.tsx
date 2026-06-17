@@ -40,6 +40,16 @@ function PageLoader() {
   return <PageSkeleton />;
 }
 
+function GlobalAppLoader() {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
+      <PortalLogo size="xl" />
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
+      <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading Tiryani Agriculture Portal…</p>
+    </div>
+  );
+}
+
 const PUBLIC_VIEW_PAGES = new Set(['dealers']);
 const PUBLIC_AUTH_ROUTES = new Set([
   '/login',
@@ -243,7 +253,7 @@ function PublicReadOnlyShell({
 }
 
 function AppContent() {
-  const { user, loading, isAdminUser, isDealerUser, signOut } = useAuth();
+  const { user, loading, authChecked, appReady, isAdminUser, isDealerUser, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const navigationType = useNavigationType();
@@ -436,14 +446,8 @@ function AppContent() {
   }, [loading, location.pathname, navigate, user]);
 
   // Show loader during initial load or hydration (must be after all hooks)
-  if (loading || !isHydrated) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
-        <PortalLogo size="xl" />
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
-        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading portal…</p>
-      </div>
-    );
+  if (!authChecked || !appReady || !isHydrated) {
+    return <GlobalAppLoader />;
   }
 
   if (!user && PUBLIC_VIEW_PAGES.has(currentPage)) {

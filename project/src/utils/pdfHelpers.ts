@@ -1,5 +1,3 @@
-import { PDFDocument } from 'pdf-lib';
-
 export type PdfKind = 'text' | 'scanned';
 export type CompressionLevel = 'recommended' | 'small' | 'extreme' | 'ultra' | 'maximum' | 'extreme100';
 export type ColorMode = 'color' | 'grayscale' | 'bw';
@@ -75,6 +73,11 @@ async function getPdfJs() {
   return pdfjs;
 }
 
+async function getPdfLib() {
+  const { PDFDocument } = await import('pdf-lib');
+  return PDFDocument;
+}
+
 function copyBuffer(buffer: ArrayBuffer) {
   return new Uint8Array(buffer.slice(0));
 }
@@ -85,7 +88,7 @@ function isPdfComputedError(error: unknown) {
   return normalized.includes('getorinsert') || normalized.includes('getorinsertcomputed');
 }
 
-async function savePdfSafely(pdfDoc: PDFDocument, options: { useObjectStreams?: boolean; addDefaultPage?: boolean } = {}) {
+async function savePdfSafely(pdfDoc: any, options: { useObjectStreams?: boolean; addDefaultPage?: boolean } = {}) {
   try {
     return await pdfDoc.save({
       useObjectStreams: options.useObjectStreams ?? true,
@@ -111,6 +114,7 @@ export async function validatePdf(file: File): Promise<PdfInfo> {
 
   const arrayBuffer = await file.arrayBuffer();
   try {
+    const PDFDocument = await getPdfLib();
     const pdfDoc = await PDFDocument.load(copyBuffer(arrayBuffer), { ignoreEncryption: true });
     const pageCount = pdfDoc.getPageCount();
     if (pageCount < 1) throw new Error('This PDF does not contain any pages.');
@@ -140,10 +144,11 @@ export async function compressTextPdf(
   const started = performance.now();
   onProgress?.('Rebuilding PDF pages', 20);
   const original = await file.arrayBuffer();
+  const PDFDocument = await getPdfLib();
   const source = await PDFDocument.load(copyBuffer(original), { ignoreEncryption: true });
   const output = await PDFDocument.create();
   const pages = await output.copyPages(source, source.getPageIndices());
-  pages.forEach((page) => output.addPage(page));
+  pages.forEach((page: any) => output.addPage(page));
 
   onProgress?.('Rebuilding optimized PDF streams', 75);
   const bytes = await savePdfSafely(output, { useObjectStreams: true, addDefaultPage: false });
@@ -273,6 +278,7 @@ async function rasterizePdf(
   const pdfjs = await getPdfJs();
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjs.getDocument({ data: copyBuffer(arrayBuffer), useWorkerFetch: false }).promise;
+  const PDFDocument = await getPdfLib();
   const output = await PDFDocument.create();
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
@@ -395,12 +401,13 @@ function buildStats(
 }
 
 export async function mergePdfs(files: File[]): Promise<Blob> {
+  const PDFDocument = await getPdfLib();
   const mergedPdf = await PDFDocument.create();
   for (const file of files) {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await PDFDocument.load(copyBuffer(arrayBuffer), { ignoreEncryption: true });
     const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-    pages.forEach((page) => mergedPdf.addPage(page));
+    pages.forEach((page: any) => mergedPdf.addPage(page));
   }
   const mergedPdfBytes = await savePdfSafely(mergedPdf, { useObjectStreams: true });
   return new Blob([mergedPdfBytes], { type: 'application/pdf' });
@@ -408,6 +415,7 @@ export async function mergePdfs(files: File[]): Promise<Blob> {
 
 export async function splitPdf(file: File, pageRanges: Array<{ start: number; end: number }>): Promise<Blob[]> {
   const arrayBuffer = await file.arrayBuffer();
+  const PDFDocument = await getPdfLib();
   const pdfDoc = await PDFDocument.load(copyBuffer(arrayBuffer), { ignoreEncryption: true });
   const blobs: Blob[] = [];
   for (const range of pageRanges) {
@@ -416,7 +424,7 @@ export async function splitPdf(file: File, pageRanges: Array<{ start: number; en
       pdfDoc,
       Array.from({ length: range.end - range.start + 1 }, (_, i) => range.start + i - 1)
     );
-    pages.forEach((page) => newPdf.addPage(page));
+    pages.forEach((page: any) => newPdf.addPage(page));
     const pdfBytes = await savePdfSafely(newPdf, { useObjectStreams: true });
     blobs.push(new Blob([pdfBytes], { type: 'application/pdf' }));
   }
