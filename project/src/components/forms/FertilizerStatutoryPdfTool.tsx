@@ -15,6 +15,7 @@ type FieldConfig = {
   label: string;
   type?: 'text' | 'date' | 'textarea' | 'select';
   options?: { label: string; value: string }[];
+  placeholder?: string;
 };
 
 const STORAGE_KEY = 'tiryani-fertilizer-forms-draft';
@@ -39,50 +40,57 @@ const bagSourceOptions = [
   { label: 'Bulk', value: 'Bulk' },
 ];
 
+const designationOptions = [
+  { label: 'Mandal Agriculture Officer', value: 'Mandal Agriculture Officer' },
+  { label: 'Asst. Director of Agriculture', value: 'Asst. Director of Agriculture' },
+];
+
 const compositionFields: FieldConfig[] = [
   { key: 'compositionN', label: 'N (%)' },
-  { key: 'compositionP', label: 'P (%)' },
-  { key: 'compositionK', label: 'K (%)' },
+  { key: 'compositionP', label: 'P2O5 (%)' },
+  { key: 'compositionK', label: 'K2O (%)' },
   { key: 'compositionS', label: 'S (%)' },
   { key: 'compositionCa', label: 'Ca (%)' },
 ];
 
 const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
-    title: 'Common Details',
+    title: 'INSPECTOR / FORM K DETAILS',
     fields: [
-      { key: 'no', label: 'No.' },
-      { key: 'sampleCode', label: 'Code no. of sample' },
-      { key: 'samplingDate', label: 'Date of sampling', type: 'date' },
-      { key: 'place', label: 'Place' },
-      { key: 'date', label: 'Form Date', type: 'date' },
+      { key: 'officerName', label: 'OFFICER NAME' },
+      { key: 'designation', label: 'DESIGNATION', type: 'select', options: designationOptions },
+      { key: 'officeAddress', label: 'OFFICE ADDRESS', type: 'textarea' },
     ],
   },
   {
-    title: 'Dealer / Fertilizer Details',
+    title: 'COMMON DETAILS',
     fields: [
-      { key: 'dealerNameAddress', label: 'Name and address of dealer/manufacturer/importer', type: 'textarea' },
-      { key: 'authorizationNumber', label: 'Letter of authorization Number' },
-      { key: 'fertilizerTypeGrade', label: 'Type and grade of fertilizer' },
-      { key: 'dealerManufacturerImporterName', label: 'Name of dealer/manufacturer/importer' },
-      { key: 'batchDetails', label: 'Batch No. and date of manufacture/import' },
-      { key: 'stockReceiptDate', label: 'Date of receipt of stock', type: 'date' },
-      { key: 'stockPosition', label: 'Stock position of lot' },
-      { key: 'physicalCondition', label: 'Physical condition of sample', type: 'select', options: physicalConditionOptions },
-      { key: 'bagSource', label: 'Samples drawn from open bags / stitched bags / bulk', type: 'select', options: bagSourceOptions },
+      { key: 'no', label: 'NO.' },
+      { key: 'sampleCode', label: 'CODE NO. OF SAMPLE' },
+      { key: 'samplingDate', label: 'DATE OF SAMPLING', type: 'date' },
+      { key: 'place', label: 'PLACE' },
+      { key: 'date', label: 'FORM DATE', type: 'date' },
     ],
   },
   {
-    title: 'Composition',
+    title: 'DEALER / FERTILIZER DETAILS',
+    fields: [
+      { key: 'dealerNameAddress', label: 'NAME AND ADDRESS OF DEALER/MANUFACTURER/IMPORTER', type: 'textarea' },
+      { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER' },
+      { key: 'fertilizerTypeGrade', label: 'TYPE AND GRADE OF FERTILIZER' },
+      { key: 'dealerManufacturerImporterName', label: 'NAME OF DEALER/MANUFACTURER/IMPORTER', placeholder: 'company details' },
+      { key: 'batchDetails', label: 'BATCH NO. AND DATE OF MANUFACTURE/IMPORT' },
+      { key: 'stockReceiptDate', label: 'DATE OF RECEIPT OF STOCK', type: 'date' },
+      { key: 'stockPosition', label: 'STOCK POSITION OF LOT' },
+      { key: 'physicalCondition', label: 'PHYSICAL CONDITION OF SAMPLE', type: 'select', options: physicalConditionOptions },
+      { key: 'bagSource', label: 'SAMPLES DRAWN FROM OPEN BAGS / STITCHED BAGS / BULK', type: 'select', options: bagSourceOptions },
+    ],
+  },
+  {
+    title: 'COMPOSITION',
     fields: [
       ...compositionFields,
-      { key: 'composition', label: 'Additional composition remarks', type: 'textarea' },
-    ],
-  },
-  {
-    title: 'Inspector / Form K Details',
-    fields: [
-      { key: 'inspectorNameAddress', label: 'Name and Address of Fertilizer Inspector drawing sample', type: 'textarea' },
+      { key: 'composition', label: 'ADDITIONAL COMPOSITION REMARKS', type: 'textarea' },
     ],
   },
 ];
@@ -123,9 +131,11 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       if (key === 'codeNumber' && (!current.sampleCode || current.sampleCode === current.codeNumber)) {
         next.sampleCode = value;
       }
-      if (key === 'inspectorNameAddress') {
-        next.fromAddress = value;
-        next.forwardReportAddress = value;
+      if (key === 'officerName' || key === 'designation' || key === 'officeAddress') {
+        const inspectorAddress = [next.officerName, next.designation, next.officeAddress].filter(Boolean).join('\n');
+        next.inspectorNameAddress = inspectorAddress;
+        next.fromAddress = inspectorAddress;
+        next.forwardReportAddress = inspectorAddress;
       }
       return next;
     });
@@ -444,7 +454,7 @@ function PdfInput({
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{field.label}</span>
       {field.type === 'textarea' ? (
-        <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} className={commonClass} />
+        <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} placeholder={field.placeholder} className={commonClass} />
       ) : field.type === 'select' ? (
         <select value={value} onChange={(event) => onChange(event.target.value)} className={commonClass}>
           <option value="">Select...</option>
@@ -459,6 +469,7 @@ function PdfInput({
           type={field.type === 'date' ? 'date' : 'text'}
           value={value}
           onChange={(event) => onChange(event.target.value)}
+          placeholder={field.placeholder}
           className={commonClass}
         />
       )}

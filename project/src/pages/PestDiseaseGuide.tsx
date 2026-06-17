@@ -110,17 +110,17 @@ export function PestDiseaseGuide() {
       const [pestsData, diseasesData, weedsData] = await Promise.all([
         supabase
           .from('insect_pests')
-          .select('*')
+          .select('id, pest_name, scientific_name, symptoms, management, image_url, sort_order, is_active')
           .eq('is_active', true)
           .order('sort_order'),
         supabase
           .from('diseases')
-          .select('*')
+          .select('id, disease_name, causal_organism, symptoms, management, image_url, sort_order, is_active')
           .eq('is_active', true)
           .order('sort_order'),
         supabase
           .from('weeds')
-          .select('*')
+          .select('id, weed_name, scientific_name, symptoms, management, image_url, sort_order, is_active')
           .eq('is_active', true)
           .order('sort_order'),
       ]);

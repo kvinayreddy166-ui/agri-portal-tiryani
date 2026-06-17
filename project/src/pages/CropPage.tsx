@@ -216,6 +216,8 @@ export function CropPage({ cropType }: CropPageProps) {
         <img
           src={visibleRecord.crop_image_url || cropImages[slug] || cropImages.cotton}
           alt={visibleRecord.name_en}
+          width={1200}
+          height={400}
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -314,7 +316,7 @@ export function CropPage({ cropType }: CropPageProps) {
           {visibleRecord.risks.map((risk) => (
             <article key={`${risk.type}-${risk.name.en}`} className="overflow-hidden rounded-lg border border-slate-100 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
               <div className="grid gap-0 sm:grid-cols-[10rem_1fr]">
-                <img src={risk.image_url} alt={text(risk.name, locale)} loading="lazy" decoding="async" className="h-44 w-full object-cover sm:h-full" />
+                <img src={risk.image_url} alt={text(risk.name, locale)} width={400} height={176} loading="lazy" decoding="async" className="h-44 w-full object-cover sm:h-full" />
                 <div className="p-3">
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <h3 className="font-black text-slate-950 dark:text-white">{text(risk.name, locale)}</h3>

@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
 import { OfflineStatus } from './components/ui/OfflineStatus';
 import { PageSkeleton } from './components/ui/SkeletonLoader';
+import { ToolkitLoader } from './components/ui/ToolkitLoader';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
 const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
@@ -33,7 +34,8 @@ const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const CropAdminDashboard = lazy(() =>
   import('./pages/admin/CropAdminDashboard.jsx').then((m) => ({ default: m.CropAdminDashboard }))
 );
-const PestDiseaseGuide = lazy(() => import('./pages/PestDiseaseGuide').then((m) => ({ default: m.PestDiseaseGuide }))); const UreaDashboard = lazy(() => import('./pages/UreaDashboard').then((m) => ({ default: m.UreaDashboard })));
+const PestDiseaseGuide = lazy(() => import('./pages/PestDiseaseGuide').then((m) => ({ default: m.PestDiseaseGuide })));
+const UreaDashboard = lazy(() => import('./pages/UreaDashboard').then((m) => ({ default: m.UreaDashboard })));
 function PageLoader() {
   return <PageSkeleton />;
 }
@@ -245,8 +247,15 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const navigationType = useNavigationType();
+  const [isHydrated, setIsHydrated] = useState(false);
   useAppScrollRestoration(location, navigationType);
   useInitialBackFallback(location, loading, Boolean(user));
+
+  // Wait for hydration to complete before rendering
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   const validPages = useMemo(
     () =>
       new Set([
@@ -324,11 +333,6 @@ function AppContent() {
     void signOut();
   }, [returnToLoginPage, signOut]);
 
-  useEffect(() => {
-    pageRef.current = currentPage;
-    window.localStorage.setItem('tiryani-current-page', currentPage);
-  }, [currentPage]);
-
   const navigateToPage = useCallback(
     (page: string, options: { replace?: boolean } = {}) => {
       if (!validPages.has(page)) return;
@@ -340,6 +344,19 @@ function AppContent() {
     },
     [navigate, validPages]
   );
+
+  useEffect(() => {
+    pageRef.current = currentPage;
+    window.localStorage.setItem('tiryani-current-page', currentPage);
+  }, [currentPage]);
+
+  const handleBack = useCallback(() => {
+    if (getHistoryIndex() > 0) {
+      navigate(-1);
+      return;
+    }
+    navigate(getPageBackFallback(currentPage, isDealerUser), { replace: true });
+  }, [currentPage, isDealerUser, navigate]);
 
   useEffect(() => {
     const nextPage = getPageFromLocation();
@@ -358,14 +375,6 @@ function AppContent() {
       navigateToPage('dealer-portal', { replace: true });
     }
   }, [currentPage, isDealerUser, navigateToPage, user]);
-
-  const handleBack = useCallback(() => {
-    if (getHistoryIndex() > 0) {
-      navigate(-1);
-      return;
-    }
-    navigate(getPageBackFallback(currentPage, isDealerUser), { replace: true });
-  }, [currentPage, isDealerUser, navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -426,7 +435,8 @@ function AppContent() {
     }
   }, [loading, location.pathname, navigate, user]);
 
-  if (loading) {
+  // Show loader during initial load or hydration (must be after all hooks)
+  if (loading || !isHydrated) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
         <PortalLogo size="xl" />
@@ -449,7 +459,7 @@ function AppContent() {
 
   if (!user && currentPage === 'officer-toolkit') {
     return (
-      <Suspense fallback={<PageLoader />}>
+      <Suspense fallback={<ToolkitLoader />}>
         <OfficersToolkit />
       </Suspense>
     );

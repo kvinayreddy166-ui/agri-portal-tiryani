@@ -31,6 +31,9 @@ export type FertilizerPdfValues = {
   codeNumber: string;
   place: string;
   date: string;
+  officerName: string;
+  designation: string;
+  officeAddress: string;
 };
 
 export const FERTILIZER_K_ADDRESS_OPTIONS = {
@@ -73,6 +76,9 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   codeNumber: '',
   place: '',
   date: new Date().toISOString().slice(0, 10),
+  officerName: '',
+  designation: '',
+  officeAddress: '',
 };
 
 export const fertilizerFormTitles: Record<FertilizerStatutoryFormType, string> = {
@@ -512,8 +518,8 @@ function formatDate(value: string) {
 function formatComposition(values: FertilizerPdfValues) {
   const parts = [
     `N: ${formatPercent(values.compositionN)}`,
-    `P: ${formatPercent(values.compositionP)}`,
-    `K: ${formatPercent(values.compositionK)}`,
+    `P2O5: ${formatPercent(values.compositionP)}`,
+    `K2O: ${formatPercent(values.compositionK)}`,
     `S: ${formatPercent(values.compositionS)}`,
     `Ca: ${formatPercent(values.compositionCa)}`,
   ];

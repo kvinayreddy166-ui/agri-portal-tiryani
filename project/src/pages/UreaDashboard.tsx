@@ -220,7 +220,7 @@ export function UreaDashboard() {
     try {
       const { data, error } = await supabase
         .from('external_urea_sync_logs')
-        .select('*')
+        .select('id, started_at, completed_at, status, records_processed, error_message')
         .order('started_at', { ascending: false })
         .limit(10);
 

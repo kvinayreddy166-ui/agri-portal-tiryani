@@ -1,12 +1,12 @@
 import React from 'react';
 import { Microscope, ShieldCheck } from 'lucide-react';
 
-export function DiseaseCards({ diseases = [], onEdit }) {
+export const DiseaseCards = React.memo(function DiseaseCards({ diseases = [], onEdit }: { diseases: any[]; onEdit?: (item: any) => void }) {
   return (
     <div className="grid gap-3 lg:grid-cols-2">
       {diseases.map((disease) => (
         <article key={disease.id || disease.disease_name} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          {disease.image_url && <img src={disease.image_url} alt={disease.disease_name} loading="lazy" decoding="async" className="h-36 w-full object-cover" />}
+          {disease.image_url && <img src={disease.image_url} alt={disease.disease_name} width={400} height={144} loading="lazy" decoding="async" className="h-36 w-full object-cover" />}
           <div className="p-3">
             <div className="flex items-start justify-between gap-2">
               <div>

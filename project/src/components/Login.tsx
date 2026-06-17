@@ -432,80 +432,10 @@ export function Login() {
     setInstallMessage(t('On iPhone/iPad: tap Share, then Add to Home Screen.', 'On iPhone/iPad: tap Share, then Add to Home Screen.'));
   };
 
+  // Officer toolkit is now handled by App.tsx with OfficersToolkit component
+  // This prevents the old toolkit from flashing before the new one loads
   if (showOfficerToolkit) {
-    return (
-      <div className="min-h-screen bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24">
-        <div className="mx-auto w-full max-w-2xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
-          <div className="mb-3 flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-wide text-stone-600">Officer Toolkit</p>
-                <h1 className="text-2xl font-black text-slate-950 sm:text-3xl">
-                  {t('Officer Toolkit', 'Officer Toolkit')}
-                </h1>
-              </div>
-              <div className="flex items-center gap-2">
-                <a
-                  href="https://whatsapp.com/channel/0029Vb61tsc59PwZEKYH3A0A"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200"
-                  aria-label="WhatsApp Channel"
-                  title={t('WhatsApp Channel', 'వాట్సప్ ఛానెల్')}
-                >
-                  <WhatsAppIcon className="h-4 w-4" />
-                </a>
-                <PortalLogo size="md" />
-              </div>
-            </div>
-          </div>
-
-          <section className="rounded-lg border border-[#d8cfb2] bg-[#f4efdf] p-2.5">
-          <div className="grid gap-2 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={openStatutoryForms}
-              className="flex min-h-16 items-center gap-3 rounded-lg border border-[#d8cfb2] bg-white px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#fbf7ea]"
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#a9842f] text-white">
-                <FileText className="h-5 w-5" />
-              </span>
-              <span>
-                <span className="block text-sm font-black">{t('Statutory Forms', 'Statutory Forms')}</span>
-                <span className="mt-0.5 block text-xs font-semibold text-stone-600">Open</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={openAcreageCalculator}
-              className="flex min-h-16 items-center gap-3 rounded-lg border border-[#d8cfb2] bg-white px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#fbf7ea]"
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-stone-600 text-white">
-                <Calculator className="h-5 w-5" />
-              </span>
-              <span>
-                <span className="block text-sm font-black">{t('Acerage Calculator', 'Acerage Calculator')}</span>
-                <span className="mt-0.5 block text-xs font-semibold text-stone-600">Open</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={openFertilizerCalculator}
-              className="flex min-h-16 items-center gap-3 rounded-lg border border-[#d8cfb2] bg-white px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#fbf7ea]"
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-white">
-                <FlaskConical className="h-5 w-5" />
-              </span>
-              <span>
-                <span className="block text-sm font-black">{t('Fertilizer Calculator', 'Fertilizer Calculator')}</span>
-                <span className="mt-0.5 block text-xs font-semibold text-stone-600">Open</span>
-              </span>
-            </button>
-          </div>
-          </section>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   if (showStatutoryForms || calculatorOpen || fertilizerCalculatorOpen) {
@@ -1167,6 +1097,8 @@ function isMissingPublicLabelColumnError(error: unknown) {
     : String(error || '');
   const code = typeof error === 'object' && error && 'code' in error
     ? String((error as { code?: unknown }).code || '')
-    : '';
+  : '';
   return code === 'PGRST204' || (/label/i.test(message) && /column|schema|cache|not found|does not exist/i.test(message));
 }
+
+export default Login;

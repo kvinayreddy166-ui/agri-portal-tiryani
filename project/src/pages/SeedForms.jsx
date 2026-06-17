@@ -279,8 +279,8 @@ export function SeedForms() {
 
         <Card title="Dealer / Form VI & VIII Details">
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
-          <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea />
-          <Input label="Dealer location" value={form.premisesLocation} onChange={(value) => setField('premisesLocation', value)} />
+          <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea placeholder="village" />
+          <Input label="Dealer location (mandal)" value={form.premisesLocation} onChange={(value) => setField('premisesLocation', value)} placeholder="mandal" />
           <div className="grid gap-2 sm:grid-cols-2">
             <Select label="Cost of sample demanded" value={form.costDemanded} onChange={(value) => setField('costDemanded', value)} options={['Yes', 'No'].map(toOption)} />
             <Select label="Cost paid" value={form.costPaid} onChange={(value) => setField('costPaid', value)} options={['Paid', 'Not Paid', 'Not Applicable'].map(toOption)} />
@@ -324,15 +324,15 @@ function PreviewCard({ title, lines }) {
   );
 }
 
-function Input({ label, value, onChange, type = 'text', textarea = false }) {
+function Input({ label, value, onChange, type = 'text', textarea = false, placeholder = '' }) {
   const className = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
   return (
     <label>
       <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600">{label}</span>
       {textarea ? (
-        <textarea rows={2} value={value} onChange={(event) => onChange(event.target.value)} className={className} />
+        <textarea rows={2} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
       ) : (
-        <input type={type} value={value} onChange={(event) => onChange(event.target.value)} className={className} />
+        <input type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
       )}
     </label>
   );
@@ -488,7 +488,7 @@ function drawSeedFormV(doc, form) {
     ['8. Name and designation of the person who sends the sample', r.fromAddress],
   ]);
   para(doc, p, 'A copy of this memo and specimen impression of the seal used to seal the packet of samples is being sent separately by post.');
-  footer(doc, p, r);
+  footer(doc, p, r, { compact: true });
 }
 
 function drawSeedFormVI(doc, form) {
@@ -552,7 +552,7 @@ function drawSeedFormVIII(doc, form) {
     ['9. Variety', r.variety],
     ['10. Class of Seed', r.seedClass],
     ['11. Date of Packing', fmtDate(r.packingDate)],
-    ['12. Stock Position', r.stockPosition],
+    ['12. Stock Position', r.quantityDrawn],
     ['13. Source of Supply', r.sourceOfSupply],
   ], 78);
   field(doc, p, 'Whether Cost of Sample Demanded?', r.costDemanded, 78);

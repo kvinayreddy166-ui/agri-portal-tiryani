@@ -33,11 +33,32 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined;
-          if (id.includes('xlsx')) return 'office-xlsx';
+          
+          // Office/Excel
+          if (id.includes('xlsx')) return 'vendor-xlsx';
+          
+          // PDF tools
           if (id.includes('jspdf') || id.includes('pdf-lib') || id.includes('pdfjs-dist') || id.includes('html2canvas')) {
-            return 'pdf-tools';
+            return 'vendor-pdf';
           }
-          if (id.includes('recharts') || id.includes('d3-')) return 'charts';
+          
+          // Charts
+          if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts';
+          
+          // React vendor
+          if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+            return 'vendor-react';
+          }
+          
+          // Supabase
+          if (id.includes('@supabase')) return 'vendor-supabase';
+          
+          // Router
+          if (id.includes('react-router')) return 'vendor-router';
+          
+          // Icons
+          if (id.includes('lucide-react')) return 'vendor-icons';
+          
           return undefined;
         },
       },

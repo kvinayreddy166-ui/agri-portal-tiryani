@@ -106,7 +106,7 @@ export function DealerHistory() {
     if (!dealerId) return;
     const { data, error } = await supabase
       .from('dealer_stock_allocation')
-      .select('*')
+      .select('id, dealer_id, invoice_no, invoice_date, product_name, category, quantity, last_updated')
       .eq('dealer_id', dealerId)
       .order('invoice_date', { ascending: false, nullsFirst: false })
       .order('last_updated', { ascending: false });
@@ -123,7 +123,7 @@ export function DealerHistory() {
     if (!dealerId) return;
     const { data, error } = await supabase
       .from('stock_inventory_lines')
-      .select('*')
+      .select('id, dealer_id, category, product_name, opening_stock, receipts, sales, closing_stock, report_date, last_updated')
       .eq('dealer_id', dealerId)
       .eq('category', 'fertilizer')
       .order('report_date', { ascending: false });

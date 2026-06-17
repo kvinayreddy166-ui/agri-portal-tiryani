@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tiryani-portal-v12';
+const CACHE_VERSION = 'tiryani-portal-v13';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -12,8 +12,6 @@ const STATIC_ASSETS = [
   '/images/agri-emblem.webp',
   '/images/agri-emblem-192.webp',
   '/images/agri-emblem-512.webp',
-  '/images/agri-emblem-192.png',
-  '/images/agri-emblem-512.png',
   '/images/rice.webp',
   '/images/paddy.webp',
   '/images/maize.webp',

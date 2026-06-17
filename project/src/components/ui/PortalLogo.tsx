@@ -20,6 +20,8 @@ export const PortalLogo = React.memo(function PortalLogo({ size = 'md', classNam
       <img
         src="/images/agri-emblem.webp"
         alt="Tiryani Agriculture Portal"
+        width={sizeMap[size].split(' ')[0].replace('px', '')}
+        height={sizeMap[size].split(' ')[0].replace('px', '')}
         decoding="async"
         className="h-full w-full object-cover"
       />

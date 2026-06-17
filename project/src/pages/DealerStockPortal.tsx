@@ -294,7 +294,11 @@ export function DealerStockPortal() {
 
   const loadDealerProfile = useCallback(async () => {
     if (!dealerId) return;
-    const { data } = await supabase.from('dealers').select('*').eq('id', dealerId).maybeSingle();
+    const { data } = await supabase
+      .from('dealers')
+      .select('id, dealer_name, firm_name, village, mobile, license_no, status')
+      .eq('id', dealerId)
+      .maybeSingle();
     setDealerProfile((data || null) as DealerProfile | null);
   }, [dealerId]);
 
@@ -303,7 +307,7 @@ export function DealerStockPortal() {
     setLoading(true);
     const query = supabase
       .from('stock_inventory_lines')
-      .select('*')
+      .select('id, dealer_id, category, product_name, opening_stock, receipts, sales, closing_stock, report_date, last_updated')
       .eq('dealer_id', dealerId)
       .eq('category', category)
       .order('report_date', { ascending: false })

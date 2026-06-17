@@ -276,7 +276,7 @@ export function FarmerDatabase() {
     try {
       const { data, error } = await supabase
         .from('external_urea_bookings')
-        .select('*')
+        .select('id, aadhaar_no, ppb_no, mobile_no, farmer_name, village, booking_date, status, quantity')
         .or(`aadhaar_no.eq.${group.aadhaarNo},ppb_no.eq.${group.ppbNo},mobile_no.eq.${group.phoneNumber}`)
         .order('booking_date', { ascending: false });
       

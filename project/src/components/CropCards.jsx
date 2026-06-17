@@ -1,12 +1,12 @@
 import React from 'react';
 import { Clock, Leaf, TrendingUp } from 'lucide-react';
 
-export function CropCards({ varieties = [], onEdit }) {
+export const CropCards = React.memo(function CropCards({ varieties = [], onEdit }: { varieties: any[]; onEdit?: (item: any) => void }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {varieties.map((item) => (
         <article key={item.id || item.variety} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          {item.image_url && <img src={item.image_url} alt={item.variety} loading="lazy" decoding="async" className="h-32 w-full object-cover" />}
+          {item.image_url && <img src={item.image_url} alt={item.variety} width={400} height={128} loading="lazy" decoding="async" className="h-32 w-full object-cover" />}
           <div className="p-3">
             <div className="flex items-start justify-between gap-2">
               <h3 className="font-black text-slate-950 dark:text-white">{item.variety}</h3>
