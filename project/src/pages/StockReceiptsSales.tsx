@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FileSpreadsheet, Filter, Search } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
 import {
   FINANCIAL_YEARS,
@@ -30,15 +29,17 @@ const categoryLabels: Record<StockCategory, string> = {
 
 export default function StockReceiptsSales() {
   const [records, setRecords] = useState<AdminStockRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [financialYear, setFinancialYear] = useState(financialYearForDate());
   const [category, setCategory] = useState<'all' | StockCategory>('all');
   const [entryType, setEntryType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   const fetchData = useCallback(async () => {
+    if (dataLoaded) return;
     const range = financialYearRange(financialYear);
     setLoading(true);
     const { data, error } = await supabase
@@ -55,8 +56,9 @@ export default function StockReceiptsSales() {
     } else {
       setRecords((data || []) as AdminStockRecord[]);
     }
+    setDataLoaded(true);
     setLoading(false);
-  }, [financialYear]);
+  }, [financialYear, dataLoaded]);
 
   useEffect(() => {
     void fetchData();
@@ -109,43 +111,50 @@ export default function StockReceiptsSales() {
   }, [filteredRecords]);
 
   const categoryChart = useMemo(() => {
+    if (!dataLoaded) return [];
     const map = new Map<string, number>();
     filteredRecords.forEach((record) => {
       const label = categoryLabels[record.category];
       map.set(label, (map.get(label) || 0) + Number(record.closing_balance || 0));
     });
     return [...map.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
-  }, [filteredRecords]);
+  }, [filteredRecords, dataLoaded]);
 
-  const movementChart = useMemo(() => [
-    { label: 'Received', value: summary.received },
-    { label: 'Sold', value: summary.sold },
-    { label: 'Closing', value: summary.closing },
-  ], [summary]);
+  const movementChart = useMemo(() => {
+    if (!dataLoaded) return [];
+    return [
+      { label: 'Received', value: summary.received },
+      { label: 'Sold', value: summary.sold },
+      { label: 'Closing', value: summary.closing },
+    ];
+  }, [summary, dataLoaded]);
 
   const productChart = useMemo(() => {
+    if (!dataLoaded) return [];
     const map = new Map<string, number>();
     filteredRecords.forEach((record) => {
       const key = record.product_type || 'Unknown';
       map.set(key, (map.get(key) || 0) + Number(record.receipts || 0) + Number(record.sales || 0));
     });
     return [...map.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 8);
-  }, [filteredRecords]);
+  }, [filteredRecords, dataLoaded]);
 
   const dealerChart = useMemo(() => {
+    if (!dataLoaded) return [];
     const map = new Map<string, number>();
     filteredRecords.forEach((record) => {
       const key = record.firm_name || record.dealers?.dealer_name || 'Unknown dealer';
       map.set(key, (map.get(key) || 0) + Number(record.closing_balance || 0));
     });
     return [...map.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 8);
-  }, [filteredRecords]);
+  }, [filteredRecords, dataLoaded]);
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     if (!filteredRecords.length) {
       alert('No data to export');
       return;
     }
+    const XLSX = await import('xlsx');
     const rows = filteredRecords.map((record) => ({
       'Financial Year': record.financial_year || financialYearForDate(record.report_date),
       'Entry Date': record.report_date || '',

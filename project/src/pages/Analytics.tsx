@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import * as XLSX from 'xlsx';
 import { Eye, FileSpreadsheet, FileText, Filter, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -114,7 +113,7 @@ export function Analytics() {
   const [stockRows, setStockRows] = useState<StockRow[]>([]);
   const [receiptRows, setReceiptRows] = useState<ReceiptRow[]>([]);
   const [qualityRows, setQualityRows] = useState<QualityRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [fromDate, setFromDate] = useState(defaultFromDate);
   const [toDate, setToDate] = useState(defaultToDate);
@@ -122,8 +121,10 @@ export function Analytics() {
   const [category, setCategory] = useState<'all' | StockCategory | 'quality'>('all');
   const [product, setProduct] = useState('all');
   const [reportType, setReportType] = useState<ReportKey>('stock-inventory');
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   const loadData = useCallback(async () => {
+    if (dataLoaded) return;
     setLoading(true);
     try {
       const [dealerData, stockData, receiptData, qualityData] = await Promise.all([
@@ -137,6 +138,7 @@ export function Analytics() {
       setStockRows(stockData);
       setReceiptRows(receiptData);
       setQualityRows(qualityData);
+      setDataLoaded(true);
     } catch (error) {
       console.error('Error loading reports:', error);
       setDealers([]);
@@ -146,7 +148,7 @@ export function Analytics() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [dataLoaded]);
 
   useEffect(() => {
     void loadData();
@@ -193,11 +195,12 @@ export function Analytics() {
   );
   const previewRows = reportRows.slice(0, 50);
 
-  const downloadExcel = () => {
+  const downloadExcel = async () => {
     if (!reportRows.length) {
       alert('No data available for selected filters');
       return;
     }
+    const XLSX = await import('xlsx');
     const workbook = XLSX.utils.book_new();
     const meta = reportMetadataRows(currentReport.title, fromDate, toDate, user?.email || 'MAO/Admin');
     const worksheet = XLSX.utils.aoa_to_sheet([...meta, [], Object.keys(reportRows[0]), ...reportRows.map((row) => Object.values(row))]);

@@ -35,8 +35,8 @@ const isValidAnonKey = (value: string) => {
 const envSupabaseUrl = normalizeSupabaseUrl(cleanEnvValue(import.meta.env.VITE_SUPABASE_URL));
 const envSupabaseAnonKey = cleanEnvValue(import.meta.env.VITE_SUPABASE_ANON_KEY);
 
-const supabaseUrl = isValidSupabaseUrl(envSupabaseUrl) ? envSupabaseUrl : FALLBACK_SUPABASE_URL;
-const supabaseAnonKey = isValidAnonKey(envSupabaseAnonKey)
+export const supabaseUrl = isValidSupabaseUrl(envSupabaseUrl) ? envSupabaseUrl : FALLBACK_SUPABASE_URL;
+export const supabaseAnonKey = isValidAnonKey(envSupabaseAnonKey)
   ? envSupabaseAnonKey
   : FALLBACK_SUPABASE_ANON_KEY;
 

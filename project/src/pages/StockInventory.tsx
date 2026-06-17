@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { BarChart3, ChevronDown, FileSpreadsheet, FolderOpen, RefreshCw, Search, Trash2 } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -16,6 +15,8 @@ import {
   fertilizerMtsToBags,
   formatReportDateLabel,
 } from '../lib/stockInventory';
+
+const LazyStockChart = lazy(() => import('./LazyStockChart'));
 
 const titleCase = (value = '') =>
   value
@@ -511,21 +512,9 @@ export function StockInventory() {
           </span>
         </div>
         <div className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartRows} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis dataKey="product" tick={{ fontSize: 10 }} interval={0} angle={-15} textAnchor="end" height={46} />
-              <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip
-                formatter={(value) => `${Number(value ?? 0).toFixed(category === 'fertilizer' && fertilizerQtyUnit === 'bags' ? 0 : 2)} ${category === 'fertilizer' ? unitLabelForLine({ category: 'fertilizer', product_type: 'Urea' } as InventoryRow) : ''}`}
-                contentStyle={{ borderRadius: 12, border: '1px solid #dbe7df', fontSize: 12, fontWeight: 700 }}
-              />
-              <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
-              <Bar dataKey="Total" fill="#2563eb" radius={[5, 5, 0, 0]} />
-              <Bar dataKey="Sales" fill="#f59e0b" radius={[5, 5, 0, 0]} />
-              <Bar dataKey="Closing" fill="#0b7a5c" radius={[5, 5, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <Suspense fallback={<div className="flex h-full items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" /></div>}>
+            <LazyStockChart data={chartRows} />
+          </Suspense>
         </div>
       </section>
 

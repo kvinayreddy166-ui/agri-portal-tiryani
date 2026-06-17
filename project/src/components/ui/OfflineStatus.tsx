@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-export function OfflineStatus() {
+export const OfflineStatus = React.memo(function OfflineStatus() {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
 
   useEffect(() => {
@@ -21,4 +21,4 @@ export function OfflineStatus() {
       Offline mode
     </div>
   );
-}
+});

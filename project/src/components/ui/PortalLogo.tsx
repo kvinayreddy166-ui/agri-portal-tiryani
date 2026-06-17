@@ -12,7 +12,7 @@ const sizeMap = {
   xl: 'h-24 w-24',
 };
 
-export function PortalLogo({ size = 'md', className = '' }: PortalLogoProps) {
+export const PortalLogo = React.memo(function PortalLogo({ size = 'md', className = '' }: PortalLogoProps) {
   return (
     <div
       className={`shrink-0 overflow-hidden rounded-full bg-white shadow-md ring-1 ring-emerald-100/80 dark:ring-slate-600 ${sizeMap[size]} ${className}`}
@@ -25,4 +25,4 @@ export function PortalLogo({ size = 'md', className = '' }: PortalLogoProps) {
       />
     </div>
   );
-}
+});

@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Calendar, ChevronDown, FileSpreadsheet, Menu, Plus, Save, Table2, Trash2, Truck, X } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
 import {
   CATEGORY_UNITS,
@@ -1148,7 +1147,7 @@ function buildProductStats(dailyRows: StockInventoryLine[], receiptRows: StockIn
   return [...map.values()].sort((a, b) => b.receipts + b.sales - (a.receipts + a.sales));
 }
 
-function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[], category: StockCategory, unit: string, firmName: string, ifmsId: string) {
+async function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[], category: StockCategory, unit: string, firmName: string, ifmsId: string) {
   if (!rows.length) {
     alert('No records to export.');
     return;
@@ -1170,6 +1169,7 @@ function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[],
     row[header] = header === 'S.No' ? 'TOTAL' : totalColumns.includes(header) ? totalValue(excelRows, header) : '';
     return row;
   }, {} as Record<string, string | number>);
+  const XLSX = await import('xlsx');
   const worksheet = XLSX.utils.aoa_to_sheet([...metadata, [], headers, ...[...excelRows, totalRow].map((row) => headers.map((header) => row[header]))]);
   worksheet['!merges'] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },

@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
 import { getContentType, validateImageUploadFile } from '../lib/fileTypes';
 
@@ -449,7 +448,8 @@ function findLocalCropItem(cropDataset, slug) {
   return cropDataset.find((crop) => candidates.includes(String(crop.slug || '').toLowerCase()));
 }
 
-export function exportCropWorkbook(crop) {
+export async function exportCropWorkbook(crop) {
+  const XLSX = await import('xlsx');
   const workbook = XLSX.utils.book_new();
   const sheets = {
     profile: [crop],

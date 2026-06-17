@@ -8,7 +8,7 @@ interface FileTypeBadgeProps {
   iconOnly?: boolean;
 }
 
-export function FileTypeBadge({ fileName = '', fileType, iconOnly = false }: FileTypeBadgeProps) {
+export const FileTypeBadge = React.memo(function FileTypeBadge({ fileName = '', fileType, iconOnly = false }: FileTypeBadgeProps) {
   const resolvedType = inferFileTypeFromName(fileName, fileType);
   const label = getFileTypeLabel(resolvedType);
   const Icon = getStandardIcon(resolvedType);
@@ -24,7 +24,7 @@ export function FileTypeBadge({ fileName = '', fileType, iconOnly = false }: Fil
       {!iconOnly && <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{label}</span>}
     </span>
   );
-}
+});
 
 function getStandardIcon(fileType: string) {
   switch (fileType) {

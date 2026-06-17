@@ -10,7 +10,7 @@ interface FileTypeIconProps {
   className?: string;
 }
 
-export function FileTypeIcon({
+export const FileTypeIcon = React.memo(function FileTypeIcon({
   fileName = '',
   fileType,
   fileUrl,
@@ -33,7 +33,7 @@ export function FileTypeIcon({
       />
     </span>
   );
-}
+});
 
 function getStandardIcon(fileType: string) {
   switch (fileType) {

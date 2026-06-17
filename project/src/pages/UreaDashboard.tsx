@@ -5,7 +5,6 @@ import {
   Upload,
   Filter,
   X,
-  FileSpreadsheet,
   BarChart3,
   PieChart,
   TrendingUp,
@@ -15,15 +14,23 @@ import {
   CheckCircle,
   Clock,
   Search,
-  Calendar,
   MapPin,
   Truck,
   Copy,
   FileText,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseUrl } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import * as XLSX from 'xlsx';
+
+// Debounce hook for performance
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 const LazySimpleBarChart = lazy(() =>
   import('../components/charts/SimpleBarChart').then((module) => ({ default: module.SimpleBarChart }))
@@ -60,6 +67,13 @@ type SyncLog = {
   records_unmatched: number;
   records_duplicate: number;
   error_message: string | null;
+  login_status: string | null;
+  api_status: string | null;
+  http_code: number | null;
+  records_fetched: number | null;
+  records_inserted: number | null;
+  records_updated: number | null;
+  detailed_error_message: string | null;
 };
 
 type Analytics = {
@@ -77,7 +91,7 @@ type Analytics = {
 const PAGE_SIZE = 50;
 
 export function UreaDashboard() {
-  const { isAdminUser, user } = useAuth();
+  const { isAdminUser } = useAuth();
   const [bookings, setBookings] = useState<UreaBooking[]>([]);
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -86,7 +100,6 @@ export function UreaDashboard() {
   const [syncMessage, setSyncMessage] = useState('');
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
-  const [totalRecords, setTotalRecords] = useState(0);
 
   // Filters
   const [villageFilter, setVillageFilter] = useState('all');
@@ -96,6 +109,9 @@ export function UreaDashboard() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [searchInput, setSearchInput] = useState('');
+
+  // Debounce search input for performance
+  const debouncedSearch = useDebounce(searchInput, 300);
 
   // Manual upload
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -128,8 +144,8 @@ export function UreaDashboard() {
       if (statusFilter !== 'all' && booking.status !== statusFilter) return false;
       if (dateFrom && booking.booking_date && booking.booking_date < dateFrom) return false;
       if (dateTo && booking.booking_date && booking.booking_date > dateTo) return false;
-      if (searchInput) {
-        const search = searchInput.toLowerCase();
+      if (debouncedSearch) {
+        const search = debouncedSearch.toLowerCase();
         return (
           booking.farmer_name.toLowerCase().includes(search) ||
           booking.father_name.toLowerCase().includes(search) ||
@@ -142,7 +158,7 @@ export function UreaDashboard() {
       }
       return true;
     });
-  }, [bookings, villageFilter, cropFilter, dealerFilter, statusFilter, dateFrom, dateTo, searchInput]);
+  }, [bookings, villageFilter, cropFilter, dealerFilter, statusFilter, dateFrom, dateTo, debouncedSearch]);
 
   const paginatedBookings = useMemo(() => {
     const start = page * PAGE_SIZE;
@@ -192,7 +208,6 @@ export function UreaDashboard() {
         setBookings(data || []);
       }
 
-      setTotalRecords(count || 0);
       setHasMore((count || 0) > end);
     } catch (error) {
       console.error('Error fetching bookings:', error);
@@ -234,7 +249,7 @@ export function UreaDashboard() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No session');
 
-      const edgeFunctionUrl = `${supabase.supabaseUrl}/functions/v1/sync-urea-dashboard-reports`;
+      const edgeFunctionUrl = `${supabaseUrl}/functions/v1/sync-urea-dashboard-reports`;
       
       const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
@@ -282,7 +297,7 @@ export function UreaDashboard() {
       const fileData = await uploadFile.text();
       const base64Data = btoa(fileData);
 
-      const edgeFunctionUrl = `${supabase.supabaseUrl}/functions/v1/sync-urea-dashboard-reports`;
+      const edgeFunctionUrl = `${supabaseUrl}/functions/v1/sync-urea-dashboard-reports`;
       
       const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
@@ -406,6 +421,7 @@ export function UreaDashboard() {
           throw new Error('Invalid report type');
       }
 
+      const XLSX = await import('xlsx');
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Report');
@@ -799,24 +815,78 @@ export function UreaDashboard() {
             </div>
             <div className="space-y-2">
               {syncLogs.slice(0, 5).map(log => (
-                <div key={log.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
-                  <div className="flex items-center gap-3">
-                    <StatusIcon status={log.status} />
-                    <div>
-                      <div className="font-medium">{log.sync_type === 'auto' ? 'Auto Sync' : 'Manual Upload'}</div>
+                <div key={log.id} className="p-3 bg-gray-50 rounded-lg text-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <StatusIcon status={log.status} />
+                      <div>
+                        <div className="font-medium">{log.sync_type === 'auto' ? 'Auto Sync' : 'Manual Upload'}</div>
+                        <div className="text-gray-500 text-xs">
+                          {new Date(log.started_at).toLocaleString('en-IN')}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium">
+                        {log.status === 'completed' ? `${log.records_imported} imported` : log.status}
+                      </div>
                       <div className="text-gray-500 text-xs">
-                        {new Date(log.started_at).toLocaleString('en-IN')}
+                        {log.status === 'completed' && `Matched: ${log.records_matched}, Unmatched: ${log.records_unmatched}`}
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-medium">
-                      {log.status === 'completed' ? `${log.records_imported} imported` : log.status}
+                  
+                  {/* Detailed sync information */}
+                  {(log.login_status || log.api_status || log.http_code || log.records_fetched !== null || log.records_inserted !== null || log.records_updated !== null || log.detailed_error_message) && (
+                    <div className="mt-2 pt-2 border-t border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                      {log.login_status && (
+                        <div>
+                          <span className="text-gray-500">Login:</span>
+                          <span className={`ml-1 ${log.login_status === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                            {log.login_status}
+                          </span>
+                        </div>
+                      )}
+                      {log.api_status && (
+                        <div>
+                          <span className="text-gray-500">API:</span>
+                          <span className={`ml-1 ${log.api_status === 'success' ? 'text-green-600' : log.api_status === 'no_data' ? 'text-orange-600' : 'text-red-600'}`}>
+                            {log.api_status}
+                          </span>
+                        </div>
+                      )}
+                      {log.http_code && (
+                        <div>
+                          <span className="text-gray-500">HTTP:</span>
+                          <span className="ml-1">{log.http_code}</span>
+                        </div>
+                      )}
+                      {log.records_fetched !== null && (
+                        <div>
+                          <span className="text-gray-500">Fetched:</span>
+                          <span className="ml-1">{log.records_fetched}</span>
+                        </div>
+                      )}
+                      {log.records_inserted !== null && (
+                        <div>
+                          <span className="text-gray-500">Inserted:</span>
+                          <span className="ml-1">{log.records_inserted}</span>
+                        </div>
+                      )}
+                      {log.records_updated !== null && (
+                        <div>
+                          <span className="text-gray-500">Updated:</span>
+                          <span className="ml-1">{log.records_updated}</span>
+                        </div>
+                      )}
+                      {log.detailed_error_message && (
+                        <div className="col-span-2 md:col-span-4">
+                          <span className="text-gray-500">Error:</span>
+                          <span className="ml-1 text-red-600">{log.detailed_error_message}</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-gray-500 text-xs">
-                      {log.status === 'completed' && `Matched: ${log.records_matched}, Unmatched: ${log.records_unmatched}`}
-                    </div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>

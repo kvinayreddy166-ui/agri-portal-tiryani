@@ -1,15 +1,15 @@
-import * as XLSX from 'xlsx';
 
 export type ExcelCell = string | number | boolean | null | undefined;
 export type ExcelRow = Record<string, ExcelCell>;
 
-export function appendSheetWithTotals(
-  workbook: XLSX.WorkBook,
+export async function appendSheetWithTotals(
+  workbook: any,
   sheetName: string,
   rows: ExcelRow[],
   totalColumns: string[],
   labelColumn = 'S.No'
 ) {
+  const XLSX = await import('xlsx');
   const rowsWithTotals = rows.length
     ? [...rows, buildTotalsRow(rows, totalColumns, labelColumn)]
     : rows;
@@ -18,11 +18,12 @@ export function appendSheetWithTotals(
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.slice(0, 31));
 }
 
-export function appendSummarySheet(
-  workbook: XLSX.WorkBook,
+export async function appendSummarySheet(
+  workbook: any,
   title: string,
   rows: Array<[string, ExcelCell]>
 ) {
+  const XLSX = await import('xlsx');
   const worksheet = XLSX.utils.aoa_to_sheet([[title], [], ...rows]);
   worksheet['!cols'] = [{ wch: 28 }, { wch: 24 }];
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Summary');

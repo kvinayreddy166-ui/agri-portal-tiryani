@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { supabase } from './supabase';
 import { fetchFileBuffer } from './fileBlob';
 
@@ -62,7 +61,8 @@ function rowToDealer(
   };
 }
 
-function rowsFromFirstHeaderSheet(sheet: XLSX.WorkSheet): Record<string, unknown>[] {
+async function rowsFromFirstHeaderSheet(sheet: any): Promise<Record<string, unknown>[]> {
+  const XLSX = await import('xlsx');
   const grid = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
     header: 1,
     defval: '',
@@ -90,10 +90,11 @@ export async function parseExcelAndImportDealers(
   file: File,
   category: ParsedDealerRow['dealer_category'] = 'fertilizer'
 ): Promise<{ imported: number; errors: string[] }> {
+  const XLSX = await import('xlsx');
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const raw = rowsFromFirstHeaderSheet(sheet);
+  const raw = await rowsFromFirstHeaderSheet(sheet);
 
   const dealers: ParsedDealerRow[] = [];
   const errors: string[] = [];
@@ -142,7 +143,8 @@ export interface ExcelPreviewData {
   rows: string[][];
 }
 
-function parseExcelBuffer(buffer: ArrayBuffer, maxRows = 50): ExcelPreviewData {
+async function parseExcelBuffer(buffer: ArrayBuffer, maxRows = 50): Promise<ExcelPreviewData> {
+  const XLSX = await import('xlsx');
   const workbook = XLSX.read(buffer, { type: 'array' });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
@@ -161,12 +163,12 @@ function parseExcelBuffer(buffer: ArrayBuffer, maxRows = 50): ExcelPreviewData {
   return { sheetName, headers, rows };
 }
 
-export function readExcelPreview(file: File): Promise<Record<string, unknown>[]> {
-  return file.arrayBuffer().then((buffer) => {
-    const workbook = XLSX.read(buffer, { type: 'array' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    return XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' }).slice(0, 5);
-  });
+export async function readExcelPreview(file: File): Promise<Record<string, unknown>[]> {
+  const buffer = await file.arrayBuffer();
+  const XLSX = await import('xlsx');
+  const workbook = XLSX.read(buffer, { type: 'array' });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  return XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' }).slice(0, 5);
 }
 
 export async function fetchExcelPreviewFromUrl(

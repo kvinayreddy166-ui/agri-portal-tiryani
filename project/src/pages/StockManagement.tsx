@@ -1,7 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { BarChart3, ChevronDown, FileSpreadsheet, Package, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Dealer, DealerStockAllocation } from '../types/database';
@@ -11,6 +9,8 @@ import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
 import { useVirtualRows } from '../hooks/useVirtualRows';
 import { IconButton } from '../components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue, type ExcelRow } from '../utils/excelTotals';
+
+const LazyFertilizerChart = lazy(() => import('./LazyFertilizerChart'));
 
 const fertilizers = [...FERTILIZER_TYPES];
 
@@ -274,8 +274,8 @@ export function StockManagement() {
     return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('en-IN');
   };
 
-  const exportFilteredReceipts = () => {
-    downloadWorkbook(
+  const exportFilteredReceipts = async () => {
+    await downloadWorkbook(
       filteredStock.map((item, index) => ({
         'S.No': index + 1,
         Dealer: titleCase(item.dealer_name || 'Unknown dealer'),
@@ -522,16 +522,10 @@ export function StockManagement() {
                     Fertilizer-wise Receipts Chart
                   </h2>
                   <div className="h-36">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartRows} margin={{ top: 8, right: 12, left: -4, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="fertilizer" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(value) => `${Number(value ?? 0).toFixed(2)} MT`} />
-                    <Bar dataKey="Receipts" fill="#b68a18" radius={[4, 4, 0, 0]} barSize={22} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+                    <Suspense fallback={<div className="flex h-full items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" /></div>}>
+                      <LazyFertilizerChart data={chartRows} />
+                    </Suspense>
+                  </div>
             </div>
           </section>
 
@@ -712,7 +706,7 @@ function GroupedTotalsTable({
   );
 }
 
-function downloadWorkbook(
+async function downloadWorkbook(
   rows: ExcelRow[],
   fileName: string,
   sheetName: string,
@@ -720,9 +714,10 @@ function downloadWorkbook(
   summaryRows: Array<[string, string | number]>
 ) {
   if (!rows.length) return;
+  const XLSX = await import('xlsx');
   const workbook = XLSX.utils.book_new();
-  appendSheetWithTotals(workbook, sheetName, rows, totalColumns);
-  appendSummarySheet(workbook, `${sheetName} Summary`, [
+  await appendSheetWithTotals(workbook, sheetName, rows, totalColumns);
+  await appendSummarySheet(workbook, `${sheetName} Summary`, [
     ...summaryRows,
     ...totalColumns.map((column): [string, number] => [`Total ${column}`, totalValue(rows, column)]),
     ['Generated On', new Date().toLocaleString('en-IN')],

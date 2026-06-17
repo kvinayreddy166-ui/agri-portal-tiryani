@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { StockCategory } from '../lib/stockInventory';
 
 type Metadata = {
@@ -17,7 +16,8 @@ const categoryLabel: Record<StockCategory, string> = {
   pesticide: 'Pesticide',
 };
 
-export function writeProfessionalWorkbook(filename: string, sheetName: string, rows: Record<string, unknown>[], metadata: Metadata) {
+export async function writeProfessionalWorkbook(filename: string, sheetName: string, rows: Record<string, unknown>[], metadata: Metadata) {
+  const XLSX = await import('xlsx');
   const metaRows: unknown[][] = [
     ['Firm Name', metadata.firmName],
     ['Dealer Name', metadata.dealerName],

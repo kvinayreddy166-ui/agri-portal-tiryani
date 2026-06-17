@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { BarChart3, ChevronLeft, ChevronRight, FileSpreadsheet, Search, RotateCcw, Filter, ArrowUpDown } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { translateDealerText } from '../lib/dealerTranslations';
@@ -302,8 +301,8 @@ export function DealerHistory() {
     setCurrentPage(1);
   };
 
-  const exportToExcel = () => {
-    const workbook = XLSX.utils.book_new();
+  const exportToExcel = async () => {
+    const XLSX = await import('xlsx');
     if (sortedRecords.length === 0) {
       alert('No data to export');
       return;
@@ -345,7 +344,7 @@ export function DealerHistory() {
       ['Total Closing Stock', totalValue(exportRows, 'Closing Stock')],
       ['Generated On', new Date().toLocaleString('en-IN')],
     ]);
-    XLSX.writeFile(workbook, `stock-receipts-sales-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const workbook = XLSX.utils.book_new();
   };
 
   const handleSort = (field: 'date' | 'product_type' | 'quantity_mts') => {

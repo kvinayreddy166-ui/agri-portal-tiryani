@@ -366,12 +366,6 @@ main,
     background: var(--agri-warning);
     color: #111827;
   }
-
-  .app-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
-    gap: 0.75rem;
-  }
 }
 
 label {

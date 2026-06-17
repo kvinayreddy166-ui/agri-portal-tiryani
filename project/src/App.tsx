@@ -4,6 +4,7 @@ import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
 import { OfflineStatus } from './components/ui/OfflineStatus';
+import { PageSkeleton } from './components/ui/SkeletonLoader';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
 const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
@@ -34,11 +35,7 @@ const CropAdminDashboard = lazy(() =>
 );
 const PestDiseaseGuide = lazy(() => import('./pages/PestDiseaseGuide').then((m) => ({ default: m.PestDiseaseGuide }))); const UreaDashboard = lazy(() => import('./pages/UreaDashboard').then((m) => ({ default: m.UreaDashboard })));
 function PageLoader() {
-  return (
-    <div className="flex h-64 items-center justify-center">
-      <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
-    </div>
-  );
+  return <PageSkeleton />;
 }
 
 const PUBLIC_VIEW_PAGES = new Set(['dealers']);
