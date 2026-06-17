@@ -76,24 +76,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const finishLoading = (sess: Session | null) => {
       if (!mounted) return;
       window.clearTimeout(timeout);
+      console.log('AuthContext: finishLoading called with session:', sess);
       applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
       setLoading(false);
     };
 
     timeout = window.setTimeout(() => {
+      console.log('AuthContext: 1000ms timeout fired, forcing loading to false');
       finishLoading(null);
-    }, 2500);
+    }, 1000);
 
     try {
+      console.log('AuthContext: Starting getSession...');
       supabase.auth
         .getSession()
-        .then(({ data: { session: sess } }) => finishLoading(sess))
+        .then(({ data: { session: sess } }) => {
+          console.log('AuthContext: getSession resolved with session:', sess);
+          finishLoading(sess);
+        })
         .catch((err) => {
           console.error('Auth session error:', err);
           finishLoading(null);
         });
 
       const authState = supabase.auth.onAuthStateChange((_event, sess) => {
+        console.log('AuthContext: onAuthStateChange called with event:', _event, 'session:', sess);
         finishLoading(sess);
       });
       subscription = authState.data.subscription;
