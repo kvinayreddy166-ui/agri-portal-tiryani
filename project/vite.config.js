@@ -32,6 +32,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (id.includes('commonjsHelpers')) {
+            return 'vendor-react';
+          }
+
           if (id.includes('/src/services/') || id.includes('/src/lib/crop')) {
             return 'agriculture-modules';
           }
