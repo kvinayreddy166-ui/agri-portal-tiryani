@@ -4,6 +4,9 @@ export type FertilizerStatutoryFormType = 'J' | 'K_ADA' | 'K_JDA' | 'P';
 
 export type FertilizerPdfValues = {
   no: string;
+  dealerName: string;
+  dealerAddress: string;
+  premisesLocation: string;
   dealerNameAddress: string;
   authorizationNumber: string;
   samplingDate: string;
@@ -49,6 +52,9 @@ export const FERTILIZER_K_ADDRESS_OPTIONS = {
 
 export const initialFertilizerPdfValues: FertilizerPdfValues = {
   no: '',
+  dealerName: '',
+  dealerAddress: '',
+  premisesLocation: '',
   dealerNameAddress: '',
   authorizationNumber: '',
   samplingDate: '',

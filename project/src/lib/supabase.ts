@@ -51,16 +51,14 @@ export const clearPersistedSupabaseAuth = () => {
   }
 };
 
-clearPersistedSupabaseAuth();
-
 console.log('Supabase: Initializing client with URL:', supabaseUrl);
 console.log('Supabase: Anon key valid:', isValidAnonKey(supabaseAnonKey));
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    autoRefreshToken: false,
+    autoRefreshToken: true,
     detectSessionInUrl: false,
-    persistSession: false,
+    persistSession: true,
     flowType: 'pkce',
   },
 });

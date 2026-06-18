@@ -218,7 +218,9 @@ export function CropPage({ cropType }: CropPageProps) {
           alt={visibleRecord.name_en}
           width={1200}
           height={400}
+          loading="eager"
           decoding="async"
+          fetchPriority="high"
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-slate-900/55" />

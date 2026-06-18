@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Download, Eye, RotateCcw, Save, X } from 'lucide-react';
 import {
   FertilizerPdfValues,
@@ -20,6 +20,9 @@ type FieldConfig = {
 
 const STORAGE_KEY = 'tiryani-fertilizer-forms-draft';
 const DRAFTS_KEY = 'tiryani-fertilizer-forms-named-drafts';
+const LAST_GENERATED_KEY = 'tiryani-fertilizer-forms-last-generated';
+const DUPLICATE_WARNING_MESSAGE =
+  'You are generating a file with the same previous sample/dealer details. Please verify whether new sample details or dealer details are required before downloading.';
 
 type SavedFertilizerDraft = {
   name: string;
@@ -75,7 +78,9 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
     title: 'DEALER / FERTILIZER DETAILS',
     fields: [
-      { key: 'dealerNameAddress', label: 'NAME AND ADDRESS OF DEALER/MANUFACTURER/IMPORTER', type: 'textarea' },
+      { key: 'dealerName', label: 'DEALER / PARTY NAME' },
+      { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS', type: 'textarea', placeholder: 'village' },
+      { key: 'premisesLocation', label: 'DEALER LOCATION (MANDAL)', placeholder: 'mandal' },
       { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER' },
       { key: 'fertilizerTypeGrade', label: 'TYPE AND GRADE OF FERTILIZER' },
       { key: 'dealerManufacturerImporterName', label: 'NAME OF DEALER/MANUFACTURER/IMPORTER', placeholder: 'company details' },
@@ -100,7 +105,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [values, setValues] = useState<FertilizerPdfValues>(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      return saved ? { ...initialFertilizerPdfValues, ...JSON.parse(saved) } : initialFertilizerPdfValues;
+      return normalizeFertilizerValues(saved ? { ...initialFertilizerPdfValues, ...JSON.parse(saved) } : initialFertilizerPdfValues);
     } catch {
       return initialFertilizerPdfValues;
     }
@@ -110,6 +115,16 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [draftName, setDraftName] = useState('');
   const [savedDrafts, setSavedDrafts] = useState<SavedFertilizerDraft[]>(() => loadFertilizerDrafts());
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | 'downloadAll' | null>(null);
+  const [duplicateAction, setDuplicateAction] = useState<
+    | { type: 'preview'; formType: FertilizerStatutoryFormType }
+    | { type: 'download'; formType: FertilizerStatutoryFormType }
+    | { type: 'previewAll' }
+    | { type: 'downloadAll' }
+    | null
+  >(null);
+  const [highlightDetails, setHighlightDetails] = useState(false);
+  const sampleDetailsRef = useRef<HTMLDivElement | null>(null);
+  const dealerDetailsRef = useRef<HTMLDivElement | null>(null);
   const allFields = useMemo(() => fertilizerFieldSections, []);
 
   useEffect(() => {
@@ -131,11 +146,24 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       if (key === 'codeNumber' && (!current.sampleCode || current.sampleCode === current.codeNumber)) {
         next.sampleCode = value;
       }
+      if (key === 'dealerName' || key === 'dealerAddress' || key === 'premisesLocation') {
+        next.dealerNameAddress = buildDealerNameAddress(next);
+      }
+      if (key === 'dealerName' && (!current.dealerManufacturerImporterName || current.dealerManufacturerImporterName === current.dealerName)) {
+        next.dealerManufacturerImporterName = value;
+      }
       if (key === 'officerName' || key === 'designation' || key === 'officeAddress') {
         const inspectorAddress = [next.officerName, next.designation, next.officeAddress].filter(Boolean).join('\n');
         next.inspectorNameAddress = inspectorAddress;
         next.fromAddress = inspectorAddress;
         next.forwardReportAddress = inspectorAddress;
+      }
+      if (key === 'officerName') {
+        const currentDraftName = draftName.trim();
+        const previousOfficerName = current.officerName.trim();
+        if (!currentDraftName || currentDraftName === previousOfficerName) {
+          setDraftName(value.trim());
+        }
       }
       return next;
     });
@@ -167,7 +195,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const loadDraft = (name: string) => {
     const draft = savedDrafts.find((item) => item.name === name);
     if (!draft) return;
-    setValues({ ...initialFertilizerPdfValues, ...draft.values });
+    setValues(normalizeFertilizerValues({ ...initialFertilizerPdfValues, ...draft.values }));
     setDraftName(draft.name);
     setPreviewError(null);
     setMessage(`Draft loaded: ${draft.name}`);
@@ -187,13 +215,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setMessage(`Draft deleted: ${name}`);
   };
 
-  const previewPdf = async (type = formType) => {
+  const completePreviewPdf = async (type = formType) => {
     const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
     try {
       const doc = await generateFertilizerStatutoryPdf(type, values);
       openFertilizerDocInTab(doc, getFertilizerPdfFileName(type, values), targetWindow);
+      rememberFertilizerGeneratedData(values);
       setFormType(type);
       setMessage('PDF preview opened in a new tab.');
     } catch (error) {
@@ -205,13 +234,22 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     }
   };
 
-  const previewAllPdf = async () => {
+  const previewPdf = async (type = formType) => {
+    if (isDuplicateFertilizerGeneration(values)) {
+      setDuplicateAction({ type: 'preview', formType: type });
+      return;
+    }
+    await completePreviewPdf(type);
+  };
+
+  const completePreviewAllPdf = async () => {
     const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
     try {
       const doc = await generateAllFertilizerStatutoryPdf(values);
       openFertilizerDocInTab(doc, getAllFertilizerPdfFileName(values), targetWindow);
+      rememberFertilizerGeneratedData(values);
       setMessage('All forms preview opened in a new tab.');
     } catch (error) {
       console.error('Unable to preview all fertilizer PDFs:', error);
@@ -222,13 +260,22 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     }
   };
 
-  const downloadPdf = async (type = formType) => {
+  const previewAllPdf = async () => {
+    if (isDuplicateFertilizerGeneration(values)) {
+      setDuplicateAction({ type: 'previewAll' });
+      return;
+    }
+    await completePreviewAllPdf();
+  };
+
+  const completeDownloadPdf = async (type = formType) => {
     setBusyAction('download');
     setPreviewError(null);
     try {
       const doc = await generateFertilizerStatutoryPdf(type, values);
       const fileName = getFertilizerPdfFileName(type, values);
       downloadFertilizerDoc(doc, fileName);
+      rememberFertilizerGeneratedData(values);
       setFormType(type);
       setMessage(`PDF downloaded: ${fileName}`);
     } catch (error) {
@@ -239,13 +286,22 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     }
   };
 
-  const downloadAllPdf = async () => {
+  const downloadPdf = async (type = formType) => {
+    if (isDuplicateFertilizerGeneration(values)) {
+      setDuplicateAction({ type: 'download', formType: type });
+      return;
+    }
+    await completeDownloadPdf(type);
+  };
+
+  const completeDownloadAllPdf = async () => {
     setBusyAction('downloadAll');
     setPreviewError(null);
     try {
       const doc = await generateAllFertilizerStatutoryPdf(values);
       const fileName = getAllFertilizerPdfFileName(values);
       downloadFertilizerDoc(doc, fileName);
+      rememberFertilizerGeneratedData(values);
       setMessage(`All forms PDF downloaded: ${fileName}`);
     } catch (error) {
       console.error('Unable to download all fertilizer PDFs:', error);
@@ -253,6 +309,34 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     } finally {
       setBusyAction(null);
     }
+  };
+
+  const downloadAllPdf = async () => {
+    if (isDuplicateFertilizerGeneration(values)) {
+      setDuplicateAction({ type: 'downloadAll' });
+      return;
+    }
+    await completeDownloadAllPdf();
+  };
+
+  const reviewDuplicateDetails = () => {
+    setDuplicateAction(null);
+    setHighlightDetails(true);
+    sampleDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.setTimeout(() => {
+      dealerDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 450);
+    window.setTimeout(() => setHighlightDetails(false), 3500);
+  };
+
+  const downloadAnyway = async () => {
+    const action = duplicateAction;
+    setDuplicateAction(null);
+    if (!action) return;
+    if (action.type === 'preview') await completePreviewPdf(action.formType);
+    if (action.type === 'download') await completeDownloadPdf(action.formType);
+    if (action.type === 'previewAll') await completePreviewAllPdf();
+    if (action.type === 'downloadAll') await completeDownloadAllPdf();
   };
 
   return (
@@ -290,13 +374,13 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
         <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
             <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
-              <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-slate-600">Multiple user drafts</p>
+              <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-slate-600">OFFICER DRAFT</p>
               <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
                 <input
                   type="text"
                   value={draftName}
                   onChange={(event) => setDraftName(event.target.value)}
-                  placeholder="Draft name / officer / dealer"
+                  placeholder="Auto from officer name"
                   className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
                 <select
@@ -335,7 +419,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
             <div className="grid gap-3 lg:grid-cols-2">
               {allFields.map((section) => (
-                <FieldSection key={section.title} title={section.title}>
+                <div
+                  key={section.title}
+                  ref={section.title === 'COMMON DETAILS' ? sampleDetailsRef : section.title === 'DEALER / FERTILIZER DETAILS' ? dealerDetailsRef : undefined}
+                  className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER / FERTILIZER DETAILS') ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}
+                >
+                <FieldSection title={section.title}>
                   {section.fields.map((field) => (
                     <PdfInput
                       key={field.key}
@@ -345,6 +434,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                     />
                   ))}
                 </FieldSection>
+                </div>
               ))}
             </div>
 
@@ -357,10 +447,16 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                 <FertilizerPdfAction label="Form P" busy={busyAction !== null} onPreview={() => previewPdf('P')} onDownload={() => downloadPdf('P')} />
                 <FertilizerPdfAction label="All Forms" busy={busyAction !== null} onPreview={previewAllPdf} onDownload={downloadAllPdf} primary />
               </div>
+              <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold leading-4 text-amber-800">
+                Note: Please update sample details and dealer details before generating a new file.
+              </p>
             </div>
 
         </div>
       </section>
+      {duplicateAction && (
+        <DuplicateDownloadModal onReview={reviewDuplicateDetails} onContinue={downloadAnyway} onClose={() => setDuplicateAction(null)} />
+      )}
     </div>
   );
 }
@@ -376,12 +472,115 @@ function loadFertilizerDrafts(): SavedFertilizerDraft[] {
 }
 
 function buildDraftName(name: string, values: FertilizerPdfValues) {
-  const fallback = values.sampleCode.trim() || values.no.trim() || values.dealerManufacturerImporterName.trim();
+  const fallback = values.officerName.trim() || values.sampleCode.trim() || values.no.trim() || values.dealerManufacturerImporterName.trim();
   return (name.trim() || fallback || `Draft ${new Date().toLocaleString('en-IN')}`).slice(0, 80);
 }
 
 function upsertFertilizerDraft(drafts: SavedFertilizerDraft[], draft: SavedFertilizerDraft) {
   return [draft, ...drafts.filter((item) => item.name !== draft.name)].slice(0, 30);
+}
+
+function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfValues {
+  const normalized = { ...values };
+  if (!normalized.dealerName && normalized.dealerNameAddress) {
+    const lines = normalized.dealerNameAddress
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+    normalized.dealerName = lines[0] || '';
+    normalized.dealerAddress = normalized.dealerAddress || lines.slice(1).join('\n');
+  }
+  normalized.dealerNameAddress = buildDealerNameAddress(normalized);
+  if (!normalized.dealerManufacturerImporterName && normalized.dealerName) {
+    normalized.dealerManufacturerImporterName = normalized.dealerName;
+  }
+  return normalized;
+}
+
+function buildDealerNameAddress(values: FertilizerPdfValues) {
+  return [values.dealerName, values.dealerAddress, values.premisesLocation]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join('\n');
+}
+
+function fertilizerGenerationSnapshot(values: FertilizerPdfValues) {
+  return stableFertilizerString({
+    no: values.no,
+    sampleCode: values.sampleCode,
+    codeNumber: values.codeNumber,
+    samplingDate: values.samplingDate,
+    place: values.place,
+    dealerNameAddress: values.dealerNameAddress,
+    dealerName: values.dealerName,
+    dealerAddress: values.dealerAddress,
+    premisesLocation: values.premisesLocation,
+    authorizationNumber: values.authorizationNumber,
+    fertilizerTypeGrade: values.fertilizerTypeGrade,
+    dealerManufacturerImporterName: values.dealerManufacturerImporterName,
+    batchDetails: values.batchDetails,
+    stockReceiptDate: values.stockReceiptDate,
+    stockPosition: values.stockPosition,
+    physicalCondition: values.physicalCondition,
+    bagSource: values.bagSource,
+  });
+}
+
+function isDuplicateFertilizerGeneration(values: FertilizerPdfValues) {
+  try {
+    return window.localStorage.getItem(LAST_GENERATED_KEY) === fertilizerGenerationSnapshot(values);
+  } catch {
+    return false;
+  }
+}
+
+function rememberFertilizerGeneratedData(values: FertilizerPdfValues) {
+  try {
+    window.localStorage.setItem(LAST_GENERATED_KEY, fertilizerGenerationSnapshot(values));
+  } catch {
+    // Duplicate warning is best-effort only.
+  }
+}
+
+function stableFertilizerString(value: Record<string, string>) {
+  return JSON.stringify(
+    Object.keys(value)
+      .sort()
+      .reduce<Record<string, string>>((acc, key) => {
+        acc[key] = String(value[key] ?? '').trim();
+        return acc;
+      }, {})
+  );
+}
+
+function DuplicateDownloadModal({
+  onReview,
+  onContinue,
+  onClose,
+}: {
+  onReview: () => void;
+  onContinue: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-xl border border-amber-200 bg-white p-5 shadow-2xl">
+        <p className="text-sm font-black uppercase tracking-wide text-amber-700">Duplicate details warning</p>
+        <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">{DUPLICATE_WARNING_MESSAGE}</p>
+        <div className="mt-5 grid gap-2 sm:grid-cols-2">
+          <button type="button" onClick={onReview} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
+            Review/Edit Details
+          </button>
+          <button type="button" onClick={onContinue} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
+            Download Anyway
+          </button>
+        </div>
+        <button type="button" onClick={onClose} className="mt-3 w-full text-xs font-bold text-slate-500 hover:text-slate-700">
+          Close
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function FieldSection({ title, children }: { title: string; children: React.ReactNode }) {

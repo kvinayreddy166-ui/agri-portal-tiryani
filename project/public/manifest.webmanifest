@@ -2,7 +2,7 @@
   "name": "Tiryani Agriculture Portal",
   "short_name": "Tiryani Agri",
   "id": "/",
-  "description": "Agriculture Department Digital Platform - Official Information Management System for Tiryani Agriculture Office",
+  "description": "Agriculture Department Digital Platform",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -38,8 +38,7 @@
     {
       "src": "/screenshots/mobile-home.png",
       "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow"
+      "type": "image/png"
     },
     {
       "src": "/screenshots/desktop-dashboard.png",

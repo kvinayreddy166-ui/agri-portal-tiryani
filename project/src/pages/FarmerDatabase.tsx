@@ -12,9 +12,7 @@ import {
   PhoneCall,
   Save,
   FlaskConical,
-  CheckCircle,
   XCircle,
-  AlertCircle,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -110,7 +108,7 @@ export function FarmerDatabase() {
   const [ureaBookings, setUreaBookings] = useState<Map<string, any[]>>(new Map());
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setDebouncedSearch(searchInput.trim()), 350);
+    const timer = window.setTimeout(() => setDebouncedSearch(searchInput.trim()), 300);
     return () => window.clearTimeout(timer);
   }, [searchInput]);
 
@@ -580,13 +578,15 @@ export function FarmerDatabase() {
               <Detail label={uiLabel('Survey Number', showTelugu)} value={selected.surveyNo || '-'} />
             </div>
             <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
-              <table className="w-full text-xs">
+              <div className="table-scroll">
+              <table className="w-full min-w-[360px] text-xs">
                 <thead className="bg-slate-900 text-white"><tr><th className="px-3 py-2 text-left">{uiLabel('Crop', showTelugu)}</th><th className="px-3 py-2 text-right">{uiLabel('Extent', showTelugu)}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
                   {selected.cropRows.map((row) => <tr key={row.crop}><td className="px-3 py-2 font-bold">{cropDisplay(row.crop, showTelugu)}</td><td className="px-3 py-2 text-right font-black">{formatExtent(guntasToExtent(row.extent))} {uiLabel('acres', showTelugu)}</td></tr>)}
                   <tr><td className="px-3 py-2 font-black">{uiLabel('Total', showTelugu)}</td><td className="px-3 py-2 text-right font-black text-emerald-700">{formatExtent(guntasToExtent(selected.totalExtent))} {uiLabel('acres', showTelugu)}</td></tr>
                 </tbody>
               </table>
+              </div>
             </div>
             
             {/* Urea Booking Status */}

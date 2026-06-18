@@ -69,7 +69,6 @@ const PUBLIC_TOOLKIT_STATE_KEY = 'tiryani-public-officer-toolkit-state';
 const PUBLIC_FORMS_PAGE_SIZE = 10;
 const PUBLIC_FORM_COLUMNS = 'id, title, label, description, file_url, file_type, category, created_at';
 const PUBLIC_FORM_COLUMNS_WITHOUT_LABEL = 'id, title, description, file_url, file_type, category, created_at';
-const UREA_DASHBOARD_LOGIN_URL = 'http://74.225.14.186:8025/login';
 
 const TELANGANA_DISTRICTS = [
   'Adilabad',

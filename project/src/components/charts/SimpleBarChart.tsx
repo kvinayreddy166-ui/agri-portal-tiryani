@@ -9,7 +9,7 @@ import {
   YAxis,
 } from 'recharts';
 
-export function SimpleBarChart({
+export const SimpleBarChart = React.memo(function SimpleBarChart({
   data,
   dataKey,
   nameKey,
@@ -34,4 +34,4 @@ export function SimpleBarChart({
       </div>
     </div>
   );
-}
+});

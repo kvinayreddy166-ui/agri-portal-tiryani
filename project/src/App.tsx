@@ -4,8 +4,6 @@ import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
 import { OfflineStatus } from './components/ui/OfflineStatus';
-import { PageSkeleton } from './components/ui/SkeletonLoader';
-import { ToolkitLoader } from './components/ui/ToolkitLoader';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
 const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
@@ -36,18 +34,18 @@ const CropAdminDashboard = lazy(() =>
 );
 const PestDiseaseGuide = lazy(() => import('./pages/PestDiseaseGuide').then((m) => ({ default: m.PestDiseaseGuide })));
 const UreaDashboard = lazy(() => import('./pages/UreaDashboard').then((m) => ({ default: m.UreaDashboard })));
-function PageLoader() {
-  return <PageSkeleton />;
-}
-
 function GlobalAppLoader() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
       <PortalLogo size="xl" />
       <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
       <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading Tiryani Agriculture Portal…</p>
     </div>
   );
+}
+
+function PageLoader() {
+  return <GlobalAppLoader />;
 }
 
 const PUBLIC_VIEW_PAGES = new Set(['dealers']);
@@ -463,7 +461,7 @@ function AppContent() {
 
   if (!user && currentPage === 'officer-toolkit') {
     return (
-      <Suspense fallback={<ToolkitLoader />}>
+      <Suspense fallback={<GlobalAppLoader />}>
         <OfficersToolkit />
       </Suspense>
     );

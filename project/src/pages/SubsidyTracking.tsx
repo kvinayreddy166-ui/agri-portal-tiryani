@@ -281,7 +281,8 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
       )}
 
       <div className="portal-card overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="table-scroll">
+        <table className="w-full min-w-[760px] text-sm">
           <thead className="bg-slate-50 dark:bg-slate-800">
             <tr>
               <th className="px-4 py-3 text-left font-bold">{t('Year', 'సంవత్సరం')}</th>
@@ -328,6 +329,7 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
             ))}
           </tbody>
         </table>
+        </div>
         {records.length === 0 && (
           <p className="p-8 text-center text-slate-500">{t('No records yet', 'ఇంకా రికార్డులు లేవు')}</p>
         )}

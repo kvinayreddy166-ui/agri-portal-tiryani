@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tiryani-portal-v14';
+const CACHE_VERSION = 'tiryani-portal-v15';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -12,11 +12,14 @@ const MAX_FONT_ENTRIES = 20;
 const STATIC_ASSETS = [
   '/',
   '/index.html',
+  '/offline.html',
   '/manifest.webmanifest',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
   '/icons/icon-maskable-192x192.png',
   '/icons/icon-maskable-512x512.png',
+  '/screenshots/mobile-home.png',
+  '/screenshots/desktop-dashboard.png',
   '/images/agri-emblem.webp',
   '/images/agri-emblem-192.webp',
   '/images/agri-emblem-512.webp',
@@ -31,6 +34,10 @@ const STATIC_ASSETS = [
   '/images/file-icons/excel.png',
   '/images/file-icons/image.png',
   '/images/file-icons/pdf.png',
+  '/farmer_database_seed.json',
+  '/data/crop-intelligence.json',
+  '/sitemap.xml',
+  '/robots.txt',
 ];
 
 self.addEventListener('install', (event) => {
@@ -74,7 +81,7 @@ self.addEventListener('fetch', (event) => {
 
   // Navigation requests - network first with offline fallback
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirst(request, '/index.html'));
+    event.respondWith(networkFirst(request, '/index.html', RUNTIME_CACHE).catch(() => caches.match('/offline.html')));
     return;
   }
 
@@ -99,6 +106,9 @@ self.addEventListener('fetch', (event) => {
   if (
     url.origin === self.location.origin &&
     (url.pathname.startsWith('/data/') ||
+      url.pathname.endsWith('.json') ||
+      url.pathname.endsWith('.xml') ||
+      url.pathname.endsWith('.txt') ||
       url.pathname === '/manifest.webmanifest')
   ) {
     event.respondWith(staleWhileRevalidate(request, RUNTIME_CACHE));

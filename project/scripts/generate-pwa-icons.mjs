@@ -8,14 +8,17 @@ const __dirname = path.dirname(__filename);
 
 const publicDir = path.join(__dirname, '../public');
 const imagesDir = path.join(publicDir, 'images');
+const iconsDir = path.join(publicDir, 'icons');
 const svgPath = path.join(imagesDir, 'agri-emblem.svg');
+
+fs.mkdirSync(iconsDir, { recursive: true });
 
 // Sizes to generate
 const sizes = [192, 512];
 
 // Generate regular icons
 for (const size of sizes) {
-  const outputPath = path.join(imagesDir, `agri-emblem-${size}.png`);
+  const outputPath = path.join(iconsDir, `icon-${size}x${size}.png`);
   
   await sharp(svgPath)
     .resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
@@ -27,7 +30,7 @@ for (const size of sizes) {
 
 // Generate maskable icons with safe padding (40% padding for maskable icons)
 for (const size of sizes) {
-  const outputPath = path.join(imagesDir, `agri-emblem-maskable-${size}.png`);
+  const outputPath = path.join(iconsDir, `icon-maskable-${size}x${size}.png`);
   
   // For maskable icons, we want the emblem to be centered with padding
   // The safe zone is typically 60% of the icon size, so we scale the emblem to 60%

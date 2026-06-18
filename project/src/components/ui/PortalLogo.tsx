@@ -12,6 +12,13 @@ const sizeMap = {
   xl: 'h-24 w-24',
 };
 
+const pixelSizeMap = {
+  sm: 36,
+  md: 48,
+  lg: 64,
+  xl: 96,
+};
+
 export const PortalLogo = React.memo(function PortalLogo({ size = 'md', className = '' }: PortalLogoProps) {
   return (
     <div
@@ -20,8 +27,8 @@ export const PortalLogo = React.memo(function PortalLogo({ size = 'md', classNam
       <img
         src="/images/agri-emblem.webp"
         alt="Tiryani Agriculture Portal"
-        width={sizeMap[size].split(' ')[0].replace('px', '')}
-        height={sizeMap[size].split(' ')[0].replace('px', '')}
+        width={pixelSizeMap[size]}
+        height={pixelSizeMap[size]}
         decoding="async"
         className="h-full w-full object-cover"
       />

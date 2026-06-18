@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Eye, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2, Bug, ArrowRight } from 'lucide-react';
+import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2, Bug, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../lib/fertilizerStock';
 import { useAuth } from '../context/AuthContext';
@@ -10,7 +10,6 @@ import { GoogleMapWidget } from '../components/dashboard/GoogleMapWidget';
 import { WeatherWidget } from '../components/dashboard/WeatherWidget';
 import { PortalLogo } from '../components/ui/PortalLogo';
 import { cachedSupabaseRows, cachedSupabaseValue } from '../lib/offlineCache';
-import { fetchSiteHitSummary, SiteHitSummary } from '../lib/siteHits';
 
 type FarmerDashboardRow = {
   s_no?: number;
@@ -47,7 +46,6 @@ export function Dashboard() {
   const [schemes, setSchemes] = useState<Scheme[]>([]);
   const [schemeBeneficiaries, setSchemeBeneficiaries] = useState<SchemeBeneficiary[]>([]);
   const [mandalData, setMandalData] = useState<MandalOverview | null>(null);
-  const [siteHitSummary, setSiteHitSummary] = useState<SiteHitSummary | null>(null);
   const [farmerStats, setFarmerStats] = useState<FarmerDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingCrop, setEditingCrop] = useState<string | null>(null);
@@ -97,13 +95,11 @@ export function Dashboard() {
       setMandalData(contentRes?.content || null);
       setLoading(false);
 
-      const [dailyFertilizers, hitsRes, farmerStatsRes] = await Promise.all([
+      const [dailyFertilizers, farmerStatsRes] = await Promise.all([
         fetchDailyFertilizerStockSummary().catch(() => []),
-        fetchSiteHitSummary().catch(() => null),
         fetchFarmerDashboardStats().catch(() => null),
       ]);
       setFertilizers(dailyFertilizers);
-      setSiteHitSummary(hitsRes);
       setFarmerStats(farmerStatsRes);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -207,11 +203,19 @@ export function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
+        <PortalLogo size="xl" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading Tiryani Agriculture Portal...</p>
       </div>
     );
   }
+
+  const hasAnyDashboardData =
+    Boolean(mandalData) ||
+    dashboardCrops.length > 0 ||
+    fertilizers.length > 0 ||
+    schemes.length > 0;
 
   return (
     <div className="dashboard-shell space-y-6">
@@ -248,9 +252,15 @@ export function Dashboard() {
       </div>
 
 
-      {/* Mandal Overview */}
-      {mandalData && (
-        <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
+      {!hasAnyDashboardData ? (
+        <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+          {t('No data available', 'No data available')}
+        </div>
+      ) : (
+        <>
+          {/* Mandal Overview */}
+          {mandalData ? (
+            <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <MapPin className="w-6 h-6 text-emerald-600" />
             {t('Mandal Overview', 'మండల వివరాలు')}
@@ -322,12 +332,14 @@ export function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+            </div>
+          ) : (
+            <DashboardEmptyState message={t('No mandal overview data available', 'No mandal overview data available')} />
+          )}
 
-      {/* Crop Statistics */}
-      {dashboardCrops.length > 0 && (
-        <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
+          {/* Crop Statistics */}
+          {dashboardCrops.length > 0 ? (
+            <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <TrendingUp className="w-6 h-6 text-emerald-600" />
@@ -368,11 +380,13 @@ export function Dashboard() {
             );
           })}
         </div>
-      </div>
-      )}
+            </div>
+          ) : (
+            <DashboardEmptyState message={t('No crop data available', 'No crop data available')} />
+          )}
 
-      {fertilizers.length > 0 && (
-        <div className="dashboard-rise dashboard-delay-3 portal-card p-3">
+          {fertilizers.length > 0 ? (
+            <div className="dashboard-rise dashboard-delay-3 portal-card p-3">
         <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-black tracking-tight text-gray-900 dark:text-white">
@@ -392,14 +406,6 @@ export function Dashboard() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-5">
-          {fertilizers.length === 0 && (
-            <div className="col-span-2 md:col-span-3 xl:col-span-5 rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-center text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-300">
-              {t(
-                'No dealer daily fertilizer entries found yet.',
-                'No dealer daily fertilizer entries found yet.'
-              )}
-            </div>
-          )}
           {fertilizers.map((fertilizer) => {
             const percentage = Math.max(
               8,
@@ -455,12 +461,14 @@ export function Dashboard() {
             );
           })}
         </div>
-      </div>
-      )}
+            </div>
+          ) : (
+            <DashboardEmptyState message={t('No fertilizer availability data available', 'No fertilizer availability data available')} />
+          )}
 
-      {/* Government Schemes */}
-      {schemes.length > 0 && (
-        <div className="dashboard-rise dashboard-delay-3 portal-card p-4">
+          {/* Government Schemes */}
+          {schemes.length > 0 ? (
+            <div className="dashboard-rise dashboard-delay-3 portal-card p-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Users className="w-6 h-6 text-emerald-600" />
           {t('Government Schemes', 'ప్రభుత్వ పథకాలు')}
@@ -633,8 +641,20 @@ export function Dashboard() {
             );
           })}
         </div>
-      </div>
+            </div>
+          ) : (
+            <DashboardEmptyState message={t('No schemes data available', 'No schemes data available')} />
+          )}
+        </>
       )}
+    </div>
+  );
+}
+
+function DashboardEmptyState({ message }: { message: string }) {
+  return (
+    <div className="dashboard-rise rounded-xl border border-dashed border-slate-200 bg-white p-4 text-center text-sm font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+      {message}
     </div>
   );
 }

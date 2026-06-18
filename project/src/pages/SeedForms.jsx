@@ -1,8 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Download, Eye, RotateCcw, Save } from 'lucide-react';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
+const LAST_GENERATED_KEY = 'tiryani-seed-forms-last-generated';
+const DUPLICATE_WARNING_MESSAGE =
+  'You are generating a file with the same previous sample/dealer details. Please verify whether new sample details or dealer details are required before downloading.';
 const PDF_FONT = 'times';
 const PDF_BODY_SIZE = 13.4;
 const PDF_TITLE_SIZE = 16.4;
@@ -10,7 +13,7 @@ const PDF_SUBTITLE_SIZE = 14.4;
 const FORM_II_COTTON_QUANTITY = '25 G * 3';
 
 const cropOptions = ['Paddy', 'Cotton', 'Maize', 'Redgram', 'Greengram', 'Blackgram', 'Soybean', 'Bengalgram', 'Jowar', 'Other'];
-const natureOptions = ['Seed sample', 'Truthfully Labelled Seed', 'Certified Seed', 'Foundation Seed', 'Hybrid Seed', 'Other'];
+const natureOptions = ['Seed sample', 'Other'];
 const classOptions = ['Breeder Seed', 'Foundation Seed', 'Certified Seed', 'Truthfully Labelled Seed', 'Hybrid Seed', 'Other'];
 const testOptions = ['Germination, Purity & Moisture Test', 'BT Protein Test', 'Genetic Purity Test', 'Seed Health Test', 'Complete Analysis', 'Other'];
 const designationOptions = ['Mandal Agriculture Officer', 'Asst. Director of Agriculture'];
@@ -46,10 +49,9 @@ const initialSeedForm = {
   lotNo: '',
   quantityDrawn: '',
   quantityInLot: '',
-  seedClass: 'Certified Seed',
+  seedClass: 'Truthfully Labelled Seed',
   seedClassOther: '',
   packingDate: '',
-  stockPosition: '',
   sourceOfSupply: '',
   testRequired: 'Germination, Purity & Moisture Test',
   testRequiredOther: '',
@@ -75,6 +77,10 @@ export function SeedForms() {
   const [message, setMessage] = useState('');
   const [draftName, setDraftName] = useState('');
   const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
+  const [duplicateAction, setDuplicateAction] = useState(null);
+  const [highlightDetails, setHighlightDetails] = useState(false);
+  const sampleDetailsRef = useRef(null);
+  const dealerDetailsRef = useRef(null);
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
@@ -84,7 +90,16 @@ export function SeedForms() {
   const isCottonCrop = resolved.crop === 'Cotton';
 
   const setField = (key, value) => {
-    setForm((current) => ({ ...current, [key]: value }));
+    setForm((current) => {
+      if (key === 'officerName') {
+        const currentDraftName = draftName.trim();
+        const previousOfficerName = String(current.officerName || '').trim();
+        if (!currentDraftName || currentDraftName === previousOfficerName) {
+          setDraftName(value.trim());
+        }
+      }
+      return { ...current, [key]: value };
+    });
     setMessage('');
   };
 
@@ -147,21 +162,31 @@ export function SeedForms() {
     }
   };
 
-  const generate = async (kind) => {
+  const completeGenerate = async (kind) => {
     const doc = await buildValidatedPdf(kind);
     if (!doc) return;
     try {
       downloadSeedDoc(doc, seedFileName(kind, form));
+      rememberSeedGeneratedData(form);
       setMessage(`PDF downloaded: ${seedFileName(kind, form)}`);
     } catch (error) {
       console.error('Download failed, opening in new tab:', error);
       const targetWindow = openBlankSeedPdfTab();
       openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
+      rememberSeedGeneratedData(form);
       setMessage('PDF opened in a new tab (download failed).');
     }
   };
 
-  const preview = async (kind) => {
+  const generate = async (kind) => {
+    if (isDuplicateSeedGeneration(form)) {
+      setDuplicateAction({ type: 'download', kind });
+      return;
+    }
+    await completeGenerate(kind);
+  };
+
+  const completePreview = async (kind) => {
     const targetWindow = openBlankSeedPdfTab();
     const doc = await buildValidatedPdf(kind);
     if (!doc) {
@@ -169,7 +194,37 @@ export function SeedForms() {
       return;
     }
     openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
+    rememberSeedGeneratedData(form);
     setMessage('PDF preview opened in a new tab.');
+  };
+
+  const preview = async (kind) => {
+    if (isDuplicateSeedGeneration(form)) {
+      setDuplicateAction({ type: 'preview', kind });
+      return;
+    }
+    await completePreview(kind);
+  };
+
+  const reviewDuplicateDetails = () => {
+    setDuplicateAction(null);
+    setHighlightDetails(true);
+    sampleDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.setTimeout(() => {
+      dealerDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 450);
+    window.setTimeout(() => setHighlightDetails(false), 3500);
+  };
+
+  const downloadAnyway = async () => {
+    const action = duplicateAction;
+    setDuplicateAction(null);
+    if (!action) return;
+    if (action.type === 'preview') {
+      await completePreview(action.kind);
+    } else {
+      await completeGenerate(action.kind);
+    }
   };
 
   return (
@@ -196,13 +251,13 @@ export function SeedForms() {
       </div>
 
       <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
-        <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-slate-600">Multiple user drafts</p>
+        <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-slate-600">OFFICER DRAFT</p>
         <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
           <input
             type="text"
             value={draftName}
             onChange={(event) => setDraftName(event.target.value)}
-            placeholder="Draft name / officer / dealer"
+            placeholder="Auto from officer name"
             className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
           />
           <select
@@ -254,6 +309,7 @@ export function SeedForms() {
           <PreviewCard title="Information Slip Logic" lines={resolved.crop === 'Cotton' ? ['Cotton selected: two slips will be generated.', '1. Germination, Purity & Moisture Test', '2. BT Protein Test'] : [`One slip: ${resolved.testRequired}`]} />
         </Card>
 
+        <div ref={sampleDetailsRef} className={highlightDetails ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}>
         <Card title="Sample Details">
           <div className="grid gap-2 sm:grid-cols-2">
             <Input label="Serial No. of sample" value={form.serialNo} onChange={(value) => setField('serialNo', value)} />
@@ -270,13 +326,14 @@ export function SeedForms() {
             <Input label="Quantity of sample in lot" value={form.quantityInLot} onChange={(value) => setField('quantityInLot', value)} />
             <SelectWithOther label="Class / Origin of seed" valueKey="seedClass" otherKey="seedClassOther" form={form} setField={setField} options={classOptions} />
             <Input label="Date of packing" type="date" value={form.packingDate} onChange={(value) => setField('packingDate', value)} />
-            <Input label="Stock position" value={form.stockPosition} onChange={(value) => setField('stockPosition', value)} />
           </div>
           <Input label="Source of supply" value={form.sourceOfSupply} onChange={(value) => setField('sourceOfSupply', value)} />
           <SelectWithOther label="Kind of test required" valueKey="testRequired" otherKey="testRequiredOther" form={form} setField={setField} options={testOptions} />
           <Input label="Remarks" value={form.remarks} onChange={(value) => setField('remarks', value)} textarea />
         </Card>
+        </div>
 
+        <div ref={dealerDetailsRef} className={highlightDetails ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}>
         <Card title="Dealer / Form VI & VIII Details">
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
           <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea placeholder="village" />
@@ -286,6 +343,7 @@ export function SeedForms() {
             <Select label="Cost paid" value={form.costPaid} onChange={(value) => setField('costPaid', value)} options={['Paid', 'Not Paid', 'Not Applicable'].map(toOption)} />
           </div>
         </Card>
+        </div>
       </div>
 
       <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
@@ -298,8 +356,14 @@ export function SeedForms() {
           <PdfAction label="Information Slip" onPreview={() => preview('SLIP')} onDownload={() => generate('SLIP')} />
           <PdfAction label="All Forms" onPreview={() => preview('ALL')} onDownload={() => generate('ALL')} primary />
         </div>
+        <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold leading-4 text-amber-800">
+          Note: Please update sample details and dealer details before generating a new file.
+        </p>
       </div>
 
+      {duplicateAction && (
+        <DuplicateDownloadModal onReview={reviewDuplicateDetails} onContinue={downloadAnyway} onClose={() => setDuplicateAction(null)} />
+      )}
     </section>
   );
 }
@@ -552,7 +616,7 @@ function drawSeedFormVIII(doc, form) {
     ['9. Variety', r.variety],
     ['10. Class of Seed', r.seedClass],
     ['11. Date of Packing', fmtDate(r.packingDate)],
-    ['12. Stock Position', r.quantityDrawn],
+    ['12. Stock Position', r.quantityInLot],
     ['13. Source of Supply', r.sourceOfSupply],
   ], 78);
   field(doc, p, 'Whether Cost of Sample Demanded?', r.costDemanded, 78);
@@ -776,12 +840,85 @@ function loadSeedDrafts() {
 }
 
 function buildSeedDraftName(name, form) {
-  const fallback = form.codeNo || form.dealerName || form.officerName;
+  const fallback = form.officerName || form.codeNo || form.dealerName;
   return (name.trim() || fallback || `Draft ${new Date().toLocaleString('en-IN')}`).slice(0, 80);
 }
 
 function upsertSeedDraft(drafts, draft) {
   return [draft, ...drafts.filter((item) => item.name !== draft.name)].slice(0, 30);
+}
+
+function seedGenerationSnapshot(form) {
+  const resolved = resolveSeedValues(form);
+  return stableSeedString({
+    serialNo: resolved.serialNo,
+    codeNo: resolved.codeNo,
+    collectionDate: resolved.collectionDate,
+    collectionPlace: resolved.collectionPlace,
+    nature: resolved.nature,
+    crop: resolved.crop,
+    variety: resolved.variety,
+    lotNo: resolved.lotNo,
+    quantityDrawn: resolved.quantityDrawn,
+    quantityInLot: resolved.quantityInLot,
+    seedClass: resolved.seedClass,
+    packingDate: resolved.packingDate,
+    sourceOfSupply: resolved.sourceOfSupply,
+    dealerName: resolved.dealerName,
+    dealerAddress: resolved.dealerAddress,
+    premisesLocation: resolved.premisesLocation,
+    costDemanded: resolved.costDemanded,
+    costPaid: resolved.costPaid,
+  });
+}
+
+function isDuplicateSeedGeneration(form) {
+  try {
+    return window.localStorage.getItem(LAST_GENERATED_KEY) === seedGenerationSnapshot(form);
+  } catch {
+    return false;
+  }
+}
+
+function rememberSeedGeneratedData(form) {
+  try {
+    window.localStorage.setItem(LAST_GENERATED_KEY, seedGenerationSnapshot(form));
+  } catch {
+    // Duplicate warning is best-effort only.
+  }
+}
+
+function stableSeedString(value) {
+  return JSON.stringify(
+    Object.keys(value)
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = String(value[key] ?? '').trim();
+        return acc;
+      }, {})
+  );
+}
+
+function DuplicateDownloadModal({ onReview, onContinue, onClose }) {
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-xl border border-amber-200 bg-white p-5 shadow-2xl">
+        <p className="text-sm font-black uppercase tracking-wide text-amber-700">Duplicate details warning</p>
+        <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">{DUPLICATE_WARNING_MESSAGE}</p>
+        <div className="mt-5 grid gap-2 sm:grid-cols-2">
+          <button type="button" onClick={onReview} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
+            Review/Edit Details
+          </button>
+          <button type="button" onClick={onContinue} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
+            Download Anyway
+          </button>
+        </div>
+        <button type="button" onClick={onClose} className="mt-3 w-full text-xs font-bold text-slate-500 hover:text-slate-700">
+          Close
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default SeedForms;

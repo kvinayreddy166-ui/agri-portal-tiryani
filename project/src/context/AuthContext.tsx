@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, isAdmin, isTestUser, isDealerUser, getDealerIdFromUser, clearPersistedSupabaseAuth } from '../lib/supabase';
 import {
@@ -71,31 +71,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isDealerUserFlag, setIsDealerUserFlag] = useState(false);
   const [dealerId, setDealerId] = useState<string | null>(null);
   const [dealerName, setDealerName] = useState<string | null>(null);
+  const authCheckedRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
     let subscription: { unsubscribe: () => void } | null = null;
-    let timeout = 0;
 
     const finishLoading = (sess: Session | null) => {
       if (!mounted) return;
-      window.clearTimeout(timeout);
       console.log('AuthContext: finishLoading called with session:', sess);
       applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
       setLoading(false);
       setAuthChecked(true);
+      authCheckedRef.current = true;
       setAppReady(true);
     };
-
-    // Fallback timeout to ensure loading is always set to false
-    timeout = window.setTimeout(() => {
-      console.log('AuthContext: 3000ms timeout fired, ensuring loading is false');
-      if (mounted) {
-        setLoading(false);
-        setAuthChecked(true);
-        setAppReady(true);
-      }
-    }, 3000);
 
     try {
       console.log('AuthContext: Starting getSession...');
@@ -113,8 +103,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const authState = supabase.auth.onAuthStateChange((_event, sess) => {
         console.log('AuthContext: onAuthStateChange called with event:', _event, 'session:', sess);
         applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
-        // Don't set authChecked/appReady here - let finishLoading handle it from getSession
-        setLoading(false);
+        if (authCheckedRef.current) {
+          setLoading(false);
+        }
       });
       subscription = authState.data.subscription;
     } catch (err) {
@@ -124,7 +115,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
-      window.clearTimeout(timeout);
       subscription?.unsubscribe();
     };
   }, []);

@@ -32,14 +32,31 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (id.includes('/src/services/') || id.includes('/src/lib/crop')) {
+            return 'agriculture-modules';
+          }
+
           if (!id.includes('node_modules')) return undefined;
           
           // Office/Excel
           if (id.includes('xlsx')) return 'vendor-xlsx';
           
-          // PDF tools
-          if (id.includes('jspdf') || id.includes('pdf-lib') || id.includes('pdfjs-dist') || id.includes('html2canvas')) {
+          // PDF and document tools
+          if (
+            id.includes('jspdf') ||
+            id.includes('pdf-lib') ||
+            id.includes('pdfjs-dist') ||
+            id.includes('html2canvas') ||
+            id.includes('mammoth') ||
+            id.includes('docx') ||
+            id.includes('file-saver')
+          ) {
             return 'vendor-pdf';
+          }
+
+          // AI / image processing modules are loaded only from specialist tools.
+          if (id.includes('@tensorflow') || id.includes('@techstark/opencv-js') || id.includes('tesseract.js')) {
+            return 'vendor-ai';
           }
           
           // Charts
