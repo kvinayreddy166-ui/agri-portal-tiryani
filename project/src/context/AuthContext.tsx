@@ -12,6 +12,8 @@ import {
   isDealerRpcMissing,
 } from '../lib/dealerLoginMessages';
 
+const AUTH_STARTUP_TIMEOUT_MS = 8000;
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -76,10 +78,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
     let subscription: { unsubscribe: () => void } | null = null;
+    let completed = false;
+    let startupTimer = 0;
 
     const finishLoading = (sess: Session | null) => {
-      if (!mounted) return;
-      console.log('AuthContext: finishLoading called with session:', sess);
+      if (!mounted || completed) return;
+      completed = true;
+      window.clearTimeout(startupTimer);
       applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
       setLoading(false);
       setAuthChecked(true);
@@ -88,11 +93,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     try {
-      console.log('AuthContext: Starting getSession...');
+      startupTimer = window.setTimeout(() => {
+        console.warn('Auth session check timed out. Continuing to app shell.');
+        finishLoading(null);
+      }, AUTH_STARTUP_TIMEOUT_MS);
+
       supabase.auth
         .getSession()
         .then(({ data: { session: sess } }) => {
-          console.log('AuthContext: getSession resolved with session:', sess);
           finishLoading(sess);
         })
         .catch((err) => {
@@ -101,11 +109,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
       const authState = supabase.auth.onAuthStateChange((_event, sess) => {
-        console.log('AuthContext: onAuthStateChange called with event:', _event, 'session:', sess);
         applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
-        if (authCheckedRef.current) {
-          setLoading(false);
+        if (!authCheckedRef.current) {
+          finishLoading(sess);
+          return;
         }
+        setLoading(false);
       });
       subscription = authState.data.subscription;
     } catch (err) {
@@ -115,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
+      window.clearTimeout(startupTimer);
       subscription?.unsubscribe();
     };
   }, []);
