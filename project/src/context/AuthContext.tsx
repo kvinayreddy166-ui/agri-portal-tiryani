@@ -76,12 +76,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true;
     let subscription: { unsubscribe: () => void } | null = null;
     let timeout = 0;
-    let forceTimeout = 0;
 
     const finishLoading = (sess: Session | null) => {
       if (!mounted) return;
       window.clearTimeout(timeout);
-      window.clearTimeout(forceTimeout);
       console.log('AuthContext: finishLoading called with session:', sess);
       applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
       setLoading(false);
@@ -89,20 +87,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAppReady(true);
     };
 
-    timeout = window.setTimeout(() => {
-      console.log('AuthContext: 1000ms timeout fired, forcing loading to false');
-      finishLoading(null);
-    }, 1000);
-
     // Fallback timeout to ensure loading is always set to false
-    forceTimeout = window.setTimeout(() => {
-      console.log('AuthContext: 5000ms force timeout fired, ensuring loading is false');
+    timeout = window.setTimeout(() => {
+      console.log('AuthContext: 3000ms timeout fired, ensuring loading is false');
       if (mounted) {
         setLoading(false);
         setAuthChecked(true);
         setAppReady(true);
       }
-    }, 5000);
+    }, 3000);
 
     try {
       console.log('AuthContext: Starting getSession...');
@@ -120,8 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const authState = supabase.auth.onAuthStateChange((_event, sess) => {
         console.log('AuthContext: onAuthStateChange called with event:', _event, 'session:', sess);
         applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
-        setAuthChecked(true);
-        setAppReady(true);
+        // Don't set authChecked/appReady here - let finishLoading handle it from getSession
+        setLoading(false);
       });
       subscription = authState.data.subscription;
     } catch (err) {
@@ -132,7 +125,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       mounted = false;
       window.clearTimeout(timeout);
-      window.clearTimeout(forceTimeout);
       subscription?.unsubscribe();
     };
   }, []);
