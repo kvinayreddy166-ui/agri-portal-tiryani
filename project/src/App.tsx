@@ -32,7 +32,6 @@ const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const CropAdminDashboard = lazy(() =>
   import('./pages/admin/CropAdminDashboard.jsx').then((m) => ({ default: m.CropAdminDashboard }))
 );
-const PestDiseaseGuide = lazy(() => import('./pages/PestDiseaseGuide').then((m) => ({ default: m.PestDiseaseGuide })));
 const UreaDashboard = lazy(() => import('./pages/UreaDashboard').then((m) => ({ default: m.UreaDashboard })));
 function GlobalAppLoader() {
   return (
@@ -89,7 +88,6 @@ const PAGE_PATHS: Record<string, string> = {
   'fertilizer-calculator': '/officer-toolkit/fertilizer-calculator',
   analytics: '/analytics',
   settings: '/settings',
-  'pest-disease-guide': '/pest-disease-guide',
   'urea-dashboard': '/urea-dashboard',
 };
 
@@ -297,7 +295,6 @@ function AppContent() {
         'fertilizer-calculator',
         'analytics',
         'settings',
-        'pest-disease-guide',
         'urea-dashboard',
       ]),
     []
@@ -557,12 +554,6 @@ function AppContent() {
         return <Analytics />;
       case 'settings':
         return <Settings />;
-      case 'pest-disease-guide':
-        return (
-          <Suspense fallback={<PageLoader />}>
-            <PestDiseaseGuide />
-          </Suspense>
-        );
       case 'urea-dashboard':
         return isAdminUser ? (
           <Suspense fallback={<PageLoader />}>

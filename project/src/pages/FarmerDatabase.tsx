@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Download,
   Eye,
@@ -75,6 +75,24 @@ const LazySimpleBarChart = lazy(() =>
 
 const emptyStateText = 'No farmer records found. Try name, phone number, PPB or village.';
 let localFarmerSeedCache: FarmerRow[] | null = null;
+type IdleWorkId = number | ReturnType<typeof globalThis.setTimeout>;
+
+function scheduleIdleWork(callback: () => void, timeout = 1200): IdleWorkId {
+  if (typeof window === 'undefined') return 0;
+  if ('requestIdleCallback' in window) {
+    return window.requestIdleCallback(callback, { timeout });
+  }
+  return globalThis.setTimeout(callback, Math.min(timeout, 250));
+}
+
+function cancelIdleWork(id: IdleWorkId) {
+  if (typeof window === 'undefined' || !id) return;
+  if ('cancelIdleCallback' in window && typeof id === 'number') {
+    window.cancelIdleCallback(id);
+    return;
+  }
+  globalThis.clearTimeout(id);
+}
 
 function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
   return (
@@ -113,7 +131,20 @@ export function FarmerDatabase() {
   }, [searchInput]);
 
   useEffect(() => {
-    loadLocalFarmerSeed().then(setFilterOptionRows).catch(() => setFilterOptionRows([]));
+    let active = true;
+    const idleId = scheduleIdleWork(() => {
+      loadLocalFarmerSeed()
+        .then((seedRows) => {
+          if (active) setFilterOptionRows(seedRows);
+        })
+        .catch(() => {
+          if (active) setFilterOptionRows([]);
+        });
+    }, 1800);
+    return () => {
+      active = false;
+      cancelIdleWork(idleId);
+    };
   }, []);
 
   const loadRows = useCallback(async () => {
@@ -162,8 +193,10 @@ export function FarmerDatabase() {
         setTotalRecords(localFiltered.length);
         setHasMore(localFiltered.length > (page + 1) * PAGE_SIZE);
       } else {
-        const localRows = await loadLocalFarmerSeed();
-        nextRows = enrichRowsWithLocalTelugu(nextRows, localRows);
+        if (showTelugu) {
+          const localRows = await loadLocalFarmerSeed();
+          nextRows = enrichRowsWithLocalTelugu(nextRows, localRows);
+        }
         const nextTotal = count ?? (page * PAGE_SIZE) + nextRows.length;
         setTotalRecords(nextTotal);
         setHasMore(count == null ? nextRows.length === PAGE_SIZE : nextTotal > (page + 1) * PAGE_SIZE);
@@ -184,7 +217,7 @@ export function FarmerDatabase() {
     } finally {
       setLoading(false);
     }
-  }, [cropFilter, debouncedSearch, page, surveyFilter, villageFilter]);
+  }, [cropFilter, debouncedSearch, page, showTelugu, surveyFilter, villageFilter]);
 
   const loadAnalyticsRows = useCallback(async () => {
     const collected: FarmerRow[] = [];
@@ -226,14 +259,28 @@ export function FarmerDatabase() {
       }));
       return;
     }
-    const localRows = await loadLocalFarmerSeed();
-    setAnalyticsRows(enrichRowsWithLocalTelugu(collected, localRows));
-  }, [cropFilter, surveyFilter, villageFilter]);
+    if (showTelugu) {
+      const localRows = await loadLocalFarmerSeed();
+      setAnalyticsRows(enrichRowsWithLocalTelugu(collected, localRows));
+      return;
+    }
+    setAnalyticsRows(collected);
+  }, [cropFilter, showTelugu, surveyFilter, villageFilter]);
 
   useEffect(() => {
     void loadRows();
-    void loadAnalyticsRows();
-  }, [loadAnalyticsRows, loadRows]);
+  }, [loadRows]);
+
+  useEffect(() => {
+    let active = true;
+    const idleId = scheduleIdleWork(() => {
+      if (active) void loadAnalyticsRows();
+    }, 1400);
+    return () => {
+      active = false;
+      cancelIdleWork(idleId);
+    };
+  }, [loadAnalyticsRows]);
 
   useEffect(() => {
     setPage(0);
@@ -741,11 +788,46 @@ function whatsappLink(value: string) {
 }
 
 function DeferredBarChart({ data, dataKey, nameKey }: { data: Record<string, string | number>[]; dataKey: string; nameKey: string }) {
+  const { ref, isVisible } = useNearViewport<HTMLDivElement>();
+
   return (
-    <Suspense fallback={<div className="h-60 animate-pulse rounded-lg bg-slate-100" />}>
-      <LazySimpleBarChart data={data} dataKey={dataKey} nameKey={nameKey} />
-    </Suspense>
+    <div ref={ref} className="min-h-60">
+      {isVisible ? (
+        <Suspense fallback={<div className="h-60 animate-pulse rounded-lg bg-slate-100" />}>
+          <LazySimpleBarChart data={data} dataKey={dataKey} nameKey={nameKey} />
+        </Suspense>
+      ) : (
+        <div className="h-60 animate-pulse rounded-lg bg-slate-100" />
+      )}
+    </div>
   );
+}
+
+function useNearViewport<T extends Element>() {
+  const ref = useRef<T | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || isVisible) return;
+    if (!('IntersectionObserver' in window)) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setIsVisible(true);
+        observer.disconnect();
+      },
+      { rootMargin: '240px 0px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isVisible]);
+
+  return { ref, isVisible };
 }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {

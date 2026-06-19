@@ -304,18 +304,16 @@ serve(async (req) => {
 
 async function parseUploadedFile(fileData: string, fileName: string): Promise<any[]> {
   try {
-    // If it's a base64 encoded file, decode it
     const isBase64 = fileData.startsWith('data:')
     const base64Data = isBase64 ? fileData.split(',')[1] : fileData
-    const decodedData = atob(base64Data)
+    const fileBytes = base64ToBytes(base64Data)
+    const normalizedFileName = fileName.toLowerCase()
     
-    // Parse based on file type
-    if (fileName.endsWith('.csv')) {
-      return parseCSV(decodedData)
-    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-      // For Excel files, use xlsx library
+    if (normalizedFileName.endsWith('.csv')) {
+      return parseCSV(new TextDecoder('utf-8').decode(fileBytes))
+    } else if (normalizedFileName.endsWith('.xlsx') || normalizedFileName.endsWith('.xls')) {
       const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs')
-      const workbook = XLSX.read(decodedData, { type: 'base64' })
+      const workbook = XLSX.read(fileBytes, { type: 'array' })
       const sheetName = workbook.SheetNames[0]
       const worksheet = workbook.Sheets[sheetName]
       const jsonData = XLSX.utils.sheet_to_json(worksheet)
@@ -341,6 +339,15 @@ async function parseUploadedFile(fileData: string, fileName: string): Promise<an
     console.error('File parsing error:', error)
     throw new Error(`Failed to parse file: ${error.message}`)
   }
+}
+
+function base64ToBytes(base64Data: string): Uint8Array {
+  const binary = atob(base64Data)
+  const bytes = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index)
+  }
+  return bytes
 }
 
 function parseCSV(csvData: string): any[] {
@@ -376,257 +383,149 @@ async function fetchFromExternalDashboard(syncId: string): Promise<{
 }> {
   const baseUrl = Deno.env.get('UREA_DASHBOARD_BASE_URL') || 'http://74.225.14.186:8025'
   const apiUrl = Deno.env.get('UREA_DASHBOARD_API_URL') || 'http://74.225.14.186:8026'
+  const serviceUsername = Deno.env.get('UREA_DASHBOARD_SERVICE_USERNAME')
+  const servicePassword = Deno.env.get('UREA_DASHBOARD_SERVICE_PASSWORD')
   const username = Deno.env.get('UREA_DASHBOARD_USERNAME')
   const password = Deno.env.get('UREA_DASHBOARD_PASSWORD')
+  const loginType = Deno.env.get('UREA_DASHBOARD_LOGIN_TYPE') || 'admin'
+  const finYear = Deno.env.get('UREA_DASHBOARD_FIN_YEAR') || '2025'
+  const season = Deno.env.get('UREA_DASHBOARD_SEASON') || '2'
+  const distCode = Deno.env.get('UREA_DASHBOARD_DIST_CODE') || '0'
+  const mandCode = Deno.env.get('UREA_DASHBOARD_MAND_CODE') || '0'
+  const ifmsId = Deno.env.get('UREA_DASHBOARD_IFMS_ID') || '0'
+  const pageSize = Math.max(1, Number(Deno.env.get('UREA_DASHBOARD_PAGE_SIZE') || 1000))
   
-  if (!username || !password) {
+  if (!serviceUsername || !servicePassword || !username || !password) {
     return {
       bookings: [],
       loginStatus: 'failed',
       apiStatus: 'not_attempted',
       httpCode: null,
       recordsFetched: 0,
-      detailedErrorMessage: 'Dashboard credentials not configured in environment variables'
+      detailedErrorMessage: 'Dashboard API and user credentials are not fully configured in environment variables'
     }
   }
 
-  let cookies: string[] = []
   let loginStatus = 'failed'
+  let apiStatus = 'not_attempted'
   let httpCode = null
   let detailedErrorMessage = null
 
   try {
-    // Step 1: Login to get session cookies
-    console.log('Attempting login to:', baseUrl)
-    
-    // Try multiple login approaches
-    let loginResponse: Response | null = null
-    
-    // Approach 1: POST with form data (current approach)
-    try {
-      console.log('Trying POST with form data to /login')
-      loginResponse = await fetch(`${baseUrl}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          username: username,
-          password: password
-        })
+    console.log('Fetching urea API bearer token from:', apiUrl)
+    const loginResponse = await fetch(`${apiUrl}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        Username: serviceUsername,
+        Password: servicePassword
       })
-      console.log('POST /login response status:', loginResponse.status)
-    } catch (e) {
-      console.log('POST /login failed:', e)
-    }
-
-    // Approach 2: POST with JSON data
-    if (!loginResponse || loginResponse.status === 405 || loginResponse.status === 404) {
-      try {
-        console.log('Trying POST with JSON to /login')
-        loginResponse = await fetch(`${baseUrl}/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: username,
-            password: password
-          })
-        })
-        console.log('POST JSON /login response status:', loginResponse.status)
-      } catch (e) {
-        console.log('POST JSON /login failed:', e)
-      }
-    }
-
-    // Approach 3: GET with query parameters
-    if (!loginResponse || loginResponse.status === 405 || loginResponse.status === 404) {
-      try {
-        console.log('Trying GET with query params to /login')
-        loginResponse = await fetch(`${baseUrl}/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
-          method: 'GET'
-        })
-        console.log('GET /login response status:', loginResponse.status)
-      } catch (e) {
-        console.log('GET /login failed:', e)
-      }
-    }
-
-    // Approach 4: POST to /Account/Login
-    if (!loginResponse || loginResponse.status === 405 || loginResponse.status === 404) {
-      try {
-        console.log('Trying POST to /Account/Login')
-        loginResponse = await fetch(`${baseUrl}/Account/Login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            username: username,
-            password: password
-          })
-        })
-        console.log('POST /Account/Login response status:', loginResponse.status)
-      } catch (e) {
-        console.log('POST /Account/Login failed:', e)
-      }
-    }
-
-    // Approach 5: POST to /api/login
-    if (!loginResponse || loginResponse.status === 405 || loginResponse.status === 404) {
-      try {
-        console.log('Trying POST to /api/login')
-        loginResponse = await fetch(`${baseUrl}/api/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: username,
-            password: password
-          })
-        })
-        console.log('POST /api/login response status:', loginResponse.status)
-      } catch (e) {
-        console.log('POST /api/login failed:', e)
-      }
-    }
-
-    if (!loginResponse) {
-      return {
-        bookings: [],
-        loginStatus: 'failed',
-        apiStatus: 'not_attempted',
-        httpCode: null,
-        recordsFetched: 0,
-        detailedErrorMessage: 'All login attempts failed'
-      }
-    }
-
+    })
     httpCode = loginResponse.status
-    console.log('Final login response status:', loginResponse.status)
-
-    // Extract cookies from login response
-    const setCookieHeader = loginResponse.headers.get('set-cookie')
-    if (setCookieHeader) {
-      cookies = setCookieHeader.split(',').map(c => c.split(';')[0].trim())
-      console.log('Cookies received:', cookies.length)
-    }
-
-    // Check if login was successful by checking if we got cookies or redirect
-    if (loginResponse.status === 302 || loginResponse.status === 200 || loginResponse.status === 307 || loginResponse.status === 308 || cookies.length > 0) {
-      loginStatus = 'success'
-    } else {
+    if (!loginResponse.ok) {
       const loginText = await loginResponse.text()
-      console.log('Login response text:', loginText.substring(0, 200))
-      if (loginText.includes('<html') || loginText.includes('<form')) {
-        loginStatus = 'failed'
-        detailedErrorMessage = 'SESSION_EXPIRED_OR_AUTH_FAILED'
-        return {
-          bookings: [],
-          loginStatus,
-          apiStatus: 'not_attempted',
-          httpCode,
-          recordsFetched: 0,
-          detailedErrorMessage
-        }
-      } else {
-        loginStatus = 'failed'
-        detailedErrorMessage = `Login failed with status ${loginResponse.status}: ${loginText.substring(0, 100)}`
-        return {
-          bookings: [],
-          loginStatus,
-          apiStatus: 'not_attempted',
-          httpCode,
-          recordsFetched: 0,
-          detailedErrorMessage
-        }
-      }
+      throw new Error(`API token login failed with status ${loginResponse.status}: ${loginText.substring(0, 200)}`)
     }
 
-    // Step 2: Fetch data from dashboard pages (web scraping approach)
+    const tokenPayload = await loginResponse.json()
+    const bearerToken = tokenPayload?.token
+    if (!bearerToken) {
+      throw new Error('API token login response did not include a bearer token')
+    }
+    loginStatus = 'success'
+
+    const authorizeResponse = await fetch(`${apiUrl}/api/authorize`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${bearerToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userName: username,
+        password,
+        loginCount: 0,
+        loginType
+      })
+    })
+    httpCode = authorizeResponse.status
+    if (!authorizeResponse.ok) {
+      const authorizeText = await authorizeResponse.text()
+      throw new Error(`Dashboard user authorization failed with status ${authorizeResponse.status}: ${authorizeText.substring(0, 200)}`)
+    }
+
+    const authorizePayload = JSON.parse(await authorizeResponse.text())
+    const authorizedUser = Array.isArray(authorizePayload) ? authorizePayload[0] : authorizePayload?.data?.[0] || authorizePayload
+    const userId = authorizedUser?.userId || authorizedUser?.UserId || authorizedUser?.userid
+    if (!userId) {
+      throw new Error('Dashboard authorization response did not include UserId')
+    }
+
     const allBookings: any[] = []
-    let apiStatus = 'success'
-    
-    // Try accessing dashboard report pages directly
-    const reportPages = [
-      `${baseUrl}/Report/UreaBookingReport`,
-      `${baseUrl}/Report/BookingReport`,
-      `${baseUrl}/Dashboard`,
-      `${baseUrl}/Home/UreaBookingReport`,
-    ]
+    apiStatus = 'success'
 
-    let workingPage = ''
-    let pageResponse: Response | null = null
-
-    for (const pageUrl of reportPages) {
-      try {
-        console.log('Trying page:', pageUrl)
-        pageResponse = await fetch(pageUrl, {
-          method: 'GET',
-          headers: {
-            'Cookie': cookies.join('; '),
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-          }
-        })
-
-        console.log(`Page ${pageUrl} response status:`, pageResponse.status)
-
-        if (pageResponse.ok) {
-          const pageText = await pageResponse.text()
-          console.log(`Page ${pageUrl} content length:`, pageText.length)
-          
-          // Check if page contains booking data tables
-          if (pageText.includes('table') && (pageText.includes('Farmer') || pageText.includes('Booking') || pageText.includes('Urea'))) {
-            workingPage = pageUrl
-            console.log('Found working page with data tables:', pageUrl)
-            
-            // Parse HTML table to extract booking data
-            const bookings = parseHTMLTable(pageText)
-            if (bookings.length > 0) {
-              allBookings.push(...bookings)
-              console.log('Extracted bookings from table:', bookings.length)
-              break
-            }
-          }
+    for (let pageNumber = 1; pageNumber <= 500; pageNumber += 1) {
+      const query = new URLSearchParams({
+        PageNumber: String(pageNumber),
+        PageSize: String(pageSize),
+        FinYear: finYear,
+        Season: season,
+        DistCode: distCode,
+        MandCode: mandCode,
+        IFMSId: ifmsId,
+        UserId: String(userId)
+      })
+      const reportResponse = await fetch(`${apiUrl}/api/DealerReportsBookingIdWiseDtls?${query.toString()}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
         }
-      } catch (e) {
-        console.log(`Page ${pageUrl} failed:`, e)
+      })
+      httpCode = reportResponse.status
+      if (!reportResponse.ok) {
+        const reportText = await reportResponse.text()
+        throw new Error(`Booking ID wise report failed with status ${reportResponse.status}: ${reportText.substring(0, 200)}`)
       }
+
+      const reportPayload = await reportResponse.json()
+      const pageRows = Array.isArray(reportPayload)
+        ? reportPayload
+        : Array.isArray(reportPayload?.data)
+          ? reportPayload.data
+          : []
+      allBookings.push(...pageRows)
+
+      const totalRecords = Number(reportPayload?.totalRecords ?? reportPayload?.TotalRecords ?? allBookings.length)
+      const totalPages = Number(reportPayload?.totalPages ?? reportPayload?.TotalPages ?? Math.ceil(totalRecords / pageSize))
+      if (pageRows.length === 0 || pageNumber >= totalPages || allBookings.length >= totalRecords) break
     }
 
     if (allBookings.length === 0) {
       apiStatus = 'failed'
-      detailedErrorMessage = 'No booking data found on any dashboard page. Manual Excel upload required.'
-      return {
-        bookings: [],
-        loginStatus,
-        apiStatus,
-        httpCode: pageResponse?.status || null,
-        recordsFetched: 0,
-        detailedErrorMessage
-      }
+      detailedErrorMessage = `No booking data returned from ${baseUrl}/reports/dealerreportsbookingidwisedetails`
     }
 
-    console.log('Total bookings extracted:', allBookings.length)
-
-    // Transform booking data to our format
     const transformedBookings = allBookings.map((item: any) => ({
-      farmer_name: item.FarmerName || item.farmer_name || '',
-      father_name: item.FatherName || item.father_name || '',
-      aadhaar_no: item.AadhaarNo || item.aadhaar_no || '',
-      ppb_no: item.PPBNo || item.ppb_no || '',
-      mobile_no: item.MobileNo || item.mobile_no || '',
-      village: item.Village || item.village || '',
-      survey_no: item.SurveyNo || item.survey_no || '',
-      extent: item.Extent || item.extent || 0,
-      crop: item.Crop || item.crop || '',
-      dealer_name: item.DealerName || item.dealer_name || '',
-      booking_id: item.BookingId || item.booking_id || '',
-      booking_date: item.BookingDate || item.booking_date || '',
-      urea_qty: item.UreaQty || item.urea_qty || 0
-    }))
+      farmer_name: pickText(item, ['FarmerName', 'farmer_name', 'farmername']),
+      father_name: pickText(item, ['FatherName', 'father_name', 'fathername']),
+      aadhaar_no: onlyDigits(pickText(item, ['AadhaarNo', 'aadhaar_no', 'Aadhar', 'aadhar'])),
+      ppb_no: pickText(item, ['PPBNo', 'ppb_no', 'ppbno']),
+      mobile_no: onlyDigits(pickText(item, ['MobileNo', 'mobile_no', 'FarmerMobileNo', 'farmermobileno', 'farmermobile'])),
+      village: pickText(item, ['Village', 'village']),
+      survey_no: pickText(item, ['SurveyNo', 'survey_no', 'surveyno']),
+      extent: pickNumber(item, ['Extent', 'extent', 'CultivatedExtent', 'cultivatedextent']),
+      crop: pickText(item, ['Crop', 'crop', 'CultivatedCrop', 'cultivatedcrop']),
+      dealer_name: pickText(item, ['DealerName', 'dealer_name', 'NameOfTheDealer', 'nameofthedealer']),
+      booking_id: pickText(item, ['BookingId', 'booking_id', 'bookingid']),
+      booking_date: normalizeDate(pickText(item, ['BookingDate', 'booking_date', 'bookingdate'])),
+      urea_qty: bagsToMetricTon(pickNumber(item, ['UreaQty', 'urea_qty', 'NoOfBagsBooked', 'noofbagsbooked'])),
+      bags_booked: pickNumber(item, ['NoOfBagsBooked', 'noofbagsbooked']),
+      booking_status: pickText(item, ['CurrentStatusOfTheBooking', 'currentstatusofthebooking', 'BookingStatus', 'bookingstatus']),
+      district: pickText(item, ['District', 'DistName', 'district']),
+      mandal: pickText(item, ['Mandal', 'MandName', 'mandal']),
+      ifms_id: pickText(item, ['IFMSId', 'ifmsid']),
+      raw_source: 'DealerReportsBookingIdWiseDtls'
+    })).filter((booking) => booking.booking_id)
 
     return {
       bookings: transformedBookings,
@@ -648,6 +547,54 @@ async function fetchFromExternalDashboard(syncId: string): Promise<{
       detailedErrorMessage: error.message
     }
   }
+}
+
+function normalizeKey(value: string): string {
+  return value.toLowerCase().replace(/[\s_.\-/]/g, '')
+}
+
+function pickValue(row: Record<string, unknown>, keys: string[]): unknown {
+  const wanted = new Set(keys.map(normalizeKey))
+  for (const key of Object.keys(row || {})) {
+    if (wanted.has(normalizeKey(key))) {
+      const value = row[key]
+      if (value !== undefined && value !== null && value !== '') return value
+    }
+  }
+  return ''
+}
+
+function pickText(row: Record<string, unknown>, keys: string[]): string {
+  const value = pickValue(row, keys)
+  if (typeof value === 'object') return ''
+  return String(value || '').trim()
+}
+
+function pickNumber(row: Record<string, unknown>, keys: string[]): number {
+  const value = pickValue(row, keys)
+  const parsed = Number(String(value || '').replace(/,/g, '').trim())
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+function onlyDigits(value: string): string {
+  return value.replace(/\D/g, '')
+}
+
+function bagsToMetricTon(value: number): number {
+  return Number((value * 0.045).toFixed(3))
+}
+
+function normalizeDate(value: string): string {
+  if (!value || value === '-') return ''
+  const trimmed = value.trim()
+  const indianDate = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})/)
+  if (indianDate) {
+    const [, day, month, year] = indianDate
+    const fullYear = year.length === 2 ? `20${year}` : year
+    return `${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+  }
+  const parsed = new Date(trimmed)
+  return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().split('T')[0]
 }
 
 function parseHTMLTable(html: string): any[] {

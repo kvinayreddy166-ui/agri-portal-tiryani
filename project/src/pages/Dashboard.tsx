@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2, Bug, ArrowRight } from 'lucide-react';
+import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../lib/fertilizerStock';
 import { useAuth } from '../context/AuthContext';
@@ -38,7 +37,6 @@ type FarmerDashboardStats = {
 let farmerDashboardSeedCache: FarmerDashboardRow[] | null = null;
 
 export function Dashboard() {
-  const navigate = useNavigate();
   const { isAdminUser } = useAuth();
   const { t } = useLanguage();
   const [crops, setCrops] = useState<Crop[]>([]);
@@ -340,19 +338,11 @@ export function Dashboard() {
           {/* Crop Statistics */}
           {dashboardCrops.length > 0 ? (
             <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex items-center">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <TrendingUp className="w-6 h-6 text-emerald-600" />
               {t('Major Crops', 'ప్రధాన పంటలు')} - {t('Total', 'మొత్తం')}: {formatDashboardNumber(totalAcreage)} {t('acres', 'ఎకరాలు')}
             </h2>
-            <button
-              onClick={() => navigate('/pest-disease-guide')}
-              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-md transition hover:shadow-lg hover:scale-105"
-            >
-              <Bug className="w-4 h-4" />
-              {t('Pest & Disease Guide', 'పురుగు & వ్యాధి గైడ్')}
-              <ArrowRight className="w-4 h-4" />
-            </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {dashboardCrops.map((crop, idx) => {

@@ -220,7 +220,7 @@ export function UreaDashboard() {
     try {
       const { data, error } = await supabase
         .from('external_urea_sync_logs')
-        .select('id, started_at, completed_at, status, records_processed, error_message')
+        .select('id, sync_type, started_at, completed_at, status, records_imported, records_matched, records_unmatched, records_duplicate, error_message, login_status, api_status, http_code, records_fetched, records_inserted, records_updated, detailed_error_message')
         .order('started_at', { ascending: false })
         .limit(10);
 
@@ -293,9 +293,7 @@ export function UreaDashboard() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No session');
 
-      // Read file
-      const fileData = await uploadFile.text();
-      const base64Data = btoa(fileData);
+      const fileData = await readFileAsDataUrl(uploadFile);
 
       const edgeFunctionUrl = `${supabaseUrl}/functions/v1/sync-urea-dashboard-reports`;
       
@@ -307,7 +305,7 @@ export function UreaDashboard() {
         },
         body: JSON.stringify({
           syncType: 'manual_upload',
-          fileData: `data:text/csv;base64,${base64Data}`,
+          fileData,
           fileName: uploadFile.name
         })
       });
@@ -1036,6 +1034,21 @@ export function UreaDashboard() {
       )}
     </div>
   );
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Unable to read selected file.'));
+      }
+    };
+    reader.onerror = () => reject(reader.error || new Error('Unable to read selected file.'));
+    reader.readAsDataURL(file);
+  });
 }
 
 function StatCard({ icon: Icon, label, value, color }: { icon: any, label: string, value: string, color: string }) {

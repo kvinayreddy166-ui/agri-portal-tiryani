@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tiryani-portal-v15';
+const CACHE_VERSION = 'tiryani-portal-v16';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -18,23 +18,10 @@ const STATIC_ASSETS = [
   '/icons/icon-512x512.png',
   '/icons/icon-maskable-192x192.png',
   '/icons/icon-maskable-512x512.png',
-  '/screenshots/mobile-home.png',
-  '/screenshots/desktop-dashboard.png',
   '/images/agri-emblem.webp',
   '/images/agri-emblem-192.webp',
   '/images/agri-emblem-512.webp',
   '/images/rice.webp',
-  '/images/paddy.webp',
-  '/images/maize.webp',
-  '/images/cotton.webp',
-  '/images/pulses.webp',
-  '/images/oilseeds.webp',
-  '/images/greengram.webp',
-  '/images/file-icons/doc.png',
-  '/images/file-icons/excel.png',
-  '/images/file-icons/image.png',
-  '/images/file-icons/pdf.png',
-  '/farmer_database_seed.json',
   '/data/crop-intelligence.json',
   '/sitemap.xml',
   '/robots.txt',

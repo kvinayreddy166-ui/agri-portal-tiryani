@@ -51,8 +51,10 @@ export const clearPersistedSupabaseAuth = () => {
   }
 };
 
-console.log('Supabase: Initializing client with URL:', supabaseUrl);
-console.log('Supabase: Anon key valid:', isValidAnonKey(supabaseAnonKey));
+if (import.meta.env.DEV) {
+  console.log('Supabase: Initializing client with URL:', supabaseUrl);
+  console.log('Supabase: Anon key valid:', isValidAnonKey(supabaseAnonKey));
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -63,7 +65,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-console.log('Supabase: Client initialized successfully');
+if (import.meta.env.DEV) {
+  console.log('Supabase: Client initialized successfully');
+}
 
 export const isAdmin = (email: string | undefined) => {
   return email?.trim().toLowerCase() === 'k.vinayreddy166@gmail.com';
