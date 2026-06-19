@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { BarChart3, ChevronDown, FileSpreadsheet, Package, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
+import { BarChart3, ChevronDown, ClipboardList, FileSpreadsheet, Package, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Dealer, DealerStockAllocation } from '../types/database';
@@ -311,7 +311,7 @@ export function StockManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {isDealerUser ? (
         <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-600">
           <Package className="mx-auto mb-3 h-10 w-10 text-gray-300" />
@@ -321,31 +321,36 @@ export function StockManagement() {
         </div>
       ) : (
         <>
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h1 className="page-title">Fertilizer Tracking</h1>
-              <p className="page-subtitle">Fertilizer receipts, dealer load entries, and current balance.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <IconButton label="Refresh fertilizer tracking" tone="secondary" onClick={fetchData}>
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              </IconButton>
-              <IconButton label="Export filtered Excel" tone="excel" onClick={exportFilteredReceipts} disabled={filteredStock.length === 0}>
-                <FileSpreadsheet className="h-4 w-4" />
-              </IconButton>
-              {isAdminUser && (
-                <button
-                  onClick={() => setShowAddForm(true)}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Manual Receipt
-                </button>
-              )}
+          <div className="rounded-lg bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-3 text-white shadow-md md:p-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-emerald-100">Stock Management</p>
+                <h1 className="text-2xl font-black tracking-tight">Fertilizer Tracking</h1>
+                <p className="mt-0.5 max-w-2xl text-xs text-emerald-50">
+                  Fertilizer receipts, dealer load entries, and current balance.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <IconButton label="Refresh fertilizer tracking" tone="secondary" onClick={fetchData}>
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                </IconButton>
+                <IconButton label="Export filtered Excel" tone="excel" onClick={exportFilteredReceipts} disabled={filteredStock.length === 0}>
+                  <FileSpreadsheet className="h-4 w-4" />
+                </IconButton>
+                {isAdminUser && (
+                  <button
+                    onClick={() => setShowAddForm(true)}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-bold text-emerald-800 shadow-sm transition hover:bg-emerald-50"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Manual Receipt
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/50">
+          <div className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h2 className="text-sm font-black text-slate-950 dark:text-white">Filters</h2>
@@ -504,30 +509,50 @@ export function StockManagement() {
           )}
 
           {filteredStock.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-600">
+            <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center dark:border-slate-600">
               <Package className="mx-auto mb-3 h-10 w-10 text-gray-300" />
               <p className="font-semibold text-slate-600 dark:text-slate-300">No fertilizer receipt entries found.</p>
             </div>
           ) : (
             <>
-              <section className="grid gap-3 md:grid-cols-[15rem_1fr]">
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm shadow-amber-100/80 dark:border-amber-900/60 dark:bg-amber-950/20">
-                  <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Total Receipts</p>
-                  <p className="mt-1 text-2xl font-black text-slate-950 dark:text-white">{totalReceipts.toFixed(2)} MT</p>
-                  <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">{visibleSummary.length} fertilizer types</p>
+              <section className="grid gap-2 lg:grid-cols-3">
+                <div className="rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 p-3 shadow-sm">
+                  <div className="mb-2 w-fit rounded-lg bg-amber-200 p-2 text-amber-700">
+                    <Package className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-amber-600">Total Receipts</p>
+                  <p className="mt-1 text-2xl font-black text-amber-950">{totalReceipts.toFixed(2)} MT</p>
+                  <p className="mt-0.5 text-xs font-semibold text-amber-800/80">{visibleSummary.length} fertilizer types</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
+                <div className="rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50 to-sky-100 p-3 shadow-sm">
+                  <div className="mb-2 w-fit rounded-lg bg-sky-200 p-2 text-sky-700">
+                    <ClipboardList className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-sky-600">Receipt Entries</p>
+                  <p className="mt-1 text-2xl font-black text-sky-950">{filteredStock.length}</p>
+                  <p className="mt-0.5 text-xs font-semibold text-sky-800/80">Filtered records</p>
+                </div>
+                <div className="rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 shadow-sm">
+                  <div className="mb-2 w-fit rounded-lg bg-emerald-200 p-2 text-emerald-700">
+                    <BarChart3 className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-emerald-600">Dealers Covered</p>
+                  <p className="mt-1 text-2xl font-black text-emerald-950">{dealerSummary.length}</p>
+                  <p className="mt-0.5 text-xs font-semibold text-emerald-800/80">With matching receipts</p>
+                </div>
+              </section>
+
+              <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                   <h2 className="mb-2 flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
                     <BarChart3 className="h-5 w-5 text-amber-600" />
                     Fertilizer-wise Receipts Chart
                   </h2>
-                  <div className="h-36">
+                  <div className="h-64 md:h-72">
                     <Suspense fallback={<div className="flex h-full items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" /></div>}>
                       <LazyFertilizerChart data={chartRows} />
                     </Suspense>
                   </div>
-            </div>
-          </section>
+              </section>
 
           <section className="grid gap-3 lg:grid-cols-2">
             <GroupedTotalsTable
@@ -556,8 +581,8 @@ export function StockManagement() {
             />
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
-            <div className="border-b border-slate-100 px-3 py-2 dark:border-slate-800">
+          <section className="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <div className="border-b border-gray-100 px-3 py-2 dark:border-slate-800">
               <h2 className="text-sm font-black text-slate-950 dark:text-white">Fertilizer-wise Receipts Summary</h2>
             </div>
             <div className="table-scroll">
@@ -582,8 +607,8 @@ export function StockManagement() {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900">
-            <div className="border-b border-slate-100 px-3 py-2 dark:border-slate-800">
+          <section className="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <div className="border-b border-gray-100 px-3 py-2 dark:border-slate-800">
               <h2 className="text-sm font-black text-slate-950 dark:text-white">Fertilizer Receipts</h2>
             </div>
             <div className="table-scroll" {...receiptRows.containerProps}>
@@ -664,14 +689,14 @@ function GroupedTotalsTable({
   rows: { name: string; receipts: number; entries: number; count: number }[];
 }) {
   const toneClass = {
-    sky: 'border-sky-200 bg-sky-50 dark:border-sky-900/60 dark:bg-sky-950/20',
-    violet: 'border-violet-200 bg-violet-50 dark:border-violet-900/60 dark:bg-violet-950/20',
-    slate: 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900',
+    sky: 'border-sky-200 bg-gradient-to-br from-sky-50 to-sky-100 dark:border-sky-900/60 dark:from-sky-950/30 dark:to-slate-900',
+    violet: 'border-violet-200 bg-gradient-to-br from-violet-50 to-violet-100 dark:border-violet-900/60 dark:from-violet-950/30 dark:to-slate-900',
+    slate: 'border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 dark:border-slate-700 dark:from-slate-900 dark:to-slate-950',
   }[tone];
 
   return (
-    <section className={`overflow-hidden rounded-xl border shadow-sm ${toneClass}`}>
-      <div className="border-b border-slate-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+    <section className={`overflow-hidden rounded-lg border shadow-sm ${toneClass}`}>
+      <div className="border-b border-white/70 bg-white/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
         <h2 className="text-sm font-black text-slate-950 dark:text-white">{title}</h2>
       </div>
       <div className="table-scroll">
