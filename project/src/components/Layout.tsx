@@ -155,21 +155,21 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[21rem] max-w-[88vw] flex-col border-r border-emerald-100 bg-white text-slate-900 shadow-2xl shadow-slate-950/25 transition-transform duration-300 ease-out dark:border-slate-800 dark:bg-slate-950 dark:text-white ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-80 max-w-[86vw] flex-col border-r border-emerald-100 bg-white text-slate-900 shadow-2xl shadow-slate-950/25 transition-transform duration-300 ease-out dark:border-slate-800 dark:bg-slate-950 dark:text-white ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="border-b border-slate-200 bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900 px-4 pb-4 pt-5 text-white dark:border-slate-800">
+        <div className="border-b border-slate-200 bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900 px-3.5 pb-3 pt-4 text-white dark:border-slate-800">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] font-black uppercase tracking-wide text-emerald-100">Navigation</p>
-              <h2 className="mt-1 truncate text-lg font-black tracking-tight">Tiryani Portal</h2>
-              <p className="mt-1 truncate text-xs font-semibold text-emerald-100">{pageMeta.title}</p>
+              <p className="text-[10px] font-black uppercase tracking-wide text-emerald-100">Navigation</p>
+              <h2 className="mt-0.5 truncate text-base font-black tracking-tight">Tiryani Portal</h2>
+              <p className="mt-0.5 truncate text-[11px] font-semibold text-emerald-100">{pageMeta.title}</p>
             </div>
             <button
               type="button"
               onClick={sidebarOverlay.closeOverlay}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 transition hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-white/25"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 transition hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-white/25"
               aria-label="Close menu"
             >
               <X className="h-4 w-4" />
@@ -177,13 +177,13 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <nav className="flex-1 overflow-y-auto px-2.5 py-3">
           {menuSections(visibleMenuItems).map((section) => (
-            <div key={section.title} className="mb-4 last:mb-0">
-              <p className="mb-2 px-3 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
+            <div key={section.title} className="mb-3 last:mb-0">
+              <p className="mb-1.5 px-2.5 text-[9px] font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
                 {section.title}
               </p>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {section.items.map((item) => {
                   const isActive = currentPage === item.id || (item.id === 'crops' && currentPage.startsWith('crop-'));
                   return (
@@ -191,20 +191,20 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
                       key={item.id}
                       type="button"
                       onClick={() => handleNavigation(item.id)}
-                      className={`group flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900/50 ${
+                      className={`group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-left text-[13px] font-bold transition focus:outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900/50 ${
                         isActive
                           ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-900/15'
                           : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-slate-900 dark:hover:text-emerald-200'
                       }`}
                     >
                       <span
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition ${
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition ${
                           isActive
                             ? 'bg-white/20 text-white'
                             : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-emerald-700 dark:bg-slate-900 dark:text-slate-400 dark:group-hover:bg-slate-800 dark:group-hover:text-emerald-200'
                         }`}
                       >
-                        <item.icon className="h-[18px] w-[18px]" />
+                        <item.icon className="h-4 w-4" />
                       </span>
                       <span className="min-w-0 flex-1 truncate">{t(item.label, translateMenu(item.label))}</span>
                       <ChevronRight
@@ -220,9 +220,9 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
           ))}
         </nav>
 
-        <div className="border-t border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/70">
-          <div className="mb-3 flex items-center gap-3 rounded-2xl border border-white bg-white px-3 py-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-sm font-black text-white shadow-sm">
+        <div className="border-t border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/70">
+          <div className="mb-2 flex items-center gap-2.5 rounded-xl border border-white bg-white px-2.5 py-2 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-xs font-black text-white shadow-sm">
               {user?.email?.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
@@ -239,7 +239,7 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
           <button
             type="button"
             onClick={onSignOut}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-2 text-xs font-black text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
           >
             <LogOut className="h-4 w-4" />
             {t('Sign Out', 'సైన్ అవుట్')}

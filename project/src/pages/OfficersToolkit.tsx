@@ -75,6 +75,14 @@ const externalPortals = [
     bgGradient: 'from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30',
   },
   {
+    title: 'Treasury Challan Generation',
+    description: 'Telangana IFMIS e-Challan Portal',
+    externalUrl: 'https://ifmis.telangana.gov.in/echallan',
+    icon: FileStack,
+    gradient: 'from-slate-600 to-emerald-700',
+    bgGradient: 'from-slate-50 to-emerald-50 dark:from-slate-950/30 dark:to-emerald-950/30',
+  },
+  {
     title: 'Agromet Advisories',
     description: 'Agricultural Meteorological Advisories',
     externalUrl: 'https://pjtau.edu.in/agromet-advisories/',
