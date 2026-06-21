@@ -90,11 +90,16 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
             <button
               type="button"
               onClick={toggleSidebar}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/10 transition hover:bg-white/20"
+              className={`group relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border shadow-sm transition focus:outline-none focus:ring-4 focus:ring-white/25 ${
+                sidebarOpen
+                  ? 'border-white/40 bg-white text-emerald-800'
+                  : 'border-white/20 bg-white/15 text-white hover:border-white/35 hover:bg-white/25'
+              }`}
               aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={sidebarOpen}
             >
-              {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              <span className="absolute inset-1 rounded-xl bg-white/10 opacity-0 transition group-hover:opacity-100" />
+              {sidebarOpen ? <X className="relative h-5 w-5" /> : <Menu className="relative h-5 w-5" />}
             </button>
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <PortalLogo size="sm" />
@@ -143,43 +148,86 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
 
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-[3px]"
           onClick={sidebarOverlay.closeOverlay}
           aria-hidden
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col border-r border-emerald-900/30 bg-gradient-to-b from-slate-900 via-emerald-950 to-slate-900 pt-[4.25rem] text-white shadow-2xl transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[21rem] max-w-[88vw] flex-col border-r border-emerald-100 bg-white text-slate-900 shadow-2xl shadow-slate-950/25 transition-transform duration-300 ease-out dark:border-slate-800 dark:bg-slate-950 dark:text-white ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {visibleMenuItems.map((item) => (
+        <div className="border-b border-slate-200 bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900 px-4 pb-4 pt-5 text-white dark:border-slate-800">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-black uppercase tracking-wide text-emerald-100">Navigation</p>
+              <h2 className="mt-1 truncate text-lg font-black tracking-tight">Tiryani Portal</h2>
+              <p className="mt-1 truncate text-xs font-semibold text-emerald-100">{pageMeta.title}</p>
+            </div>
             <button
-              key={item.id}
               type="button"
-              onClick={() => handleNavigation(item.id)}
-            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                currentPage === item.id || (item.id === 'crops' && currentPage.startsWith('crop-'))
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-emerald-100 hover:bg-white/10'
-              }`}
+              onClick={sidebarOverlay.closeOverlay}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 transition hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-white/25"
+              aria-label="Close menu"
             >
-              <item.icon className="h-5 w-5 shrink-0" />
-              {t(item.label, translateMenu(item.label))}
+              <X className="h-4 w-4" />
             </button>
+          </div>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
+          {menuSections(visibleMenuItems).map((section) => (
+            <div key={section.title} className="mb-4 last:mb-0">
+              <p className="mb-2 px-3 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
+                {section.title}
+              </p>
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const isActive = currentPage === item.id || (item.id === 'crops' && currentPage.startsWith('crop-'));
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleNavigation(item.id)}
+                      className={`group flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900/50 ${
+                        isActive
+                          ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-900/15'
+                          : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-slate-900 dark:hover:text-emerald-200'
+                      }`}
+                    >
+                      <span
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition ${
+                          isActive
+                            ? 'bg-white/20 text-white'
+                            : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-emerald-700 dark:bg-slate-900 dark:text-slate-400 dark:group-hover:bg-slate-800 dark:group-hover:text-emerald-200'
+                        }`}
+                      >
+                        <item.icon className="h-[18px] w-[18px]" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate">{t(item.label, translateMenu(item.label))}</span>
+                      <ChevronRight
+                        className={`h-4 w-4 shrink-0 transition ${
+                          isActive ? 'text-white/80' : 'text-slate-300 opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 dark:text-slate-600'
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           ))}
         </nav>
 
-        <div className="border-t border-white/10 p-4">
-          <div className="mb-3 flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-sm font-bold text-white">
+        <div className="border-t border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+          <div className="mb-3 flex items-center gap-3 rounded-2xl border border-white bg-white px-3 py-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-sm font-black text-white shadow-sm">
               {user?.email?.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium">{user?.email}</p>
-              <p className="text-[10px] text-emerald-300">
+              <p className="truncate text-xs font-black text-slate-900 dark:text-white">{user?.email}</p>
+              <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
                 {isAdminUser
                   ? t('Administrator', 'నిర్వాహకుడు')
                   : isDealerUser
@@ -191,7 +239,7 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
           <button
             type="button"
             onClick={onSignOut}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/90 py-2.5 text-sm font-bold transition hover:bg-red-500"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
           >
             <LogOut className="h-4 w-4" />
             {t('Sign Out', 'సైన్ అవుట్')}
@@ -236,6 +284,31 @@ type BreadcrumbItem = {
   label: string;
   page?: string;
 };
+
+function menuSections(items: typeof adminMenuItems) {
+  const sections = [
+    { title: 'Overview', ids: ['dashboard', 'stock-analytics', 'analytics'] },
+    { title: 'Field Operations', ids: ['dealers', 'farmer-database', 'subsidy', 'farm-mechanization', 'quality'] },
+    { title: 'Knowledge', ids: ['crops', 'officer-toolkit', 'gos-circulars'] },
+    { title: 'Records', ids: ['file-directory', 'excel', 'urea-dashboard', 'settings'] },
+  ];
+
+  const itemById = new Map(items.map((item) => [item.id, item]));
+  const used = new Set<string>();
+  const grouped = sections
+    .map((section) => {
+      const sectionItems = section.ids
+        .map((id) => itemById.get(id))
+        .filter((item): item is (typeof adminMenuItems)[number] => Boolean(item));
+      sectionItems.forEach((item) => used.add(item.id));
+      return { title: section.title, items: sectionItems };
+    })
+    .filter((section) => section.items.length > 0);
+
+  const remaining = items.filter((item) => !used.has(item.id));
+  if (remaining.length) grouped.push({ title: 'More', items: remaining });
+  return grouped;
+}
 
 function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem[] } {
   const dashboard = { label: 'Dashboard', page: 'dashboard' };

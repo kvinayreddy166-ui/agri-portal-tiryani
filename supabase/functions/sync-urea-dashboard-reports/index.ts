@@ -309,32 +309,26 @@ async function parseUploadedFile(fileData: string, fileName: string): Promise<an
     const fileBytes = base64ToBytes(base64Data)
     const normalizedFileName = fileName.toLowerCase()
     
+    let rows: any[] = []
+
     if (normalizedFileName.endsWith('.csv')) {
-      return parseCSV(new TextDecoder('utf-8').decode(fileBytes))
+      rows = parseCSV(new TextDecoder('utf-8').decode(fileBytes))
     } else if (normalizedFileName.endsWith('.xlsx') || normalizedFileName.endsWith('.xls')) {
       const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs')
       const workbook = XLSX.read(fileBytes, { type: 'array' })
       const sheetName = workbook.SheetNames[0]
       const worksheet = workbook.Sheets[sheetName]
-      const jsonData = XLSX.utils.sheet_to_json(worksheet)
-      return jsonData.map((row: any) => ({
-        farmer_name: row['Farmer Name'] || row['farmer_name'] || '',
-        father_name: row['Father Name'] || row['father_name'] || '',
-        aadhaar_no: row['Aadhaar'] || row['aadhaar_no'] || row['Aadhaar No'] || '',
-        ppb_no: row['PPB'] || row['ppb_no'] || row['PPB No'] || '',
-        mobile_no: row['Mobile'] || row['mobile_no'] || row['Mobile No'] || '',
-        village: row['Village'] || row['village'] || '',
-        survey_no: row['Survey'] || row['survey_no'] || row['Survey No'] || '',
-        extent: row['Extent'] || row['extent'] || 0,
-        crop: row['Crop'] || row['crop'] || '',
-        dealer_name: row['Dealer'] || row['dealer_name'] || row['Dealer Name'] || '',
-        booking_id: row['Booking ID'] || row['booking_id'] || '',
-        booking_date: row['Booking Date'] || row['booking_date'] || '',
-        urea_qty: row['Urea Qty'] || row['urea_qty'] || row['Urea Quantity'] || 0
-      }))
+      rows = XLSX.utils.sheet_to_json(worksheet, { defval: '', raw: false })
     } else {
       throw new Error('Unsupported file format. Please use CSV or Excel.')
     }
+
+    const bookings = rows.map(transformUploadedBookingRow).filter((booking) => booking.booking_id)
+    if (rows.length > 0 && bookings.length === 0) {
+      throw new Error('No Booking ID column values were found. Please upload the Dealer Booking ID Wise report.')
+    }
+
+    return bookings
   } catch (error) {
     console.error('File parsing error:', error)
     throw new Error(`Failed to parse file: ${error.message}`)
@@ -351,26 +345,102 @@ function base64ToBytes(base64Data: string): Uint8Array {
 }
 
 function parseCSV(csvData: string): any[] {
-  const lines = csvData.split('\n')
-  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'))
-  
+  const table = parseCSVTable(csvData)
+  if (table.length === 0) return []
+
+  const headers = table[0].map((header) => header.trim())
   const bookings: any[] = []
-  
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim()
-    if (!line) continue
-    
-    const values = line.split(',').map(v => v.trim())
+
+  for (let i = 1; i < table.length; i++) {
+    const values = table[i]
+    if (values.every((value) => !value.trim())) continue
+
     const booking: any = {}
-    
+
     headers.forEach((header, index) => {
-      booking[header] = values[index] || ''
+      booking[header] = values[index]?.trim() || ''
     })
-    
+
     bookings.push(booking)
   }
-  
+
   return bookings
+}
+
+function parseCSVTable(csvData: string): string[][] {
+  const rows: string[][] = []
+  let row: string[] = []
+  let cell = ''
+  let inQuotes = false
+
+  for (let index = 0; index < csvData.length; index += 1) {
+    const char = csvData[index]
+    const nextChar = csvData[index + 1]
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        cell += '"'
+        index += 1
+      } else {
+        inQuotes = !inQuotes
+      }
+      continue
+    }
+
+    if (char === ',' && !inQuotes) {
+      row.push(cell)
+      cell = ''
+      continue
+    }
+
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') index += 1
+      row.push(cell)
+      rows.push(row)
+      row = []
+      cell = ''
+      continue
+    }
+
+    cell += char
+  }
+
+  if (cell || row.length > 0) {
+    row.push(cell)
+    rows.push(row)
+  }
+
+  return rows
+}
+
+function transformUploadedBookingRow(row: Record<string, unknown>): Record<string, unknown> {
+  const bagsBooked = pickNumber(row, ['NoOfBagsBooked', 'No. of Bags Booked', 'no_of_bags_booked', 'bags_booked'])
+  const ureaQty = pickNumber(row, ['UreaQty', 'urea_qty', 'Urea Quantity', 'urea_quantity'])
+
+  return {
+    farmer_name: pickText(row, ['FarmerName', 'Farmer Name', 'farmer_name']),
+    father_name: pickText(row, ['FatherName', 'Father Name', 'father_name']),
+    aadhaar_no: onlyDigits(pickText(row, ['AadhaarNo', 'Aadhaar', 'Aadhar', 'aadhaar_no', 'aadhar'])),
+    ppb_no: pickText(row, ['PPBNo', 'PPBNO', 'PPB', 'PPB No', 'ppb_no']),
+    mobile_no: onlyDigits(pickText(row, ['MobileNo', 'Mobile', 'Mobile No', 'FarmerMobileNo', 'Farmer Mobile No', 'mobile_no'])),
+    village: pickText(row, ['Village', 'village']),
+    survey_no: pickText(row, ['SurveyNo', 'Survey', 'Survey No', 'survey_no']),
+    extent: pickNumber(row, ['Extent', 'CultivatedExtent', 'Cultivated Extent', 'extent']),
+    crop: pickText(row, ['Crop', 'CultivatedCrop', 'Cultivated Crop', 'crop']),
+    dealer_name: pickText(row, ['Dealer', 'DealerName', 'Dealer Name', 'NameOfTheDealer', 'Name of the Dealer', 'dealer_name']),
+    booking_id: pickText(row, ['BookingId', 'Booking ID', 'booking_id']),
+    booking_date: normalizeDate(pickText(row, ['BookingDate', 'Booking Date', 'booking_date'])),
+    urea_qty: ureaQty || bagsToMetricTon(bagsBooked),
+    bags_booked: bagsBooked,
+    bags_purchased: pickNumber(row, ['NoofBagsPurchased', 'NoofBags_Purchased', 'NoofBags Purchased']),
+    purchased_date: normalizeDate(pickText(row, ['PurchasedDt', 'Purchased Date'])),
+    booking_expiry_date: normalizeDate(pickText(row, ['Booking Expiry Date', 'BookingExpiryDate'])),
+    booking_status: pickText(row, ['CurrentStatusOfTheBooking', 'Current Status of the Booking', 'BookingStatus']),
+    district: pickText(row, ['District', 'DistName']),
+    mandal: pickText(row, ['Mandal', 'MandName']),
+    ifms_id: pickText(row, ['IFMSId', 'IFMS ID']),
+    raw_source: 'manual_upload'
+  }
 }
 
 async function fetchFromExternalDashboard(syncId: string): Promise<{

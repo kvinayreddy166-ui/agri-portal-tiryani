@@ -98,6 +98,9 @@ export function SeedForms() {
           setDraftName(value.trim());
         }
       }
+      if (key === 'place') {
+        return { ...current, place: value, collectionPlace: value };
+      }
       return { ...current, [key]: value };
     });
     setMessage('');
@@ -294,7 +297,7 @@ export function SeedForms() {
           <Select label="From designation" value={form.designation} onChange={(value) => setField('designation', value)} options={designationOptions.map(toOption)} />
           <Input label="From office address" value={form.officeAddress} onChange={(value) => setField('officeAddress', value)} textarea />
           <div className="grid gap-2 sm:grid-cols-2">
-            <Input label="Form place" value={form.place} onChange={(value) => setField('place', value)} />
+            <Input label="From place" value={form.place} onChange={(value) => setField('place', value)} />
             <Input label="Form date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
           </div>
         </Card>
@@ -315,7 +318,7 @@ export function SeedForms() {
             <Input label="Serial No. of sample" value={form.serialNo} onChange={(value) => setField('serialNo', value)} />
             <Input label="Code No. of sample" value={form.codeNo} onChange={(value) => setField('codeNo', value)} />
             <Input label="Date of collection / sampling" type="date" value={form.collectionDate} onChange={(value) => setField('collectionDate', value)} />
-            <Input label="Place of collection" value={form.collectionPlace} onChange={(value) => setField('collectionPlace', value)} />
+            <Input label="Place of collection" value={resolved.collectionPlace} onChange={(value) => setField('collectionPlace', value)} />
           </div>
           <SelectWithOther label="Nature of article submitted" valueKey="nature" otherKey="natureOther" form={form} setField={setField} options={natureOptions} />
           <div className="grid gap-2 sm:grid-cols-2">
@@ -464,8 +467,12 @@ function toOption(value) {
 
 function resolveSeedValues(form) {
   const lab = labOptions.find((item) => item.id === form.labId) || labOptions[0];
+  const fromPlace = String(form.place || '').trim();
+  const resolvedPlace = fromPlace || form.collectionPlace;
   return {
     ...form,
+    place: resolvedPlace,
+    collectionPlace: resolvedPlace,
     crop: form.crop === 'Other' ? form.cropOther : form.crop,
     nature: form.nature === 'Other' ? form.natureOther : form.nature,
     seedClass: form.seedClass === 'Other' ? form.seedClassOther : form.seedClass,

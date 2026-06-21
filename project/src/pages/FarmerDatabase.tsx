@@ -69,6 +69,7 @@ type FarmerGroup = {
 const PAGE_SIZE = 50;
 const ANALYTICS_BATCH_SIZE = 1000;
 const ANALYTICS_MAX_ROWS = 25000;
+const UREA_BAG_WEIGHT_MT = 0.045;
 const LazySimpleBarChart = lazy(() =>
   import('../components/charts/SimpleBarChart').then((module) => ({ default: module.SimpleBarChart }))
 );
@@ -292,6 +293,7 @@ export function FarmerDatabase() {
   const villageLabelMap = useMemo(() => optionLabelMap(optionRows, 'village_english', 'village_telugu'), [optionRows]);
   const groups = useMemo(() => groupFarmerRows(rows), [rows]);
   const analytics = useMemo(() => buildAnalytics(analyticsRows), [analyticsRows]);
+  const ureaAnalytics = useMemo(() => buildUreaRequirementAnalytics(analyticsRows), [analyticsRows]);
   const farmerSummary = useMemo(() => buildFarmerSummary(analyticsRows), [analyticsRows]);
   const villageFarmerChart = useMemo(
     () => localizeChartRows(analytics.villageFarmers, villageLabelMap, showTelugu),
@@ -308,6 +310,14 @@ export function FarmerDatabase() {
   const cropFarmerChart = useMemo(
     () => localizeCropChartRows(analytics.cropFarmers.slice(0, 10), showTelugu),
     [analytics.cropFarmers, showTelugu]
+  );
+  const cropUreaChart = useMemo(
+    () => localizeCropChartRows(ureaAnalytics.cropRequirement, showTelugu),
+    [ureaAnalytics.cropRequirement, showTelugu]
+  );
+  const villageUreaChart = useMemo(
+    () => localizeChartRows(ureaAnalytics.villageRequirement, villageLabelMap, showTelugu),
+    [showTelugu, ureaAnalytics.villageRequirement, villageLabelMap]
   );
   const previewStats = useMemo(() => importStats(previewRows), [previewRows]);
   const totalPages = Math.max(1, Math.ceil(totalRecords / PAGE_SIZE));
@@ -543,6 +553,11 @@ export function FarmerDatabase() {
           value={formatExtent(farmerSummary.totalExtent)}
           hint={uiLabel('Cultivable area from farmer database', showTelugu)}
         />
+        <SummaryCard
+          label={uiLabel('Urea Requirement', showTelugu)}
+          value={`${formatNumber(ureaAnalytics.totalBags)} bags`}
+          hint={`${formatNumber(ureaAnalytics.totalMt)} MT`}
+        />
       </section>
 
       <section className="grid gap-3 xl:grid-cols-3">
@@ -557,6 +572,17 @@ export function FarmerDatabase() {
         </ChartCard>
         <ChartCard title={uiLabel('Village-wise Cultivated Extent', showTelugu)}>
           <DeferredBarChart data={villageExtentChart} dataKey="extent" nameKey="name" />
+        </ChartCard>
+      </section>
+
+      <section className="grid gap-3 xl:grid-cols-2">
+        <ChartCard title={uiLabel('Crop-wise Urea Requirement (MT)', showTelugu)}>
+          <DeferredBarChart data={cropUreaChart} dataKey="mt" nameKey="name" />
+          <RequirementTable rows={cropUreaChart} showTelugu={showTelugu} nameLabel={uiLabel('Crop', showTelugu)} />
+        </ChartCard>
+        <ChartCard title={uiLabel('Village-wise Urea Requirement (MT)', showTelugu)}>
+          <DeferredBarChart data={villageUreaChart} dataKey="mt" nameKey="name" />
+          <RequirementTable rows={villageUreaChart} showTelugu={showTelugu} nameLabel={uiLabel('Village', showTelugu)} />
         </ChartCard>
       </section>
 
@@ -763,6 +789,40 @@ function buildAnalytics(rows: FarmerRow[]) {
   };
 }
 
+function buildUreaRequirementAnalytics(rows: FarmerRow[]) {
+  const cropRequirement = new Map<string, { acres: number; bags: number; mt: number }>();
+  const villageRequirement = new Map<string, { acres: number; bags: number; mt: number }>();
+
+  rows.forEach((row) => {
+    const crop = row.crop || 'Unknown';
+    const village = row.village_english || 'Unknown';
+    const acres = extentToGuntas(Number(row.extent || 0)) / 40;
+    const bags = acres * ureaBagsPerAcre(crop);
+    const mt = bagsToMt(bags);
+    addUreaRequirement(cropRequirement, crop, acres, bags, mt);
+    addUreaRequirement(villageRequirement, village, acres, bags, mt);
+  });
+
+  const cropRows = ureaMapRows(cropRequirement);
+  const villageRows = ureaMapRows(villageRequirement);
+  const totals = ureaMapRows(new Map([['Total', rows.reduce((sum, row) => {
+    const acres = extentToGuntas(Number(row.extent || 0)) / 40;
+    const bags = acres * ureaBagsPerAcre(row.crop || '');
+    return {
+      acres: sum.acres + acres,
+      bags: sum.bags + bags,
+      mt: sum.mt + bagsToMt(bags),
+    };
+  }, { acres: 0, bags: 0, mt: 0 })]]))[0] || { acres: 0, bags: 0, mt: 0 };
+
+  return {
+    cropRequirement: cropRows,
+    villageRequirement: villageRows,
+    totalBags: Number(totals.bags || 0),
+    totalMt: Number(totals.mt || 0),
+  };
+}
+
 function buildFarmerSummary(rows: FarmerRow[]) {
   const farmers = new Set<string>();
   const totalExtent = rows.reduce((sum, row) => {
@@ -773,6 +833,43 @@ function buildFarmerSummary(rows: FarmerRow[]) {
     totalFarmers: farmers.size,
     totalExtent: guntasToExtent(totalExtent),
   };
+}
+
+function ureaBagsPerAcre(crop: string) {
+  const normalized = crop.toLowerCase();
+  if (normalized.includes('cotton')) return 2;
+  if (normalized.includes('maize')) return 4;
+  if (normalized.includes('paddy') || normalized.includes('rice')) return 3;
+  return 1;
+}
+
+function bagsToMt(bags: number) {
+  return bags * UREA_BAG_WEIGHT_MT;
+}
+
+function addUreaRequirement(
+  map: Map<string, { acres: number; bags: number; mt: number }>,
+  key: string,
+  acres: number,
+  bags: number,
+  mt: number
+) {
+  const current = map.get(key) || { acres: 0, bags: 0, mt: 0 };
+  current.acres += acres;
+  current.bags += bags;
+  current.mt += mt;
+  map.set(key, current);
+}
+
+function ureaMapRows(map: Map<string, { acres: number; bags: number; mt: number }>) {
+  return Array.from(map.entries())
+    .map(([name, value]) => ({
+      name,
+      acres: roundNumber(value.acres),
+      bags: roundNumber(value.bags),
+      mt: roundNumber(value.mt),
+    }))
+    .sort((a, b) => b.mt - a.mt);
 }
 
 function phoneLink(value: string) {
@@ -834,6 +931,46 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   return <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm"><h2 className="mb-2 text-sm font-black text-slate-950">{title}</h2>{children}</section>;
 }
 
+function RequirementTable({
+  rows,
+  showTelugu,
+  nameLabel,
+}: {
+  rows: Record<string, string | number>[];
+  showTelugu: boolean;
+  nameLabel: string;
+}) {
+  return (
+    <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
+      <div className="table-scroll">
+        <table className="w-full min-w-[420px] text-xs">
+          <thead className="bg-slate-900 text-white">
+            <tr>
+              <th className="px-3 py-2 text-left">{nameLabel}</th>
+              <th className="px-3 py-2 text-right">{uiLabel('Acres', showTelugu)}</th>
+              <th className="px-3 py-2 text-right">{uiLabel('Bags', showTelugu)}</th>
+              <th className="px-3 py-2 text-right">MT</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {rows.map((row) => (
+              <tr key={String(row.name)}>
+                <td className="px-3 py-2 font-bold text-slate-800">{row.name}</td>
+                <td className="px-3 py-2 text-right font-semibold text-slate-700">{formatNumber(Number(row.acres || 0))}</td>
+                <td className="px-3 py-2 text-right font-semibold text-slate-700">{formatNumber(Number(row.bags || 0))}</td>
+                <td className="px-3 py-2 text-right font-black text-emerald-700">{formatNumber(Number(row.mt || 0))}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="border-t border-slate-100 px-3 py-2 text-[11px] font-semibold text-slate-500">
+        {uiLabel('Calculation: Cotton 2 bags/ac, Maize 4 bags/ac, Paddy 3 bags/ac, other crops 1 bag/ac. 1 bag = 45 kg.', showTelugu)}
+      </p>
+    </div>
+  );
+}
+
 function PreviewMetric({ label, value }: { label: string; value: number }) {
   return <div className="rounded-lg bg-white/80 p-2"><p className="text-[10px] uppercase text-slate-500">{label}</p><p className="text-lg font-black">{value.toLocaleString('en-IN')}</p></div>;
 }
@@ -868,6 +1005,17 @@ function setMapRows(map: Map<string, Set<string>>, key: string) {
 
 function valueMapRows(map: Map<string, number>, key: string) {
   return Array.from(map.entries()).map(([name, value]) => ({ name, [key]: guntasToExtent(value) })).sort((a, b) => Number(b[key]) - Number(a[key]));
+}
+
+function roundNumber(value: number) {
+  return Math.round((Number.isFinite(value) ? value : 0) * 100) / 100;
+}
+
+function formatNumber(value: number) {
+  return roundNumber(value).toLocaleString('en-IN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
 }
 
 function importStats(rows: FarmerImportRow[]) {

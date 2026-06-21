@@ -313,7 +313,7 @@ export function UreaDashboard() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Upload failed');
+        throw new Error(result.details || result.error || 'Upload failed');
       }
 
       setSyncMessage(`Upload successful! Records: ${result.recordsImported}, Matched: ${result.recordsMatched}, Unmatched: ${result.recordsUnmatched}, Duplicate: ${result.recordsDuplicate}`);
