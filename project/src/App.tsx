@@ -27,12 +27,12 @@ const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const FertilizerCalculator = lazy(() => import('./features/fertilizerCalculator/FertilizerCalculatorCore').then((m) => ({ default: m.FertilizerCalculatorCore })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
+const CropProtectionTool = lazy(() => import('./pages/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
 const StockAnalytics = lazy(() => import('./pages/StockAnalytics'));
 const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const CropAdminDashboard = lazy(() =>
   import('./pages/admin/CropAdminDashboard.jsx').then((m) => ({ default: m.CropAdminDashboard }))
 );
-const UreaDashboard = lazy(() => import('./pages/UreaDashboard').then((m) => ({ default: m.UreaDashboard })));
 function GlobalAppLoader() {
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
@@ -54,6 +54,7 @@ const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/statutory-forms',
   '/officer-toolkit/acreage-calculator',
   '/officer-toolkit/fertilizer-calculator',
+  '/officer-toolkit/crop-protection',
 ]);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
@@ -86,9 +87,9 @@ const PAGE_PATHS: Record<string, string> = {
   'officer-toolkit': '/officer-toolkit',
   'acreage-calculator': '/acreage-calculator',
   'fertilizer-calculator': '/officer-toolkit/fertilizer-calculator',
+  'crop-protection': '/officer-toolkit/crop-protection',
   analytics: '/analytics',
   settings: '/settings',
-  'urea-dashboard': '/urea-dashboard',
 };
 
 function pageToPath(page: string) {
@@ -110,7 +111,8 @@ function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
   if (
     pathname === '/officer-toolkit/statutory-forms' ||
     pathname === '/officer-toolkit/acreage-calculator' ||
-    pathname === '/officer-toolkit/fertilizer-calculator'
+    pathname === '/officer-toolkit/fertilizer-calculator' ||
+    pathname === '/officer-toolkit/crop-protection'
   ) {
     return '/officer-toolkit';
   }
@@ -127,7 +129,7 @@ function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
 }
 
 function getPageBackFallback(page: string, isDealerUser: boolean) {
-  if (page === 'forms' || page === 'acreage-calculator' || page === 'fertilizer-calculator') return '/officer-toolkit';
+  if (page === 'forms' || page === 'acreage-calculator' || page === 'fertilizer-calculator' || page === 'crop-protection') return '/officer-toolkit';
   if (page === 'officer-toolkit') return '/dashboard';
   if (page.startsWith('crop-')) return '/crops';
   if (page.startsWith('quality-')) return '/quality';
@@ -293,9 +295,9 @@ function AppContent() {
         'officer-toolkit',
         'acreage-calculator',
         'fertilizer-calculator',
+        'crop-protection',
         'analytics',
         'settings',
-        'urea-dashboard',
       ]),
     []
   );
@@ -315,6 +317,9 @@ function AppContent() {
       }
       if (page === 'officer-toolkit/fertilizer-calculator') {
         page = 'fertilizer-calculator';
+      }
+      if (page === 'officer-toolkit/crop-protection') {
+        page = 'crop-protection';
       }
       
       return validPages.has(page) ? page : 'dashboard';
@@ -434,7 +439,8 @@ function AppContent() {
       location.pathname.startsWith('/officer-toolkit/') &&
       location.pathname !== '/officer-toolkit/statutory-forms' &&
       location.pathname !== '/officer-toolkit/acreage-calculator' &&
-      location.pathname !== '/officer-toolkit/fertilizer-calculator'
+      location.pathname !== '/officer-toolkit/fertilizer-calculator' &&
+      location.pathname !== '/officer-toolkit/crop-protection'
     ) {
       navigate('/officer-toolkit', { replace: true });
     }
@@ -464,12 +470,21 @@ function AppContent() {
     );
   }
 
+  if (!user && currentPage === 'crop-protection') {
+    return (
+      <Suspense fallback={<GlobalAppLoader />}>
+        <CropProtectionTool />
+      </Suspense>
+    );
+  }
+
   if (
     !user &&
     location.pathname.startsWith('/officer-toolkit/') &&
     location.pathname !== '/officer-toolkit/statutory-forms' &&
     location.pathname !== '/officer-toolkit/acreage-calculator' &&
-    location.pathname !== '/officer-toolkit/fertilizer-calculator'
+    location.pathname !== '/officer-toolkit/fertilizer-calculator' &&
+    location.pathname !== '/officer-toolkit/crop-protection'
   ) {
     return <PageLoader />;
   }
@@ -550,18 +565,12 @@ function AppContent() {
         return <AcreageCalculator />;
       case 'fertilizer-calculator':
         return <FertilizerCalculator />;
+      case 'crop-protection':
+        return <CropProtectionTool />;
       case 'analytics':
         return <Analytics />;
       case 'settings':
         return <Settings />;
-      case 'urea-dashboard':
-        return isAdminUser ? (
-          <Suspense fallback={<PageLoader />}>
-            <UreaDashboard />
-          </Suspense>
-        ) : (
-          <Dashboard />
-        );
       default:
         return <Dashboard />;
     }

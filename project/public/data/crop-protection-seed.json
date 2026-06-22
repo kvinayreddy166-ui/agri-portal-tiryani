@@ -1,0 +1,377 @@
+{
+  "crops": [
+    {
+      "id": "cotton",
+      "crop_key": "cotton",
+      "name_en": "Cotton",
+      "name_te": "పత్తి",
+      "image_url": "/images/cotton.webp",
+      "display_order": 1,
+      "active": true,
+      "items": [
+        {
+          "id": "cotton-bollworm",
+          "category": "pest",
+          "name_en": "Bollworm complex",
+          "name_te": "కాయ తొలిచే పురుగులు",
+          "scientific_name": "Helicoverpa armigera and related bollworms",
+          "symptoms_en": "Bored squares, flowers or bolls with feeding holes and larval frass.",
+          "damage_en": "Flower and boll shedding, damaged lint and yield loss.",
+          "favourable_conditions_en": "Continuous host availability and flowering to boll formation stage.",
+          "etl": "Use local Department/PJTSAU ETL for current season.",
+          "stage": "Flowering to boll formation",
+          "severity_level": "high",
+          "image_urls": [],
+          "source_name": "NIPHM IPM Package / TNAU Agritech",
+          "source_url": "https://niphm.gov.in/IPMPackages.html",
+          "source_priority": 1,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "cultural",
+              "severity_level": "low",
+              "recommendation_en": "Use timely sowing, avoid excess nitrogen, conserve natural enemies and remove damaged fruiting bodies where practical.",
+              "source_url": "https://niphm.gov.in/IPMPackages.html"
+            },
+            {
+              "control_type": "biological",
+              "severity_level": "medium",
+              "recommendation_en": "Use pheromone traps and need-based biological control as per official IPM package.",
+              "source_url": "https://niphm.gov.in/IPMPackages.html"
+            },
+            {
+              "control_type": "chemical",
+              "severity_level": "high",
+              "recommendation_en": "Official recommendation will be updated soon. Please follow local PJTSAU/Department advisory.",
+              "chemical_name": "Refer latest label/local advisory",
+              "source_url": "https://niphm.gov.in/IPMPackages.html"
+            }
+          ]
+        },
+        {
+          "id": "cotton-leafhopper",
+          "category": "pest",
+          "name_en": "Leafhopper / Jassid",
+          "name_te": "పచ్చ దోమ",
+          "scientific_name": "Amrasca biguttula biguttula",
+          "symptoms_en": "Yellowing and curling of leaf edges, reddening and hopper burn in severe cases.",
+          "damage_en": "Sap sucking weakens plants and reduces growth.",
+          "favourable_conditions_en": "Warm dry weather and young crop stage.",
+          "etl": "Use local Department/PJTSAU ETL for current season.",
+          "stage": "Vegetative",
+          "severity_level": "medium",
+          "image_urls": [],
+          "source_name": "TNAU Agritech crop protection",
+          "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html",
+          "source_priority": 2,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "cultural",
+              "severity_level": "low",
+              "recommendation_en": "Avoid excess nitrogen and monitor underside of leaves regularly.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html"
+            },
+            {
+              "control_type": "chemical",
+              "severity_level": "medium",
+              "recommendation_en": "Official recommendation will be updated soon. Please follow local PJTSAU/Department advisory.",
+              "chemical_name": "Refer latest label/local advisory",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html"
+            }
+          ]
+        },
+        {
+          "id": "cotton-weed-general",
+          "category": "weed",
+          "name_en": "Broadleaf and grassy weeds",
+          "name_te": "కలుపు మొక్కలు",
+          "symptoms_en": "Mixed weeds competing with cotton during early growth.",
+          "damage_en": "Competition for moisture, nutrients and light.",
+          "favourable_conditions_en": "Early monsoon flush and wide row spacing.",
+          "stage": "0-45 DAS",
+          "severity_level": "medium",
+          "image_urls": [],
+          "source_name": "PJTSAU/Department local advisory",
+          "source_url": "https://www.pjtsau.edu.in/",
+          "source_priority": 3,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "cultural",
+              "severity_level": "low",
+              "recommendation_en": "Keep crop weed-free during early growth using timely intercultivation and hand weeding.",
+              "source_url": "https://www.pjtsau.edu.in/"
+            },
+            {
+              "control_type": "chemical",
+              "severity_level": "medium",
+              "recommendation_en": "Official recommendation will be updated soon. Please follow local PJTSAU/Department advisory.",
+              "chemical_name": "Refer latest label/local advisory"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "paddy",
+      "crop_key": "paddy",
+      "name_en": "Paddy",
+      "name_te": "వరి",
+      "image_url": "/images/paddy.webp",
+      "display_order": 2,
+      "active": true,
+      "items": [
+        {
+          "id": "paddy-stem-borer",
+          "category": "pest",
+          "name_en": "Yellow stem borer",
+          "name_te": "కాండం తొలిచే పురుగు",
+          "scientific_name": "Scirpophaga incertulas",
+          "symptoms_en": "Dead heart in vegetative stage and white ear at reproductive stage.",
+          "damage_en": "Central shoot dries; panicles become white and chaffy.",
+          "favourable_conditions_en": "High humidity, continuous rice cultivation and stubbles.",
+          "stage": "Vegetative to reproductive",
+          "severity_level": "high",
+          "image_urls": [],
+          "source_name": "TNAU Agritech paddy crop protection",
+          "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html",
+          "source_priority": 1,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "cultural",
+              "severity_level": "low",
+              "recommendation_en": "Clip seedling tips, remove stubbles and monitor with pheromone traps where recommended.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html"
+            },
+            {
+              "control_type": "chemical",
+              "severity_level": "high",
+              "recommendation_en": "Official recommendation will be updated soon. Please follow local PJTSAU/Department advisory.",
+              "chemical_name": "Refer latest label/local advisory"
+            }
+          ]
+        },
+        {
+          "id": "paddy-blast",
+          "category": "disease",
+          "name_en": "Blast",
+          "name_te": "బ్లాస్ట్ తెగులు",
+          "scientific_name": "Magnaporthe oryzae",
+          "symptoms_en": "Spindle-shaped grey lesions with brown margins; neck infection causes chaffy grains.",
+          "damage_en": "Leaf blighting, neck break and grain loss.",
+          "favourable_conditions_en": "Cloudy weather, high humidity and excess nitrogen.",
+          "stage": "Nursery to grain filling",
+          "severity_level": "high",
+          "image_urls": [],
+          "source_name": "TNAU Agritech paddy disease guidance",
+          "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html",
+          "source_priority": 1,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "cultural",
+              "severity_level": "low",
+              "recommendation_en": "Use clean seed, tolerant varieties where available and avoid excess nitrogen.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html"
+            },
+            {
+              "control_type": "chemical",
+              "severity_level": "high",
+              "recommendation_en": "Official recommendation will be updated soon. Please follow local PJTSAU/Department advisory.",
+              "chemical_name": "Refer latest label/local advisory"
+            }
+          ]
+        },
+        {
+          "id": "paddy-weed-general",
+          "category": "weed",
+          "name_en": "Grasses, sedges and broadleaf weeds",
+          "name_te": "గడ్డి, తుంగ, వెడల్పు ఆకుల కలుపులు",
+          "symptoms_en": "Mixed weed flora in nursery or transplanted/main field.",
+          "damage_en": "Competition during establishment and tillering.",
+          "favourable_conditions_en": "Poor puddling, gaps in stand and shallow water management.",
+          "stage": "Establishment to tillering",
+          "severity_level": "medium",
+          "image_urls": [],
+          "source_name": "TNAU Agritech / local Department advisory",
+          "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html",
+          "source_priority": 2,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "cultural",
+              "severity_level": "low",
+              "recommendation_en": "Maintain proper puddling, plant spacing and timely hand weeding or cono weeding.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "maize",
+      "crop_key": "maize",
+      "name_en": "Maize",
+      "name_te": "మొక్కజొన్న",
+      "image_url": "/images/maize.webp",
+      "display_order": 3,
+      "active": true,
+      "items": [
+        {
+          "id": "maize-fall-armyworm",
+          "category": "pest",
+          "name_en": "Fall armyworm",
+          "name_te": "ఫాల్ ఆర్మీవార్మ్",
+          "scientific_name": "Spodoptera frugiperda",
+          "symptoms_en": "Window panes and ragged leaf feeding; larvae and frass in whorl.",
+          "damage_en": "Whorl damage, leaf shredding and yield reduction in severe infestation.",
+          "favourable_conditions_en": "Warm weather and young maize crop.",
+          "stage": "Seedling to knee-high",
+          "severity_level": "high",
+          "image_urls": [],
+          "source_name": "NIPHM IPM Package / ICAR advisories",
+          "source_url": "https://niphm.gov.in/IPMPackages.html",
+          "source_priority": 1,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "mechanical",
+              "severity_level": "low",
+              "recommendation_en": "Monitor whorls, destroy egg masses where feasible and remove severely damaged seedlings.",
+              "source_url": "https://niphm.gov.in/IPMPackages.html"
+            },
+            {
+              "control_type": "biological",
+              "severity_level": "medium",
+              "recommendation_en": "Use pheromone traps and biological options as per official IPM package.",
+              "source_url": "https://niphm.gov.in/IPMPackages.html"
+            },
+            {
+              "control_type": "chemical",
+              "severity_level": "high",
+              "recommendation_en": "Official recommendation will be updated soon. Please follow local PJTSAU/Department advisory.",
+              "chemical_name": "Refer latest label/local advisory"
+            }
+          ]
+        },
+        {
+          "id": "maize-weed-general",
+          "category": "weed",
+          "name_en": "Early season weeds",
+          "name_te": "ప్రారంభ దశ కలుపులు",
+          "symptoms_en": "Weeds emerging with crop rows during first month.",
+          "damage_en": "Strong competition for moisture and nutrients.",
+          "favourable_conditions_en": "Rain after sowing and delayed intercultivation.",
+          "stage": "0-45 DAS",
+          "severity_level": "medium",
+          "image_urls": [],
+          "source_name": "PJTSAU/Department local advisory",
+          "source_url": "https://www.pjtsau.edu.in/",
+          "source_priority": 3,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "cultural",
+              "severity_level": "low",
+              "recommendation_en": "Keep field weed-free up to knee-high stage using intercultivation and hand weeding.",
+              "source_url": "https://www.pjtsau.edu.in/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redgram",
+      "crop_key": "redgram",
+      "name_en": "Redgram",
+      "name_te": "కంది",
+      "image_url": "/images/pulses.webp",
+      "display_order": 4,
+      "active": true,
+      "items": [
+        {
+          "id": "redgram-pod-borer",
+          "category": "pest",
+          "name_en": "Gram pod borer",
+          "name_te": "కాయ తొలిచే పురుగు",
+          "scientific_name": "Helicoverpa armigera",
+          "symptoms_en": "Larva feeds with head inside pod; round holes on pods.",
+          "damage_en": "Seed damage and shriveled grains.",
+          "favourable_conditions_en": "Flowering and podding stage with cloudy weather.",
+          "stage": "Flowering to podding",
+          "severity_level": "high",
+          "image_urls": [],
+          "source_name": "TNAU Agritech crop protection",
+          "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html",
+          "source_priority": 1,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "biological",
+              "severity_level": "medium",
+              "recommendation_en": "Install pheromone traps, conserve natural enemies and use need-based IPM.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html"
+            },
+            {
+              "control_type": "chemical",
+              "severity_level": "high",
+              "recommendation_en": "Official recommendation will be updated soon. Please follow local PJTSAU/Department advisory.",
+              "chemical_name": "Refer latest label/local advisory"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "groundnut",
+      "crop_key": "groundnut",
+      "name_en": "Groundnut",
+      "name_te": "వేరుశెనగ",
+      "image_url": "/images/oilseeds.webp",
+      "display_order": 5,
+      "active": true,
+      "items": []
+    },
+    {
+      "id": "greengram",
+      "crop_key": "greengram",
+      "name_en": "Greengram",
+      "name_te": "పెసర",
+      "image_url": "/images/greengram.webp",
+      "display_order": 6,
+      "active": true,
+      "items": []
+    },
+    {
+      "id": "sunflower",
+      "crop_key": "sunflower",
+      "name_en": "Sunflower",
+      "name_te": "పొద్దుతిరుగుడు",
+      "image_url": "/images/oilseeds.webp",
+      "display_order": 7,
+      "active": true,
+      "items": []
+    },
+    {
+      "id": "sesamum",
+      "crop_key": "sesamum",
+      "name_en": "Sesamum",
+      "name_te": "నువ్వులు",
+      "image_url": "/images/oilseeds.webp",
+      "display_order": 8,
+      "active": true,
+      "items": []
+    }
+  ]
+}

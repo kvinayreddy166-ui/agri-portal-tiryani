@@ -63,7 +63,6 @@ export default defineConfig({
           }
           if (normalizedId.includes('/src/pages/Analytics')) return 'page-analytics';
           if (
-            normalizedId.includes('/src/pages/UreaDashboard') ||
             normalizedId.includes('/src/pages/ExcelUploads') ||
             normalizedId.includes('/src/pages/FileDirectory')
           ) {

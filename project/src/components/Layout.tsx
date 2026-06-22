@@ -2,7 +2,7 @@ import React, { useMemo, useState, ReactNode } from 'react';
 import {
   ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Database, FlaskConical,
+  FolderOpen, Moon, Sun, Landmark, Database,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
 import { useAuth } from '../context/AuthContext';
@@ -39,7 +39,6 @@ const adminMenuItems = [
   },
   { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor },
   { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true },
-  { id: 'urea-dashboard', label: 'Urea Dashboard', icon: FlaskConical, adminOnly: true },
   { id: 'analytics', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
@@ -290,7 +289,7 @@ function menuSections(items: typeof adminMenuItems) {
     { title: 'Overview', ids: ['dashboard', 'stock-analytics', 'analytics'] },
     { title: 'Field Operations', ids: ['dealers', 'farmer-database', 'subsidy', 'farm-mechanization', 'quality'] },
     { title: 'Knowledge', ids: ['crops', 'officer-toolkit', 'gos-circulars'] },
-    { title: 'Records', ids: ['file-directory', 'excel', 'urea-dashboard', 'settings'] },
+    { title: 'Records', ids: ['file-directory', 'excel', 'settings'] },
   ];
 
   const itemById = new Map(items.map((item) => [item.id, item]));
@@ -348,6 +347,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     'officer-toolkit': { title: 'Officer Toolkit', breadcrumbs: [dashboard] },
     forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit] },
     'acreage-calculator': { title: 'Acerage Calculator', breadcrumbs: [dashboard, toolkit] },
+    'crop-protection': { title: 'Crop Protection Guidance', breadcrumbs: [dashboard, toolkit] },
     'gos-circulars': { title: 'GOs & Circulars', breadcrumbs: [dashboard] },
     quality: { title: 'Quality Control', breadcrumbs: [dashboard] },
     'farm-mechanization': { title: 'Farm Mechanization', breadcrumbs: [dashboard] },

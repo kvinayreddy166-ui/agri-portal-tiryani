@@ -11,8 +11,6 @@ import {
   Phone,
   PhoneCall,
   Save,
-  FlaskConical,
-  XCircle,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -124,7 +122,6 @@ export function FarmerDatabase() {
   const [importMessage, setImportMessage] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editRemarks, setEditRemarks] = useState('');
-  const [ureaBookings, setUreaBookings] = useState<Map<string, any[]>>(new Map());
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(searchInput.trim()), 300);
@@ -322,29 +319,10 @@ export function FarmerDatabase() {
   const previewStats = useMemo(() => importStats(previewRows), [previewRows]);
   const totalPages = Math.max(1, Math.ceil(totalRecords / PAGE_SIZE));
 
-  const openDetails = async (group: FarmerGroup) => {
+  const openDetails = (group: FarmerGroup) => {
     setSelected(group);
     setEditPhone(group.phoneNumber || '');
     setEditRemarks(group.remarks || '');
-    
-    // Fetch urea bookings for this farmer
-    try {
-      const { data, error } = await supabase
-        .from('external_urea_bookings')
-        .select('id, aadhaar_no, ppb_no, mobile_no, farmer_name, village, booking_date, status, quantity')
-        .or(`aadhaar_no.eq.${group.aadhaarNo},ppb_no.eq.${group.ppbNo},mobile_no.eq.${group.phoneNumber}`)
-        .order('booking_date', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching urea bookings:', error);
-        setUreaBookings(new Map());
-      } else {
-        setUreaBookings(new Map([[group.identityKey, data || []]]));
-      }
-    } catch (error) {
-      console.error('Error fetching urea bookings:', error);
-      setUreaBookings(new Map());
-    }
   };
 
   const handleImportFile = async (file: File) => {
@@ -660,58 +638,6 @@ export function FarmerDatabase() {
                 </tbody>
               </table>
               </div>
-            </div>
-            
-            {/* Urea Booking Status */}
-            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <FlaskConical className="h-4 w-4 text-emerald-600" />
-                <h3 className="text-sm font-black text-slate-950">Urea Booking Status</h3>
-              </div>
-              {(() => {
-                const bookings = ureaBookings.get(selected.identityKey) || [];
-                if (bookings.length === 0) {
-                  return (
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                      <XCircle className="h-4 w-4 text-red-500" />
-                      <span>No urea bookings found</span>
-                    </div>
-                  );
-                }
-                return (
-                  <div className="space-y-2">
-                    {bookings.map((booking: any) => (
-                      <div key={booking.id} className="rounded-lg border border-slate-200 bg-white p-2">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-bold text-slate-700">Booking ID: {booking.booking_id}</span>
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                            booking.status === 'matched' ? 'bg-green-100 text-green-700' :
-                            booking.status === 'unmatched' ? 'bg-red-100 text-red-700' :
-                            booking.status === 'duplicate' ? 'bg-orange-100 text-orange-700' :
-                            'bg-gray-100 text-gray-700'
-                          }`}>
-                            {booking.status}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div>
-                            <span className="text-slate-500">Date:</span> {booking.booking_date || '-'}
-                          </div>
-                          <div>
-                            <span className="text-slate-500">Qty:</span> {booking.urea_qty?.toFixed(2) || '0'} MT
-                          </div>
-                          <div>
-                            <span className="text-slate-500">Dealer:</span> {booking.dealer_name || '-'}
-                          </div>
-                          <div>
-                            <span className="text-slate-500">Crop:</span> {booking.crop || '-'}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
             </div>
             {isAdminUser && (
               <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1.5fr_auto]">

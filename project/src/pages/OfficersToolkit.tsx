@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, FlaskConical, ShieldCheck, FileStack, ChevronLeft, ExternalLink, Leaf, Globe2, PackageCheck, Database } from 'lucide-react';
+import { Calculator, FlaskConical, ShieldCheck, FileStack, ChevronLeft, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -30,6 +30,15 @@ const toolkitItems = [
     category: 'internal',
     gradient: 'from-green-500 to-emerald-600',
     bgGradient: 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
+  },
+  {
+    title: 'Crop Protection Guidance',
+    description: 'Weed, pest and disease guidance with spray calculator.',
+    path: '/officer-toolkit/crop-protection',
+    icon: Bug,
+    category: 'internal',
+    gradient: 'from-red-500 to-amber-600',
+    bgGradient: 'from-red-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30',
   },
 ];
 
