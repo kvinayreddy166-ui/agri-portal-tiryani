@@ -13,7 +13,7 @@ declare global {
 }
 
 installPwaRecovery();
-window.__TIRYANI_APP_BOOTED__ = true;
+
 try {
   window.sessionStorage.removeItem('tiryani-startup-recovery-v1');
   window.sessionStorage.removeItem('tiryani-startup-recovery-v2');
@@ -37,6 +37,7 @@ if (!rootEl) {
   throw new Error('Root element #root not found');
 }
 
+window.__TIRYANI_APP_BOOTED__ = true;
 createRoot(rootEl).render(
   <StrictMode>
     <ErrorBoundary>

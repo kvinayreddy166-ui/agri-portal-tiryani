@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tiryani-portal-v17';
+const CACHE_VERSION = 'tiryani-portal-v19';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -10,8 +10,6 @@ const MAX_IMAGE_ENTRIES = 200;
 const MAX_FONT_ENTRIES = 20;
 
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
   '/offline.html',
   '/manifest.webmanifest',
   '/icons/icon-192x192.png',
@@ -29,13 +27,12 @@ const STATIC_ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(STATIC_CACHE)
+    deletePortalCaches()
+      .then(() => caches.open(STATIC_CACHE))
       .then((cache) => cache.addAll(STATIC_ASSETS))
       .then(() => self.skipWaiting())
   );
 });
-
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
