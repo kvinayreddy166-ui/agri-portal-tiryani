@@ -1,5 +1,5 @@
-import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Edit2, FileText, Folder, Link, Loader2, Plus, Trash2, Upload, X } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Edit2, Folder, Link, Plus, Trash2, Upload, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -8,14 +8,6 @@ import { FileActionButtons } from '../components/ui/FileActionButtons';
 import { FileTypeIcon } from '../components/ui/FileTypeIcon';
 import { inferFileTypeFromName } from '../lib/fileTypes';
 import { uploadPortalFile } from '../lib/uploadFile';
-import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
-
-const FertilizerStatutoryPdfTool = lazy(() =>
-  import('../components/forms/FertilizerStatutoryPdfTool').then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
-);
-const SeedForms = lazy(() =>
-  import('./SeedForms').then((module) => ({ default: module.SeedForms }))
-);
 
 const folders = [
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
@@ -25,7 +17,6 @@ const folders = [
 
 const emptyForm = {
   title: '',
-  label: '',
   description: '',
   file_url: '',
   file_type: 'pdf',
@@ -33,9 +24,6 @@ const emptyForm = {
 };
 
 const STATE_KEY = 'tiryani-statutory-forms-state';
-const FORMS_PAGE_SIZE = 12;
-const FORM_COLUMNS = 'id, title, label, description, file_url, file_type, category, created_at';
-const FORM_COLUMNS_WITHOUT_LABEL = 'id, title, description, file_url, file_type, category, created_at';
 
 export function FormsDownloads() {
   const { isAdminUser } = useAuth();
@@ -44,7 +32,6 @@ export function FormsDownloads() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [pdfToolOpen, setPdfToolOpen] = useState(false);
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
   const [selectedFolder, setSelectedFolder] = useState(() => {
     try {
@@ -57,90 +44,19 @@ export function FormsDownloads() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newForm, setNewForm] = useState(emptyForm);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(() => {
+
+  useEffect(() => {
+    fetchForms();
+  }, []);
+
+  useEffect(() => {
     try {
       const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
-      return Number.isInteger(stored.currentPage) && stored.currentPage >= 0 ? stored.currentPage : 0;
+      window.localStorage.setItem(STATE_KEY, JSON.stringify({ ...stored, selectedFolder }));
     } catch {
-      return 0;
+      window.localStorage.setItem(STATE_KEY, JSON.stringify({ selectedFolder }));
     }
-  });
-  const [totalForms, setTotalForms] = useState(0);
-  const [folderCounts, setFolderCounts] = useState<Record<string, number>>(
-    () => Object.fromEntries(folders.map((folder) => [folder.id, 0]))
-  );
-  const didMountFolderRef = useRef(false);
-  const pdfToolOverlay = useBackButtonOverlay('statutory-pdf-tool', () => setPdfToolOpen(false));
-
-  const fetchForms = useCallback(async () => {
-    setFetchError(null);
-    try {
-      const from = currentPage * FORMS_PAGE_SIZE;
-      const to = from + FORMS_PAGE_SIZE - 1;
-      const [countResults, initialPageResult] = await Promise.all([
-        Promise.all(
-          folders.map(async (folder) => {
-            const { count } = await supabase
-              .from('forms_downloads')
-              .select('id', { count: 'exact', head: true })
-              .eq('category', folder.id);
-            return [folder.id, count || 0] as const;
-          })
-        ),
-        supabase
-          .from('forms_downloads')
-          .select(FORM_COLUMNS, { count: 'exact' })
-          .eq('category', selectedFolder)
-          .order('created_at', { ascending: false })
-          .range(from, to),
-      ]);
-
-      let pageResult: {
-        data: unknown[] | null;
-        error: unknown;
-        count: number | null;
-      } = initialPageResult;
-      if (pageResult.error && isMissingLabelColumnError(pageResult.error)) {
-        pageResult = await supabase
-          .from('forms_downloads')
-          .select(FORM_COLUMNS_WITHOUT_LABEL, { count: 'exact' })
-          .eq('category', selectedFolder)
-          .order('created_at', { ascending: false })
-          .range(from, to);
-      }
-
-      if (pageResult.error) throw pageResult.error;
-      setFolderCounts(Object.fromEntries(countResults));
-      setTotalForms(pageResult.count || 0);
-      setForms((pageResult.data || []) as FormDownload[]);
-    } catch (error) {
-      console.error('Error fetching forms:', error);
-      setFetchError(error instanceof Error ? error.message : 'Unable to load downloads.');
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, selectedFolder]);
-
-  useEffect(() => {
-    void fetchForms();
-  }, [fetchForms]);
-
-  useEffect(() => {
-    if (!didMountFolderRef.current) {
-      didMountFolderRef.current = true;
-      return;
-    }
-    setCurrentPage(0);
   }, [selectedFolder]);
-
-  useEffect(() => {
-    try {
-      const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
-      window.localStorage.setItem(STATE_KEY, JSON.stringify({ ...stored, selectedFolder, currentPage }));
-    } catch {
-      window.localStorage.setItem(STATE_KEY, JSON.stringify({ selectedFolder, currentPage }));
-    }
-  }, [currentPage, selectedFolder]);
 
   useEffect(() => {
     let restoreTimer: number | undefined;
@@ -164,26 +80,42 @@ export function FormsDownloads() {
     };
   }, [selectedFolder]);
 
-  const selectedForms = forms;
+  const fetchForms = async () => {
+    setFetchError(null);
+    try {
+      const { data, error } = await supabase
+        .from('forms_downloads')
+        .select('*')
+        .in('category', folders.map((folder) => folder.id))
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setForms(data || []);
+    } catch (error) {
+      console.error('Error fetching forms:', error);
+      setFetchError(error instanceof Error ? error.message : 'Unable to load downloads.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const folderCounts = useMemo(
+    () =>
+      folders.reduce((counts, folder) => {
+        counts[folder.id] = forms.filter((form) => form.category === folder.id).length;
+        return counts;
+      }, {} as Record<string, number>),
+    [forms]
+  );
+
+  const selectedForms = forms.filter((form) => form.category === selectedFolder);
   const activeFolder = folders.find((folder) => folder.id === selectedFolder) || folders[0];
-  const pageCount = Math.max(1, Math.ceil(totalForms / FORMS_PAGE_SIZE));
-  const firstVisibleItem = totalForms === 0 ? 0 : currentPage * FORMS_PAGE_SIZE + 1;
-  const lastVisibleItem = Math.min(totalForms, (currentPage + 1) * FORMS_PAGE_SIZE);
 
   const resetForm = () => {
     setNewForm({ ...emptyForm, category: selectedFolder });
     setSelectedFile(null);
     setEditingFormId(null);
     setShowAddForm(false);
-  };
-
-  const openPdfTool = () => {
-    pdfToolOverlay.pushOverlay();
-    setPdfToolOpen(true);
-  };
-
-  const closePdfTool = () => {
-    pdfToolOverlay.closeOverlay();
   };
 
   const handleSave = async () => {
@@ -212,29 +144,20 @@ export function FormsDownloads() {
 
       const payload = {
         title: newForm.title.trim(),
-        label: newForm.label.trim(),
         description: newForm.description.trim(),
         file_url: fileUrl,
         file_type: fileType,
         category: newForm.category,
       };
 
-      let { error } = editingFormId
+      const { error } = editingFormId
         ? await supabase.from('forms_downloads').update(payload).eq('id', editingFormId)
         : await supabase.from('forms_downloads').insert([payload]);
-
-      if (error && isMissingLabelColumnError(error)) {
-        const { label: _label, ...legacyPayload } = payload;
-        const legacyResult = editingFormId
-          ? await supabase.from('forms_downloads').update(legacyPayload).eq('id', editingFormId)
-          : await supabase.from('forms_downloads').insert([legacyPayload]);
-        error = legacyResult.error;
-      }
 
       if (error) throw error;
 
       resetForm();
-      void fetchForms();
+      fetchForms();
     } catch (error) {
       console.error('Error adding document:', error);
       alert(error instanceof Error ? error.message : 'Failed to add document.');
@@ -248,7 +171,7 @@ export function FormsDownloads() {
     try {
       const { error } = await supabase.from('forms_downloads').delete().eq('id', id);
       if (error) throw error;
-      void fetchForms();
+      fetchForms();
     } catch (error) {
       console.error('Error deleting document:', error);
       alert('Failed to delete item');
@@ -265,7 +188,6 @@ export function FormsDownloads() {
   const openEditForm = (form: FormDownload) => {
     setNewForm({
       title: form.title,
-      label: form.label || '',
       description: form.description || '',
       file_url: form.file_url || '',
       file_type: form.file_type || 'pdf',
@@ -299,27 +221,15 @@ export function FormsDownloads() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {selectedFolder !== 'pesticides' && (
-            <button
-              type="button"
-              onClick={openPdfTool}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 font-bold text-white shadow-lg shadow-red-900/10 transition hover:bg-red-700"
-            >
-              <FileText className="h-5 w-5" />
-              Generate PDF
-            </button>
-          )}
-          {isAdminUser && (
-            <button
-              onClick={openAddForm}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
-            >
-              <Plus className="h-5 w-5" />
-              {t('Upload Statutory Form', 'Upload Statutory Form')}
-            </button>
-          )}
-        </div>
+        {isAdminUser && (
+          <button
+            onClick={openAddForm}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+          >
+            <Plus className="h-5 w-5" />
+            {t('Upload Statutory Form', 'Upload Statutory Form')}
+          </button>
+        )}
       </div>
 
       {fetchError && (
@@ -382,18 +292,7 @@ export function FormsDownloads() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="mb-1 block text-sm font-bold text-gray-700">{t('Public label', 'Public label')}</label>
-                <input
-                  type="text"
-                  value={newForm.label}
-                  onChange={(e) => setNewForm({ ...newForm, label: e.target.value })}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                  placeholder={t('Optional shorter name shown to users', 'Optional shorter name shown to users')}
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="mb-1 block text-sm font-bold text-gray-700">{t('Description', 'Description')}</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700">{t('Description', 'వివరణ')}</label>
                 <textarea
                   value={newForm.description}
                   onChange={(e) => setNewForm({ ...newForm, description: e.target.value })}
@@ -463,61 +362,16 @@ export function FormsDownloads() {
         </div>
       )}
 
-      {pdfToolOpen && (
-        <Suspense
-          fallback={
-            <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4 text-white">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          }
-        >
-          {selectedFolder === 'seed' ? (
-            <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-              <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-slate-50 shadow-2xl">
-                <header className="flex shrink-0 flex-wrap items-start justify-between gap-2 border-b border-slate-200 bg-white px-3 py-2.5 sm:px-4">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Seed sampling</p>
-                    <h2 className="max-w-full whitespace-normal text-sm font-black leading-snug text-slate-950 sm:text-base">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={closePdfTool}
-                    className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
-                    aria-label="Close seed PDF generator"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </header>
-                <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-                  <SeedForms />
-                </div>
-              </section>
-            </div>
-          ) : (
-            <FertilizerStatutoryPdfTool onClose={closePdfTool} />
-          )}
-        </Suspense>
-      )}
-
       <section className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-black text-gray-950 dark:text-white">{t(activeFolder.label, activeFolder.telugu)}</h2>
-            <p className="text-sm text-gray-500 dark:text-slate-300">
-              {totalForms} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
-            </p>
-          </div>
-          {isAdminUser && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-black text-emerald-800">
-              <Edit2 className="h-3.5 w-3.5" />
-              {t('Admin Editable', 'అడ్మిన్ ఎడిట్ చేయగలరు')}
-            </span>
-          )}
+        <div className="mb-3">
+          <h2 className="text-xl font-black text-gray-950 dark:text-white">{t(activeFolder.label, activeFolder.telugu)}</h2>
+          <p className="text-sm text-gray-500 dark:text-slate-300">
+            {selectedForms.length} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
+          </p>
         </div>
 
         {selectedForms.length > 0 ? (
-          <>
-          <div className="table-scroll rounded-lg border border-gray-100 dark:border-slate-700">
+          <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-slate-700">
             <table className="min-w-[720px] w-full border-collapse text-left">
               <thead className="bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                 <tr>
@@ -530,16 +384,11 @@ export function FormsDownloads() {
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                 {selectedForms.map((form, index) => (
                   <tr key={form.id} className="transition hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                      <td className="px-3 py-2 text-sm font-bold text-slate-600 dark:text-slate-300">{currentPage * FORMS_PAGE_SIZE + index + 1}</td>
+                    <td className="px-3 py-2 text-sm font-bold text-slate-600 dark:text-slate-300">{index + 1}</td>
                     <td className="px-3 py-2">
                       <div className="flex min-w-0 items-center gap-3">
                         <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                        <div className="min-w-0">
-                          <h3 className="max-w-[28rem] truncate text-sm font-black text-gray-950 dark:text-white">{form.label || form.title}</h3>
-                          {form.label && form.label !== form.title && (
-                            <p className="max-w-[28rem] truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{form.title}</p>
-                          )}
-                        </div>
+                        <h3 className="max-w-[28rem] truncate text-sm font-black text-gray-950 dark:text-white">{form.title}</h3>
                       </div>
                     </td>
                     <td className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-slate-400">
@@ -567,17 +416,6 @@ export function FormsDownloads() {
               </tbody>
             </table>
           </div>
-          {totalForms > FORMS_PAGE_SIZE && (
-            <PaginationControls
-              currentPage={currentPage}
-              pageCount={pageCount}
-              firstVisibleItem={firstVisibleItem}
-              lastVisibleItem={lastVisibleItem}
-              totalItems={totalForms}
-              onPageChange={setCurrentPage}
-            />
-          )}
-          </>
         ) : (
           <div className="rounded-2xl border border-dashed border-gray-200 p-12 text-center">
             <Folder className="mx-auto mb-4 h-12 w-12 text-gray-300" />
@@ -585,61 +423,6 @@ export function FormsDownloads() {
           </div>
         )}
       </section>
-    </div>
-  );
-}
-
-function isMissingLabelColumnError(error: unknown) {
-  const message = typeof error === 'object' && error && 'message' in error
-    ? String((error as { message?: unknown }).message || '')
-    : String(error || '');
-  const code = typeof error === 'object' && error && 'code' in error
-    ? String((error as { code?: unknown }).code || '')
-    : '';
-  return code === 'PGRST204' || /label/i.test(message) && /column|schema|cache|not found|does not exist/i.test(message);
-}
-
-function PaginationControls({
-  currentPage,
-  pageCount,
-  firstVisibleItem,
-  lastVisibleItem,
-  totalItems,
-  onPageChange,
-}: {
-  currentPage: number;
-  pageCount: number;
-  firstVisibleItem: number;
-  lastVisibleItem: number;
-  totalItems: number;
-  onPageChange: (page: number) => void;
-}) {
-  return (
-    <div className="mt-3 flex flex-col gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700 sm:flex-row sm:items-center sm:justify-between">
-      <span>
-        Showing {firstVisibleItem}-{lastVisibleItem} of {totalItems}
-      </span>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => onPageChange(Math.max(0, currentPage - 1))}
-          disabled={currentPage === 0}
-          className="rounded-md border border-slate-200 bg-white px-3 py-1.5 disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span className="text-xs uppercase tracking-wide text-slate-500">
-          Page {currentPage + 1} / {pageCount}
-        </span>
-        <button
-          type="button"
-          onClick={() => onPageChange(Math.min(pageCount - 1, currentPage + 1))}
-          disabled={currentPage >= pageCount - 1}
-          className="rounded-md border border-slate-200 bg-white px-3 py-1.5 disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
     </div>
   );
 }

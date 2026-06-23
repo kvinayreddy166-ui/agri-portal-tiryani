@@ -1,4 +1,4 @@
-import React, { useMemo, useState, ReactNode } from 'react';
+﻿import React, { useMemo, useState, ReactNode } from 'react';
 import {
   ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
@@ -104,10 +104,10 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
               <PortalLogo size="sm" />
               <div className="min-w-0">
                 <h1 className="truncate text-sm font-black tracking-tight sm:text-base">
-                  {t('Tiryani Agriculture Portal', 'తిర్యాని వ్యవసాయ పోర్టల్')}
+                  {t('Tiryani Agriculture Portal', 'à°¤à°¿à°°à±à°¯à°¾à°¨à°¿ à°µà±à°¯à°µà°¸à°¾à°¯ à°ªà±‹à°°à±à°Ÿà°²à±')}
                 </h1>
                 <p className="truncate text-[10px] font-medium text-emerald-100 sm:text-xs">
-                  {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
+                  {t('Information Management System', 'à°¸à°®à°¾à°šà°¾à°° à°¨à°¿à°°à±à°µà°¹à°£ à°µà±à°¯à°µà°¸à±à°¥')}
                 </p>
               </div>
             </div>
@@ -119,7 +119,7 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
               onClick={toggleTheme}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
               aria-label={isDark ? 'Light mode' : 'Dark mode'}
-              title={isDark ? t('Light mode', 'లైట్ మోడ్') : t('Dark mode', 'డార్క్ మోడ్')}
+              title={isDark ? t('Light mode', 'à°²à±ˆà°Ÿà± à°®à±‹à°¡à±') : t('Dark mode', 'à°¡à°¾à°°à±à°•à± à°®à±‹à°¡à±')}
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
@@ -129,14 +129,14 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
               className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold transition hover:bg-white/25 sm:text-sm"
             >
               <Globe2 className="h-4 w-4" />
-              {language === 'en' ? 'తె' : 'EN'}
+              {language === 'en' ? 'à°¤à±†' : 'EN'}
             </button>
             <span
               className={`hidden rounded-full px-2.5 py-1 text-[10px] font-bold sm:inline-block sm:text-xs ${
                 isAdminUser ? 'bg-amber-200 text-amber-950' : 'bg-cyan-200 text-cyan-950'
               }`}
             >
-              {isAdminUser ? t('Admin', 'అడ్మిన్') : isDealerUser ? t('Dealer', 'డీలర్') : t('Test User', 'టెస్ట్')}
+              {isAdminUser ? t('Admin', 'à°…à°¡à±à°®à°¿à°¨à±') : isDealerUser ? t('Dealer', 'à°¡à±€à°²à°°à±') : t('Test User', 'à°Ÿà±†à°¸à±à°Ÿà±')}
             </span>
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-sm font-bold">
               {user?.email?.charAt(0).toUpperCase()}
@@ -228,10 +228,10 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
               <p className="truncate text-xs font-black text-slate-900 dark:text-white">{user?.email}</p>
               <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
                 {isAdminUser
-                  ? t('Administrator', 'నిర్వాహకుడు')
+                  ? t('Administrator', 'à°¨à°¿à°°à±à°µà°¾à°¹à°•à±à°¡à±')
                   : isDealerUser
-                    ? dealerName || t('Dealer', 'డీలర్')
-                    : t('View access', 'చూడే ప్రవేశం')}
+                    ? dealerName || t('Dealer', 'à°¡à±€à°²à°°à±')
+                    : t('View access', 'à°šà±‚à°¡à±‡ à°ªà±à°°à°µà±‡à°¶à°‚')}
               </p>
             </div>
           </div>
@@ -241,7 +241,7 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-2 text-xs font-black text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
           >
             <LogOut className="h-4 w-4" />
-            {t('Sign Out', 'సైన్ అవుట్')}
+            {t('Sign Out', 'à°¸à±ˆà°¨à± à°…à°µà±à°Ÿà±')}
           </button>
         </div>
       </aside>
@@ -312,6 +312,7 @@ function menuSections(items: typeof adminMenuItems) {
 function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem[] } {
   const dashboard = { label: 'Dashboard', page: 'dashboard' };
   const toolkit = { label: 'Officer Toolkit', page: 'officer-toolkit' };
+  const farmCalculators = { label: 'Farm Calculators', page: 'farm-calculators' };
 
   if (page.startsWith('crop-')) {
     const title = page === 'crop-admin' ? 'Crop Admin' : cropTitle(page);
@@ -347,7 +348,12 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     'officer-toolkit': { title: 'Officer Toolkit', breadcrumbs: [dashboard] },
     forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit] },
     'acreage-calculator': { title: 'Acerage Calculator', breadcrumbs: [dashboard, toolkit] },
+    'farm-calculators': { title: 'Farm Calculators', breadcrumbs: [dashboard, toolkit] },
     'crop-protection': { title: 'Crop Protection Guidance', breadcrumbs: [dashboard, toolkit] },
+    'fertilizer-calculator': { title: 'Fertilizer Calculator', breadcrumbs: [dashboard, toolkit, farmCalculators] },
+    'pesticide-calculator': { title: 'Pesticide Calculator', breadcrumbs: [dashboard, toolkit, farmCalculators] },
+    'plant-population-calculator': { title: 'Plant Population Calculator', breadcrumbs: [dashboard, toolkit, farmCalculators] },
+    'seed-rate-calculator': { title: 'Seed Rate Calculator', breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'gos-circulars': { title: 'GOs & Circulars', breadcrumbs: [dashboard] },
     quality: { title: 'Quality Control', breadcrumbs: [dashboard] },
     'farm-mechanization': { title: 'Farm Mechanization', breadcrumbs: [dashboard] },
@@ -391,38 +397,43 @@ function subsidyTitle(page: string) {
 
 function translateMenu(label: string) {
   const labels: Record<string, string> = {
-    Dashboard: 'డ్యాష్ బోర్డ్',
-    'Command Center': 'కమాండ్ సెంటర్',
-    'Stock Analytics': 'స్టాక్ విశ్లేషణలు',
-    'Stock Receipts & Sales': 'స్టాక్ రసీట్లు & అమ్మకాలు',
-    'Stock Inventory': 'స్టాక్ ఇన్వెంటరీ',
-    'My Stock Entry': 'నా స్టాక్ ఎంట్రీ',
-    'Dealers Directory': 'డీలర్ల డైరెక్టరీ',
-    'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
-    'Farmer Database': 'రైతుల డేటాబేస్',
-    'Crop Intelligence': 'పంట ఇంటెలిజెన్స్',
-    'Crop Admin': 'పంట అడ్మిన్',
+    Dashboard: 'à°¡à±à°¯à°¾à°·à± à°¬à±‹à°°à±à°¡à±',
+    'Command Center': 'à°•à°®à°¾à°‚à°¡à± à°¸à±†à°‚à°Ÿà°°à±',
+    'Stock Analytics': 'à°¸à±à°Ÿà°¾à°•à± à°µà°¿à°¶à±à°²à±‡à°·à°£à°²à±',
+    'Stock Receipts & Sales': 'à°¸à±à°Ÿà°¾à°•à± à°°à°¸à±€à°Ÿà±à°²à± & à°…à°®à±à°®à°•à°¾à°²à±',
+    'Stock Inventory': 'à°¸à±à°Ÿà°¾à°•à± à°‡à°¨à±à°µà±†à°‚à°Ÿà°°à±€',
+    'My Stock Entry': 'à°¨à°¾ à°¸à±à°Ÿà°¾à°•à± à°Žà°‚à°Ÿà±à°°à±€',
+    'Dealers Directory': 'à°¡à±€à°²à°°à±à°² à°¡à±ˆà°°à±†à°•à±à°Ÿà°°à±€',
+    'Dealer Stock Tracking': 'à°¡à±€à°²à°°à± à°¸à±à°Ÿà°¾à°•à± à°Ÿà±à°°à°¾à°•à°¿à°‚à°—à±',
+    'Farmer Database': 'à°°à±ˆà°¤à±à°² à°¡à±‡à°Ÿà°¾à°¬à±‡à°¸à±',
+    'Crop Intelligence': 'à°ªà°‚à°Ÿ à°‡à°‚à°Ÿà±†à°²à°¿à°œà±†à°¨à±à°¸à±',
+    'Crop Admin': 'à°ªà°‚à°Ÿ à°…à°¡à±à°®à°¿à°¨à±',
     'Officer Toolkit': 'Officer Toolkit',
-    'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
-    'Acerage Calculator': 'ఎకరాల కాలిక్యులేటర్',
-    'GOs & Circulars': 'జీ.ఓలు & సర్క్యులర్లు',
-    'Quality Control': 'నాణ్యత నియంత్రణ',
-    'Farm Mechanization': 'వ్యవసాయ యాంత్రీకరణ',
-    'Office Records': 'కార్యాలయ రికార్డులు',
-    'Document Repository': 'పత్రాల భాండాగారం',
-    'Subsidy & Schemes': 'సబ్సిడీ & పథకాలు',
-    NFSM: 'ఎన్.ఎఫ్.ఎస్.ఎం',
-    'State Seed Cell': 'రాష్ట్ర విత్తన కార్యాలయం',
-    Seeds: 'విత్తనాలు',
-    Pesticides: 'పురుగుమందులు',
-    Fertilizers: 'ఎరువులు',
-    Analytics: 'విశ్లేషణలు',
-    Settings: 'సెట్టింగులు',
-    Cotton: 'పత్తి',
-    Paddy: 'వరి',
-    Maize: 'మొక్కజొన్న',
-    Pulses: 'పప్పుధాన్యాలు',
-    Oilseeds: 'నూనె గింజలు',
+    'Statutory Forms': 'à°šà°Ÿà±à°Ÿà°¬à°¦à±à°§ à°«à°¾à°°à°¾à°²à±',
+    'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
+    'Fertilizer Calculator': 'ఎరువుల కాలిక్యులేటర్',
+    'Seed Rate Calculator': 'విత్తన మోతాదు కాలిక్యులేటర్',
+    'Plant Population Calculator': '?????? ????? ?????????????',
+    'Pesticide Calculator': '?????????? ?????????????',
+    'Acerage Calculator': 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    'GOs & Circulars': 'à°œà±€.à°“à°²à± & à°¸à°°à±à°•à±à°¯à±à°²à°°à±à°²à±',
+    'Quality Control': 'à°¨à°¾à°£à±à°¯à°¤ à°¨à°¿à°¯à°‚à°¤à±à°°à°£',
+    'Farm Mechanization': 'à°µà±à°¯à°µà°¸à°¾à°¯ à°¯à°¾à°‚à°¤à±à°°à±€à°•à°°à°£',
+    'Office Records': 'à°•à°¾à°°à±à°¯à°¾à°²à°¯ à°°à°¿à°•à°¾à°°à±à°¡à±à°²à±',
+    'Document Repository': 'à°ªà°¤à±à°°à°¾à°² à°­à°¾à°‚à°¡à°¾à°—à°¾à°°à°‚',
+    'Subsidy & Schemes': 'à°¸à°¬à±à°¸à°¿à°¡à±€ & à°ªà°¥à°•à°¾à°²à±',
+    NFSM: 'à°Žà°¨à±.à°Žà°«à±.à°Žà°¸à±.à°Žà°‚',
+    'State Seed Cell': 'à°°à°¾à°·à±à°Ÿà±à°° à°µà°¿à°¤à±à°¤à°¨ à°•à°¾à°°à±à°¯à°¾à°²à°¯à°‚',
+    Seeds: 'à°µà°¿à°¤à±à°¤à°¨à°¾à°²à±',
+    Pesticides: 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à±à°²à±',
+    Fertilizers: 'à°Žà°°à±à°µà±à°²à±',
+    Analytics: 'à°µà°¿à°¶à±à°²à±‡à°·à°£à°²à±',
+    Settings: 'à°¸à±†à°Ÿà±à°Ÿà°¿à°‚à°—à±à°²à±',
+    Cotton: 'à°ªà°¤à±à°¤à°¿',
+    Paddy: 'à°µà°°à°¿',
+    Maize: 'à°®à±Šà°•à±à°•à°œà±Šà°¨à±à°¨',
+    Pulses: 'à°ªà°ªà±à°ªà±à°§à°¾à°¨à±à°¯à°¾à°²à±',
+    Oilseeds: 'à°¨à±‚à°¨à±† à°—à°¿à°‚à°œà°²à±',
   };
   return labels[label] ?? label;
 }

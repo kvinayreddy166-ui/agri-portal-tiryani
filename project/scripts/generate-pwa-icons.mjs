@@ -10,56 +10,58 @@ const publicDir = path.join(__dirname, '../public');
 const imagesDir = path.join(publicDir, 'images');
 const iconsDir = path.join(publicDir, 'icons');
 const svgPath = path.join(imagesDir, 'agri-emblem.svg');
+const themeColor = { r: 4, g: 120, b: 87 };
+const white = { r: 255, g: 255, b: 255 };
 
 fs.mkdirSync(iconsDir, { recursive: true });
 
-// Sizes to generate
 const sizes = [192, 512];
 
-// Generate regular icons
-for (const size of sizes) {
-  const outputPath = path.join(iconsDir, `icon-${size}x${size}.png`);
-  
-  await sharp(svgPath)
-    .resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .png()
-    .toFile(outputPath);
-  
-  console.log(`Generated ${outputPath}`);
-}
+async function renderEmblem(size, background, emblemScale = 0.86) {
+  const emblemSize = Math.round(size * emblemScale);
+  const emblem = await sharp(svgPath)
+    .resize(emblemSize, emblemSize, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .toBuffer();
 
-// Generate maskable icons with safe padding (40% padding for maskable icons)
-for (const size of sizes) {
-  const outputPath = path.join(iconsDir, `icon-maskable-${size}x${size}.png`);
-  
-  // For maskable icons, we want the emblem to be centered with padding
-  // The safe zone is typically 60% of the icon size, so we scale the emblem to 60%
-  const safeSize = Math.round(size * 0.6);
-  
-  // Create a canvas with the theme color background
-  const background = sharp({
+  return sharp({
     create: {
       width: size,
       height: size,
-      channels: 4,
-      background: { r: 4, g: 120, b: 87, alpha: 1 } // theme_color #047857
-    }
-  });
-  
-  // Resize the SVG to safe size and composite onto background
-  const emblem = await sharp(svgPath)
-    .resize(safeSize, safeSize, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .toBuffer();
-  
-  await background
-    .composite([{
-      input: emblem,
-      gravity: 'center'
-    }])
+      channels: 3,
+      background,
+    },
+  }).composite([{ input: emblem, gravity: 'center' }]);
+}
+
+// Install surfaces can reject or visually flatten transparent icons.
+for (const size of sizes) {
+  const outputPath = path.join(iconsDir, `icon-${size}x${size}.png`);
+
+  await (await renderEmblem(size, white))
+    .flatten({ background: white })
+    .removeAlpha()
     .png()
     .toFile(outputPath);
-  
+
+  console.log(`Generated ${outputPath}`);
+}
+
+for (const size of sizes) {
+  const outputPath = path.join(iconsDir, `icon-maskable-${size}x${size}.png`);
+
+  await (await renderEmblem(size, themeColor, 0.6))
+    .flatten({ background: themeColor })
+    .removeAlpha()
+    .png()
+    .toFile(outputPath);
+
   console.log(`Generated maskable ${outputPath}`);
 }
+
+await (await renderEmblem(180, white))
+  .flatten({ background: white })
+  .removeAlpha()
+  .png()
+  .toFile(path.join(iconsDir, 'apple-touch-icon.png'));
 
 console.log('PWA icons generated successfully!');

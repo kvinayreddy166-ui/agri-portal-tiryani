@@ -1,9 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Calculator, FlaskConical, ShieldCheck, FileStack, ChevronLeft, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { Calculator, FlaskConical, ShieldCheck, FileStack, ChevronLeft, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, type LucideIcon } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
-const toolkitItems = [
+interface ToolkitItem {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  gradient: string;
+  bgGradient: string;
+  path?: string;
+  externalUrl?: string;
+  category?: 'internal';
+}
+
+const toolkitItems: ToolkitItem[] = [
   {
     title: 'Statutory Forms',
     description: 'Prepare and download field forms.',
@@ -14,22 +25,13 @@ const toolkitItems = [
     bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
   },
   {
-    title: 'Acerage Calculator',
-    description: 'Calculate acerage from field entries.',
-    path: '/officer-toolkit/acreage-calculator',
-    icon: Calculator,
+    title: 'Farm Calculators',
+    description: 'Crop, seed, fertilizer and pesticide calculations.',
+    path: '/officer-toolkit/farm-calculators',
+    icon: Sprout,
     category: 'internal',
-    gradient: 'from-emerald-500 to-teal-600',
-    bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
-  },
-  {
-    title: 'Fertilizer Calculator',
-    description: 'Calculate nutrients, bags, split doses, and exports.',
-    path: '/officer-toolkit/fertilizer-calculator',
-    icon: FlaskConical,
-    category: 'internal',
-    gradient: 'from-green-500 to-emerald-600',
-    bgGradient: 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
+    gradient: 'from-green-600 to-teal-700',
+    bgGradient: 'from-green-50 to-teal-50 dark:from-green-950/30 dark:to-teal-950/30',
   },
   {
     title: 'Crop Protection Guidance',
@@ -42,7 +44,7 @@ const toolkitItems = [
   },
 ];
 
-const externalPortals = [
+const externalPortals: ToolkitItem[] = [
   {
     title: 'Urea Dashboard',
     description: 'Urea Fertilizer Dashboard Portal',
@@ -165,7 +167,7 @@ const externalPortals = [
   },
 ];
 
-function ToolkitCard({ item, index, onClick }: { item: any; index: number; onClick: () => void }) {
+function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: number; onClick: () => void }) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -234,10 +236,10 @@ export function OfficersToolkit() {
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-2xl font-black text-slate-900 dark:text-white">
-                    {t('Officer Toolkit', 'ఆఫీసర్ టూల్కిట్')}
+                    {t('Officer Toolkit', 'à°†à°«à±€à°¸à°°à± à°Ÿà±‚à°²à±à°•à°¿à°Ÿà±')}
                   </h1>
                   <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                    {t('Agricultural Tools & Government Portals', 'వ్యవసాయ పనిముట్లు & ప్రభుత్వ పోర్టల్స్')}
+                    {t('Agricultural Tools & Government Portals', 'à°µà±à°¯à°µà°¸à°¾à°¯ à°ªà°¨à°¿à°®à±à°Ÿà±à°²à± & à°ªà±à°°à°­à±à°¤à±à°µ à°ªà±‹à°°à±à°Ÿà°²à±à°¸à±')}
                   </p>
                 </div>
               </div>
@@ -248,7 +250,7 @@ export function OfficersToolkit() {
                   className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 shadow-sm transition-all hover:bg-emerald-50 hover:shadow-md dark:border-emerald-700 dark:bg-slate-800 dark:text-emerald-400 dark:hover:bg-slate-700"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  {t('Back to Login', 'లాగిన్‌కి తిరిగి వెళ్లు')}
+                  {t('Back to Login', 'à°²à°¾à°—à°¿à°¨à±â€Œà°•à°¿ à°¤à°¿à°°à°¿à°—à°¿ à°µà±†à°³à±à°²à±')}
                 </button>
               )}
             </div>
@@ -262,7 +264,7 @@ export function OfficersToolkit() {
               <Calculator className="h-4 w-4" />
             </div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              {t('Field Tools', 'ఫీల్డ్ టూల్స్')}
+              {t('Field Tools', 'à°«à±€à°²à±à°¡à± à°Ÿà±‚à°²à±à°¸à±')}
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -284,7 +286,7 @@ export function OfficersToolkit() {
               <ExternalLink className="h-4 w-4" />
             </div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              {t('Government Portals', 'ప్రభుత్వ పోర్టల్స్')}
+              {t('Government Portals', 'à°ªà±à°°à°­à±à°¤à±à°µ à°ªà±‹à°°à±à°Ÿà°²à±à°¸à±')}
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -308,7 +310,7 @@ export function OfficersToolkit() {
         {/* Footer */}
         <div className={`mt-8 text-center transition-all duration-700 delay-600 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            {t('Empowering Agriculture with Digital Tools', 'డిజిటల్ టూల్స్‌తో వ్యవసాయాన్ని శక్తివంతం చేయడం')}
+            {t('Empowering Agriculture with Digital Tools', 'à°¡à°¿à°œà°¿à°Ÿà°²à± à°Ÿà±‚à°²à±à°¸à±â€Œà°¤à±‹ à°µà±à°¯à°µà°¸à°¾à°¯à°¾à°¨à±à°¨à°¿ à°¶à°•à±à°¤à°¿à°µà°‚à°¤à°‚ à°šà±‡à°¯à°¡à°‚')}
           </p>
         </div>
       </div>

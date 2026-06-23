@@ -27,7 +27,11 @@ const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const FertilizerCalculator = lazy(() => import('./features/fertilizerCalculator/FertilizerCalculatorCore').then((m) => ({ default: m.FertilizerCalculatorCore })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
+const FarmCalculators = lazy(() => import('./pages/FarmCalculators').then((m) => ({ default: m.FarmCalculators })));
 const CropProtectionTool = lazy(() => import('./pages/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
+const PesticideCalculator = lazy(() => import('./pages/PesticideCalculator').then((m) => ({ default: m.PesticideCalculator })));
+const PlantPopulationCalculator = lazy(() => import('./pages/PlantPopulationCalculator').then((m) => ({ default: m.PlantPopulationCalculator })));
+const SeedRateCalculator = lazy(() => import('./pages/SeedRateCalculator').then((m) => ({ default: m.SeedRateCalculator }))); 
 const StockAnalytics = lazy(() => import('./pages/StockAnalytics'));
 const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const CropAdminDashboard = lazy(() =>
@@ -53,8 +57,12 @@ const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit',
   '/officer-toolkit/statutory-forms',
   '/officer-toolkit/acreage-calculator',
+  '/officer-toolkit/farm-calculators',
   '/officer-toolkit/fertilizer-calculator',
   '/officer-toolkit/crop-protection',
+  '/officer-toolkit/pesticide-calculator',
+  '/officer-toolkit/plant-population-calculator',
+  '/officer-toolkit/seed-rate-calculator',
 ]);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
@@ -86,8 +94,12 @@ const PAGE_PATHS: Record<string, string> = {
   'subsidy-state-seed': '/subsidy-state-seed',
   'officer-toolkit': '/officer-toolkit',
   'acreage-calculator': '/acreage-calculator',
+  'farm-calculators': '/officer-toolkit/farm-calculators',
   'fertilizer-calculator': '/officer-toolkit/fertilizer-calculator',
   'crop-protection': '/officer-toolkit/crop-protection',
+  'pesticide-calculator': '/officer-toolkit/pesticide-calculator',
+  'plant-population-calculator': '/officer-toolkit/plant-population-calculator',
+  'seed-rate-calculator': '/officer-toolkit/seed-rate-calculator',
   analytics: '/analytics',
   settings: '/settings',
 };
@@ -109,9 +121,18 @@ function getHistoryIndex() {
 
 function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
   if (
-    pathname === '/officer-toolkit/statutory-forms' ||
     pathname === '/officer-toolkit/acreage-calculator' ||
     pathname === '/officer-toolkit/fertilizer-calculator' ||
+    pathname === '/officer-toolkit/pesticide-calculator' ||
+    pathname === '/officer-toolkit/plant-population-calculator' ||
+    pathname === '/officer-toolkit/seed-rate-calculator'
+  ) {
+    return '/officer-toolkit/farm-calculators';
+  }
+  if (
+    pathname === '/officer-toolkit/statutory-forms' ||
+    pathname === '/officer-toolkit/acreage-calculator' ||
+    pathname === '/officer-toolkit/farm-calculators' ||
     pathname === '/officer-toolkit/crop-protection'
   ) {
     return '/officer-toolkit';
@@ -129,14 +150,15 @@ function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
 }
 
 function getPageBackFallback(page: string, isDealerUser: boolean) {
-  if (page === 'forms' || page === 'acreage-calculator' || page === 'fertilizer-calculator' || page === 'crop-protection') return '/officer-toolkit';
+  if (page === 'forms' || page === 'acreage-calculator' || page === 'crop-protection') return '/officer-toolkit';
+  if (page === 'farm-calculators') return '/officer-toolkit';
+  if (page === 'fertilizer-calculator' || page === 'pesticide-calculator' || page === 'plant-population-calculator' || page === 'seed-rate-calculator') return '/officer-toolkit/farm-calculators';
   if (page === 'officer-toolkit') return '/dashboard';
   if (page.startsWith('crop-')) return '/crops';
   if (page.startsWith('quality-')) return '/quality';
   if (page.startsWith('subsidy-')) return '/subsidy';
   return isDealerUser ? '/dealer-portal' : '/dashboard';
 }
-
 function useAppScrollRestoration(location: ReturnType<typeof useLocation>, navigationType: ReturnType<typeof useNavigationType>) {
   useEffect(() => {
     const original = window.history.scrollRestoration;
@@ -308,9 +330,13 @@ function AppContent() {
         'subsidy-nfsm',
         'subsidy-state-seed',
         'officer-toolkit',
+        'farm-calculators',
         'acreage-calculator',
         'fertilizer-calculator',
         'crop-protection',
+        'pesticide-calculator',
+        'plant-population-calculator',
+        'seed-rate-calculator',
         'analytics',
         'settings',
       ]),
@@ -324,6 +350,9 @@ function AppContent() {
       
       // Handle nested routes for officer toolkit
       let page = routePage !== 'dashboard' ? routePage : legacyPage || routePage || hashPage;
+      if (page === 'officer-toolkit/farm-calculators') {
+        page = 'farm-calculators';
+      }
       if (page === 'officer-toolkit/acreage-calculator') {
         page = 'acreage-calculator';
       }
@@ -335,6 +364,15 @@ function AppContent() {
       }
       if (page === 'officer-toolkit/crop-protection') {
         page = 'crop-protection';
+      }
+      if (page === 'officer-toolkit/pesticide-calculator') {
+        page = 'pesticide-calculator';
+      }
+      if (page === 'officer-toolkit/plant-population-calculator') {
+        page = 'plant-population-calculator';
+      }
+      if (page === 'officer-toolkit/seed-rate-calculator') {
+        page = 'seed-rate-calculator';
       }
       
       return validPages.has(page) ? page : 'dashboard';
@@ -454,8 +492,12 @@ function AppContent() {
       location.pathname.startsWith('/officer-toolkit/') &&
       location.pathname !== '/officer-toolkit/statutory-forms' &&
       location.pathname !== '/officer-toolkit/acreage-calculator' &&
+    location.pathname !== '/officer-toolkit/farm-calculators' &&
       location.pathname !== '/officer-toolkit/fertilizer-calculator' &&
-      location.pathname !== '/officer-toolkit/crop-protection'
+      location.pathname !== '/officer-toolkit/crop-protection' &&
+      location.pathname !== '/officer-toolkit/pesticide-calculator' &&
+      location.pathname !== '/officer-toolkit/plant-population-calculator' &&
+      location.pathname !== '/officer-toolkit/seed-rate-calculator'
     ) {
       navigate('/officer-toolkit', { replace: true });
     }
@@ -485,10 +527,42 @@ function AppContent() {
     );
   }
 
+  if (!user && currentPage === 'farm-calculators') {
+    return (
+      <Suspense fallback={<GlobalAppLoader />}>
+        <FarmCalculators />
+      </Suspense>
+    );
+  }
+
   if (!user && currentPage === 'crop-protection') {
     return (
       <Suspense fallback={<GlobalAppLoader />}>
         <CropProtectionTool />
+      </Suspense>
+    );
+  }
+
+  if (!user && currentPage === 'pesticide-calculator') {
+    return (
+      <Suspense fallback={<GlobalAppLoader />}>
+        <PesticideCalculator />
+      </Suspense>
+    );
+  }
+
+  if (!user && currentPage === 'plant-population-calculator') {
+    return (
+      <Suspense fallback={<GlobalAppLoader />}>
+        <PlantPopulationCalculator />
+      </Suspense>
+    );
+  }
+
+  if (!user && currentPage === 'seed-rate-calculator') {
+    return (
+      <Suspense fallback={<GlobalAppLoader />}>
+        <SeedRateCalculator />
       </Suspense>
     );
   }
@@ -498,6 +572,7 @@ function AppContent() {
     location.pathname.startsWith('/officer-toolkit/') &&
     location.pathname !== '/officer-toolkit/statutory-forms' &&
     location.pathname !== '/officer-toolkit/acreage-calculator' &&
+    location.pathname !== '/officer-toolkit/farm-calculators' &&
     location.pathname !== '/officer-toolkit/fertilizer-calculator' &&
     location.pathname !== '/officer-toolkit/crop-protection'
   ) {
@@ -576,12 +651,20 @@ function AppContent() {
         );
       case 'officer-toolkit':
         return <OfficersToolkit />;
+      case 'farm-calculators':
+        return <FarmCalculators />;
       case 'acreage-calculator':
         return <AcreageCalculator />;
       case 'fertilizer-calculator':
         return <FertilizerCalculator />;
       case 'crop-protection':
         return <CropProtectionTool />;
+      case 'pesticide-calculator':
+        return <PesticideCalculator />;
+      case 'plant-population-calculator':
+        return <PlantPopulationCalculator />;
+      case 'seed-rate-calculator':
+        return <SeedRateCalculator />;
       case 'analytics':
         return <Analytics />;
       case 'settings':
@@ -616,3 +699,18 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
