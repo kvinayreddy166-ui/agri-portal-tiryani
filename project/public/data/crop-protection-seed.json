@@ -126,19 +126,20 @@
       "active": true,
       "items": [
         {
-          "id": "paddy-stem-borer",
+          "id": "paddy-brown-plant-hopper",
           "category": "pest",
-          "name_en": "Yellow stem borer",
-          "name_te": "కాండం తొలిచే పురుగు",
-          "scientific_name": "Scirpophaga incertulas",
-          "symptoms_en": "Dead heart in vegetative stage and white ear at reproductive stage.",
-          "damage_en": "Central shoot dries; panicles become white and chaffy.",
-          "favourable_conditions_en": "High humidity, continuous rice cultivation and stubbles.",
-          "stage": "Vegetative to reproductive",
+          "name_en": "Brown Plant Hopper",
+          "name_te": "",
+          "scientific_name": "Nilaparvata lugens",
+          "symptoms_en": "Nymphs and adults remain at the plant base. Infested patches show hopper burn, drying or lodging and may transmit grassy stunt, ragged stunt and wilted stunt.",
+          "damage_en": "Sap sucking causes yellowing, drying, circular hopper-burn patches and lodging in severe infestation.",
+          "favourable_conditions_en": "Close planting, excess nitrogen, standing dense crop canopy and poor water management favour hopper build-up.",
+          "etl": "ETL: 1 hopper/tiller without predatory spider; 2 hoppers/tiller when spider is present.",
+          "stage": "Tillering to grain filling",
           "severity_level": "high",
           "image_urls": [],
-          "source_name": "TNAU Agritech paddy crop protection",
-          "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html",
+          "source_name": "TNAU Rice Crop Protection PWA Template",
+          "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_12.html",
           "source_priority": 1,
           "is_verified": true,
           "active": true,
@@ -146,14 +147,155 @@
             {
               "control_type": "cultural",
               "severity_level": "low",
-              "recommendation_en": "Clip seedling tips, remove stubbles and monitor with pheromone traps where recommended.",
-              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html"
+              "recommendation_en": "Avoid close planting, use alternate wetting and drying, avoid excess nitrogen and drain water before directing spray to the plant base when control is required.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_12.html"
+            },
+            {
+              "control_type": "biological",
+              "severity_level": "medium",
+              "recommendation_en": "Conserve predatory spiders and other natural enemies; use monitoring-based IPM before chemical control.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_12.html"
             },
             {
               "control_type": "chemical",
               "severity_level": "high",
-              "recommendation_en": "Official recommendation will be updated soon. Please follow local PJTSAU/Department advisory.",
-              "chemical_name": "Refer latest label/local advisory"
+              "recommendation_en": "TNAU template notes neem oil/azadirachtin and listed insecticides, but dose must be verified against latest CIBRC label and PJTSAU/Telangana advisory before display.",
+              "chemical_name": "Verify latest label/local advisory",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_12.html"
+            }
+          ]
+        },
+        {
+          "id": "paddy-stem-borer",
+          "category": "pest",
+          "name_en": "Yellow stem borer",
+          "name_te": "కాండం తొలిచే పురుగు",
+          "scientific_name": "Scirpophaga incertulas",
+          "symptoms_en": "Dead heart in tillering stage and white ear at panicle stage. Affected shoots or panicles pull out easily.",
+          "damage_en": "Central shoot dries during vegetative growth; panicles become white, chaffy and unfilled at reproductive stage.",
+          "favourable_conditions_en": "Continuous rice cultivation, carry-over stubbles and favourable humid crop canopy.",
+          "etl": "ETL: 10% dead heart or 2% white ear.",
+          "stage": "Vegetative to reproductive",
+          "severity_level": "high",
+          "image_urls": [],
+          "source_name": "TNAU Rice Crop Protection PWA Template",
+          "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m1.html",
+          "source_priority": 1,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "cultural",
+              "severity_level": "low",
+              "recommendation_en": "Clip seedling tips, remove stubbles and install light or pheromone traps where recommended.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m1.html"
+            },
+            {
+              "control_type": "biological",
+              "severity_level": "medium",
+              "recommendation_en": "Release Trichogramma japonicum as per official IPM schedule and local advisory.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m1.html"
+            },
+            {
+              "control_type": "chemical",
+              "severity_level": "high",
+              "recommendation_en": "The template refers to neem products and listed insecticides; verify latest CIBRC label and PJTSAU/Telangana advisory before field recommendation.",
+              "chemical_name": "Verify latest label/local advisory",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m1.html"
+            }
+          ]
+        },
+        {
+          "id": "paddy-leaf-folder",
+          "category": "pest",
+          "name_en": "Leaf folder / leaf roller",
+          "name_te": "",
+          "scientific_name": "Cnaphalocrocis medinalis / Marasmia patnalis",
+          "symptoms_en": "Larva folds leaves longitudinally and scrapes green tissue. Leaves turn white or dry; severe infestation gives a scorched field appearance.",
+          "damage_en": "Reduced photosynthetic leaf area and drying of leaves, especially when flag leaves are damaged.",
+          "favourable_conditions_en": "Excess nitrogen, dense canopy, weedy bunds and humid conditions favour leaf folder multiplication.",
+          "etl": "ETL: 10% leaf damage at vegetative stage; 5% flag leaf damage at flowering.",
+          "stage": "Vegetative to flowering",
+          "severity_level": "high",
+          "image_urls": [],
+          "source_name": "TNAU Rice Crop Protection PWA Template",
+          "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m5.html",
+          "source_priority": 1,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "cultural",
+              "severity_level": "low",
+              "recommendation_en": "Avoid excess nitrogen and keep bunds clean to reduce pest carry-over.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m5.html"
+            },
+            {
+              "control_type": "biological",
+              "severity_level": "medium",
+              "recommendation_en": "Release Trichogramma chilonis as per official IPM schedule; use NSKE or azadirachtin where advised.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m5.html"
+            },
+            {
+              "control_type": "chemical",
+              "severity_level": "high",
+              "recommendation_en": "Verify current official insecticide and dose before app display or field use.",
+              "chemical_name": "Verify latest label/local advisory",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m5.html"
+            }
+          ]
+        },
+        {
+          "id": "paddy-thrips",
+          "category": "pest",
+          "name_en": "Thrips",
+          "name_te": "",
+          "scientific_name": "",
+          "symptoms_en": "Rice pest card listed in the TNAU template. Officer-friendly symptoms and images should be filled from the official detail page.",
+          "damage_en": "Official damage details will be updated from TNAU/PJTSAU source verification.",
+          "favourable_conditions_en": "Refer latest official rice pest advisory for local seasonal conditions.",
+          "etl": "Refer latest local Department/PJTSAU advisory.",
+          "stage": "Nursery to early vegetative",
+          "severity_level": "medium",
+          "image_urls": [],
+          "source_name": "TNAU Rice Pest Index",
+          "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_insectpest%20_cereals_paddymain.html",
+          "source_priority": 2,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "general_ipm",
+              "severity_level": "medium",
+              "recommendation_en": "Scout the crop, confirm pest identity from official source images and follow local PJTSAU/Department advisory for need-based control.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_insectpest%20_cereals_paddymain.html"
+            }
+          ]
+        },
+        {
+          "id": "paddy-gall-midge",
+          "category": "pest",
+          "name_en": "Gall midge",
+          "name_te": "",
+          "scientific_name": "",
+          "symptoms_en": "Rice pest card listed in the TNAU template. Official symptoms and images should be filled from the rice pest detail page before chemical guidance is shown.",
+          "damage_en": "Official damage details will be updated from TNAU/PJTSAU source verification.",
+          "favourable_conditions_en": "Refer latest official rice pest advisory for local seasonal conditions.",
+          "etl": "Refer latest local Department/PJTSAU advisory.",
+          "stage": "Vegetative",
+          "severity_level": "medium",
+          "image_urls": [],
+          "source_name": "TNAU Rice Pest Index",
+          "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_insectpest%20_cereals_paddymain.html",
+          "source_priority": 2,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "general_ipm",
+              "severity_level": "medium",
+              "recommendation_en": "Use official-source confirmation and follow local PJTSAU/Department advisory. Chemical dose is not shown until verified.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_insectpest%20_cereals_paddymain.html"
             }
           ]
         },
@@ -178,14 +320,158 @@
             {
               "control_type": "cultural",
               "severity_level": "low",
-              "recommendation_en": "Use clean seed, tolerant varieties where available and avoid excess nitrogen.",
-              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot.html"
+              "recommendation_en": "Use clean seed, tolerant varieties where available and avoid excess nitrogen. Verify Telangana advisory before field recommendation.",
+              "source_url": "https://www.pjtsau.edu.in/"
             },
             {
               "control_type": "chemical",
               "severity_level": "high",
               "recommendation_en": "Official recommendation will be updated soon. Please follow local PJTSAU/Department advisory.",
               "chemical_name": "Refer latest label/local advisory"
+            }
+          ]
+        },
+        {
+          "id": "paddy-brown-spot",
+          "category": "disease",
+          "name_en": "Brown spot",
+          "name_te": "",
+          "scientific_name": "",
+          "symptoms_en": "Rice disease card listed in the TNAU template. English symptoms and images should be filled after official source verification.",
+          "damage_en": "Official damage details will be updated soon. Follow local PJTSAU/Department advisory.",
+          "favourable_conditions_en": "Refer latest official rice disease advisory for local seasonal conditions.",
+          "stage": "Vegetative to grain filling",
+          "severity_level": "medium",
+          "image_urls": [],
+          "source_name": "TNAU Rice Crop Protection PWA Template",
+          "source_url": "https://www.pjtsau.edu.in/",
+          "source_priority": 3,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "general_ipm",
+              "severity_level": "medium",
+              "recommendation_en": "Use source-linked identification, avoid crop stress and follow local PJTSAU/Department advisory. Chemical dose is not shown until verified.",
+              "source_url": "https://www.pjtsau.edu.in/"
+            }
+          ]
+        },
+        {
+          "id": "paddy-bacterial-leaf-blight",
+          "category": "disease",
+          "name_en": "Bacterial leaf blight",
+          "name_te": "",
+          "scientific_name": "",
+          "symptoms_en": "Rice disease card listed in the TNAU template. English symptoms and images should be filled after official source verification.",
+          "damage_en": "Official damage details will be updated soon. Follow local PJTSAU/Department advisory.",
+          "favourable_conditions_en": "Refer latest official rice disease advisory for local seasonal conditions.",
+          "stage": "Vegetative to grain filling",
+          "severity_level": "high",
+          "image_urls": [],
+          "source_name": "TNAU Rice Crop Protection PWA Template",
+          "source_url": "https://www.pjtsau.edu.in/",
+          "source_priority": 3,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "general_ipm",
+              "severity_level": "medium",
+              "recommendation_en": "Use source-linked identification, avoid field-to-field spread and follow local PJTSAU/Department advisory. Chemical dose is not shown until verified.",
+              "source_url": "https://www.pjtsau.edu.in/"
+            }
+          ]
+        },
+        {
+          "id": "paddy-sheath-blight",
+          "category": "disease",
+          "name_en": "Sheath blight",
+          "name_te": "",
+          "scientific_name": "",
+          "symptoms_en": "Rice disease card listed in the TNAU template. English symptoms and images should be filled after official source verification.",
+          "damage_en": "Official damage details will be updated soon. Follow local PJTSAU/Department advisory.",
+          "favourable_conditions_en": "Refer latest official rice disease advisory for local seasonal conditions.",
+          "stage": "Tillering to grain filling",
+          "severity_level": "high",
+          "image_urls": [],
+          "source_name": "TNAU Rice Crop Protection PWA Template",
+          "source_url": "https://www.pjtsau.edu.in/",
+          "source_priority": 3,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "general_ipm",
+              "severity_level": "medium",
+              "recommendation_en": "Use source-linked identification, avoid excess nitrogen and dense canopy, and follow local PJTSAU/Department advisory.",
+              "source_url": "https://www.pjtsau.edu.in/"
+            }
+          ]
+        },
+        {
+          "id": "paddy-tungro-virus",
+          "category": "disease",
+          "name_en": "Tungro virus",
+          "name_te": "",
+          "scientific_name": "",
+          "symptoms_en": "Rice disease card listed in the TNAU template. English symptoms and vector guidance should be filled after official source verification.",
+          "damage_en": "Official damage details will be updated soon. Follow local PJTSAU/Department advisory.",
+          "favourable_conditions_en": "Refer latest official rice disease advisory for local seasonal conditions.",
+          "stage": "Vegetative",
+          "severity_level": "high",
+          "image_urls": [],
+          "source_name": "TNAU Rice Crop Protection PWA Template",
+          "source_url": "https://www.pjtsau.edu.in/",
+          "source_priority": 3,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "general_ipm",
+              "severity_level": "medium",
+              "recommendation_en": "Confirm from official symptoms, monitor vector activity and follow local PJTSAU/Department advisory. Chemical dose is not shown until verified.",
+              "source_url": "https://www.pjtsau.edu.in/"
+            }
+          ]
+        },
+        {
+          "id": "paddy-root-knot-nematode",
+          "category": "disease",
+          "name_en": "Rice root-knot nematode",
+          "name_te": "",
+          "scientific_name": "Meloidogyne graminicola",
+          "symptoms_en": "Stunted seedlings or plants, yellowing, patchy field growth, early maturity under heavy infestation, reduced tillers, smaller earheads, fewer grains and root tip or terminal galls.",
+          "damage_en": "Reduced tillering, smaller earheads and fewer grains due to root damage and poor nutrient uptake.",
+          "favourable_conditions_en": "Infested nursery or field soil and non-submerged conditions favour nematode damage.",
+          "etl": "Refer latest nematode advisory and field diagnosis.",
+          "stage": "Nursery to vegetative",
+          "severity_level": "medium",
+          "image_urls": [],
+          "source_name": "TNAU Rice Root-knot Nematode Summary",
+          "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_nematode_cereals.html",
+          "source_priority": 2,
+          "is_verified": true,
+          "active": true,
+          "recommendations": [
+            {
+              "control_type": "cultural",
+              "severity_level": "low",
+              "recommendation_en": "Keep rice flooded or submerged where appropriate and raise seedlings in flooded soils.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_nematode_cereals.html"
+            },
+            {
+              "control_type": "cultural",
+              "severity_level": "medium",
+              "recommendation_en": "Rotate with non-host crops such as daincha and use soil solarization for nursery or field preparation where practical.",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_nematode_cereals.html"
+            },
+            {
+              "control_type": "chemical",
+              "severity_level": "high",
+              "recommendation_en": "Verify any chemical seedling treatment against the latest label and local advisory before use.",
+              "chemical_name": "Verify latest label/local advisory",
+              "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_nematode_cereals.html"
             }
           ]
         },

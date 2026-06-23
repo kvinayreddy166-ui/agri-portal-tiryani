@@ -61,66 +61,13 @@ export type CropProtectionCrop = {
   items: CropProtectionItem[];
 };
 
-const CACHE_KEY = 'tiryani-crop-protection-cache-v1';
+const CACHE_KEY = 'tiryani-crop-protection-cache-v2';
 const FALLBACK_MESSAGE = 'Official recommendation will be updated soon. Please follow local PJTSAU/Department advisory.';
+const SUPABASE_LOAD_TIMEOUT_MS = 2200;
 
 export async function loadCropProtectionData(): Promise<CropProtectionCrop[]> {
   try {
-    const { data, error } = await supabase
-      .from('crop_protection_crops')
-      .select(`
-        id,
-        crop_key,
-        name_en,
-        name_te,
-        image_url,
-        display_order,
-        active,
-        crop_protection_items (
-          id,
-          crop_id,
-          category,
-          name_en,
-          name_te,
-          scientific_name,
-          symptoms_en,
-          symptoms_te,
-          damage_en,
-          damage_te,
-          favourable_conditions_en,
-          favourable_conditions_te,
-          etl,
-          stage,
-          severity_level,
-          image_urls,
-          source_name,
-          source_url,
-          source_priority,
-          is_verified,
-          active,
-          crop_protection_recommendations (
-            id,
-            item_id,
-            control_type,
-            severity_level,
-            recommendation_en,
-            recommendation_te,
-            chemical_name,
-            formulation,
-            dose_per_litre,
-            dose_per_acre,
-            dose_per_tank_16l,
-            dose_per_tank_20l,
-            waiting_period,
-            safety_note_en,
-            safety_note_te,
-            source_url,
-            active
-          )
-        )
-      `)
-      .eq('active', true)
-      .order('display_order');
+    const { data, error } = await withTimeout(loadSupabaseCropProtectionData(), SUPABASE_LOAD_TIMEOUT_MS);
 
     if (error) throw error;
     const normalized = normalizeSupabaseRows(data || []);
@@ -134,9 +81,67 @@ export async function loadCropProtectionData(): Promise<CropProtectionCrop[]> {
 
   const cached = readCachedCropProtectionData();
   if (cached.length) return normalizeNeverEmpty(cached);
-  const seed = await loadSeedData();
+  const seed = await loadSeedData().catch(() => defaultSeedData());
   cacheCropProtectionData(seed);
   return normalizeNeverEmpty(seed);
+}
+
+async function loadSupabaseCropProtectionData() {
+  return supabase
+    .from('crop_protection_crops')
+    .select(`
+      id,
+      crop_key,
+      name_en,
+      name_te,
+      image_url,
+      display_order,
+      active,
+      crop_protection_items (
+        id,
+        crop_id,
+        category,
+        name_en,
+        name_te,
+        scientific_name,
+        symptoms_en,
+        symptoms_te,
+        damage_en,
+        damage_te,
+        favourable_conditions_en,
+        favourable_conditions_te,
+        etl,
+        stage,
+        severity_level,
+        image_urls,
+        source_name,
+        source_url,
+        source_priority,
+        is_verified,
+        active,
+        crop_protection_recommendations (
+          id,
+          item_id,
+          control_type,
+          severity_level,
+          recommendation_en,
+          recommendation_te,
+          chemical_name,
+          formulation,
+          dose_per_litre,
+          dose_per_acre,
+          dose_per_tank_16l,
+          dose_per_tank_20l,
+          waiting_period,
+          safety_note_en,
+          safety_note_te,
+          source_url,
+          active
+        )
+      )
+    `)
+    .eq('active', true)
+    .order('display_order');
 }
 
 export async function saveCropProtectionItem(item: Partial<CropProtectionItem> & { crop_id: string }) {
@@ -287,8 +292,53 @@ function normalizeNeverEmpty(crops: CropProtectionCrop[]) {
 
 async function loadSeedData(): Promise<CropProtectionCrop[]> {
   const response = await fetch('/data/crop-protection-seed.json', { cache: 'force-cache' });
+  if (!response.ok) throw new Error('Crop protection seed file unavailable.');
   const json = await response.json();
   return json.crops || [];
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error('Crop protection data request timed out.')), timeoutMs);
+    promise
+      .then((value) => resolve(value))
+      .catch((error) => reject(error))
+      .finally(() => window.clearTimeout(timer));
+  });
+}
+
+function defaultSeedData(): CropProtectionCrop[] {
+  const crops = [
+    ['cotton', 'Cotton', 'పత్తి', '/images/cotton.webp'],
+    ['paddy', 'Paddy', 'వరి', '/images/paddy.webp'],
+    ['maize', 'Maize', 'మొక్కజొన్న', '/images/maize.webp'],
+    ['redgram', 'Redgram', 'కంది', '/images/pulses.webp'],
+    ['groundnut', 'Groundnut', 'వేరుశెనగ', '/images/oilseeds.webp'],
+    ['greengram', 'Greengram', 'పెసర', '/images/greengram.webp'],
+    ['sunflower', 'Sunflower', 'పొద్దుతిరుగుడు', '/images/oilseeds.webp'],
+    ['sesamum', 'Sesamum', 'నువ్వులు', '/images/oilseeds.webp'],
+  ];
+
+  return crops.map(([key, name, nameTe, image], index) => {
+    const crop: CropProtectionCrop = {
+      id: key,
+      crop_key: key,
+      name_en: name,
+      name_te: nameTe,
+      image_url: image,
+      display_order: index + 1,
+      active: true,
+      items: [],
+    };
+    return {
+      ...crop,
+      items: [
+        buildGeneralIpmItem(crop, 'weed'),
+        buildGeneralIpmItem(crop, 'pest'),
+        buildGeneralIpmItem(crop, 'disease'),
+      ],
+    };
+  });
 }
 
 function cacheCropProtectionData(crops: CropProtectionCrop[]) {

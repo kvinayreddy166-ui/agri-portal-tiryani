@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { AlertTriangle, Languages, Search, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import type { CropProtectionCategory, CropProtectionCrop, LanguageCode, SeverityLevel } from '../../services/cropProtectionService';
-import { buildGeneralIpmItem, pickLang } from '../../services/cropProtectionService';
+import { buildGeneralIpmItem } from '../../services/cropProtectionService';
 import { label } from '../../services/translationService';
 import { CropCard } from './CropCard';
 import { ProtectionItemCard } from './ProtectionItemCard';

@@ -37,6 +37,7 @@ export default defineConfig({
     minify: 'esbuild',
     sourcemap: false,
     target: 'es2020',
+    reportCompressedSize: false,
     chunkSizeWarningLimit: 650,
     rollupOptions: {
       output: {
