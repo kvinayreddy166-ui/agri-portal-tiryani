@@ -47,6 +47,21 @@ createRoot(rootEl).render(
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    if (import.meta.env.DEV) {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+        .catch((error) => console.warn('Service worker cleanup failed:', error));
+
+      if ('caches' in window) {
+        caches
+          .keys()
+          .then((keys) => Promise.all(keys.filter((key) => key.startsWith('tiryani-portal')).map((key) => caches.delete(key))))
+          .catch((error) => console.warn('Cache cleanup failed:', error));
+      }
+      return;
+    }
+
     const registerServiceWorker = () => {
       navigator.serviceWorker.register('/service-worker.js').catch((error) => {
         console.warn('Service worker registration failed:', error);

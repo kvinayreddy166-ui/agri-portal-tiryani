@@ -256,6 +256,7 @@ function AppContent() {
   const navigate = useNavigate();
   const navigationType = useNavigationType();
   const [isHydrated, setIsHydrated] = useState(false);
+  const [forceAppShell, setForceAppShell] = useState(false);
   useAppScrollRestoration(location, navigationType);
   useInitialBackFallback(location, loading, Boolean(user));
 
@@ -263,6 +264,20 @@ function AppContent() {
   useEffect(() => {
     setIsHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (authChecked && appReady && isHydrated) {
+      setForceAppShell(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      console.warn('App startup took too long. Showing portal shell instead of keeping the full-page loader.');
+      setForceAppShell(true);
+    }, 3500);
+
+    return () => window.clearTimeout(timer);
+  }, [appReady, authChecked, isHydrated]);
 
   const validPages = useMemo(
     () =>
@@ -447,7 +462,7 @@ function AppContent() {
   }, [loading, location.pathname, navigate, user]);
 
   // Show loader during initial load or hydration (must be after all hooks)
-  if (!authChecked || !appReady || !isHydrated) {
+  if ((!authChecked || !appReady || !isHydrated) && !forceAppShell) {
     return <GlobalAppLoader />;
   }
 

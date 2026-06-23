@@ -12,7 +12,7 @@ import {
   isDealerRpcMissing,
 } from '../lib/dealerLoginMessages';
 
-const AUTH_STARTUP_TIMEOUT_MS = 8000;
+const AUTH_STARTUP_TIMEOUT_MS = 2500;
 
 interface AuthContextType {
   user: User | null;
