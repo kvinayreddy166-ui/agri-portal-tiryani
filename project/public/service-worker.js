@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tiryani-portal-v21';
+const CACHE_VERSION = 'tiryani-portal-v22';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -12,10 +12,10 @@ const MAX_FONT_ENTRIES = 20;
 const STATIC_ASSETS = [
   '/offline.html',
   '/manifest.webmanifest',
-  '/icons/icon-192x192.png?v=emblem-v4',
-  '/icons/icon-512x512.png?v=emblem-v4',
-  '/icons/icon-maskable-192x192.png?v=emblem-v4',
-  '/icons/icon-maskable-512x512.png?v=emblem-v4',
+  '/icons/icon-192x192.png?v=emblem-v5',
+  '/icons/icon-512x512.png?v=emblem-v5',
+  '/icons/icon-maskable-192x192.png?v=emblem-v5',
+  '/icons/icon-maskable-512x512.png?v=emblem-v5',
   '/images/agri-emblem.webp',
   '/images/agri-emblem-192.webp',
   '/images/agri-emblem-512.webp',
@@ -187,4 +187,3 @@ async function deletePortalCaches() {
       .map((key) => caches.delete(key))
   );
 }
-

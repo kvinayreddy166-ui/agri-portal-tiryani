@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState, ReactNode } from 'react';
+import React, { useMemo, useState, ReactNode } from 'react';
 import {
   ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
@@ -413,9 +413,9 @@ function translateMenu(label: string) {
     'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
     'Fertilizer Calculator': 'ఎరువుల కాలిక్యులేటర్',
     'Seed Rate Calculator': 'విత్తన మోతాదు కాలిక్యులేటర్',
-    'Plant Population Calculator': '?????? ????? ?????????????',
-    'Pesticide Calculator': '?????????? ?????????????',
-    'Acerage Calculator': 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    'Plant Population Calculator': 'మొక్కల జనాభా కాలిక్యులేటర్',
+    'Pesticide Calculator': 'పురుగుమందు కాలిక్యులేటర్',
+    'Acerage Calculator': 'ఎకరాల కాలిక్యులేటర్',
     'GOs & Circulars': 'à°œà±€.à°“à°²à± & à°¸à°°à±à°•à±à°¯à±à°²à°°à±à°²à±',
     'Quality Control': 'à°¨à°¾à°£à±à°¯à°¤ à°¨à°¿à°¯à°‚à°¤à±à°°à°£',
     'Farm Mechanization': 'à°µà±à°¯à°µà°¸à°¾à°¯ à°¯à°¾à°‚à°¤à±à°°à±€à°•à°°à°£',

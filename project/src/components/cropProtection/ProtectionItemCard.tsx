@@ -1,5 +1,5 @@
 import React from 'react';
-import { Copy, Download, ImageOff, ShieldCheck } from 'lucide-react';
+import { Copy, Download, ImageOff, MessageCircle, ShieldCheck } from 'lucide-react';
 import type { CropProtectionCrop, CropProtectionItem, LanguageCode } from '../../services/cropProtectionService';
 import { advisoryText, hasTelugu, pickLang } from '../../services/cropProtectionService';
 import { label } from '../../services/translationService';
@@ -18,9 +18,14 @@ export function ProtectionItemCard({
   const showTeluguBadge =
     language === 'te' &&
     (!hasTelugu(item.name_te) || !hasTelugu(item.symptoms_te) || !hasTelugu(item.damage_te));
+  const advisory = advisoryText(crop, item, language);
 
   const copyAdvisory = async () => {
-    await navigator.clipboard.writeText(advisoryText(crop, item, language));
+    await navigator.clipboard.writeText(advisory);
+  };
+
+  const shareWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(advisory)}`, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -39,12 +44,15 @@ export function ProtectionItemCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
+              <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">
+                {pickLang(crop.name_en, crop.name_te, language)}
+              </p>
               <h3 className="text-base font-black text-slate-950">{pickLang(item.name_en, item.name_te, language)}</h3>
               <p className="text-xs font-semibold italic text-slate-500">{item.scientific_name || 'Scientific name will be updated soon'}</p>
             </div>
             <div className="flex flex-wrap gap-1">
               <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase text-slate-600">
-                {item.category}
+                {label(categoryLabel(item.category), language)}
               </span>
               <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black uppercase text-amber-700">
                 {item.severity_level}
@@ -58,7 +66,7 @@ export function ProtectionItemCard({
           </div>
           {showTeluguBadge && (
             <p className="mt-2 rounded-md bg-yellow-50 px-2 py-1 text-[11px] font-bold text-yellow-800">
-              తెలుగు సమాచారం త్వరలో నవీకరించబడుతుంది
+              {label('Telugu information will be updated soon', language)}
             </p>
           )}
           <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
@@ -74,6 +82,9 @@ export function ProtectionItemCard({
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" onClick={copyAdvisory} className="action-button">
               <Copy className="h-4 w-4" /> {label('Copy Advisory', language)}
+            </button>
+            <button type="button" onClick={shareWhatsApp} className="action-button bg-green-600 text-white">
+              <MessageCircle className="h-4 w-4" /> {label('WhatsApp', language)}
             </button>
             <button type="button" onClick={() => downloadAdvisoryPdf(crop, item, language)} className="action-button bg-emerald-700 text-white">
               <Download className="h-4 w-4" /> {label('Download PDF', language)}
@@ -95,4 +106,14 @@ function InfoBlock({ title, value }: { title: string; value: string }) {
       <p className="mt-1 font-semibold leading-5 text-slate-800">{value}</p>
     </div>
   );
+}
+
+function categoryLabel(category: CropProtectionItem['category']) {
+  const labels: Record<CropProtectionItem['category'], string> = {
+    pest: 'Pests',
+    disease: 'Diseases',
+    weed: 'Weeds',
+    nutrient: 'Nutrient Deficiencies',
+  };
+  return labels[category];
 }

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node --max-old-space-size=4096 scripts/build-vite.mjs",
+    "build": "node --max-old-space-size=4096 --max-semi-space-size=256 scripts/build-vite.mjs",
     "test:fertilizer": "node scripts/test-fertilizer-engine.mjs",
     "lint": "eslint .",
     "optimize:images": "node scripts/optimize-images.mjs",

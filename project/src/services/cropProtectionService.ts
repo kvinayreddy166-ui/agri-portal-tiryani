@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 
-export type CropProtectionCategory = 'weed' | 'pest' | 'disease';
+export type CropProtectionCategory = 'weed' | 'pest' | 'disease' | 'nutrient';
 export type ControlType = 'cultural' | 'mechanical' | 'biological' | 'chemical' | 'general_ipm';
 export type SeverityLevel = 'low' | 'medium' | 'high';
 export type LanguageCode = 'en' | 'te';
@@ -175,7 +175,7 @@ export async function saveCropProtectionItem(item: Partial<CropProtectionItem> &
 }
 
 export function buildGeneralIpmItem(crop: CropProtectionCrop, category: CropProtectionCategory): CropProtectionItem {
-  const categoryName = category === 'weed' ? 'Weed' : category === 'pest' ? 'Pest' : 'Disease';
+  const categoryName = category === 'weed' ? 'Weed' : category === 'pest' ? 'Pest' : category === 'disease' ? 'Disease' : 'Nutrient deficiency';
   return {
     id: `${crop.crop_key}-${category}-general-ipm`,
     category,
@@ -241,12 +241,13 @@ export function advisoryText(
 }
 
 export function pickLang(en?: string | null, te?: string | null, language: LanguageCode = 'en') {
-  if (language === 'te') return te?.trim() || en?.trim() || FALLBACK_MESSAGE;
-  return en?.trim() || te?.trim() || FALLBACK_MESSAGE;
+  const cleanTe = hasTelugu(te) ? te?.trim() : '';
+  if (language === 'te') return cleanTe || en?.trim() || FALLBACK_MESSAGE;
+  return en?.trim() || cleanTe || FALLBACK_MESSAGE;
 }
 
 export function hasTelugu(value?: string | null) {
-  return Boolean(value?.trim());
+  return Boolean(value?.trim() && /[\u0C00-\u0C7F]/.test(value));
 }
 
 export function controlLabel(type: ControlType) {
@@ -260,24 +261,32 @@ export function controlLabel(type: ControlType) {
   return labels[type];
 }
 
-function normalizeSupabaseRows(rows: any[]): CropProtectionCrop[] {
+type SupabaseCropProtectionItem = CropProtectionItem & {
+  crop_protection_recommendations?: CropProtectionRecommendation[];
+};
+
+type SupabaseCropProtectionCrop = Omit<CropProtectionCrop, 'items'> & {
+  crop_protection_items?: SupabaseCropProtectionItem[];
+};
+
+function normalizeSupabaseRows(rows: SupabaseCropProtectionCrop[]): CropProtectionCrop[] {
   return rows.map((crop) => ({
     ...crop,
     items: (crop.crop_protection_items || [])
-      .filter((item: CropProtectionItem) => item.active !== false)
-      .map((item: any) => ({
+      .filter((item) => item.active !== false)
+      .map((item) => ({
         ...item,
         image_urls: Array.isArray(item.image_urls) ? item.image_urls : [],
         recommendations: (item.crop_protection_recommendations || []).filter(
-          (rec: CropProtectionRecommendation) => rec.active !== false
+          (rec) => rec.active !== false
         ),
       })),
   }));
 }
-
 function normalizeNeverEmpty(crops: CropProtectionCrop[]) {
   return crops.map((crop) => ({
     ...crop,
+    name_te: teluguCropName(crop.crop_key, crop.name_te),
     items: (crop.items || []).map((item) => ({
       ...item,
       symptoms_en: item.symptoms_en || FALLBACK_MESSAGE,
@@ -307,16 +316,31 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   });
 }
 
+function teluguCropName(cropKey: string, fallback?: string | null) {
+  const names: Record<string, string> = {
+    cotton: '\u0C2A\u0C24\u0C4D\u0C24\u0C3F',
+    paddy: '\u0C35\u0C30\u0C3F',
+    maize: '\u0C2E\u0C4A\u0C15\u0C4D\u0C15\u0C1C\u0C4A\u0C28\u0C4D\u0C28',
+    redgram: '\u0C15\u0C02\u0C26\u0C3F',
+    greengram: '\u0C2A\u0C46\u0C38\u0C30',
+    blackgram: '\u0C2E\u0C3F\u0C28\u0C41\u0C2E\u0C41',
+    groundnut: '\u0C35\u0C47\u0C30\u0C41\u0C36\u0C46\u0C28\u0C17',
+    soybean: '\u0C38\u0C4B\u0C2F\u0C3E\u0C2C\u0C40\u0C28\u0C4D',
+    sunflower: '\u0C2A\u0C4A\u0C26\u0C4D\u0C26\u0C41\u0C24\u0C3F\u0C30\u0C41\u0C17\u0C41\u0C21\u0C41',
+    sesamum: '\u0C28\u0C41\u0C35\u0C4D\u0C35\u0C41\u0C32\u0C41',
+  };
+  return names[cropKey] || (hasTelugu(fallback) ? fallback || '' : '');
+}
 function defaultSeedData(): CropProtectionCrop[] {
   const crops = [
-    ['cotton', 'Cotton', 'పత్తి', '/images/cotton.webp'],
-    ['paddy', 'Paddy', 'వరి', '/images/paddy.webp'],
-    ['maize', 'Maize', 'మొక్కజొన్న', '/images/maize.webp'],
-    ['redgram', 'Redgram', 'కంది', '/images/pulses.webp'],
-    ['groundnut', 'Groundnut', 'వేరుశెనగ', '/images/oilseeds.webp'],
-    ['greengram', 'Greengram', 'పెసర', '/images/greengram.webp'],
-    ['sunflower', 'Sunflower', 'పొద్దుతిరుగుడు', '/images/oilseeds.webp'],
-    ['sesamum', 'Sesamum', 'నువ్వులు', '/images/oilseeds.webp'],
+    ['cotton', 'Cotton', '', '/images/cotton.webp'],
+    ['paddy', 'Paddy', '', '/images/paddy.webp'],
+    ['maize', 'Maize', '', '/images/maize.webp'],
+    ['redgram', 'Redgram', '', '/images/pulses.webp'],
+    ['groundnut', 'Groundnut', '', '/images/oilseeds.webp'],
+    ['greengram', 'Greengram', '', '/images/greengram.webp'],
+    ['sunflower', 'Sunflower', '', '/images/oilseeds.webp'],
+    ['sesamum', 'Sesamum', '', '/images/oilseeds.webp'],
   ];
 
   return crops.map(([key, name, nameTe, image], index) => {
@@ -336,6 +360,7 @@ function defaultSeedData(): CropProtectionCrop[] {
         buildGeneralIpmItem(crop, 'weed'),
         buildGeneralIpmItem(crop, 'pest'),
         buildGeneralIpmItem(crop, 'disease'),
+        buildGeneralIpmItem(crop, 'nutrient'),
       ],
     };
   });

@@ -49,7 +49,7 @@ export function CropProtectionAdmin({
     <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
       <h2 className="text-sm font-black text-slate-950">Admin Data Editor</h2>
       <p className="mt-1 text-xs font-semibold text-slate-600">
-        Add official weed, pest or disease records. Bulk Excel/CSV import hook is ready for the next data upload workflow.
+        Add official weed, pest, disease or nutrient deficiency records. Bulk Excel/CSV import hook is ready for the next data upload workflow.
       </p>
       <div className="mt-3 grid gap-2 sm:grid-cols-4">
         <select value={cropId} onChange={(event) => setCropId(event.target.value)} className="filter-select">
@@ -59,6 +59,7 @@ export function CropProtectionAdmin({
           <option value="weed">Weed</option>
           <option value="pest">Pest</option>
           <option value="disease">Disease</option>
+          <option value="nutrient">Nutrient Deficiency</option>
         </select>
         <input value={name} onChange={(event) => setName(event.target.value)} className="filter-select" placeholder="Name" />
         <input value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} className="filter-select" placeholder="Official source URL" />

@@ -9,18 +9,18 @@ const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, '../public');
 const imagesDir = path.join(publicDir, 'images');
 const iconsDir = path.join(publicDir, 'icons');
-const svgPath = path.join(imagesDir, 'agri-emblem.svg');
-const themeColor = { r: 4, g: 120, b: 87 };
+const logoPath = path.join(imagesDir, 'agri-emblem.webp');
 const white = { r: 255, g: 255, b: 255 };
 
 fs.mkdirSync(iconsDir, { recursive: true });
 
 const sizes = [192, 512];
 
-async function renderEmblem(size, background, emblemScale = 0.86) {
-  const emblemSize = Math.round(size * emblemScale);
-  const emblem = await sharp(svgPath)
-    .resize(emblemSize, emblemSize, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+async function renderLogo(size, logoScale = 0.94) {
+  const logoSize = Math.round(size * logoScale);
+  const logo = await sharp(logoPath)
+    .resize(logoSize, logoSize, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
+    .png()
     .toBuffer();
 
   return sharp({
@@ -28,16 +28,16 @@ async function renderEmblem(size, background, emblemScale = 0.86) {
       width: size,
       height: size,
       channels: 3,
-      background,
+      background: white,
     },
-  }).composite([{ input: emblem, gravity: 'center' }]);
+  }).composite([{ input: logo, gravity: 'center' }]);
 }
 
-// Install surfaces can reject or visually flatten transparent icons.
+// Install surfaces can reject or visually flatten transparent icons, so generate opaque icons.
 for (const size of sizes) {
   const outputPath = path.join(iconsDir, `icon-${size}x${size}.png`);
 
-  await (await renderEmblem(size, white))
+  await (await renderLogo(size, 0.96))
     .flatten({ background: white })
     .removeAlpha()
     .png()
@@ -49,8 +49,8 @@ for (const size of sizes) {
 for (const size of sizes) {
   const outputPath = path.join(iconsDir, `icon-maskable-${size}x${size}.png`);
 
-  await (await renderEmblem(size, themeColor, 0.6))
-    .flatten({ background: themeColor })
+  await (await renderLogo(size, 0.78))
+    .flatten({ background: white })
     .removeAlpha()
     .png()
     .toFile(outputPath);
@@ -58,10 +58,10 @@ for (const size of sizes) {
   console.log(`Generated maskable ${outputPath}`);
 }
 
-await (await renderEmblem(180, white))
+await (await renderLogo(180, 0.96))
   .flatten({ background: white })
   .removeAlpha()
   .png()
   .toFile(path.join(iconsDir, 'apple-touch-icon.png'));
 
-console.log('PWA icons generated successfully!');
+console.log('PWA icons generated successfully from agri-emblem.webp!');
