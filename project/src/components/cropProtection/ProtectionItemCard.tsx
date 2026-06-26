@@ -19,6 +19,11 @@ export function ProtectionItemCard({
     language === 'te' &&
     (!hasTelugu(item.name_te) || !hasTelugu(item.symptoms_te) || !hasTelugu(item.damage_te));
   const advisory = advisoryText(crop, item, language);
+  const imageUrls = item.image_urls || [];
+
+  const openImage = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   const copyAdvisory = async () => {
     await navigator.clipboard.writeText(advisory);
@@ -31,9 +36,29 @@ export function ProtectionItemCard({
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="w-full overflow-hidden rounded-lg border border-slate-100 bg-slate-50 sm:w-36">
-          {item.image_urls?.[0] ? (
-            <img src={item.image_urls[0]} alt={item.name_en} className="h-28 w-full object-cover" loading="lazy" />
+        <div className="flex w-full items-center justify-center overflow-hidden rounded-lg border border-slate-100 bg-slate-50 p-2 sm:w-40">
+          {imageUrls.length ? (
+            <div className="grid w-full grid-cols-3 gap-1.5">
+              {imageUrls.slice(0, 6).map((url, index) => (
+                <button
+                  key={`${url}-${index}`}
+                  type="button"
+                  onClick={() => openImage(url)}
+                  className={`group overflow-hidden rounded-lg border border-white bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:scale-105 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                    index === 0 ? 'col-span-2 row-span-2' : ''
+                  }`}
+                  style={{ animation: `cropDoctorImageFloat 2.8s ease-in-out ${index * 120}ms infinite alternate` }}
+                  aria-label={`Open ${item.name_en} image ${index + 1}`}
+                >
+                  <img
+                    src={url}
+                    alt={`${item.name_en} ${index + 1}`}
+                    className={`${index === 0 ? 'h-24 sm:h-28' : 'h-11 sm:h-[3.375rem]'} w-full object-cover transition duration-300 group-hover:scale-110`}
+                    loading="lazy"
+                  />
+                </button>
+              ))}
+            </div>
           ) : (
             <div className="flex h-28 items-center justify-center gap-2 px-3 text-center text-[11px] font-bold text-slate-500">
               <ImageOff className="h-4 w-4" />
@@ -54,9 +79,7 @@ export function ProtectionItemCard({
               <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase text-slate-600">
                 {label(categoryLabel(item.category), language)}
               </span>
-              <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black uppercase text-amber-700">
-                {item.severity_level}
-              </span>
+
               {item.is_verified && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase text-emerald-700">
                   <ShieldCheck className="h-3 w-3" /> Verified
@@ -69,10 +92,10 @@ export function ProtectionItemCard({
               {label('Telugu information will be updated soon', language)}
             </p>
           )}
-          <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
+          <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
             <InfoBlock title={label('Symptoms', language)} value={pickLang(item.symptoms_en, item.symptoms_te, language)} />
             <InfoBlock title={label('Damage', language)} value={pickLang(item.damage_en, item.damage_te, language)} />
-            <InfoBlock title="ETL / Stage" value={`${item.etl || 'Refer local advisory'} · ${item.stage || 'All stages'}`} />
+
           </div>
           <div className="mt-2 rounded-lg bg-slate-50 p-2 text-xs font-semibold text-slate-700">
             <span className="font-black">Favourable conditions: </span>
@@ -90,9 +113,6 @@ export function ProtectionItemCard({
               <Download className="h-4 w-4" /> {label('Download PDF', language)}
             </button>
           </div>
-          <p className="mt-2 text-[11px] font-semibold text-slate-500">
-            Source: {item.source_name || 'Official source pending'} {item.source_url ? `- ${item.source_url}` : ''}
-          </p>
         </div>
       </div>
     </article>

@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Calculator } from 'lucide-react';
+import { ArrowLeft, Calculator } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const STORAGE_KEY = 'tiryani-acreage-calculator-input';
 
 export function AcreageCalculator() {
+  const navigate = useNavigate();
   const [acreInput, setAcreInput] = useState(() => window.sessionStorage.getItem(STORAGE_KEY) || '');
   const result = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
 
@@ -14,14 +16,24 @@ export function AcreageCalculator() {
   return (
     <div className="space-y-4">
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
-            <Calculator className="h-5 w-5" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+              <Calculator className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-950 dark:text-white">Acerage Calculator</h1>
+              <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">Add acres.guntas values and convert to total acres and hectares.</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-black text-slate-950 dark:text-white">Acerage Calculator</h1>
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">Add acres.guntas values and convert to total acres and hectares.</p>
-          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/officer-toolkit/farm-calculators')}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-300 dark:hover:bg-slate-800"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Farm Calculators
+          </button>
         </div>
       </section>
 

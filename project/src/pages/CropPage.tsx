@@ -82,6 +82,7 @@ export function CropPage({ cropType }: CropPageProps) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editText, setEditText] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const slug = cropType === 'paddy' ? 'rice' : cropType;
   const fallback = useMemo(() => buildFallbackRecord(slug), [slug]);
@@ -317,9 +318,18 @@ export function CropPage({ cropType }: CropPageProps) {
         <div className="grid gap-3 lg:grid-cols-2">
           {visibleRecord.risks.map((risk) => (
             <article key={`${risk.type}-${risk.name.en}`} className="overflow-hidden rounded-lg border border-slate-100 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
-              <div className="grid gap-0 sm:grid-cols-[10rem_1fr]">
-                <img src={risk.image_url} alt={text(risk.name, locale)} width={400} height={176} loading="lazy" decoding="async" className="h-44 w-full object-cover sm:h-full" />
-                <div className="p-3">
+              <div className="flex gap-3 p-3">
+                <img
+                  src={risk.image_url}
+                  alt={text(risk.name, locale)}
+                  width={80}
+                  height={80}
+                  loading="lazy"
+                  decoding="async"
+                  onClick={() => setSelectedImage(risk.image_url)}
+                  className="h-20 w-20 shrink-0 cursor-pointer rounded-full object-cover ring-2 ring-emerald-200 dark:ring-emerald-800"
+                />
+                <div className="flex-1">
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <h3 className="font-black text-slate-950 dark:text-white">{text(risk.name, locale)}</h3>
                     <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700 dark:bg-slate-900">{risk.type}</span>
@@ -364,6 +374,24 @@ export function CropPage({ cropType }: CropPageProps) {
                 {saving ? 'Saving...' : 'Save'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4" onClick={() => setSelectedImage(null)}>
+          <div className="relative max-h-[90vh] max-w-[90vw]">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -right-4 -top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-950 shadow-lg hover:bg-slate-100"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <img
+              src={selectedImage}
+              alt="Pest/Disease"
+              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
+            />
           </div>
         </div>
       )}

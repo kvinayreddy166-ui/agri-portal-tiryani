@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Bug, Camera, FlaskConical, Languages, Leaf, RefreshCw, Search, Sprout } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Camera, Languages, RefreshCw, Search, Sprout } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import type { CropProtectionCategory, CropProtectionCrop, CropProtectionItem, LanguageCode, SeverityLevel } from '../../services/cropProtectionService';
+import type { CropProtectionCategory, CropProtectionCrop, CropProtectionItem, LanguageCode } from '../../services/cropProtectionService';
 import { buildGeneralIpmItem, pickLang } from '../../services/cropProtectionService';
 import { label } from '../../services/translationService';
 import { ProtectionItemCard } from './ProtectionItemCard';
@@ -11,42 +12,11 @@ const categories: Array<{
   key: CropProtectionCategory;
   label: string;
   description: string;
-  icon: typeof Bug;
-  accent: string;
-  panel: string;
 }> = [
-  {
-    key: 'pest',
-    label: 'Pests',
-    description: 'Identify insects, symptoms and ETL.',
-    icon: Bug,
-    accent: 'from-red-500 to-amber-600',
-    panel: 'from-red-50 to-amber-50',
-  },
-  {
-    key: 'disease',
-    label: 'Diseases',
-    description: 'Identify diseases and field symptoms.',
-    icon: FlaskConical,
-    accent: 'from-violet-500 to-fuchsia-600',
-    panel: 'from-violet-50 to-fuchsia-50',
-  },
-  {
-    key: 'weed',
-    label: 'Weeds',
-    description: 'Identify weed flora and control options.',
-    icon: Sprout,
-    accent: 'from-green-600 to-teal-700',
-    panel: 'from-green-50 to-teal-50',
-  },
-  {
-    key: 'nutrient',
-    label: 'Nutrient Deficiencies',
-    description: 'Identify nutrient deficiency symptoms.',
-    icon: Leaf,
-    accent: 'from-yellow-500 to-lime-600',
-    panel: 'from-yellow-50 to-lime-50',
-  },
+  { key: 'pest', label: 'Pests', description: 'Identify insects, symptoms and ETL.' },
+  { key: 'disease', label: 'Diseases', description: 'Identify diseases and field symptoms.' },
+  { key: 'weed', label: 'Weeds', description: 'Identify weed flora and control options.' },
+  { key: 'nutrient', label: 'Nutrient Deficiencies', description: 'Identify nutrient deficiency symptoms.' },
 ];
 
 export function CropProtectionDashboard({
@@ -58,12 +28,11 @@ export function CropProtectionDashboard({
   loading: boolean;
   onRefresh: () => void;
 }) {
+  const navigate = useNavigate();
   const { isAdminUser } = useAuth();
   const [language, setLanguage] = useState<LanguageCode>('en');
   const [selectedCropKey, setSelectedCropKey] = useState(crops[0]?.crop_key || 'cotton');
   const [category, setCategory] = useState<CropProtectionCategory>('pest');
-  const [severity, setSeverity] = useState<'all' | SeverityLevel>('all');
-  const [stage, setStage] = useState('all');
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'guidance' | 'admin'>('guidance');
 
@@ -77,11 +46,6 @@ export function CropProtectionDashboard({
   const selectedCrop = crops.find((crop) => crop.crop_key === selectedCropKey) || crops[0];
   const query = search.trim().toLowerCase();
 
-  const stages = useMemo(() => {
-    const values = new Set<string>();
-    crops.forEach((crop) => crop.items?.forEach((item) => item.stage && values.add(item.stage)));
-    return Array.from(values).sort((a, b) => a.localeCompare(b));
-  }, [crops]);
 
   const filteredItems = useMemo<Array<{ crop: CropProtectionCrop; item: CropProtectionItem }>>(() => {
     if (!selectedCrop) return [];
@@ -91,8 +55,6 @@ export function CropProtectionDashboard({
     sourceCrops.forEach((crop) => {
       (crop.items || []).forEach((item) => {
         if (!query && item.category !== category) return;
-        if (severity !== 'all' && item.severity_level !== severity) return;
-        if (stage !== 'all' && item.stage !== stage) return;
 
         const haystack = [
           crop.name_en,
@@ -121,7 +83,7 @@ export function CropProtectionDashboard({
     if (matches.length) return matches;
     if (query) return [];
     return [{ crop: selectedCrop, item: buildGeneralIpmItem(selectedCrop, category) }];
-  }, [category, crops, query, selectedCrop, severity, stage]);
+  }, [category, crops, query, selectedCrop]);
 
   const selectedCategory = categories.find((item) => item.key === category) || categories[0];
 
@@ -142,13 +104,20 @@ export function CropProtectionDashboard({
           <div className="min-w-0">
             <p className="text-xs font-black uppercase tracking-wide text-emerald-100">{label('Officer Toolkit', language)}</p>
             <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
-              {label('Crop Protection Guidance', language)}
+              {label('Crop Doctor', language)}
             </h1>
             <p className="mt-1 max-w-2xl text-sm font-semibold text-emerald-50">
               {label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => navigate('/officer-toolkit')}
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 text-xs font-black text-white transition hover:bg-white/25"
+            >
+              <ArrowLeft className="h-4 w-4" /> {label('Officer Toolkit', language)}
+            </button>
             <button
               type="button"
               onClick={() => setLanguage((value) => (value === 'en' ? 'te' : 'en'))}
@@ -175,37 +144,6 @@ export function CropProtectionDashboard({
           />
         </div>
       </section>
-
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {categories.map((item) => {
-          const Icon = item.icon;
-          const active = item.key === category && activeTab === 'guidance';
-          return (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => {
-                setCategory(item.key);
-                setActiveTab('guidance');
-              }}
-              className={`rounded-xl border p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                active ? 'border-emerald-500 bg-emerald-50 ring-4 ring-emerald-100' : `border-slate-200 bg-gradient-to-br ${item.panel}`
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.accent} text-white shadow-sm`}>
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-black text-slate-950">{label(item.label, language)}</span>
-                  <span className="mt-1 block text-xs font-semibold leading-5 text-slate-600">{label(item.description, language)}</span>
-                </span>
-              </div>
-            </button>
-          );
-        })}
-      </section>
-
       <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">
           <div>
@@ -254,18 +192,9 @@ export function CropProtectionDashboard({
             {isAdminUser && <TabButton active={activeTab === 'admin'} onClick={() => setActiveTab('admin')}>{label('Admin Data Editor', language)}</TabButton>}
           </div>
           {activeTab === 'guidance' && (
-            <div className="flex flex-wrap gap-2">
-              <select value={severity} onChange={(event) => setSeverity(event.target.value as 'all' | SeverityLevel)} className="filter-select">
-                <option value="all">{label('All severity', language)}</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-              <select value={stage} onChange={(event) => setStage(event.target.value)} className="filter-select">
-                <option value="all">{label('All stages', language)}</option>
-                {stages.map((value) => <option key={value} value={value}>{value}</option>)}
-              </select>
-            </div>
+            <select value={category} onChange={(event) => setCategory(event.target.value as CropProtectionCategory)} className="filter-select max-w-xs">
+              {categories.map((item) => <option key={item.key} value={item.key}>{label(item.label, language)}</option>)}
+            </select>
           )}
         </div>
       </section>

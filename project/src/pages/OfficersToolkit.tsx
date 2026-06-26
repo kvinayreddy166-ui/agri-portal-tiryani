@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calculator, FlaskConical, ShieldCheck, FileStack, ChevronLeft, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, type LucideIcon } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
 interface ToolkitItem {
@@ -34,8 +34,8 @@ const toolkitItems: ToolkitItem[] = [
     bgGradient: 'from-green-50 to-teal-50 dark:from-green-950/30 dark:to-teal-950/30',
   },
   {
-    title: 'Crop Protection Guidance',
-    description: 'Weed, pest and disease guidance with spray calculator.',
+    title: 'Crop Doctor',
+    description: 'Crop-wise pests, diseases, weeds and nutrient deficiencies.',
     path: '/officer-toolkit/crop-protection',
     icon: Bug,
     category: 'internal',
@@ -207,9 +207,7 @@ function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: numbe
 
 export function OfficersToolkit() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { t } = useLanguage();
-  const fromLogin = location.state?.from === 'login';
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -236,23 +234,21 @@ export function OfficersToolkit() {
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-2xl font-black text-slate-900 dark:text-white">
-                    {t('Officer Toolkit', 'à°†à°«à±€à°¸à°°à± à°Ÿà±‚à°²à±à°•à°¿à°Ÿà±')}
+                    {t('Officer Toolkit', 'ÃƒÂ Ã‚Â°Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â«ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
                   </h1>
                   <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                    {t('Agricultural Tools & Government Portals', 'à°µà±à°¯à°µà°¸à°¾à°¯ à°ªà°¨à°¿à°®à±à°Ÿà±à°²à± & à°ªà±à°°à°­à±à°¤à±à°µ à°ªà±‹à°°à±à°Ÿà°²à±à°¸à±')}
+                    {t('Agricultural Tools & Government Portals', 'ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¯ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â & ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â­ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Âµ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
                   </p>
                 </div>
               </div>
-              {fromLogin && (
-                <button
+              <button
                   type="button"
                   onClick={() => navigate('/login')}
                   className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 shadow-sm transition-all hover:bg-emerald-50 hover:shadow-md dark:border-emerald-700 dark:bg-slate-800 dark:text-emerald-400 dark:hover:bg-slate-700"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  {t('Back to Login', 'à°²à°¾à°—à°¿à°¨à±â€Œà°•à°¿ à°¤à°¿à°°à°¿à°—à°¿ à°µà±†à°³à±à°²à±')}
+                  {t('Back to Login', 'ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã¢â‚¬â€ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã…â€™ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã¢â‚¬â€ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â³ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â')}
                 </button>
-              )}
             </div>
           </div>
         </div>
@@ -264,7 +260,7 @@ export function OfficersToolkit() {
               <Calculator className="h-4 w-4" />
             </div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              {t('Field Tools', 'à°«à±€à°²à±à°¡à± à°Ÿà±‚à°²à±à°¸à±')}
+              {t('Field Tools', 'ÃƒÂ Ã‚Â°Ã‚Â«ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -286,7 +282,7 @@ export function OfficersToolkit() {
               <ExternalLink className="h-4 w-4" />
             </div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              {t('Government Portals', 'à°ªà±à°°à°­à±à°¤à±à°µ à°ªà±‹à°°à±à°Ÿà°²à±à°¸à±')}
+              {t('Government Portals', 'ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â­ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Âµ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -310,7 +306,7 @@ export function OfficersToolkit() {
         {/* Footer */}
         <div className={`mt-8 text-center transition-all duration-700 delay-600 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            {t('Empowering Agriculture with Digital Tools', 'à°¡à°¿à°œà°¿à°Ÿà°²à± à°Ÿà±‚à°²à±à°¸à±â€Œà°¤à±‹ à°µà±à°¯à°µà°¸à°¾à°¯à°¾à°¨à±à°¨à°¿ à°¶à°•à±à°¤à°¿à°µà°‚à°¤à°‚ à°šà±‡à°¯à°¡à°‚')}
+            {t('Empowering Agriculture with Digital Tools', 'ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã…â€œÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã…â€™ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã‚Â¶ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ ÃƒÂ Ã‚Â°Ã…Â¡ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡')}
           </p>
         </div>
       </div>

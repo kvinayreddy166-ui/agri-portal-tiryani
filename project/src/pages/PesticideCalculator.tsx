@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ArrowLeft, Bug, Calculator, Copy, Languages, RotateCcw, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -88,11 +88,11 @@ export function PesticideCalculator() {
           </div>
           <button
             type="button"
-            onClick={() => navigate('/officer-toolkit')}
+            onClick={() => navigate('/officer-toolkit/farm-calculators')}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-300 dark:hover:bg-slate-800"
           >
             <ArrowLeft className="h-4 w-4" />
-            {t('Toolkit', 'టూల్‌కిట్')}
+            {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
           </button>
         </div>
       </section>

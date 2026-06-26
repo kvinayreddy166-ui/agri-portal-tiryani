@@ -1,4 +1,5 @@
 import React, { createContext, ReactNode, useContext, useMemo, useState } from 'react';
+import { repairTeluguText } from '../utils/textRepair';
 
 type Language = 'en' | 'te';
 
@@ -28,7 +29,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
           window.localStorage.setItem(LANGUAGE_KEY, next);
           return next;
         }),
-      t: (english: string, telugu: string) => (language === 'te' ? telugu : english),
+      t: (english: string, telugu: string) => (language === 'te' ? repairTeluguText(telugu) : english),
     }),
     [language]
   );

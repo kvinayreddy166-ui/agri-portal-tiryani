@@ -720,6 +720,14 @@ button {
   animation: barGrow 0.7s ease-out both;
 }
 
+@keyframes cropDoctorImageFloat {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-3px) scale(1.015);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .dashboard-rise,
   .dashboard-shell,
@@ -727,6 +735,10 @@ button {
   .dashboard-bar,
   .login-logo-hero {
     animation: none;
+  }
+
+  [style*='cropDoctorImageFloat'] {
+    animation: none !important;
   }
 }
 

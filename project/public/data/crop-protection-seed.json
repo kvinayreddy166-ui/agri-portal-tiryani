@@ -131,13 +131,19 @@
           "name_en": "Brown Plant Hopper",
           "name_te": "",
           "scientific_name": "Nilaparvata lugens",
-          "symptoms_en": "Nymphs and adults remain at the plant base. Infested patches show hopper burn, drying or lodging and may transmit grassy stunt, ragged stunt and wilted stunt.",
+          "symptoms_en": "Nymphs and adults congregate at the base of the plant above the water level. Affected plant dries up and gives a scorched appearance called 'hopper burn'. Circular patches of drying and lodging of matured plant. It transmits grassy stunt, ragged stunt and wilted stunt diseases. Honey dew is secreted by nymphs and adults which causes sooty mould at the base.",
           "damage_en": "Sap sucking causes yellowing, drying, circular hopper-burn patches and lodging in severe infestation.",
           "favourable_conditions_en": "Close planting, excess nitrogen, standing dense crop canopy and poor water management favour hopper build-up.",
           "etl": "ETL: 1 hopper/tiller without predatory spider; 2 hoppers/tiller when spider is present.",
           "stage": "Tillering to grain filling",
           "severity_level": "high",
-          "image_urls": [],
+          "image_urls": [
+            "/images/crop-doctor/paddy-brown-plant-hopper.png",
+            "/images/crop-doctor/paddy-bph-nymphs-adults-base.png",
+            "/images/crop-doctor/paddy-bph-affected-tillers.png",
+            "/images/crop-doctor/paddy-bph-winged-adult.png",
+            "/images/crop-doctor/paddy-bph-adult-female.png"
+          ],
           "source_name": "TNAU Rice Crop Protection PWA Template",
           "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_12.html",
           "source_priority": 1,
@@ -159,8 +165,8 @@
             {
               "control_type": "chemical",
               "severity_level": "high",
-              "recommendation_en": "TNAU template notes neem oil/azadirachtin and listed insecticides, but dose must be verified against latest CIBRC label and PJTSAU/Telangana advisory before display.",
-              "chemical_name": "Verify latest label/local advisory",
+              "recommendation_en": "Apply any one of the following insecticides: Acetamiprid 20% SP 20-40 g/ac, Acephate 75% SP 400 g/ac, Buprofezin 25% SC 320 ml/ac, Carbosulfan 25 EC 400 ml/ac, Chlorantraniliprole 18.5% SC 60 g/ac, Chlorantraniliprole 0.4% G 4 kg/ac, Clothianidin 50% WG 8-9.6 g/ac, Chlorpyriphos 20 EC 500 ml/ac, Dinotefuran 20% SG 60-80 g/ac, Fipronil 5% SC 400 ml/ac, Fipronil 0.3% GR 6.7-10 kg/ac, Flonicamid 50% WG 60 g/ac, Imidacloprid 17.8 SL 40-50 ml/ac, Pymetrozine 50% WG 120 g/ac. Always verify latest CIBRC label and local PJTSAU/Department advisory before application.",
+              "chemical_name": "Multiple options - refer to recommendation",
               "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_12.html"
             }
           ]
@@ -177,7 +183,13 @@
           "etl": "ETL: 10% dead heart or 2% white ear.",
           "stage": "Vegetative to reproductive",
           "severity_level": "high",
-          "image_urls": [],
+          "image_urls": [
+            "/images/crop-doctor/paddy-stem-borer-dead-heart.png",
+            "/images/crop-doctor/paddy-stem-borer-eggs.png",
+            "/images/crop-doctor/paddy-stem-borer-white-ear.png",
+            "/images/crop-doctor/paddy-stem-borer-larva.png",
+            "/images/crop-doctor/paddy-yellow-stem-borer.png"
+          ],
           "source_name": "TNAU Rice Crop Protection PWA Template",
           "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m1.html",
           "source_priority": 1,
@@ -217,7 +229,9 @@
           "etl": "ETL: 10% leaf damage at vegetative stage; 5% flag leaf damage at flowering.",
           "stage": "Vegetative to flowering",
           "severity_level": "high",
-          "image_urls": [],
+          "image_urls": [
+            "/images/crop-doctor/paddy-leaf-folder.png"
+          ],
           "source_name": "TNAU Rice Crop Protection PWA Template",
           "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m5.html",
           "source_priority": 1,
@@ -257,7 +271,9 @@
           "etl": "Refer latest local Department/PJTSAU advisory.",
           "stage": "Nursery to early vegetative",
           "severity_level": "medium",
-          "image_urls": [],
+          "image_urls": [
+            "/images/crop-doctor/paddy-thrips.png"
+          ],
           "source_name": "TNAU Rice Pest Index",
           "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_insectpest%20_cereals_paddymain.html",
           "source_priority": 2,
@@ -284,7 +300,9 @@
           "etl": "Refer latest local Department/PJTSAU advisory.",
           "stage": "Vegetative",
           "severity_level": "medium",
-          "image_urls": [],
+          "image_urls": [
+            "/images/crop-doctor/paddy-gall-midge.png"
+          ],
           "source_name": "TNAU Rice Pest Index",
           "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_insectpest%20_cereals_paddymain.html",
           "source_priority": 2,
@@ -624,7 +642,7 @@
       "crop_key": "groundnut",
       "name_en": "Groundnut",
       "name_te": "వేరుశెనగ",
-      "image_url": "/images/oilseeds.webp",
+      "image_url": "/images/groundnut.webp",
       "display_order": 5,
       "active": true,
       "items": []
@@ -654,7 +672,7 @@
       "crop_key": "sesamum",
       "name_en": "Sesamum",
       "name_te": "నువ్వులు",
-      "image_url": "/images/oilseeds.webp",
+      "image_url": "/images/sesamum.webp",
       "display_order": 8,
       "active": true,
       "items": []

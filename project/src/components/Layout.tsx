@@ -1,6 +1,6 @@
 import React, { useMemo, useState, ReactNode } from 'react';
 import {
-  ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
+  ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database,
 } from 'lucide-react';
@@ -47,13 +47,15 @@ const dealerMenuItems = [] as typeof adminMenuItems;
 
 const menuItems = adminMenuItems;
 
-export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutProps) {
+export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const sidebarOverlay = useBackButtonOverlay('app-sidebar', () => setSidebarOpen(false));
   const { user, isAdminUser, isDealerUser, dealerName } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const pageMeta = useMemo(() => getPageMeta(currentPage), [currentPage]);
+  const hidePortalLogo = currentPage === 'fertilizer-calculator' || currentPage === 'acreage-calculator';
+  const showPageBackButton = currentPage !== 'dashboard' && currentPage !== 'dealer-portal';
 
   const handleNavigation = (page: string) => {
     const replaceDrawerEntry = sidebarOpen;
@@ -100,14 +102,27 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
               <span className="absolute inset-1 rounded-xl bg-white/10 opacity-0 transition group-hover:opacity-100" />
               {sidebarOpen ? <X className="relative h-5 w-5" /> : <Menu className="relative h-5 w-5" />}
             </button>
+
+            {showPageBackButton && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="group relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-white shadow-sm transition hover:border-white/35 hover:bg-white/25 focus:outline-none focus:ring-4 focus:ring-white/25"
+                aria-label="Back"
+                title="Back"
+              >
+                <span className="absolute inset-1 rounded-xl bg-white/10 opacity-0 transition group-hover:opacity-100" />
+                <ArrowLeft className="relative h-5 w-5" />
+              </button>
+            )}
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-              <PortalLogo size="sm" />
+              {!hidePortalLogo && <PortalLogo size="sm" />}
               <div className="min-w-0">
                 <h1 className="truncate text-sm font-black tracking-tight sm:text-base">
-                  {t('Tiryani Agriculture Portal', 'à°¤à°¿à°°à±à°¯à°¾à°¨à°¿ à°µà±à°¯à°µà°¸à°¾à°¯ à°ªà±‹à°°à±à°Ÿà°²à±')}
+                  {t('Tiryani Agriculture Portal', 'Ã Â°Â¤Ã Â°Â¿Ã Â°Â°Ã Â±ÂÃ Â°Â¯Ã Â°Â¾Ã Â°Â¨Ã Â°Â¿ Ã Â°ÂµÃ Â±ÂÃ Â°Â¯Ã Â°ÂµÃ Â°Â¸Ã Â°Â¾Ã Â°Â¯ Ã Â°ÂªÃ Â±â€¹Ã Â°Â°Ã Â±ÂÃ Â°Å¸Ã Â°Â²Ã Â±Â')}
                 </h1>
                 <p className="truncate text-[10px] font-medium text-emerald-100 sm:text-xs">
-                  {t('Information Management System', 'à°¸à°®à°¾à°šà°¾à°° à°¨à°¿à°°à±à°µà°¹à°£ à°µà±à°¯à°µà°¸à±à°¥')}
+                  {t('Information Management System', 'Ã Â°Â¸Ã Â°Â®Ã Â°Â¾Ã Â°Å¡Ã Â°Â¾Ã Â°Â° Ã Â°Â¨Ã Â°Â¿Ã Â°Â°Ã Â±ÂÃ Â°ÂµÃ Â°Â¹Ã Â°Â£ Ã Â°ÂµÃ Â±ÂÃ Â°Â¯Ã Â°ÂµÃ Â°Â¸Ã Â±ÂÃ Â°Â¥')}
                 </p>
               </div>
             </div>
@@ -119,7 +134,7 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
               onClick={toggleTheme}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
               aria-label={isDark ? 'Light mode' : 'Dark mode'}
-              title={isDark ? t('Light mode', 'à°²à±ˆà°Ÿà± à°®à±‹à°¡à±') : t('Dark mode', 'à°¡à°¾à°°à±à°•à± à°®à±‹à°¡à±')}
+              title={isDark ? t('Light mode', 'Ã Â°Â²Ã Â±Ë†Ã Â°Å¸Ã Â±Â Ã Â°Â®Ã Â±â€¹Ã Â°Â¡Ã Â±Â') : t('Dark mode', 'Ã Â°Â¡Ã Â°Â¾Ã Â°Â°Ã Â±ÂÃ Â°â€¢Ã Â±Â Ã Â°Â®Ã Â±â€¹Ã Â°Â¡Ã Â±Â')}
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
@@ -129,14 +144,14 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
               className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold transition hover:bg-white/25 sm:text-sm"
             >
               <Globe2 className="h-4 w-4" />
-              {language === 'en' ? 'à°¤à±†' : 'EN'}
+              {language === 'en' ? '\u0C24\u0C46' : 'EN'}
             </button>
             <span
               className={`hidden rounded-full px-2.5 py-1 text-[10px] font-bold sm:inline-block sm:text-xs ${
                 isAdminUser ? 'bg-amber-200 text-amber-950' : 'bg-cyan-200 text-cyan-950'
               }`}
             >
-              {isAdminUser ? t('Admin', 'à°…à°¡à±à°®à°¿à°¨à±') : isDealerUser ? t('Dealer', 'à°¡à±€à°²à°°à±') : t('Test User', 'à°Ÿà±†à°¸à±à°Ÿà±')}
+              {isAdminUser ? t('Admin', 'Ã Â°â€¦Ã Â°Â¡Ã Â±ÂÃ Â°Â®Ã Â°Â¿Ã Â°Â¨Ã Â±Â') : isDealerUser ? t('Dealer', 'Ã Â°Â¡Ã Â±â‚¬Ã Â°Â²Ã Â°Â°Ã Â±Â') : t('Test User', 'Ã Â°Å¸Ã Â±â€ Ã Â°Â¸Ã Â±ÂÃ Â°Å¸Ã Â±Â')}
             </span>
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-sm font-bold">
               {user?.email?.charAt(0).toUpperCase()}
@@ -228,10 +243,10 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
               <p className="truncate text-xs font-black text-slate-900 dark:text-white">{user?.email}</p>
               <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
                 {isAdminUser
-                  ? t('Administrator', 'à°¨à°¿à°°à±à°µà°¾à°¹à°•à±à°¡à±')
+                  ? t('Administrator', 'Ã Â°Â¨Ã Â°Â¿Ã Â°Â°Ã Â±ÂÃ Â°ÂµÃ Â°Â¾Ã Â°Â¹Ã Â°â€¢Ã Â±ÂÃ Â°Â¡Ã Â±Â')
                   : isDealerUser
-                    ? dealerName || t('Dealer', 'à°¡à±€à°²à°°à±')
-                    : t('View access', 'à°šà±‚à°¡à±‡ à°ªà±à°°à°µà±‡à°¶à°‚')}
+                    ? dealerName || t('Dealer', 'Ã Â°Â¡Ã Â±â‚¬Ã Â°Â²Ã Â°Â°Ã Â±Â')
+                    : t('View access', 'Ã Â°Å¡Ã Â±â€šÃ Â°Â¡Ã Â±â€¡ Ã Â°ÂªÃ Â±ÂÃ Â°Â°Ã Â°ÂµÃ Â±â€¡Ã Â°Â¶Ã Â°â€š')}
               </p>
             </div>
           </div>
@@ -241,7 +256,7 @@ export function Layout({ children, currentPage, onNavigate, onSignOut }: LayoutP
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-2 text-xs font-black text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
           >
             <LogOut className="h-4 w-4" />
-            {t('Sign Out', 'à°¸à±ˆà°¨à± à°…à°µà±à°Ÿà±')}
+            {t('Sign Out', 'Ã Â°Â¸Ã Â±Ë†Ã Â°Â¨Ã Â±Â Ã Â°â€¦Ã Â°ÂµÃ Â±ÂÃ Â°Å¸Ã Â±Â')}
           </button>
         </div>
       </aside>
@@ -349,7 +364,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit] },
     'acreage-calculator': { title: 'Acerage Calculator', breadcrumbs: [dashboard, toolkit] },
     'farm-calculators': { title: 'Farm Calculators', breadcrumbs: [dashboard, toolkit] },
-    'crop-protection': { title: 'Crop Protection Guidance', breadcrumbs: [dashboard, toolkit] },
+    'crop-protection': { title: 'Crop Doctor', breadcrumbs: [dashboard, toolkit] },
     'fertilizer-calculator': { title: 'Fertilizer Calculator', breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'pesticide-calculator': { title: 'Pesticide Calculator', breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'plant-population-calculator': { title: 'Plant Population Calculator', breadcrumbs: [dashboard, toolkit, farmCalculators] },
@@ -397,43 +412,43 @@ function subsidyTitle(page: string) {
 
 function translateMenu(label: string) {
   const labels: Record<string, string> = {
-    Dashboard: 'à°¡à±à°¯à°¾à°·à± à°¬à±‹à°°à±à°¡à±',
-    'Command Center': 'à°•à°®à°¾à°‚à°¡à± à°¸à±†à°‚à°Ÿà°°à±',
-    'Stock Analytics': 'à°¸à±à°Ÿà°¾à°•à± à°µà°¿à°¶à±à°²à±‡à°·à°£à°²à±',
-    'Stock Receipts & Sales': 'à°¸à±à°Ÿà°¾à°•à± à°°à°¸à±€à°Ÿà±à°²à± & à°…à°®à±à°®à°•à°¾à°²à±',
-    'Stock Inventory': 'à°¸à±à°Ÿà°¾à°•à± à°‡à°¨à±à°µà±†à°‚à°Ÿà°°à±€',
-    'My Stock Entry': 'à°¨à°¾ à°¸à±à°Ÿà°¾à°•à± à°Žà°‚à°Ÿà±à°°à±€',
-    'Dealers Directory': 'à°¡à±€à°²à°°à±à°² à°¡à±ˆà°°à±†à°•à±à°Ÿà°°à±€',
-    'Dealer Stock Tracking': 'à°¡à±€à°²à°°à± à°¸à±à°Ÿà°¾à°•à± à°Ÿà±à°°à°¾à°•à°¿à°‚à°—à±',
-    'Farmer Database': 'à°°à±ˆà°¤à±à°² à°¡à±‡à°Ÿà°¾à°¬à±‡à°¸à±',
-    'Crop Intelligence': 'à°ªà°‚à°Ÿ à°‡à°‚à°Ÿà±†à°²à°¿à°œà±†à°¨à±à°¸à±',
-    'Crop Admin': 'à°ªà°‚à°Ÿ à°…à°¡à±à°®à°¿à°¨à±',
+    Dashboard: 'Ã Â°Â¡Ã Â±ÂÃ Â°Â¯Ã Â°Â¾Ã Â°Â·Ã Â±Â Ã Â°Â¬Ã Â±â€¹Ã Â°Â°Ã Â±ÂÃ Â°Â¡Ã Â±Â',
+    'Command Center': 'Ã Â°â€¢Ã Â°Â®Ã Â°Â¾Ã Â°â€šÃ Â°Â¡Ã Â±Â Ã Â°Â¸Ã Â±â€ Ã Â°â€šÃ Â°Å¸Ã Â°Â°Ã Â±Â',
+    'Stock Analytics': 'Ã Â°Â¸Ã Â±ÂÃ Â°Å¸Ã Â°Â¾Ã Â°â€¢Ã Â±Â Ã Â°ÂµÃ Â°Â¿Ã Â°Â¶Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Â·Ã Â°Â£Ã Â°Â²Ã Â±Â',
+    'Stock Receipts & Sales': 'Ã Â°Â¸Ã Â±ÂÃ Â°Å¸Ã Â°Â¾Ã Â°â€¢Ã Â±Â Ã Â°Â°Ã Â°Â¸Ã Â±â‚¬Ã Â°Å¸Ã Â±ÂÃ Â°Â²Ã Â±Â & Ã Â°â€¦Ã Â°Â®Ã Â±ÂÃ Â°Â®Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â±Â',
+    'Stock Inventory': 'Ã Â°Â¸Ã Â±ÂÃ Â°Å¸Ã Â°Â¾Ã Â°â€¢Ã Â±Â Ã Â°â€¡Ã Â°Â¨Ã Â±ÂÃ Â°ÂµÃ Â±â€ Ã Â°â€šÃ Â°Å¸Ã Â°Â°Ã Â±â‚¬',
+    'My Stock Entry': 'Ã Â°Â¨Ã Â°Â¾ Ã Â°Â¸Ã Â±ÂÃ Â°Å¸Ã Â°Â¾Ã Â°â€¢Ã Â±Â Ã Â°Å½Ã Â°â€šÃ Â°Å¸Ã Â±ÂÃ Â°Â°Ã Â±â‚¬',
+    'Dealers Directory': 'Ã Â°Â¡Ã Â±â‚¬Ã Â°Â²Ã Â°Â°Ã Â±ÂÃ Â°Â² Ã Â°Â¡Ã Â±Ë†Ã Â°Â°Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°Å¸Ã Â°Â°Ã Â±â‚¬',
+    'Dealer Stock Tracking': 'Ã Â°Â¡Ã Â±â‚¬Ã Â°Â²Ã Â°Â°Ã Â±Â Ã Â°Â¸Ã Â±ÂÃ Â°Å¸Ã Â°Â¾Ã Â°â€¢Ã Â±Â Ã Â°Å¸Ã Â±ÂÃ Â°Â°Ã Â°Â¾Ã Â°â€¢Ã Â°Â¿Ã Â°â€šÃ Â°â€”Ã Â±Â',
+    'Farmer Database': 'Ã Â°Â°Ã Â±Ë†Ã Â°Â¤Ã Â±ÂÃ Â°Â² Ã Â°Â¡Ã Â±â€¡Ã Â°Å¸Ã Â°Â¾Ã Â°Â¬Ã Â±â€¡Ã Â°Â¸Ã Â±Â',
+    'Crop Intelligence': 'Ã Â°ÂªÃ Â°â€šÃ Â°Å¸ Ã Â°â€¡Ã Â°â€šÃ Â°Å¸Ã Â±â€ Ã Â°Â²Ã Â°Â¿Ã Â°Å“Ã Â±â€ Ã Â°Â¨Ã Â±ÂÃ Â°Â¸Ã Â±Â',
+    'Crop Admin': 'Ã Â°ÂªÃ Â°â€šÃ Â°Å¸ Ã Â°â€¦Ã Â°Â¡Ã Â±ÂÃ Â°Â®Ã Â°Â¿Ã Â°Â¨Ã Â±Â',
     'Officer Toolkit': 'Officer Toolkit',
-    'Statutory Forms': 'à°šà°Ÿà±à°Ÿà°¬à°¦à±à°§ à°«à°¾à°°à°¾à°²à±',
-    'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
-    'Fertilizer Calculator': 'ఎరువుల కాలిక్యులేటర్',
-    'Seed Rate Calculator': 'విత్తన మోతాదు కాలిక్యులేటర్',
-    'Plant Population Calculator': 'మొక్కల జనాభా కాలిక్యులేటర్',
-    'Pesticide Calculator': 'పురుగుమందు కాలిక్యులేటర్',
-    'Acerage Calculator': 'ఎకరాల కాలిక్యులేటర్',
-    'GOs & Circulars': 'à°œà±€.à°“à°²à± & à°¸à°°à±à°•à±à°¯à±à°²à°°à±à°²à±',
-    'Quality Control': 'à°¨à°¾à°£à±à°¯à°¤ à°¨à°¿à°¯à°‚à°¤à±à°°à°£',
-    'Farm Mechanization': 'à°µà±à°¯à°µà°¸à°¾à°¯ à°¯à°¾à°‚à°¤à±à°°à±€à°•à°°à°£',
-    'Office Records': 'à°•à°¾à°°à±à°¯à°¾à°²à°¯ à°°à°¿à°•à°¾à°°à±à°¡à±à°²à±',
-    'Document Repository': 'à°ªà°¤à±à°°à°¾à°² à°­à°¾à°‚à°¡à°¾à°—à°¾à°°à°‚',
-    'Subsidy & Schemes': 'à°¸à°¬à±à°¸à°¿à°¡à±€ & à°ªà°¥à°•à°¾à°²à±',
-    NFSM: 'à°Žà°¨à±.à°Žà°«à±.à°Žà°¸à±.à°Žà°‚',
-    'State Seed Cell': 'à°°à°¾à°·à±à°Ÿà±à°° à°µà°¿à°¤à±à°¤à°¨ à°•à°¾à°°à±à°¯à°¾à°²à°¯à°‚',
-    Seeds: 'à°µà°¿à°¤à±à°¤à°¨à°¾à°²à±',
-    Pesticides: 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à±à°²à±',
-    Fertilizers: 'à°Žà°°à±à°µà±à°²à±',
-    Analytics: 'à°µà°¿à°¶à±à°²à±‡à°·à°£à°²à±',
-    Settings: 'à°¸à±†à°Ÿà±à°Ÿà°¿à°‚à°—à±à°²à±',
-    Cotton: 'à°ªà°¤à±à°¤à°¿',
-    Paddy: 'à°µà°°à°¿',
-    Maize: 'à°®à±Šà°•à±à°•à°œà±Šà°¨à±à°¨',
-    Pulses: 'à°ªà°ªà±à°ªà±à°§à°¾à°¨à±à°¯à°¾à°²à±',
-    Oilseeds: 'à°¨à±‚à°¨à±† à°—à°¿à°‚à°œà°²à±',
+    'Statutory Forms': 'Ã Â°Å¡Ã Â°Å¸Ã Â±ÂÃ Â°Å¸Ã Â°Â¬Ã Â°Â¦Ã Â±ÂÃ Â°Â§ Ã Â°Â«Ã Â°Â¾Ã Â°Â°Ã Â°Â¾Ã Â°Â²Ã Â±Â',
+    'Farm Calculators': 'à°µà±à°¯à°µà°¸à°¾à°¯ à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±à°²à±',
+    'Fertilizer Calculator': 'à°Žà°°à±à°µà±à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    'Seed Rate Calculator': 'à°µà°¿à°¤à±à°¤à°¨ à°®à±‹à°¤à°¾à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    'Plant Population Calculator': 'à°®à±Šà°•à±à°•à°² à°œà°¨à°¾à°­à°¾ à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    'Pesticide Calculator': 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    'Acerage Calculator': 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    'GOs & Circulars': 'Ã Â°Å“Ã Â±â‚¬.Ã Â°â€œÃ Â°Â²Ã Â±Â & Ã Â°Â¸Ã Â°Â°Ã Â±ÂÃ Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â°Â°Ã Â±ÂÃ Â°Â²Ã Â±Â',
+    'Quality Control': 'Ã Â°Â¨Ã Â°Â¾Ã Â°Â£Ã Â±ÂÃ Â°Â¯Ã Â°Â¤ Ã Â°Â¨Ã Â°Â¿Ã Â°Â¯Ã Â°â€šÃ Â°Â¤Ã Â±ÂÃ Â°Â°Ã Â°Â£',
+    'Farm Mechanization': 'Ã Â°ÂµÃ Â±ÂÃ Â°Â¯Ã Â°ÂµÃ Â°Â¸Ã Â°Â¾Ã Â°Â¯ Ã Â°Â¯Ã Â°Â¾Ã Â°â€šÃ Â°Â¤Ã Â±ÂÃ Â°Â°Ã Â±â‚¬Ã Â°â€¢Ã Â°Â°Ã Â°Â£',
+    'Office Records': 'Ã Â°â€¢Ã Â°Â¾Ã Â°Â°Ã Â±ÂÃ Â°Â¯Ã Â°Â¾Ã Â°Â²Ã Â°Â¯ Ã Â°Â°Ã Â°Â¿Ã Â°â€¢Ã Â°Â¾Ã Â°Â°Ã Â±ÂÃ Â°Â¡Ã Â±ÂÃ Â°Â²Ã Â±Â',
+    'Document Repository': 'Ã Â°ÂªÃ Â°Â¤Ã Â±ÂÃ Â°Â°Ã Â°Â¾Ã Â°Â² Ã Â°Â­Ã Â°Â¾Ã Â°â€šÃ Â°Â¡Ã Â°Â¾Ã Â°â€”Ã Â°Â¾Ã Â°Â°Ã Â°â€š',
+    'Subsidy & Schemes': 'Ã Â°Â¸Ã Â°Â¬Ã Â±ÂÃ Â°Â¸Ã Â°Â¿Ã Â°Â¡Ã Â±â‚¬ & Ã Â°ÂªÃ Â°Â¥Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â±Â',
+    NFSM: 'Ã Â°Å½Ã Â°Â¨Ã Â±Â.Ã Â°Å½Ã Â°Â«Ã Â±Â.Ã Â°Å½Ã Â°Â¸Ã Â±Â.Ã Â°Å½Ã Â°â€š',
+    'State Seed Cell': 'Ã Â°Â°Ã Â°Â¾Ã Â°Â·Ã Â±ÂÃ Â°Å¸Ã Â±ÂÃ Â°Â° Ã Â°ÂµÃ Â°Â¿Ã Â°Â¤Ã Â±ÂÃ Â°Â¤Ã Â°Â¨ Ã Â°â€¢Ã Â°Â¾Ã Â°Â°Ã Â±ÂÃ Â°Â¯Ã Â°Â¾Ã Â°Â²Ã Â°Â¯Ã Â°â€š',
+    Seeds: 'Ã Â°ÂµÃ Â°Â¿Ã Â°Â¤Ã Â±ÂÃ Â°Â¤Ã Â°Â¨Ã Â°Â¾Ã Â°Â²Ã Â±Â',
+    Pesticides: 'Ã Â°ÂªÃ Â±ÂÃ Â°Â°Ã Â±ÂÃ Â°â€”Ã Â±ÂÃ Â°Â®Ã Â°â€šÃ Â°Â¦Ã Â±ÂÃ Â°Â²Ã Â±Â',
+    Fertilizers: 'Ã Â°Å½Ã Â°Â°Ã Â±ÂÃ Â°ÂµÃ Â±ÂÃ Â°Â²Ã Â±Â',
+    Analytics: 'Ã Â°ÂµÃ Â°Â¿Ã Â°Â¶Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Â·Ã Â°Â£Ã Â°Â²Ã Â±Â',
+    Settings: 'Ã Â°Â¸Ã Â±â€ Ã Â°Å¸Ã Â±ÂÃ Â°Å¸Ã Â°Â¿Ã Â°â€šÃ Â°â€”Ã Â±ÂÃ Â°Â²Ã Â±Â',
+    Cotton: 'Ã Â°ÂªÃ Â°Â¤Ã Â±ÂÃ Â°Â¤Ã Â°Â¿',
+    Paddy: 'Ã Â°ÂµÃ Â°Â°Ã Â°Â¿',
+    Maize: 'Ã Â°Â®Ã Â±Å Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Å“Ã Â±Å Ã Â°Â¨Ã Â±ÂÃ Â°Â¨',
+    Pulses: 'Ã Â°ÂªÃ Â°ÂªÃ Â±ÂÃ Â°ÂªÃ Â±ÂÃ Â°Â§Ã Â°Â¾Ã Â°Â¨Ã Â±ÂÃ Â°Â¯Ã Â°Â¾Ã Â°Â²Ã Â±Â',
+    Oilseeds: 'Ã Â°Â¨Ã Â±â€šÃ Â°Â¨Ã Â±â€  Ã Â°â€”Ã Â°Â¿Ã Â°â€šÃ Â°Å“Ã Â°Â²Ã Â±Â',
   };
   return labels[label] ?? label;
 }

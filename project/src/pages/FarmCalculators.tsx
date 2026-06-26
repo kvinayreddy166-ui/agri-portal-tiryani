@@ -1,14 +1,24 @@
 import React from 'react';
-import { ArrowLeft, Bug, FlaskConical, PackageCheck, Sprout, Wheat } from 'lucide-react';
+import { ArrowLeft, Bug, FlaskConical, PackageCheck, Ruler, Sprout, Wheat } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
 const calculatorItems = [
   {
+    title: 'Acreage Calculator',
+    titleTe: '?????????? ?????????????',
+    description: 'Calculate acreage from survey measurements.',
+    descriptionTe: '????? ????? ??????? ?????????????? ???????????.',
+    path: '/officer-toolkit/acreage-calculator',
+    icon: Ruler,
+    accent: 'from-sky-600 to-cyan-700',
+    panel: 'from-sky-50 to-cyan-50 dark:from-sky-950/30 dark:to-cyan-950/30',
+  },
+  {
     title: 'Plant Population Calculator',
-    titleTe: 'మొక్కల జనాభా కాలిక్యులేటర్',
+    titleTe: 'à°®à±Šà°•à±à°•à°² à°œà°¨à°¾à°­à°¾ à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
     description: 'Calculate plant population from spacing.',
-    descriptionTe: 'వరుస మరియు మొక్కల మధ్య దూరంతో మొక్కల సంఖ్యను లెక్కించండి.',
+    descriptionTe: 'à°µà°°à±à°¸ à°®à°°à°¿à°¯à± à°®à±Šà°•à±à°•à°² à°®à°§à±à°¯ à°¦à±‚à°°à°‚à°¤à±‹ à°®à±Šà°•à±à°•à°² à°¸à°‚à°–à±à°¯à°¨à± à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
     path: '/officer-toolkit/plant-population-calculator',
     icon: Sprout,
     accent: 'from-green-600 to-teal-700',
@@ -16,9 +26,9 @@ const calculatorItems = [
   },
   {
     title: 'Seed Rate Calculator',
-    titleTe: 'విత్తన మోతాదు కాలిక్యులేటర్',
+    titleTe: 'à°µà°¿à°¤à±à°¤à°¨ à°®à±‹à°¤à°¾à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
     description: 'Calculate seed requirement using test weight, germination and population.',
-    descriptionTe: 'టెస్ట్ వెయిట్, మొలక శాతం మరియు మొక్కల సంఖ్యతో విత్తన అవసరాన్ని లెక్కించండి.',
+    descriptionTe: 'à°Ÿà±†à°¸à±à°Ÿà± à°µà±†à°¯à°¿à°Ÿà±, à°®à±Šà°²à°• à°¶à°¾à°¤à°‚ à°®à°°à°¿à°¯à± à°®à±Šà°•à±à°•à°² à°¸à°‚à°–à±à°¯à°¤à±‹ à°µà°¿à°¤à±à°¤à°¨ à°…à°µà°¸à°°à°¾à°¨à±à°¨à°¿ à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
     path: '/officer-toolkit/seed-rate-calculator',
     icon: Wheat,
     accent: 'from-lime-600 to-emerald-700',
@@ -26,9 +36,9 @@ const calculatorItems = [
   },
   {
     title: 'Fertilizer Calculator',
-    titleTe: 'ఎరువుల కాలిక్యులేటర్',
+    titleTe: 'à°Žà°°à±à°µà±à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
     description: 'Calculate fertilizer quantity based on nutrient requirement.',
-    descriptionTe: 'పోషక అవసరాల ఆధారంగా ఎరువు పరిమాణాన్ని లెక్కించండి.',
+    descriptionTe: 'à°ªà±‹à°·à°• à°…à°µà°¸à°°à°¾à°² à°†à°§à°¾à°°à°‚à°—à°¾ à°Žà°°à±à°µà± à°ªà°°à°¿à°®à°¾à°£à°¾à°¨à±à°¨à°¿ à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
     path: '/officer-toolkit/fertilizer-calculator',
     icon: PackageCheck,
     accent: 'from-emerald-600 to-green-700',
@@ -36,9 +46,9 @@ const calculatorItems = [
   },
   {
     title: 'Pesticide Calculator',
-    titleTe: 'పురుగుమందు కాలిక్యులేటర్',
+    titleTe: 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
     description: 'Calculate pesticide quantity from active ingredient or dose per litre.',
-    descriptionTe: 'క్రియాశీల పదార్థం లేదా లీటరుకు మోతాదుతో పురుగుమందు పరిమాణాన్ని లెక్కించండి.',
+    descriptionTe: 'à°•à±à°°à°¿à°¯à°¾à°¶à±€à°² à°ªà°¦à°¾à°°à±à°¥à°‚ à°²à±‡à°¦à°¾ à°²à±€à°Ÿà°°à±à°•à± à°®à±‹à°¤à°¾à°¦à±à°¤à±‹ à°ªà±à°°à±à°—à±à°®à°‚à°¦à± à°ªà°°à°¿à°®à°¾à°£à°¾à°¨à±à°¨à°¿ à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
     path: '/officer-toolkit/pesticide-calculator',
     icon: Bug,
     accent: 'from-red-500 to-amber-600',
@@ -60,13 +70,13 @@ export function FarmCalculators() {
             </div>
             <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-wide text-emerald-100">
-                {t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}
+                {t('Officer Toolkit', 'à°…à°§à°¿à°•à°¾à°°à±à°² à°Ÿà±‚à°²à±â€Œà°•à°¿à°Ÿà±')}
               </p>
               <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
-                {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+                {t('Farm Calculators', 'à°µà±à°¯à°µà°¸à°¾à°¯ à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±à°²à±')}
               </h1>
               <p className="mt-1 text-sm font-semibold text-emerald-50">
-                {t('Crop, Seed, Fertilizer and Pesticide Calculations', 'పంట, విత్తనం, ఎరువు మరియు పురుగుమందు లెక్కలు')}
+                {t('Crop, Seed, Fertilizer and Pesticide Calculations', 'à°ªà°‚à°Ÿ, à°µà°¿à°¤à±à°¤à°¨à°‚, à°Žà°°à±à°µà± à°®à°°à°¿à°¯à± à°ªà±à°°à±à°—à±à°®à°‚à°¦à± à°²à±†à°•à±à°•à°²à±')}
               </p>
             </div>
           </div>
@@ -76,12 +86,12 @@ export function FarmCalculators() {
             className="inline-flex h-9 w-fit items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 text-xs font-black text-white transition hover:bg-white/25 focus:outline-none focus:ring-4 focus:ring-white/25"
           >
             <ArrowLeft className="h-4 w-4" />
-            {t('Back', 'వెనక్కి')}
+            {t('Back', 'à°µà±†à°¨à°•à±à°•à°¿')}
           </button>
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {calculatorItems.map((item) => (
           <article
             key={item.path}
@@ -97,16 +107,6 @@ export function FarmCalculators() {
                 <p className="mt-1 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{t(item.description, item.descriptionTe)}</p>
               </div>
             </div>
-            <button
-              type="button"
-              className="mt-3 inline-flex h-8 items-center rounded-lg bg-emerald-700 px-3 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900/50"
-              onClick={(event) => {
-                event.stopPropagation();
-                navigate(item.path);
-              }}
-            >
-              {t('Open', 'తెరవండి')}
-            </button>
           </article>
         ))}
       </section>

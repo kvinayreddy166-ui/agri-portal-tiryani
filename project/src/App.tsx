@@ -37,18 +37,22 @@ const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const CropAdminDashboard = lazy(() =>
   import('./pages/admin/CropAdminDashboard.jsx').then((m) => ({ default: m.CropAdminDashboard }))
 );
-function GlobalAppLoader() {
+function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
-      <PortalLogo size="xl" />
+      {!hideLogo && <PortalLogo size="xl" />}
       <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
-      <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading Tiryani Agriculture Portal…</p>
+      {!hideLogo && (
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+          Loading Tiryani Agriculture Portal...
+        </p>
+      )}
     </div>
   );
 }
 
-function PageLoader() {
-  return <GlobalAppLoader />;
+function PageLoader({ hideLogo = false }: { hideLogo?: boolean }) {
+  return <GlobalAppLoader hideLogo={hideLogo} />;
 }
 
 const PUBLIC_VIEW_PAGES = new Set(['dealers']);
@@ -279,6 +283,11 @@ function AppContent() {
   const navigationType = useNavigationType();
   const [isHydrated, setIsHydrated] = useState(false);
   const [forceAppShell, setForceAppShell] = useState(false);
+  const hideCalculatorLogo =
+    location.pathname === '/officer-toolkit/fertilizer-calculator' ||
+    location.pathname === '/officer-toolkit/acreage-calculator' ||
+    location.pathname === '/fertilizer-calculator' ||
+    location.pathname === '/acreage-calculator';
   useAppScrollRestoration(location, navigationType);
   useInitialBackFallback(location, loading, Boolean(user));
 
@@ -505,7 +514,7 @@ function AppContent() {
 
   // Show loader during initial load or hydration (must be after all hooks)
   if ((!authChecked || !appReady || !isHydrated) && !forceAppShell) {
-    return <GlobalAppLoader />;
+    return <GlobalAppLoader hideLogo={hideCalculatorLogo} />;
   }
 
   if (!user && PUBLIC_VIEW_PAGES.has(currentPage)) {
@@ -531,6 +540,22 @@ function AppContent() {
     return (
       <Suspense fallback={<GlobalAppLoader />}>
         <FarmCalculators />
+      </Suspense>
+    );
+  }
+
+  if (!user && currentPage === 'acreage-calculator') {
+    return (
+      <Suspense fallback={<GlobalAppLoader hideLogo />}>
+        <AcreageCalculator />
+      </Suspense>
+    );
+  }
+
+  if (!user && currentPage === 'fertilizer-calculator') {
+    return (
+      <Suspense fallback={<GlobalAppLoader hideLogo />}>
+        <FertilizerCalculator />
       </Suspense>
     );
   }
@@ -576,12 +601,12 @@ function AppContent() {
     location.pathname !== '/officer-toolkit/fertilizer-calculator' &&
     location.pathname !== '/officer-toolkit/crop-protection'
   ) {
-    return <PageLoader />;
+    return <PageLoader hideLogo={hideCalculatorLogo} />;
   }
 
   if (!user) {
     return (
-      <Suspense fallback={<PageLoader />}>
+      <Suspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
         <Login />
       </Suspense>
     );
@@ -675,7 +700,7 @@ function AppContent() {
   };
 
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
       <Layout currentPage={currentPage} onNavigate={navigateToPage} onBack={handleBack} onSignOut={handleSignOut}>
         {renderPage()}
       </Layout>

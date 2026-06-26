@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+﻿import { supabase } from '../lib/supabase';
 
 export type CropProtectionCategory = 'weed' | 'pest' | 'disease' | 'nutrient';
 export type ControlType = 'cultural' | 'mechanical' | 'biological' | 'chemical' | 'general_ipm';
@@ -61,9 +61,38 @@ export type CropProtectionCrop = {
   items: CropProtectionItem[];
 };
 
-const CACHE_KEY = 'tiryani-crop-protection-cache-v2';
+const CACHE_KEY = 'tiryani-crop-protection-cache-v4';
 const FALLBACK_MESSAGE = 'Official recommendation will be updated soon. Please follow local PJTSAU/Department advisory.';
 const SUPABASE_LOAD_TIMEOUT_MS = 2200;
+const CROP_IMAGE_UPLOAD_FOLDER = 'crop-doctor/crops';
+
+const LOCAL_CROP_IMAGE_URLS: Record<string, string> = {
+  groundnut: '/images/groundnut.webp',
+  sesamum: '/images/sesamum.webp',
+};
+
+const LOCAL_CROP_DOCTOR_IMAGE_URLS: Record<string, string[]> = {
+  'paddy-brown-plant-hopper': [
+    '/images/crop-doctor/paddy-brown-plant-hopper.png',
+    '/images/crop-doctor/paddy-bph-nymphs-adults-base.png',
+    '/images/crop-doctor/paddy-bph-affected-tillers.png',
+    '/images/crop-doctor/paddy-bph-winged-adult.png',
+    '/images/crop-doctor/paddy-bph-adult-female.png',
+  ],
+  'paddy-brown-planthopper': [
+    '/images/crop-doctor/paddy-brown-plant-hopper.png',
+    '/images/crop-doctor/paddy-bph-nymphs-adults-base.png',
+    '/images/crop-doctor/paddy-bph-affected-tillers.png',
+    '/images/crop-doctor/paddy-bph-winged-adult.png',
+    '/images/crop-doctor/paddy-bph-adult-female.png',
+  ],  'paddy-stem-borer': [
+    '/images/crop-doctor/paddy-stem-borer-dead-heart.png',
+    '/images/crop-doctor/paddy-stem-borer-eggs.png',
+    '/images/crop-doctor/paddy-stem-borer-white-ear.png',
+    '/images/crop-doctor/paddy-stem-borer-larva.png',
+    '/images/crop-doctor/paddy-yellow-stem-borer.png',
+  ],
+};
 
 export async function loadCropProtectionData(): Promise<CropProtectionCrop[]> {
   try {
@@ -142,6 +171,45 @@ async function loadSupabaseCropProtectionData() {
     `)
     .eq('active', true)
     .order('display_order');
+}
+
+export async function saveCropProtectionCrop(crop: Partial<CropProtectionCrop> & { id: string }) {
+  clearCropProtectionCache();
+  return supabase
+    .from('crop_protection_crops')
+    .update({
+      name_en: crop.name_en?.trim() || 'Crop',
+      name_te: crop.name_te?.trim() || '',
+      image_url: crop.image_url?.trim() || '',
+      active: crop.active ?? true,
+    })
+    .eq('id', crop.id);
+}
+
+export async function uploadCropProtectionCropImage(cropKey: string, file: File) {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Please upload an image file.');
+  }
+
+  const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const filePath = `${CROP_IMAGE_UPLOAD_FOLDER}/${cropKey || 'crop'}-${Date.now()}-${cleanName}`;
+  const { error } = await supabase.storage.from('uploads').upload(filePath, file, {
+    upsert: true,
+    contentType: file.type || 'image/jpeg',
+  });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from('uploads').getPublicUrl(filePath);
+  return data.publicUrl;
+}
+
+export function clearCropProtectionCache() {
+  try {
+    window.localStorage.removeItem(CACHE_KEY);
+  } catch {
+    // Ignore storage quota/private mode failures.
+  }
 }
 
 export async function saveCropProtectionItem(item: Partial<CropProtectionItem> & { crop_id: string }) {
@@ -287,8 +355,10 @@ function normalizeNeverEmpty(crops: CropProtectionCrop[]) {
   return crops.map((crop) => ({
     ...crop,
     name_te: teluguCropName(crop.crop_key, crop.name_te),
+    image_url: resolveCropImageUrl(crop),
     items: (crop.items || []).map((item) => ({
       ...item,
+      image_urls: normalizeCropDoctorImageUrls(item, crop.crop_key),
       symptoms_en: item.symptoms_en || FALLBACK_MESSAGE,
       damage_en: item.damage_en || FALLBACK_MESSAGE,
       favourable_conditions_en: item.favourable_conditions_en || FALLBACK_MESSAGE,
@@ -316,6 +386,26 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   });
 }
 
+function resolveCropImageUrl(crop: CropProtectionCrop) {
+  const localUrl = LOCAL_CROP_IMAGE_URLS[crop.crop_key];
+  if (!localUrl) return crop.image_url;
+  if (!crop.image_url || crop.image_url === '/images/oilseeds.webp') return localUrl;
+  return crop.image_url;
+}
+
+function normalizeCropDoctorImageUrls(item: CropProtectionItem, cropKey?: string) {
+  const normalizedName = item.name_en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const lookupKey = LOCAL_CROP_DOCTOR_IMAGE_URLS[item.id] ? item.id : `${cropKey || ''}-${normalizedName}`;
+  const localUrls = LOCAL_CROP_DOCTOR_IMAGE_URLS[lookupKey];
+  const existingUrls = Array.isArray(item.image_urls) ? item.image_urls : [];
+  if (!localUrls) return existingUrls;
+
+  const additionalLocalUrls = existingUrls.filter(
+    (url) => url && !url.startsWith('http') && !localUrls.includes(url)
+  );
+  return [...localUrls, ...additionalLocalUrls];
+}
+
 function teluguCropName(cropKey: string, fallback?: string | null) {
   const names: Record<string, string> = {
     cotton: '\u0C2A\u0C24\u0C4D\u0C24\u0C3F',
@@ -337,10 +427,10 @@ function defaultSeedData(): CropProtectionCrop[] {
     ['paddy', 'Paddy', '', '/images/paddy.webp'],
     ['maize', 'Maize', '', '/images/maize.webp'],
     ['redgram', 'Redgram', '', '/images/pulses.webp'],
-    ['groundnut', 'Groundnut', '', '/images/oilseeds.webp'],
+    ['groundnut', 'Groundnut', '', '/images/groundnut.webp'],
     ['greengram', 'Greengram', '', '/images/greengram.webp'],
     ['sunflower', 'Sunflower', '', '/images/oilseeds.webp'],
-    ['sesamum', 'Sesamum', '', '/images/oilseeds.webp'],
+    ['sesamum', 'Sesamum', '', '/images/sesamum.webp'],
   ];
 
   return crops.map(([key, name, nameTe, image], index) => {
@@ -382,3 +472,4 @@ function readCachedCropProtectionData(): CropProtectionCrop[] {
     return [];
   }
 }
+

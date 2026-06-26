@@ -21,7 +21,7 @@ export function RecommendationPanel({
       {sorted.map((rec) => (
         <details key={rec.id} className="rounded-lg border border-slate-200 bg-white p-2 open:border-emerald-200 open:bg-emerald-50/40">
           <summary className="cursor-pointer text-xs font-black text-slate-900">
-            {label(controlLabel(rec.control_type), language)} · {rec.severity_level.toUpperCase()}
+            {label(controlLabel(rec.control_type), language)}
           </summary>
           <div className="mt-2 space-y-1 text-xs font-semibold leading-5 text-slate-700">
             <p>{pickLang(rec.recommendation_en, rec.recommendation_te, language)}</p>
