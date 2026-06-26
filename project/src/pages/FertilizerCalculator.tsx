@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ArrowLeft,
   FileText,
   Leaf,
   Plus,
@@ -16,6 +15,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { BackButton } from '../components/ui/BackButton';
+import { LanguageToggle } from '../components/ui/LanguageToggle';
 import { repairTeluguRecord, repairTeluguText } from '../utils/textRepair';
 import {
   DEFAULT_GRADES,
@@ -1837,29 +1838,30 @@ export function FertilizerCalculator() {
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-1.5 sm:justify-end">
-            <button
-              type="button"
-              onClick={() => navigate('/officer-toolkit/farm-calculators')}
-              className="inline-flex min-h-7 items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-[10px] font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50 sm:px-3 sm:text-sm"
-            >
-              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              Farm Calculators
-            </button>
+            <LanguageToggle language={language} onClick={toggleLanguage} />
             <div className="flex gap-1">
-            <button type="button" onClick={exportPdf} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-600 px-2 py-1 text-white" aria-label="Export PDF" title="PDF">
+              <button type="button" onClick={exportPdf} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-600 px-2 py-1 text-white" aria-label="Export PDF" title="PDF">
               <FileText className="h-3.5 w-3.5" />
             </button>
-            <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-green-600 px-2 py-1 text-white" aria-label="Share on WhatsApp" title="WhatsApp">
+              <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-green-600 px-2 py-1 text-white" aria-label="Share on WhatsApp" title="WhatsApp">
               <WhatsAppIcon className="h-3.5 w-3.5" />
             </button>
-            <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-700 disabled:opacity-50">
+              <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-700 disabled:opacity-50">
               <RefreshCw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
             </button>
+            </div>
+            <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')}>
+              Back
+            </BackButton>
           </div>
-            <button type="button" onClick={toggleLanguage} className="inline-flex min-h-7 items-center justify-center rounded-lg border border-emerald-200 bg-white px-2 py-1 text-[10px] font-black text-emerald-800">
-              {language === 'te' ? 'EN' : '\u0C24\u0C46'}
-            </button>
-          </div>
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm font-semibold text-emerald-950 shadow-sm">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <p><span className="font-black">1.</span> Select crop recommendation or enter nutrients manually.</p>
+          <p><span className="font-black">2.</span> Enter area and choose available fertilizers.</p>
+          <p><span className="font-black">3.</span> See fertilizer bags and split doses instantly.</p>
         </div>
       </section>
 
@@ -1959,10 +1961,10 @@ export function FertilizerCalculator() {
         <div className="rounded-xl border border-emerald-100 bg-white p-2 shadow-sm sm:p-4">
           <div className="mb-2 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-xs font-black sm:mb-3 sm:text-sm">
             <button type="button" onClick={() => setMode('simple')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${mode === 'simple' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}>
-              {uiLabels.mode1Simple}
+              {language === 'te' ? repairTeluguText(uiLabels.mode1Simple) : 'Manual nutrients'}
             </button>
             <button type="button" onClick={() => setMode('crop')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${mode === 'crop' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}>
-              {uiLabels.mode2Crop}
+              {language === 'te' ? repairTeluguText(uiLabels.mode2Crop) : 'Crop recommendation'}
             </button>
           </div>
 

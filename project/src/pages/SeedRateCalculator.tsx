@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Copy, Languages, RotateCcw, Scale, ShieldAlert, Sprout } from 'lucide-react';
+import { Copy, RotateCcw, Scale, ShieldAlert, Sprout } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { BackButton } from '../components/ui/BackButton';
+import { LanguageToggle } from '../components/ui/LanguageToggle';
 
 type AreaUnit = 'acres' | 'hectares';
 type PopulationUnit = 'plants-acre' | 'plants-ha' | 'total-plants';
@@ -73,29 +75,29 @@ export function SeedRateCalculator() {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate('/officer-toolkit/farm-calculators')}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-300 dark:hover:bg-slate-800"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
-          </button>
+          <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')}>
+            Back
+          </BackButton>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-sm font-semibold text-emerald-950 shadow-sm dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <p><span className="font-black">1.</span> Enter crop area and required population.</p>
+          <p><span className="font-black">2.</span> Add germination and test weight from seed label.</p>
+          <p><span className="font-black">3.</span> Get seed required in kg.</p>
         </div>
       </section>
 
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
           <Copy className="h-4 w-4" />
-          {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Text', 'టెక్స్ట్ కాపీ')}
+          {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'టెక్స్ట్ కాపీ')}
         </button>
         <button type="button" onClick={shareWhatsApp} disabled={!calculation.result} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-green-600 text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700" aria-label="WhatsApp" title="WhatsApp">
           <WhatsAppIcon className="h-4 w-4" />
         </button>
-        <button type="button" onClick={toggleLanguage} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
-          <Languages className="h-4 w-4" />
-          {language === 'en' ? 'తెలుగు' : 'English'}
-        </button>
+        <LanguageToggle language={language} onClick={toggleLanguage} />
         <button type="button" onClick={reset} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
           <RotateCcw className="h-4 w-4" />
           {t('Reset', 'రీసెట్')}
@@ -104,7 +106,7 @@ export function SeedRateCalculator() {
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-3">
-          <FormSection title={t('Crop and Area', 'పంట మరియు విస్తీర్ణం')}>
+          <FormSection title={t('Step 1: Crop and Area', 'పంట మరియు విస్తీర్ణం')}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={t('Crop name', 'పంట పేరు')} optional>
                 <input value={form.cropName} onChange={(event) => updateForm('cropName', event.target.value)} className={inputClass} placeholder={t('Optional', 'ఐచ్ఛికం')} />
@@ -121,7 +123,7 @@ export function SeedRateCalculator() {
             </div>
           </FormSection>
 
-          <FormSection title={t('Population and Seed Parameters', 'జనాభా మరియు విత్తన వివరాలు')}>
+          <FormSection title={t('Step 2: Seed Details', 'జనాభా మరియు విత్తన వివరాలు')}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={t('Required population', 'అవసరమైన మొక్కల జనాభా')}>
                 <input type="number" min="0" inputMode="decimal" value={form.requiredPopulation} onChange={(event) => updateForm('requiredPopulation', event.target.value)} className={inputClass} placeholder="30000" />

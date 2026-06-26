@@ -4,10 +4,9 @@ import {
   ArrowLeft,
   Calculator,
   Download,
-  Eye,
+  UsersRound,
   FileText,
   FlaskConical,
-  Globe2,
   Loader2,
   LockKeyhole,
   LogIn,
@@ -23,6 +22,7 @@ import {
 } from 'lucide-react';
 import { FileTypeIcon } from './ui/FileTypeIcon';
 import { PortalLogo } from './ui/PortalLogo';
+import { LanguageToggle } from './ui/LanguageToggle';
 import { DEALER_DEFAULT_PASSWORD } from '../lib/dealerAuth';
 import { translateDealerLoginError } from '../lib/dealerLoginMessages';
 import { useAuth } from '../context/AuthContext';
@@ -567,7 +567,7 @@ export function Login() {
                                 aria-label={t('Preview file', 'ఫైల్ ప్రివ్యూ')}
                                 title={t('Preview', 'ప్రివ్యూ')}
                               >
-                                <Eye className="h-4 w-4" />
+                                <UsersRound className="h-4 w-4" />
                               </button>
                               <button
                                 type="button"
@@ -735,14 +735,7 @@ export function Login() {
               >
                 <WhatsAppIcon className="h-4 w-4" />
               </a>
-              <button
-                type="button"
-                onClick={toggleLanguage}
-                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
-              >
-                <Globe2 className="h-4 w-4" />
-                {language === 'en' ? 'తె' : 'EN'}
-              </button>
+              <LanguageToggle language={language} onClick={toggleLanguage} className="shrink-0" />
             </div>
 
             <button
@@ -827,8 +820,8 @@ export function Login() {
 
             {siteHitSummary && (
               <div className="mt-3 flex items-center gap-2 text-sm text-emerald-700 animate-slide-up delay-700">
-                <Eye className="h-4 w-4" />
-                <span className="font-semibold">{t('Site Hits', 'సైట్ హిట్స్')}:</span>
+                <UsersRound className="h-4 w-4" />
+                <span className="font-semibold">{t('Total Visitors', '\u0C2E\u0C4A\u0C24\u0C4D\u0C24\u0C02 \u0C38\u0C02\u0C26\u0C30\u0C4D\u0C36\u0C15\u0C41\u0C32\u0C41')}:</span>
                 <span className="font-black">{siteHitSummary.totalViews.toLocaleString()}</span>
               </div>
             )}

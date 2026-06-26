@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Copy, Languages, Leaf, RotateCcw, Ruler, Sprout } from 'lucide-react';
+import { Copy, Leaf, RotateCcw, Ruler, Sprout } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { BackButton } from '../components/ui/BackButton';
+import { LanguageToggle } from '../components/ui/LanguageToggle';
 
 type AreaUnit = 'acres' | 'hectares';
 type SpacingUnit = 'cm' | 'm' | 'feet' | 'inches';
@@ -72,29 +74,29 @@ export function PlantPopulationCalculator() {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate('/officer-toolkit/farm-calculators')}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-300 dark:hover:bg-slate-800"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
-          </button>
+          <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')}>
+            Back
+          </BackButton>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-green-100 bg-green-50 p-3 text-sm font-semibold text-green-950 shadow-sm dark:border-green-900 dark:bg-green-950/40 dark:text-green-100">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <p><span className="font-black">1.</span> Enter field area.</p>
+          <p><span className="font-black">2.</span> Enter row spacing and plant spacing.</p>
+          <p><span className="font-black">3.</span> Read total plants instantly.</p>
         </div>
       </section>
 
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
           <Copy className="h-4 w-4" />
-          {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Text', 'టెక్స్ట్ కాపీ')}
+          {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'టెక్స్ట్ కాపీ')}
         </button>
         <button type="button" onClick={shareWhatsApp} disabled={!calculation.result} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-green-600 text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700" aria-label="WhatsApp" title="WhatsApp">
           <WhatsAppIcon className="h-4 w-4" />
         </button>
-        <button type="button" onClick={toggleLanguage} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
-          <Languages className="h-4 w-4" />
-          {language === 'en' ? 'తెలుగు' : 'English'}
-        </button>
+        <LanguageToggle language={language} onClick={toggleLanguage} />
         <button type="button" onClick={reset} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
           <RotateCcw className="h-4 w-4" />
           {t('Reset', 'రీసెట్')}
@@ -103,7 +105,7 @@ export function PlantPopulationCalculator() {
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-3">
-          <FormSection title={t('Crop and Area', 'పంట మరియు విస్తీర్ణం')}>
+          <FormSection title={t('Step 1: Crop and Area', 'పంట మరియు విస్తీర్ణం')}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={t('Crop name', 'పంట పేరు')} optional>
                 <input
@@ -133,7 +135,7 @@ export function PlantPopulationCalculator() {
             </div>
           </FormSection>
 
-          <FormSection title={t('Spacing', 'దూరం')}>
+          <FormSection title={t('Step 2: Spacing', 'దూరం')}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={t('Row-to-row spacing', 'వరుస నుంచి వరుస దూరం')}>
                 <div className="grid grid-cols-[minmax(0,1fr)_7rem] gap-2">

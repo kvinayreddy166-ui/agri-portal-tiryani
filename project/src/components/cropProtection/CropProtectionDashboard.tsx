@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ArrowLeft, Camera, Languages, RefreshCw, Search, Sprout } from 'lucide-react';
+import { AlertTriangle, Camera, RefreshCw, Search, Sprout } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import type { CropProtectionCategory, CropProtectionCrop, CropProtectionItem, LanguageCode } from '../../services/cropProtectionService';
@@ -7,6 +7,8 @@ import { buildGeneralIpmItem, pickLang } from '../../services/cropProtectionServ
 import { label } from '../../services/translationService';
 import { ProtectionItemCard } from './ProtectionItemCard';
 import { CropProtectionAdmin } from './CropProtectionAdmin';
+import { BackButton } from '../ui/BackButton';
+import { LanguageToggle } from '../ui/LanguageToggle';
 
 const categories: Array<{
   key: CropProtectionCategory;
@@ -111,20 +113,10 @@ export function CropProtectionDashboard({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => navigate('/officer-toolkit')}
-              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 text-xs font-black text-white transition hover:bg-white/25"
-            >
-              <ArrowLeft className="h-4 w-4" /> {label('Officer Toolkit', language)}
-            </button>
-            <button
-              type="button"
-              onClick={() => setLanguage((value) => (value === 'en' ? 'te' : 'en'))}
-              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 text-xs font-black text-white transition hover:bg-white/25"
-            >
-              <Languages className="h-4 w-4" /> {language === 'en' ? label('Telugu', 'te') : label('English', 'en')}
-            </button>
+            <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid">
+              Back
+            </BackButton>
+            <LanguageToggle language={language} onClick={() => setLanguage((value) => (value === 'en' ? 'te' : 'en'))} tone="solid" />
             <button
               type="button"
               onClick={onRefresh}

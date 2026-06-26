@@ -30,21 +30,17 @@ const categoryLabels = {
   fertilizers: 'Fertilizers',
 };
 
+const QUALITY_FINANCIAL_YEARS = ['2025-26', '2026-27', '2027-28', '2028-29', '2029-30', '2030-31'];
+
 const currentFinancialYear = () => {
   const now = new Date();
   const year = now.getFullYear();
   const start = now.getMonth() >= 3 ? year : year - 1;
-  return `${start}-${start + 1}`;
+  const current = `${start}-${String(start + 1).slice(-2)}`;
+  return QUALITY_FINANCIAL_YEARS.includes(current) ? current : QUALITY_FINANCIAL_YEARS[0];
 };
 
-const financialYearOptions = () => {
-  const currentStart = Number(currentFinancialYear().slice(0, 4));
-  return Array.from({ length: 5 }, (_, index) => {
-    const start = currentStart - index;
-    return `${start}-${start + 1}`;
-  });
-};
-
+const financialYearOptions = () => QUALITY_FINANCIAL_YEARS;
 const emptySample = {
   dealer_name: '',
   license_number: '',

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Calculator } from 'lucide-react';
+import { Calculator } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { BackButton } from '../components/ui/BackButton';
 
 const STORAGE_KEY = 'tiryani-acreage-calculator-input';
 
@@ -22,18 +23,21 @@ export function AcreageCalculator() {
               <Calculator className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-950 dark:text-white">Acerage Calculator</h1>
+              <h1 className="text-2xl font-black text-slate-950 dark:text-white">Acreage Calculator</h1>
               <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">Add acres.guntas values and convert to total acres and hectares.</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate('/officer-toolkit/farm-calculators')}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-300 dark:hover:bg-slate-800"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Farm Calculators
-          </button>
+          <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')}>
+            Back
+          </BackButton>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-sky-100 bg-sky-50 p-3 text-sm font-semibold text-sky-950 shadow-sm dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-100">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <p><span className="font-black">1.</span> Paste acre.gunta values from Excel or type one per line.</p>
+          <p><span className="font-black">2.</span> The total acres and hectares update automatically.</p>
+          <p><span className="font-black">3.</span> Use the result cards on the right for reports.</p>
         </div>
       </section>
 

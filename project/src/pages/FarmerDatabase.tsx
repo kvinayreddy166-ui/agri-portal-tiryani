@@ -13,6 +13,7 @@ import {
   Save,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { LanguageToggle } from '../components/ui/LanguageToggle';
 import { useAuth } from '../context/AuthContext';
 import {
   FarmerImportRow,
@@ -456,13 +457,7 @@ export function FarmerDatabase() {
             <p className="text-xs font-semibold text-slate-500">{uiLabel('Search by farmer, family name, phone, PPB, Aadhaar, survey number, or village.', showTelugu)}</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setShowTelugu((value) => !value)}
-              className="action-button bg-white text-emerald-700"
-            >
-              {showTelugu ? 'English' : 'తెలుగు'}
-            </button>
+            <LanguageToggle language={showTelugu ? 'te' : 'en'} onClick={() => setShowTelugu((value) => !value)} />
             <button type="button" onClick={loadRows} className="icon-action" aria-label="Refresh"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <button type="button" onClick={exportFiltered} className="icon-action bg-emerald-700 text-white" aria-label="Export Excel"><FileSpreadsheet className="h-4 w-4" /></button>
           </div>

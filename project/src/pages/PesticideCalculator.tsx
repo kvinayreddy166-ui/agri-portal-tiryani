@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Bug, Calculator, Copy, Languages, RotateCcw, ShieldAlert } from 'lucide-react';
+import { Bug, Calculator, Copy, RotateCcw, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { BackButton } from '../components/ui/BackButton';
+import { LanguageToggle } from '../components/ui/LanguageToggle';
 
 type Mode = 'activeIngredient' | 'directDose';
 type AreaUnit = 'acres' | 'hectares';
@@ -86,29 +88,29 @@ export function PesticideCalculator() {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate('/officer-toolkit/farm-calculators')}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-300 dark:hover:bg-slate-800"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
-          </button>
+          <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')}>
+            Back
+          </BackButton>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-amber-100 bg-amber-50 p-3 text-sm font-semibold text-amber-950 shadow-sm dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <p><span className="font-black">1.</span> Choose active ingredient or direct dose mode.</p>
+          <p><span className="font-black">2.</span> Enter area, water and tank size.</p>
+          <p><span className="font-black">3.</span> Copy or share the final spray quantity.</p>
         </div>
       </section>
 
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
           <Copy className="h-4 w-4" />
-          {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Text', 'టెక్స్ట్ కాపీ')}
+          {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'టెక్స్ట్ కాపీ')}
         </button>
         <button type="button" onClick={shareWhatsApp} disabled={!calculation.result} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-green-600 text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700" aria-label="WhatsApp" title="WhatsApp">
           <WhatsAppIcon className="h-4 w-4" />
         </button>
-        <button type="button" onClick={toggleLanguage} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
-          <Languages className="h-4 w-4" />
-          {language === 'en' ? 'తెలుగు' : 'English'}
-        </button>
+        <LanguageToggle language={language} onClick={toggleLanguage} />
         <button type="button" onClick={reset} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
           <RotateCcw className="h-4 w-4" />
           {t('Reset', 'రీసెట్')}
@@ -124,7 +126,7 @@ export function PesticideCalculator() {
             </div>
           </div>
 
-          <FormSection title={t('Product Details', 'ఉత్పత్తి వివరాలు')}>
+          <FormSection title={t('Step 1: Product Details', 'ఉత్పత్తి వివరాలు')}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={t('Product name', 'ఉత్పత్తి పేరు')} optional>
                 <input value={form.productName} onChange={(event) => updateForm('productName', event.target.value)} className={inputClass} placeholder={t('Optional', 'ఐచ్ఛికం')} />
@@ -146,7 +148,7 @@ export function PesticideCalculator() {
             </div>
           </FormSection>
 
-          <FormSection title={t('Area, Water and Tank', 'విస్తీర్ణం, నీరు మరియు ట్యాంక్')}>
+          <FormSection title={t('Step 2: Area, Water and Tank', 'విస్తీర్ణం, నీరు మరియు ట్యాంక్')}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={t('Area value', 'విస్తీర్ణం')}>
                 <input type="number" min="0" inputMode="decimal" value={form.areaValue} onChange={(event) => updateForm('areaValue', event.target.value)} className={inputClass} placeholder="2" />

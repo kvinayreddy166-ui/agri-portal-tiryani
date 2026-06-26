@@ -1,13 +1,14 @@
 import React from 'react';
-import { ArrowLeft, Bug, FlaskConical, PackageCheck, Ruler, Sprout, Wheat } from 'lucide-react';
+import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, Wheat } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { BackButton } from '../components/ui/BackButton';
 
 const calculatorItems = [
   {
     title: 'Acreage Calculator',
     titleTe: '?????????? ?????????????',
-    description: 'Calculate acreage from survey measurements.',
+    description: 'Add acre.gunta values and get total acres.',
     descriptionTe: '????? ????? ??????? ?????????????? ???????????.',
     path: '/officer-toolkit/acreage-calculator',
     icon: Ruler,
@@ -17,7 +18,7 @@ const calculatorItems = [
   {
     title: 'Plant Population Calculator',
     titleTe: 'à°®à±Šà°•à±à°•à°² à°œà°¨à°¾à°­à°¾ à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
-    description: 'Calculate plant population from spacing.',
+    description: 'Enter spacing and get plants per field.',
     descriptionTe: 'à°µà°°à±à°¸ à°®à°°à°¿à°¯à± à°®à±Šà°•à±à°•à°² à°®à°§à±à°¯ à°¦à±‚à°°à°‚à°¤à±‹ à°®à±Šà°•à±à°•à°² à°¸à°‚à°–à±à°¯à°¨à± à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
     path: '/officer-toolkit/plant-population-calculator',
     icon: Sprout,
@@ -27,7 +28,7 @@ const calculatorItems = [
   {
     title: 'Seed Rate Calculator',
     titleTe: 'à°µà°¿à°¤à±à°¤à°¨ à°®à±‹à°¤à°¾à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
-    description: 'Calculate seed requirement using test weight, germination and population.',
+    description: 'Enter population and seed label details.',
     descriptionTe: 'à°Ÿà±†à°¸à±à°Ÿà± à°µà±†à°¯à°¿à°Ÿà±, à°®à±Šà°²à°• à°¶à°¾à°¤à°‚ à°®à°°à°¿à°¯à± à°®à±Šà°•à±à°•à°² à°¸à°‚à°–à±à°¯à°¤à±‹ à°µà°¿à°¤à±à°¤à°¨ à°…à°µà°¸à°°à°¾à°¨à±à°¨à°¿ à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
     path: '/officer-toolkit/seed-rate-calculator',
     icon: Wheat,
@@ -37,7 +38,7 @@ const calculatorItems = [
   {
     title: 'Fertilizer Calculator',
     titleTe: 'à°Žà°°à±à°µà±à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
-    description: 'Calculate fertilizer quantity based on nutrient requirement.',
+    description: 'Use crop recommendation or manual nutrients.',
     descriptionTe: 'à°ªà±‹à°·à°• à°…à°µà°¸à°°à°¾à°² à°†à°§à°¾à°°à°‚à°—à°¾ à°Žà°°à±à°µà± à°ªà°°à°¿à°®à°¾à°£à°¾à°¨à±à°¨à°¿ à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
     path: '/officer-toolkit/fertilizer-calculator',
     icon: PackageCheck,
@@ -47,7 +48,7 @@ const calculatorItems = [
   {
     title: 'Pesticide Calculator',
     titleTe: 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
-    description: 'Calculate pesticide quantity from active ingredient or dose per litre.',
+    description: 'Enter dose, tank and area for spray quantity.',
     descriptionTe: 'à°•à±à°°à°¿à°¯à°¾à°¶à±€à°² à°ªà°¦à°¾à°°à±à°¥à°‚ à°²à±‡à°¦à°¾ à°²à±€à°Ÿà°°à±à°•à± à°®à±‹à°¤à°¾à°¦à±à°¤à±‹ à°ªà±à°°à±à°—à±à°®à°‚à°¦à± à°ªà°°à°¿à°®à°¾à°£à°¾à°¨à±à°¨à°¿ à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
     path: '/officer-toolkit/pesticide-calculator',
     icon: Bug,
@@ -80,14 +81,17 @@ export function FarmCalculators() {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate('/officer-toolkit')}
-            className="inline-flex h-9 w-fit items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 text-xs font-black text-white transition hover:bg-white/25 focus:outline-none focus:ring-4 focus:ring-white/25"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t('Back', 'à°µà±†à°¨à°•à±à°•à°¿')}
-          </button>
+          <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid">
+            Back
+          </BackButton>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="grid gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 sm:grid-cols-3">
+          <p><span className="font-black text-emerald-700 dark:text-emerald-300">Acreage:</span> add acre.gunta values.</p>
+          <p><span className="font-black text-emerald-700 dark:text-emerald-300">Seed/Plant:</span> enter area and spacing or population.</p>
+          <p><span className="font-black text-emerald-700 dark:text-emerald-300">Fertilizer/Pesticide:</span> enter area, dose and share result.</p>
         </div>
       </section>
 
