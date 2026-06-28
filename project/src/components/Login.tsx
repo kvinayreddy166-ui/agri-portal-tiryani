@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Calculator,
   Download,
+  Eye,
   UsersRound,
   FileText,
   FlaskConical,
@@ -567,7 +568,7 @@ export function Login() {
                                 aria-label={t('Preview file', 'ఫైల్ ప్రివ్యూ')}
                                 title={t('Preview', 'ప్రివ్యూ')}
                               >
-                                <UsersRound className="h-4 w-4" />
+                                <Eye className="h-4 w-4" />
                               </button>
                               <button
                                 type="button"

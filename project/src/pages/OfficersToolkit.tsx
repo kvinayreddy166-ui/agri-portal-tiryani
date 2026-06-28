@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, type LucideIcon } from 'lucide-react';
+import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, Scale, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
@@ -13,6 +13,7 @@ interface ToolkitItem {
   path?: string;
   externalUrl?: string;
   category?: 'internal';
+  statusMessage?: string;
 }
 
 const toolkitItems: ToolkitItem[] = [
@@ -42,6 +43,17 @@ const toolkitItems: ToolkitItem[] = [
     category: 'internal',
     gradient: 'from-red-500 to-amber-600',
     bgGradient: 'from-red-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30',
+    statusMessage: 'Under development',
+  },
+  {
+    title: 'Legal Ready Reckoner',
+    description: 'Acts, clauses, stop sale, seizure, sampling and notice tools.',
+    path: '/officer-toolkit/legal-ready-reckoner',
+    icon: Scale,
+    category: 'internal',
+    gradient: 'from-blue-600 to-emerald-700',
+    bgGradient: 'from-blue-50 to-emerald-50 dark:from-blue-950/30 dark:to-emerald-950/30',
+    statusMessage: 'Under development',
   },
 ];
 
@@ -193,6 +205,11 @@ function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: numbe
           <p className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-300 line-clamp-2">
             {item.description}
           </p>
+          {item.statusMessage && (
+            <div className="mt-2 inline-flex w-fit rounded-full bg-red-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-red-800 dark:bg-red-900/40 dark:text-red-200">
+              {item.statusMessage}
+            </div>
+          )}
           {item.externalUrl && (
             <div className="mt-2 flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
               <ExternalLink className="h-3 w-3" />

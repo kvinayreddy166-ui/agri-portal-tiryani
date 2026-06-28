@@ -1,0 +1,5 @@
+category,train_records,percent
+Healthy,6506,82.48
+Pests,485,6.15
+Diseased,474,6.01
+Stressed,423,5.36

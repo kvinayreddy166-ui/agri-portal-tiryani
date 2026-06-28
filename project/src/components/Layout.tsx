@@ -2,7 +2,7 @@ import React, { useMemo, useState, ReactNode } from 'react';
 import {
   ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Database,
+  FolderOpen, Moon, Sun, Landmark, Database, Satellite,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
 import { useAuth } from '../context/AuthContext';
@@ -23,6 +23,7 @@ const adminMenuItems = [
   { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck },
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
   { id: 'farmer-database', label: 'Farmer Database', icon: Database },
+  { id: 'remote-sensing', label: 'Remote Sensing / Crop Health', icon: Satellite },
   {
     id: 'crops',
     label: 'Crop Intelligence',
@@ -302,7 +303,7 @@ type BreadcrumbItem = {
 function menuSections(items: typeof adminMenuItems) {
   const sections = [
     { title: 'Overview', ids: ['dashboard', 'stock-analytics', 'analytics'] },
-    { title: 'Field Operations', ids: ['dealers', 'farmer-database', 'subsidy', 'farm-mechanization', 'quality'] },
+    { title: 'Field Operations', ids: ['dealers', 'farmer-database', 'remote-sensing', 'subsidy', 'farm-mechanization', 'quality'] },
     { title: 'Knowledge', ids: ['crops', 'officer-toolkit', 'gos-circulars'] },
     { title: 'Records', ids: ['file-directory', 'excel', 'settings'] },
   ];
@@ -359,6 +360,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     'dealer-portal': { title: 'Stock Analytics', breadcrumbs: [dashboard] },
     dealers: { title: 'Dealers Directory', breadcrumbs: [dashboard] },
     'farmer-database': { title: 'Farmer Database', breadcrumbs: [dashboard] },
+    'remote-sensing': { title: 'Remote Sensing / Crop Health', breadcrumbs: [dashboard] },
     crops: { title: 'Crop Intelligence', breadcrumbs: [dashboard] },
     'officer-toolkit': { title: 'Officer Toolkit', breadcrumbs: [dashboard] },
     forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit] },
@@ -369,6 +371,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     'pesticide-calculator': { title: 'Pesticide Calculator', breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'plant-population-calculator': { title: 'Plant Population Calculator', breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'seed-rate-calculator': { title: 'Seed Rate Calculator', breadcrumbs: [dashboard, toolkit, farmCalculators] },
+    'legal-ready-reckoner': { title: 'Legal Ready Reckoner', breadcrumbs: [dashboard, toolkit] },
     'gos-circulars': { title: 'GOs & Circulars', breadcrumbs: [dashboard] },
     quality: { title: 'Quality Control', breadcrumbs: [dashboard] },
     'farm-mechanization': { title: 'Farm Mechanization', breadcrumbs: [dashboard] },
@@ -420,6 +423,7 @@ function translateMenu(label: string) {
     'My Stock Entry': 'Ã Â°Â¨Ã Â°Â¾ Ã Â°Â¸Ã Â±ÂÃ Â°Å¸Ã Â°Â¾Ã Â°â€¢Ã Â±Â Ã Â°Å½Ã Â°â€šÃ Â°Å¸Ã Â±ÂÃ Â°Â°Ã Â±â‚¬',
     'Dealers Directory': 'Ã Â°Â¡Ã Â±â‚¬Ã Â°Â²Ã Â°Â°Ã Â±ÂÃ Â°Â² Ã Â°Â¡Ã Â±Ë†Ã Â°Â°Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°Å¸Ã Â°Â°Ã Â±â‚¬',
     'Dealer Stock Tracking': 'Ã Â°Â¡Ã Â±â‚¬Ã Â°Â²Ã Â°Â°Ã Â±Â Ã Â°Â¸Ã Â±ÂÃ Â°Å¸Ã Â°Â¾Ã Â°â€¢Ã Â±Â Ã Â°Å¸Ã Â±ÂÃ Â°Â°Ã Â°Â¾Ã Â°â€¢Ã Â°Â¿Ã Â°â€šÃ Â°â€”Ã Â±Â',
+    'Remote Sensing / Crop Health': 'Remote Sensing / Crop Health',
     'Farmer Database': 'Ã Â°Â°Ã Â±Ë†Ã Â°Â¤Ã Â±ÂÃ Â°Â² Ã Â°Â¡Ã Â±â€¡Ã Â°Å¸Ã Â°Â¾Ã Â°Â¬Ã Â±â€¡Ã Â°Â¸Ã Â±Â',
     'Crop Intelligence': 'Ã Â°ÂªÃ Â°â€šÃ Â°Å¸ Ã Â°â€¡Ã Â°â€šÃ Â°Å¸Ã Â±â€ Ã Â°Â²Ã Â°Â¿Ã Â°Å“Ã Â±â€ Ã Â°Â¨Ã Â±ÂÃ Â°Â¸Ã Â±Â',
     'Crop Admin': 'Ã Â°ÂªÃ Â°â€šÃ Â°Å¸ Ã Â°â€¦Ã Â°Â¡Ã Â±ÂÃ Â°Â®Ã Â°Â¿Ã Â°Â¨Ã Â±Â',
@@ -427,6 +431,7 @@ function translateMenu(label: string) {
     'Statutory Forms': 'Ã Â°Å¡Ã Â°Å¸Ã Â±ÂÃ Â°Å¸Ã Â°Â¬Ã Â°Â¦Ã Â±ÂÃ Â°Â§ Ã Â°Â«Ã Â°Â¾Ã Â°Â°Ã Â°Â¾Ã Â°Â²Ã Â±Â',
     'Farm Calculators': 'à°µà±à°¯à°µà°¸à°¾à°¯ à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±à°²à±',
     'Fertilizer Calculator': 'à°Žà°°à±à°µà±à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    'Legal Ready Reckoner': 'Legal Ready Reckoner',
     'Seed Rate Calculator': 'à°µà°¿à°¤à±à°¤à°¨ à°®à±‹à°¤à°¾à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
     'Plant Population Calculator': 'à°®à±Šà°•à±à°•à°² à°œà°¨à°¾à°­à°¾ à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
     'Pesticide Calculator': 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
@@ -452,3 +457,4 @@ function translateMenu(label: string) {
   };
   return labels[label] ?? label;
 }
+

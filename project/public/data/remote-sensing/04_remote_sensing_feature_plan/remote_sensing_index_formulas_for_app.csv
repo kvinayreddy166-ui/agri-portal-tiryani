@@ -1,0 +1,10 @@
+parameter,index,formula,sensor,bands,use_in_app
+Crop health / greenness,NDVI,(B8 - B4) / (B8 + B4),Sentinel-2,"B8 NIR, B4 Red",Village/farm crop vigor map; low NDVI stress alert
+Chlorophyll / dense canopy stress,NDRE,(B8A - B5) / (B8A + B5),Sentinel-2,"B8A red-edge/NIR, B5 red-edge",Cotton/paddy canopy stress after crop becomes dense
+Crop moisture / canopy water,NDMI,(B8 - B11) / (B8 + B11),Sentinel-2,"B8 NIR, B11 SWIR","Moisture stress, irrigation need proxy"
+Surface water / waterlogging,NDWI,(B3 - B8) / (B3 + B8),Sentinel-2,"B3 Green, B8 NIR",Water body/waterlogged patch indication
+Built/water separation,MNDWI,(B3 - B11) / (B3 + B11),Sentinel-2,"B3 Green, B11 SWIR",Better water extraction in mixed landscape
+Soil adjusted vegetation,SAVI,((B8 - B4) / (B8 + B4 + 0.5)) * 1.5,Sentinel-2,"B8 NIR, B4 Red",Early crop stage or sparse canopy health
+Radar crop structure / cloudy-season proxy,"VV, VH, VH/VV","VV, VH, VH / VV",Sentinel-1 SAR,"VV, VH",Cloudy season crop growth and moisture/structure support
+Thermal/moisture support if available,LST / ET anomaly,dataset-dependent,Landsat / MODIS / WaPOR,Thermal/ET products,Heat/moisture stress validation
+Rainfall anomaly,Rainfall deviation,current rainfall - normal rainfall,IMD/CHIRPS/weather API,rainfall time series,Explain NDVI/NDMI stress with rainfall deficit

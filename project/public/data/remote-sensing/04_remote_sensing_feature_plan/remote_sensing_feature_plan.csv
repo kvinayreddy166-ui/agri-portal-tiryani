@@ -1,0 +1,15 @@
+parameter_or_feature,source,what_it_indicates,how_to_use
+NDVI,Sentinel-2 B8 and B4,Crop health / greenness,"Mean, median, min, max during crop period; anomaly vs village average"
+NDRE,Sentinel-2 B8A and B5,Chlorophyll / dense canopy stress,Useful for cotton/paddy after canopy closure
+NDMI,Sentinel-2 B8 and B11,Canopy water/moisture stress,Moisture stress alert with water_coverage/irrigation_count
+NDWI/MNDWI,Sentinel-2 Green/NIR or Green/SWIR,Standing water/waterlogging,Especially useful in paddy and flood irrigation
+EVI/SAVI,Sentinel-2 visible/NIR,Vegetation vigor adjusted for soil/background,Useful in early crop stage
+Red-edge bands,Sentinel-2 B5/B6/B7/B8A,Nutrient/chlorophyll stress proxy,Add time-series averages
+VV/VH backscatter,Sentinel-1 SAR,Cloudy-season structure/moisture signal,Kharif cloud support; paddy/cotton classification
+Rainfall cumulative,IMD/CHIRPS/local AWS,Drought/stress context,7/15/30-day rainfall before image date
+Soil moisture,SMAP/ERA5/local model,Moisture condition,"Coarse-scale support, not field-level alone"
+LST/temperature,MODIS/ECOSTRESS/ERA5,Heat stress,Use with crop stage and NDVI anomaly
+"crop, season, sowing_date",Challenge CSV,Phenology/time-window control,Select satellite images between sowing and harvest
+"irrigation_type, irrigation_source, irrigation_count, water_coverage",Challenge CSV,Management/water variables,Combine with NDMI/SAR for moisture stress
+"crop_height, expected_yield, crop_covered_area",Challenge CSV,Field/agronomic features,Combine with satellite indices for ML classification
+"previous_crop, next_crop",Challenge CSV,Crop rotation,Risk/context feature
