@@ -19,7 +19,7 @@ export const fertiliserLegalCharts: FertiliserLegalChart[] = [
   {
     id: 'implementation-of-fco-1985',
     chartNumber: 'Chart 3',
-    title: 'Chart 3: Implementation of FCO, 1985',
+    title: 'Implementation of FCO, 1985',
     topNode: 'Implementation of FCO, 1985',
     footerNote: 'Verify latest Government notification and departmental instructions before legal action.',
     branches: [

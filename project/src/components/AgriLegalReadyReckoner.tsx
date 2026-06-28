@@ -1,20 +1,33 @@
 ﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Text } from '@react-three/drei';
+import * as THREE from 'three';
 import { useNavigate } from 'react-router-dom';
 import {
   Bookmark,
   BookmarkCheck,
+  BookOpen,
+  Copy,
   Download,
   FileSearch,
   FileText,
+  FlaskConical,
+  IndianRupee,
+  Microscope,
   Printer,
   Scale,
   Search,
+  Share2,
   ShieldAlert,
+  ShieldCheck,
+  Store,
+  Truck,
 } from 'lucide-react';
 import { essentialCommoditiesActEntries, essentialCommoditiesCrossLinks, type EssentialCommoditiesActEntry } from '../data/essentialCommoditiesActData';
 import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData';
 import { fertiliserLegalCharts, type FertiliserLegalChart } from '../data/fertiliserLegalCharts';
 import { legalReadyReckonerEntries, type LegalCategory, type LegalReadyReckonerEntry } from '../data/legalReadyReckonerData';
+import { fcoClauseCards, fcoDashboardStats, fcoMemoryMnemonic, importantFcoMnemonics, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId } from '../data/fcoClauses';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { ShowCauseNoticeEntry } from './ShowCauseNoticeEntry';
 import { BackButton } from './ui/BackButton';
@@ -34,8 +47,26 @@ const categoryFilters: LegalCategory[] = [
 
 const BOOKMARK_KEY = 'agri-legal-reckoner-bookmarks';
 
-function isImportantFcoClause(entry: LegalReadyReckonerEntry) {
-  return entry.lawName === 'Fertiliser (Control) Order, 1985' && /^Clauses?\b/.test(entry.referenceNumber);
+const fcoIconMap = {
+  BookOpen,
+  IndianRupee,
+  Truck,
+  Store,
+  FlaskConical,
+  ShieldAlert,
+  ShieldCheck,
+  Microscope,
+  Scale,
+};
+
+function entryFallsInFcoRange(entry: LegalReadyReckonerEntry, range: [number, number]) {
+  if (entry.lawName !== 'Fertiliser (Control) Order, 1985') return true;
+  const values = [entry.referenceNumber, entry.nestedReference.clause, entry.nestedReference.subClause]
+    .filter(Boolean)
+    .flatMap((value) => String(value).match(/\d+/g) || [])
+    .map(Number);
+  if (values.length === 0) return true;
+  return values.some((value) => value >= range[0] && value <= range[1]);
 }
 
 function readBookmarks() {
@@ -70,6 +101,8 @@ export function AgriLegalReadyReckoner() {
   const [view, setView] = useState<ReckonerView>('references');
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<LegalCategory>('Fertiliser');
+  const [selectedFcoCardId, setSelectedFcoCardId] = useState<string | null>(null);
+  const [fcoActiveTab, setFcoActiveTab] = useState<FcoTabId>('plainEnglish');
   const [penaltyOnly, setPenaltyOnly] = useState(false);
   const [powersOnly, setPowersOnly] = useState(false);
   const [nestedOnly, setNestedOnly] = useState(false);
@@ -85,28 +118,25 @@ export function AgriLegalReadyReckoner() {
     window.localStorage.setItem(BOOKMARK_KEY, JSON.stringify(bookmarks));
   }, [bookmarks]);
 
+  useEffect(() => {
+    validateFcoClauseCoverage();
+  }, []);
+
+  const activeFcoCard = useMemo(() => fcoClauseCards.find((card) => card.id === selectedFcoCardId) || null, [selectedFcoCardId]);
+
   const filteredEntries = useMemo(() => {
     const term = query.trim().toLowerCase();
     return legalReadyReckonerEntries.filter((entry) => {
       if (entry.category !== category) return false;
-      if (category === 'Fertiliser' && isImportantFcoClause(entry)) return false;
+      if (category === 'Fertiliser' && activeFcoCard && !entryFallsInFcoRange(entry, activeFcoCard.range)) return false;
       if (penaltyOnly && entry.category !== 'Penal Provisions' && !entry.linkedPenalProvision?.toLowerCase().includes('penal')) return false;
       if (powersOnly && !entry.tags.some((tag) => ['stop sale', 'seizure', 'sampling', 'sample', 'search', 'powers', 'detention'].includes(tag.toLowerCase()))) return false;
       if (nestedOnly && !['sub-section', 'sub-clause', 'sub-rule', 'proviso'].includes(entry.referenceType)) return false;
       if (term && !entrySearchText(entry).includes(term)) return false;
       return true;
     });
-  }, [category, nestedOnly, penaltyOnly, powersOnly, query]);
+  }, [activeFcoCard, category, nestedOnly, penaltyOnly, powersOnly, query]);
 
-  const importantFcoClauseEntries = useMemo(() => {
-    const term = query.trim().toLowerCase();
-    if (category !== 'Fertiliser') return [];
-    return legalReadyReckonerEntries.filter((entry) => {
-      if (!isImportantFcoClause(entry)) return false;
-      if (term && !entrySearchText(entry).includes(term)) return false;
-      return true;
-    });
-  }, [category, query]);
 
   const selectedEntry = useMemo(
     () => legalReadyReckonerEntries.find((entry) => entry.id === selectedEntryId) || filteredEntries[0] || legalReadyReckonerEntries[0],
@@ -305,21 +335,37 @@ export function AgriLegalReadyReckoner() {
               <Toggle label="Stop Sale / Seizure only" checked={powersOnly} onChange={setPowersOnly} />
               <Toggle label="Sub-section / Sub-clause view" checked={nestedOnly} onChange={setNestedOnly} />
             </div>
-
-            {category === 'Fertiliser' && fcoImplementationChart && (
-              <FcoImplementationChart
-                chart={fcoImplementationChart}
-                chartRef={chartRef}
-                onDownload={downloadFertiliserChart}
-                onPrint={printFertiliserChart}
+            {category === 'Fertiliser' && activeFcoCard && (
+              <FcoCardDetailPage
+                card={activeFcoCard}
+                activeTab={fcoActiveTab}
+                bookmarks={bookmarks}
+                onBack={() => setSelectedFcoCardId(null)}
+                onTabChange={setFcoActiveTab}
+                onToggleBookmark={toggleBookmark}
               />
             )}
-
-            {category === 'Fertiliser' && (
-              <FcoImportantClausesSection entries={importantFcoClauseEntries} onSelect={setSelectedEntryId} selectedEntryId={selectedEntryId} />
+            {category === 'Fertiliser' && !activeFcoCard && fcoImplementationChart && (
+              <>
+                <FcoMasterMnemonicCard />
+                <FcoImplementationChart
+                  chart={fcoImplementationChart}
+                  chartRef={chartRef}
+                  onDownload={downloadFertiliserChart}
+                  onPrint={printFertiliserChart}
+                />
+                <FcoDashboardCards
+                  cards={fcoClauseCards}
+                  activeCardId={selectedFcoCardId}
+                  onSelect={(cardId) => {
+                    setSelectedFcoCardId(cardId);
+                    setFcoActiveTab('plainEnglish');
+                  }}
+                />
+              </>
             )}
 
-            {category === 'Fertiliser' && (
+            {category === 'Fertiliser' && !activeFcoCard && (
               <FcoOffencesSection
                 entries={filteredFcoOffences}
                 onDownload={downloadFcoOffencesCsv}
@@ -331,7 +377,7 @@ export function AgriLegalReadyReckoner() {
               <EssentialCommoditiesActSection entries={filteredEcaEntries} />
             )}
 
-            <div className="grid gap-3 md:grid-cols-2">
+            {!activeFcoCard && category !== 'Fertiliser' && <div className="grid gap-3 md:grid-cols-2">
               {filteredEntries.map((entry) => (
                 <button
                   key={entry.id}
@@ -353,11 +399,11 @@ export function AgriLegalReadyReckoner() {
                   <p className="mt-2 line-clamp-2 text-xs font-semibold text-slate-600 dark:text-slate-300">{entry.officerExplanation}</p>
                 </button>
               ))}
-            </div>
-            {filteredEntries.length === 0 && <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center font-semibold text-slate-500">No legal entry matches the current filters.</p>}
+            </div>}
+            {!activeFcoCard && category !== 'Fertiliser' && filteredEntries.length === 0 && <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center font-semibold text-slate-500">No legal entry matches the current filters.</p>}
           </section>
 
-          {selectedEntry && (
+          {selectedEntry && !activeFcoCard && category !== 'Fertiliser' && (
             <aside className="h-fit rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
@@ -449,23 +495,39 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
   );
 }
 
-const branchAccentClasses: Record<FertiliserLegalChart['branches'][number]['accent'], { header: string; node: string; ring: string }> = {
-  cyan: {
-    header: 'border-cyan-300 bg-cyan-50 text-cyan-950 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-100',
-    node: 'border-cyan-200 bg-white text-slate-800 dark:border-cyan-900 dark:bg-slate-950 dark:text-slate-100',
-    ring: 'bg-cyan-500',
-  },
-  green: {
-    header: 'border-green-300 bg-green-50 text-green-950 dark:border-green-800 dark:bg-green-950/40 dark:text-green-100',
-    node: 'border-green-200 bg-white text-slate-800 dark:border-green-900 dark:bg-slate-950 dark:text-slate-100',
-    ring: 'bg-green-600',
-  },
-  blue: {
-    header: 'border-blue-300 bg-blue-50 text-blue-950 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-100',
-    node: 'border-blue-200 bg-white text-slate-800 dark:border-blue-900 dark:bg-slate-950 dark:text-slate-100',
-    ring: 'bg-blue-600',
-  },
+function FcoMasterMnemonicCard() {
+  return (
+    <section className="overflow-hidden rounded-lg border border-emerald-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
+      <div className="border-b border-emerald-100 bg-emerald-50 px-4 py-3 dark:border-slate-800 dark:bg-emerald-950/30">
+        <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Master Mnemonic</p>
+        <div className="mt-2 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+          <h2 className="text-2xl font-black tracking-wide text-slate-950 dark:text-white">{fcoMemoryMnemonic.code}</h2>
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{fcoMemoryMnemonic.sentence}</p>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2 p-3">
+        {fcoMemoryMnemonic.lines.map(([letter, word]) => (
+          <span key={`${letter}-${word}`} className="rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-black text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+            {letter}: {word}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+const fco3dPalette: Record<FertiliserLegalChart['branches'][number]['accent'], { color: string; emissive: string; text: string }> = {
+  cyan: { color: '#99f6e4', emissive: '#0891b2', text: '#083344' },
+  green: { color: '#bbf7d0', emissive: '#16a34a', text: '#052e16' },
+  blue: { color: '#bfdbfe', emissive: '#2563eb', text: '#172554' },
 };
+
+const fco3dPanelPositions: Array<[number, number, number]> = [
+  [-4.2, 0.5, 0],
+  [-1.45, -1.35, 0.35],
+  [1.45, -1.35, 0.35],
+  [4.2, 0.5, 0],
+];
 
 function FcoImplementationChart({
   chart,
@@ -479,61 +541,145 @@ function FcoImplementationChart({
   onPrint: () => void;
 }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-emerald-50 shadow-sm dark:border-slate-700 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950/30">
-      <div className="flex flex-col gap-3 border-b border-blue-100 bg-white/85 px-4 py-3 dark:border-slate-700 dark:bg-slate-900/80 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-black uppercase tracking-wide text-blue-700 dark:text-blue-300">Fertiliser Legal Ready Reckoner</p>
-          <h2 className="mt-1 text-lg font-black text-slate-950 dark:text-white">{chart.title}</h2>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onPrint} className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-3 py-2 text-sm font-black text-white shadow-sm hover:bg-blue-800">
-            <Printer className="h-4 w-4" />
-            Print Chart
-          </button>
-          <button type="button" onClick={onDownload} className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-800 shadow-sm hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-200">
-            <Download className="h-4 w-4" />
-            Download PNG
-          </button>
-        </div>
+    <section className="overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
+      <div className="flex flex-wrap justify-end gap-2 border-b border-blue-100 bg-white/90 px-4 py-3 dark:border-slate-700 dark:bg-slate-900/80">
+        <button type="button" onClick={onPrint} className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-3 py-2 text-sm font-black text-white shadow-sm hover:bg-blue-800">
+          <Printer className="h-4 w-4" />
+          Print Chart
+        </button>
+        <button type="button" onClick={onDownload} className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-800 shadow-sm hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-200">
+          <Download className="h-4 w-4" />
+          Download PNG
+        </button>
       </div>
 
-      <div ref={chartRef} className="bg-white p-4 dark:bg-slate-900 sm:p-5">
-        <div className="mx-auto max-w-5xl">
-          <div className="mx-auto w-fit rounded-lg border-2 border-cyan-500 bg-cyan-500 px-5 py-3 text-center text-sm font-black uppercase tracking-wide text-slate-950 shadow-sm sm:px-8">
-            {chart.topNode}
-          </div>
-          <div className="mx-auto h-8 w-px bg-slate-300 dark:bg-slate-600" />
-          <div className="hidden h-px bg-slate-300 dark:bg-slate-600 lg:block" />
-          <div className="grid gap-4 lg:grid-cols-4">
-            {chart.branches.map((branch) => {
-              const accent = branchAccentClasses[branch.accent];
-              return (
-                <article key={branch.id} className="relative flex min-w-0 flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-950/70">
-                  <div className={`mx-auto hidden h-5 w-px ${accent.ring} lg:block`} />
-                  <div className={`rounded-lg border px-3 py-3 text-center shadow-sm ${accent.header}`}>
-                    <h3 className="text-sm font-black uppercase leading-tight">{branch.title}</h3>
-                    <p className="mt-1 text-xs font-black">{branch.reference}</p>
-                  </div>
-                  <div className="space-y-2">
-                    {branch.details.map((detail) => (
-                      <div key={detail} className={`rounded-md border px-3 py-2 text-center text-xs font-bold leading-5 shadow-sm ${accent.node}`}>
-                        {detail}
-                      </div>
-                    ))}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-          <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-center text-xs font-black text-amber-950">
-            {chart.footerNote}
-          </p>
+      <div ref={chartRef} className="relative h-[34rem] min-h-[28rem] overflow-hidden bg-slate-950 sm:h-[38rem]" aria-label="Animated 3D chart for Implementation of FCO, 1985">
+        <Canvas camera={{ position: [0, 1.2, 8.5], fov: 43 }} dpr={[1, 1.75]} gl={{ antialias: true, alpha: false }}>
+          <color attach="background" args={['#ecfeff']} />
+          <fog attach="fog" args={['#ecfeff', 9, 16]} />
+          <ambientLight intensity={1.25} />
+          <directionalLight position={[3, 5, 4]} intensity={1.4} />
+          <pointLight position={[-4, 2, 5]} intensity={1.3} color="#22d3ee" />
+          <React.Suspense fallback={null}>
+            <FcoImplementationScene chart={chart} />
+          </React.Suspense>
+          <OrbitControls enablePan={false} enableZoom={false} minPolarAngle={Math.PI / 3.2} maxPolarAngle={Math.PI / 2.05} />
+        </Canvas>
+        <div className="pointer-events-none absolute left-4 top-4 max-w-sm rounded-lg border border-white/70 bg-white/75 px-4 py-3 text-slate-900 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-950/70 dark:text-white">
+          <p className="text-xs font-black uppercase tracking-wide text-cyan-700 dark:text-cyan-300">Animated 3D Chart</p>
+          <h2 className="mt-1 text-lg font-black">{chart.topNode}</h2>
+          <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Drag to rotate the implementation map.</p>
         </div>
+        <p className="pointer-events-none absolute bottom-4 left-4 right-4 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2 text-center text-xs font-black text-amber-950 shadow-sm">
+          {chart.footerNote}
+        </p>
       </div>
     </section>
   );
 }
 
+function FcoImplementationScene({ chart }: { chart: FertiliserLegalChart }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(() => {
+    if (!groupRef.current) return;
+    const elapsed = performance.now() * 0.001;
+    groupRef.current.rotation.y = Math.sin(elapsed * 0.35) * 0.08;
+    groupRef.current.position.y = Math.sin(elapsed * 0.8) * 0.06;
+  });
+
+  return (
+    <group ref={groupRef}>
+      <FcoTopNode label={chart.topNode} />
+      {chart.branches.map((branch, index) => (
+        <FcoBranchPanel key={branch.id} branch={branch} index={index} position={fco3dPanelPositions[index] || [0, 0, 0]} />
+      ))}
+      <FcoConnector position={[-2.8, -0.2, -0.03]} rotationZ={-0.63} length={2.8} />
+      <FcoConnector position={[-0.8, -0.95, 0.08]} rotationZ={-0.94} length={1.8} />
+      <FcoConnector position={[0.8, -0.95, 0.08]} rotationZ={0.94} length={1.8} />
+      <FcoConnector position={[2.8, -0.2, -0.03]} rotationZ={0.63} length={2.8} />
+      <mesh position={[0, -2.75, -0.8]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <circleGeometry args={[5.8, 96]} />
+        <meshStandardMaterial color="#dff8f7" roughness={0.7} metalness={0.05} transparent opacity={0.62} />
+      </mesh>
+    </group>
+  );
+}
+
+function FcoTopNode({ label }: { label: string }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame(() => {
+    if (!meshRef.current) return;
+    const elapsed = performance.now() * 0.001;
+    const scale = 1 + Math.sin(elapsed * 1.4) * 0.025;
+    meshRef.current.scale.set(scale, scale, scale);
+  });
+
+  return (
+    <group position={[0, 1.75, 0.2]}>
+      <mesh ref={meshRef}>
+        <boxGeometry args={[3.7, 0.72, 0.28]} />
+        <meshStandardMaterial color="#67e8f9" emissive="#0891b2" emissiveIntensity={0.18} roughness={0.35} metalness={0.08} />
+      </mesh>
+      <Text position={[0, 0.01, 0.18]} fontSize={0.18} maxWidth={3.2} lineHeight={1.1} textAlign="center" anchorX="center" anchorY="middle" color="#083344">
+        {label.toUpperCase()}
+      </Text>
+    </group>
+  );
+}
+
+function FcoBranchPanel({
+  branch,
+  index,
+  position,
+}: {
+  branch: FertiliserLegalChart['branches'][number];
+  index: number;
+  position: [number, number, number];
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const palette = fco3dPalette[branch.accent];
+  const visibleDetails = branch.details.slice(0, 4).join('\n');
+
+  useFrame(() => {
+    if (!groupRef.current) return;
+    const elapsed = performance.now() * 0.001;
+    groupRef.current.position.y = position[1] + Math.sin(elapsed * 1.15 + index) * 0.09;
+    groupRef.current.rotation.y = Math.sin(elapsed * 0.7 + index) * 0.08;
+  });
+
+  return (
+    <group ref={groupRef} position={position}>
+      <mesh>
+        <boxGeometry args={[2.35, 2.45, 0.2]} />
+        <meshStandardMaterial color={palette.color} emissive={palette.emissive} emissiveIntensity={0.06} roughness={0.42} metalness={0.05} />
+      </mesh>
+      <mesh position={[0, 0.87, 0.13]}>
+        <boxGeometry args={[2.08, 0.45, 0.08]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.5} metalness={0.02} transparent opacity={0.86} />
+      </mesh>
+      <Text position={[0, 0.91, 0.21]} fontSize={0.14} maxWidth={1.9} lineHeight={1.05} textAlign="center" anchorX="center" anchorY="middle" color={palette.text}>
+        {branch.title.toUpperCase()}
+      </Text>
+      <Text position={[0, 0.57, 0.22]} fontSize={0.105} maxWidth={1.9} textAlign="center" anchorX="center" anchorY="middle" color="#0f766e">
+        {branch.reference}
+      </Text>
+      <Text position={[0, -0.25, 0.22]} fontSize={0.095} maxWidth={1.9} lineHeight={1.25} textAlign="center" anchorX="center" anchorY="middle" color="#0f172a">
+        {visibleDetails}
+      </Text>
+    </group>
+  );
+}
+
+function FcoConnector({ position, rotationZ, length }: { position: [number, number, number]; rotationZ: number; length: number }) {
+  return (
+    <mesh position={position} rotation={[0, 0, rotationZ]}>
+      <boxGeometry args={[length, 0.035, 0.035]} />
+      <meshStandardMaterial color="#94a3b8" emissive="#0ea5e9" emissiveIntensity={0.08} roughness={0.45} metalness={0.1} />
+    </mesh>
+  );
+}
 function renderFertiliserChartPrintHtml(chart: FertiliserLegalChart) {
   const branches = chart.branches.map((branch) => `
     <article>
@@ -639,52 +785,237 @@ function EssentialCommoditiesActSection({ entries }: { entries: EssentialCommodi
   );
 }
 
-function FcoImportantClausesSection({
-  entries,
-  onSelect,
-  selectedEntryId,
+const fcoTabs: Array<{ id: FcoTabId; label: string }> = [
+  { id: 'fullText', label: 'Full Text' },
+  { id: 'plainEnglish', label: 'Plain English' },
+  { id: 'officerAction', label: 'Officer Action' },
+  { id: 'formsTimelines', label: 'Forms & Timelines' },
+  { id: 'mnemonics', label: 'Mnemonics' },
+];
+
+function FcoCardDetailPage({
+  card,
+  activeTab,
+  bookmarks,
+  onBack,
+  onTabChange,
+  onToggleBookmark,
 }: {
-  entries: LegalReadyReckonerEntry[];
-  onSelect: (entryId: string) => void;
-  selectedEntryId: string;
+  card: FcoClauseCard;
+  activeTab: FcoTabId;
+  bookmarks: string[];
+  onBack: () => void;
+  onTabChange: (tab: FcoTabId) => void;
+  onToggleBookmark: (id: string) => void;
 }) {
+  const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
+
   return (
-    <details className="group overflow-hidden rounded-lg border border-emerald-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950" open>
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-emerald-100 bg-emerald-50 px-4 py-3 dark:border-slate-700 dark:bg-emerald-950/30">
-        <div>
-          <h2 className="text-base font-black text-slate-950 dark:text-white">Important FCO Clauses</h2>
-          <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Clause 4, Clause 5, Clauses 8 to 11 and other key FCO provisions grouped here.</p>
+    <section className="overflow-hidden rounded-lg border border-emerald-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
+      <div className={`bg-gradient-to-br ${card.gradient} p-4 text-white`}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-white/20 p-3 ring-1 ring-white/25">
+              <Icon className="h-7 w-7" />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-white/80">Card {card.cardNo} - {card.clauseRange}</p>
+              <h2 className="mt-1 text-2xl font-black leading-tight">{card.cardTitle}</h2>
+              <p className="mt-2 max-w-3xl text-sm font-bold leading-6 text-white/90">{card.summary}</p>
+            </div>
+          </div>
+          <button type="button" onClick={onBack} className="w-fit rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm font-black text-white hover:bg-white/20">
+            Back to 9 cards
+          </button>
         </div>
-        <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-emerald-800 shadow-sm transition group-open:bg-emerald-700 group-open:text-white dark:bg-slate-950 dark:text-emerald-200">
-          {entries.length} clauses
-        </span>
-      </summary>
-      <div className="grid gap-3 p-3 md:grid-cols-2">
-        {entries.map((entry) => (
-          <button
-            key={entry.id}
-            type="button"
-            onClick={() => onSelect(entry.id)}
-            className={`rounded-lg border p-3 text-left shadow-sm transition ${
-              selectedEntryId === entry.id ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30' : 'border-slate-200 bg-white hover:border-emerald-200 dark:border-slate-700 dark:bg-slate-900'
-            }`}
-          >
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{entry.referenceNumber} ? {entry.referenceType}</p>
-            <h3 className="mt-1 text-sm font-black text-slate-950 dark:text-white">{entry.title}</h3>
-            <p className="mt-2 line-clamp-2 text-xs font-semibold text-slate-600 dark:text-slate-300">{entry.officerExplanation}</p>
-            <p className="mt-2 text-[11px] font-black text-red-700 dark:text-red-300">{entry.linkedPenalProvision || 'Penalty linkage: verify latest'}</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+          {fcoDashboardStats.map((stat) => <span key={stat} className="rounded-lg bg-white/15 px-3 py-2 text-center text-xs font-black ring-1 ring-white/15">{stat}</span>)}
+        </div>
+      </div>
+
+      <div className="border-b border-emerald-100 bg-emerald-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-lg border border-emerald-200 bg-white p-3 dark:border-emerald-900 dark:bg-slate-950">
+          <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Card Memory</p>
+          <div className="mt-2 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+            <p className="text-2xl font-black tracking-wide text-slate-950 dark:text-white">{fcoMemoryMnemonic.code}</p>
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{fcoMemoryMnemonic.sentence}</p>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {fcoMemoryMnemonic.lines.map(([letter, word]) => (
+              <span key={`${letter}-${word}`} className="rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-black text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">{letter}: {word}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto border-b border-slate-100 p-3 dark:border-slate-800">
+        {fcoTabs.map((tab) => (
+          <button key={tab.id} type="button" onClick={() => onTabChange(tab.id)} className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-black transition ${activeTab === tab.id ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-emerald-50 dark:bg-slate-900 dark:text-slate-200'}`}>
+            {tab.label}
           </button>
         ))}
-        {entries.length === 0 && (
-          <p className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm font-semibold text-slate-500 md:col-span-2">
-            No important FCO clause matches the current search.
-          </p>
+      </div>
+
+      <div className="space-y-3 p-3">
+        {card.clauses.map((clause) => (
+          <FcoClauseAccordion
+            key={clause.id}
+            clause={clause}
+            activeTab={activeTab}
+            bookmarked={bookmarks.includes(clause.id)}
+            onToggleBookmark={() => onToggleBookmark(clause.id)}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark }: { clause: FcoClause; activeTab: FcoTabId; bookmarked: boolean; onToggleBookmark: () => void }) {
+  const copyClause = () => navigator.clipboard?.writeText(fcoClauseToText(clause));
+  const shareClause = async () => {
+    const text = fcoClauseToText(clause);
+    if (navigator.share) await navigator.share({ title: `FCO Clause ${clause.clauseNo}`, text });
+    else await navigator.clipboard?.writeText(text);
+  };
+
+  return (
+    <details className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" open>
+      <summary className="flex cursor-pointer list-none flex-col gap-3 border-b border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Clause {clause.clauseNo} - {clause.category}</p>
+          <h3 className="mt-1 text-base font-black text-slate-950 dark:text-white">{clause.title}</h3>
+          <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">{clause.summary}</p>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={(event) => { event.preventDefault(); onToggleBookmark(); }} className="rounded-lg border border-slate-200 bg-white p-2 text-emerald-700 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900" aria-label="Bookmark clause">
+            {bookmarked ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+          </button>
+          <button type="button" onClick={(event) => { event.preventDefault(); copyClause(); }} className="rounded-lg border border-slate-200 bg-white p-2 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" aria-label="Copy clause">
+            <Copy className="h-4 w-4" />
+          </button>
+          <button type="button" onClick={(event) => { event.preventDefault(); void shareClause(); }} className="rounded-lg border border-slate-200 bg-white p-2 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" aria-label="Share clause">
+            <Share2 className="h-4 w-4" />
+          </button>
+        </div>
+      </summary>
+      <div className="space-y-3 p-3">
+        <FcoClauseTabContent clause={clause} activeTab={activeTab} />
+        {clause.subClauses.length > 0 && (
+          <div className="space-y-2">
+            {clause.subClauses.map((subClause) => (
+              <details key={subClause.no} className="rounded-lg border border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
+                <summary className="cursor-pointer list-none px-3 py-2 text-sm font-black text-slate-900 dark:text-white">{subClause.no} - {subClause.plainEnglish}</summary>
+                <div className="space-y-2 border-t border-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200">
+                  <p>{subClause.legalText}</p>
+                  {subClause.officerAction && <p><span className="font-black text-emerald-700 dark:text-emerald-300">Officer:</span> {subClause.officerAction.join('; ')}</p>}
+                  {subClause.dealerObligation && <p><span className="font-black text-blue-700 dark:text-blue-300">Dealer:</span> {subClause.dealerObligation.join('; ')}</p>}
+                  <button type="button" onClick={() => navigator.clipboard?.writeText(`${subClause.no}: ${subClause.legalText}\n${subClause.plainEnglish}`)} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                    <Copy className="h-3.5 w-3.5" /> Copy sub-clause
+                  </button>
+                </div>
+              </details>
+            ))}
+          </div>
         )}
       </div>
     </details>
   );
 }
 
+function FcoClauseTabContent({ clause, activeTab }: { clause: FcoClause; activeTab: FcoTabId }) {
+  if (activeTab === 'fullText') return <FcoTextBlock items={[clause.legalText, ...clause.explanations.map((item) => `Explanation: ${item}`), ...clause.provisos.map((item) => `${item.title}: ${item.legalText}`)]} />;
+  if (activeTab === 'plainEnglish') return <FcoTextBlock items={[clause.plainEnglish, clause.summary]} />;
+  if (activeTab === 'officerAction') return <FcoTextBlock items={clause.subClauses.flatMap((item) => item.officerAction || []).concat(clause.subClauses.flatMap((item) => item.dealerObligation?.map((obligationText) => `Dealer obligation: ${obligationText}`) || []))} empty="No specific officer action listed for this clause." />;
+  if (activeTab === 'formsTimelines') return <FcoTextBlock items={[...clause.forms.map((item) => `Form: ${item}`), ...clause.timelines.map((item) => `Timeline: ${item}`), ...clause.related.map((item) => `Related: ${item}`)]} empty="No specific form or timeline listed for this clause." />;
+  return <FcoTextBlock items={[clause.mnemonic || '', ...importantFcoMnemonics.filter((item) => clause.clauseNo === item.label.replace('Clause ', '') || clause.keywords.join(' ').toLowerCase().includes(item.code.toLowerCase())).map((item) => `${item.label}: ${item.code} - ${item.meaning}`)]} empty="No mnemonic listed for this clause." />;
+}
+
+function FcoTextBlock({ items, empty = 'No matter available.' }: { items: string[]; empty?: string }) {
+  const cleanItems = items.filter(Boolean);
+  if (cleanItems.length === 0) return <p className="rounded-lg border border-dashed border-slate-200 p-3 text-sm font-semibold text-slate-500">{empty}</p>;
+  return (
+    <div className="space-y-2 rounded-lg border border-slate-100 bg-white p-3 text-sm font-semibold leading-6 text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+      {cleanItems.map((item) => <p key={item}>{item}</p>)}
+    </div>
+  );
+}
+
+function fcoClauseToText(clause: FcoClause) {
+  return [
+    `FCO Clause ${clause.clauseNo}: ${clause.title}`,
+    clause.summary,
+    clause.legalText,
+    clause.plainEnglish,
+    ...clause.subClauses.map((item) => `${item.no}: ${item.legalText} - ${item.plainEnglish}`),
+    clause.mnemonic ? `Mnemonic: ${clause.mnemonic}` : '',
+  ].filter(Boolean).join('\n');
+}
+function FcoDashboardCards({
+  cards,
+  activeCardId,
+  onSelect,
+}: {
+  cards: FcoClauseCard[];
+  activeCardId: string | null;
+  onSelect: (cardId: string) => void;
+}) {
+  return (
+    <section className="overflow-hidden rounded-lg border border-emerald-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
+      <div className="border-b border-emerald-100 bg-emerald-50 px-4 py-3 dark:border-slate-800 dark:bg-emerald-950/30">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">FCO 1985 Ready Reckoner</p>
+            <h2 className="mt-1 text-lg font-black text-slate-950 dark:text-white">9 Main Clause Cards</h2>
+            <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Tap a card to open its clause detail page.</p>
+          </div>
+          {activeCardId && (
+            <button type="button" onClick={() => onSelect(activeCardId)} className="w-fit rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-200">
+              Show all clauses
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="grid gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3">
+        {cards.map((card) => {
+          const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
+          const active = activeCardId === card.id;
+          return (
+            <button
+              key={card.id}
+              type="button"
+              onClick={() => onSelect(card.id)}
+              className={`group relative min-h-[13rem] overflow-hidden rounded-lg border p-4 text-left shadow-sm transition duration-300 motion-safe:hover:-translate-y-1 ${
+                active ? 'border-emerald-300 bg-emerald-50 text-slate-950 shadow-md' : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-200 hover:bg-emerald-50/60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-emerald-950/20'
+              }`}
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-15 transition group-hover:opacity-20`} />
+              <div className="relative flex h-full flex-col justify-between gap-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="rounded-lg bg-white/80 p-3 text-emerald-800 shadow-sm ring-1 ring-emerald-100 motion-safe:transition motion-safe:group-hover:scale-105 dark:bg-slate-950/80 dark:text-emerald-200 dark:ring-emerald-900">
+                    <Icon className="h-7 w-7" />
+                  </div>
+                  <span className="rounded-full bg-white/85 px-3 py-1 text-xs font-black text-slate-800 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950/80 dark:text-slate-100 dark:ring-slate-700">{card.clauseRange}</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-black leading-tight text-slate-950 dark:text-white">{card.cardTitle}</h3>
+                  <p className="mt-2 text-sm font-bold leading-5 text-slate-700 dark:text-slate-200">{card.summary}</p>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {card.contains.slice(0, 5).map((item) => (
+                    <span key={item} className="rounded-full bg-white/75 px-2 py-1 text-[11px] font-black text-slate-700 ring-1 ring-slate-200 dark:bg-slate-950/75 dark:text-slate-200 dark:ring-slate-700">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffenceEntry[]; onDownload: () => void; onPrint: () => void }) {
   return (
     <details className="group overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
@@ -847,3 +1178,8 @@ function entryDetailsHtml(entry: LegalReadyReckonerEntry) {
   ];
   return `<dl>${fields.map(([label, value]) => `<dt>${label}</dt><dd>${String(value).replace(/</g, '&lt;')}</dd>`).join('')}</dl>`;
 }
+
+
+
+
+
