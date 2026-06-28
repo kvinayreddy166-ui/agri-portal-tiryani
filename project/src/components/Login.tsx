@@ -69,7 +69,7 @@ const STATUTORY_FOLDERS = [
 const PUBLIC_TOOLKIT_STATE_KEY = 'tiryani-public-officer-toolkit-state';
 const PUBLIC_FORMS_CACHE_KEY = 'tiryani-public-statutory-forms-cache';
 const PUBLIC_FORMS_PAGE_SIZE = 10;
-const PUBLIC_FORMS_FETCH_TIMEOUT_MS = 4500;
+const PUBLIC_FORMS_SLOW_NOTICE_MS = 4500;
 const PUBLIC_FORM_COLUMNS = 'id, title, label, description, file_url, file_type, category, created_at';
 const PUBLIC_FORM_COLUMNS_WITHOUT_LABEL = 'id, title, description, file_url, file_type, category, created_at';
 
@@ -135,6 +135,7 @@ export function Login() {
   const [statutoryPage, setStatutoryPage] = useState(() => loadPublicToolkitState().statutoryPage || 0);
   const [statutoryForms, setStatutoryForms] = useState<FormDownload[]>([]);
   const [formsLoading, setFormsLoading] = useState(false);
+  const [formsNotice, setFormsNotice] = useState<string | null>(null);
   const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
   const [pdfToolOpen, setPdfToolOpen] = useState(false);
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
@@ -242,25 +243,36 @@ export function Login() {
   useEffect(() => {
     if (!showStatutoryForms) return;
     let isCancelled = false;
+    let slowNoticeTimer: number | undefined;
 
     const fetchForms = async () => {
       const cachedForms = readCachedPublicForms();
+      setFormsNotice(null);
       if (cachedForms.length > 0) {
         setStatutoryForms(cachedForms);
       }
       setFormsLoading(cachedForms.length === 0);
+      slowNoticeTimer = window.setTimeout(() => {
+        if (!isCancelled) {
+          setFormsLoading(false);
+          setFormsNotice('Fetching latest forms is taking longer. Showing available data.');
+        }
+      }, PUBLIC_FORMS_SLOW_NOTICE_MS);
 
       try {
-        const data = await withTimeout(fetchPublicFormsFromDatabase(), PUBLIC_FORMS_FETCH_TIMEOUT_MS);
+        const data = await fetchPublicFormsFromDatabase();
         if (isCancelled) return;
         setStatutoryForms(data);
         writeCachedPublicForms(data);
+        setFormsNotice(null);
       } catch (error) {
-        console.warn('Statutory forms fetch skipped or timed out:', error);
+        console.warn('Statutory forms fetch failed:', error);
         if (!isCancelled && cachedForms.length === 0) {
           setStatutoryForms([]);
+          setFormsNotice('Forms could not be loaded. Please check the connection and try again.');
         }
       } finally {
+        if (slowNoticeTimer) window.clearTimeout(slowNoticeTimer);
         if (!isCancelled) setFormsLoading(false);
       }
     };
@@ -268,6 +280,7 @@ export function Login() {
     fetchForms();
     return () => {
       isCancelled = true;
+      if (slowNoticeTimer) window.clearTimeout(slowNoticeTimer);
     };
   }, [showStatutoryForms]);
 
@@ -530,6 +543,11 @@ export function Login() {
             ))}
           </div>
 
+          {formsNotice && (
+            <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
+              {formsNotice}
+            </div>
+          )}
           <div className="table-scroll rounded-lg border border-slate-200 bg-white">
             <table className="w-full min-w-[430px] table-fixed text-left">
               <thead className="sticky top-0 z-10 bg-slate-900 text-xs font-bold text-white sm:text-sm">
@@ -659,7 +677,6 @@ export function Login() {
               fileUrl={previewForm.file_url}
               fileName={previewForm.title}
               fileType={previewForm.file_type}
-              hideOpenInNewTab
               onClose={closePublicPreview}
             />
           </Suspense>
@@ -828,7 +845,7 @@ export function Login() {
 
             <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 sm:mb-16 animate-slide-up delay-600">
               <p className="font-black text-emerald-700">version-1.0.1</p>
-              <p>Â© 2026- Tiryani Agri portal- Department of Agriculture, Telangana</p>
+              <p>&copy; 2026 Tiryani Agri Portal - Department of Agriculture, Telangana</p>
               <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
             </div>
           </div>
@@ -1106,19 +1123,6 @@ async function fetchPublicFormsFromDatabase() {
   return data || [];
 }
 
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
-  let timeoutId: number | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timeoutId = window.setTimeout(() => reject(new Error('Request timed out.')), timeoutMs);
-  });
-
-  try {
-    return await Promise.race([promise, timeout]);
-  } finally {
-    if (timeoutId) window.clearTimeout(timeoutId);
-  }
-}
-
 function readCachedPublicForms() {
   try {
     const cached = JSON.parse(window.sessionStorage.getItem(PUBLIC_FORMS_CACHE_KEY) || '[]') as FormDownload[];
@@ -1147,3 +1151,4 @@ function isMissingPublicLabelColumnError(error: unknown) {
 }
 
 export default Login;
+

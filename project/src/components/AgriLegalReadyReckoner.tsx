@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Bookmark,
   BookmarkCheck,
@@ -16,6 +17,7 @@ import { fertiliserLegalCharts, type FertiliserLegalChart } from '../data/fertil
 import { legalReadyReckonerEntries, type LegalCategory, type LegalReadyReckonerEntry } from '../data/legalReadyReckonerData';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { ShowCauseNoticeEntry } from './ShowCauseNoticeEntry';
+import { BackButton } from './ui/BackButton';
 
 type ReckonerView = 'references' | 'powers' | 'notice' | 'drafting';
 
@@ -64,6 +66,7 @@ function entrySearchText(entry: LegalReadyReckonerEntry) {
 }
 
 export function AgriLegalReadyReckoner() {
+  const navigate = useNavigate();
   const [view, setView] = useState<ReckonerView>('references');
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<LegalCategory>('Fertiliser');
@@ -260,8 +263,11 @@ export function AgriLegalReadyReckoner() {
               Search Acts, Rules, Orders, clauses, sections, penal provisions, stop sale, seizure, sampling and notice workflows for agriculture input inspection.
             </p>
           </div>
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
-            Official text not found in repo. Starter entries are marked for verification.
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            <BackButton onClick={() => navigate('/officer-toolkit')}>Back</BackButton>
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
+              Official text not found in repo. Starter entries are marked for verification.
+            </div>
           </div>
         </div>
       </section>
@@ -337,7 +343,7 @@ export function AgriLegalReadyReckoner() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{entry.referenceNumber} · {entry.referenceType}</p>
+                      <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{entry.referenceNumber} Â· {entry.referenceType}</p>
                       <h3 className="mt-1 text-sm font-black text-slate-950 dark:text-white">{entry.title}</h3>
                     </div>
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${entry.verificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-800' : entry.verificationStatus === 'verify latest' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>

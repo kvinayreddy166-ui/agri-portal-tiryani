@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { X, Download, ExternalLink, FileSpreadsheet, Loader2, RefreshCw } from 'lucide-react';
 import { resolveFileIdentity } from '../../lib/fileTypes';
 import {
@@ -219,7 +219,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
           {loading && (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 text-slate-600 dark:text-slate-300">
               <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
-              <p className="text-sm">Loading preview…</p>
+              <p className="text-sm">Loading preview...</p>
             </div>
           )}
 
@@ -248,6 +248,10 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
                 type="application/pdf"
                 title={fileName || 'PDF preview'}
                 className="min-h-[65vh] flex-1 rounded-lg border-0 bg-white shadow-lg"
+                onError={() => {
+                  setPdfUseEmbed(true);
+                  setLoadFailed(false);
+                }}
               />
             </div>
           )}
@@ -256,7 +260,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
               <p className="mb-2 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">
                 {excelData.sheetName}
-                {excelData.rows.length >= 50 ? ' · first 50 rows' : ''}
+                {excelData.rows.length >= 50 ? ' - first 50 rows' : ''}
               </p>
               <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
                 <table className="min-w-full border-collapse text-left text-sm">
