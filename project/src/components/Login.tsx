@@ -66,10 +66,16 @@ const STATUTORY_FOLDERS = [
   { id: 'pesticides', label: 'Pesticide', telugu: 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à±à°²à±' },
 ];
 
+const PUBLIC_FORM_CATEGORY_ALIASES: Record<string, string[]> = {
+  fertilizers: ['fertilizers', 'fertilizer'],
+  seed: ['seed', 'seeds'],
+  pesticides: ['pesticides', 'pesticide'],
+};
+const PUBLIC_FORM_CATEGORY_VALUES = Array.from(new Set(Object.values(PUBLIC_FORM_CATEGORY_ALIASES).flat()));
+
 const PUBLIC_TOOLKIT_STATE_KEY = 'tiryani-public-officer-toolkit-state';
 const PUBLIC_FORMS_CACHE_KEY = 'tiryani-public-statutory-forms-cache';
 const PUBLIC_FORMS_PAGE_SIZE = 10;
-const PUBLIC_FORMS_SLOW_NOTICE_MS = 4500;
 const PUBLIC_FORM_COLUMNS = 'id, title, label, description, file_url, file_type, category, created_at';
 const PUBLIC_FORM_COLUMNS_WITHOUT_LABEL = 'id, title, description, file_url, file_type, category, created_at';
 
@@ -135,7 +141,6 @@ export function Login() {
   const [statutoryPage, setStatutoryPage] = useState(() => loadPublicToolkitState().statutoryPage || 0);
   const [statutoryForms, setStatutoryForms] = useState<FormDownload[]>([]);
   const [formsLoading, setFormsLoading] = useState(false);
-  const [formsNotice, setFormsNotice] = useState<string | null>(null);
   const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
   const [pdfToolOpen, setPdfToolOpen] = useState(false);
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
@@ -243,36 +248,25 @@ export function Login() {
   useEffect(() => {
     if (!showStatutoryForms) return;
     let isCancelled = false;
-    let slowNoticeTimer: number | undefined;
 
     const fetchForms = async () => {
       const cachedForms = readCachedPublicForms();
-      setFormsNotice(null);
       if (cachedForms.length > 0) {
         setStatutoryForms(cachedForms);
       }
       setFormsLoading(cachedForms.length === 0);
-      slowNoticeTimer = window.setTimeout(() => {
-        if (!isCancelled) {
-          setFormsLoading(false);
-          setFormsNotice('Fetching latest forms is taking longer. Showing available data.');
-        }
-      }, PUBLIC_FORMS_SLOW_NOTICE_MS);
 
       try {
         const data = await fetchPublicFormsFromDatabase();
         if (isCancelled) return;
         setStatutoryForms(data);
         writeCachedPublicForms(data);
-        setFormsNotice(null);
       } catch (error) {
         console.warn('Statutory forms fetch failed:', error);
         if (!isCancelled && cachedForms.length === 0) {
           setStatutoryForms([]);
-          setFormsNotice('Forms could not be loaded. Please check the connection and try again.');
         }
       } finally {
-        if (slowNoticeTimer) window.clearTimeout(slowNoticeTimer);
         if (!isCancelled) setFormsLoading(false);
       }
     };
@@ -280,12 +274,11 @@ export function Login() {
     fetchForms();
     return () => {
       isCancelled = true;
-      if (slowNoticeTimer) window.clearTimeout(slowNoticeTimer);
     };
   }, [showStatutoryForms]);
 
   const selectedStatutoryForms = useMemo(
-    () => statutoryForms.filter((form) => form.category === statutoryFolder),
+    () => statutoryForms.filter((form) => normalizePublicFormCategory(form.category) === statutoryFolder),
     [statutoryForms, statutoryFolder]
   );
   const statutoryPageCount = Math.max(1, Math.ceil(selectedStatutoryForms.length / PUBLIC_FORMS_PAGE_SIZE));
@@ -543,11 +536,6 @@ export function Login() {
             ))}
           </div>
 
-          {formsNotice && (
-            <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
-              {formsNotice}
-            </div>
-          )}
           <div className="table-scroll rounded-lg border border-slate-200 bg-white">
             <table className="w-full min-w-[430px] table-fixed text-left">
               <thead className="sticky top-0 z-10 bg-slate-900 text-xs font-bold text-white sm:text-sm">
@@ -1104,7 +1092,7 @@ async function fetchPublicFormsFromDatabase() {
   const initialResult = await supabase
     .from('forms_downloads')
     .select(PUBLIC_FORM_COLUMNS)
-    .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
+    .in('category', PUBLIC_FORM_CATEGORY_VALUES)
     .order('created_at', { ascending: false });
   let data = initialResult.data as FormDownload[] | null;
   let error: unknown = initialResult.error;
@@ -1113,20 +1101,31 @@ async function fetchPublicFormsFromDatabase() {
     const fallback = await supabase
       .from('forms_downloads')
       .select(PUBLIC_FORM_COLUMNS_WITHOUT_LABEL)
-      .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
+      .in('category', PUBLIC_FORM_CATEGORY_VALUES)
       .order('created_at', { ascending: false });
     data = fallback.data as FormDownload[] | null;
     error = fallback.error;
   }
 
   if (error) throw error;
-  return data || [];
+  return (data || []).map(normalizePublicFormRow);
 }
+
+function normalizePublicFormCategory(category: string) {
+  const normalized = String(category || '').trim().toLowerCase();
+  const match = Object.entries(PUBLIC_FORM_CATEGORY_ALIASES).find(([, aliases]) => aliases.includes(normalized));
+  return match?.[0] || normalized;
+}
+
+function normalizePublicFormRow(form: FormDownload): FormDownload {
+  return { ...form, category: normalizePublicFormCategory(form.category) };
+}
+
 
 function readCachedPublicForms() {
   try {
     const cached = JSON.parse(window.sessionStorage.getItem(PUBLIC_FORMS_CACHE_KEY) || '[]') as FormDownload[];
-    return Array.isArray(cached) ? cached : [];
+    return Array.isArray(cached) ? cached.map(normalizePublicFormRow) : [];
   } catch {
     return [];
   }
