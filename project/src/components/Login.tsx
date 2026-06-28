@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+﻿import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -61,13 +61,15 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 }
 
 const STATUTORY_FOLDERS = [
-  { id: 'fertilizers', label: 'Fertilizer', telugu: 'ఎరువులు' },
-  { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
-  { id: 'pesticides', label: 'Pesticide', telugu: 'పురుగుమందులు' },
+  { id: 'fertilizers', label: 'Fertilizer', telugu: 'à°Žà°°à±à°µà±à°²à±' },
+  { id: 'seed', label: 'Seed', telugu: 'à°µà°¿à°¤à±à°¤à°¨à°¾à°²à±' },
+  { id: 'pesticides', label: 'Pesticide', telugu: 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à±à°²à±' },
 ];
 
 const PUBLIC_TOOLKIT_STATE_KEY = 'tiryani-public-officer-toolkit-state';
+const PUBLIC_FORMS_CACHE_KEY = 'tiryani-public-statutory-forms-cache';
 const PUBLIC_FORMS_PAGE_SIZE = 10;
+const PUBLIC_FORMS_FETCH_TIMEOUT_MS = 4500;
 const PUBLIC_FORM_COLUMNS = 'id, title, label, description, file_url, file_type, category, created_at';
 const PUBLIC_FORM_COLUMNS_WITHOUT_LABEL = 'id, title, description, file_url, file_type, category, created_at';
 
@@ -239,37 +241,34 @@ export function Login() {
 
   useEffect(() => {
     if (!showStatutoryForms) return;
+    let isCancelled = false;
 
     const fetchForms = async () => {
-      setFormsLoading(true);
-      const initialResult = await supabase
-        .from('forms_downloads')
-        .select(PUBLIC_FORM_COLUMNS)
-        .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
-        .order('created_at', { ascending: false });
-      let data = initialResult.data as FormDownload[] | null;
-      let error: unknown = initialResult.error;
-
-      if (error && isMissingPublicLabelColumnError(error)) {
-        const fallback = await supabase
-          .from('forms_downloads')
-          .select(PUBLIC_FORM_COLUMNS_WITHOUT_LABEL)
-          .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
-          .order('created_at', { ascending: false });
-        data = fallback.data as FormDownload[] | null;
-        error = fallback.error;
+      const cachedForms = readCachedPublicForms();
+      if (cachedForms.length > 0) {
+        setStatutoryForms(cachedForms);
       }
+      setFormsLoading(cachedForms.length === 0);
 
-      if (error) {
-        console.error('Error fetching statutory forms:', error);
-        setStatutoryForms([]);
-      } else {
-        setStatutoryForms(data || []);
+      try {
+        const data = await withTimeout(fetchPublicFormsFromDatabase(), PUBLIC_FORMS_FETCH_TIMEOUT_MS);
+        if (isCancelled) return;
+        setStatutoryForms(data);
+        writeCachedPublicForms(data);
+      } catch (error) {
+        console.warn('Statutory forms fetch skipped or timed out:', error);
+        if (!isCancelled && cachedForms.length === 0) {
+          setStatutoryForms([]);
+        }
+      } finally {
+        if (!isCancelled) setFormsLoading(false);
       }
-      setFormsLoading(false);
     };
 
     fetchForms();
+    return () => {
+      isCancelled = true;
+    };
   }, [showStatutoryForms]);
 
   const selectedStatutoryForms = useMemo(
@@ -311,7 +310,7 @@ export function Login() {
       console.error('Download failed:', error);
       // Fallback: open in new tab
       window.open(form.file_url, '_blank', 'noopener,noreferrer');
-      alert(t('Download started in new tab. If it does not download, try right-clicking and "Save as".', 'డౌన్లోడ్ కొత్త ట్యాబ్‌లో ప్రారంభమైంది. డౌన్లోడ్ కాకపోతే, కుడి-క్లిక్ చేసి "సేవ్ యాజ్" ప్రయత్నించండి.'));
+      alert(t('Download started in new tab. If it does not download, try right-clicking and "Save as".', 'à°¡à±Œà°¨à±à°²à±‹à°¡à± à°•à±Šà°¤à±à°¤ à°Ÿà±à°¯à°¾à°¬à±â€Œà°²à±‹ à°ªà±à°°à°¾à°°à°‚à°­à°®à±ˆà°‚à°¦à°¿. à°¡à±Œà°¨à±à°²à±‹à°¡à± à°•à°¾à°•à°ªà±‹à°¤à±‡, à°•à±à°¡à°¿-à°•à±à°²à°¿à°•à± à°šà±‡à°¸à°¿ "à°¸à±‡à°µà± à°¯à°¾à°œà±" à°ªà±à°°à°¯à°¤à±à°¨à°¿à°‚à°šà°‚à°¡à°¿.'));
     } finally {
       setDownloadingFormId(null);
     }
@@ -410,7 +409,7 @@ export function Login() {
             : t('Install cancelled. Tap Install App again when the browser prompt is available.', 'Install cancelled. Tap Install App again when the browser prompt is available.')
         );
       } catch {
-        setInstallMessage(t('Use your browser menu and choose Install app.', 'బ్రౌజర్ మెనూలో Install app ఎంచుకోండి.'));
+        setInstallMessage(t('Use your browser menu and choose Install app.', 'à°¬à±à°°à±Œà°œà°°à± à°®à±†à°¨à±‚à°²à±‹ Install app à°Žà°‚à°šà±à°•à±‹à°‚à°¡à°¿.'));
       }
       return;
     }
@@ -450,15 +449,15 @@ export function Login() {
                 className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
               >
                 <ArrowLeft className="h-4 w-4" />
-                {t('Back', 'వెనుకకు')}
+                {t('Back', 'à°µà±†à°¨à±à°•à°•à±')}
               </button>
               <div>
                 <h1 className="text-xl font-black text-slate-950 sm:text-2xl">
                   {showStatutoryForms
-                    ? t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')
+                    ? t('Statutory Forms', 'à°šà°Ÿà±à°Ÿà°¬à°¦à±à°§ à°«à°¾à°°à°¾à°²à±')
                     : fertilizerCalculatorOpen
-                      ? t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')
-                      : t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+                      ? t('Fertilizer Calculator', 'à°Žà°°à±à°µà±à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')
+                      : t('Acerage Calculator', 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
                 </h1>
               </div>
             </div>
@@ -486,7 +485,7 @@ export function Login() {
               }`}
             >
               <FileText className="h-4 w-4" />
-              {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
+              {t('Statutory Forms', 'à°šà°Ÿà±à°Ÿà°¬à°¦à±à°§ à°«à°¾à°°à°¾à°²à±')}
             </button>
             <button
               type="button"
@@ -496,7 +495,7 @@ export function Login() {
               }`}
             >
               <Calculator className="h-4 w-4" />
-              {t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+              {t('Acerage Calculator', 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
             </button>
             <button
               type="button"
@@ -506,7 +505,7 @@ export function Login() {
               }`}
             >
               <FlaskConical className="h-4 w-4" />
-              {t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')}
+              {t('Fertilizer Calculator', 'à°Žà°°à±à°µà±à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
             </button>
           </div>
 
@@ -535,16 +534,16 @@ export function Login() {
             <table className="w-full min-w-[430px] table-fixed text-left">
               <thead className="sticky top-0 z-10 bg-slate-900 text-xs font-bold text-white sm:text-sm">
                 <tr>
-                  <th className="w-14 px-2.5 py-2 sm:w-16">{t('S.No.', 'క్ర.సం.')}</th>
-                  <th className="px-2.5 py-2">{t('Proforma / Form Name', 'ప్రొఫార్మా / ఫారం పేరు')}</th>
-                  <th className="w-24 px-2.5 py-2 text-right">{t('Action', 'చర్య')}</th>
+                  <th className="w-14 px-2.5 py-2 sm:w-16">{t('S.No.', 'à°•à±à°°.à°¸à°‚.')}</th>
+                  <th className="px-2.5 py-2">{t('Proforma / Form Name', 'à°ªà±à°°à±Šà°«à°¾à°°à±à°®à°¾ / à°«à°¾à°°à°‚ à°ªà±‡à°°à±')}</th>
+                  <th className="w-24 px-2.5 py-2 text-right">{t('Action', 'à°šà°°à±à°¯')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {formsLoading ? (
                   <tr>
                     <td colSpan={3} className="px-3 py-6 text-center text-sm font-semibold text-slate-500">
-                      {t('Loading forms...', 'ఫారాలు లోడ్ అవుతున్నాయి...')}
+                      {t('Loading forms...', 'à°«à°¾à°°à°¾à°²à± à°²à±‹à°¡à± à°…à°µà±à°¤à±à°¨à±à°¨à°¾à°¯à°¿...')}
                     </td>
                   </tr>
                 ) : selectedStatutoryForms.length > 0 ? (
@@ -565,8 +564,8 @@ export function Login() {
                                 type="button"
                                 onClick={() => openPublicPreview(form)}
                                 className="inline-flex h-7 w-7 items-center justify-center rounded-md text-emerald-700 transition hover:bg-emerald-50"
-                                aria-label={t('Preview file', 'ఫైల్ ప్రివ్యూ')}
-                                title={t('Preview', 'ప్రివ్యూ')}
+                                aria-label={t('Preview file', 'à°«à±ˆà°²à± à°ªà±à°°à°¿à°µà±à°¯à±‚')}
+                                title={t('Preview', 'à°ªà±à°°à°¿à°µà±à°¯à±‚')}
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
@@ -575,8 +574,8 @@ export function Login() {
                                 onClick={() => handlePublicDownload(form)}
                                 disabled={downloadingFormId === form.id}
                                 className="inline-flex h-7 w-7 items-center justify-center rounded-md text-sky-700 transition hover:bg-sky-50 disabled:opacity-50"
-                                aria-label={t('Download file', 'ఫైల్ డౌన్లోడ్ చేయండి')}
-                                title={t('Download', 'డౌన్లోడ్')}
+                                aria-label={t('Download file', 'à°«à±ˆà°²à± à°¡à±Œà°¨à±à°²à±‹à°¡à± à°šà±‡à°¯à°‚à°¡à°¿')}
+                                title={t('Download', 'à°¡à±Œà°¨à±à°²à±‹à°¡à±')}
                               >
                                 {downloadingFormId === form.id ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -593,7 +592,7 @@ export function Login() {
                 ) : (
                   <tr>
                     <td colSpan={3} className="px-3 py-8 text-center text-sm font-semibold text-slate-500">
-                      {t('No statutory forms uploaded yet.', 'ఇంకా ఫారాలు అప్లోడ్ కాలేదు.')}
+                      {t('No statutory forms uploaded yet.', 'à°‡à°‚à°•à°¾ à°«à°¾à°°à°¾à°²à± à°…à°ªà±à°²à±‹à°¡à± à°•à°¾à°²à±‡à°¦à±.')}
                     </td>
                   </tr>
                 )}
@@ -717,10 +716,10 @@ export function Login() {
               </div>
               <div>
                 <h2 className="whitespace-nowrap text-xl font-black tracking-tight text-slate-950 sm:text-2xl">
-                  {t('Tiryani Agriculture Portal', 'తిర్యాణి వ్యవసాయ పోర్టల్')}
+                  {t('Tiryani Agriculture Portal', 'à°¤à°¿à°°à±à°¯à°¾à°£à°¿ à°µà±à°¯à°µà°¸à°¾à°¯ à°ªà±‹à°°à±à°Ÿà°²à±')}
                 </h2>
                 <p className="mt-1 text-sm font-bold text-emerald-700">
-                  {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
+                  {t('Information Management System', 'à°¸à°®à°¾à°šà°¾à°° à°¨à°¿à°°à±à°µà°¹à°£ à°µà±à°¯à°µà°¸à±à°¥')}
                 </p>
               </div>
             </div>
@@ -732,7 +731,7 @@ export function Login() {
                 rel="noopener noreferrer"
                 className="inline-flex shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 p-2.5 text-emerald-800 transition hover:bg-emerald-100"
                 aria-label="WhatsApp Channel"
-                title={t('WhatsApp Channel', 'వాట్సప్ ఛానెల్')}
+                title={t('WhatsApp Channel', 'à°µà°¾à°Ÿà±à°¸à°ªà± à°›à°¾à°¨à±†à°²à±')}
               >
                 <WhatsAppIcon className="h-4 w-4" />
               </a>
@@ -745,7 +744,7 @@ export function Login() {
               className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-800 shadow-sm transition hover:bg-emerald-100 hover:border-emerald-300 animate-slide-up delay-200"
             >
               <ShieldCheck className="h-4 w-4" />
-              <span>{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
+              <span>{t('Officer Toolkit', 'à°…à°§à°¿à°•à°¾à°°à±à°² à°Ÿà±‚à°²à±â€Œà°•à°¿à°Ÿà±')}</span>
             </button>
 
             <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-bold animate-slide-up delay-300">
@@ -754,22 +753,22 @@ export function Login() {
                 onClick={() => setLoginMode('staff')}
                 className={`rounded-lg px-3 py-2 ${loginMode === 'staff' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}
               >
-                {t('Staff / Test', 'సిబ్బంది / పరీక్ష')}
+                {t('Staff / Test', 'à°¸à°¿à°¬à±à°¬à°‚à°¦à°¿ / à°ªà°°à±€à°•à±à°·')}
               </button>
               <button
                 type="button"
                 onClick={() => setLoginMode('dealer')}
                 className={`rounded-lg px-3 py-2 ${loginMode === 'dealer' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}
               >
-                {t('Dealer', 'డీలర్')}
+                {t('Dealer', 'à°¡à±€à°²à°°à±')}
               </button>
             </div>
 
             <div className="mb-3 animate-slide-up delay-400">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
-                {loginMode === 'dealer' ? t('Dealer login', 'డీలర్ లాగిన్') : t('Secure sign in', 'సురక్షిత లాగిన్')}
+                {loginMode === 'dealer' ? t('Dealer login', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Secure sign in', 'à°¸à±à°°à°•à±à°·à°¿à°¤ à°²à°¾à°—à°¿à°¨à±')}
               </p>
-              <h3 className="mt-1 text-2xl font-black text-slate-950">{t('Welcome', 'స్వాగతం')}</h3>
+              <h3 className="mt-1 text-2xl font-black text-slate-950">{t('Welcome', 'à°¸à±à°µà°¾à°—à°¤à°‚')}</h3>
             </div>
 
             {error && (
@@ -782,16 +781,16 @@ export function Login() {
             <form onSubmit={handleSubmit} className="space-y-2 animate-slide-up delay-500">
               {loginMode === 'dealer' ? (
                 <>
-                  <LoginField label={t('Registered phone (Dealers Directory)', 'నమోదైన ఫోన్ (డీలర్ల డైరెక్టరీ)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
-                  <LoginField label={t('Guest Password', 'గెస్ట్ పాస్వర్డ్')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
+                  <LoginField label={t('Registered phone (Dealers Directory)', 'à°¨à°®à±‹à°¦à±ˆà°¨ à°«à±‹à°¨à± (à°¡à±€à°²à°°à±à°² à°¡à±ˆà°°à±†à°•à±à°Ÿà°°à±€)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
+                  <LoginField label={t('Guest Password', 'à°—à±†à°¸à±à°Ÿà± à°ªà°¾à°¸à±à°µà°°à±à°¡à±')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
                   <p className="-mt-1 text-[10px] text-slate-500">
-                    {t(`Guest password: ${DEALER_DEFAULT_PASSWORD}`, `గెస్ట్ పాస్వర్డ్: ${DEALER_DEFAULT_PASSWORD}`)}
+                    {t(`Guest password: ${DEALER_DEFAULT_PASSWORD}`, `à°—à±†à°¸à±à°Ÿà± à°ªà°¾à°¸à±à°µà°°à±à°¡à±: ${DEALER_DEFAULT_PASSWORD}`)}
                   </p>
                 </>
               ) : (
                 <>
-                  <LoginField label={t('Email Address', 'ఇమెయిల్ చిరునామా')} icon={<Mail />} type="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'ఇమెయిల్ చిరునామా నమోదు చేయండి')} />
-                  <LoginField label={t('Password', 'పాస్వర్డ్')} icon={<LockKeyhole />} type="password" value={password} onChange={setPassword} placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')} />
+                  <LoginField label={t('Email Address', 'à°‡à°®à±†à°¯à°¿à°²à± à°šà°¿à°°à±à°¨à°¾à°®à°¾')} icon={<Mail />} type="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'à°‡à°®à±†à°¯à°¿à°²à± à°šà°¿à°°à±à°¨à°¾à°®à°¾ à°¨à°®à±‹à°¦à± à°šà±‡à°¯à°‚à°¡à°¿')} />
+                  <LoginField label={t('Password', 'à°ªà°¾à°¸à±à°µà°°à±à°¡à±')} icon={<LockKeyhole />} type="password" value={password} onChange={setPassword} placeholder={t('Enter password', 'à°ªà°¾à°¸à±à°µà°°à±à°¡à± à°¨à°®à±‹à°¦à± à°šà±‡à°¯à°‚à°¡à°¿')} />
                 </>
               )}
               <button
@@ -800,7 +799,7 @@ export function Login() {
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3 font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:from-emerald-800 hover:to-teal-800 disabled:opacity-60"
               >
                 {loginMode === 'dealer' ? <Store className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
-                {loading ? t('Signing in...', 'లాగిన్ అవుతోంది...') : loginMode === 'dealer' ? t('Dealer Sign In', 'డీలర్ లాగిన్') : t('Sign In', 'లాగిన్')}
+                {loading ? t('Signing in...', 'à°²à°¾à°—à°¿à°¨à± à°…à°µà±à°¤à±‹à°‚à°¦à°¿...') : loginMode === 'dealer' ? t('Dealer Sign In', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Sign In', 'à°²à°¾à°—à°¿à°¨à±')}
               </button>
             </form>
 
@@ -808,7 +807,7 @@ export function Login() {
               <div className="mt-3 rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950 animate-slide-up delay-600">
                 <p className="flex items-center gap-2 font-bold">
                   <UserRoundCheck className="h-4 w-4" />
-                  {t('Test login', 'పరీక్ష లాగిన్')}
+                  {t('Test login', 'à°ªà°°à±€à°•à±à°· à°²à°¾à°—à°¿à°¨à±')}
                 </p>
                 <p className="mt-2">
                   <span className="font-semibold">Email:</span> {TEST_EMAIL}
@@ -829,7 +828,7 @@ export function Login() {
 
             <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 sm:mb-16 animate-slide-up delay-600">
               <p className="font-black text-emerald-700">version-1.0.1</p>
-              <p>© 2026- Tiryani Agri portal- Department of Agriculture, Telangana</p>
+              <p>Â© 2026- Tiryani Agri portal- Department of Agriculture, Telangana</p>
               <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
             </div>
           </div>
@@ -856,7 +855,7 @@ export function Login() {
         className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-black text-white shadow-xl shadow-emerald-950/20 transition hover:bg-emerald-800"
       >
         <MessageSquareText className="h-5 w-5" />
-        {t('Grievances', 'ఫిర్యాదులు')}
+        {t('Grievances', 'à°«à°¿à°°à±à°¯à°¾à°¦à±à°²à±')}
       </button>
 
       {calculatorOpen && (
@@ -865,7 +864,7 @@ export function Login() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <h3 className="flex items-center gap-2 text-lg font-black text-slate-950">
                 <Calculator className="h-5 w-5 text-sky-700" />
-                {t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+                {t('Acerage Calculator', 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
               </h3>
               <button type="button" onClick={closeAcreageCalculator} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100">
                 <ArrowLeft className="h-4 w-4" />
@@ -912,7 +911,7 @@ export function Login() {
             <div className="mb-4 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-black text-emerald-900">
                 <MessageSquareText className="h-5 w-5" />
-                {t('Farmer Grievance', 'రైతు ఫిర్యాదు')}
+                {t('Farmer Grievance', 'à°°à±ˆà°¤à± à°«à°¿à°°à±à°¯à°¾à°¦à±')}
               </h3>
               <button type="button" onClick={grievanceOverlay.closeOverlay} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
                 <X className="h-5 w-5" />
@@ -948,7 +947,7 @@ export function Login() {
               <textarea value={grievance.description} onChange={(e) => setGrievance({ ...grievance, description: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder="Description" required />
               <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3.5 font-bold text-white shadow-lg">
                 <Send className="h-5 w-5" />
-                {t('Submit Complaint', 'ఫిర్యాదు పంపండి')}
+                {t('Submit Complaint', 'à°«à°¿à°°à±à°¯à°¾à°¦à± à°ªà°‚à°ªà°‚à°¡à°¿')}
               </button>
               {grievanceStatus && <p className="text-sm font-semibold text-emerald-700">{grievanceStatus}</p>}
             </form>
@@ -1082,6 +1081,59 @@ function calculateAcreValues(input: string) {
     formatted: `${acres}.${String(guntas).padStart(2, '0')}`,
     hectares: (decimalAcres * 0.40468564224).toFixed(4),
   };
+}
+
+async function fetchPublicFormsFromDatabase() {
+  const initialResult = await supabase
+    .from('forms_downloads')
+    .select(PUBLIC_FORM_COLUMNS)
+    .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
+    .order('created_at', { ascending: false });
+  let data = initialResult.data as FormDownload[] | null;
+  let error: unknown = initialResult.error;
+
+  if (error && isMissingPublicLabelColumnError(error)) {
+    const fallback = await supabase
+      .from('forms_downloads')
+      .select(PUBLIC_FORM_COLUMNS_WITHOUT_LABEL)
+      .in('category', STATUTORY_FOLDERS.map((folder) => folder.id))
+      .order('created_at', { ascending: false });
+    data = fallback.data as FormDownload[] | null;
+    error = fallback.error;
+  }
+
+  if (error) throw error;
+  return data || [];
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
+  let timeoutId: number | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = window.setTimeout(() => reject(new Error('Request timed out.')), timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    if (timeoutId) window.clearTimeout(timeoutId);
+  }
+}
+
+function readCachedPublicForms() {
+  try {
+    const cached = JSON.parse(window.sessionStorage.getItem(PUBLIC_FORMS_CACHE_KEY) || '[]') as FormDownload[];
+    return Array.isArray(cached) ? cached : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCachedPublicForms(forms: FormDownload[]) {
+  try {
+    window.sessionStorage.setItem(PUBLIC_FORMS_CACHE_KEY, JSON.stringify(forms));
+  } catch {
+    // Cache is best effort; statutory forms can still render empty if storage is unavailable.
+  }
 }
 
 function isMissingPublicLabelColumnError(error: unknown) {
