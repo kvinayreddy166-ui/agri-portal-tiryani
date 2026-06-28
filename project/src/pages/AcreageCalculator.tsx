@@ -6,7 +6,7 @@ import { BackButton } from '../components/ui/BackButton';
 const STORAGE_KEY = 'tiryani-acreage-calculator-input';
 const MODE_STORAGE_KEY = 'tiryani-acreage-calculator-mode';
 const CENTS_STORAGE_KEY = 'tiryani-acreage-calculator-cents';
-const ACRES_CENTS_STORAGE_KEY = 'tiryani-acreage-calculator-acres-cents';
+const ACRES_CENTS_PASTE_STORAGE_KEY = 'tiryani-acreage-calculator-acres-cents-paste';
 const GUNTAS_STORAGE_KEY = 'tiryani-acreage-calculator-guntas';
 const CENTS_PER_ACRE = 100;
 const CENTS_PER_GUNTA = 2.5;
@@ -28,10 +28,10 @@ export function AcreageCalculator() {
   const [acreInput, setAcreInput] = useState(() => window.sessionStorage.getItem(STORAGE_KEY) || '');
   const [centInput, setCentInput] = useState(() => window.sessionStorage.getItem(CENTS_STORAGE_KEY) || '');
   const [guntaInput, setGuntaInput] = useState(() => window.sessionStorage.getItem(GUNTAS_STORAGE_KEY) || '');
-  const [acresCentsInput, setAcresCentsInput] = useState(() => readAcresCentsInput());
+  const [acresCentsPasteInput, setAcresCentsPasteInput] = useState(() => window.sessionStorage.getItem(ACRES_CENTS_PASTE_STORAGE_KEY) || '');
   const result = useMemo(
-    () => calculateAcreageResult({ mode, acreInput, centInput, guntaInput, acresCentsInput }),
-    [acreInput, acresCentsInput, centInput, guntaInput, mode]
+    () => calculateAcreageResult({ mode, acreInput, centInput, guntaInput, acresCentsPasteInput }),
+    [acreInput, acresCentsPasteInput, centInput, guntaInput, mode]
   );
   const acreResult = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
 
@@ -51,10 +51,10 @@ export function AcreageCalculator() {
     window.sessionStorage.setItem(GUNTAS_STORAGE_KEY, guntaInput);
   }, [guntaInput]);
 
-  useEffect(() => {
-    window.sessionStorage.setItem(ACRES_CENTS_STORAGE_KEY, JSON.stringify(acresCentsInput));
-  }, [acresCentsInput]);
 
+  useEffect(() => {
+    window.sessionStorage.setItem(ACRES_CENTS_PASTE_STORAGE_KEY, acresCentsPasteInput);
+  }, [acresCentsPasteInput]);
   return (
     <div className="space-y-4">
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
@@ -114,10 +114,17 @@ export function AcreageCalculator() {
           )}
 
           {mode === 'acres-cents' && (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <NumberInput label="Acres" value={acresCentsInput.acres} onChange={(value) => setAcresCentsInput((current) => ({ ...current, acres: value }))} placeholder="Example: 2" />
-              <NumberInput label="Cents" value={acresCentsInput.cents} onChange={(value) => setAcresCentsInput((current) => ({ ...current, cents: value }))} placeholder="Example: 25" />
-            </div>
+            <label className="block">
+              <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Acre.Cent values</span>
+              <textarea
+                value={acresCentsPasteInput}
+                onChange={(event) => setAcresCentsPasteInput(event.target.value)}
+                rows={10}
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                placeholder={'Example:\n2.25\n1.50\n0.75'}
+              />
+              <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">Paste one column or type values. Example: 2.25 means 2 acres 25 cents.</p>
+            </label>
           )}
 
           {mode === 'guntas' && (
@@ -179,29 +186,20 @@ function readMode(): AcreageMode {
   return modeOptions.some((option) => option.value === stored) ? stored as AcreageMode : 'acres';
 }
 
-function readAcresCentsInput() {
-  try {
-    const parsed = JSON.parse(window.sessionStorage.getItem(ACRES_CENTS_STORAGE_KEY) || '{}') as { acres?: string; cents?: string };
-    return { acres: parsed.acres || '', cents: parsed.cents || '' };
-  } catch {
-    return { acres: '', cents: '' };
-  }
-}
-
 function calculateAcreageResult({
   mode,
   acreInput,
   centInput,
   guntaInput,
-  acresCentsInput,
+  acresCentsPasteInput,
 }: {
   mode: AcreageMode;
   acreInput: string;
   centInput: string;
   guntaInput: string;
-  acresCentsInput: { acres: string; cents: string };
+  acresCentsPasteInput: string;
 }) {
-  const totalCents = calculateTotalCents({ mode, acreInput, centInput, guntaInput, acresCentsInput });
+  const totalCents = calculateTotalCents({ mode, acreInput, centInput, guntaInput, acresCentsPasteInput });
   const decimalAcres = totalCents / CENTS_PER_ACRE;
   const wholeAcres = Math.floor(totalCents / CENTS_PER_ACRE);
   const remainingCents = totalCents - wholeAcres * CENTS_PER_ACRE;
@@ -228,18 +226,18 @@ function calculateTotalCents({
   acreInput,
   centInput,
   guntaInput,
-  acresCentsInput,
+  acresCentsPasteInput,
 }: {
   mode: AcreageMode;
   acreInput: string;
   centInput: string;
   guntaInput: string;
-  acresCentsInput: { acres: string; cents: string };
+  acresCentsPasteInput: string;
 }) {
   if (mode === 'cents') return parsePositiveNumber(centInput);
   if (mode === 'guntas') return parsePositiveNumber(guntaInput) * CENTS_PER_GUNTA;
   if (mode === 'acres-cents') {
-    return parsePositiveNumber(acresCentsInput.acres) * CENTS_PER_ACRE + parsePositiveNumber(acresCentsInput.cents);
+    return calculateAcreCentPasteTotal(acresCentsPasteInput);
   }
   const values = acreInput.match(/\d+(?:\.\d+)?/g) || [];
   return values.reduce((sum, value) => {
@@ -247,6 +245,16 @@ function calculateTotalCents({
     const acres = Number.parseInt(acrePart, 10) || 0;
     const guntas = Number.parseInt(guntaPart.padEnd(2, '0').slice(0, 2), 10) || 0;
     return sum + acres * CENTS_PER_ACRE + guntas * CENTS_PER_GUNTA;
+  }, 0);
+}
+
+function calculateAcreCentPasteTotal(input: string) {
+  const values = input.match(/\d+(?:\.\d+)?/g) || [];
+  return values.reduce((sum, value) => {
+    const [acrePart, centPart = '0'] = value.split('.');
+    const acres = Number.parseInt(acrePart, 10) || 0;
+    const cents = Number.parseInt(centPart.padEnd(2, '0').slice(0, 2), 10) || 0;
+    return sum + acres * CENTS_PER_ACRE + cents;
   }, 0);
 }
 
@@ -284,5 +292,6 @@ function formatNumber(value: number, maximumFractionDigits = 2) {
     minimumFractionDigits: Number.isInteger(value) ? 0 : undefined,
   }).format(value);
 }
+
 
 

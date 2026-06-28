@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tiryani-portal-v23';
+﻿const CACHE_VERSION = 'tiryani-portal-v24';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -187,3 +187,4 @@ async function deletePortalCaches() {
       .map((key) => caches.delete(key))
   );
 }
+
