@@ -1,6 +1,5 @@
 const RECOVERY_KEY = 'tiryani-pwa-recovery-attempted-at';
 const RECOVERY_WINDOW_MS = 30_000;
-const CACHE_PREFIX = 'tiryani-portal';
 
 const CHUNK_ERROR_PATTERNS = [
   /ChunkLoadError/i,
@@ -42,11 +41,7 @@ export async function recoverFromStaleAssets() {
 
     if ('caches' in window) {
       const keys = await caches.keys();
-      await Promise.all(
-        keys
-          .filter((key) => key.startsWith(CACHE_PREFIX))
-          .map((key) => caches.delete(key))
-      );
+      await Promise.all(keys.map((key) => caches.delete(key)));
     }
 
     const registrations = await navigator.serviceWorker?.getRegistrations?.();

@@ -1,4 +1,4 @@
-﻿const CACHE_VERSION = 'tiryani-portal-v30';
+const CACHE_VERSION = 'tiryani-portal-v30';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
@@ -181,11 +181,7 @@ async function deleteOutdatedPortalCaches() {
 
 async function deletePortalCaches() {
   const keys = await caches.keys();
-  await Promise.all(
-    keys
-      .filter((key) => key.startsWith('tiryani-portal'))
-      .map((key) => caches.delete(key))
-  );
+  await Promise.all(keys.map((key) => caches.delete(key)));
 }
 
 async function notifyClients(message) {

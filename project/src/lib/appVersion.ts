@@ -12,7 +12,6 @@ export const APP_BUILD_LABEL = APP_BUILD_TIMESTAMP === 'dev'
     });
 
 const BUILD_VERSION_KEY = 'tiryani-app-build-version';
-const CACHE_PREFIX = 'tiryani-portal';
 
 export function getCachedAppVersion() {
   try {
@@ -44,11 +43,7 @@ export async function clearAppCacheAndReload() {
 
     if ('caches' in window) {
       const keys = await caches.keys();
-      await Promise.all(
-        keys
-          .filter((key) => key.startsWith(CACHE_PREFIX))
-          .map((key) => caches.delete(key))
-      );
+      await Promise.all(keys.map((key) => caches.delete(key)));
     }
 
     try {
