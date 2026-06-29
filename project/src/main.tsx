@@ -38,7 +38,7 @@ if (!rootEl) {
   throw new Error('Root element #root not found');
 }
 
-window.__TIRYANI_APP_BOOTED__ = true;
+window.__TIRYANI_APP_BOOTED__ = false;
 createRoot(rootEl).render(
   <StrictMode>
     <ErrorBoundary>

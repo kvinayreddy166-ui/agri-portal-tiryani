@@ -1,4 +1,4 @@
-﻿import React, { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { Component, Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -80,6 +80,69 @@ function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
 
 function PageLoader({ hideLogo = false }: { hideLogo?: boolean }) {
   return <GlobalAppLoader hideLogo={hideLogo} />;
+}
+
+
+type LazyLoadBoundaryProps = {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+};
+
+type LazyLoadBoundaryState = {
+  error: Error | null;
+};
+
+class LazyLoadBoundary extends Component<LazyLoadBoundaryProps, LazyLoadBoundaryState> {
+  state: LazyLoadBoundaryState = { error: null };
+
+  static getDerivedStateFromError(error: Error): LazyLoadBoundaryState {
+    return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('Page failed to load:', error);
+  }
+
+  render() {
+    if (!this.state.error) {
+      return this.props.children;
+    }
+
+    return (
+      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] p-6 text-center dark:bg-slate-950">
+        <PortalLogo size="xl" />
+        <div className="max-w-md rounded-2xl border border-red-200 bg-white/95 p-5 shadow-sm dark:border-red-900 dark:bg-slate-900">
+          <h2 className="text-base font-black text-slate-950 dark:text-white">App files could not load.</h2>
+          <p className="mt-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
+            This usually happens when an old deployment cache points to deleted JavaScript files.
+          </p>
+          <p className="mt-2 break-words text-xs font-bold text-red-700 dark:text-red-300">{this.state.error.message}</p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
+              Retry
+            </button>
+            <button type="button" onClick={() => void clearAppCacheAndReload()} className="rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-black text-emerald-800 hover:bg-emerald-50">
+              Clear cache and reload
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+function SafeSuspense({ children, fallback }: LazyLoadBoundaryProps) {
+  return (
+    <LazyLoadBoundary fallback={fallback}>
+      <Suspense fallback={fallback || <PageLoader />}>{children}</Suspense>
+    </LazyLoadBoundary>
+  );
+}
+
+function useAppBootReady(ready: boolean) {
+  useEffect(() => {
+    window.__TIRYANI_APP_BOOTED__ = ready;
+  }, [ready]);
 }
 
 const PUBLIC_VIEW_PAGES = new Set(['dealers']);
@@ -304,7 +367,7 @@ function PublicReadOnlyShell({
         </div>
       </header>
       <main className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
-        <Suspense fallback={<PageLoader />}>{children}</Suspense>
+        <SafeSuspense fallback={<PageLoader />}>{children}</SafeSuspense>
       </main>
     </div>
   );
@@ -357,6 +420,7 @@ function AppContent() {
   const navigationType = useNavigationType();
   const [isHydrated, setIsHydrated] = useState(false);
   const [forceAppShell, setForceAppShell] = useState(false);
+  const currentPathIsPublic = PUBLIC_AUTH_ROUTES.has(location.pathname) || location.pathname === '/' || location.pathname === '/login';
   const hideCalculatorLogo =
     location.pathname === '/officer-toolkit/fertilizer-calculator' ||
     location.pathname === '/officer-toolkit/acreage-calculator' ||
@@ -592,8 +656,11 @@ function AppContent() {
     }
   }, [loading, location.pathname, navigate, user]);
 
-  // Show loader during initial load or hydration (must be after all hooks)
-  if ((!authChecked || !appReady || !isHydrated) && !forceAppShell) {
+  const shellReady = isHydrated && (authChecked || currentPathIsPublic || forceAppShell) && (appReady || currentPathIsPublic || forceAppShell);
+  useAppBootReady(shellReady);
+
+  // Show loader during initial load or hydration (must be after all hooks). Public/officer toolkit routes are allowed to render even if auth is slow.
+  if (!shellReady) {
     return <GlobalAppLoader hideLogo={hideCalculatorLogo} />;
   }
 
@@ -610,73 +677,73 @@ function AppContent() {
 
   if (!user && currentPage === 'officer-toolkit') {
     return (
-      <Suspense fallback={<GlobalAppLoader />}>
+      <SafeSuspense fallback={<GlobalAppLoader />}>
         <OfficersToolkit />
-      </Suspense>
+      </SafeSuspense>
     );
   }
 
   if (!user && currentPage === 'farm-calculators') {
     return (
-      <Suspense fallback={<GlobalAppLoader />}>
+      <SafeSuspense fallback={<GlobalAppLoader />}>
         <FarmCalculators />
-      </Suspense>
+      </SafeSuspense>
     );
   }
 
   if (!user && currentPage === 'acreage-calculator') {
     return (
-      <Suspense fallback={<GlobalAppLoader hideLogo />}>
+      <SafeSuspense fallback={<GlobalAppLoader hideLogo />}>
         <AcreageCalculator />
-      </Suspense>
+      </SafeSuspense>
     );
   }
 
   if (!user && currentPage === 'fertilizer-calculator') {
     return (
-      <Suspense fallback={<GlobalAppLoader hideLogo />}>
+      <SafeSuspense fallback={<GlobalAppLoader hideLogo />}>
         <FertilizerCalculator />
-      </Suspense>
+      </SafeSuspense>
     );
   }
 
   if (!user && currentPage === 'crop-protection') {
     return (
-      <Suspense fallback={<GlobalAppLoader />}>
+      <SafeSuspense fallback={<GlobalAppLoader />}>
         <CropProtectionTool />
-      </Suspense>
+      </SafeSuspense>
     );
   }
 
   if (!user && currentPage === 'pesticide-calculator') {
     return (
-      <Suspense fallback={<GlobalAppLoader />}>
+      <SafeSuspense fallback={<GlobalAppLoader />}>
         <PesticideCalculator />
-      </Suspense>
+      </SafeSuspense>
     );
   }
 
   if (!user && currentPage === 'plant-population-calculator') {
     return (
-      <Suspense fallback={<GlobalAppLoader />}>
+      <SafeSuspense fallback={<GlobalAppLoader />}>
         <PlantPopulationCalculator />
-      </Suspense>
+      </SafeSuspense>
     );
   }
 
   if (!user && currentPage === 'seed-rate-calculator') {
     return (
-      <Suspense fallback={<GlobalAppLoader />}>
+      <SafeSuspense fallback={<GlobalAppLoader />}>
         <SeedRateCalculator />
-      </Suspense>
+      </SafeSuspense>
     );
   }
 
   if (!user && currentPage === 'legal-ready-reckoner') {
     return (
-      <Suspense fallback={<GlobalAppLoader />}>
+      <SafeSuspense fallback={<GlobalAppLoader />}>
         <AgriLegalReadyReckoner />
-      </Suspense>
+      </SafeSuspense>
     );
   }
 
@@ -694,9 +761,9 @@ function AppContent() {
 
   if (!user) {
     return (
-      <Suspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
+      <SafeSuspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
         <Login />
-      </Suspense>
+      </SafeSuspense>
     );
   }
 
@@ -706,15 +773,15 @@ function AppContent() {
         return <Dashboard />;
       case 'stock-analytics':
         return (
-          <Suspense fallback={<PageLoader />}>
+          <SafeSuspense fallback={<PageLoader />}>
             <StockAnalytics />
-          </Suspense>
+          </SafeSuspense>
         );
       case 'stock-receipts-sales':
         return (
-          <Suspense fallback={<PageLoader />}>
+          <SafeSuspense fallback={<PageLoader />}>
             <StockReceiptsSales />
-          </Suspense>
+          </SafeSuspense>
         );
       case 'dealer-portal':
         return <DealerStockPortal />;
@@ -792,11 +859,11 @@ function AppContent() {
   };
 
   return (
-    <Suspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
+    <SafeSuspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
       <Layout currentPage={currentPage} onNavigate={navigateToPage} onBack={handleBack} onSignOut={handleSignOut}>
         {renderPage()}
       </Layout>
-    </Suspense>
+    </SafeSuspense>
   );
 }
 
