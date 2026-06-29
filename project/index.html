@@ -10,6 +10,9 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f766e" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="googlebot" content="index, follow" />
     <link rel="canonical" href="https://tiryaniportal.vercel.app/" />
@@ -31,45 +34,37 @@
     <meta name="twitter:image" content="https://tiryaniportal.vercel.app/images/agri-emblem-512.webp" />
     <script>
       (function () {
-        var recoveryKey = 'tiryani-startup-recovery-v3';
+        var recoveryKey = 'tiryani-startup-recovery-v4';
+        var resetKey = 'tiryani-html-sw-reset-v2';
         window.__TIRYANI_APP_BOOTED__ = false;
 
-        function hardRefresh() {
-          return Promise.resolve()
-            .then(function () {
-              if (!('serviceWorker' in navigator)) return;
-              return navigator.serviceWorker.getRegistrations().then(function (registrations) {
-                return Promise.all(registrations.map(function (registration) { return registration.unregister(); }));
-              });
-            })
-            .then(function () {
-              if (!('caches' in window)) return;
-              return caches.keys().then(function (keys) {
-                return Promise.all(keys.map(function (key) { return caches.delete(key); }));
-              });
-            })
-            .finally(function () {
-              var url = new URL(window.location.href);
-              url.searchParams.set('refresh', String(Date.now()));
-              window.location.replace(url.toString());
-            });
+        function safeSessionGet(key) {
+          try { return sessionStorage.getItem(key); } catch (error) { return null; }
         }
 
-        function showRecoveryOptions() {
-          var loader = document.getElementById('startup-loader');
-          if (!loader) return;
-          loader.innerHTML = '<img src="/images/agri-emblem-192.webp" alt="Tiryani Agriculture Portal" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:14px;font-weight:800">App is taking longer than expected.</div><div style="max-width:360px;text-align:center;font-size:13px;font-weight:600;color:#475569">Retry, or clear app cache to fetch the latest deployment files.</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button type="button" onclick="window.location.reload()" style="border:1px solid #a7f3d0;border-radius:12px;background:white;color:#047857;padding:10px 16px;font-weight:800">Retry</button><button type="button" onclick="window.__TIRYANI_FORCE_REFRESH__ && window.__TIRYANI_FORCE_REFRESH__()" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Clear cache</button></div>';
+        function safeSessionSet(key, value) {
+          try { sessionStorage.setItem(key, value); } catch (error) {}
         }
 
-        function recoverFromStartupFailure() {
-          if (window.__TIRYANI_APP_BOOTED__) return;
-          var attempts = Number(sessionStorage.getItem(recoveryKey) || 0);
-          if (attempts >= 1) {
-            showRecoveryOptions();
-            return;
-          }
-          sessionStorage.setItem(recoveryKey, String(attempts + 1));
-          hardRefresh();
+        function clearAppBuildMetadata() {
+          try { localStorage.removeItem('tiryani-app-build-version'); } catch (error) {}
+          try {
+            sessionStorage.removeItem('tiryani-startup-recovery-v1');
+            sessionStorage.removeItem('tiryani-startup-recovery-v2');
+            sessionStorage.removeItem('tiryani-startup-recovery-v3');
+          } catch (error) {}
+        }
+
+        function unregisterServiceWorkers() {
+          if (!('serviceWorker' in navigator)) return Promise.resolve(false);
+          var hadController = Boolean(navigator.serviceWorker.controller);
+          return navigator.serviceWorker.getRegistrations().then(function (registrations) {
+            return Promise.all(registrations.map(function (registration) {
+              try { registration.active && registration.active.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch (error) {}
+              try { registration.waiting && registration.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (error) {}
+              return registration.unregister();
+            })).then(function () { return hadController || registrations.length > 0; });
+          }).catch(function () { return hadController; });
         }
 
         function clearCachesOnly() {
@@ -79,50 +74,65 @@
           });
         }
 
-        function releaseServiceWorkerControl() {
-          if (!('serviceWorker' in navigator)) return;
-          var hadController = Boolean(navigator.serviceWorker.controller);
-          Promise.resolve()
-            .then(function () {
-              return navigator.serviceWorker.getRegistrations().then(function (registrations) {
-                return Promise.all(registrations.map(function (registration) { return registration.unregister(); }));
-              });
-            })
+        function reloadWithBust(reason) {
+          var url = new URL(window.location.href);
+          url.searchParams.set('refresh', String(Date.now()));
+          if (reason) url.searchParams.set('reason', reason);
+          window.location.replace(url.toString());
+        }
+
+        function hardRefresh(reason) {
+          return Promise.resolve()
+            .then(clearAppBuildMetadata)
+            .then(unregisterServiceWorkers)
             .then(clearCachesOnly)
-            .then(function () {
-              if (!hadController) return;
-              var resetKey = 'tiryani-html-sw-reset-v1';
-              var alreadyReset = false;
-              try {
-                alreadyReset = sessionStorage.getItem(resetKey) === '1';
-                sessionStorage.setItem(resetKey, '1');
-              } catch (error) {
-                alreadyReset = true;
-              }
-              if (alreadyReset) return;
-              var url = new URL(window.location.href);
-              url.searchParams.set('sw-reset', String(Date.now()));
-              window.location.replace(url.toString());
+            .finally(function () { reloadWithBust(reason || 'cache-reset'); });
+        }
+
+        function showRecoveryOptions() {
+          if (window.__TIRYANI_APP_BOOTED__) return;
+          var loader = document.getElementById('startup-loader');
+          if (!loader) return;
+          loader.innerHTML = '<img src="/images/agri-emblem-192.webp" alt="Tiryani Agriculture Portal" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:14px;font-weight:800">App could not start.</div><div style="max-width:380px;text-align:center;font-size:13px;font-weight:600;color:#475569">Old PWA files are being removed. Use Clear cache and reload once, then reopen the app if Android keeps the old installed shell.</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button type="button" onclick="window.location.reload()" style="border:1px solid #a7f3d0;border-radius:12px;background:white;color:#047857;padding:10px 16px;font-weight:800">Retry</button><button type="button" onclick="window.__TIRYANI_FORCE_REFRESH__ && window.__TIRYANI_FORCE_REFRESH__(\'manual\')" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Clear cache and reload</button></div>';
+        }
+
+        function recoverFromStartupFailure(reason) {
+          if (window.__TIRYANI_APP_BOOTED__) return;
+          var attempts = Number(safeSessionGet(recoveryKey) || 0);
+          if (attempts >= 2) {
+            showRecoveryOptions();
+            return;
+          }
+          safeSessionSet(recoveryKey, String(attempts + 1));
+          hardRefresh(reason || 'startup');
+        }
+
+        function releaseServiceWorkerControl() {
+          unregisterServiceWorkers()
+            .then(clearCachesOnly)
+            .then(function (hadServiceWorker) {
+              if (!hadServiceWorker || safeSessionGet(resetKey) === '1') return;
+              safeSessionSet(resetKey, '1');
+              reloadWithBust('sw-reset');
             })
-            .catch(function () {
-              // Recovery is best-effort; normal network loading should continue.
-            });
+            .catch(function () {});
         }
 
         releaseServiceWorkerControl();
         window.__TIRYANI_FORCE_REFRESH__ = hardRefresh;
         window.setTimeout(function () {
-          var loader = document.getElementById('startup-loader');
-          var stillLoading = loader && document.body && document.body.innerText.indexOf('Loading Tiryani Agriculture Portal') !== -1;
-          if (stillLoading) showRecoveryOptions();
+          if (!window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('timeout');
         }, 8000);
 
         window.addEventListener('error', function (event) {
           var target = event && event.target;
           var isScriptFailure = target && target.tagName === 'SCRIPT';
-          if (isScriptFailure) recoverFromStartupFailure();
+          if (isScriptFailure || !window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('error');
         }, true);
 
+        window.addEventListener('unhandledrejection', function () {
+          if (!window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('promise');
+        });
       })();
     </script>
     <script type="application/ld+json">
