@@ -1,8 +1,17 @@
-import { defineConfig } from 'vite';
+﻿import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'node:fs';
+
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
+const buildTimestamp = process.env.VITE_APP_BUILD_TIMESTAMP || new Date().toISOString();
 
 export default defineConfig({
+  base: '/',
   plugins: [react()],
+  define: {
+    'import.meta.env.VITE_APP_BUILD_TIMESTAMP': JSON.stringify(buildTimestamp),
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version + '-' + buildTimestamp),
+  },
   esbuild: {
     legalComments: 'none',
     drop: ['debugger'],

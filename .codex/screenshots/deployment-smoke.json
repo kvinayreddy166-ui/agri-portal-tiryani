@@ -1,0 +1,11 @@
+{
+  "title": "Tiryani Agriculture Portal",
+  "currentUrl": "http://127.0.0.1:5173/officer-toolkit/legal-ready-reckoner",
+  "hasContent": true,
+  "hasVersion": true,
+  "hasOverlayError": false,
+  "hasUpdateBanner": true,
+  "resetType": "function",
+  "relevantMessages": [],
+  "screenshotPath": "G:/agri-portal-tiryani/.codex/screenshots/deployment-smoke.png"
+}

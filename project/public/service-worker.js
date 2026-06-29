@@ -1,13 +1,11 @@
-const CACHE_VERSION = 'tiryani-portal-v29';
+﻿const CACHE_VERSION = 'tiryani-portal-v30';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
-const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
-const API_CACHE = `${CACHE_VERSION}-api`;
+const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
 const FONT_CACHE = `${CACHE_VERSION}-fonts`;
-const MAX_RUNTIME_ENTRIES = 120;
-const MAX_API_ENTRIES = 80;
-const MAX_IMAGE_ENTRIES = 200;
-const MAX_FONT_ENTRIES = 20;
+const MAX_ASSET_ENTRIES = 160;
+const MAX_IMAGE_ENTRIES = 220;
+const MAX_FONT_ENTRIES = 24;
 
 const STATIC_ASSETS = [
   '/offline.html',
@@ -27,33 +25,34 @@ const STATIC_ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    deletePortalCaches()
-      .then(() => caches.open(STATIC_CACHE))
+    caches
+      .open(STATIC_CACHE)
       .then((cache) => cache.addAll(STATIC_ASSETS))
       .then(() => self.skipWaiting())
   );
 });
+
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => !key.startsWith(CACHE_VERSION))
-            .map((key) => caches.delete(key))
-        )
-      )
+    deleteOutdatedPortalCaches()
       .then(() => self.clients.claim())
+      .then(() => notifyClients({ type: 'SW_UPDATED', version: CACHE_VERSION }))
   );
 });
 
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
+    return;
   }
+
   if (event.data?.type === 'CLEAR_RUNTIME_CACHES') {
     event.waitUntil(deletePortalCaches());
+    return;
+  }
+
+  if (event.data?.type === 'GET_VERSION') {
+    event.source?.postMessage?.({ type: 'SW_VERSION', version: CACHE_VERSION });
   }
 });
 
@@ -63,83 +62,75 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // Navigation requests - network first with offline fallback
+  if (shouldBypassCache(url)) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirst(request, '/index.html', RUNTIME_CACHE).catch(() => caches.match('/offline.html')));
+    event.respondWith(networkOnlyNavigation(request));
     return;
   }
 
-  // Build assets - cache first
-  if (url.origin === self.location.origin && url.pathname.startsWith('/assets/')) {
-    event.respondWith(cacheFirst(request, RUNTIME_CACHE));
+  if (url.origin === self.location.origin && isBuildAsset(url)) {
+    event.respondWith(cacheFirst(request, ASSET_CACHE, MAX_ASSET_ENTRIES));
     return;
   }
 
-  // Images - cache first with larger cache size
-  if (
-    url.origin === self.location.origin &&
-    (url.pathname.startsWith('/images/') ||
-      url.pathname.startsWith('/icons/') ||
-      url.pathname.startsWith('/screenshots/'))
-  ) {
+  if (url.origin === self.location.origin && isImageAsset(url)) {
     event.respondWith(cacheFirst(request, IMAGE_CACHE, MAX_IMAGE_ENTRIES));
     return;
   }
 
-  // Data files - stale while revalidate
-  if (
-    url.origin === self.location.origin &&
-    (url.pathname.startsWith('/data/') ||
-      url.pathname.endsWith('.json') ||
-      url.pathname.endsWith('.xml') ||
-      url.pathname.endsWith('.txt') ||
-      url.pathname === '/manifest.webmanifest')
-  ) {
-    event.respondWith(staleWhileRevalidate(request, RUNTIME_CACHE));
-    return;
-  }
-
-  // Fonts - cache first
   if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
     event.respondWith(cacheFirst(request, FONT_CACHE, MAX_FONT_ENTRIES));
     return;
   }
 
-  // Supabase API - network first with API cache
-  if (isSupabaseGet(url)) {
-    event.respondWith(networkFirst(request, undefined, API_CACHE, MAX_API_ENTRIES));
-    return;
+  if (url.origin === self.location.origin && isStaticData(url)) {
+    event.respondWith(staleWhileRevalidate(request, STATIC_CACHE));
   }
 });
 
-function isSupabaseGet(url) {
+function isBuildAsset(url) {
+  return url.pathname.startsWith('/assets/') && /\.(?:js|css|woff2?|map)$/i.test(url.pathname);
+}
+
+function isImageAsset(url) {
   return (
-    url.hostname.endsWith('.supabase.co') &&
-    (url.pathname.includes('/rest/v1/') || url.pathname.includes('/storage/v1/object/public/'))
+    url.pathname.startsWith('/images/') ||
+    url.pathname.startsWith('/icons/') ||
+    url.pathname.startsWith('/screenshots/')
   );
 }
 
-async function networkFirst(
-  request,
-  fallbackPath,
-  cacheName = RUNTIME_CACHE,
-  maxEntries = MAX_RUNTIME_ENTRIES
-) {
-  const cache = await caches.open(cacheName);
+function isStaticData(url) {
+  return (
+    url.pathname.startsWith('/data/') ||
+    url.pathname.endsWith('.json') ||
+    url.pathname.endsWith('.xml') ||
+    url.pathname.endsWith('.txt') ||
+    url.pathname === '/manifest.webmanifest'
+  );
+}
+
+function shouldBypassCache(url) {
+  if (url.hostname.endsWith('.supabase.co')) return true;
+  if (url.pathname.startsWith('/auth/') || url.pathname.includes('/auth/v1/')) return true;
+  if (url.pathname.startsWith('/api/')) return true;
+  if (url.pathname === '/service-worker.js') return true;
+  return false;
+}
+
+async function networkOnlyNavigation(request) {
   try {
-    const response = await fetch(request);
-    await putSafe(cache, request, response);
-    trimCache(cacheName, maxEntries).catch(() => undefined);
-    return response;
+    return await fetch(request, { cache: 'no-store' });
   } catch {
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    if (fallbackPath) return caches.match(fallbackPath);
-    throw new Error('Offline and no cached response is available.');
+    return caches.match('/offline.html');
   }
 }
 
-async function cacheFirst(request, cacheName = RUNTIME_CACHE, maxEntries = MAX_RUNTIME_ENTRIES) {
+async function cacheFirst(request, cacheName, maxEntries) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
@@ -150,10 +141,10 @@ async function cacheFirst(request, cacheName = RUNTIME_CACHE, maxEntries = MAX_R
   return response;
 }
 
-async function staleWhileRevalidate(request, cacheName = RUNTIME_CACHE, maxEntries = MAX_RUNTIME_ENTRIES) {
+async function staleWhileRevalidate(request, cacheName, maxEntries = 120) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
-  const fresh = fetch(request)
+  const fresh = fetch(request, { cache: 'no-cache' })
     .then(async (response) => {
       await putSafe(cache, request, response);
       trimCache(cacheName, maxEntries).catch(() => undefined);
@@ -179,6 +170,15 @@ async function trimCache(cacheName, maxEntries) {
   await Promise.all(keys.slice(0, keys.length - maxEntries).map((key) => cache.delete(key)));
 }
 
+async function deleteOutdatedPortalCaches() {
+  const keys = await caches.keys();
+  await Promise.all(
+    keys
+      .filter((key) => key.startsWith('tiryani-portal') && !key.startsWith(CACHE_VERSION))
+      .map((key) => caches.delete(key))
+  );
+}
+
 async function deletePortalCaches() {
   const keys = await caches.keys();
   await Promise.all(
@@ -188,7 +188,7 @@ async function deletePortalCaches() {
   );
 }
 
-
-
-
-
+async function notifyClients(message) {
+  const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+  clients.forEach((client) => client.postMessage(message));
+}

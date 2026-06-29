@@ -1,9 +1,10 @@
-import React, { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
 import { OfflineStatus } from './components/ui/OfflineStatus';
+import { APP_BUILD_LABEL, clearAppCacheAndReload, hasNewAppVersion, rememberCurrentAppVersion } from './lib/appVersion';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
 const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
@@ -40,14 +41,38 @@ const CropAdminDashboard = lazy(() =>
   import('./pages/admin/CropAdminDashboard.jsx').then((m) => ({ default: m.CropAdminDashboard }))
 );
 function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
+  const [slow, setSlow] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSlow(true), 8000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] p-6 text-center dark:bg-slate-950">
       {!hideLogo && <PortalLogo size="xl" />}
       <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
       {!hideLogo && (
         <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
           Loading Tiryani Agriculture Portal...
         </p>
+      )}
+      {slow && (
+        <div className="max-w-md rounded-2xl border border-amber-200 bg-white/90 p-4 shadow-sm dark:border-amber-900 dark:bg-slate-900">
+          <h2 className="text-base font-black text-slate-950 dark:text-white">App is taking longer than expected.</h2>
+          <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
+            A stale deployment cache or slow auth check may be blocking startup.
+          </p>
+          <p className="mt-2 text-xs font-bold text-slate-500 dark:text-slate-400">App Version: {APP_BUILD_LABEL}</p>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
+              Retry
+            </button>
+            <button type="button" onClick={() => void clearAppCacheAndReload()} className="rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-black text-emerald-800 hover:bg-emerald-50">
+              Clear cache
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -285,6 +310,46 @@ function PublicReadOnlyShell({
   );
 }
 
+function AppUpdateBanner() {
+  const [visible, setVisible] = useState(() => hasNewAppVersion());
+
+  useEffect(() => {
+    if (!hasNewAppVersion()) rememberCurrentAppVersion();
+  }, []);
+
+  useEffect(() => {
+    const show = () => setVisible(true);
+    window.addEventListener('tiryani:update-available', show);
+    return () => window.removeEventListener('tiryani:update-available', show);
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed inset-x-3 bottom-3 z-[10000] mx-auto flex max-w-xl flex-col gap-2 rounded-2xl border border-emerald-200 bg-white p-3 text-sm shadow-2xl dark:border-emerald-900 dark:bg-slate-950 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="font-black text-slate-950 dark:text-white">New update available</p>
+        <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Reload to use the latest deployed version.</p>
+      </div>
+      <div className="flex gap-2">
+        <button type="button" onClick={() => setVisible(false)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200">
+          Later
+        </button>
+        <button type="button" onClick={() => { rememberCurrentAppVersion(); window.location.reload(); }} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white hover:bg-emerald-800">
+          Reload
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AppVersionBadge() {
+  return (
+    <div className="pointer-events-none fixed bottom-1 right-2 z-[60] rounded-full bg-white/80 px-2 py-1 text-[10px] font-black text-slate-500 shadow-sm ring-1 ring-slate-200 backdrop-blur dark:bg-slate-950/70 dark:text-slate-400 dark:ring-slate-800">
+      App Version: {APP_BUILD_LABEL}
+    </div>
+  );
+}
 function AppContent() {
   const { user, loading, authChecked, appReady, isAdminUser, isDealerUser, signOut } = useAuth();
   const location = useLocation();
@@ -314,7 +379,7 @@ function AppContent() {
     const timer = window.setTimeout(() => {
       console.warn('App startup took too long. Showing portal shell instead of keeping the full-page loader.');
       setForceAppShell(true);
-    }, 3500);
+    }, 8000);
 
     return () => window.clearTimeout(timer);
   }, [appReady, authChecked, isHydrated]);
@@ -742,7 +807,9 @@ function App() {
         <AuthProvider>
           <BrowserRouter>
             <OfflineStatus />
+            <AppUpdateBanner />
             <AppContent />
+            <AppVersionBadge />
           </BrowserRouter>
         </AuthProvider>
       </LanguageProvider>

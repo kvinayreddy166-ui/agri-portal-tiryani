@@ -1,7 +1,8 @@
-import React, { StrictMode } from 'react';
+﻿import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { APP_VERSION } from './lib/appVersion';
 import { installPwaRecovery } from './lib/pwaRecovery';
 import { recordSiteHit } from './lib/siteHits';
 import './index.css';
@@ -63,11 +64,60 @@ if ('serviceWorker' in navigator) {
       return;
     }
 
-    const registerServiceWorker = () => {
-      navigator.serviceWorker.register('/service-worker.js').catch((error) => {
-        console.warn('Service worker registration failed:', error);
-      });
+    const notifyUpdateAvailable = () => {
+      window.dispatchEvent(new CustomEvent('tiryani:update-available'));
     };
+
+    const reloadForServiceWorkerUpdate = (version: string) => {
+      const reloadKey = `tiryani-sw-reloaded-${version}`;
+      try {
+        if (window.sessionStorage.getItem(reloadKey)) {
+          notifyUpdateAvailable();
+          return;
+        }
+        window.sessionStorage.setItem(reloadKey, '1');
+      } catch {
+        notifyUpdateAvailable();
+        return;
+      }
+
+      const url = new URL(window.location.href);
+      url.searchParams.set('updated', String(Date.now()));
+      window.location.replace(url.toString());
+    };
+
+    const registerServiceWorker = async () => {
+      try {
+        const registration = await navigator.serviceWorker.register(`/service-worker.js?v=${encodeURIComponent(APP_VERSION)}`, {
+          updateViaCache: 'none',
+        });
+
+        registration.addEventListener('updatefound', () => {
+          const installingWorker = registration.installing;
+          if (!installingWorker) return;
+
+          installingWorker.addEventListener('statechange', () => {
+            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              notifyUpdateAvailable();
+            }
+          });
+        });
+
+        if (registration.waiting) {
+          notifyUpdateAvailable();
+        }
+
+        await registration.update();
+      } catch (error) {
+        if (import.meta.env.DEV) console.warn('Service worker registration failed:', error);
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data?.type === 'SW_UPDATED') {
+        reloadForServiceWorkerUpdate(String(event.data.version || APP_VERSION));
+      }
+    });
 
     if ('requestIdleCallback' in window) {
       window.requestIdleCallback(registerServiceWorker, { timeout: 3000 });

@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -93,13 +93,13 @@
 
           var attempts = Number(sessionStorage.getItem(recoveryKey) || 0);
           if (attempts >= 1) {
-            loader.innerHTML = '<img src="/images/agri-emblem-192.webp" alt="Tiryani Agriculture Portal" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:14px;font-weight:800">Opening portal...</div><button type="button" onclick="window.__TIRYANI_FORCE_REFRESH__ && window.__TIRYANI_FORCE_REFRESH__()" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Clear cache and reload</button>';
+            loader.innerHTML = '<img src="/images/agri-emblem-192.webp" alt="Tiryani Agriculture Portal" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:14px;font-weight:800">App is taking longer than expected.</div><div style="max-width:360px;text-align:center;font-size:13px;font-weight:600;color:#475569">Retry or clear app cache to fetch the latest deployment files.</div><button type="button" onclick="window.__TIRYANI_FORCE_REFRESH__ && window.__TIRYANI_FORCE_REFRESH__()" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Clear cache and reload</button>';
             return;
           }
 
           sessionStorage.setItem(recoveryKey, String(attempts + 1));
           hardRefresh();
-        }, 7000);
+        }, 8000);
 
         window.addEventListener('error', function (event) {
           var target = event && event.target;
