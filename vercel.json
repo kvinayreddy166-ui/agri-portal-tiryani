@@ -1,6 +1,7 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "installCommand": "cd project && npm ci",
+  "buildCommand": "cd project && npm run build",
+  "outputDirectory": "project/dist",
   "headers": [
     {
       "source": "/",

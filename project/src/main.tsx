@@ -1,4 +1,4 @@
-﻿import React, { StrictMode } from 'react';
+import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -18,6 +18,7 @@ installPwaRecovery();
 try {
   window.sessionStorage.removeItem('tiryani-startup-recovery-v1');
   window.sessionStorage.removeItem('tiryani-startup-recovery-v2');
+  window.sessionStorage.removeItem('tiryani-startup-recovery-v3');
 } catch {
   // Startup recovery state is best-effort only.
 }
