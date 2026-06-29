@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -27,7 +27,7 @@ import { essentialCommoditiesActEntries, essentialCommoditiesCrossLinks, type Es
 import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData';
 import { fertiliserLegalCharts, type FertiliserLegalChart } from '../data/fertiliserLegalCharts';
 import { legalReadyReckonerEntries, type LegalCategory, type LegalReadyReckonerEntry } from '../data/legalReadyReckonerData';
-import { fcoClauseCards, fcoDashboardStats, fcoMemoryMnemonic, importantFcoMnemonics, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId } from '../data/fcoClauses';
+import { fcoClauseCards, fcoDashboardStats, fcoMemoryMnemonic, importantFcoMnemonics, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { ShowCauseNoticeEntry } from './ShowCauseNoticeEntry';
 import { BackButton } from './ui/BackButton';
@@ -59,6 +59,62 @@ const fcoIconMap = {
   Scale,
 };
 
+
+function fcoVariationSearchText(note: FcoVariationNote) {
+  return [
+    note.clause_no,
+    note.subclause_no,
+    note.title,
+    note.existing_pdf2_title,
+    note.authentic_pdf1_title,
+    note.existing_pdf2_summary,
+    note.authentic_pdf1_summary,
+    note.variation_type,
+    note.variation_description,
+    note.officer_action_point,
+    note.forms_linked.join(' '),
+    note.schedule_linked.join(' '),
+    note.authority_responsible,
+    note.inspection_action,
+    note.admin_action,
+    note.legal_action,
+    note.telugu_summary,
+    note.old_pdf2_clause_no ? `Clause ${note.old_pdf2_clause_no}` : '',
+    note.canonical_clause_no ? `Clause ${note.canonical_clause_no}` : '',
+    note.search_keywords.join(' '),
+    note.tags.join(' '),
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function fcoClauseSearchText(clause: FcoClause) {
+  return [
+    `Clause ${clause.clauseNo}`,
+    clause.oldPdf2ClauseNo ? `Old PDF-2 Clause ${clause.oldPdf2ClauseNo}` : '',
+    clause.canonicalClauseNo ? `Current PDF-1 Clause ${clause.canonicalClauseNo}` : '',
+    clause.title,
+    clause.category,
+    clause.summary,
+    clause.legalText,
+    clause.plainEnglish,
+    clause.forms.join(' '),
+    clause.timelines.join(' '),
+    clause.keywords.join(' '),
+    clause.related.join(' '),
+    clause.subClauses.map((item) => `${item.no} ${item.legalText} ${item.plainEnglish}`).join(' '),
+    clause.variationNotes?.map(fcoVariationSearchText).join(' '),
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function fcoCardSearchText(card: FcoClauseCard) {
+  return [
+    card.cardTitle,
+    card.cardNo,
+    card.clauseRange,
+    card.summary,
+    card.contains.join(' '),
+    card.clauses.map(fcoClauseSearchText).join(' '),
+  ].join(' ').toLowerCase();
+}
 function entryFallsInFcoRange(entry: LegalReadyReckonerEntry, range: [number, number]) {
   if (entry.lawName !== 'Fertiliser (Control) Order, 1985') return true;
   const values = [entry.referenceNumber, entry.nestedReference.clause, entry.nestedReference.subClause]
@@ -123,6 +179,12 @@ export function AgriLegalReadyReckoner() {
   }, []);
 
   const activeFcoCard = useMemo(() => fcoClauseCards.find((card) => card.id === selectedFcoCardId) || null, [selectedFcoCardId]);
+
+  const filteredFcoCards = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return fcoClauseCards;
+    return fcoClauseCards.filter((card) => fcoCardSearchText(card).includes(term));
+  }, [query]);
 
   const filteredEntries = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -355,7 +417,7 @@ export function AgriLegalReadyReckoner() {
                   onPrint={printFertiliserChart}
                 />
                 <FcoDashboardCards
-                  cards={fcoClauseCards}
+                  cards={filteredFcoCards}
                   activeCardId={selectedFcoCardId}
                   onSelect={(cardId) => {
                     setSelectedFcoCardId(cardId);
@@ -389,7 +451,7 @@ export function AgriLegalReadyReckoner() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{entry.referenceNumber} Â· {entry.referenceType}</p>
+                      <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{entry.referenceNumber} &middot; {entry.referenceType}</p>
                       <h3 className="mt-1 text-sm font-black text-slate-950 dark:text-white">{entry.title}</h3>
                     </div>
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${entry.verificationStatus === 'verified' ? 'bg-emerald-100 text-emerald-800' : entry.verificationStatus === 'verify latest' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>
@@ -922,6 +984,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark }:
     </details>
   );
 }
+
 
 function FcoClauseTabContent({ clause, activeTab }: { clause: FcoClause; activeTab: FcoTabId }) {
   if (activeTab === 'fullText') return <FcoTextBlock items={[clause.legalText, ...clause.explanations.map((item) => `Explanation: ${item}`), ...clause.provisos.map((item) => `${item.title}: ${item.legalText}`)]} />;

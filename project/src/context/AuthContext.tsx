@@ -12,7 +12,7 @@ import {
   isDealerRpcMissing,
 } from '../lib/dealerLoginMessages';
 
-const AUTH_STARTUP_TIMEOUT_MS = 2500;
+const AUTH_STARTUP_TIMEOUT_MS = 5000;
 
 interface AuthContextType {
   user: User | null;
@@ -105,6 +105,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         .catch((err) => {
           console.error('Auth session error:', err);
+          // Check if it's a network error
+          if (err?.message?.includes('fetch') || err?.message?.includes('network') || err?.message?.includes('Failed to fetch')) {
+            console.warn('Network connectivity issue detected. App will continue in offline mode.');
+          }
           finishLoading(null);
         });
 

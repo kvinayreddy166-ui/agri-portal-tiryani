@@ -63,6 +63,20 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     flowType: 'pkce',
   },
+  global: {
+    headers: {
+      'X-Client-Info': 'tiryani-portal',
+    },
+    fetch: (url, options) => {
+      return fetch(url, {
+        ...options,
+        signal: AbortSignal.timeout(8000),
+      });
+    },
+  },
+  db: {
+    schema: 'public',
+  },
 });
 
 if (import.meta.env.DEV) {

@@ -1,4 +1,4 @@
-﻿export type FcoTabId = 'fullText' | 'plainEnglish' | 'officerAction' | 'formsTimelines' | 'mnemonics';
+export type FcoTabId = 'fullText' | 'plainEnglish' | 'officerAction' | 'formsTimelines' | 'mnemonics';
 
 export interface FcoSubClause {
   no: string;
@@ -12,6 +12,36 @@ export interface FcoProviso {
   title: string;
   legalText: string;
   plainEnglish: string;
+}
+
+export interface FcoVariationNote {
+  clause_no: string;
+  subclause_no?: string;
+  chapter?: string;
+  title: string;
+  existing_pdf2_title?: string;
+  authentic_pdf1_title?: string;
+  existing_pdf2_summary: string;
+  authentic_pdf1_summary: string;
+  variation_type: string;
+  variation_description: string;
+  officer_action_point: string;
+  forms_linked: string[];
+  schedule_linked: string[];
+  authority_responsible: string;
+  inspection_action: string;
+  admin_action: string;
+  legal_action: string;
+  telugu_summary?: string;
+  source_pdf2_status: 'old_existing_app_data';
+  source_pdf1_status: 'authentic_current_reference';
+  canonical_status: 'show_pdf1_as_current_but_preserve_pdf2_as_old_reference';
+  display_priority: number;
+  search_keywords: string[];
+  tags: string[];
+  old_pdf2_clause_no?: string;
+  canonical_clause_no?: string;
+  variation_badge?: string;
 }
 
 export interface FcoClause {
@@ -30,6 +60,9 @@ export interface FcoClause {
   keywords: string[];
   mnemonic?: string;
   related: string[];
+  oldPdf2ClauseNo?: string;
+  canonicalClauseNo?: string;
+  variationNotes?: FcoVariationNote[];
 }
 
 export interface FcoClauseCard {
@@ -69,7 +102,7 @@ export const fcoMemoryMnemonic = {
 export const importantFcoMnemonics = [
   { label: 'Clause 19', code: 'SASS-PALM', meaning: 'Standard, Adulteration, Substitute, Stock/Sale, Packing, Avoid false claims, Label, Minimum nutrient' },
   { label: 'Clause 28', code: 'S3ER', meaning: 'Search, Sample, Seize, Enforce stop sale, Report to Collector' },
-  { label: 'Clause 30', code: '7-30-15', meaning: '7 days dispatch, 30 days lab report, 15 days communication' },
+  { label: 'Clause 30', code: '3-15/30/45-7', meaning: '3 working days dispatch, product-wise analysis, 7 days communication' },
   { label: 'Clause 31', code: 'HSRD', meaning: 'Hearing, Suspension, Reasons, Decision' },
   { label: 'Dealer duties', code: 'DSPR', meaning: 'Display Stock, Display Price, Provide Receipt, Records' },
   { label: 'Non-standard fertiliser', code: 'RX-HI', meaning: 'Red X, Form H, Form I' },
@@ -115,7 +148,7 @@ export const fcoClauseCards: FcoClauseCard[] = [
   },
   {
     id: 'card-distribution-control', cardTitle: 'Distribution Control', cardNo: '03', icon: 'Truck', color: 'cyan', gradient: 'from-cyan-700 via-teal-500 to-sky-300', clauseRange: 'Clause 6', range: [6, 6], summary: 'Allocation and distribution control across States.', contains: ['Clause 6', 'Allocation', 'Distribution', 'Manufacturer obligations', 'Importer obligations'],
-    clauses: [{ id: 'clause-6', clauseNo: '6', title: 'Allocation of fertilisers to various States', category: 'Distribution Control', summary: 'Central Government may direct sale quantity in specified State and period.', legalText: 'Clause 6 empowers allocation of fertilisers to various States by directing manufacturer/importer to sell specified quantity in a specified State and period.', plainEnglish: 'Used for government allocation and movement compliance.', subClauses: [{ no: '6', legalText: 'Central Government may direct manufacturer/importer to sell quantity in specified State and period.', plainEnglish: 'Manufacturer/importer must follow allocation directions.', officerAction: action('Verify allocation order, invoice destination and actual movement.'), dealerObligation: obligation('Comply with allocation/distribution direction.') }], provisos: [], explanations: [], forms: [], timelines: ['Specified period in allocation direction'], keywords: ['allocation', 'distribution', 'state supply'], mnemonic: 'D = Distribution direction', related: ['Clause 25', 'FMCO movement checks'] }],
+    clauses: [{ id: 'clause-6', clauseNo: '6', title: 'Control on distribution of fertilisers by manufacturers/importers', category: 'Distribution Control', summary: 'Clause 6 controls distribution/allocation by manufacturers and importers.', legalText: 'Clause 6 empowers distribution and allocation control by directing manufacturer/importer to sell specified quantity in a specified State and period.', plainEnglish: 'Use Clause 6 for allocation and distribution directions by manufacturers/importers.', subClauses: [{ no: '6', legalText: 'Central Government may direct manufacturer/importer to sell quantity in specified State and period.', plainEnglish: 'Manufacturer/importer must follow allocation/distribution directions.', officerAction: action('Verify allocation order, invoice destination and actual movement.'), dealerObligation: obligation('Comply with allocation/distribution direction.') }], provisos: [], explanations: [], forms: [], timelines: ['Specified period in allocation direction'], keywords: ['allocation', 'distribution', 'state supply'], mnemonic: 'D = Distribution direction', related: ['Clause 25', 'FMCO movement checks'] }],
   },
   {
     id: 'card-dealer-registration', cardTitle: 'Dealer Registration & Authorisation', cardNo: '04', icon: 'Store', color: 'purple', gradient: 'from-violet-700 via-purple-500 to-fuchsia-400', clauseRange: 'Clauses 7-11', range: [7, 11], summary: 'Dealer registration, authorisation, application, grant/refusal, validity and renewal.', contains: ['Authorization', 'Registration', 'Application', 'Grant', 'Refusal', 'Validity', 'Renewal', 'All provisos'],
@@ -123,7 +156,7 @@ export const fcoClauseCards: FcoClauseCard[] = [
       { id: 'clause-7', clauseNo: '7', title: 'Registration of industrial dealers and authorisation of other dealers', category: 'Dealer Registration', summary: 'No fertiliser sale/business without valid authorisation, subject to exemption proviso.', legalText: 'Clause 7 covers registration of industrial dealers and authorisation of other dealers.', plainEnglish: 'Dealer must have valid authorisation before sale/business.', subClauses: [{ no: '7', legalText: 'No sale/business without valid authorisation.', plainEnglish: 'Unauthorised sale is a contravention.', officerAction: action('Verify authorisation and premises endorsement.'), dealerObligation: obligation('Hold valid authorisation/registration.') }], provisos: [{ title: 'State Government exemption proviso', legalText: 'State Government exemption proviso applies as per FCO.', plainEnglish: 'Check State exemption before alleging violation.' }], explanations: [], forms: [], timelines: [], keywords: ['authorisation', 'registration', 'dealer'], related: ['Clause 8', 'Clause 31'] },
       { id: 'clause-8', clauseNo: '8', title: 'Application for intimation/registration', category: 'Dealer Registration', summary: 'Applications/MOI in Form A/A1 with fee and Form O; acknowledgement Form A2.', legalText: 'Clause 8 covers application for intimation or registration and acknowledgement/deemed authorisation.', plainEnglish: 'Dealer/manufacturer/importer submits the correct form and source certificate.', subClauses: [{ no: '8(1)', legalText: 'Industrial dealer applies in Form A with fee and Form O.', plainEnglish: 'Industrial dealer application route.' }, { no: '8(2)', legalText: 'Manufacturer/importer/pool agency/wholesaler/retailer submits MOI in Form A1 with fee and Form O.', plainEnglish: 'MOI route for other business categories.' }, { no: '8(3)', legalText: 'Notified Authority issues acknowledgement Form A2, deemed authorisation.', plainEnglish: 'Acknowledgement creates deemed authorisation.' }], provisos: [{ title: 'Old registration', legalText: 'Old registration deemed authorisation.', plainEnglish: 'Existing registration may continue as deemed authorisation.' }, { title: 'Form O exemptions', legalText: 'State Government/manufacturer/importer/pool agency need not submit Form O.', plainEnglish: 'Do not demand Form O where exempt.' }, { title: 'Separate MOI', legalText: 'Separate MOI for wholesale/retail.', plainEnglish: 'Separate business categories need separate MOI.' }, { title: 'Source-wise Form O', legalText: 'Form O from each source.', plainEnglish: 'Verify source certificates.' }, { title: 'Organic/vermicompost exemptions', legalText: 'Organic fertiliser manufacturer by State/municipality and vermicompost below 50 MT annual capacity exempt.', plainEnglish: 'Apply exemptions carefully.' }], explanations: [], forms: ['Form A', 'Form A1', 'Form A2', 'Form O'], timelines: [], keywords: ['Form A', 'Form A1', 'Form A2', 'Form O', 'MOI'], related: ['Clause 9', 'Clause 36'] },
       { id: 'clause-9', clauseNo: '9', title: 'Grant/refusal of certificate', category: 'Dealer Registration', summary: 'Grant Form B within 30 days or refuse for listed grounds.', legalText: 'Clause 9 deals with grant or refusal of certificate.', plainEnglish: 'Authority grants certificate or refuses for specified reasons.', subClauses: [{ no: '9', legalText: 'Grant Form B within 30 days.', plainEnglish: 'Decision timeline for certificate.' }, { no: '9(a)', legalText: 'Previous certificate under suspension.', plainEnglish: 'Ground for refusal.' }, { no: '9(b)', legalText: 'Previous certificate cancelled within one year.', plainEnglish: 'Ground for refusal.' }, { no: '9(c)', legalText: 'Convicted under Essential Commodities Act/order within three years.', plainEnglish: 'Ground for refusal.' }, { no: '9(d)', legalText: 'Certificate of source not enclosed.', plainEnglish: 'Ground for refusal.' }, { no: '9(e)', legalText: 'Incomplete application.', plainEnglish: 'Ground for refusal.' }, { no: '9(f)', legalText: 'Conflict between industrial dealer and wholesale/retail authorisation.', plainEnglish: 'Ground for refusal.' }], provisos: [], explanations: [], forms: ['Form B'], timelines: ['30 days for grant/refusal'], keywords: ['Form B', 'refusal', 'certificate'], related: ['Clause 8', 'Clause 10'] },
-      { id: 'clause-10', clauseNo: '10', title: 'Validity', category: 'Dealer Registration', summary: 'Registration/authorisation valid for 3 years unless renewed/suspended/cancelled.', legalText: 'Clause 10 covers validity of registration/authorisation.', plainEnglish: 'Check date validity and status.', subClauses: [{ no: '10', legalText: 'Registration/authorisation valid for 3 years unless renewed/suspended/cancelled.', plainEnglish: 'Validity period is three years unless affected by later order.' }], provisos: [], explanations: [], forms: [], timelines: ['3 years validity'], keywords: ['validity', '3 years'], related: ['Clause 11', 'Clause 31'] },
+      { id: 'clause-10', clauseNo: '10', title: 'Validity', category: 'Dealer Registration', summary: 'Registration/authorisation valid for 5 years unless renewed/suspended/cancelled.', legalText: 'Clause 10 covers validity of registration/authorisation: valid for 5 years unless renewed, suspended or cancelled.', plainEnglish: 'Use 5 years for dealer licence expiry checks.', subClauses: [{ no: '10', legalText: 'Registration/authorisation valid for 5 years unless renewed/suspended/cancelled.', plainEnglish: 'Validity period is five years unless affected by later order.' }], provisos: [], explanations: [], forms: [], timelines: ['5 years validity'], keywords: ['validity', '5 years'], related: ['Clause 11', 'Clause 31'] },
       { id: 'clause-11', clauseNo: '11', title: 'Renewal', category: 'Dealer Registration', summary: 'Renewal before expiry, grace period, deemed validity and lapse rules.', legalText: 'Clause 11 covers renewal of registration/authorisation.', plainEnglish: 'Renewal must be timely; business after lapse is a contravention.', subClauses: [{ no: '11(1)', legalText: 'Apply before expiry in Form C/Form A1 with fee and source certificate.', plainEnglish: 'Renewal application before expiry.' }, { no: '11(2)', legalText: 'Renewal/acknowledgement Form A2; no renewal if no fertiliser sold in previous one year.', plainEnglish: 'Renewal may be refused for no sales.' }, { no: '11(3)', legalText: 'One-month grace after expiry with additional fee.', plainEnglish: 'Late renewal window.' }, { no: '11(4)', legalText: 'Deemed valid if renewal applied in time.', plainEnglish: 'Protection for timely application.' }, { no: '11(5)', legalText: 'If not applied within one month, licence lapses; business after expiry is contravention.', plainEnglish: 'Post-lapse business is actionable.' }], provisos: [], explanations: [], forms: ['Form C', 'Form A1', 'Form A2'], timelines: ['Apply before expiry', 'One-month grace'], keywords: ['renewal', 'lapse', 'expiry'], related: ['Clause 10', 'Clause 31'] },
     ],
   },
@@ -171,7 +204,7 @@ export const fcoClauseCards: FcoClauseCard[] = [
       { id: 'clause-29', clauseNo: '29', title: 'Laboratory for analysis', category: 'Sample Analysis', summary: 'Designated labs for fertiliser, biofertiliser, organic and non-edible de-oiled cake analysis.', legalText: 'Clause 29 identifies laboratories for analysis and requires minimum equipment/facility.', plainEnglish: 'Send samples to authorised labs only.', subClauses: [{ no: '29(1)', legalText: 'Fertiliser samples analysed in CFQCTI Faridabad/RFCL Mumbai/Chennai/Kalyani or notified lab.', plainEnglish: 'Fertiliser lab list.' }, { no: '29(1A)', legalText: 'Biofertiliser samples analysed in NCOF/Regional Centres or notified lab.', plainEnglish: 'Biofertiliser lab route.' }, { no: '29(1B)', legalText: 'Organic and non-edible de-oiled cake analysed in NCOF/Regional Centres or notified lab.', plainEnglish: 'Organic/non-edible de-oiled cake lab route.' }, { no: '29(2)', legalText: 'Labs must have minimum equipment/facility.', plainEnglish: 'Lab facility requirement.' }], provisos: [], explanations: [], forms: [], timelines: [], keywords: ['laboratory', 'analysis'], related: ['Clause 29A', 'Clause 30'] },
       { id: 'clause-29A', clauseNo: '29A', title: 'Fertiliser analyst qualification', category: 'Sample Analysis', summary: 'Analyst qualification and training.', legalText: 'Clause 29A covers fertiliser analyst qualification.', plainEnglish: 'Analyst must meet qualification/training requirements.', subClauses: [{ no: '29A(1)', legalText: 'Graduate in Agriculture or Science with chemistry.', plainEnglish: 'Educational qualification.' }, { no: '29A(2)', legalText: 'Training in fertiliser quality control and analysis at CFQCTI Faridabad.', plainEnglish: 'Training requirement.' }], provisos: [{ title: 'Existing analysts', legalText: 'Existing analysts without training to undergo training within 3 years.', plainEnglish: 'Transition training window.' }], explanations: [], forms: [], timelines: ['3 years for existing analysts to undergo training'], keywords: ['analyst', 'qualification'], related: ['Clause 29'] },
       { id: 'clause-29B', clauseNo: '29B', title: 'Referee analysis', category: 'Sample Analysis', summary: 'Referee lab designation and challenged sample procedure.', legalText: 'Clause 29B covers referee analysis.', plainEnglish: 'Use referee analysis when report is challenged through proper authority.', subClauses: [{ no: '29B(1)', legalText: 'Every clause 29 lab designated referee lab.', plainEnglish: 'Labs can act as referee labs.' }, { no: '29B(2)', legalText: 'Appellate authority/controller sends one of two remaining samples for referee analysis.', plainEnglish: 'Remaining sample is used for referee test.' }], provisos: [{ title: 'Same lab bar', legalText: 'Same lab that did first analysis cannot be referee lab.', plainEnglish: 'Referee must be independent from first lab.' }, { title: 'Other lab route', legalText: 'Challenged sample can be sent to other lab except same State/first analysis lab.', plainEnglish: 'Avoid same State/first lab.' }, { title: 'CFQCTI/regional grouping', legalText: 'CFQCTI and regional labs treated as one group.', plainEnglish: 'Group treated together for independence.' }], explanations: [], forms: [], timelines: [], keywords: ['referee analysis', 'appeal'], related: ['Clause 30', 'Clause 32'] },
-      { id: 'clause-30', clauseNo: '30', title: 'Time limit for analysis and communication', category: 'Sample Analysis', summary: '7 days dispatch, 30 days lab report, 15 days communication.', legalText: 'Clause 30 prescribes timeline for dispatch of sample, lab report and communication of result.', plainEnglish: 'Remember 7-30-15 for sampling timeline.', subClauses: [{ no: '30(1)', legalText: 'Dispatch sample with Form K/K1 within 7 days.', plainEnglish: 'Sample dispatch deadline.' }, { no: '30(2)', legalText: 'Lab report in Form L/L1/L2/L3 within 30 days.', plainEnglish: 'Lab reporting deadline.' }, { no: '30(3)', legalText: 'Communicate result within 15 days.', plainEnglish: 'Communication deadline.' }], provisos: [], explanations: [], forms: ['Form K', 'Form K1', 'Form L', 'Form L1', 'Form L2', 'Form L3'], timelines: ['7 days dispatch', '30 days lab report', '15 days communication'], keywords: ['7-30-15', 'Form K', 'Form L'], mnemonic: '7-30-15 = 7 days dispatch, 30 days lab report, 15 days communication', related: ['Clause 28', 'Clause 29'] },
+      { id: 'clause-30', clauseNo: '30', title: 'Time limit for analysis and communication', category: 'Sample Analysis', summary: 'Current time limits: 3 working days dispatch; 15/30/45 days analysis by product; 7 days communication.', legalText: 'Clause 30 prescribes product-specific sample dispatch, analysis and communication time limits.', plainEnglish: 'Dispatch samples within 3 working days, track lab analysis by product category, and communicate result within 7 days.', subClauses: [{ no: '30(1)', legalText: 'Dispatch sample with Form K/K1 within 3 working days.', plainEnglish: 'Sample dispatch deadline is 3 working days.' }, { no: '30(2)', legalText: 'Inorganic fertiliser analysis within 15 days; organic fertiliser/non-edible de-oiled cake within 30 days; biofertiliser within 45 days.', plainEnglish: 'Analysis period depends on product type.' }, { no: '30(3)', legalText: 'Communicate analysis result within 7 days.', plainEnglish: 'Communication deadline is 7 days.' }], provisos: [], explanations: [], forms: ['Form K', 'Form K1', 'Form L', 'Form L1', 'Form L2', 'Form L3'], timelines: ['3 working days dispatch', '15 days inorganic fertiliser analysis', '30 days organic/non-edible de-oiled cake analysis', '45 days biofertiliser analysis', '7 days communication'], keywords: ['3-15/30/45-7', '3 working days', 'Form K', 'Form L'], mnemonic: '3-15/30/45-7 = dispatch, product analysis, communication', related: ['Clause 28', 'Clause 29'] },
     ],
   },
   {
@@ -191,6 +224,235 @@ export const fcoClauseCards: FcoClauseCard[] = [
   },
 ];
 
+const sourceStatus = {
+  source_pdf2_status: 'old_existing_app_data',
+  source_pdf1_status: 'authentic_current_reference',
+  canonical_status: 'show_pdf1_as_current_but_preserve_pdf2_as_old_reference',
+} as const;
+
+function variationNote(note: Omit<FcoVariationNote, keyof typeof sourceStatus>): FcoVariationNote {
+  return { ...note, ...sourceStatus };
+}
+
+function findFcoClause(clauseNo: string) {
+  return fcoClauseCards.flatMap((card) => card.clauses).find((clause) => clause.clauseNo === clauseNo);
+}
+
+function addVariation(clauseNo: string, note: FcoVariationNote) {
+  const clause = findFcoClause(clauseNo);
+  if (!clause) return;
+  clause.variationNotes = [...(clause.variationNotes || []), note].sort((a, b) => a.display_priority - b.display_priority);
+  clause.keywords = Array.from(new Set([...clause.keywords, ...note.search_keywords]));
+  clause.oldPdf2ClauseNo = note.old_pdf2_clause_no || clause.oldPdf2ClauseNo;
+  clause.canonicalClauseNo = note.canonical_clause_no || clause.canonicalClauseNo || clause.clauseNo;
+}
+
+function enrichFcoCurrentReference() {
+  const clause2 = findFcoClause('2');
+  if (clause2) {
+    clause2.explanations = Array.from(new Set([
+      ...clause2.explanations,
+      'Current PDF-1 reference adds biostimulant and nano fertiliser to the practical fertiliser-definition search set.',
+      'Current structure recognises 7 schedules including Schedule VI Biostimulants and Schedule VII Nano Fertilisers.',
+    ]));
+  }
+
+  const clause6 = findFcoClause('6');
+  if (clause6) {
+    clause6.title = 'Control on distribution of fertilisers by manufacturers/importers';
+    clause6.summary = 'Clause 6 controls distribution/allocation by manufacturers and importers.';
+    clause6.plainEnglish = 'Use Clause 6 for allocation and distribution directions by manufacturers/importers.';
+  }
+
+  const clause8 = findFcoClause('8');
+  if (clause8 && !clause8.subClauses.some((item) => item.no === '8(4)')) {
+    clause8.subClauses.push({
+      no: '8(4)',
+      legalText: 'Retail dealer qualification update: certificate course of 15 days from approved institution, or B.Sc. Agriculture, B.Sc. Chemistry, Diploma in Agriculture Science, or equivalent notified course, subject to applicable exemptions/conditions for existing dealers/cooperative societies.',
+      plainEnglish: 'Retail dealer eligibility must be checked before licence verification or renewal.',
+      officerAction: action('Add Clause 8(4) qualification check to dealer eligibility and licence verification checklist.'),
+      dealerObligation: obligation('Keep qualification/training proof available for verification.'),
+    });
+    clause8.timelines = Array.from(new Set([...clause8.timelines, 'Authorisation validity: 5 years as current PDF-1 officer reference']));
+    clause8.keywords = Array.from(new Set([...clause8.keywords, '8(4)', 'retail dealer qualification', '15 days certificate course', 'BSc Agriculture', 'BSc Chemistry', 'Diploma Agriculture Science', '5 years validity']));
+  }
+
+  const clause10 = findFcoClause('10');
+  if (clause10) {
+    clause10.summary = 'Authorisation validity is 5 years unless renewed, suspended or cancelled.';
+    clause10.legalText = 'Clause 10 covers validity of registration/authorisation: valid for 5 years unless renewed, suspended or cancelled.';
+    clause10.plainEnglish = 'Use 5 years for dealer licence expiry checks.';
+    clause10.subClauses = clause10.subClauses.map((subClause) =>
+      subClause.no === '10'
+        ? { ...subClause, legalText: 'Current officer reference: registration/authorisation valid for 5 years unless renewed/suspended/cancelled.', plainEnglish: 'Validity period is five years in current reference.' }
+        : subClause
+    );
+    clause10.timelines = ['5 years validity'];
+    clause10.keywords = Array.from(new Set([...clause10.keywords.filter((item) => item !== '3 years'), '5 years', 'old 3 years', 'validity correction']));
+  }
+
+  const clause30 = findFcoClause('30');
+  if (clause30) {
+    clause30.summary = 'Current time limits: 3 working days dispatch; 15/30/45 days analysis by product; 7 days communication.';
+    clause30.legalText = 'Clause 30 prescribes product-specific sample dispatch, analysis and communication time limits.';
+    clause30.plainEnglish = 'Dispatch samples within 3 working days, track lab analysis by product category, and communicate result within 7 days.';
+    clause30.subClauses = [
+      { no: '30(1)', legalText: 'Dispatch sample with Form K/K1 within 3 working days.', plainEnglish: 'Sample dispatch deadline is 3 working days.', officerAction: action('Dispatch sample to the notified laboratory within 3 working days.') },
+      { no: '30(2)', legalText: 'Inorganic fertiliser analysis within 15 days; organic fertiliser/non-edible de-oiled cake within 30 days; biofertiliser within 45 days.', plainEnglish: 'Analysis period depends on product type.', officerAction: action('Use product-specific reminder dates in sample tracking.') },
+      { no: '30(3)', legalText: 'Communicate analysis result within 7 days.', plainEnglish: 'Communication deadline is 7 days, not 15 days.', officerAction: action('Communicate result to concerned parties within 7 days.') },
+    ];
+    clause30.timelines = ['3 working days dispatch', '15 days inorganic fertiliser analysis', '30 days organic/non-edible de-oiled cake analysis', '45 days biofertiliser analysis', '7 days communication'];
+    clause30.keywords = Array.from(new Set([...clause30.keywords, '3 working days', '15 days analysis', '45 days biofertiliser', '7 days communication', 'dispatch correction']));
+    clause30.mnemonic = '3-15/30/45-7 = dispatch, product analysis, communication';
+  }
+  const clause19 = findFcoClause('19');
+  if (clause19 && !clause19.subClauses.some((item) => item.no === '19A')) {
+    clause19.subClauses.push({
+      no: '19A',
+      legalText: 'Responsibility related to stitched bags and dealer/manufacturer responsibility must be checked during packing and stock verification.',
+      plainEnglish: 'Check stitched bags, packing responsibility and dealer/manufacturer responsibility.',
+      officerAction: action('Add stitched-bag and responsibility check to packing/stock verification checklist.'),
+      dealerObligation: obligation('Maintain compliant packing and responsibility traceability.'),
+    });
+    clause19.keywords = Array.from(new Set([...clause19.keywords, '19A', 'stitched bags', 'dealer manufacturer responsibility', 'packing responsibility']));
+    clause19.related = Array.from(new Set([...clause19.related, 'Clause 19A', 'Clause 21']));
+  }
+
+  const clause28 = findFcoClause('28');
+  if (clause28 && !clause28.subClauses.some((item) => item.no === '28A')) {
+    clause28.subClauses.push({
+      no: '28A',
+      legalText: 'Sample custody officer and updated sample flow: second sample to National Test House and third/referee sample to CFQC&TI, Faridabad where applicable. Nano fertiliser and biostimulant sampling should use three bottles/packs from same batch/manufacturer with proper split custody.',
+      plainEnglish: 'Use updated sample custody flow for referee/National Test House route and nano/biostimulant samples.',
+      officerAction: action('Record sample custody split and product type before dispatch.'),
+      dealerObligation: obligation('Provide same batch/manufacturer bottles or packs and cooperate with sample custody procedure.'),
+    });
+    clause28.forms = Array.from(new Set([...clause28.forms, 'Form K', 'Form K1']));
+    clause28.timelines = Array.from(new Set([...clause28.timelines, 'Product-specific sample custody route for nano fertiliser and biostimulant']));
+    clause28.keywords = Array.from(new Set([...clause28.keywords, '28A', 'sample custody officer', 'National Test House', 'CFQC&TI Faridabad', 'nano fertiliser sampling', 'biostimulant sampling']));
+    clause28.related = Array.from(new Set([...clause28.related, 'Clause 28A', 'Clause 29B', 'Clause 30']));
+  }
+
+  const clause23 = findFcoClause('23');
+  if (clause23 && !clause23.subClauses.some((item) => item.no === '23A')) {
+    clause23.subClauses.push({
+      no: '23A',
+      legalText: 'Reprocessing of fertiliser damaged during storage: damaged stock workflow with Form I-1, Form I-2 and DAMAGED marking where applicable.',
+      plainEnglish: 'Use damaged stock reprocessing workflow for storage-damaged fertiliser.',
+      officerAction: action('Verify damaged marking, permission, movement and reprocessing documents.'),
+    });
+    clause23.forms = Array.from(new Set([...clause23.forms, 'Form I-1', 'Form I-2']));
+    clause23.keywords = Array.from(new Set([...clause23.keywords, '23A', 'damaged stock', 'reprocessing', 'DAMAGED marking', 'Form I-1', 'Form I-2']));
+  }
+
+  const clause27 = findFcoClause('27');
+  if (clause27 && !clause27.subClauses.some((item) => item.no === '27AA')) {
+    clause27.subClauses.push({
+      no: '27AA',
+      legalText: 'Regular training of Fertiliser Inspectors every 3 years.',
+      plainEnglish: 'Inspector training compliance should be tracked every 3 years.',
+      officerAction: action('Add 3-year training compliance note to inspector file.'),
+    });
+    clause27.timelines = Array.from(new Set([...clause27.timelines, 'Inspector training every 3 years']));
+    clause27.keywords = Array.from(new Set([...clause27.keywords, '27AA', 'inspector training', '3 years training']));
+  }
+}
+
+enrichFcoCurrentReference();
+
+addVariation('1', variationNote({
+  clause_no: '1', chapter: 'Title & Definitions', title: 'Current expanded title',
+  existing_pdf2_title: 'Fertiliser (Control) Order, 1985',
+  authentic_pdf1_title: 'Fertiliser (Inorganic, Organic or Mixed) Control Order 1985, vide S.O.349(E), dated 06.02.2017',
+  existing_pdf2_summary: 'Older title used in existing app/PDF-2.',
+  authentic_pdf1_summary: 'Current title expands the order name to include inorganic, organic or mixed fertilisers.',
+  variation_type: 'title_update', variation_description: 'Current title expanded; preserve old title as previous reference only.',
+  officer_action_point: 'Use current expanded title in notices, reports and search; keep old title as historical name.',
+  forms_linked: [], schedule_linked: ['Schedules I-VII'], authority_responsible: 'Central Government / notified authority',
+  inspection_action: 'Use current order title in inspection note heading.', admin_action: 'Update citation templates to current title.', legal_action: 'Verify latest Gazette before prosecution filing.',
+  telugu_summary: 'Telugu bilingual summary can be added after verified Telugu source review.',
+  display_priority: 1, search_keywords: ['current title', 'Fertiliser Inorganic Organic Mixed Control Order', 'SO 349(E)', '06.02.2017'], tags: ['title_update', 'authentic_pdf1'], canonical_clause_no: '1', variation_badge: 'Updated / Variation Available',
+}));
+
+addVariation('2', variationNote({
+  clause_no: '2', chapter: 'Title & Definitions', title: 'Definitions include biostimulant and nano fertiliser',
+  existing_pdf2_summary: 'PDF-2 definition mainly covers Schedule I, mixtures, special mixtures, provisional/customised fertiliser, biofertiliser, organic fertiliser and non-edible de-oiled cake.',
+  authentic_pdf1_summary: 'Current definition includes essential plant nutrients or beneficial elements from inorganic, organic or mixed sources, including biostimulant and nano fertiliser.',
+  variation_type: 'definition_expansion', variation_description: 'Biostimulant and nano fertiliser are added in current reference.',
+  officer_action_point: 'Add biostimulant and nano fertiliser to schedule filters, sample workflow and search tags.',
+  forms_linked: [], schedule_linked: ['Schedule VI - Biostimulants', 'Schedule VII - Nano Fertilisers'], authority_responsible: 'Notified Authority / Fertiliser Inspector',
+  inspection_action: 'Check label/product category before selecting sampling workflow.', admin_action: 'Classify new products under current schedule categories.', legal_action: 'Use current definitions before alleging non-standard or misbranding violations.',
+  telugu_summary: 'Telugu bilingual summary can be added after verified Telugu source review.',
+  display_priority: 1, search_keywords: ['fertiliser_definition', 'inorganic', 'organic', 'mixed', 'beneficial_elements', 'biostimulant', 'nano_fertiliser'], tags: ['definition', 'schedule_vi', 'schedule_vii'], canonical_clause_no: '2', variation_badge: 'Updated / Variation Available',
+}));
+
+[
+  ['5', 'Clause 5 - Allocation of fertilisers to various States', 'Clause 6 - Control on Distribution of Fertilisers by manufacturers/importers', 'Use Clause 6 in notices, reports, legal references and app search.'],
+  ['6', 'Clause 6 - Registration of Industrial dealers and authorization of other dealers', 'Clause 7 - Registration of Industrial Dealers and Authorization of other Dealers', 'Use Clause 7 in dealer licence module and enforcement references.'],
+  ['7', 'Clause 7 - Application for intimation or registration', 'Clause 8 - Application for intimation or registration', 'Use Clause 8 for application/intimation and 5-year validity reference.'],
+].forEach(([oldNo, oldTitle, currentTitle, actionPoint], index) => {
+  const canonical = String(Number(oldNo) + 1);
+  addVariation(canonical, variationNote({
+    clause_no: canonical, chapter: canonical === '6' ? 'Distribution Control' : 'Dealer Registration', title: `PDF-2 numbering correction: old Clause ${oldNo} is current Clause ${canonical}`,
+    existing_pdf2_title: oldTitle, authentic_pdf1_title: currentTitle,
+    existing_pdf2_summary: `Existing PDF-2 numbering refers to this subject as Clause ${oldNo}.`, authentic_pdf1_summary: `Current PDF-1 numbering treats this subject as Clause ${canonical}.`,
+    variation_type: 'numbering_shift', variation_description: 'Numbering shifted in old PDF-2 source.', officer_action_point: actionPoint,
+    forms_linked: canonical === '8' ? ['Form A1', 'Form A2', 'Form O'] : [], schedule_linked: [], authority_responsible: canonical === '6' ? 'Central Government / manufacturer / importer' : 'Notified Authority / Registering Authority',
+    inspection_action: 'Search by old or current number, but cite the current canonical clause in official papers.', admin_action: 'Keep old PDF-2 reference only inside variation notes.', legal_action: `For legal/official use, refer this as Clause ${canonical}, not Clause ${oldNo}.`,
+    telugu_summary: `Old PDF-2 used Clause ${oldNo}; current reference should be cited as Clause ${canonical}.`, display_priority: index + 1,
+    search_keywords: [`Clause ${oldNo}`, oldTitle, `Clause ${canonical}`, currentTitle, 'old PDF-2 reference', 'current PDF-1 reference'], tags: ['numbering_shift', 'pdf2_old', 'pdf1_current'], old_pdf2_clause_no: oldNo, canonical_clause_no: canonical, variation_badge: 'Updated / Variation Available',
+  }));
+});
+
+addVariation('8', variationNote({
+  clause_no: '8', subclause_no: '8(4)', chapter: 'Dealer Registration', title: 'Retail dealer qualification added',
+  existing_pdf2_summary: 'Retail dealer qualification was missing or not clear in PDF-2.',
+  authentic_pdf1_summary: 'Retail dealer qualification includes 15 days certificate course from approved institutions, or B.Sc Agriculture, B.Sc Chemistry, Diploma in Agriculture Science, or equivalent notified course, subject to applicable exemptions/conditions.',
+  variation_type: 'missing_subclause_update', variation_description: 'Clause 8(4) is added as a dealer eligibility and licence verification item.',
+  officer_action_point: 'Add 8(4) qualification proof to dealer eligibility card and licence verification checklist.',
+  forms_linked: ['Form A1', 'Form A2', 'Form O'], schedule_linked: [], authority_responsible: 'Notified Authority / Registering Authority', inspection_action: 'Verify qualification/training certificate during licence inspection.', admin_action: 'Use 5-year validity in updated dealer licence expiry logic.', legal_action: 'Cite Clause 8(4) only after verifying applicable exemptions/conditions.',
+  telugu_summary: 'Telugu bilingual summary can be added after verified Telugu source review.', display_priority: 2,
+  search_keywords: ['8(4)', 'retail dealer qualification', '15 days certificate course', 'BSc Agriculture', 'BSc Chemistry', 'Diploma Agriculture Science', 'dealer eligibility', '5 years validity'], tags: ['dealer_eligibility', 'qualification', 'licence_verification'], old_pdf2_clause_no: '7', canonical_clause_no: '8', variation_badge: 'Updated / Variation Available',
+}));
+
+addVariation('19', variationNote({
+  clause_no: '19', chapter: 'Restrictions', title: 'Updated non-compliance coverage and Clause 19A note',
+  existing_pdf2_summary: 'PDF-2 carries older restriction text for non-standard/adulterated/misbranded/imitation fertiliser.',
+  authentic_pdf1_summary: 'Current reference keeps Clause 19 restrictions and adds attention to Clause 19A responsibility related to stitched bags/dealer-manufacturer responsibility.',
+  variation_type: 'coverage_enrichment', variation_description: 'Keep existing 19(a), 19(b), 19(c)(i)-(vii) coverage and add Clause 19A packing responsibility note.',
+  officer_action_point: 'Use Clause 19 for stop sale/non-standard/adulteration/legal module; add Clause 19A to packing/stock verification checklist.',
+  forms_linked: [], schedule_linked: ['Schedules I-VII where applicable'], authority_responsible: 'Fertiliser Inspector / Notified Authority', inspection_action: 'Record batch, label, manufacturer/importer, packing, claim and suspected defect.', admin_action: 'Link findings with stop sale, sample drawal and show cause workflow.', legal_action: 'Use exact sub-clause after verifying product facts and lab report.',
+  telugu_summary: 'Telugu bilingual summary can be added after verified Telugu source review.', display_priority: 1,
+  search_keywords: ['19A', 'stitched bags', 'dealer manufacturer responsibility', 'non-standard', 'adulterated', 'misleading claim'], tags: ['restriction', 'packing', 'stop_sale', 'legal_action'], canonical_clause_no: '19', variation_badge: 'Updated / Variation Available',
+}));
+
+addVariation('28', variationNote({
+  clause_no: '28', chapter: 'Inspector Powers', title: 'Current sampling flow extensions: 28A, nano and biostimulant',
+  existing_pdf2_summary: 'PDF-2 covers general inspector powers and older Schedule II-V sampling routes.',
+  authentic_pdf1_summary: 'Current notes add Clause 28A sample custody officer flow, nano fertiliser bottle split and biostimulant pack/bottle split workflows.',
+  variation_type: 'sampling_workflow_update', variation_description: 'Add sample custody officer, second sample to National Test House, third/referee sample to CFQC&TI Faridabad, plus nano/biostimulant product-specific workflows.',
+  officer_action_point: 'Use product type = nano_fertiliser or biostimulant in sample workflow and preserve custody trail.',
+  forms_linked: ['Form J', 'Form K/K1 where applicable'], schedule_linked: ['Schedule II', 'Schedule III', 'Schedule IV', 'Schedule V', 'Schedule VI', 'Schedule VII'], authority_responsible: 'Fertiliser Inspector / Sample Custody Officer / Notified Laboratory', inspection_action: 'Draw 3 bottles/packs from same batch/manufacturer where product-specific workflow applies.', admin_action: 'Track custody split: dealer/sample custodian/lab/referee route.', legal_action: 'Mention updated sample custody workflow before relying on lab/referee result.',
+  telugu_summary: 'Telugu bilingual summary can be added after verified Telugu source review.', display_priority: 1,
+  search_keywords: ['28A', 'sample custody officer', 'National Test House', 'CFQC&TI Faridabad', 'nano fertiliser sampling', 'biostimulant sampling', 'SO 5384(E)', 'SO 5492(E)', 'SO 4361(E)'], tags: ['sampling', 'custody', 'nano_fertiliser', 'biostimulant'], canonical_clause_no: '28', variation_badge: 'Updated / Variation Available',
+}));
+
+addVariation('30', variationNote({
+  clause_no: '30', chapter: 'Sample Analysis', title: 'Corrected sample dispatch, analysis and communication time limits',
+  existing_pdf2_summary: 'Old display: dispatch to lab within 7 days; analysis within 30 days; communication within 15 days.',
+  authentic_pdf1_summary: 'Current display: dispatch within 3 working days; inorganic analysis 15 days; organic/non-edible de-oiled cake 30 days; biofertiliser 45 days; communication 7 days.',
+  variation_type: 'timeline_correction', variation_description: 'Important time-limit update. Dispatch is 3 working days and communication is 7 days, not 15 days.',
+  officer_action_point: 'Use current time limits in inspection calendar, reminders and sample tracking.',
+  forms_linked: ['Form K', 'Form K1', 'Form L', 'Form L1', 'Form L2', 'Form L3'], schedule_linked: ['Schedules II-VII where product specific'], authority_responsible: 'Fertiliser Inspector / notified laboratory / Notified Authority', inspection_action: 'Record sample drawal date and dispatch within 3 working days.', admin_action: 'Configure reminders by product category: 15/30/45 day analysis and 7 day communication.', legal_action: 'Use corrected timeline in notices and prosecution file chronology.',
+  telugu_summary: 'Telugu bilingual summary can be added after verified Telugu source review.', display_priority: 1,
+  search_keywords: ['3 working days dispatch', 'dispatch 3 days', '15 days inorganic', '30 days organic', '45 days biofertiliser', '7 days communication', 'old 15 days communication'], tags: ['timeline_correction', 'sample_tracking', 'dispatch'], canonical_clause_no: '30', variation_badge: 'Updated / Variation Available',
+}));
+
+export const fcoCurrentStructureNote = {
+  schedules: ['Schedule I - Fertilisers', 'Schedule II - Sampling procedure', 'Schedule III - Biofertilisers', 'Schedule IV - Organic fertilisers', 'Schedule V - Non-edible de-oiled cake fertilisers', 'Schedule VI - Biostimulants', 'Schedule VII - Nano Fertilisers'],
+  formsCount: 27,
+  clauseRange: 'Clauses 1 to 39',
+};
 export const expectedFcoClauseNumbers = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','20A','20B','21','21A','22','23','24','25','26','26A','27','27A','27B','28','29','29A','29B','30','31','32','32A','33','34','35','36','37','38','39'];
 
 export function validateFcoClauseCoverage(cards = fcoClauseCards) {
@@ -202,4 +464,4 @@ export function validateFcoClauseCoverage(cards = fcoClauseCards) {
   return { expected: expectedFcoClauseNumbers.length, present: present.size, missing };
 }
 
-export const fcoDashboardStats = ['9 Cards', '39+ Clauses', 'All Sub-clauses Included', 'Forms A-O', 'Offline Ready'];
+export const fcoDashboardStats = ['9 Cards', 'Clauses 1-39', '7 Schedules', '27 Forms', 'Offline Ready'];

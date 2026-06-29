@@ -72,6 +72,44 @@
           hardRefresh();
         }
 
+        function clearCachesOnly() {
+          if (!('caches' in window)) return Promise.resolve();
+          return caches.keys().then(function (keys) {
+            return Promise.all(keys.map(function (key) { return caches.delete(key); }));
+          });
+        }
+
+        function releaseServiceWorkerControl() {
+          if (!('serviceWorker' in navigator)) return;
+          var hadController = Boolean(navigator.serviceWorker.controller);
+          Promise.resolve()
+            .then(function () {
+              return navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                return Promise.all(registrations.map(function (registration) { return registration.unregister(); }));
+              });
+            })
+            .then(clearCachesOnly)
+            .then(function () {
+              if (!hadController) return;
+              var resetKey = 'tiryani-html-sw-reset-v1';
+              var alreadyReset = false;
+              try {
+                alreadyReset = sessionStorage.getItem(resetKey) === '1';
+                sessionStorage.setItem(resetKey, '1');
+              } catch (error) {
+                alreadyReset = true;
+              }
+              if (alreadyReset) return;
+              var url = new URL(window.location.href);
+              url.searchParams.set('sw-reset', String(Date.now()));
+              window.location.replace(url.toString());
+            })
+            .catch(function () {
+              // Recovery is best-effort; normal network loading should continue.
+            });
+        }
+
+        releaseServiceWorkerControl();
         window.__TIRYANI_FORCE_REFRESH__ = hardRefresh;
         window.setTimeout(function () {
           var loader = document.getElementById('startup-loader');

@@ -21,7 +21,7 @@ export const fertiliserLegalCharts: FertiliserLegalChart[] = [
     chartNumber: 'Chart 3',
     title: 'Implementation of FCO, 1985',
     topNode: 'Implementation of FCO, 1985',
-    footerNote: 'Verify latest Government notification and departmental instructions before legal action.',
+    footerNote: 'Current PDF-1 reference: FCO 1985 covers Clauses 1-39, 7 schedules and 27 forms. Verify latest Government notification and departmental instructions before legal action.',
     branches: [
       {
         id: 'licensing',
@@ -33,6 +33,7 @@ export const fertiliserLegalCharts: FertiliserLegalChart[] = [
           'C&DA / State Licensing Officer',
           'Manufacturing Licence in Form F',
           'Marketing Licence in Form A2',
+          'Current structure: 7 schedules and 27 forms',
         ],
       },
       {
@@ -55,6 +56,8 @@ export const fertiliserLegalCharts: FertiliserLegalChart[] = [
           '3 FCO Labs',
           '64 labs in country',
           'CFQCTI Faridabad',
+          'Schedule VI: Biostimulants',
+          'Schedule VII: Nano Fertilisers',
         ],
       },
       {
