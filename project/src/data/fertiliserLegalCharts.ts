@@ -21,7 +21,7 @@ export const fertiliserLegalCharts: FertiliserLegalChart[] = [
     chartNumber: 'Chart 3',
     title: 'Implementation of FCO, 1985',
     topNode: 'Implementation of FCO, 1985',
-    footerNote: 'Current PDF-1 reference: FCO 1985 covers Clauses 1-39, 7 schedules and 27 forms. Verify latest Government notification and departmental instructions before legal action.',
+    footerNote: 'Verify latest Government notification and departmental instructions before legal action.',
     branches: [
       {
         id: 'licensing',

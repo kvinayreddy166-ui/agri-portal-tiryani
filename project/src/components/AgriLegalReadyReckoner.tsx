@@ -585,10 +585,10 @@ const fco3dPalette: Record<FertiliserLegalChart['branches'][number]['accent'], {
 };
 
 const fco3dPanelPositions: Array<[number, number, number]> = [
-  [-4.2, 0.5, 0],
-  [-1.45, -1.35, 0.35],
-  [1.45, -1.35, 0.35],
-  [4.2, 0.5, 0],
+  [-3.1, 0.34, 0],
+  [-1.02, -1.18, 0.28],
+  [1.02, -1.18, 0.28],
+  [3.1, 0.34, 0],
 ];
 
 function FcoImplementationChart({
@@ -615,8 +615,8 @@ function FcoImplementationChart({
         </button>
       </div>
 
-      <div ref={chartRef} className="relative h-[34rem] min-h-[28rem] overflow-hidden bg-slate-950 sm:h-[38rem]" aria-label="Animated 3D chart for Implementation of FCO, 1985">
-        <Canvas camera={{ position: [0, 1.2, 8.5], fov: 43 }} dpr={[1, 1.75]} gl={{ antialias: true, alpha: false }}>
+      <div ref={chartRef} className="relative h-[25rem] min-h-[23rem] overflow-hidden bg-slate-950 sm:h-[29rem]" aria-label="Animated 3D chart for Implementation of FCO, 1985">
+        <Canvas camera={{ position: [0, 0.85, 7.8], fov: 47 }} dpr={[1, 1.5]} gl={{ antialias: true, alpha: false }}>
           <color attach="background" args={['#ecfeff']} />
           <fog attach="fog" args={['#ecfeff', 9, 16]} />
           <ambientLight intensity={1.25} />
@@ -630,11 +630,8 @@ function FcoImplementationChart({
         <div className="pointer-events-none absolute left-4 top-4 max-w-sm rounded-lg border border-white/70 bg-white/75 px-4 py-3 text-slate-900 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-950/70 dark:text-white">
           <p className="text-xs font-black uppercase tracking-wide text-cyan-700 dark:text-cyan-300">Animated 3D Chart</p>
           <h2 className="mt-1 text-lg font-black">{chart.topNode}</h2>
-          <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Drag to rotate the implementation map.</p>
+          <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Drag to inspect the compact implementation map.</p>
         </div>
-        <p className="pointer-events-none absolute bottom-4 left-4 right-4 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2 text-center text-xs font-black text-amber-950 shadow-sm">
-          {chart.footerNote}
-        </p>
       </div>
     </section>
   );
@@ -646,8 +643,9 @@ function FcoImplementationScene({ chart }: { chart: FertiliserLegalChart }) {
   useFrame(() => {
     if (!groupRef.current) return;
     const elapsed = performance.now() * 0.001;
-    groupRef.current.rotation.y = Math.sin(elapsed * 0.35) * 0.08;
-    groupRef.current.position.y = Math.sin(elapsed * 0.8) * 0.06;
+    groupRef.current.rotation.y = Math.sin(elapsed * 0.22) * 0.045;
+    groupRef.current.rotation.x = Math.sin(elapsed * 0.18) * 0.018;
+    groupRef.current.position.y = Math.sin(elapsed * 0.55) * 0.035;
   });
 
   return (
@@ -656,12 +654,12 @@ function FcoImplementationScene({ chart }: { chart: FertiliserLegalChart }) {
       {chart.branches.map((branch, index) => (
         <FcoBranchPanel key={branch.id} branch={branch} index={index} position={fco3dPanelPositions[index] || [0, 0, 0]} />
       ))}
-      <FcoConnector position={[-2.8, -0.2, -0.03]} rotationZ={-0.63} length={2.8} />
-      <FcoConnector position={[-0.8, -0.95, 0.08]} rotationZ={-0.94} length={1.8} />
-      <FcoConnector position={[0.8, -0.95, 0.08]} rotationZ={0.94} length={1.8} />
-      <FcoConnector position={[2.8, -0.2, -0.03]} rotationZ={0.63} length={2.8} />
-      <mesh position={[0, -2.75, -0.8]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <circleGeometry args={[5.8, 96]} />
+      <FcoConnector position={[-2.1, -0.12, -0.03]} rotationZ={-0.56} length={2.15} />
+      <FcoConnector position={[-0.58, -0.82, 0.08]} rotationZ={-0.82} length={1.35} />
+      <FcoConnector position={[0.58, -0.82, 0.08]} rotationZ={0.82} length={1.35} />
+      <FcoConnector position={[2.1, -0.12, -0.03]} rotationZ={0.56} length={2.15} />
+      <mesh position={[0, -2.28, -0.8]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <circleGeometry args={[4.55, 96]} />
         <meshStandardMaterial color="#dff8f7" roughness={0.7} metalness={0.05} transparent opacity={0.62} />
       </mesh>
     </group>
@@ -674,17 +672,17 @@ function FcoTopNode({ label }: { label: string }) {
   useFrame(() => {
     if (!meshRef.current) return;
     const elapsed = performance.now() * 0.001;
-    const scale = 1 + Math.sin(elapsed * 1.4) * 0.025;
+    const scale = 1 + Math.sin(elapsed * 0.9) * 0.018;
     meshRef.current.scale.set(scale, scale, scale);
   });
 
   return (
-    <group position={[0, 1.75, 0.2]}>
+    <group position={[0, 1.52, 0.2]}>
       <mesh ref={meshRef}>
-        <boxGeometry args={[3.7, 0.72, 0.28]} />
+        <boxGeometry args={[3.15, 0.6, 0.24]} />
         <meshStandardMaterial color="#67e8f9" emissive="#0891b2" emissiveIntensity={0.18} roughness={0.35} metalness={0.08} />
       </mesh>
-      <Text position={[0, 0.01, 0.18]} fontSize={0.18} maxWidth={3.2} lineHeight={1.1} textAlign="center" anchorX="center" anchorY="middle" color="#083344">
+      <Text position={[0, 0.01, 0.16]} fontSize={0.155} maxWidth={2.75} lineHeight={1.05} textAlign="center" anchorX="center" anchorY="middle" color="#083344">
         {label.toUpperCase()}
       </Text>
     </group>
@@ -702,32 +700,32 @@ function FcoBranchPanel({
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const palette = fco3dPalette[branch.accent];
-  const visibleDetails = branch.details.slice(0, 4).join('\n');
+  const visibleDetails = branch.details.slice(0, 3).join('\n');
 
   useFrame(() => {
     if (!groupRef.current) return;
     const elapsed = performance.now() * 0.001;
-    groupRef.current.position.y = position[1] + Math.sin(elapsed * 1.15 + index) * 0.09;
-    groupRef.current.rotation.y = Math.sin(elapsed * 0.7 + index) * 0.08;
+    groupRef.current.position.y = position[1] + Math.sin(elapsed * 0.85 + index) * 0.045;
+    groupRef.current.rotation.y = Math.sin(elapsed * 0.45 + index) * 0.045;
   });
 
   return (
     <group ref={groupRef} position={position}>
       <mesh>
-        <boxGeometry args={[2.35, 2.45, 0.2]} />
+        <boxGeometry args={[1.82, 1.95, 0.18]} />
         <meshStandardMaterial color={palette.color} emissive={palette.emissive} emissiveIntensity={0.06} roughness={0.42} metalness={0.05} />
       </mesh>
-      <mesh position={[0, 0.87, 0.13]}>
-        <boxGeometry args={[2.08, 0.45, 0.08]} />
+      <mesh position={[0, 0.69, 0.12]}>
+        <boxGeometry args={[1.62, 0.34, 0.07]} />
         <meshStandardMaterial color="#ffffff" roughness={0.5} metalness={0.02} transparent opacity={0.86} />
       </mesh>
-      <Text position={[0, 0.91, 0.21]} fontSize={0.14} maxWidth={1.9} lineHeight={1.05} textAlign="center" anchorX="center" anchorY="middle" color={palette.text}>
+      <Text position={[0, 0.71, 0.2]} fontSize={0.105} maxWidth={1.46} lineHeight={1.0} textAlign="center" anchorX="center" anchorY="middle" color={palette.text}>
         {branch.title.toUpperCase()}
       </Text>
-      <Text position={[0, 0.57, 0.22]} fontSize={0.105} maxWidth={1.9} textAlign="center" anchorX="center" anchorY="middle" color="#0f766e">
+      <Text position={[0, 0.43, 0.2]} fontSize={0.082} maxWidth={1.48} textAlign="center" anchorX="center" anchorY="middle" color="#0f766e">
         {branch.reference}
       </Text>
-      <Text position={[0, -0.25, 0.22]} fontSize={0.095} maxWidth={1.9} lineHeight={1.25} textAlign="center" anchorX="center" anchorY="middle" color="#0f172a">
+      <Text position={[0, -0.22, 0.2]} fontSize={0.075} maxWidth={1.5} lineHeight={1.18} textAlign="center" anchorX="center" anchorY="middle" color="#0f172a">
         {visibleDetails}
       </Text>
     </group>
