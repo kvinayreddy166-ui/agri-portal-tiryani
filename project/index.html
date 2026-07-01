@@ -48,12 +48,17 @@
           try { sessionStorage.setItem(key, value); } catch (error) {}
         }
 
-        function clearAppBuildMetadata() {
+        function clearAppBuildMetadata(resetStartupRecovery) {
           try { localStorage.removeItem('tiryani-app-build-version'); } catch (error) {}
           try {
             sessionStorage.removeItem('tiryani-startup-recovery-v1');
             sessionStorage.removeItem('tiryani-startup-recovery-v2');
             sessionStorage.removeItem('tiryani-startup-recovery-v3');
+            if (resetStartupRecovery) {
+              sessionStorage.removeItem(recoveryKey);
+              sessionStorage.removeItem(resetKey);
+              sessionStorage.removeItem('tiryani-pwa-recovery-attempted-at');
+            }
           } catch (error) {}
         }
 
@@ -76,19 +81,20 @@
           });
         }
 
-        function reloadWithBust(reason) {
-          var url = new URL(window.location.href);
+        function reloadWithBust(reason, forceRoot) {
+          var url = new URL(forceRoot ? '/' : window.location.href, window.location.origin);
           url.searchParams.set('refresh', String(Date.now()));
           if (reason) url.searchParams.set('reason', reason);
           window.location.replace(url.toString());
         }
 
         function hardRefresh(reason) {
+          var manualReset = reason === 'manual' || reason === 'cache-reset';
           return Promise.resolve()
-            .then(clearAppBuildMetadata)
+            .then(function () { clearAppBuildMetadata(manualReset); })
             .then(unregisterServiceWorkers)
             .then(clearCachesOnly)
-            .finally(function () { reloadWithBust(reason || 'cache-reset'); });
+            .finally(function () { reloadWithBust(reason || 'cache-reset', manualReset); });
         }
 
         function showRecoveryOptions() {
@@ -115,7 +121,7 @@
             .then(function (hadServiceWorker) {
               if (!hadServiceWorker || safeSessionGet(resetKey) === '1') return;
               safeSessionSet(resetKey, '1');
-              reloadWithBust('sw-reset');
+              reloadWithBust('sw-reset', true);
             })
             .catch(function () {});
         }

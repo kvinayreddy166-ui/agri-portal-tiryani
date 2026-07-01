@@ -48,12 +48,15 @@ export async function clearAppCacheAndReload() {
 
     try {
       window.localStorage.removeItem(BUILD_VERSION_KEY);
+      window.sessionStorage.removeItem('tiryani-startup-recovery-v4');
+      window.sessionStorage.removeItem('tiryani-pwa-recovery-attempted-at');
     } catch {
       // Keep user data intact; only build metadata is cleared.
     }
   } finally {
-    const url = new URL(window.location.href);
+    const url = new URL('/', window.location.origin);
     url.searchParams.set('refresh', String(Date.now()));
+    url.searchParams.set('reason', 'cache-reset');
     window.location.replace(url.toString());
   }
 }

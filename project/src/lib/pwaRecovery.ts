@@ -49,8 +49,16 @@ export async function recoverFromStaleAssets() {
   } catch {
     // Reloading with network cache bypass is still the best recovery path.
   } finally {
-    const url = new URL(window.location.href);
+    try {
+      window.sessionStorage.removeItem('tiryani-startup-recovery-v4');
+      window.sessionStorage.removeItem(RECOVERY_KEY);
+    } catch {
+      // Startup recovery state is best-effort only.
+    }
+
+    const url = new URL('/', window.location.origin);
     url.searchParams.set('refresh', String(Date.now()));
+    url.searchParams.set('reason', 'stale-assets');
     window.location.replace(url.toString());
   }
 }
