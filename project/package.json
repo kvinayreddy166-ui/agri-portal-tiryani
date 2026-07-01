@@ -16,6 +16,7 @@
     "@supabase/postgrest-js": "1.21.4"
   },
   "dependencies": {
+    "@fontsource/atkinson-hyperlegible-next": "^5.2.7",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
     "@supabase/supabase-js": "2.57.4",

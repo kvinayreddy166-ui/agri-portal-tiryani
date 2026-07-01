@@ -18,7 +18,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Atkinson Hyperlegible Next', 'Noto Sans Telugu', 'Nirmala UI', 'Gautami', 'Inter', 'system-ui', 'sans-serif'],
+        heading: ['Atkinson Hyperlegible Next', 'Noto Sans Telugu', 'Nirmala UI', 'Gautami', 'Inter', 'system-ui', 'sans-serif'],
+        body: ['Atkinson Hyperlegible Next', 'Noto Sans Telugu', 'Nirmala UI', 'Gautami', 'Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         card: '0 2px 10px rgba(15,23,42,0.08)',
