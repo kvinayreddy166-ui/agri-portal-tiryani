@@ -30,7 +30,6 @@ const FertilizerCalculator = lazy(() => import('./features/fertilizerCalculator/
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
 const FarmCalculators = lazy(() => import('./pages/FarmCalculators').then((m) => ({ default: m.FarmCalculators })));
 const CropProtectionTool = lazy(() => import('./pages/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
-const RemoteSensing = lazy(() => import('./pages/RemoteSensing').then((m) => ({ default: m.RemoteSensing })));
 const PesticideCalculator = lazy(() => import('./pages/PesticideCalculator').then((m) => ({ default: m.PesticideCalculator })));
 const PlantPopulationCalculator = lazy(() => import('./pages/PlantPopulationCalculator').then((m) => ({ default: m.PlantPopulationCalculator })));
 const SeedRateCalculator = lazy(() => import('./pages/SeedRateCalculator').then((m) => ({ default: m.SeedRateCalculator }))); 
@@ -192,7 +191,6 @@ const PAGE_PATHS: Record<string, string> = {
   'farm-calculators': '/officer-toolkit/farm-calculators',
   'fertilizer-calculator': '/officer-toolkit/fertilizer-calculator',
   'crop-protection': '/officer-toolkit/crop-protection',
-  'remote-sensing': '/remote-sensing',
   'pesticide-calculator': '/officer-toolkit/pesticide-calculator',
   'plant-population-calculator': '/officer-toolkit/plant-population-calculator',
   'seed-rate-calculator': '/officer-toolkit/seed-rate-calculator',
@@ -481,7 +479,6 @@ function AppContent() {
         'acreage-calculator',
         'fertilizer-calculator',
         'crop-protection',
-        'remote-sensing',
         'pesticide-calculator',
         'plant-population-calculator',
         'seed-rate-calculator',
@@ -839,8 +836,6 @@ function AppContent() {
         return <FertilizerCalculator />;
       case 'crop-protection':
         return <CropProtectionTool />;
-      case 'remote-sensing':
-        return <RemoteSensing />;
       case 'pesticide-calculator':
         return <PesticideCalculator />;
       case 'plant-population-calculator':

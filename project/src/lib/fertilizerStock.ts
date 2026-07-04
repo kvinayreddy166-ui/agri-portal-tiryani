@@ -10,6 +10,40 @@ export type DailyFertilizerStockSummary = FertilizerStock & {
   report_date: string;
 };
 
+type FertilizerDailyStockLine = {
+  dealer_id: string | null;
+  product_type: string | null;
+  sales: number | string | null;
+  closing_balance: number | string | null;
+  report_date: string | null;
+  entry_type?: string | null;
+  submitted_by?: string | null;
+  invoice_no?: string | null;
+  supplier?: string | null;
+  updated_at: string | null;
+  created_at: string | null;
+};
+
+const COMPLEX_FERTILIZER_GRADES = new Set([
+  '20:20:0:13',
+  '10:26:26',
+  '14:35:14',
+  '17:17:17',
+  '19:19:19',
+  '28:28:0',
+]);
+
+function canonicalFertilizerType(productType: string): string {
+  const normalized = productType.trim();
+  const key = normalized.toLowerCase();
+
+  if (key === 'mop' || key === 'potash') return 'Potash';
+  if (key === 'complex' || COMPLEX_FERTILIZER_GRADES.has(normalized)) return 'Complex';
+
+  const knownType = FERTILIZER_TYPES.find((fertilizer) => fertilizer.toLowerCase() === key);
+  return knownType || normalized;
+}
+
 /** Aggregate dealer-wise stock from Fertilizer Allocation (dealer_stock_allocation). */
 export function aggregateFertilizerStock(
   allocations: { fertilizer_type: string; quantity_mts: number | string }[]
@@ -47,52 +81,37 @@ export async function fetchAggregatedFertilizerStock(): Promise<FertilizerStock[
 export async function fetchDailyFertilizerStockSummary(
   reportDate = currentReportDate()
 ): Promise<DailyFertilizerStockSummary[]> {
-  let effectiveDate = reportDate;
-  let data = await cachedSupabaseRows<{ product_type: string; sales: number; closing_balance: number; report_date: string }>(
-    `daily-fertilizer-stock:${effectiveDate}:v2`,
-    () =>
-      supabase
-        .from('stock_inventory_lines')
-        .select('product_type, sales, closing_balance, report_date')
-        .eq('category', 'fertilizer')
-        .eq('report_date', effectiveDate),
+  const data = await cachedSupabaseRows<FertilizerDailyStockLine>(
+    `daily-fertilizer-stock:latest-dealer-product:${reportDate}:v2`,
+    fetchDailyFertilizerStockLines,
     []
   );
 
-  if (!data?.length) {
-    const latest = await cachedSupabaseRows<{ report_date: string }>(
-      'daily-fertilizer-stock:latest-date:v2',
-      () =>
-        supabase
-          .from('stock_inventory_lines')
-          .select('report_date')
-          .eq('category', 'fertilizer')
-          .order('report_date', { ascending: false })
-          .limit(1),
-      []
-    );
+  const latestByDealerProduct = new Map<string, FertilizerDailyStockLine>();
+  for (const item of data || []) {
+    if (!isDailyStockLine(item)) continue;
 
-    effectiveDate = String(latest?.[0]?.report_date || reportDate);
+    const dealerId = String(item.dealer_id || '').trim();
+    const productType = String(item.product_type || '').trim();
+    if (!dealerId || !productType) continue;
 
-    if (effectiveDate !== reportDate) {
-      data = await cachedSupabaseRows<{ product_type: string; sales: number; closing_balance: number; report_date: string }>(
-        `daily-fertilizer-stock:${effectiveDate}:v2`,
-        () =>
-          supabase
-            .from('stock_inventory_lines')
-            .select('product_type, sales, closing_balance, report_date')
-            .eq('category', 'fertilizer')
-            .eq('report_date', effectiveDate),
-        []
-      );
+    const key = `${dealerId}::${productType.toLowerCase()}`;
+    if (!latestByDealerProduct.has(key)) {
+      latestByDealerProduct.set(key, item);
     }
   }
 
+  const latestLines = Array.from(latestByDealerProduct.values());
   const now = new Date().toISOString();
+
   return FERTILIZER_TYPES.map((fertilizer_type) => {
-    const lines = (data || []).filter((item) => item.product_type === fertilizer_type);
+    const lines = latestLines.filter((item) => canonicalFertilizerType(String(item.product_type || '')) === fertilizer_type);
     const sales_mts = lines.reduce((sum, item) => sum + Number(item.sales || 0), 0);
     const closing_mts = lines.reduce((sum, item) => sum + Number(item.closing_balance || 0), 0);
+    const latestReportDate = lines.reduce((latest, item) => {
+      const date = String(item.report_date || '');
+      return date > latest ? date : latest;
+    }, '');
 
     return {
       id: `daily-${fertilizer_type}`,
@@ -100,12 +119,45 @@ export async function fetchDailyFertilizerStockSummary(
       quantity_available: closing_mts,
       sales_mts,
       closing_mts,
-      report_date: effectiveDate,
+      report_date: latestReportDate || reportDate,
       unit: 'MT',
       last_updated: now,
       created_at: now,
     };
   });
+
+  async function fetchDailyFertilizerStockLines() {
+    const primary = await supabase
+      .from('stock_inventory_lines')
+      .select('dealer_id, product_type, entry_type, submitted_by, invoice_no, supplier, sales, closing_balance, report_date, updated_at, created_at')
+      .eq('category', 'fertilizer')
+      .lte('report_date', reportDate)
+      .order('report_date', { ascending: false, nullsFirst: false })
+      .order('updated_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false, nullsFirst: false });
+
+    if (!primary.error) return primary;
+
+    return supabase
+      .from('stock_inventory_lines')
+      .select('dealer_id, product_type, sales, closing_balance, report_date, updated_at, created_at, submitted_by')
+      .eq('category', 'fertilizer')
+      .lte('report_date', reportDate)
+      .order('report_date', { ascending: false, nullsFirst: false })
+      .order('updated_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false, nullsFirst: false });
+  }
+}
+
+function isDailyStockLine(item: FertilizerDailyStockLine): boolean {
+  const entryType = String(item.entry_type || '').trim().toLowerCase();
+  if (entryType) return entryType === 'daily_stock';
+
+  const submittedBy = String(item.submitted_by || '').trim().toLowerCase();
+  if (submittedBy.startsWith('receipt-details:')) return false;
+  if (String(item.invoice_no || '').trim() || String(item.supplier || '').trim()) return false;
+
+  return true;
 }
 
 /** Mirror Fertilizer Allocation totals into fertilizer_stock table for legacy readers. */

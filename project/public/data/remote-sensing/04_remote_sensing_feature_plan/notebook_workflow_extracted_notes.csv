@@ -1,7 +1,0 @@
-section,extracted_information,project_use
-Libraries,"pandas, numpy, lightgbm, scikit-learn, seaborn, matplotlib, optuna",Useful for building local ML model and feature importance.
-Model,LightGBM Classifier + StackingClassifier with RandomForest final estimator,Classifies crop health category.
-Validation,"StratifiedKFold n_splits=5, weighted F1, accuracy, classification_report",Evaluate class-balanced model performance.
-Target,category,Healthy / Stressed / Diseased / Pests label in Train.csv.
-Dropped in notebook,geometry and dates removed for ML training,"For your remote sensing project, do NOT drop geometry/dates; use them to extract Sentinel indices by crop stage."
-Categorical encoding,"LabelEncoder for Crop, State, District, Sub-District, CNext, CLast, CTransp, IrriType, IrriSource, Season",Can be replaced with CatBoost/LightGBM categorical handling or one-hot encoding.

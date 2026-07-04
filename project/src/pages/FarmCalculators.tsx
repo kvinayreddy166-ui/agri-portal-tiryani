@@ -87,8 +87,8 @@ export function FarmCalculators() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <div className="grid gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 sm:grid-cols-3">
+      <section className="rounded-xl border border-lime-200 bg-gradient-to-br from-lime-100 via-emerald-50 to-cyan-100 p-4 shadow-md dark:border-emerald-900/60 dark:from-emerald-950/50 dark:via-slate-900 dark:to-cyan-950/40">
+        <div className="grid gap-3 text-sm font-semibold text-slate-700 dark:text-slate-200 sm:grid-cols-3">
           <p><span className="font-black text-emerald-700 dark:text-emerald-300">Acreage:</span> add acre.gunta values.</p>
           <p><span className="font-black text-emerald-700 dark:text-emerald-300">Seed/Plant:</span> enter area and spacing or population.</p>
           <p><span className="font-black text-emerald-700 dark:text-emerald-300">Fertilizer/Pesticide:</span> enter area, dose and share result.</p>
@@ -100,15 +100,15 @@ export function FarmCalculators() {
           <article
             key={item.path}
             onClick={() => navigate(item.path)}
-            className={`cursor-pointer rounded-lg border border-emerald-200/70 bg-gradient-to-br ${item.panel} p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-emerald-900/60`}
+            className={`min-h-[164px] cursor-pointer rounded-xl border border-white/70 bg-gradient-to-br ${item.panel} p-5 text-center shadow-md transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl dark:border-emerald-900/60`}
           >
-            <div className="flex items-start gap-3">
-              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.accent} text-white shadow-sm`}>
-                <item.icon className="h-5 w-5" />
+            <div className="flex h-full flex-col items-center justify-center gap-3">
+              <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${item.accent} text-white shadow-lg`}>
+                <item.icon className="h-7 w-7" />
               </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-base font-black text-slate-950 dark:text-white">{t(item.title, item.titleTe)}</h2>
-                <p className="mt-1 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{t(item.description, item.descriptionTe)}</p>
+              <div className="min-w-0">
+                <h2 className="text-[17px] font-black leading-snug text-slate-950 dark:text-white">{t(item.title, item.titleTe)}</h2>
+                <p className="mt-2 text-xs font-semibold leading-5 text-slate-700 dark:text-slate-300">{t(item.description, item.descriptionTe)}</p>
               </div>
             </div>
           </article>

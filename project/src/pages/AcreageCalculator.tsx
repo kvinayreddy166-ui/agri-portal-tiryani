@@ -57,10 +57,10 @@ export function AcreageCalculator() {
   }, [acresCentsPasteInput]);
   return (
     <div className="space-y-4">
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <section className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-100 via-cyan-50 to-emerald-100 p-4 shadow-md dark:border-sky-900/60 dark:from-sky-950/50 dark:via-slate-900 dark:to-emerald-950/40">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-sky-600 text-white shadow-lg">
               <Calculator className="h-5 w-5" />
             </div>
             <div>
@@ -74,7 +74,7 @@ export function AcreageCalculator() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-sky-100 bg-sky-50 p-3 text-sm font-semibold text-sky-950 shadow-sm dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-100">
+      <section className="rounded-xl border border-cyan-200 bg-gradient-to-br from-cyan-100 to-sky-100 p-4 text-sm font-semibold text-sky-950 shadow-md dark:border-sky-900 dark:from-sky-950/50 dark:to-cyan-950/40 dark:text-sky-100">
         <div className="grid gap-2 sm:grid-cols-3">
           <p><span className="font-black">1 acre</span> = 100 cents = 40 guntas.</p>
           <p><span className="font-black">1 gunta</span> = 2.5 cents.</p>
@@ -83,13 +83,13 @@ export function AcreageCalculator() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
-        <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="space-y-3 rounded-xl border border-sky-200 bg-gradient-to-br from-white via-sky-50 to-cyan-100 p-4 shadow-md dark:border-sky-900/60 dark:from-slate-900 dark:via-sky-950/30 dark:to-cyan-950/30">
           <label className="block">
             <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Input type</span>
             <select
               value={mode}
               onChange={(event) => setMode(event.target.value as AcreageMode)}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-950 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+              className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
             >
               {modeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
@@ -102,7 +102,7 @@ export function AcreageCalculator() {
                 value={acreInput}
                 onChange={(event) => setAcreInput(event.target.value)}
                 rows={10}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-semibold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
                 placeholder={'Example:\n2.10\n2.36\n0.15'}
               />
               <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">Existing format: 2.10 means 2 acres 10 guntas.</p>
@@ -120,7 +120,7 @@ export function AcreageCalculator() {
                 value={acresCentsPasteInput}
                 onChange={(event) => setAcresCentsPasteInput(event.target.value)}
                 rows={10}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-semibold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
                 placeholder={'Example:\n2.25\n1.50\n0.75'}
               />
               <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">Paste one column or type values. Example: 2.25 means 2 acres 25 cents.</p>
@@ -135,17 +135,17 @@ export function AcreageCalculator() {
         <div className="grid gap-3">
           {mode === 'acres' ? (
             <>
-              <ResultCard label="Total acres" value={acreResult.formatted} note={`${acreResult.acres} acres ${acreResult.guntas} guntas`} />
-              <ResultCard label="Hectares" value={acreResult.hectares} note="Converted from total acres" />
-              <ResultCard label="Items read" value={String(acreResult.count)} note="Paste one Excel column or type values with plus signs" />
+              <ResultCard tone="from-emerald-100 to-lime-100 border-emerald-200" label="Total acres" value={acreResult.formatted} note={`${acreResult.acres} acres ${acreResult.guntas} guntas`} />
+              <ResultCard tone="from-sky-100 to-cyan-100 border-sky-200" label="Hectares" value={acreResult.hectares} note="Converted from total acres" />
+              <ResultCard tone="from-amber-100 to-orange-100 border-amber-200" label="Items read" value={String(acreResult.count)} note="Paste one Excel column or type values with plus signs" />
             </>
           ) : (
             <>
-              <ResultCard label="Acres" value={result.acresDecimal} note={result.acreGuntaNote} />
-              {mode !== 'cents' && <ResultCard label="Cents" value={result.cents} note="1 acre = 100 cents" />}
-              {mode !== 'acres-cents' && <ResultCard label="Acres + Cents" value={result.acresCents} note="Whole acres with remaining cents" />}
-              {mode !== 'guntas' && <ResultCard label="Guntas" value={result.guntas} note="1 acre = 40 guntas" />}
-              <ResultCard label="Hectares" value={result.hectares} note="Converted from decimal acres" />
+              <ResultCard tone="from-emerald-100 to-lime-100 border-emerald-200" label="Acres" value={result.acresDecimal} note={result.acreGuntaNote} />
+              {mode !== 'cents' && <ResultCard tone="from-yellow-100 to-amber-100 border-yellow-200" label="Cents" value={result.cents} note="1 acre = 100 cents" />}
+              {mode !== 'acres-cents' && <ResultCard tone="from-pink-100 to-rose-100 border-pink-200" label="Acres + Cents" value={result.acresCents} note="Whole acres with remaining cents" />}
+              {mode !== 'guntas' && <ResultCard tone="from-purple-100 to-indigo-100 border-purple-200" label="Guntas" value={result.guntas} note="1 acre = 40 guntas" />}
+              <ResultCard tone="from-sky-100 to-cyan-100 border-sky-200" label="Hectares" value={result.hectares} note="Converted from decimal acres" />
             </>
           )}
         </div>
@@ -164,16 +164,16 @@ function NumberInput({ label, value, onChange, placeholder }: { label: string; v
         step="0.01"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+        className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-semibold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
         placeholder={placeholder}
       />
     </label>
   );
 }
 
-function ResultCard({ label, value, note }: { label: string; value: string; note: string }) {
+function ResultCard({ label, value, note, tone }: { label: string; value: string; note: string; tone: string }) {
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <article className={`rounded-xl border bg-gradient-to-br ${tone} p-4 shadow-md dark:border-slate-700 dark:from-slate-900 dark:to-slate-800`}>
       <p className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
       <p className="mt-1 text-3xl font-black text-slate-950 dark:text-white">{value}</p>
       <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-300">{note}</p>
