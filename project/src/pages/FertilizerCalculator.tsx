@@ -1827,15 +1827,21 @@ export function FertilizerCalculator() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-2 text-slate-950 sm:space-y-3">
-      <section className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-100 via-lime-50 to-cyan-100 p-3 shadow-md sm:p-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <h1 className="truncate text-lg font-black text-emerald-950 sm:text-2xl">
-              {language === 'te' ? '\u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C15\u0C3E\u0C32\u0C3F\u0C15\u0C4D\u0C2F\u0C41\u0C32\u0C47\u0C1F\u0C30\u0C4D' : 'Fertilizer Calculator'}
-            </h1>
-            <p className="text-xs font-semibold text-slate-700 sm:text-sm">
-              {language === 'te' ? '\u0C2A\u0C02\u0C1F\u0C15\u0C41 \u0C05\u0C35\u0C38\u0C30\u0C2E\u0C48\u0C28 \u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C32\u0C46\u0C15\u0C4D\u0C15\u0C3F\u0C02\u0C2A\u0C41' : 'Calculate crop fertilizer requirements'}
-            </p>
+      <section className="overflow-hidden rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-700 via-green-700 to-teal-800 p-4 text-white shadow-sm dark:border-emerald-900 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
+              <FileText className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-black uppercase text-emerald-100">Farm Calculator</p>
+              <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+                {language === 'te' ? '\u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C15\u0C3E\u0C32\u0C3F\u0C15\u0C4D\u0C2F\u0C41\u0C32\u0C47\u0C1F\u0C30\u0C4D' : 'Fertilizer Calculator'}
+              </h1>
+              <p className="mt-1 text-sm font-semibold text-emerald-50">
+                {language === 'te' ? '\u0C2A\u0C02\u0C1F\u0C15\u0C41 \u0C05\u0C35\u0C38\u0C30\u0C2E\u0C48\u0C28 \u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C32\u0C46\u0C15\u0C4D\u0C15\u0C3F\u0C02\u0C2A\u0C41' : 'Calculate crop fertilizer requirements'}
+              </p>
+            </div>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-1.5 sm:justify-end">
             <LanguageToggle language={language} onClick={toggleLanguage} />
@@ -1846,7 +1852,7 @@ export function FertilizerCalculator() {
               <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-green-600 px-2 py-1 text-white" aria-label="Share on WhatsApp" title="WhatsApp">
               <WhatsAppIcon className="h-3.5 w-3.5" />
             </button>
-              <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-700 disabled:opacity-50">
+              <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/15 px-2 py-1 text-[10px] font-black text-white shadow-sm disabled:opacity-50">
               <RefreshCw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
             </button>
             </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, Wheat } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -17,9 +17,9 @@ const calculatorItems = [
   },
   {
     title: 'Plant Population Calculator',
-    titleTe: 'à°®à±Šà°•à±à°•à°² à°œà°¨à°¾à°­à°¾ à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    titleTe: 'Ã Â°Â®Ã Â±Å Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â² Ã Â°Å“Ã Â°Â¨Ã Â°Â¾Ã Â°Â­Ã Â°Â¾ Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â°Â¿Ã Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Å¸Ã Â°Â°Ã Â±Â',
     description: 'Enter spacing and get plants per field.',
-    descriptionTe: 'à°µà°°à±à°¸ à°®à°°à°¿à°¯à± à°®à±Šà°•à±à°•à°² à°®à°§à±à°¯ à°¦à±‚à°°à°‚à°¤à±‹ à°®à±Šà°•à±à°•à°² à°¸à°‚à°–à±à°¯à°¨à± à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
+    descriptionTe: 'Ã Â°ÂµÃ Â°Â°Ã Â±ÂÃ Â°Â¸ Ã Â°Â®Ã Â°Â°Ã Â°Â¿Ã Â°Â¯Ã Â±Â Ã Â°Â®Ã Â±Å Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â² Ã Â°Â®Ã Â°Â§Ã Â±ÂÃ Â°Â¯ Ã Â°Â¦Ã Â±â€šÃ Â°Â°Ã Â°â€šÃ Â°Â¤Ã Â±â€¹ Ã Â°Â®Ã Â±Å Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â² Ã Â°Â¸Ã Â°â€šÃ Â°â€“Ã Â±ÂÃ Â°Â¯Ã Â°Â¨Ã Â±Â Ã Â°Â²Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â¿Ã Â°â€šÃ Â°Å¡Ã Â°â€šÃ Â°Â¡Ã Â°Â¿.',
     path: '/officer-toolkit/plant-population-calculator',
     icon: Sprout,
     accent: 'from-green-600 to-teal-700',
@@ -27,9 +27,9 @@ const calculatorItems = [
   },
   {
     title: 'Seed Rate Calculator',
-    titleTe: 'à°µà°¿à°¤à±à°¤à°¨ à°®à±‹à°¤à°¾à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    titleTe: 'Ã Â°ÂµÃ Â°Â¿Ã Â°Â¤Ã Â±ÂÃ Â°Â¤Ã Â°Â¨ Ã Â°Â®Ã Â±â€¹Ã Â°Â¤Ã Â°Â¾Ã Â°Â¦Ã Â±Â Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â°Â¿Ã Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Å¸Ã Â°Â°Ã Â±Â',
     description: 'Enter population and seed label details.',
-    descriptionTe: 'à°Ÿà±†à°¸à±à°Ÿà± à°µà±†à°¯à°¿à°Ÿà±, à°®à±Šà°²à°• à°¶à°¾à°¤à°‚ à°®à°°à°¿à°¯à± à°®à±Šà°•à±à°•à°² à°¸à°‚à°–à±à°¯à°¤à±‹ à°µà°¿à°¤à±à°¤à°¨ à°…à°µà°¸à°°à°¾à°¨à±à°¨à°¿ à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
+    descriptionTe: 'Ã Â°Å¸Ã Â±â€ Ã Â°Â¸Ã Â±ÂÃ Â°Å¸Ã Â±Â Ã Â°ÂµÃ Â±â€ Ã Â°Â¯Ã Â°Â¿Ã Â°Å¸Ã Â±Â, Ã Â°Â®Ã Â±Å Ã Â°Â²Ã Â°â€¢ Ã Â°Â¶Ã Â°Â¾Ã Â°Â¤Ã Â°â€š Ã Â°Â®Ã Â°Â°Ã Â°Â¿Ã Â°Â¯Ã Â±Â Ã Â°Â®Ã Â±Å Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â² Ã Â°Â¸Ã Â°â€šÃ Â°â€“Ã Â±ÂÃ Â°Â¯Ã Â°Â¤Ã Â±â€¹ Ã Â°ÂµÃ Â°Â¿Ã Â°Â¤Ã Â±ÂÃ Â°Â¤Ã Â°Â¨ Ã Â°â€¦Ã Â°ÂµÃ Â°Â¸Ã Â°Â°Ã Â°Â¾Ã Â°Â¨Ã Â±ÂÃ Â°Â¨Ã Â°Â¿ Ã Â°Â²Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â¿Ã Â°â€šÃ Â°Å¡Ã Â°â€šÃ Â°Â¡Ã Â°Â¿.',
     path: '/officer-toolkit/seed-rate-calculator',
     icon: Wheat,
     accent: 'from-lime-600 to-emerald-700',
@@ -37,9 +37,9 @@ const calculatorItems = [
   },
   {
     title: 'Fertilizer Calculator',
-    titleTe: 'à°Žà°°à±à°µà±à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    titleTe: 'Ã Â°Å½Ã Â°Â°Ã Â±ÂÃ Â°ÂµÃ Â±ÂÃ Â°Â² Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â°Â¿Ã Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Å¸Ã Â°Â°Ã Â±Â',
     description: 'Use crop recommendation or manual nutrients.',
-    descriptionTe: 'à°ªà±‹à°·à°• à°…à°µà°¸à°°à°¾à°² à°†à°§à°¾à°°à°‚à°—à°¾ à°Žà°°à±à°µà± à°ªà°°à°¿à°®à°¾à°£à°¾à°¨à±à°¨à°¿ à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
+    descriptionTe: 'Ã Â°ÂªÃ Â±â€¹Ã Â°Â·Ã Â°â€¢ Ã Â°â€¦Ã Â°ÂµÃ Â°Â¸Ã Â°Â°Ã Â°Â¾Ã Â°Â² Ã Â°â€ Ã Â°Â§Ã Â°Â¾Ã Â°Â°Ã Â°â€šÃ Â°â€”Ã Â°Â¾ Ã Â°Å½Ã Â°Â°Ã Â±ÂÃ Â°ÂµÃ Â±Â Ã Â°ÂªÃ Â°Â°Ã Â°Â¿Ã Â°Â®Ã Â°Â¾Ã Â°Â£Ã Â°Â¾Ã Â°Â¨Ã Â±ÂÃ Â°Â¨Ã Â°Â¿ Ã Â°Â²Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â¿Ã Â°â€šÃ Â°Å¡Ã Â°â€šÃ Â°Â¡Ã Â°Â¿.',
     path: '/officer-toolkit/fertilizer-calculator',
     icon: PackageCheck,
     accent: 'from-emerald-600 to-green-700',
@@ -47,9 +47,9 @@ const calculatorItems = [
   },
   {
     title: 'Pesticide Calculator',
-    titleTe: 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    titleTe: 'Ã Â°ÂªÃ Â±ÂÃ Â°Â°Ã Â±ÂÃ Â°â€”Ã Â±ÂÃ Â°Â®Ã Â°â€šÃ Â°Â¦Ã Â±Â Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â°Â¿Ã Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Å¸Ã Â°Â°Ã Â±Â',
     description: 'Enter dose, tank and area for spray quantity.',
-    descriptionTe: 'à°•à±à°°à°¿à°¯à°¾à°¶à±€à°² à°ªà°¦à°¾à°°à±à°¥à°‚ à°²à±‡à°¦à°¾ à°²à±€à°Ÿà°°à±à°•à± à°®à±‹à°¤à°¾à°¦à±à°¤à±‹ à°ªà±à°°à±à°—à±à°®à°‚à°¦à± à°ªà°°à°¿à°®à°¾à°£à°¾à°¨à±à°¨à°¿ à°²à±†à°•à±à°•à°¿à°‚à°šà°‚à°¡à°¿.',
+    descriptionTe: 'Ã Â°â€¢Ã Â±ÂÃ Â°Â°Ã Â°Â¿Ã Â°Â¯Ã Â°Â¾Ã Â°Â¶Ã Â±â‚¬Ã Â°Â² Ã Â°ÂªÃ Â°Â¦Ã Â°Â¾Ã Â°Â°Ã Â±ÂÃ Â°Â¥Ã Â°â€š Ã Â°Â²Ã Â±â€¡Ã Â°Â¦Ã Â°Â¾ Ã Â°Â²Ã Â±â‚¬Ã Â°Å¸Ã Â°Â°Ã Â±ÂÃ Â°â€¢Ã Â±Â Ã Â°Â®Ã Â±â€¹Ã Â°Â¤Ã Â°Â¾Ã Â°Â¦Ã Â±ÂÃ Â°Â¤Ã Â±â€¹ Ã Â°ÂªÃ Â±ÂÃ Â°Â°Ã Â±ÂÃ Â°â€”Ã Â±ÂÃ Â°Â®Ã Â°â€šÃ Â°Â¦Ã Â±Â Ã Â°ÂªÃ Â°Â°Ã Â°Â¿Ã Â°Â®Ã Â°Â¾Ã Â°Â£Ã Â°Â¾Ã Â°Â¨Ã Â±ÂÃ Â°Â¨Ã Â°Â¿ Ã Â°Â²Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â¿Ã Â°â€šÃ Â°Å¡Ã Â°â€šÃ Â°Â¡Ã Â°Â¿.',
     path: '/officer-toolkit/pesticide-calculator',
     icon: Bug,
     accent: 'from-red-500 to-amber-600',
@@ -71,13 +71,13 @@ export function FarmCalculators() {
             </div>
             <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-wide text-emerald-100">
-                {t('Officer Toolkit', 'à°…à°§à°¿à°•à°¾à°°à±à°² à°Ÿà±‚à°²à±â€Œà°•à°¿à°Ÿà±')}
+                {t('Officer Toolkit', 'Ã Â°â€¦Ã Â°Â§Ã Â°Â¿Ã Â°â€¢Ã Â°Â¾Ã Â°Â°Ã Â±ÂÃ Â°Â² Ã Â°Å¸Ã Â±â€šÃ Â°Â²Ã Â±ÂÃ¢â‚¬Å’Ã Â°â€¢Ã Â°Â¿Ã Â°Å¸Ã Â±Â')}
               </p>
               <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
-                {t('Farm Calculators', 'à°µà±à°¯à°µà°¸à°¾à°¯ à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±à°²à±')}
+                {t('Farm Calculators', 'Ã Â°ÂµÃ Â±ÂÃ Â°Â¯Ã Â°ÂµÃ Â°Â¸Ã Â°Â¾Ã Â°Â¯ Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â°Â¿Ã Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Å¸Ã Â°Â°Ã Â±ÂÃ Â°Â²Ã Â±Â')}
               </h1>
               <p className="mt-1 text-sm font-semibold text-emerald-50">
-                {t('Crop, Seed, Fertilizer and Pesticide Calculations', 'à°ªà°‚à°Ÿ, à°µà°¿à°¤à±à°¤à°¨à°‚, à°Žà°°à±à°µà± à°®à°°à°¿à°¯à± à°ªà±à°°à±à°—à±à°®à°‚à°¦à± à°²à±†à°•à±à°•à°²à±')}
+                {t('Crop, Seed, Fertilizer and Pesticide Calculations', 'Ã Â°ÂªÃ Â°â€šÃ Â°Å¸, Ã Â°ÂµÃ Â°Â¿Ã Â°Â¤Ã Â±ÂÃ Â°Â¤Ã Â°Â¨Ã Â°â€š, Ã Â°Å½Ã Â°Â°Ã Â±ÂÃ Â°ÂµÃ Â±Â Ã Â°Â®Ã Â°Â°Ã Â°Â¿Ã Â°Â¯Ã Â±Â Ã Â°ÂªÃ Â±ÂÃ Â°Â°Ã Â±ÂÃ Â°â€”Ã Â±ÂÃ Â°Â®Ã Â°â€šÃ Â°Â¦Ã Â±Â Ã Â°Â²Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â²Ã Â±Â')}
               </p>
             </div>
           </div>
@@ -87,14 +87,7 @@ export function FarmCalculators() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-lime-200 bg-gradient-to-br from-lime-100 via-emerald-50 to-cyan-100 p-4 shadow-md dark:border-emerald-900/60 dark:from-emerald-950/50 dark:via-slate-900 dark:to-cyan-950/40">
-        <div className="grid gap-3 text-sm font-semibold text-slate-700 dark:text-slate-200 sm:grid-cols-3">
-          <p><span className="font-black text-emerald-700 dark:text-emerald-300">Acreage:</span> add acre.gunta values.</p>
-          <p><span className="font-black text-emerald-700 dark:text-emerald-300">Seed/Plant:</span> enter area and spacing or population.</p>
-          <p><span className="font-black text-emerald-700 dark:text-emerald-300">Fertilizer/Pesticide:</span> enter area, dose and share result.</p>
-        </div>
-      </section>
-
+      
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {calculatorItems.map((item) => (
           <article
@@ -117,3 +110,5 @@ export function FarmCalculators() {
     </div>
   );
 }
+
+

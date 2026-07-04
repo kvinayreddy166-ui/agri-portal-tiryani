@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bookmark,
@@ -382,21 +382,21 @@ export function AgriLegalReadyReckoner() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-lg border border-emerald-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
-              <Scale className="h-5 w-5" />
-              <span className="text-xs font-black uppercase tracking-wide">Officer Tool Kit</span>
+      <section className="overflow-hidden rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-700 via-green-700 to-teal-800 p-4 text-white shadow-sm dark:border-emerald-900 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
+              <Scale className="h-6 w-6" />
             </div>
-            <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950 dark:text-white">Agri Legal Ready Reckoner</h1>
-            <p className="mt-2 max-w-3xl text-sm font-semibold text-slate-600 dark:text-slate-300">
-              Search Acts, Rules, Orders, clauses, sections, penal provisions, stop sale, seizure, sampling and notice workflows for agriculture input inspection.
-            </p>
+            <div className="min-w-0">
+              <p className="text-xs font-black uppercase tracking-wide text-emerald-100">Officer Toolkit</p>
+              <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Agri Legal Ready Reckoner</h1>
+              <p className="mt-1 max-w-3xl text-sm font-semibold text-emerald-50">
+                Search Acts, Rules, Orders, clauses, penal provisions, stop sale, seizure, sampling and notice workflows.
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col items-start gap-2 sm:items-end">
-            <BackButton onClick={handleBack}>Back</BackButton>
-          </div>
+          <BackButton onClick={handleBack} tone="solid">Back</BackButton>
         </div>
       </section>
       {!selectedLegalArea && (
@@ -581,7 +581,7 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
           Open the legal ready reckoner by input type for faster field inspection reference.
         </p>
       </div>
-      <div className="mt-6 grid gap-5 sm:grid-cols-3">
+      <div className="mt-5 grid gap-4 sm:grid-cols-3">
         {legalAreaCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -590,17 +590,17 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
               type="button"
               onClick={() => onOpen(card.id)}
               style={{ animationDelay: card.delay }}
-              className={`agri-legal-round-card group relative mx-auto flex aspect-square w-full max-w-[15rem] flex-col items-center justify-center overflow-hidden rounded-full border border-white/80 bg-gradient-to-br from-white via-lime-50 to-emerald-50 p-6 text-center shadow-xl ${card.glow} ring-1 ring-emerald-900/5 transition duration-300 hover:-translate-y-1 hover:scale-[1.04] hover:shadow-2xl focus-visible:outline-emerald-700 active:scale-[0.97] dark:border-slate-700 dark:bg-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950`}
+              className={`agri-legal-round-card group relative mx-auto flex aspect-square w-full max-w-[11.5rem] flex-col items-center justify-center overflow-hidden rounded-full border border-white/80 bg-gradient-to-br from-white via-lime-50 to-emerald-50 p-4 text-center shadow-lg ${card.glow} ring-1 ring-emerald-900/5 transition duration-300 hover:-translate-y-2 hover:scale-[1.06] hover:rotate-[1deg] hover:shadow-2xl focus-visible:outline-emerald-700 active:scale-[0.97] dark:border-slate-700 dark:bg-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950`}
             >
-              <span className={`absolute inset-3 rounded-full bg-gradient-to-br ${card.color} opacity-[0.18] transition group-hover:opacity-[0.28]`} />
-              <span className="agri-card-field-lines absolute inset-5 rounded-full" />
+              <span className={`absolute inset-2 rounded-full bg-gradient-to-br ${card.color} opacity-[0.18] transition group-hover:opacity-[0.28]`} />
+              <span className="agri-card-field-lines absolute inset-4 rounded-full" />
               <span className="agri-card-shine absolute inset-0 rounded-full" />
               <span className="agri-legal-ripple absolute inset-0 rounded-full" />
-              <span className={`relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-lg ${card.glow} ring-4 ring-white/80 transition duration-300 group-hover:scale-110 sm:h-24 sm:w-24`}>
-                <Icon className="h-10 w-10 sm:h-12 sm:w-12" strokeWidth={1.9} />
+              <span className={`relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-lg ${card.glow} ring-4 ring-white/80 transition duration-300 group-hover:scale-110 group-hover:rotate-3 sm:h-16 sm:w-16`}>
+                <Icon className="h-7 w-7 sm:h-8 sm:w-8" strokeWidth={1.9} />
               </span>
-              <span className="relative mt-4 text-xl font-black text-emerald-950 dark:text-white">{card.title}</span>
-              <span className="relative mt-2 max-w-[12rem] text-xs font-bold leading-5 text-emerald-900/75 dark:text-slate-300">{card.description}</span>
+              <span className="relative mt-3 text-base font-black sm:text-lg text-emerald-950 dark:text-white">{card.title}</span>
+              <span className="relative mt-1 max-w-[9.5rem] text-[11px] font-bold leading-4 text-emerald-900/75 dark:text-slate-300">{card.description}</span>
             </button>
           );
         })}
@@ -1145,6 +1145,8 @@ function entryDetailsHtml(entry: LegalReadyReckonerEntry) {
   ];
   return `<dl>${fields.map(([label, value]) => `<dt>${label}</dt><dd>${String(value).replace(/</g, '&lt;')}</dd>`).join('')}</dl>`;
 }
+
+
 
 
 

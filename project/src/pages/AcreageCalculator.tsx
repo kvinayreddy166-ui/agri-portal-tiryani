@@ -16,9 +16,9 @@ const HECTARES_PER_ACRE = 0.404686;
 type AcreageMode = 'acres' | 'cents' | 'acres-cents' | 'guntas';
 
 const modeOptions: Array<{ value: AcreageMode; label: string }> = [
-  { value: 'acres', label: 'Acres' },
+  { value: 'acres', label: 'Acres.Guntas' },
   { value: 'cents', label: 'Cents' },
-  { value: 'acres-cents', label: 'Acres + Cents' },
+  { value: 'acres-cents', label: 'Acres.Cents' },
   { value: 'guntas', label: 'Guntas' },
 ];
 
@@ -34,6 +34,7 @@ export function AcreageCalculator() {
     [acreInput, acresCentsPasteInput, centInput, guntaInput, mode]
   );
   const acreResult = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
+  const guideItems = useMemo(() => getAcreageGuide(mode), [mode]);
 
   useEffect(() => {
     window.sessionStorage.setItem(MODE_STORAGE_KEY, mode);
@@ -74,14 +75,14 @@ export function AcreageCalculator() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-cyan-200 bg-gradient-to-br from-cyan-100 to-sky-100 p-4 text-sm font-semibold text-sky-950 shadow-md dark:border-sky-900 dark:from-sky-950/50 dark:to-cyan-950/40 dark:text-sky-100">
+
+      <section className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-100 to-cyan-100 p-4 text-sm font-semibold text-sky-950 shadow-md dark:border-sky-900 dark:from-sky-950/50 dark:to-cyan-950/40 dark:text-sky-100">
         <div className="grid gap-2 sm:grid-cols-3">
-          <p><span className="font-black">1 acre</span> = 100 cents = 40 guntas.</p>
-          <p><span className="font-black">1 gunta</span> = 2.5 cents.</p>
-          <p><span className="font-black">Default Acres mode</span> keeps the existing acres.guntas entry format.</p>
+          {guideItems.map((item, index) => (
+            <p key={item}><span className="font-black">{index + 1}.</span> {item}</p>
+          ))}
         </div>
       </section>
-
       <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-3 rounded-xl border border-sky-200 bg-gradient-to-br from-white via-sky-50 to-cyan-100 p-4 shadow-md dark:border-sky-900/60 dark:from-slate-900 dark:via-sky-950/30 dark:to-cyan-950/30">
           <label className="block">
@@ -143,7 +144,7 @@ export function AcreageCalculator() {
             <>
               <ResultCard tone="from-emerald-100 to-lime-100 border-emerald-200" label="Acres" value={result.acresDecimal} note={result.acreGuntaNote} />
               {mode !== 'cents' && <ResultCard tone="from-yellow-100 to-amber-100 border-yellow-200" label="Cents" value={result.cents} note="1 acre = 100 cents" />}
-              {mode !== 'acres-cents' && <ResultCard tone="from-pink-100 to-rose-100 border-pink-200" label="Acres + Cents" value={result.acresCents} note="Whole acres with remaining cents" />}
+              {mode !== 'acres-cents' && mode !== 'cents' && <ResultCard tone="from-pink-100 to-rose-100 border-pink-200" label="Acres + Cents" value={result.acresCents} note="Whole acres with remaining cents" />}
               {mode !== 'guntas' && <ResultCard tone="from-purple-100 to-indigo-100 border-purple-200" label="Guntas" value={result.guntas} note="1 acre = 40 guntas" />}
               <ResultCard tone="from-sky-100 to-cyan-100 border-sky-200" label="Hectares" value={result.hectares} note="Converted from decimal acres" />
             </>
@@ -154,6 +155,37 @@ export function AcreageCalculator() {
   );
 }
 
+function getAcreageGuide(mode: AcreageMode) {
+  if (mode === 'acres') {
+    return [
+      'Paste Acres.Guntas values from Excel or type one per line.',
+      'Example 2.10 means 2 acres and 10 guntas.',
+      'Read total Acres.Guntas, hectares and item count.',
+    ];
+  }
+
+  if (mode === 'cents') {
+    return [
+      'Enter the total cents value.',
+      'Read decimal acres and equivalent guntas.',
+      'Use hectares output for official reports.',
+    ];
+  }
+
+  if (mode === 'acres-cents') {
+    return [
+      'Paste Acres.Cents values from Excel or type one per line.',
+      'Example 2.25 means 2 acres and 25 cents.',
+      'Read acres, cents, guntas and hectares instantly.',
+    ];
+  }
+
+  return [
+    'Enter the total guntas value.',
+    'Read decimal acres and equivalent cents.',
+    'Use hectares output for field records.',
+  ];
+}
 function NumberInput({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder: string }) {
   return (
     <label className="block">
@@ -292,6 +324,8 @@ function formatNumber(value: number, maximumFractionDigits = 2) {
     minimumFractionDigits: Number.isInteger(value) ? 0 : undefined,
   }).format(value);
 }
+
+
 
 
 

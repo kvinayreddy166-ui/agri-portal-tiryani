@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+﻿import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -64,9 +64,9 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 }
 
 const STATUTORY_FOLDERS = [
-  { id: 'fertilizers', label: 'Fertilizer', telugu: 'ఎరువులు' },
-  { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
-  { id: 'pesticides', label: 'Pesticide', telugu: 'పురుగుమందులు' },
+  { id: 'fertilizers', label: 'Fertilizer', telugu: 'à°Žà°°à±à°µà±à°²à±' },
+  { id: 'seed', label: 'Seed', telugu: 'à°µà°¿à°¤à±à°¤à°¨à°¾à°²à±' },
+  { id: 'pesticides', label: 'Pesticide', telugu: 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à±à°²à±' },
 ];
 
 const PUBLIC_FORM_CATEGORY_ALIASES: Record<string, string[]> = {
@@ -319,7 +319,7 @@ export function Login() {
       console.error('Download failed:', error);
       // Fallback: open in new tab
       window.open(form.file_url, '_blank', 'noopener,noreferrer');
-      alert(t('Download started in new tab. If it does not download, try right-clicking and "Save as".', 'డౌన్లోడ్ కొత్త ట్యాబ్‌లో ప్రారంభమైంది. డౌన్లోడ్ కాకపోతే, కుడి-క్లిక్ చేసి "సేవ్ యాజ్" ప్రయత్నించండి.'));
+      alert(t('Download started in new tab. If it does not download, try right-clicking and "Save as".', 'à°¡à±Œà°¨à±à°²à±‹à°¡à± à°•à±Šà°¤à±à°¤ à°Ÿà±à°¯à°¾à°¬à±â€Œà°²à±‹ à°ªà±à°°à°¾à°°à°‚à°­à°®à±ˆà°‚à°¦à°¿. à°¡à±Œà°¨à±à°²à±‹à°¡à± à°•à°¾à°•à°ªà±‹à°¤à±‡, à°•à±à°¡à°¿-à°•à±à°²à°¿à°•à± à°šà±‡à°¸à°¿ "à°¸à±‡à°µà± à°¯à°¾à°œà±" à°ªà±à°°à°¯à°¤à±à°¨à°¿à°‚à°šà°‚à°¡à°¿.'));
     } finally {
       setDownloadingFormId(null);
     }
@@ -418,7 +418,7 @@ export function Login() {
             : t('Install cancelled. Tap Install App again when the browser prompt is available.', 'Install cancelled. Tap Install App again when the browser prompt is available.')
         );
       } catch {
-        setInstallMessage(t('Use your browser menu and choose Install app.', 'బ్రౌజర్ మెనూలో Install app ఎంచుకోండి.'));
+        setInstallMessage(t('Use your browser menu and choose Install app.', 'à°¬à±à°°à±Œà°œà°°à± à°®à±†à°¨à±‚à°²à±‹ Install app à°Žà°‚à°šà±à°•à±‹à°‚à°¡à°¿.'));
       }
       return;
     }
@@ -449,42 +449,59 @@ export function Login() {
     return (
       <div className="min-h-screen bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24">
         <div className="mx-auto w-full max-w-4xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
-          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={closeToolPage}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                {t('Back', 'వెనుకకు')}
-              </button>
-              <div>
-                <h1 className="text-xl font-black text-slate-950 sm:text-2xl">
-                  {showStatutoryForms
-                    ? t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')
-                    : fertilizerCalculatorOpen
-                      ? t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')
-                      : t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
-                </h1>
-              </div>
-            </div>
-            <div className="flex items-center justify-between gap-2 sm:justify-end">
-              {showStatutoryForms && (
+          {showStatutoryForms ? (
+            <section className="mb-4 overflow-hidden rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-700 via-green-700 to-teal-800 p-4 text-white shadow-sm sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
+                    <FileText className="h-6 w-6" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-black uppercase tracking-wide text-emerald-100">
+                      {t('Officer Toolkit', 'Officer Toolkit')}
+                    </p>
+                    <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
+                      {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
+                    </h1>
+                    <p className="mt-1 text-sm font-semibold text-emerald-50">
+                      {t('Generate PDFs and view statutory form files', 'Generate PDFs and view statutory form files')}
+                    </p>
+                  </div>
+                </div>
                 <button
                   type="button"
-                  onClick={openPdfTool}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-black text-white shadow-sm shadow-red-900/10 transition hover:bg-red-700"
+                  onClick={closeToolPage}
+                  className="inline-flex items-center justify-center gap-2 rounded-md bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm ring-1 ring-white/20 transition hover:bg-white/25"
                 >
-                  <FileText className="h-3.5 w-3.5" />
-                  Generate PDF
+                  <ArrowLeft className="h-4 w-4" />
+                  {t('Back', 'వెనుకకు')}
                 </button>
-              )}
-              <PortalLogo size="md" />
+              </div>
+            </section>
+          ) : (
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={closeToolPage}
+                  className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  {t('Back', 'వెనుకకు')}
+                </button>
+                <div>
+                  <h1 className="text-xl font-black text-slate-950 sm:text-2xl">
+                    {fertilizerCalculatorOpen
+                      ? t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')
+                      : t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+                  </h1>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-2 sm:justify-end">
+                <PortalLogo size="md" />
+              </div>
             </div>
-          </div>
-
-          <div className="hidden">
+          )}<div className="hidden">
             <button
               type="button"
               onClick={openStatutoryForms}
@@ -493,7 +510,7 @@ export function Login() {
               }`}
             >
               <FileText className="h-4 w-4" />
-              {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
+              {t('Statutory Forms', 'à°šà°Ÿà±à°Ÿà°¬à°¦à±à°§ à°«à°¾à°°à°¾à°²à±')}
             </button>
             <button
               type="button"
@@ -503,7 +520,7 @@ export function Login() {
               }`}
             >
               <Calculator className="h-4 w-4" />
-              {t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+              {t('Acerage Calculator', 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
             </button>
             <button
               type="button"
@@ -513,45 +530,56 @@ export function Login() {
               }`}
             >
               <FlaskConical className="h-4 w-4" />
-              {t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')}
+              {t('Fertilizer Calculator', 'à°Žà°°à±à°µà±à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
             </button>
           </div>
-
           <div className={calculatorOpen || fertilizerCalculatorOpen ? 'hidden' : ''}>
-          <div className="mb-3 grid grid-cols-3 gap-1.5">
-            {STATUTORY_FOLDERS.map((folder) => (
-              <button
-                key={folder.id}
-                type="button"
-                onClick={() => setStatutoryFolder(folder.id)}
-                className={`rounded-md border px-2 py-1.5 text-left font-black transition ${
-                  statutoryFolder === folder.id
-                    ? 'border-emerald-700 bg-emerald-700 text-white shadow-md shadow-emerald-900/10'
-                    : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'
-                }`}
-              >
-                <span className="flex items-center gap-1.5 text-xs sm:text-sm">
-                  <FileText className="h-3.5 w-3.5" />
-                  {language === 'te' ? folder.telugu : folder.label}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          <div className="table-scroll rounded-lg border border-slate-200 bg-white">
+          <section className="rounded-xl border border-white/70 bg-gradient-to-br from-emerald-100 via-lime-50 to-cyan-100 p-4 shadow-md">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-lg">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-lg font-black text-slate-950 sm:text-xl">Auto Form Generator</h2>
+                  <p className="text-sm font-semibold text-slate-600">Generate statutory PDF forms for the selected category.</p>
+                </div>
+              </div>
+              <div className="grid w-full gap-2 sm:w-auto sm:min-w-[18rem] sm:grid-cols-[minmax(0,1fr)_auto]">
+                <select
+                  value={statutoryFolder}
+                  onChange={(event) => setStatutoryFolder(event.target.value)}
+                  className="min-h-11 rounded-lg border border-emerald-200 bg-white/90 px-3 py-2 text-sm font-black text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                  aria-label="Select statutory form category"
+                >
+                  {STATUTORY_FOLDERS.map((folder) => (
+                    <option key={folder.id} value={folder.id}>{language === 'te' ? folder.telugu : folder.label}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={openPdfTool}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-black text-white shadow-md shadow-red-900/10 transition hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-red-700 hover:shadow-lg"
+                >
+                  <FileText className="h-4 w-4" />
+                  Generate PDF
+                </button>
+              </div>
+            </div>
+<div className="mt-4 table-scroll rounded-lg border border-slate-200 bg-white">
             <table className="w-full min-w-[430px] table-fixed text-left">
               <thead className="sticky top-0 z-10 bg-slate-900 text-xs font-bold text-white sm:text-sm">
                 <tr>
-                  <th className="w-14 px-2.5 py-2 sm:w-16">{t('S.No.', 'క్ర.సం.')}</th>
-                  <th className="px-2.5 py-2">{t('Proforma / Form Name', 'ప్రొఫార్మా / ఫారం పేరు')}</th>
-                  <th className="w-24 px-2.5 py-2 text-right">{t('Action', 'చర్య')}</th>
+                  <th className="w-14 px-2.5 py-2 sm:w-16">{t('S.No.', 'à°•à±à°°.à°¸à°‚.')}</th>
+                  <th className="px-2.5 py-2">{t('Proforma / Form Name', 'à°ªà±à°°à±Šà°«à°¾à°°à±à°®à°¾ / à°«à°¾à°°à°‚ à°ªà±‡à°°à±')}</th>
+                  <th className="w-24 px-2.5 py-2 text-right">{t('Action', 'à°šà°°à±à°¯')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {formsLoading ? (
                   <tr>
                     <td colSpan={3} className="px-3 py-6 text-center text-sm font-semibold text-slate-500">
-                      {t('Loading forms...', 'ఫారాలు లోడ్ అవుతున్నాయి...')}
+                      {t('Loading forms...', 'à°«à°¾à°°à°¾à°²à± à°²à±‹à°¡à± à°…à°µà±à°¤à±à°¨à±à°¨à°¾à°¯à°¿...')}
                     </td>
                   </tr>
                 ) : selectedStatutoryForms.length > 0 ? (
@@ -572,8 +600,8 @@ export function Login() {
                                 type="button"
                                 onClick={() => openPublicPreview(form)}
                                 className="inline-flex h-7 w-7 items-center justify-center rounded-md text-emerald-700 transition hover:bg-emerald-50"
-                                aria-label={t('Preview file', 'ఫైల్ ప్రివ్యూ')}
-                                title={t('Preview', 'ప్రివ్యూ')}
+                                aria-label={t('Preview file', 'à°«à±ˆà°²à± à°ªà±à°°à°¿à°µà±à°¯à±‚')}
+                                title={t('Preview', 'à°ªà±à°°à°¿à°µà±à°¯à±‚')}
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
@@ -582,8 +610,8 @@ export function Login() {
                                 onClick={() => handlePublicDownload(form)}
                                 disabled={downloadingFormId === form.id}
                                 className="inline-flex h-7 w-7 items-center justify-center rounded-md text-sky-700 transition hover:bg-sky-50 disabled:opacity-50"
-                                aria-label={t('Download file', 'ఫైల్ డౌన్లోడ్ చేయండి')}
-                                title={t('Download', 'డౌన్లోడ్')}
+                                aria-label={t('Download file', 'à°«à±ˆà°²à± à°¡à±Œà°¨à±à°²à±‹à°¡à± à°šà±‡à°¯à°‚à°¡à°¿')}
+                                title={t('Download', 'à°¡à±Œà°¨à±à°²à±‹à°¡à±')}
                               >
                                 {downloadingFormId === form.id ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -600,7 +628,7 @@ export function Login() {
                 ) : (
                   <tr>
                     <td colSpan={3} className="px-3 py-8 text-center text-sm font-semibold text-slate-500">
-                      {t('No statutory forms uploaded yet.', 'ఇంకా ఫారాలు అప్లోడ్ కాలేదు.')}
+                      {t('No statutory forms uploaded yet.', 'à°‡à°‚à°•à°¾ à°«à°¾à°°à°¾à°²à± à°…à°ªà±à°²à±‹à°¡à± à°•à°¾à°²à±‡à°¦à±.')}
                     </td>
                   </tr>
                 )}
@@ -614,6 +642,7 @@ export function Login() {
               onPageChange={setStatutoryPage}
             />
           )}
+                    </section>
           </div>
           {calculatorOpen && (
             <div className="rounded-xl border border-sky-100 bg-white p-4">
@@ -725,10 +754,10 @@ export function Login() {
               </div>
               <div>
                 <h2 className="whitespace-nowrap text-xl font-black tracking-tight text-slate-950 sm:text-2xl">
-                  {t('Tiryani Agriculture Portal', 'తిర్యాణి వ్యవసాయ పోర్టల్')}
+                  {t('Tiryani Agriculture Portal', 'à°¤à°¿à°°à±à°¯à°¾à°£à°¿ à°µà±à°¯à°µà°¸à°¾à°¯ à°ªà±‹à°°à±à°Ÿà°²à±')}
                 </h2>
                 <p className="mt-1 text-sm font-bold text-emerald-700">
-                  {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
+                  {t('Information Management System', 'à°¸à°®à°¾à°šà°¾à°° à°¨à°¿à°°à±à°µà°¹à°£ à°µà±à°¯à°µà°¸à±à°¥')}
                 </p>
               </div>
             </div>
@@ -740,7 +769,7 @@ export function Login() {
                 rel="noopener noreferrer"
                 className="inline-flex shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 p-2.5 text-emerald-800 transition hover:bg-emerald-100"
                 aria-label="WhatsApp Channel"
-                title={t('WhatsApp Channel', 'వాట్సప్ ఛానెల్')}
+                title={t('WhatsApp Channel', 'à°µà°¾à°Ÿà±à°¸à°ªà± à°›à°¾à°¨à±†à°²à±')}
               >
                 <WhatsAppIcon className="h-4 w-4" />
               </a>
@@ -753,7 +782,7 @@ export function Login() {
               className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-800 shadow-sm transition hover:bg-emerald-100 hover:border-emerald-300 animate-slide-up delay-200"
             >
               <ShieldCheck className="h-4 w-4" />
-              <span>{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
+              <span>{t('Officer Toolkit', 'à°…à°§à°¿à°•à°¾à°°à±à°² à°Ÿà±‚à°²à±â€Œà°•à°¿à°Ÿà±')}</span>
             </button>
 
             <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-bold animate-slide-up delay-300">
@@ -762,22 +791,22 @@ export function Login() {
                 onClick={() => setLoginMode('staff')}
                 className={`rounded-lg px-3 py-2 ${loginMode === 'staff' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}
               >
-                {t('Staff / Test', 'సిబ్బంది / పరీక్ష')}
+                {t('Staff / Test', 'à°¸à°¿à°¬à±à°¬à°‚à°¦à°¿ / à°ªà°°à±€à°•à±à°·')}
               </button>
               <button
                 type="button"
                 onClick={() => setLoginMode('dealer')}
                 className={`rounded-lg px-3 py-2 ${loginMode === 'dealer' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}
               >
-                {t('Dealer', 'డీలర్')}
+                {t('Dealer', 'à°¡à±€à°²à°°à±')}
               </button>
             </div>
 
             <div className="mb-3 animate-slide-up delay-400">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
-                {loginMode === 'dealer' ? t('Dealer login', 'డీలర్ లాగిన్') : t('Secure sign in', 'సురక్షిత లాగిన్')}
+                {loginMode === 'dealer' ? t('Dealer login', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Secure sign in', 'à°¸à±à°°à°•à±à°·à°¿à°¤ à°²à°¾à°—à°¿à°¨à±')}
               </p>
-              <h3 className="mt-1 text-2xl font-black text-slate-950">{t('Welcome', 'స్వాగతం')}</h3>
+              <h3 className="mt-1 text-2xl font-black text-slate-950">{t('Welcome', 'à°¸à±à°µà°¾à°—à°¤à°‚')}</h3>
             </div>
 
             {error && (
@@ -790,16 +819,16 @@ export function Login() {
             <form onSubmit={handleSubmit} className="space-y-2 animate-slide-up delay-500">
               {loginMode === 'dealer' ? (
                 <>
-                  <LoginField label={t('Registered phone (Dealers Directory)', 'నమోదైన ఫోన్ (డీలర్ల డైరెక్టరీ)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
-                  <LoginField label={t('Guest Password', 'గెస్ట్ పాస్వర్డ్')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
+                  <LoginField label={t('Registered phone (Dealers Directory)', 'à°¨à°®à±‹à°¦à±ˆà°¨ à°«à±‹à°¨à± (à°¡à±€à°²à°°à±à°² à°¡à±ˆà°°à±†à°•à±à°Ÿà°°à±€)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
+                  <LoginField label={t('Guest Password', 'à°—à±†à°¸à±à°Ÿà± à°ªà°¾à°¸à±à°µà°°à±à°¡à±')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
                   <p className="-mt-1 text-[10px] text-slate-500">
-                    {t(`Guest password: ${DEALER_DEFAULT_PASSWORD}`, `గెస్ట్ పాస్వర్డ్: ${DEALER_DEFAULT_PASSWORD}`)}
+                    {t(`Guest password: ${DEALER_DEFAULT_PASSWORD}`, `à°—à±†à°¸à±à°Ÿà± à°ªà°¾à°¸à±à°µà°°à±à°¡à±: ${DEALER_DEFAULT_PASSWORD}`)}
                   </p>
                 </>
               ) : (
                 <>
-                  <LoginField label={t('Email Address', 'ఇమెయిల్ చిరునామా')} icon={<Mail />} type="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'ఇమెయిల్ చిరునామా నమోదు చేయండి')} />
-                  <LoginField label={t('Password', 'పాస్వర్డ్')} icon={<LockKeyhole />} type="password" value={password} onChange={setPassword} placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')} />
+                  <LoginField label={t('Email Address', 'à°‡à°®à±†à°¯à°¿à°²à± à°šà°¿à°°à±à°¨à°¾à°®à°¾')} icon={<Mail />} type="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'à°‡à°®à±†à°¯à°¿à°²à± à°šà°¿à°°à±à°¨à°¾à°®à°¾ à°¨à°®à±‹à°¦à± à°šà±‡à°¯à°‚à°¡à°¿')} />
+                  <LoginField label={t('Password', 'à°ªà°¾à°¸à±à°µà°°à±à°¡à±')} icon={<LockKeyhole />} type="password" value={password} onChange={setPassword} placeholder={t('Enter password', 'à°ªà°¾à°¸à±à°µà°°à±à°¡à± à°¨à°®à±‹à°¦à± à°šà±‡à°¯à°‚à°¡à°¿')} />
                 </>
               )}
               <button
@@ -808,7 +837,7 @@ export function Login() {
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3 font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:from-emerald-800 hover:to-teal-800 disabled:opacity-60"
               >
                 {loginMode === 'dealer' ? <Store className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
-                {loading ? t('Signing in...', 'లాగిన్ అవుతోంది...') : loginMode === 'dealer' ? t('Dealer Sign In', 'డీలర్ లాగిన్') : t('Sign In', 'లాగిన్')}
+                {loading ? t('Signing in...', 'à°²à°¾à°—à°¿à°¨à± à°…à°µà±à°¤à±‹à°‚à°¦à°¿...') : loginMode === 'dealer' ? t('Dealer Sign In', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Sign In', 'à°²à°¾à°—à°¿à°¨à±')}
               </button>
             </form>
 
@@ -816,7 +845,7 @@ export function Login() {
               <div className="mt-3 rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950 animate-slide-up delay-600">
                 <p className="flex items-center gap-2 font-bold">
                   <UserRoundCheck className="h-4 w-4" />
-                  {t('Test login', 'పరీక్ష లాగిన్')}
+                  {t('Test login', 'à°ªà°°à±€à°•à±à°· à°²à°¾à°—à°¿à°¨à±')}
                 </p>
                 <p className="mt-2">
                   <span className="font-semibold">Email:</span> {TEST_EMAIL}
@@ -864,7 +893,7 @@ export function Login() {
         className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-black text-white shadow-xl shadow-emerald-950/20 transition hover:bg-emerald-800"
       >
         <MessageSquareText className="h-5 w-5" />
-        {t('Grievances', 'ఫిర్యాదులు')}
+        {t('Grievances', 'à°«à°¿à°°à±à°¯à°¾à°¦à±à°²à±')}
       </button>
 
       {calculatorOpen && (
@@ -873,7 +902,7 @@ export function Login() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <h3 className="flex items-center gap-2 text-lg font-black text-slate-950">
                 <Calculator className="h-5 w-5 text-sky-700" />
-                {t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+                {t('Acerage Calculator', 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
               </h3>
               <button type="button" onClick={closeAcreageCalculator} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100">
                 <ArrowLeft className="h-4 w-4" />
@@ -920,7 +949,7 @@ export function Login() {
             <div className="mb-4 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-black text-emerald-900">
                 <MessageSquareText className="h-5 w-5" />
-                {t('Farmer Grievance', 'రైతు ఫిర్యాదు')}
+                {t('Farmer Grievance', 'à°°à±ˆà°¤à± à°«à°¿à°°à±à°¯à°¾à°¦à±')}
               </h3>
               <button type="button" onClick={grievanceOverlay.closeOverlay} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
                 <X className="h-5 w-5" />
@@ -956,7 +985,7 @@ export function Login() {
               <textarea value={grievance.description} onChange={(e) => setGrievance({ ...grievance, description: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder="Description" required />
               <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3.5 font-bold text-white shadow-lg">
                 <Send className="h-5 w-5" />
-                {t('Submit Complaint', 'ఫిర్యాదు పంపండి')}
+                {t('Submit Complaint', 'à°«à°¿à°°à±à°¯à°¾à°¦à± à°ªà°‚à°ªà°‚à°¡à°¿')}
               </button>
               {grievanceStatus && <p className="text-sm font-semibold text-emerald-700">{grievanceStatus}</p>}
             </form>
@@ -1154,4 +1183,11 @@ function isMissingPublicLabelColumnError(error: unknown) {
 }
 
 export default Login;
+
+
+
+
+
+
+
 
