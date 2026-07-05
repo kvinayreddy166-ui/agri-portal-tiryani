@@ -750,7 +750,81 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
           );
         })}
       </div>
+      <FcoImplementationChart />
     </section>
+  );
+}
+
+const fcoImplementationColumns = [
+  {
+    title: 'Licensing',
+    subtitle: 'Clause 8 & 14',
+    tone: 'cyan',
+    items: [
+      'Clause 8 and Clause 14',
+      'C&DA / State Licensing Officer',
+      'Manufacturing Licence in Form F',
+      'Marketing Licence in Form A2',
+    ],
+  },
+  {
+    title: 'Notified Authorities',
+    subtitle: 'Clause 26A / Clause 8',
+    tone: 'cyan',
+    items: [
+      'DAO: District Licensing Officer',
+      'ADA: Division Licensing Officer',
+      'Marketing Licence in Form A2',
+    ],
+  },
+  {
+    title: 'Quality Monitoring / Testing',
+    subtitle: 'Clause 29: Laboratory and Analysts',
+    tone: 'green',
+    items: ['3 FCO Labs', '64 labs in country', 'CFQCTI Faridabad'],
+  },
+  {
+    title: 'Enforcement at Field Level',
+    subtitle: 'Clause 27 and 28',
+    tone: 'blue',
+    items: [
+      'Clause 27',
+      'All Agriculture Officers and above rank notified as Fertiliser Inspectors as per G.O.Ms.No.131',
+      'Inspects all licensed premises in jurisdiction',
+      'Draws samples for testing',
+      'Launches prosecution in case of breach of Act/Order',
+      'Sends inspection reports to licensing officer',
+    ],
+  },
+];
+
+function FcoImplementationChart() {
+  return (
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-950 sm:p-4">
+      <div className="mx-auto mb-4 flex max-w-md items-center justify-center rounded-lg bg-cyan-500 px-4 py-3 text-center text-base font-black uppercase text-slate-950 shadow-sm sm:text-lg">
+        Implementation of FCO, 1985
+      </div>
+      <div className="grid gap-3 lg:grid-cols-4">
+        {fcoImplementationColumns.map((column) => (
+          <div key={column.title} className="flex min-w-0 flex-col rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+            <div className={`rounded-lg border px-3 py-4 text-center ${column.tone === 'green' ? 'border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-100' : column.tone === 'blue' ? 'border-blue-300 bg-blue-50 text-blue-950 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100' : 'border-cyan-300 bg-cyan-50 text-slate-950 dark:border-cyan-800 dark:bg-cyan-950/30 dark:text-cyan-50'}`}>
+              <h3 className="text-base font-black uppercase leading-tight sm:text-lg">{column.title}</h3>
+              <p className="mt-2 text-sm font-black leading-5">{column.subtitle}</p>
+            </div>
+            <div className="mt-3 flex flex-col gap-2">
+              {column.items.map((item) => (
+                <div key={item} className={`flex min-h-12 items-center justify-center rounded-lg border bg-white px-3 py-3 text-center text-sm font-black leading-5 text-slate-800 dark:bg-slate-950 dark:text-slate-100 ${column.tone === 'green' ? 'border-emerald-200 dark:border-emerald-900' : column.tone === 'blue' ? 'border-blue-200 dark:border-blue-900' : 'border-cyan-200 dark:border-cyan-900'}`}>
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-center text-sm font-black text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+        Verify latest Government notification and departmental instructions before legal action.
+      </p>
+    </div>
   );
 }
 
@@ -1417,22 +1491,22 @@ function FertilizerFormsPanel({
     <section className="overflow-hidden rounded-lg border border-amber-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
       <div className="border-b border-amber-100 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-4 dark:border-slate-800 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-white p-3 text-amber-800 shadow-sm ring-1 ring-amber-100 dark:bg-slate-900 dark:text-amber-200 dark:ring-amber-900">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="shrink-0 rounded-lg bg-white p-3 text-amber-800 shadow-sm ring-1 ring-amber-100 dark:bg-slate-900 dark:text-amber-200 dark:ring-amber-900">
               <FileText className="h-6 w-6" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">FCO Forms</p>
               <h2 className="mt-1 text-xl font-black text-slate-950 dark:text-white">Forms</h2>
-              <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">27 statutory forms grouped for fast field reference.</p>
+              <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Open a statutory PDF preview first, then download or fill optional officer details.</p>
             </div>
           </div>
           <button type="button" onClick={onBack} className="w-fit rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs font-black text-amber-800 shadow-sm hover:bg-amber-50 dark:border-amber-900 dark:bg-slate-950 dark:text-amber-200">
-            Back to FCO cards
+            Back
           </button>
         </div>
         <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-          <div className="relative">
+          <div className="relative min-w-0">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               value={search}
@@ -1441,13 +1515,13 @@ function FertilizerFormsPanel({
               className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
             />
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:pb-0">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:max-w-3xl lg:justify-end">
             {fertilizerFormCategories.map((item) => (
               <button
                 key={item}
                 type="button"
                 onClick={() => onCategoryChange(item)}
-                className={`whitespace-nowrap rounded-full px-3 py-2 text-xs font-black transition ${category === item ? 'bg-amber-700 text-white shadow-sm' : 'border border-slate-200 bg-white text-slate-700 hover:bg-amber-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'}`}
+                className={`min-h-9 rounded-lg px-2.5 py-2 text-center text-[11px] font-black leading-4 transition sm:whitespace-nowrap sm:text-xs ${category === item ? 'bg-amber-700 text-white shadow-sm' : 'border border-slate-200 bg-white text-slate-700 hover:bg-amber-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'}`}
               >
                 {item}
               </button>
@@ -1456,33 +1530,29 @@ function FertilizerFormsPanel({
         </div>
       </div>
 
-      <div className="grid gap-3 p-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid auto-rows-fr gap-3 p-3 md:grid-cols-2 xl:grid-cols-3">
         {visibleForms.map((form) => (
-          <details key={form.id} className="group rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-amber-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
-            <summary className="cursor-pointer list-none">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.formNo} - {form.category}</p>
-                  <h3 className="mt-1 line-clamp-2 text-sm font-black leading-5 text-slate-950 dark:text-white">{form.title}</h3>
-                </div>
-                <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-black text-slate-700 dark:bg-slate-800 dark:text-slate-200">{form.clause || 'PDF'}</span>
+          <article key={form.id} className="flex min-h-[13.5rem] min-w-0 flex-col rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-amber-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+            <div className="flex min-w-0 items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.formNo} - {form.category}</p>
+                <h3 className="mt-1 text-sm font-black leading-5 text-slate-950 dark:text-white">{form.title}</h3>
               </div>
-            </summary>
-            <div className="mt-3 border-t border-slate-100 pt-3 dark:border-slate-800">
-              <p className="text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{form.description}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button type="button" onClick={() => onViewForm(form)} className="inline-flex items-center gap-2 rounded-lg bg-amber-700 px-3 py-2 text-xs font-black text-white hover:bg-amber-800">
-                  <FileSearch className="h-4 w-4" /> View PDF
-                </button>
-                <a href={form.pdfPath} download className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
-                  <Download className="h-4 w-4" /> Download
-                </a>
-                <button type="button" onClick={() => shareFertilizerForm(form)} className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50 dark:border-emerald-900 dark:bg-slate-950 dark:text-emerald-200">
-                  <Share2 className="h-4 w-4" /> Share
-                </button>
-              </div>
+              <span className="max-w-[7rem] shrink-0 rounded-lg bg-slate-100 px-2 py-1 text-center text-[10px] font-black leading-3 text-slate-700 dark:bg-slate-800 dark:text-slate-200">{form.clause || 'PDF'}</span>
             </div>
-          </details>
+            <p className="mt-3 flex-1 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{form.description}</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-amber-700 px-2.5 py-2 text-xs font-black text-white hover:bg-amber-800">
+                <FileSearch className="h-4 w-4" /> Preview
+              </button>
+              <a href={form.pdfPath} download className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+                <Download className="h-4 w-4" /> PDF
+              </a>
+              <button type="button" onClick={() => shareFertilizerForm(form)} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-2.5 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50 dark:border-emerald-900 dark:bg-slate-950 dark:text-emerald-200">
+                <Share2 className="h-4 w-4" /> Share
+              </button>
+            </div>
+          </article>
         ))}
         {visibleForms.length === 0 && (
           <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 xl:col-span-3 dark:border-slate-700">
@@ -1493,7 +1563,6 @@ function FertilizerFormsPanel({
     </section>
   );
 }
-
 async function shareFertilizerForm(form: FertilizerFormEntry) {
   const url = `${window.location.origin}${fertilizerFormPdfUrl(form)}`;
   const text = `${form.formNo}: ${form.title}\n${url}`;
