@@ -32,7 +32,8 @@ export default defineConfig({
       polyfill: false,
       resolveDependencies: (_filename, deps) =>
         deps.filter((dep) => {
-          if (/(charts|office|pdf|html2canvas|purify|three|tensorflow|vendor-xlsx|vendor-pdf)/.test(dep)) {
+          // Keep PDF and chart modules preloaded for mobile compatibility
+          if (/(office|html2canvas|purify|three|tensorflow|vendor-xlsx)/.test(dep)) {
             return false;
           }
           if (/page-(?!dashboard)/.test(dep)) {
@@ -53,6 +54,10 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes('commonjsHelpers')) {
             return 'vendor-commonjs';
+          }
+          // Group PDF libraries together for better mobile loading
+          if (id.includes('jspdf') || id.includes('pdfjs-dist') || id.includes('pdf-lib')) {
+            return 'vendor-pdf';
           }
           return undefined;
         },

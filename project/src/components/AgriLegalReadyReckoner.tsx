@@ -35,6 +35,7 @@ import { legalInspectionChecklists } from '../data/legalInspectionChecklists';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { ShowCauseNoticeEntry } from './ShowCauseNoticeEntry';
 import { BackButton } from './ui/BackButton';
+import { FertilizerFormPdfGenerator } from './forms/FertilizerFormPdfGenerator';
 
 type ReckonerView = 'references' | 'powers' | 'notice' | 'drafting';
 type MainLegalArea = 'fertilizer' | 'seed' | 'insecticide';
@@ -496,7 +497,6 @@ export function AgriLegalReadyReckoner() {
             setSelectedFcoCardId(cardId);
             setFcoActiveTab('plainEnglish');
           }}
-          onTabChange={setFcoActiveTab}
           onToggleBookmark={toggleBookmark}
         />
       )}
@@ -547,11 +547,11 @@ export function AgriLegalReadyReckoner() {
 
       {selectedLegalArea && selectedLegalArea !== 'fertilizer' && (
         <>
-      <div className={`grid gap-3 sm:grid-cols-2 ${selectedLegalArea === 'fertilizer' ? 'xl:grid-cols-3' : 'xl:grid-cols-4'}`}>
+      <div className={`grid gap-3 sm:grid-cols-2 xl:grid-cols-4`}>
         <ViewButton active={view === 'references'} icon={FileSearch} label="Legal References" onClick={() => setView('references')} />
         <ViewButton active={view === 'powers'} icon={ShieldAlert} label="Stop Sale & Seizure" onClick={() => setView('powers')} />
         <ViewButton active={view === 'notice'} icon={FileText} label="Show Cause Notice" onClick={() => setView('notice')} />
-        {selectedLegalArea !== 'fertilizer' && <ViewButton active={view === 'drafting'} icon={Scale} label="Case Drafting Helper" onClick={() => setView('drafting')} />}
+        <ViewButton active={view === 'drafting'} icon={Scale} label="Case Drafting Helper" onClick={() => setView('drafting')} />
       </div>
       {view === 'references' && (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]">
@@ -581,7 +581,6 @@ export function AgriLegalReadyReckoner() {
                 activeTab={fcoActiveTab}
                 bookmarks={bookmarks}
                 onBack={() => setSelectedFcoCardId(null)}
-                onTabChange={setFcoActiveTab}
                 onToggleBookmark={toggleBookmark}
               />
             )}
@@ -675,9 +674,6 @@ export function AgriLegalReadyReckoner() {
       )}
 
       {view === 'powers' && selectedLegalArea && <PowersSection area={selectedLegalArea} />}
-      {selectedFertilizerForm && (
-        <FertilizerFormPdfModal form={selectedFertilizerForm} onClose={() => setSelectedFertilizerForm(null)} />
-      )}
       {view === 'notice' && <ShowCauseNoticeEntry />}
       {view === 'drafting' && (
         <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
@@ -701,7 +697,7 @@ export function AgriLegalReadyReckoner() {
         </>
       )}
       {selectedFertilizerForm && (
-        <FertilizerFormPdfModal form={selectedFertilizerForm} onClose={() => setSelectedFertilizerForm(null)} />
+        <FertilizerFormPdfGenerator form={selectedFertilizerForm} onClose={() => setSelectedFertilizerForm(null)} />
       )}
     </div>
   );
@@ -789,7 +785,6 @@ function FertilizerClausesPanel({
   onBack,
   onBackToCards,
   onSelectCard,
-  onTabChange,
   onToggleBookmark,
 }: {
   search: string;
@@ -802,7 +797,6 @@ function FertilizerClausesPanel({
   onBack: () => void;
   onBackToCards: () => void;
   onSelectCard: (cardId: string) => void;
-  onTabChange: (tab: FcoTabId) => void;
   onToggleBookmark: (id: string) => void;
 }) {
   return (
@@ -823,10 +817,9 @@ function FertilizerClausesPanel({
       {activeCard ? (
         <FcoCardDetailPage
           card={activeCard}
-          activeTab="fullText"
+          activeTab={activeTab}
           bookmarks={bookmarks}
           onBack={onBackToCards}
-          onTabChange={onTabChange}
           onToggleBookmark={onToggleBookmark}
         />
       ) : cards.length > 0 ? (
@@ -1181,14 +1174,12 @@ function FcoCardDetailPage({
   activeTab,
   bookmarks,
   onBack,
-  onTabChange,
   onToggleBookmark,
 }: {
   card: FcoClauseCard;
   activeTab: FcoTabId;
   bookmarks: string[];
   onBack: () => void;
-  onTabChange: (tab: FcoTabId) => void;
   onToggleBookmark: (id: string) => void;
 }) {
   const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
@@ -1219,7 +1210,7 @@ function FcoCardDetailPage({
           <FcoClauseAccordion
             key={clause.id}
             clause={clause}
-            activeTab="fullText"
+            activeTab={activeTab}
             bookmarked={bookmarks.includes(clause.id)}
             onToggleBookmark={() => onToggleBookmark(clause.id)}
           />
@@ -1258,7 +1249,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark }:
         </div>
       </summary>
       <div className="space-y-3 p-3">
-        <FcoClauseTabContent clause={clause} activeTab="fullText" />
+        <FcoClauseTabContent clause={clause} activeTab={activeTab} />
         {clause.subClauses.length > 0 && (
           <div className="space-y-2">
             {clause.subClauses.map((subClause) => (
@@ -1513,58 +1504,6 @@ async function shareFertilizerForm(form: FertilizerFormEntry) {
   await navigator.clipboard?.writeText(text);
 }
 
-function FertilizerFormPdfModal({ form, onClose }: { form: FertilizerFormEntry; onClose: () => void }) {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const pdfUrl = fertilizerFormPdfUrl(form);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-stretch justify-center bg-slate-950/70 p-2 sm:p-4">
-      <section className="flex w-full max-w-6xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl dark:bg-slate-950">
-        <header className="flex flex-col gap-3 border-b border-slate-200 bg-gradient-to-r from-emerald-700 to-teal-800 p-3 text-white dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <button type="button" onClick={onClose} className="mb-2 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-black text-white ring-1 ring-white/20 hover:bg-white/25">
-              Back
-            </button>
-            <p className="text-xs font-black uppercase text-emerald-100">{form.category}</p>
-            <h2 className="truncate text-lg font-black sm:text-xl">{form.formNo} - {form.title}</h2>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <a href={form.pdfPath} download className="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50">
-              <Download className="h-4 w-4" /> Download
-            </a>
-            <button type="button" onClick={() => shareFertilizerForm(form)} className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-xs font-black text-white ring-1 ring-white/25 hover:bg-white/25">
-              <Share2 className="h-4 w-4" /> Share
-            </button>
-          </div>
-        </header>
-        <div className="relative min-h-[70vh] flex-1 bg-slate-100 dark:bg-slate-900">
-          {loading && !error && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 text-sm font-black text-slate-600 dark:bg-slate-950/80 dark:text-slate-300">
-              Loading PDF preview...
-            </div>
-          )}
-          {error ? (
-            <div className="flex h-full min-h-[70vh] flex-col items-center justify-center gap-3 p-6 text-center">
-              <p className="text-sm font-black text-red-700 dark:text-red-300">PDF preview failed to load.</p>
-              <a href={form.pdfPath} target="_blank" rel="noreferrer" className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
-                Open PDF in new tab
-              </a>
-            </div>
-          ) : (
-            <iframe
-              title={`${form.formNo} PDF preview`}
-              src={pdfUrl}
-              className="h-full min-h-[70vh] w-full border-0"
-              onLoad={() => setLoading(false)}
-              onError={() => { setLoading(false); setError(true); }}
-            />
-          )}
-        </div>
-      </section>
-    </div>
-  );
-}
 function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffenceEntry[]; onDownload: () => void; onPrint: () => void }) {
   return (
     <details className="group overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
