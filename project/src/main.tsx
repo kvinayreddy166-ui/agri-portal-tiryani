@@ -49,11 +49,20 @@ createRoot(rootEl).render(
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    const cleanupServiceWorkers = async () => {
+    const installRescueServiceWorker = async () => {
       try {
         const hadController = Boolean(navigator.serviceWorker.controller);
         const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map((registration) => registration.unregister()));
+        const appRegistrations = registrations.filter((registration) => new URL(registration.scope).origin === window.location.origin);
+
+        await Promise.all(appRegistrations.map(async (registration) => {
+          try { registration.active?.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch {}
+          try { await registration.update(); } catch {}
+        }));
+
+        if (!appRegistrations.some((registration) => new URL(registration.scope).pathname === '/')) {
+          await navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
+        }
 
         if ('caches' in window) {
           const keys = await caches.keys();
@@ -61,7 +70,7 @@ if ('serviceWorker' in navigator) {
         }
 
         if (hadController) {
-          const reloadKey = 'tiryani-service-worker-disabled-reload';
+          const reloadKey = 'tiryani-service-worker-rescue-reload';
           try {
             if (window.sessionStorage.getItem(reloadKey)) return;
             window.sessionStorage.setItem(reloadKey, '1');
@@ -69,14 +78,14 @@ if ('serviceWorker' in navigator) {
             return;
           }
           const url = new URL(window.location.href);
-          url.searchParams.set('sw-reset', String(Date.now()));
+          url.searchParams.set('sw-rescue', String(Date.now()));
           window.location.replace(url.toString());
         }
       } catch (error) {
-        if (import.meta.env.DEV) console.warn('Service worker disable cleanup failed:', error);
+        if (import.meta.env.DEV) console.warn('Service worker rescue setup failed:', error);
       }
     };
 
-    void cleanupServiceWorkers();
+    void installRescueServiceWorker();
   });
 }

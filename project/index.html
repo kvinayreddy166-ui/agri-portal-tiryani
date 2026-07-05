@@ -62,18 +62,23 @@
           } catch (error) {}
         }
 
-        function unregisterServiceWorkers() {
+        function syncRescueServiceWorker() {
           if (!('serviceWorker' in navigator)) return Promise.resolve(false);
           var hadController = Boolean(navigator.serviceWorker.controller);
           return navigator.serviceWorker.getRegistrations().then(function (registrations) {
             return Promise.all(registrations.map(function (registration) {
               try { registration.active && registration.active.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch (error) {}
               try { registration.waiting && registration.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (error) {}
-              return registration.unregister();
-            })).then(function () { return hadController || registrations.length > 0; });
+              try { return registration.update(); } catch (error) { return Promise.resolve(); }
+            })).then(function () {
+              var hasRootRegistration = registrations.some(function (registration) {
+                try { return new URL(registration.scope).pathname === '/'; } catch (error) { return false; }
+              });
+              if (hasRootRegistration) return false;
+              return navigator.serviceWorker.register('/service-worker.js', { scope: '/' }).then(function () { return true; });
+            }).then(function (registered) { return hadController || registrations.length > 0 || registered; });
           }).catch(function () { return hadController; });
         }
-
         function clearCachesOnly() {
           if (!('caches' in window)) return Promise.resolve();
           return caches.keys().then(function (keys) {
@@ -92,7 +97,7 @@
           var manualReset = reason === 'manual' || reason === 'cache-reset';
           return Promise.resolve()
             .then(function () { clearAppBuildMetadata(manualReset); })
-            .then(unregisterServiceWorkers)
+            .then(syncRescueServiceWorker)
             .then(clearCachesOnly)
             .finally(function () { reloadWithBust(reason || 'cache-reset', manualReset); });
         }
@@ -116,7 +121,7 @@
         }
 
         function releaseServiceWorkerControl() {
-          unregisterServiceWorkers()
+          syncRescueServiceWorker()
             .then(clearCachesOnly)
             .then(function (hadServiceWorker) {
               if (!hadServiceWorker || safeSessionGet(resetKey) === '1') return;

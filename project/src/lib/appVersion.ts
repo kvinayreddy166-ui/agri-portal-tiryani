@@ -39,7 +39,13 @@ export async function clearAppCacheAndReload() {
     navigator.serviceWorker?.controller?.postMessage({ type: 'CLEAR_RUNTIME_CACHES' });
 
     const registrations = await navigator.serviceWorker?.getRegistrations?.();
-    await Promise.all((registrations || []).map((registration) => registration.unregister()));
+    await Promise.all((registrations || []).map(async (registration) => {
+      try { registration.active?.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch {}
+      try { await registration.update(); } catch {}
+    }));
+    if (!registrations?.some((registration) => new URL(registration.scope).pathname === '/')) {
+      await navigator.serviceWorker?.register('/service-worker.js', { scope: '/' });
+    }
 
     if ('caches' in window) {
       const keys = await caches.keys();
