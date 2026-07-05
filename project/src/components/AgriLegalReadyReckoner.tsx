@@ -624,7 +624,7 @@ export function AgriLegalReadyReckoner() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{entry.referenceNumber} &middot; {entry.referenceType}</p>
+                      <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{entry.referenceNumber} &middot; {entry.referenceType}</p>
                       <h3 className="mt-1 text-sm font-black text-slate-950 dark:text-white">{entry.title}</h3>
                     </div>
                   </div>
@@ -639,7 +639,7 @@ export function AgriLegalReadyReckoner() {
             <aside className="h-fit rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{selectedEntry.lawName}</p>
+                  <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{selectedEntry.lawName}</p>
                   <h2 className="mt-1 text-lg font-black text-slate-950 dark:text-white">{selectedEntry.referenceNumber}</h2>
                 </div>
                 <button type="button" onClick={() => toggleBookmark(selectedEntry.id)} className="rounded-lg border border-slate-200 p-2 text-emerald-700 hover:bg-emerald-50" aria-label="Bookmark">
@@ -723,6 +723,7 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
           <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Open clauses, forms, schedules, or officer field actions.</p>
         </div>
       </div>
+      <FcoImplementationChart />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -750,7 +751,7 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
           );
         })}
       </div>
-      <FcoImplementationChart />
+      
     </section>
   );
 }
@@ -836,7 +837,7 @@ function FertilizerSectionHeader({ title, subtitle, icon: Icon, onBack }: { titl
           <Icon className="h-5 w-5" />
         </span>
         <div>
-          <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Fertilizer</p>
+          <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Fertilizer</p>
           <h2 className="text-xl font-black text-slate-950 dark:text-white">{title}</h2>
           <p className="text-xs font-bold text-slate-600 dark:text-slate-300">{subtitle}</p>
         </div>
@@ -937,7 +938,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange, onBack }: { search: 
         {visibleSchedules.map((schedule) => (
           <details key={schedule.id} className="group rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-emerald-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
             <summary className="cursor-pointer list-none">
-              <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{schedule.scheduleNo}</p>
+              <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{schedule.scheduleNo}</p>
               <h3 className="mt-1 text-base font-black text-slate-950 dark:text-white">{schedule.title}</h3>
               <p className="mt-1 line-clamp-2 text-xs font-bold leading-5 text-slate-600 dark:text-slate-300">{schedule.subtitle}</p>
             </summary>
@@ -1204,7 +1205,7 @@ function EssentialCommoditiesActSection({ entries }: { entries: EssentialCommodi
           <div className="mt-2 grid gap-2 md:grid-cols-2">
             {essentialCommoditiesCrossLinks.map((link) => (
               <div key={link.label} className="rounded-md border border-white bg-white p-2 text-xs font-bold text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
-                <span className="font-black text-emerald-700 dark:text-emerald-300">{link.label}</span>: {link.links.join(', ')}
+                <span className="font-black text-amber-700 dark:text-amber-300">{link.label}</span>: {link.links.join(', ')}
               </div>
             ))}
           </div>
@@ -1259,7 +1260,7 @@ function FcoCardDetailPage({
   const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
 
   return (
-    <section className="overflow-hidden rounded-lg border border-emerald-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
+    <section className="overflow-hidden rounded-lg border border-amber-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
       <div className={`bg-gradient-to-br ${card.gradient} p-4 text-white`}>
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex items-start gap-3">
@@ -1306,7 +1307,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark }:
     <details className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" open>
       <summary className="flex cursor-pointer list-none flex-col gap-3 border-b border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Clause {clause.clauseNo} - {clause.category}</p>
+          <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Clause {clause.clauseNo} - {clause.category}</p>
           <h3 className="mt-1 text-base font-black text-slate-950 dark:text-white">{clause.title}</h3>
           <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">{clause.summary}</p>
         </div>
@@ -1331,7 +1332,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark }:
                 <summary className="cursor-pointer list-none px-3 py-2 text-sm font-black text-slate-900 dark:text-white">{subClause.no} - {subClause.plainEnglish}</summary>
                 <div className="space-y-2 border-t border-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200">
                   <p>{subClause.legalText}</p>
-                  {subClause.officerAction && <p><span className="font-black text-emerald-700 dark:text-emerald-300">Officer:</span> {subClause.officerAction.join('; ')}</p>}
+                  {subClause.officerAction && <p><span className="font-black text-amber-700 dark:text-amber-300">Officer:</span> {subClause.officerAction.join('; ')}</p>}
                   {subClause.dealerObligation && <p><span className="font-black text-blue-700 dark:text-blue-300">Dealer:</span> {subClause.dealerObligation.join('; ')}</p>}
                   <button type="button" onClick={() => navigator.clipboard?.writeText(`${subClause.no}: ${subClause.legalText}\n${subClause.plainEnglish}`)} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                     <Copy className="h-3.5 w-3.5" /> Copy sub-clause
@@ -1389,7 +1390,7 @@ function FcoDashboardCards({
   onSelect: (cardId: string) => void;
 }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-emerald-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">      <div className="grid gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3">
+    <section className="overflow-hidden rounded-lg border border-amber-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">      <div className="grid gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3">
         {showFormsCard && (
           <button
             type="button"
@@ -1427,13 +1428,13 @@ function FcoDashboardCards({
               type="button"
               onClick={() => onSelect(card.id)}
               className={`group relative min-h-[13rem] overflow-hidden rounded-lg border p-4 text-left shadow-sm transition duration-300 motion-safe:hover:-translate-y-1 ${
-                active ? 'border-emerald-300 bg-emerald-50 text-slate-950 shadow-md' : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-200 hover:bg-emerald-50/60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-emerald-950/20'
+                active ? 'border-amber-300 bg-amber-50 text-slate-950 shadow-md' : 'border-slate-200 bg-white text-slate-900 hover:border-amber-200 hover:bg-amber-50/60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-amber-950/20'
               }`}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-15 transition group-hover:opacity-20`} />
               <div className="relative flex h-full flex-col justify-between gap-4">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="rounded-lg bg-white/80 p-3 text-emerald-800 shadow-sm ring-1 ring-emerald-100 motion-safe:transition motion-safe:group-hover:scale-105 dark:bg-slate-950/80 dark:text-emerald-200 dark:ring-emerald-900">
+                  <div className="rounded-lg bg-white/80 p-3 text-amber-800 shadow-sm ring-1 ring-amber-100 motion-safe:transition motion-safe:group-hover:scale-105 dark:bg-slate-950/80 dark:text-amber-200 dark:ring-amber-900">
                     <Icon className="h-7 w-7" />
                   </div>
                   <span className="rounded-full bg-white/85 px-3 py-1 text-xs font-black text-slate-800 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950/80 dark:text-slate-100 dark:ring-slate-700">{card.clauseRange}</span>
@@ -1498,7 +1499,7 @@ function FertilizerFormsPanel({
             <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">FCO Forms</p>
               <h2 className="mt-1 text-xl font-black text-slate-950 dark:text-white">Forms</h2>
-              <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Open a statutory PDF preview first, then download or fill optional officer details.</p>
+              <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Tap a form card to show preview, download, and share actions.</p>
             </div>
           </div>
           <button type="button" onClick={onBack} className="w-fit rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs font-black text-amber-800 shadow-sm hover:bg-amber-50 dark:border-amber-900 dark:bg-slate-950 dark:text-amber-200">
@@ -1532,16 +1533,21 @@ function FertilizerFormsPanel({
 
       <div className="grid auto-rows-fr gap-3 p-3 md:grid-cols-2 xl:grid-cols-3">
         {visibleForms.map((form) => (
-          <article key={form.id} className="flex min-h-[13.5rem] min-w-0 flex-col rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-amber-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
-            <div className="flex min-w-0 items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.formNo} - {form.category}</p>
-                <h3 className="mt-1 text-sm font-black leading-5 text-slate-950 dark:text-white">{form.title}</h3>
+          <details key={form.id} className="group min-h-[12rem] min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-amber-200 hover:shadow-md open:border-amber-300 open:bg-amber-50/40 dark:border-slate-700 dark:bg-slate-900 dark:open:bg-amber-950/10">
+            <summary className="flex h-full cursor-pointer list-none flex-col gap-3">
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.formNo} - {form.category}</p>
+                  <h3 className="mt-1 text-sm font-black leading-5 text-slate-950 dark:text-white">{form.title}</h3>
+                </div>
+                <span className="max-w-[7rem] shrink-0 rounded-lg bg-amber-100 px-2 py-1 text-center text-[10px] font-black leading-3 text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:ring-amber-900">{form.clause || 'PDF'}</span>
               </div>
-              <span className="max-w-[7rem] shrink-0 rounded-lg bg-slate-100 px-2 py-1 text-center text-[10px] font-black leading-3 text-slate-700 dark:bg-slate-800 dark:text-slate-200">{form.clause || 'PDF'}</span>
-            </div>
-            <p className="mt-3 flex-1 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{form.description}</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              <p className="text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{form.description}</p>
+              <span className="mt-auto inline-flex w-fit rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[11px] font-black text-amber-800 group-open:hidden dark:border-amber-900 dark:bg-slate-950 dark:text-amber-200">
+                Tap to open
+              </span>
+            </summary>
+            <div className="mt-3 grid gap-2 border-t border-amber-100 pt-3 sm:grid-cols-3 dark:border-slate-800">
               <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-amber-700 px-2.5 py-2 text-xs font-black text-white hover:bg-amber-800">
                 <FileSearch className="h-4 w-4" /> Preview
               </button>
@@ -1552,7 +1558,7 @@ function FertilizerFormsPanel({
                 <Share2 className="h-4 w-4" /> Share
               </button>
             </div>
-          </article>
+          </details>
         ))}
         {visibleForms.length === 0 && (
           <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 xl:col-span-3 dark:border-slate-700">
