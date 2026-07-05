@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bookmark,
@@ -9,6 +9,7 @@ import {
   Download,
   FileSearch,
   FileText,
+  ClipboardList,
   FlaskConical,
   IndianRupee,
   Microscope,
@@ -28,12 +29,17 @@ import { essentialCommoditiesActEntries, essentialCommoditiesCrossLinks, type Es
 import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData';
 import { legalReadyReckonerEntries, type LegalCategory, type LegalReadyReckonerEntry } from '../data/legalReadyReckonerData';
 import { fcoClauseCards, fcoMemoryMnemonic, importantFcoMnemonics, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
+import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory, type FertilizerFormEntry } from '../data/fertilizerForms';
+import { fertilizerSchedules, type FertilizerScheduleEntry } from '../data/fertilizerSchedules';
+import { legalInspectionChecklists } from '../data/legalInspectionChecklists';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { ShowCauseNoticeEntry } from './ShowCauseNoticeEntry';
 import { BackButton } from './ui/BackButton';
 
 type ReckonerView = 'references' | 'powers' | 'notice' | 'drafting';
 type MainLegalArea = 'fertilizer' | 'seed' | 'insecticide';
+type FertilizerSection = 'clauses' | 'forms' | 'schedules' | 'officer';
+type OfficerCornerAction = 'offences' | 'stop-sale' | 'show-cause' | 'inspection';
 
 const BOOKMARK_KEY = 'agri-legal-reckoner-bookmarks';
 const legalAreaCards: Array<{
@@ -142,6 +148,50 @@ function fcoCardSearchText(card: FcoClauseCard) {
     card.clauses.map(fcoClauseSearchText).join(' '),
   ].join(' ').toLowerCase();
 }
+
+function normalizeFcoReferenceQuery(value: string) {
+  return value.trim().toLowerCase().replace(/^clause\s+/, '').replace(/\s+/g, '');
+}
+
+function isFcoExactReferenceQuery(value: string) {
+  return /^(clause\s*)?\d+[a-z]?(?:\(\d+[a-z]?\))*$/i.test(value.trim());
+}
+
+function fcoClauseMatchesQuery(clause: FcoClause, rawTerm: string) {
+  const term = rawTerm.trim().toLowerCase();
+  if (!term) return true;
+
+  if (isFcoExactReferenceQuery(term)) {
+    const reference = normalizeFcoReferenceQuery(term);
+    const clauseNo = clause.clauseNo.toLowerCase();
+    if (clauseNo === reference) return true;
+    if (clause.oldPdf2ClauseNo?.toLowerCase() === reference) return true;
+    if (clause.canonicalClauseNo?.toLowerCase() === reference) return true;
+    return clause.subClauses.some((item) => {
+      const subClause = item.no.toLowerCase().replace(/^clause\s+/, '').replace(/\s+/g, '');
+      return subClause === reference || subClause.startsWith(`${reference}(`);
+    });
+  }
+
+  return fcoClauseSearchText(clause).includes(term);
+}
+
+function filterFcoCardForQuery(card: FcoClauseCard, rawTerm: string): FcoClauseCard | null {
+  const term = rawTerm.trim().toLowerCase();
+  if (!term) return card;
+
+  const matchingClauses = card.clauses.filter((clause) => fcoClauseMatchesQuery(clause, term));
+  if (matchingClauses.length > 0) {
+    return {
+      ...card,
+      clauses: matchingClauses,
+      clauseRange: matchingClauses.length === 1 ? `Clause ${matchingClauses[0].clauseNo}` : card.clauseRange,
+    };
+  }
+
+  if (!isFcoExactReferenceQuery(term) && fcoCardSearchText(card).includes(term)) return card;
+  return null;
+}
 function entryFallsInFcoRange(entry: LegalReadyReckonerEntry, range: [number, number]) {
   if (entry.lawName !== 'Fertiliser (Control) Order, 1985') return true;
   const values = [entry.referenceNumber, entry.nestedReference.clause, entry.nestedReference.subClause]
@@ -187,15 +237,19 @@ export function AgriLegalReadyReckoner() {
   const [category, setCategory] = useState<LegalCategory>('Fertiliser');
   const [selectedFcoCardId, setSelectedFcoCardId] = useState<string | null>(null);
   const [fcoActiveTab, setFcoActiveTab] = useState<FcoTabId>('plainEnglish');
-  const [penaltyOnly, setPenaltyOnly] = useState(false);
-  const [powersOnly, setPowersOnly] = useState(false);
-  const [nestedOnly, setNestedOnly] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState(legalReadyReckonerEntries[0]?.id || '');
   const [bookmarks, setBookmarks] = useState<string[]>(() => readBookmarks());
   const [draftInputType, setDraftInputType] = useState('Fertiliser');
   const [draftViolation, setDraftViolation] = useState('');
   const [draftProduct, setDraftProduct] = useState('');
   const [draftDealer, setDraftDealer] = useState('');
+  const [showFertilizerForms, setShowFertilizerForms] = useState(false);
+  const [selectedFertilizerForm, setSelectedFertilizerForm] = useState<FertilizerFormEntry | null>(null);
+  const [formSearch, setFormSearch] = useState('');
+  const [formCategory, setFormCategory] = useState<'All' | FertilizerFormCategory>('All');
+  const [fertilizerSection, setFertilizerSection] = useState<FertilizerSection | null>(null);
+  const [officerCornerAction, setOfficerCornerAction] = useState<OfficerCornerAction | null>(null);
+  const [scheduleSearch, setScheduleSearch] = useState('');
 
   useEffect(() => {
     window.localStorage.setItem(BOOKMARK_KEY, JSON.stringify(bookmarks));
@@ -205,26 +259,30 @@ export function AgriLegalReadyReckoner() {
     validateFcoClauseCoverage();
   }, []);
 
-  const activeFcoCard = useMemo(() => fcoClauseCards.find((card) => card.id === selectedFcoCardId) || null, [selectedFcoCardId]);
-
   const filteredFcoCards = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return fcoClauseCards;
-    return fcoClauseCards.filter((card) => fcoCardSearchText(card).includes(term));
+    return fcoClauseCards
+      .map((card) => filterFcoCardForQuery(card, term))
+      .filter((card): card is FcoClauseCard => Boolean(card));
   }, [query]);
+
+  const activeFcoCard = useMemo(() => {
+    const card = fcoClauseCards.find((item) => item.id === selectedFcoCardId);
+    if (!card) return null;
+    return filterFcoCardForQuery(card, query.trim().toLowerCase()) || card;
+  }, [query, selectedFcoCardId]);
+
+  const isFcoClauseLookup = category === 'Fertiliser' && isFcoExactReferenceQuery(query);
 
   const filteredEntries = useMemo(() => {
     const term = query.trim().toLowerCase();
     return legalReadyReckonerEntries.filter((entry) => {
       if (entry.category !== category) return false;
       if (category === 'Fertiliser' && activeFcoCard && !entryFallsInFcoRange(entry, activeFcoCard.range)) return false;
-      if (penaltyOnly && entry.category !== 'Penal Provisions' && !entry.linkedPenalProvision?.toLowerCase().includes('penal')) return false;
-      if (powersOnly && !entry.tags.some((tag) => ['stop sale', 'seizure', 'sampling', 'sample', 'search', 'powers', 'detention'].includes(tag.toLowerCase()))) return false;
-      if (nestedOnly && !['sub-section', 'sub-clause', 'sub-rule', 'proviso'].includes(entry.referenceType)) return false;
       if (term && !entrySearchText(entry).includes(term)) return false;
       return true;
     });
-  }, [activeFcoCard, category, nestedOnly, penaltyOnly, powersOnly, query]);
+  }, [activeFcoCard, category, query]);
 
 
   const selectedEntry = useMemo(
@@ -373,6 +431,15 @@ export function AgriLegalReadyReckoner() {
   };
 
   const handleBack = () => {
+    if (selectedLegalArea === 'fertilizer' && fertilizerSection) {
+      setFertilizerSection(null);
+      setOfficerCornerAction(null);
+      setSelectedFcoCardId(null);
+      setShowFertilizerForms(false);
+      setSelectedFertilizerForm(null);
+      setQuery('');
+      return;
+    }
     if (selectedLegalArea) {
       closeLegalArea();
       return;
@@ -403,19 +470,72 @@ export function AgriLegalReadyReckoner() {
         <LegalAreaOpeningScreen onOpen={openLegalArea} />
       )}
 
-      {selectedLegalArea === 'fertilizer' && (
-        <section className="space-y-3 rounded-lg border border-emerald-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-white shadow-lg shadow-amber-500/20">
-              <PackageCheck className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-slate-950 dark:text-white">Fertilizer legal topics</h2>
-              <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Tap a topic card, then use search and filters below.</p>
-            </div>
-          </div>
-          <FcoMasterMnemonicCard />
-        </section>
+      {selectedLegalArea === 'fertilizer' && !fertilizerSection && (
+        <FertilizerModuleHome onOpenSection={setFertilizerSection} />
+      )}
+
+      {selectedLegalArea === 'fertilizer' && fertilizerSection === 'clauses' && (
+        <FertilizerClausesPanel
+          search={query}
+          cards={filteredFcoCards}
+          activeCard={activeFcoCard}
+          activeCardId={selectedFcoCardId}
+          activeTab={fcoActiveTab}
+          bookmarks={bookmarks}
+          onSearchChange={(value) => {
+            setQuery(value);
+            setSelectedFcoCardId(null);
+          }}
+          onBack={() => {
+            setFertilizerSection(null);
+            setSelectedFcoCardId(null);
+            setQuery('');
+          }}
+          onBackToCards={() => setSelectedFcoCardId(null)}
+          onSelectCard={(cardId) => {
+            setSelectedFcoCardId(cardId);
+            setFcoActiveTab('plainEnglish');
+          }}
+          onTabChange={setFcoActiveTab}
+          onToggleBookmark={toggleBookmark}
+        />
+      )}
+
+      {selectedLegalArea === 'fertilizer' && fertilizerSection === 'forms' && (
+        <FertilizerFormsPanel
+          search={formSearch}
+          category={formCategory}
+          onSearchChange={setFormSearch}
+          onCategoryChange={setFormCategory}
+          onBack={() => setFertilizerSection(null)}
+          onViewForm={setSelectedFertilizerForm}
+        />
+      )}
+
+      {selectedLegalArea === 'fertilizer' && fertilizerSection === 'schedules' && (
+        <FertilizerSchedulesPanel
+          search={scheduleSearch}
+          onSearchChange={setScheduleSearch}
+          onBack={() => setFertilizerSection(null)}
+        />
+      )}
+
+      {selectedLegalArea === 'fertilizer' && fertilizerSection === 'officer' && (
+        <OfficerCornerPanel
+          action={officerCornerAction}
+          offences={filteredFcoOffences}
+          onActionChange={setOfficerCornerAction}
+          onSearchChange={setQuery}
+          search={query}
+          onBack={() => {
+            setFertilizerSection(null);
+            setOfficerCornerAction(null);
+            setQuery('');
+          }}
+          onBackToActions={() => setOfficerCornerAction(null)}
+          onDownloadOffences={downloadFcoOffencesCsv}
+          onPrintOffences={printFcoOffences}
+        />
       )}
 
       {selectedLegalArea && selectedLegalArea !== 'fertilizer' && (
@@ -425,7 +545,7 @@ export function AgriLegalReadyReckoner() {
         />
       )}
 
-      {selectedLegalArea && (
+      {selectedLegalArea && selectedLegalArea !== 'fertilizer' && (
         <>
       <div className={`grid gap-3 sm:grid-cols-2 ${selectedLegalArea === 'fertilizer' ? 'xl:grid-cols-3' : 'xl:grid-cols-4'}`}>
         <ViewButton active={view === 'references'} icon={FileSearch} label="Legal References" onClick={() => setView('references')} />
@@ -445,12 +565,17 @@ export function AgriLegalReadyReckoner() {
                 className="w-full rounded-lg border border-slate-200 bg-white py-3 pl-10 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
               />
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Toggle label="Penalty only" checked={penaltyOnly} onChange={setPenaltyOnly} />
-              <Toggle label="Stop Sale / Seizure only" checked={powersOnly} onChange={setPowersOnly} />
-              <Toggle label="Sub-section / Sub-clause view" checked={nestedOnly} onChange={setNestedOnly} />
-            </div>
-            {category === 'Fertiliser' && activeFcoCard && (
+            {category === 'Fertiliser' && showFertilizerForms && (
+              <FertilizerFormsPanel
+                search={formSearch}
+                category={formCategory}
+                onSearchChange={setFormSearch}
+                onCategoryChange={setFormCategory}
+                onBack={() => setShowFertilizerForms(false)}
+                onViewForm={setSelectedFertilizerForm}
+              />
+            )}
+            {category === 'Fertiliser' && !showFertilizerForms && activeFcoCard && (
               <FcoCardDetailPage
                 card={activeFcoCard}
                 activeTab={fcoActiveTab}
@@ -460,10 +585,15 @@ export function AgriLegalReadyReckoner() {
                 onToggleBookmark={toggleBookmark}
               />
             )}
-            {category === 'Fertiliser' && !activeFcoCard && (
+            {category === 'Fertiliser' && !showFertilizerForms && !activeFcoCard && (
               <FcoDashboardCards
                 cards={filteredFcoCards}
                 activeCardId={selectedFcoCardId}
+                showFormsCard={!isFcoClauseLookup}
+                onOpenForms={() => {
+                  setShowFertilizerForms(true);
+                  setSelectedFcoCardId(null);
+                }}
                 onSelect={(cardId) => {
                   setSelectedFcoCardId(cardId);
                   setFcoActiveTab('plainEnglish');
@@ -471,7 +601,7 @@ export function AgriLegalReadyReckoner() {
               />
             )}
 
-            {category === 'Fertiliser' && !activeFcoCard && (
+            {category === 'Fertiliser' && !showFertilizerForms && !activeFcoCard && !isFcoClauseLookup && (
               <FcoOffencesSection
                 entries={filteredFcoOffences}
                 onDownload={downloadFcoOffencesCsv}
@@ -544,7 +674,10 @@ export function AgriLegalReadyReckoner() {
         </div>
       )}
 
-      {view === 'powers' && <PowersSection />}
+      {view === 'powers' && selectedLegalArea && <PowersSection area={selectedLegalArea} />}
+      {selectedFertilizerForm && (
+        <FertilizerFormPdfModal form={selectedFertilizerForm} onClose={() => setSelectedFertilizerForm(null)} />
+      )}
       {view === 'notice' && <ShowCauseNoticeEntry />}
       {view === 'drafting' && (
         <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
@@ -567,11 +700,290 @@ export function AgriLegalReadyReckoner() {
       )}
         </>
       )}
+      {selectedFertilizerForm && (
+        <FertilizerFormPdfModal form={selectedFertilizerForm} onClose={() => setSelectedFertilizerForm(null)} />
+      )}
     </div>
   );
 }
 
 
+function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: FertilizerSection) => void }) {
+  const cards: Array<{ id: FertilizerSection; title: string; subtitle: string; description: string; icon: React.ElementType; tone: string }> = [
+    { id: 'clauses', title: 'Clauses', subtitle: '39 Clauses', description: 'FCO clause cards, sub-clauses, officer action and timelines.', icon: BookOpen, tone: 'from-emerald-500 via-green-500 to-teal-700' },
+    { id: 'forms', title: 'Forms', subtitle: '27 Forms', description: 'Registration, manufacturing, sampling and business record forms.', icon: FileText, tone: 'from-amber-500 via-orange-400 to-emerald-600' },
+    { id: 'schedules', title: 'Schedules', subtitle: '8 Schedules', description: 'Specifications, sampling procedures, tolerance limits and analysis methods.', icon: ClipboardList, tone: 'from-sky-500 via-cyan-500 to-emerald-600' },
+    { id: 'officer', title: 'Officer Corner', subtitle: 'Field actions & notices', description: 'Offences, stop sale, show cause and inspection references.', icon: ShieldAlert, tone: 'from-rose-500 via-orange-500 to-amber-500' },
+  ];
+
+  return (
+    <section className="space-y-3 rounded-lg border border-emerald-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div className="flex items-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-white shadow-lg shadow-amber-500/20">
+          <PackageCheck className="h-6 w-6" />
+        </div>
+        <div>
+          <h2 className="text-lg font-black text-slate-950 dark:text-white">Fertilizer</h2>
+          <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Open clauses, forms, schedules, or officer field actions.</p>
+        </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <button
+              key={card.id}
+              type="button"
+              onClick={() => onOpenSection(card.id)}
+              className="group relative min-h-[9.5rem] overflow-hidden rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md dark:border-slate-700 dark:bg-slate-950"
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${card.tone} opacity-15 transition group-hover:opacity-25`} />
+              <div className="relative flex h-full flex-col justify-between gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <span className={`flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br ${card.tone} text-white shadow-sm transition group-hover:scale-105`}>
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span className="rounded-full bg-white/85 px-2.5 py-1 text-[11px] font-black text-slate-800 ring-1 ring-slate-200 dark:bg-slate-900/85 dark:text-slate-100 dark:ring-slate-700">{card.subtitle}</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-950 dark:text-white">{card.title}</h3>
+                  <p className="mt-1 line-clamp-2 text-xs font-bold leading-5 text-slate-600 dark:text-slate-300">{card.description}</p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function FertilizerSectionHeader({ title, subtitle, icon: Icon, onBack }: { title: string; subtitle: string; icon: React.ElementType; onBack: () => void }) {
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-4 shadow-sm dark:border-slate-700 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-white shadow-sm">
+          <Icon className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Fertilizer</p>
+          <h2 className="text-xl font-black text-slate-950 dark:text-white">{title}</h2>
+          <p className="text-xs font-bold text-slate-600 dark:text-slate-300">{subtitle}</p>
+        </div>
+      </div>
+      <button type="button" onClick={onBack} className="w-fit rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 shadow-sm hover:bg-emerald-50 dark:border-emerald-900 dark:bg-slate-950 dark:text-emerald-200">
+        Back
+      </button>
+    </div>
+  );
+}
+
+function FertilizerClausesPanel({
+  search,
+  cards,
+  activeCard,
+  activeCardId,
+  activeTab,
+  bookmarks,
+  onSearchChange,
+  onBack,
+  onBackToCards,
+  onSelectCard,
+  onTabChange,
+  onToggleBookmark,
+}: {
+  search: string;
+  cards: FcoClauseCard[];
+  activeCard: FcoClauseCard | null;
+  activeCardId: string | null;
+  activeTab: FcoTabId;
+  bookmarks: string[];
+  onSearchChange: (value: string) => void;
+  onBack: () => void;
+  onBackToCards: () => void;
+  onSelectCard: (cardId: string) => void;
+  onTabChange: (tab: FcoTabId) => void;
+  onToggleBookmark: (id: string) => void;
+}) {
+  return (
+    <section className="space-y-3">
+      <FertilizerSectionHeader title="Clauses" subtitle="39 Clauses" icon={BookOpen} onBack={onBack} />
+      <FcoMasterMnemonicCard />
+      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Search Clause 28, 28(2), stop sale, Form J, Schedule II..."
+            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+          />
+        </div>
+      </div>
+      {activeCard ? (
+        <FcoCardDetailPage
+          card={activeCard}
+          activeTab="fullText"
+          bookmarks={bookmarks}
+          onBack={onBackToCards}
+          onTabChange={onTabChange}
+          onToggleBookmark={onToggleBookmark}
+        />
+      ) : cards.length > 0 ? (
+        <FcoDashboardCards
+          cards={cards}
+          activeCardId={activeCardId}
+          showFormsCard={false}
+          onOpenForms={() => undefined}
+          onSelect={onSelectCard}
+        />
+      ) : (
+        <p className="rounded-lg border border-dashed border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-900">No clauses found</p>
+      )}
+    </section>
+  );
+}
+
+function scheduleSearchText(schedule: FertilizerScheduleEntry) {
+  return [schedule.scheduleNo, schedule.title, schedule.subtitle, schedule.parts.map((part) => part.label).join(' '), schedule.keywords.join(' ')].join(' ').toLowerCase();
+}
+
+function FertilizerSchedulesPanel({ search, onSearchChange, onBack }: { search: string; onSearchChange: (value: string) => void; onBack: () => void }) {
+  const term = search.trim().toLowerCase();
+  const visibleSchedules = fertilizerSchedules.filter((schedule) => !term || scheduleSearchText(schedule).includes(term));
+
+  return (
+    <section className="space-y-3">
+      <FertilizerSectionHeader title="Schedules" subtitle="8 Schedules" icon={ClipboardList} onBack={onBack} />
+      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Search schedule, part, sampling, tolerance, biofertiliser..."
+            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+          />
+        </div>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {visibleSchedules.map((schedule) => (
+          <details key={schedule.id} className="group rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-emerald-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+            <summary className="cursor-pointer list-none">
+              <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{schedule.scheduleNo}</p>
+              <h3 className="mt-1 text-base font-black text-slate-950 dark:text-white">{schedule.title}</h3>
+              <p className="mt-1 line-clamp-2 text-xs font-bold leading-5 text-slate-600 dark:text-slate-300">{schedule.subtitle}</p>
+            </summary>
+            <ul className="mt-3 space-y-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+              {schedule.parts.map((part) => (
+                <li key={part.id} className="rounded-md bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 dark:bg-slate-950 dark:text-slate-200">{part.label}</li>
+              ))}
+            </ul>
+          </details>
+        ))}
+        {visibleSchedules.length === 0 && (
+          <p className="rounded-lg border border-dashed border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 dark:border-slate-700 dark:bg-slate-900">No schedules found</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function OfficerCornerPanel({
+  action,
+  offences,
+  search,
+  onSearchChange,
+  onActionChange,
+  onBack,
+  onBackToActions,
+  onDownloadOffences,
+  onPrintOffences,
+}: {
+  action: OfficerCornerAction | null;
+  offences: FcoOffenceEntry[];
+  search: string;
+  onSearchChange: (value: string) => void;
+  onActionChange: (action: OfficerCornerAction) => void;
+  onBack: () => void;
+  onBackToActions: () => void;
+  onDownloadOffences: () => void;
+  onPrintOffences: () => void;
+}) {
+  const actions: Array<{ id: OfficerCornerAction; title: string; subtitle: string; icon: React.ElementType }> = [
+    { id: 'offences', title: 'Offences', subtitle: 'FCO/ECA offence references', icon: Scale },
+    { id: 'stop-sale', title: 'Issue Stop Sale / Seizure Notice', subtitle: 'Stop sale, seizure and workflow table', icon: ShieldAlert },
+    { id: 'show-cause', title: 'Issue Memo / Show Cause Notice', subtitle: 'Notice drafting helper', icon: FileText },
+    { id: 'inspection', title: 'Inspection', subtitle: 'Field inspection checklist', icon: ClipboardList },
+  ];
+
+  if (!action) {
+    return (
+      <section className="space-y-3">
+        <FertilizerSectionHeader title="Officer Corner" subtitle="Field actions & notices" icon={ShieldAlert} onBack={onBack} />
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {actions.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button key={item.id} type="button" onClick={() => onActionChange(item.id)} className="group min-h-[8rem] rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 transition group-hover:scale-105 dark:bg-emerald-950/30 dark:text-emerald-300 dark:ring-emerald-900">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="mt-3 block text-sm font-black text-slate-950 dark:text-white">{item.title}</span>
+                <span className="mt-1 block text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{item.subtitle}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-3">
+      <FertilizerSectionHeader title={actions.find((item) => item.id === action)?.title || 'Officer Corner'} subtitle="Field actions & notices" icon={ShieldAlert} onBack={onBackToActions} />
+      {action === 'offences' && (
+        <div className="space-y-3">
+          <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search offence, FCO provision, ECA punishment..." className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
+            </div>
+          </div>
+          <FcoOffencesSection entries={offences} onDownload={onDownloadOffences} onPrint={onPrintOffences} />
+        </div>
+      )}
+      {action === 'stop-sale' && <PowersSection area="fertilizer" />}
+      {action === 'show-cause' && <ShowCauseNoticeEntry />}
+      {action === 'inspection' && <InspectionChecklistPanel />}
+    </section>
+  );
+}
+
+function InspectionChecklistPanel() {
+  const checklists = legalInspectionChecklists.filter((item) => item.id.includes('fertilizer') || item.id.includes('fertiliser'));
+  if (checklists.length === 0) {
+    return <p className="rounded-lg border border-dashed border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-900">No inspection checklist found</p>;
+  }
+  return (
+    <div className="grid gap-3 lg:grid-cols-2">
+      {checklists.map((checklist) => (
+        <section key={checklist.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <h3 className="text-base font-black text-slate-950 dark:text-white">{checklist.title}</h3>
+          <div className="mt-3 space-y-2">
+            {checklist.items.map((item) => (
+              <div key={item.id} className="rounded-lg border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+                <p className="text-sm font-black text-slate-900 dark:text-white">{item.label}</p>
+                <p className="mt-1 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{item.reference}</p>
+                <span className="mt-2 inline-flex rounded-full bg-white px-2 py-1 text-[11px] font-black text-emerald-700 ring-1 ring-emerald-100 dark:bg-slate-900 dark:text-emerald-300 dark:ring-emerald-900">{item.verificationStatus}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
 function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => void }) {
   return (
     <section className="overflow-hidden rounded-lg border border-emerald-100 bg-[linear-gradient(135deg,#f7fee7_0%,#ecfdf5_48%,#eff6ff_100%)] p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-5">
@@ -645,7 +1057,7 @@ function LegalTopicScreen({
               className="agri-topic-card group rounded-lg border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 active:scale-[0.99] dark:border-slate-700 dark:bg-slate-950 dark:hover:bg-emerald-950/20"
             >
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-emerald-700 shadow-sm ring-1 ring-emerald-100 transition group-hover:scale-105 dark:bg-slate-900 dark:text-emerald-300 dark:ring-slate-700">
-                <Icon className="h-5 w-5" />
+                <Icon className="h-4 w-4" />
               </span>
               <span className="mt-3 block text-sm font-black text-slate-950 dark:text-white">{topic.title}</span>
               <span className="mt-1 block text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{topic.description}</span>
@@ -662,29 +1074,21 @@ function ViewButton({ active, icon: Icon, label, onClick }: { active: boolean; i
     <button
       type="button"
       onClick={onClick}
-      className={`agri-input-topic-card group flex min-h-[5.75rem] items-center gap-3 rounded-2xl border p-3 text-left text-sm font-black shadow-sm transition duration-300 hover:-translate-y-0.5 active:scale-[0.98] ${
+      className={`agri-input-topic-card group flex min-h-[4.25rem] items-center gap-2.5 rounded-xl border p-2.5 text-left text-sm font-black shadow-sm transition duration-300 hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.98] ${
         active
           ? 'border-transparent bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 text-white shadow-lg shadow-emerald-900/20'
           : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'
       }`}
     >
-      <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-sm ring-1 transition group-hover:scale-105 ${
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm ring-1 transition group-hover:scale-105 ${
         active
           ? 'bg-white/20 text-white ring-white/30'
           : 'bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-300 dark:ring-emerald-900'
       }`}>
-        <Icon className="h-5 w-5" />
+        <Icon className="h-4 w-4" />
       </span>
       <span className="min-w-0 leading-5">{label}</span>
     </button>
-  );
-}
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
-  return (
-    <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="h-4 w-4 rounded text-emerald-700 focus:ring-emerald-500" />
-      {label}
-    </label>
   );
 }
 
@@ -772,14 +1176,6 @@ function EssentialCommoditiesActSection({ entries }: { entries: EssentialCommodi
   );
 }
 
-const fcoTabs: Array<{ id: FcoTabId; label: string }> = [
-  { id: 'fullText', label: 'Full Text' },
-  { id: 'plainEnglish', label: 'Plain English' },
-  { id: 'officerAction', label: 'Officer Action' },
-  { id: 'formsTimelines', label: 'Forms & Timelines' },
-  { id: 'mnemonics', label: 'Mnemonics' },
-];
-
 function FcoCardDetailPage({
   card,
   activeTab,
@@ -817,20 +1213,13 @@ function FcoCardDetailPage({
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto border-b border-slate-100 p-3 dark:border-slate-800">
-        {fcoTabs.map((tab) => (
-          <button key={tab.id} type="button" onClick={() => onTabChange(tab.id)} className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-black transition ${activeTab === tab.id ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-emerald-50 dark:bg-slate-900 dark:text-slate-200'}`}>
-            {tab.label}
-          </button>
-        ))}
-      </div>
 
       <div className="space-y-3 p-3">
         {card.clauses.map((clause) => (
           <FcoClauseAccordion
             key={clause.id}
             clause={clause}
-            activeTab={activeTab}
+            activeTab="fullText"
             bookmarked={bookmarks.includes(clause.id)}
             onToggleBookmark={() => onToggleBookmark(clause.id)}
           />
@@ -869,7 +1258,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark }:
         </div>
       </summary>
       <div className="space-y-3 p-3">
-        <FcoClauseTabContent clause={clause} activeTab={activeTab} />
+        <FcoClauseTabContent clause={clause} activeTab="fullText" />
         {clause.subClauses.length > 0 && (
           <div className="space-y-2">
             {clause.subClauses.map((subClause) => (
@@ -924,29 +1313,46 @@ function fcoClauseToText(clause: FcoClause) {
 function FcoDashboardCards({
   cards,
   activeCardId,
+  showFormsCard,
+  onOpenForms,
   onSelect,
 }: {
   cards: FcoClauseCard[];
   activeCardId: string | null;
+  showFormsCard: boolean;
+  onOpenForms: () => void;
   onSelect: (cardId: string) => void;
 }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-emerald-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
-      <div className="border-b border-emerald-100 bg-emerald-50 px-4 py-3 dark:border-slate-800 dark:bg-emerald-950/30">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">FCO 1985 Ready Reckoner</p>
-            <h2 className="mt-1 text-lg font-black text-slate-950 dark:text-white">9 Main Clause Cards</h2>
-            <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Tap a card to open its clause detail page.</p>
-          </div>
-          {activeCardId && (
-            <button type="button" onClick={() => onSelect(activeCardId)} className="w-fit rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-200">
-              Show all clauses
-            </button>
-          )}
-        </div>
-      </div>
-      <div className="grid gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3">
+    <section className="overflow-hidden rounded-lg border border-emerald-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">      <div className="grid gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3">
+        {showFormsCard && (
+          <button
+            type="button"
+            onClick={onOpenForms}
+            className="group relative min-h-[13rem] overflow-hidden rounded-lg border border-amber-200 bg-white p-4 text-left text-slate-900 shadow-sm transition duration-300 motion-safe:hover:-translate-y-1 hover:border-amber-300 hover:bg-amber-50/70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-amber-950/20"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-400 to-emerald-500 opacity-15 transition group-hover:opacity-20" />
+            <div className="relative flex h-full flex-col justify-between gap-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="rounded-lg bg-white/85 p-3 text-amber-800 shadow-sm ring-1 ring-amber-100 motion-safe:transition motion-safe:group-hover:scale-105 dark:bg-slate-950/80 dark:text-amber-200 dark:ring-amber-900">
+                  <FileText className="h-7 w-7" />
+                </div>
+                <span className="rounded-full bg-white/85 px-3 py-1 text-xs font-black text-slate-800 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950/80 dark:text-slate-100 dark:ring-slate-700">27 statutory forms</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-black leading-tight text-slate-950 dark:text-white">Forms</h3>
+                <p className="mt-2 text-sm font-bold leading-5 text-slate-700 dark:text-slate-200">FCO statutory forms grouped for registration, manufacturing, sampling and records.</p>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {['Search', 'Preview', 'Download'].map((item) => (
+                  <span key={item} className="rounded-full bg-white/75 px-2 py-1 text-[11px] font-black text-slate-700 ring-1 ring-slate-200 dark:bg-slate-950/75 dark:text-slate-200 dark:ring-slate-700">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </button>
+        )}
         {cards.map((card) => {
           const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
           const active = activeCardId === card.id;
@@ -984,6 +1390,179 @@ function FcoDashboardCards({
         })}
       </div>
     </section>
+  );
+}
+function fertilizerFormPdfUrl(form: FertilizerFormEntry) {
+  return `${form.pdfPath}#page=${form.page}&zoom=page-width`;
+}
+
+function fertilizerFormSearchText(form: FertilizerFormEntry) {
+  return [form.formNo, form.title, form.category, form.clause || '', form.description, form.keywords.join(' ')].join(' ').toLowerCase();
+}
+
+function FertilizerFormsPanel({
+  search,
+  category,
+  onSearchChange,
+  onCategoryChange,
+  onBack,
+  onViewForm,
+}: {
+  search: string;
+  category: 'All' | FertilizerFormCategory;
+  onSearchChange: (value: string) => void;
+  onCategoryChange: (value: 'All' | FertilizerFormCategory) => void;
+  onBack: () => void;
+  onViewForm: (form: FertilizerFormEntry) => void;
+}) {
+  const term = search.trim().toLowerCase();
+  const visibleForms = fertilizerForms.filter((form) => {
+    if (category !== 'All' && form.category !== category) return false;
+    if (term && !fertilizerFormSearchText(form).includes(term)) return false;
+    return true;
+  });
+
+  return (
+    <section className="overflow-hidden rounded-lg border border-amber-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
+      <div className="border-b border-amber-100 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-4 dark:border-slate-800 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-white p-3 text-amber-800 shadow-sm ring-1 ring-amber-100 dark:bg-slate-900 dark:text-amber-200 dark:ring-amber-900">
+              <FileText className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">FCO Forms</p>
+              <h2 className="mt-1 text-xl font-black text-slate-950 dark:text-white">Forms</h2>
+              <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">27 statutory forms grouped for fast field reference.</p>
+            </div>
+          </div>
+          <button type="button" onClick={onBack} className="w-fit rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs font-black text-amber-800 shadow-sm hover:bg-amber-50 dark:border-amber-900 dark:bg-slate-950 dark:text-amber-200">
+            Back to FCO cards
+          </button>
+        </div>
+        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Search form number, title, clause, category..."
+              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            />
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:pb-0">
+            {fertilizerFormCategories.map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => onCategoryChange(item)}
+                className={`whitespace-nowrap rounded-full px-3 py-2 text-xs font-black transition ${category === item ? 'bg-amber-700 text-white shadow-sm' : 'border border-slate-200 bg-white text-slate-700 hover:bg-amber-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'}`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-3 p-3 md:grid-cols-2 xl:grid-cols-3">
+        {visibleForms.map((form) => (
+          <details key={form.id} className="group rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-amber-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+            <summary className="cursor-pointer list-none">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.formNo} - {form.category}</p>
+                  <h3 className="mt-1 line-clamp-2 text-sm font-black leading-5 text-slate-950 dark:text-white">{form.title}</h3>
+                </div>
+                <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-black text-slate-700 dark:bg-slate-800 dark:text-slate-200">{form.clause || 'PDF'}</span>
+              </div>
+            </summary>
+            <div className="mt-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+              <p className="text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{form.description}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button type="button" onClick={() => onViewForm(form)} className="inline-flex items-center gap-2 rounded-lg bg-amber-700 px-3 py-2 text-xs font-black text-white hover:bg-amber-800">
+                  <FileSearch className="h-4 w-4" /> View PDF
+                </button>
+                <a href={form.pdfPath} download className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+                  <Download className="h-4 w-4" /> Download
+                </a>
+                <button type="button" onClick={() => shareFertilizerForm(form)} className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50 dark:border-emerald-900 dark:bg-slate-950 dark:text-emerald-200">
+                  <Share2 className="h-4 w-4" /> Share
+                </button>
+              </div>
+            </div>
+          </details>
+        ))}
+        {visibleForms.length === 0 && (
+          <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 xl:col-span-3 dark:border-slate-700">
+            No forms found
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+async function shareFertilizerForm(form: FertilizerFormEntry) {
+  const url = `${window.location.origin}${fertilizerFormPdfUrl(form)}`;
+  const text = `${form.formNo}: ${form.title}\n${url}`;
+  if (navigator.share) {
+    await navigator.share({ title: `${form.formNo} - FCO Form`, text, url });
+    return;
+  }
+  await navigator.clipboard?.writeText(text);
+}
+
+function FertilizerFormPdfModal({ form, onClose }: { form: FertilizerFormEntry; onClose: () => void }) {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const pdfUrl = fertilizerFormPdfUrl(form);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-stretch justify-center bg-slate-950/70 p-2 sm:p-4">
+      <section className="flex w-full max-w-6xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl dark:bg-slate-950">
+        <header className="flex flex-col gap-3 border-b border-slate-200 bg-gradient-to-r from-emerald-700 to-teal-800 p-3 text-white dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <button type="button" onClick={onClose} className="mb-2 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-black text-white ring-1 ring-white/20 hover:bg-white/25">
+              Back
+            </button>
+            <p className="text-xs font-black uppercase text-emerald-100">{form.category}</p>
+            <h2 className="truncate text-lg font-black sm:text-xl">{form.formNo} - {form.title}</h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <a href={form.pdfPath} download className="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50">
+              <Download className="h-4 w-4" /> Download
+            </a>
+            <button type="button" onClick={() => shareFertilizerForm(form)} className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-xs font-black text-white ring-1 ring-white/25 hover:bg-white/25">
+              <Share2 className="h-4 w-4" /> Share
+            </button>
+          </div>
+        </header>
+        <div className="relative min-h-[70vh] flex-1 bg-slate-100 dark:bg-slate-900">
+          {loading && !error && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 text-sm font-black text-slate-600 dark:bg-slate-950/80 dark:text-slate-300">
+              Loading PDF preview...
+            </div>
+          )}
+          {error ? (
+            <div className="flex h-full min-h-[70vh] flex-col items-center justify-center gap-3 p-6 text-center">
+              <p className="text-sm font-black text-red-700 dark:text-red-300">PDF preview failed to load.</p>
+              <a href={form.pdfPath} target="_blank" rel="noreferrer" className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
+                Open PDF in new tab
+              </a>
+            </div>
+          ) : (
+            <iframe
+              title={`${form.formNo} PDF preview`}
+              src={pdfUrl}
+              className="h-full min-h-[70vh] w-full border-0"
+              onLoad={() => setLoading(false)}
+              onError={() => { setLoading(false); setError(true); }}
+            />
+          )}
+        </div>
+      </section>
+    </div>
   );
 }
 function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffenceEntry[]; onDownload: () => void; onPrint: () => void }) {
@@ -1055,8 +1634,13 @@ function Detail({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PowersSection() {
-  const groups = Array.from(new Set(stopSaleSeizureMappings.map((item) => item.group)));
+function PowersSection({ area }: { area: MainLegalArea }) {
+  const visibleMappings = stopSaleSeizureMappings.filter((item) => {
+    if (area === 'fertilizer') return item.group === 'Fertiliser cases under FCO 1985' || item.group === 'Fertiliser Movement Control Order cases';
+    if (area === 'seed') return item.group === 'Seed cases under Seeds Act, 1966';
+    return item.group === 'Insecticide cases under Insecticides Act, 1968';
+  });
+  const groups = Array.from(new Set(visibleMappings.map((item) => item.group)));
   return (
     <div className="space-y-4">
       {groups.map((group) => (
@@ -1077,7 +1661,7 @@ function PowersSection() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {stopSaleSeizureMappings.filter((item) => item.group === group).map((item) => (
+                {visibleMappings.filter((item) => item.group === group).map((item) => (
                   <tr key={item.id} className="align-top">
                     <td className="px-3 py-2 font-bold">{item.situation}</td>
                     <td className="px-3 py-2">{item.applicableLaw}</td>
