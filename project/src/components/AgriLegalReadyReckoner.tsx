@@ -1481,6 +1481,7 @@ function FertilizerFormsPanel({
   onBack: () => void;
   onViewForm: (form: FertilizerFormEntry) => void;
 }) {
+  const [openFormId, setOpenFormId] = useState<string | null>(null);
   const term = search.trim().toLowerCase();
   const visibleForms = fertilizerForms.filter((form) => {
     if (category !== 'All' && form.category !== category) return false;
@@ -1499,7 +1500,7 @@ function FertilizerFormsPanel({
             <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">FCO Forms</p>
               <h2 className="mt-1 text-xl font-black text-slate-950 dark:text-white">Forms</h2>
-              <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Tap a form card to show preview, download, and share actions.</p>
+              <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Tap a form card to show View and PDF actions.</p>
             </div>
           </div>
           <button type="button" onClick={onBack} className="w-fit rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs font-black text-amber-800 shadow-sm hover:bg-amber-50 dark:border-amber-900 dark:bg-slate-950 dark:text-amber-200">
@@ -1532,34 +1533,38 @@ function FertilizerFormsPanel({
       </div>
 
       <div className="grid auto-rows-fr gap-3 p-3 md:grid-cols-2 xl:grid-cols-3">
-        {visibleForms.map((form) => (
-          <details key={form.id} className="group min-h-[12rem] min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-amber-200 hover:shadow-md open:border-amber-300 open:bg-amber-50/40 dark:border-slate-700 dark:bg-slate-900 dark:open:bg-amber-950/10">
-            <summary className="flex h-full cursor-pointer list-none flex-col gap-3">
-              <div className="flex min-w-0 items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.formNo} - {form.category}</p>
-                  <h3 className="mt-1 text-sm font-black leading-5 text-slate-950 dark:text-white">{form.title}</h3>
+        {visibleForms.map((form) => {
+          const isOpen = openFormId === form.id;
+          return (
+            <article key={form.id} className={`flex min-h-[12rem] min-w-0 flex-col rounded-lg border bg-white p-3 shadow-sm transition hover:border-amber-200 hover:shadow-md dark:bg-slate-900 ${isOpen ? 'border-amber-300 bg-amber-50/40 dark:border-amber-800 dark:bg-amber-950/10' : 'border-slate-200 dark:border-slate-700'}`}>
+              <button
+                type="button"
+                onClick={() => setOpenFormId((current) => current === form.id ? null : form.id)}
+                className="flex flex-1 cursor-pointer flex-col gap-3 text-left"
+                aria-expanded={isOpen}
+              >
+                <div className="flex min-w-0 items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.formNo} - {form.category}</p>
+                    <h3 className="mt-1 text-sm font-black leading-5 text-slate-950 dark:text-white">{form.title}</h3>
+                  </div>
+                  <span className="max-w-[7rem] shrink-0 rounded-lg bg-amber-100 px-2 py-1 text-center text-[10px] font-black leading-3 text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:ring-amber-900">{form.clause || 'PDF'}</span>
                 </div>
-                <span className="max-w-[7rem] shrink-0 rounded-lg bg-amber-100 px-2 py-1 text-center text-[10px] font-black leading-3 text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:ring-amber-900">{form.clause || 'PDF'}</span>
-              </div>
-              <p className="text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{form.description}</p>
-              <span className="mt-auto inline-flex w-fit rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[11px] font-black text-amber-800 group-open:hidden dark:border-amber-900 dark:bg-slate-950 dark:text-amber-200">
-                Tap to open
-              </span>
-            </summary>
-            <div className="mt-3 grid gap-2 border-t border-amber-100 pt-3 sm:grid-cols-3 dark:border-slate-800">
-              <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-amber-700 px-2.5 py-2 text-xs font-black text-white hover:bg-amber-800">
-                <FileSearch className="h-4 w-4" /> Preview
+                <p className="text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{form.description}</p>
               </button>
-              <a href={form.pdfPath} download className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
-                <Download className="h-4 w-4" /> PDF
-              </a>
-              <button type="button" onClick={() => shareFertilizerForm(form)} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-2.5 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50 dark:border-emerald-900 dark:bg-slate-950 dark:text-emerald-200">
-                <Share2 className="h-4 w-4" /> Share
-              </button>
-            </div>
-          </details>
-        ))}
+              {isOpen && (
+                <div className="mt-3 grid grid-cols-2 gap-2 border-t border-amber-100 pt-3 dark:border-slate-800">
+                  <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-10 min-w-0 items-center justify-center gap-1.5 rounded-lg bg-amber-700 px-2 py-2 text-xs font-black text-white hover:bg-amber-800">
+                    <FileSearch className="h-4 w-4 shrink-0" /> <span className="truncate">View</span>
+                  </button>
+                  <a href={form.pdfPath} download className="inline-flex min-h-10 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+                    <Download className="h-4 w-4 shrink-0" /> <span className="truncate">PDF</span>
+                  </a>
+                </div>
+              )}
+            </article>
+          );
+        })}
         {visibleForms.length === 0 && (
           <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 xl:col-span-3 dark:border-slate-700">
             No forms found
@@ -1569,16 +1574,6 @@ function FertilizerFormsPanel({
     </section>
   );
 }
-async function shareFertilizerForm(form: FertilizerFormEntry) {
-  const url = `${window.location.origin}${fertilizerFormPdfUrl(form)}`;
-  const text = `${form.formNo}: ${form.title}\n${url}`;
-  if (navigator.share) {
-    await navigator.share({ title: `${form.formNo} - FCO Form`, text, url });
-    return;
-  }
-  await navigator.clipboard?.writeText(text);
-}
-
 function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffenceEntry[]; onDownload: () => void; onPrint: () => void }) {
   return (
     <details className="group overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
@@ -1743,12 +1738,3 @@ function entryDetailsHtml(entry: LegalReadyReckonerEntry) {
   ];
   return `<dl>${fields.map(([label, value]) => `<dt>${label}</dt><dd>${String(value).replace(/</g, '&lt;')}</dd>`).join('')}</dl>`;
 }
-
-
-
-
-
-
-
-
-
