@@ -362,7 +362,7 @@ function getPageMeta(page: string): { title: string; breadcrumbs: BreadcrumbItem
     crops: { title: 'Crop Intelligence', breadcrumbs: [dashboard] },
     'officer-toolkit': { title: 'Officer Toolkit', breadcrumbs: [dashboard] },
     forms: { title: 'Statutory Forms', breadcrumbs: [dashboard, toolkit] },
-    'acreage-calculator': { title: 'Acerage Calculator', breadcrumbs: [dashboard, toolkit] },
+    'acreage-calculator': { title: 'Area Calculator', breadcrumbs: [dashboard, toolkit] },
     'farm-calculators': { title: 'Farm Calculators', breadcrumbs: [dashboard, toolkit] },
     'crop-protection': { title: 'Crop Doctor', breadcrumbs: [dashboard, toolkit] },
     'fertilizer-calculator': { title: 'Fertilizer Calculator', breadcrumbs: [dashboard, toolkit, farmCalculators] },
@@ -432,7 +432,7 @@ function translateMenu(label: string) {
     'Seed Rate Calculator': 'à°µà°¿à°¤à±à°¤à°¨ à°®à±‹à°¤à°¾à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
     'Plant Population Calculator': 'à°®à±Šà°•à±à°•à°² à°œà°¨à°¾à°­à°¾ à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
     'Pesticide Calculator': 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à± à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
-    'Acerage Calculator': 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
+    'Area Calculator': 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±',
     'GOs & Circulars': 'Ã Â°Å“Ã Â±â‚¬.Ã Â°â€œÃ Â°Â²Ã Â±Â & Ã Â°Â¸Ã Â°Â°Ã Â±ÂÃ Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â°Â°Ã Â±ÂÃ Â°Â²Ã Â±Â',
     'Quality Control': 'Ã Â°Â¨Ã Â°Â¾Ã Â°Â£Ã Â±ÂÃ Â°Â¯Ã Â°Â¤ Ã Â°Â¨Ã Â°Â¿Ã Â°Â¯Ã Â°â€šÃ Â°Â¤Ã Â±ÂÃ Â°Â°Ã Â°Â£',
     'Farm Mechanization': 'Ã Â°ÂµÃ Â±ÂÃ Â°Â¯Ã Â°ÂµÃ Â°Â¸Ã Â°Â¾Ã Â°Â¯ Ã Â°Â¯Ã Â°Â¾Ã Â°â€šÃ Â°Â¤Ã Â±ÂÃ Â°Â°Ã Â±â‚¬Ã Â°â€¢Ã Â°Â°Ã Â°Â£',
@@ -454,4 +454,3 @@ function translateMenu(label: string) {
   };
   return labels[label] ?? label;
 }
-

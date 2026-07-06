@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Calculator } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BackButton } from '../components/ui/BackButton';
@@ -8,18 +8,20 @@ const MODE_STORAGE_KEY = 'tiryani-acreage-calculator-mode';
 const CENTS_STORAGE_KEY = 'tiryani-acreage-calculator-cents';
 const ACRES_CENTS_PASTE_STORAGE_KEY = 'tiryani-acreage-calculator-acres-cents-paste';
 const GUNTAS_STORAGE_KEY = 'tiryani-acreage-calculator-guntas';
+const HECTARES_STORAGE_KEY = 'tiryani-area-calculator-hectares';
 const CENTS_PER_ACRE = 100;
 const CENTS_PER_GUNTA = 2.5;
 const GUNTAS_PER_ACRE = 40;
 const HECTARES_PER_ACRE = 0.404686;
 
-type AcreageMode = 'acres' | 'cents' | 'acres-cents' | 'guntas';
+type AcreageMode = 'acres' | 'cents' | 'acres-cents' | 'guntas' | 'hectares';
 
 const modeOptions: Array<{ value: AcreageMode; label: string }> = [
   { value: 'acres', label: 'Acres.Guntas' },
   { value: 'cents', label: 'Cents' },
   { value: 'acres-cents', label: 'Acres.Cents' },
   { value: 'guntas', label: 'Guntas' },
+  { value: 'hectares', label: 'Hectares' },
 ];
 
 export function AcreageCalculator() {
@@ -28,10 +30,11 @@ export function AcreageCalculator() {
   const [acreInput, setAcreInput] = useState(() => window.sessionStorage.getItem(STORAGE_KEY) || '');
   const [centInput, setCentInput] = useState(() => window.sessionStorage.getItem(CENTS_STORAGE_KEY) || '');
   const [guntaInput, setGuntaInput] = useState(() => window.sessionStorage.getItem(GUNTAS_STORAGE_KEY) || '');
+  const [hectareInput, setHectareInput] = useState(() => window.sessionStorage.getItem(HECTARES_STORAGE_KEY) || '');
   const [acresCentsPasteInput, setAcresCentsPasteInput] = useState(() => window.sessionStorage.getItem(ACRES_CENTS_PASTE_STORAGE_KEY) || '');
   const result = useMemo(
-    () => calculateAcreageResult({ mode, acreInput, centInput, guntaInput, acresCentsPasteInput }),
-    [acreInput, acresCentsPasteInput, centInput, guntaInput, mode]
+    () => calculateAcreageResult({ mode, acreInput, centInput, guntaInput, hectareInput, acresCentsPasteInput }),
+    [acreInput, acresCentsPasteInput, centInput, guntaInput, hectareInput, mode]
   );
   const acreResult = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
   const guideItems = useMemo(() => getAcreageGuide(mode), [mode]);
@@ -52,6 +55,9 @@ export function AcreageCalculator() {
     window.sessionStorage.setItem(GUNTAS_STORAGE_KEY, guntaInput);
   }, [guntaInput]);
 
+  useEffect(() => {
+    window.sessionStorage.setItem(HECTARES_STORAGE_KEY, hectareInput);
+  }, [hectareInput]);
 
   useEffect(() => {
     window.sessionStorage.setItem(ACRES_CENTS_PASTE_STORAGE_KEY, acresCentsPasteInput);
@@ -65,8 +71,8 @@ export function AcreageCalculator() {
               <Calculator className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-950 dark:text-white">Acreage Calculator</h1>
-              <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">Convert acres, cents and guntas for field reports.</p>
+              <h1 className="text-2xl font-black text-slate-950 dark:text-white">Area Calculator</h1>
+              <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">Convert land area between acres, hectares, cents and guntas for field reports.</p>
             </div>
           </div>
           <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')}>
@@ -131,6 +137,10 @@ export function AcreageCalculator() {
           {mode === 'guntas' && (
             <NumberInput label="Total Guntas" value={guntaInput} onChange={setGuntaInput} placeholder="Example: 10" />
           )}
+
+          {mode === 'hectares' && (
+            <NumberInput label="Total Hectares" value={hectareInput} onChange={setHectareInput} placeholder="Example: 1.5" />
+          )}
         </div>
 
         <div className="grid gap-3">
@@ -144,9 +154,9 @@ export function AcreageCalculator() {
             <>
               <ResultCard tone="from-emerald-100 to-lime-100 border-emerald-200" label="Acres" value={result.acresDecimal} note={result.acreGuntaNote} />
               {mode !== 'cents' && <ResultCard tone="from-yellow-100 to-amber-100 border-yellow-200" label="Cents" value={result.cents} note="1 acre = 100 cents" />}
-              {mode !== 'acres-cents' && mode !== 'cents' && <ResultCard tone="from-pink-100 to-rose-100 border-pink-200" label="Acres + Cents" value={result.acresCents} note="Whole acres with remaining cents" />}
+              {mode !== 'acres-cents' && mode !== 'cents' && mode !== 'guntas' && mode !== 'hectares' && <ResultCard tone="from-pink-100 to-rose-100 border-pink-200" label="Acres + Cents" value={result.acresCents} note="Whole acres with remaining cents" />}
               {mode !== 'guntas' && <ResultCard tone="from-purple-100 to-indigo-100 border-purple-200" label="Guntas" value={result.guntas} note="1 acre = 40 guntas" />}
-              <ResultCard tone="from-sky-100 to-cyan-100 border-sky-200" label="Hectares" value={result.hectares} note="Converted from decimal acres" />
+              {mode !== 'hectares' && <ResultCard tone="from-sky-100 to-cyan-100 border-sky-200" label="Hectares" value={result.hectares} note="Converted from decimal acres" />}
             </>
           )}
         </div>
@@ -177,6 +187,14 @@ function getAcreageGuide(mode: AcreageMode) {
       'Paste Acres.Cents values from Excel or type one per line.',
       'Example 2.25 means 2 acres and 25 cents.',
       'Read acres, cents, guntas and hectares instantly.',
+    ];
+  }
+
+  if (mode === 'hectares') {
+    return [
+      'Enter the total hectare value.',
+      'Read equivalent acres, cents and guntas.',
+      'Use the acre-gunta note for field records.',
     ];
   }
 
@@ -223,15 +241,17 @@ function calculateAcreageResult({
   acreInput,
   centInput,
   guntaInput,
+  hectareInput,
   acresCentsPasteInput,
 }: {
   mode: AcreageMode;
   acreInput: string;
   centInput: string;
   guntaInput: string;
+  hectareInput: string;
   acresCentsPasteInput: string;
 }) {
-  const totalCents = calculateTotalCents({ mode, acreInput, centInput, guntaInput, acresCentsPasteInput });
+  const totalCents = calculateTotalCents({ mode, acreInput, centInput, guntaInput, hectareInput, acresCentsPasteInput });
   const decimalAcres = totalCents / CENTS_PER_ACRE;
   const wholeAcres = Math.floor(totalCents / CENTS_PER_ACRE);
   const remainingCents = totalCents - wholeAcres * CENTS_PER_ACRE;
@@ -258,16 +278,19 @@ function calculateTotalCents({
   acreInput,
   centInput,
   guntaInput,
+  hectareInput,
   acresCentsPasteInput,
 }: {
   mode: AcreageMode;
   acreInput: string;
   centInput: string;
   guntaInput: string;
+  hectareInput: string;
   acresCentsPasteInput: string;
 }) {
   if (mode === 'cents') return parsePositiveNumber(centInput);
   if (mode === 'guntas') return parsePositiveNumber(guntaInput) * CENTS_PER_GUNTA;
+  if (mode === 'hectares') return (parsePositiveNumber(hectareInput) / HECTARES_PER_ACRE) * CENTS_PER_ACRE;
   if (mode === 'acres-cents') {
     return calculateAcreCentPasteTotal(acresCentsPasteInput);
   }
@@ -324,8 +347,3 @@ function formatNumber(value: number, maximumFractionDigits = 2) {
     minimumFractionDigits: Number.isInteger(value) ? 0 : undefined,
   }).format(value);
 }
-
-
-
-
-

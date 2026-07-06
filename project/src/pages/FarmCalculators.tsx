@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, Wheat } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -6,9 +6,9 @@ import { BackButton } from '../components/ui/BackButton';
 
 const calculatorItems = [
   {
-    title: 'Acreage Calculator',
+    title: 'Area Calculator',
     titleTe: '?????????? ?????????????',
-    description: 'Add acre.gunta values and get total acres.',
+    description: 'Convert acres, hectares, cents and guntas.',
     descriptionTe: '????? ????? ??????? ?????????????? ???????????.',
     path: '/officer-toolkit/acreage-calculator',
     icon: Ruler,
@@ -110,5 +110,3 @@ export function FarmCalculators() {
     </div>
   );
 }
-
-

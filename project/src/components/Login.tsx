@@ -1,4 +1,4 @@
-﻿import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -493,7 +493,7 @@ export function Login() {
                   <h1 className="text-xl font-black text-slate-950 sm:text-2xl">
                     {fertilizerCalculatorOpen
                       ? t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')
-                      : t('Acerage Calculator', 'ఎకరాల కాలిక్యులేటర్')}
+                      : t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్')}
                   </h1>
                 </div>
               </div>
@@ -520,7 +520,7 @@ export function Login() {
               }`}
             >
               <Calculator className="h-4 w-4" />
-              {t('Acerage Calculator', 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
+              {t('Area Calculator', 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
             </button>
             <button
               type="button"
@@ -902,7 +902,7 @@ export function Login() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <h3 className="flex items-center gap-2 text-lg font-black text-slate-950">
                 <Calculator className="h-5 w-5 text-sky-700" />
-                {t('Acerage Calculator', 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
+                {t('Area Calculator', 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
               </h3>
               <button type="button" onClick={closeAcreageCalculator} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100">
                 <ArrowLeft className="h-4 w-4" />
@@ -1183,11 +1183,3 @@ function isMissingPublicLabelColumnError(error: unknown) {
 }
 
 export default Login;
-
-
-
-
-
-
-
-
