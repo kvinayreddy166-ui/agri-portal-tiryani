@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Eye, RotateCcw, Save, X } from 'lucide-react';
+import { Download, Eye, RotateCcw, Save } from 'lucide-react';
+import { BackButton } from '../ui/BackButton';
 import {
   FertilizerPdfValues,
   FertilizerStatutoryFormType,
@@ -351,24 +352,24 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
             <button
               type="button"
               onClick={saveDraft}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+              className="inline-flex min-h-7 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-50"
               title="Save draft"
             >
-              <Save className="h-4 w-4" />
+              <Save className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Save Draft</span>
             </button>
             <button
               type="button"
               onClick={resetDraft}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+              className="inline-flex min-h-7 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-50"
               title="Reset draft"
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Reset</span>
             </button>
-            <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100" aria-label="Close">
-              <X className="h-5 w-5" />
-            </button>
+            <BackButton onClick={onClose} tone="light" className="min-h-7 px-2 py-1 text-xs">
+              Close
+            </BackButton>
           </div>
         </header>
 
@@ -418,24 +419,33 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
             )}
 
             <div className="grid gap-3 lg:grid-cols-2">
-              {allFields.map((section) => (
-                <div
-                  key={section.title}
-                  ref={section.title === 'COMMON DETAILS' ? sampleDetailsRef : section.title === 'DEALER / FERTILIZER DETAILS' ? dealerDetailsRef : undefined}
-                  className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER / FERTILIZER DETAILS') ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}
-                >
-                <FieldSection title={section.title}>
-                  {section.fields.map((field) => (
-                    <PdfInput
-                      key={field.key}
-                      field={field}
-                      value={values[field.key]}
-                      onChange={(value) => setField(field.key, value)}
-                    />
-                  ))}
-                </FieldSection>
-                </div>
-              ))}
+              {allFields.map((section) => {
+                const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'slate'> = {
+                  'INSPECTOR / FORM K DETAILS': 'emerald',
+                  'COMMON DETAILS': 'blue',
+                  'DEALER / FERTILIZER DETAILS': 'amber',
+                  'COMPOSITION': 'slate',
+                };
+                const color = colorMap[section.title] || 'slate';
+                return (
+                  <div
+                    key={section.title}
+                    ref={section.title === 'COMMON DETAILS' ? sampleDetailsRef : section.title === 'DEALER / FERTILIZER DETAILS' ? dealerDetailsRef : undefined}
+                    className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER / FERTILIZER DETAILS') ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}
+                  >
+                  <FieldSection title={section.title} color={color}>
+                    {section.fields.map((field) => (
+                      <PdfInput
+                        key={field.key}
+                        field={field}
+                        value={values[field.key]}
+                        onChange={(value) => setField(field.key, value)}
+                      />
+                    ))}
+                  </FieldSection>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
@@ -583,10 +593,24 @@ function DuplicateDownloadModal({
   );
 }
 
-function FieldSection({ title, children }: { title: string; children: React.ReactNode }) {
+function FieldSection({ title, children, color = 'slate' }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'slate' }) {
+  const colorStyles = {
+    emerald: 'border-emerald-200 bg-emerald-50/50',
+    blue: 'border-blue-200 bg-blue-50/50',
+    amber: 'border-amber-200 bg-amber-50/50',
+    slate: 'border-slate-200 bg-slate-50/50',
+  };
+  
+  const headerColors = {
+    emerald: 'text-emerald-700',
+    blue: 'text-blue-700',
+    amber: 'text-amber-700',
+    slate: 'text-slate-700',
+  };
+  
   return (
-    <div className="rounded-lg border border-slate-100 bg-white p-3 shadow-sm">
-      <h3 className="mb-2 text-sm font-black text-slate-900">{title}</h3>
+    <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>
+      <h3 className={`mb-2 text-sm font-black ${headerColors[color]}`}>{title}</h3>
       <div className="grid gap-2 sm:grid-cols-2">{children}</div>
     </div>
   );

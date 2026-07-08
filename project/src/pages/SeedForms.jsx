@@ -292,7 +292,7 @@ export function SeedForms() {
       )}
 
       <div className="grid gap-3 lg:grid-cols-2">
-        <Card title="Officer / From Details">
+        <Card title="Officer / From Details" color="emerald">
           <Input label="From officer name" value={form.officerName} onChange={(value) => setField('officerName', value)} />
           <Select label="From designation" value={form.designation} onChange={(value) => setField('designation', value)} options={designationOptions.map(toOption)} />
           <Input label="From office address" value={form.officeAddress} onChange={(value) => setField('officeAddress', value)} textarea />
@@ -302,7 +302,7 @@ export function SeedForms() {
           </div>
         </Card>
 
-        <Card title="Laboratory / To Details">
+        <Card title="Laboratory / To Details" color="blue">
           <Select label="To Address / Laboratory" value={form.labId} onChange={(value) => setField('labId', value)} options={labOptions.map((item) => ({ label: item.label, value: item.id }))} />
           {form.labId === 'other' ? (
             <Input label="Custom laboratory address" value={form.customLabAddress} onChange={(value) => setField('customLabAddress', value)} textarea />
@@ -313,7 +313,7 @@ export function SeedForms() {
         </Card>
 
         <div ref={sampleDetailsRef} className={highlightDetails ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}>
-        <Card title="Sample Details">
+        <Card title="Sample Details" color="amber">
           <div className="grid gap-2 sm:grid-cols-2">
             <Input label="Serial No. of sample" value={form.serialNo} onChange={(value) => setField('serialNo', value)} />
             <Input label="Code No. of sample" value={form.codeNo} onChange={(value) => setField('codeNo', value)} />
@@ -337,7 +337,7 @@ export function SeedForms() {
         </div>
 
         <div ref={dealerDetailsRef} className={highlightDetails ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}>
-        <Card title="Dealer / Form VI & VIII Details">
+        <Card title="Dealer / Form VI & VIII Details" color="slate">
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
           <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea placeholder="village" />
           <Input label="Dealer location (mandal)" value={form.premisesLocation} onChange={(value) => setField('premisesLocation', value)} placeholder="mandal" />
@@ -371,10 +371,24 @@ export function SeedForms() {
   );
 }
 
-function Card({ title, children }) {
+function Card({ title, children, color = 'slate' }) {
+  const colorStyles = {
+    emerald: 'border-emerald-200 bg-emerald-50/50',
+    blue: 'border-blue-200 bg-blue-50/50',
+    amber: 'border-amber-200 bg-amber-50/50',
+    slate: 'border-slate-200 bg-slate-50/50',
+  };
+  
+  const headerColors = {
+    emerald: 'text-emerald-700',
+    blue: 'text-blue-700',
+    amber: 'text-amber-700',
+    slate: 'text-slate-700',
+  };
+  
   return (
-    <div className="rounded-lg border border-slate-100 bg-white p-3 shadow-sm">
-      <h3 className="mb-2 text-sm font-black text-slate-900">{title}</h3>
+    <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>
+      <h3 className={`mb-2 text-sm font-black ${headerColors[color]}`}>{title}</h3>
       <div className="grid gap-2">{children}</div>
     </div>
   );
