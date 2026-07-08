@@ -9,8 +9,6 @@ import {
   ChevronDown,
   ChevronUp,
   User,
-  MapPin,
-  Phone,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -246,14 +244,6 @@ function formatNutrients(nutrients: Nutrients) {
     .join(', ');
 }
 
-function formatNutrientLinesTe(nutrients: Nutrients) {
-  return [
-    `ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¹ ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã…â€œÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¿ (N) : ${round(nutrients.n)} ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â`,
-    `ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¹ ÃƒÂ Ã‚Â°Ã‚Â­ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ (PÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Å¡OÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Â¦) : ${round(nutrients.p)} ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â`,
-    `ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¹ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã…Â ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â·ÃƒÂ Ã‚Â±Ã‚Â (KÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Å¡O) : ${round(nutrients.k)} ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â`,
-  ];
-}
-
 function compositionToText(composition?: Record<string, number>) {
   return Object.entries(composition || {})
     .filter(([key, value]) => !['n', 'p', 'k', 's'].includes(key) && numberValue(value) > 0)
@@ -273,86 +263,10 @@ function parseCompositionText(value: string) {
     }, {});
 }
 
-function fertilizerNameTe(name: string) {
-  const names: Record<string, string> = {
-    Urea: 'ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â±Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â¾',
-    'Ammonium Sulphate': 'ÃƒÂ Ã‚Â°Ã¢â‚¬Â¦ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â«ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã‚Â',
-    DAP: 'ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Â¿.ÃƒÂ Ã‚Â°Ã…Â½.ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â€šÂ¬',
-    MOP: 'ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡.ÃƒÂ Ã‚Â°Ã¢â‚¬Å“.ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â€šÂ¬',
-    SSP: 'ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â€šÂ¬',
-    TSP: 'ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â€šÂ¬',
-  };
-  return repairTeluguText(names[name] || name);
-}
-
-function cropNameTe(name: string) {
-  const names: Record<string, string> = {
-    Cotton: 'ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â¿',
-    Paddy: 'ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¿',
-    Maize: 'ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã…â€œÃƒÂ Ã‚Â±Ã…Â ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¨',
-    Redgram: 'ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â',
-    Greengram: 'ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â',
-    Sesamum: 'ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â',
-  };
-  return repairTeluguText(names[name] || name);
-}
-
-function seasonNameTe(name = '') {
-  const names: Record<string, string> = {
-    Vanakalam: 'ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡',
-    Yasangi: 'ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã¢â‚¬â€ÃƒÂ Ã‚Â°Ã‚Â¿',
-    'All Seasons': 'ÃƒÂ Ã‚Â°Ã¢â‚¬Â¦ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã…â€œÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â',
-  };
-  return repairTeluguText(names[name] || name || '-');
-}
-
-function zoneNameTe(name = '') {
-  const names: Record<string, string> = {
-    'All Zones': 'ÃƒÂ Ã‚Â°Ã¢â‚¬Â¦ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã…â€œÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â',
-    'Northern Telangana': 'ÃƒÂ Ã‚Â°Ã¢â‚¬Â°ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â° ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã¢â‚¬â€ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â£',
-    'Central Telangana': 'ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â°Ã‚Â§ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã¢â‚¬â€ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â£',
-    'Southern Telangana': 'ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â·ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â£ ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã¢â‚¬â€ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â£',
-  };
-  return repairTeluguText(names[name] || name || '-');
-}
-
-function varietyNameTe(name = '') {
-  const names: Record<string, string> = {
-    Normal: 'ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â§ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â£ ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡',
-    Hybrid: 'ÃƒÂ Ã‚Â°Ã‚Â¹ÃƒÂ Ã‚Â±Ã‹â€ ÃƒÂ Ã‚Â°Ã‚Â¬ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡',
-    'Sweet Corn': 'ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚Â',
-    'Pop Corn': 'ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚Â',
-    'Baby Corn': 'ÃƒÂ Ã‚Â°Ã‚Â¬ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¬ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚Â',
-    'Long Duration': 'ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‹Å“ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡',
-  };
-  return repairTeluguText(names[name] || name || '-');
-}
-
-function stageNameTe(stage: string) {
-  const stages: Record<string, string> = {
-    Basal: 'ÃƒÂ Ã‚Â°Ã‚Â¬ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã‚Â¶',
-    'Basal before sowing': 'ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã‚Â¬ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã‚Â¶',
-    'Basal at sowing': 'ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ ÃƒÂ Ã‚Â°Ã‚Â¬ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã‚Â¶',
-    'Before transplanting / final puddling': 'ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â±Ã‚Â / ÃƒÂ Ã‚Â°Ã…Â¡ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã‚Â¶',
-    'Active tillering stage': 'ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¯ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â² ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã‚Â¶',
-    'Panicle initiation stage': 'ÃƒÂ Ã‚Â°Ã¢â‚¬â€ÃƒÂ Ã‚Â±Ã…Â ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â­ ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã‚Â¶',
-    'Knee-high stage': 'ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã‚Â¶',
-    'Flowering / tasseling stage': 'ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â¤ / ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã¢â‚¬â€ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã‚Â¶',
-    '15-20 days after first split': 'ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã…Â ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Â¤ ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¤ 15-20 ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã…â€œÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â',
-    '15-20 days after second split': 'ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Âµ ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Â¤ ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¤ 15-20 ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã…â€œÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â',
-  };
-  return repairTeluguText(stages[stage] || stage);
-}
-
-function formatFertilizerRows(results: FertilizerResult[], language: 'en' | 'te') {
+function formatFertilizerRows(results: FertilizerResult[]) {
   return results
     .filter((row) => row.kg > 0.01)
-    .map((row) => {
-      const name = language === 'te' ? fertilizerNameTe(row.grade.name) : row.grade.name;
-      const kgLabel = language === 'te' ? '\u0C15\u0C3F\u0C32\u0C4B\u0C32\u0C41' : 'kg';
-      const bagLabel = language === 'te' ? '\u0C2C\u0C38\u0C4D\u0C24\u0C3E\u0C32\u0C41' : 'bags';
-      return `${name}: ${round(row.kg)} ${kgLabel} (${round(row.bags)} ${bagLabel})`;
-    });
+    .map((row) => `${row.grade.name}: ${round(row.kg)} kg (${round(row.bags)} bags)`);
 }
 
 type FertilizerReportInput = {
@@ -372,168 +286,141 @@ type FertilizerReportInput = {
 
 function buildWhatsAppText(input: FertilizerReportInput) {
   const {
-  language,
-  mode,
-  area,
-  required,
-  results,
-  supplied,
-  balance,
-  excess,
-  selectedRecommendation,
-  recommendationNutrients,
-  splitPlan,
-  farmerDetails,
+    language,
+    mode,
+    area,
+    required,
+    results,
+    supplied,
+    balance,
+    excess,
+    selectedRecommendation,
+    recommendationNutrients,
+    splitPlan,
+    farmerDetails,
   } = input;
-  const fertilizerRows = formatFertilizerRows(results, language);
-
-  if (language === 'te') {
-    const crop = recommendationCrop(selectedRecommendation);
-    const perAcreNutrients = mode === 'crop'
-      ? { n: selectedRecommendation.n, p: selectedRecommendation.p, k: selectedRecommendation.k }
-      : required;
-    const totalNutrients = mode === 'crop' ? recommendationNutrients : required;
-    
-    // Build farmer details lines
-    const farmerLines = [];
-    if (farmerDetails?.farmerName) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â¨ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¾ ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‹â€ ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚Â: ${farmerDetails.farmerName}`);
-    if (farmerDetails?.village) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â¡ ÃƒÂ Ã‚Â°Ã¢â‚¬â€ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡: ${farmerDetails.village}`);
-    if (farmerDetails?.ppbNumber) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‹Å“ PPB: ${farmerDetails.ppbNumber}`);
-    if (farmerDetails?.surveyNumber) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â¾ ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡: ${farmerDetails.surveyNumber}`);
-    if (farmerDetails?.mobileNumber) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â¾ ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã…Â ÃƒÂ Ã‚Â°Ã‚Â¬ÃƒÂ Ã‚Â±Ã‹â€ ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â: ${farmerDetails.mobileNumber}`);
-    if (farmerDetails?.acreage) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â£ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡: ${farmerDetails.acreage} ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¾`);
-    
-    const lines = [
-      '*ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¾ ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â² ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚Â*',
-      '',
-      '*ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â£ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¯ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â*',
-      '',
-      'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â',
-      '',
-      ...farmerLines,
-      farmerLines.length > 0 ? 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â' : '',
-      '',
-      mode === 'crop' ? `ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â± ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã…Â¸: ${cropNameTe(crop)} (${crop})` : 'ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â± ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã…Â¸: ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ ÃƒÂ Ã‚Â°Ã…Â¡ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¨ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â·ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ ÃƒÂ Ã‚Â°Ã¢â‚¬Â¦ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡',
-      mode === 'crop' ? `ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¦ ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã…â€œÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚Â: ${seasonNameTe(selectedRecommendation.season)}` : '',
-      mode === 'crop' ? `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡: ${zoneNameTe(selectedRecommendation.zone)}` : '',
-      mode === 'crop' ? `ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¿ ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡: ${varietyNameTe(selectedRecommendation.variety)}` : '',
-      mode === 'crop' ? `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â£ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡: ${formatSelectedArea(area, 'te')}` : '',
-      '',
-      'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â',
-      '',
-      '*ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â«ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…Â¡ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â¬ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¨ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â·ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â*',
-      '',
-      ...formatNutrientLinesTe(perAcreNutrients),
-      '',
-      'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â',
-      '',
-      '*ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â² ÃƒÂ Ã‚Â°Ã¢â‚¬Â¦ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡*',
-      '',
-      ...(results.filter((row) => row.kg > 0.01).map((row) => `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ ${fertilizerNameTe(row.grade.name)}: ${round(row.kg)} ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â (${round(row.bags)} ÃƒÂ Ã‚Â°Ã‚Â¬ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â)`)),
-      ...(fertilizerRows.length ? [] : ['ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã¢â‚¬Â¦ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â±Ã‚Â.']),
-    ];
-
-    if (mode === 'crop') {
-      lines.push('', 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â', '', '*ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â± ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â² ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â² ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â±Ã‚Â*', '');
-      splitPlan.forEach(({ dose, nutrients, calculation }, index) => {
-        const rows = formatFertilizerRows(calculation.results, language);
-        lines.push('', 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â', '', `*ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¿ ${stageNameTe(dose.stage)}*`, '');
-        lines.push('*ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â·ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡*', '', ...formatNutrientLinesTe(nutrients).filter((line) => !line.includes(': 0 ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â')), '');
-        lines.push('*ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¨ ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â*', '');
-        lines.push(...(rows.length ? rows.map((row) => `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ ${row}`) : ['ÃƒÂ Ã‚Â°Ã‹â€  ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ ÃƒÂ Ã‚Â°Ã…Â½ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã¢â‚¬Â¦ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â±Ã‚Â.']));
-      });
-    }
-
-    lines.push('', 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â', '', '*ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã¢â‚¬â€œÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‹â€ ÃƒÂ Ã‚Â°Ã‚Â¨ ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¯ ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã…Â¡ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â*', '', ...AGRONOMIC_NOTES_TE.map((note) => `ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ ${note}`), '', 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â', '', '*ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â± ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…Â¡ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â°Ã‚Â¿*', '', '*ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â±Ã¢â‚¬Â . ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Â¿*', '*ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Â² ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¯ ÃƒÂ Ã‚Â°Ã¢â‚¬Â¦ÃƒÂ Ã‚Â°Ã‚Â§ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â¿ (MAO)*', '*ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â£ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡*', '*ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â±Ã…Â ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ ÃƒÂ Ã‚Â°Ã‚Â­ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ ÃƒÂ Ã‚Â°Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â«ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¬ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¦ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…â€œÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â°Ã‚Â¾*', '', '*ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¾ ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â£ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¯ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â*', '', 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â');
-    return repairTeluguText(lines.filter((line, index, all) => line !== '' || all[index - 1] !== '').join('\n'));
-  }
 
   const crop = recommendationCrop(selectedRecommendation);
   const perAcreNutrients = mode === 'crop'
     ? { n: selectedRecommendation.n, p: selectedRecommendation.p, k: selectedRecommendation.k }
     : required;
-
-  // Build farmer details lines
-  const farmerLines = [];
-  if (farmerDetails?.farmerName) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â¨ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¾ Farmer: ${farmerDetails.farmerName}`);
-  if (farmerDetails?.village) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â¡ Village: ${farmerDetails.village}`);
-  if (farmerDetails?.ppbNumber) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‹Å“ PPB: ${farmerDetails.ppbNumber}`);
-  if (farmerDetails?.surveyNumber) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â¾ Survey No: ${farmerDetails.surveyNumber}`);
-  if (farmerDetails?.mobileNumber) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â¾ Mobile: ${farmerDetails.mobileNumber}`);
-  if (farmerDetails?.acreage) farmerLines.push(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Area: ${farmerDetails.acreage} Acre`);
-
-  const lines = [
-    '*ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¾ Smart Fertilizer Calculator*',
-    '',
-    '*Tiryani Agriculture Portal*',
-    '',
-    'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â',
-    '',
-    ...farmerLines,
-    farmerLines.length > 0 ? 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â' : '',
-    '',
-    mode === 'crop' ? `ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â± Crop: ${crop}` : 'ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â± Crop: Custom Nutrients',
-    mode === 'crop' ? `ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¦ Season: ${selectedRecommendation.season}` : '',
-    mode === 'crop' ? `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Zone: ${selectedRecommendation.zone}` : '',
-    mode === 'crop' ? `ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¿ Variety: ${selectedRecommendation.variety}` : '',
-    mode === 'crop' ? `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Area: ${formatSelectedArea(area, 'en')}` : '',
-    '',
-    'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â',
-    '',
-    '*ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Recommended Nutrients*',
-    '',
-    `N: ${round(perAcreNutrients.n)} kg`,
-    `PÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Å¡OÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Â¦: ${round(perAcreNutrients.p)} kg`,
-    `KÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Å¡O: ${round(perAcreNutrients.k)} kg`,
-    '',
-    'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â',
-    '',
-    '*ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª Fertilizer Requirements*',
-    '',
-    ...(results.filter((row) => row.kg > 0.01).map((row) => `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ ${row.grade.name}: ${round(row.kg)} kg (${round(row.bags)} Bags)`)),
-    ...(results.filter((row) => row.kg > 0.01).length === 0 ? ['No fertilizer required'] : []),
+  const totalNutrients = mode === 'crop' ? recommendationNutrients : required;
+  const fertilizerRows = results.filter((row) => row.kg > 0.01);
+  const separator = '------------------------------';
+  
+  // Helper to format nutrient labels safely (always use English for chemical formulas)
+  const formatNutrientLabel = (nutrient: string) => {
+    if (nutrient === 'p') return 'P2O5';
+    if (nutrient === 'k') return 'K2O';
+    return nutrient.toUpperCase();
+  };
+  
+  const lines: string[] = [
+    'Smart Fertilizer Calculator',
+    'Tiryani Agriculture Portal',
+    separator,
   ];
 
-  if (mode === 'crop') {
-    lines.push('', 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â', '', '*ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â± Split Dose Plan*', '');
+  const farmerLines = [
+    farmerDetails?.farmerName ? `Farmer: ${farmerDetails.farmerName}` : '',
+    farmerDetails?.village ? `Village: ${farmerDetails.village}` : '',
+    farmerDetails?.ppbNumber ? `PPB: ${farmerDetails.ppbNumber}` : '',
+    farmerDetails?.surveyNumber ? `Survey No: ${farmerDetails.surveyNumber}` : '',
+    farmerDetails?.mobileNumber ? `Mobile: ${farmerDetails.mobileNumber}` : '',
+    farmerDetails?.acreage ? `Farmer area: ${farmerDetails.acreage} acre` : '',
+  ].filter(Boolean);
+
+  if (farmerLines.length) {
+    lines.push('Farmer Details', ...farmerLines, separator);
+  }
+
+  lines.push(
+    'Crop Details',
+    mode === 'crop' ? `Crop: ${crop}` : 'Crop: Custom nutrient dose',
+    mode === 'crop' ? `Season: ${selectedRecommendation.season}` : '',
+    mode === 'crop' ? `Zone: ${selectedRecommendation.zone}` : '',
+    mode === 'crop' ? `Variety: ${selectedRecommendation.variety}` : '',
+    `Area: ${formatSelectedArea(area, 'en')}`,
+    language === 'te' ? 'Note: Shared in plain English for WhatsApp compatibility.' : '',
+    separator,
+    'Recommended Nutrients Per Acre',
+    `N: ${round(perAcreNutrients.n)} kg`,
+    `${formatNutrientLabel('p')}: ${round(perAcreNutrients.p)} kg`,
+    `${formatNutrientLabel('k')}: ${round(perAcreNutrients.k)} kg`,
+    separator,
+    'Total Nutrient Requirement',
+    `N: ${round(totalNutrients.n)} kg`,
+    `${formatNutrientLabel('p')}: ${round(totalNutrients.p)} kg`,
+    `${formatNutrientLabel('k')}: ${round(totalNutrients.k)} kg`,
+    separator,
+    'Fertilizer Requirements'
+  );
+
+  if (fertilizerRows.length) {
+    fertilizerRows.forEach((row) => {
+      lines.push(`${row.grade.name}: ${round(row.kg)} kg (${round(row.bags)} bags)`);
+    });
+  } else {
+    lines.push('No fertilizer required');
+  }
+
+  lines.push(
+    separator,
+    'Nutrient Balance',
+    `Supplied - N: ${round(supplied.n)} kg, ${formatNutrientLabel('p')}: ${round(supplied.p)} kg, ${formatNutrientLabel('k')}: ${round(supplied.k)} kg`,
+    `Balance - N: ${round(balance.n)} kg, ${formatNutrientLabel('p')}: ${round(balance.p)} kg, ${formatNutrientLabel('k')}: ${round(balance.k)} kg`,
+    `Excess - N: ${round(excess.n)} kg, ${formatNutrientLabel('p')}: ${round(excess.p)} kg, ${formatNutrientLabel('k')}: ${round(excess.k)} kg`
+  );
+
+  if (mode === 'crop' && splitPlan.length) {
+    lines.push(separator, 'Split Dose Plan');
     splitPlan.forEach(({ dose, nutrients, calculation }, index) => {
-      const rows = formatFertilizerRows(calculation.results, language);
-      lines.push('', 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â', '', `*ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¿ ${dose.stage}*`, '');
-      
-      const nutrientTargets = [];
-      if (nutrients.n > 0) nutrientTargets.push(`N: ${round(nutrients.n)} kg`);
-      if (nutrients.p > 0) nutrientTargets.push(`PÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Å¡OÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Â¦: ${round(nutrients.p)} kg`);
-      if (nutrients.k > 0) nutrientTargets.push(`KÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Å¡O: ${round(nutrients.k)} kg`);
-      
-      if (nutrientTargets.length > 0) {
-        lines.push('*ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Target*', '', ...nutrientTargets, '');
-      }
-      
-      if (dose.notes) lines.push(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ${dose.notes}`, '');
-      if (dose.gypsum_kg) lines.push(`ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª Gypsum: ${dose.gypsum_kg} kg`, '');
-      if (dose.top_dressing_n_kg) lines.push(`ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â± Top dressing: ${dose.top_dressing_n_kg} kg N`, '');
-      
-      lines.push('*ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ Fertilizers*', '');
+      const rows = calculation.results.filter((row) => row.kg > 0.01);
+      lines.push('', `${index + 1}. ${formatStageName(dose.stage) || dose.stage}`);
+      lines.push(`Target N: ${round(nutrients.n)} kg, ${formatNutrientLabel('p')}: ${round(nutrients.p)} kg, ${formatNutrientLabel('k')}: ${round(nutrients.k)} kg`);
+      if (dose.notes) lines.push(`Note: ${dose.notes}`);
+      if (dose.gypsum_kg) lines.push(`Gypsum: ${dose.gypsum_kg} kg`);
+      if (dose.top_dressing_n_kg) lines.push(`Top dressing: ${dose.top_dressing_n_kg} kg N`);
       if (rows.length) {
-        rows.forEach((row) => {
-          lines.push(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ ${row}`);
-        });
+        rows.forEach((row) => lines.push(`${row.grade.name}: ${round(row.kg)} kg (${round(row.bags)} bags)`));
       } else {
-        lines.push('No fertilizer required');
+        lines.push('No fertilizer required in this split');
       }
     });
   }
 
-  lines.push('', 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â', '', '*ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â Important Notes*', '', ...AGRONOMIC_NOTES_EN.map((note) => `ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ ${note}`), '', 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â', '', '*ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â± Generated by*', '', '*K. Vinay Reddy, MAO, Tiryani*', '*Tiryani Mandal*', '*Kumram Bheem Asifabad District*', '', '*ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¾ Tiryani Agriculture Portal*', '', 'ÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚ÂÃƒÂ¢Ã¢â‚¬ÂÃ‚Â');
-  return lines.filter((line, index, all) => line !== '' || all[index - 1] !== '').join('\n');
+  const notes = language === 'te' 
+    ? AGRONOMIC_NOTES_TE.map((note) => repairTeluguText(note))
+    : AGRONOMIC_NOTES_EN;
+  
+  lines.push(
+    separator,
+    'Important Notes',
+    ...notes.map((note, index) => `${index + 1}. ${note}`),
+    separator,
+    'Generated by',
+    'K. Vinay Reddy, MAO, Tiryani',
+    'Tiryani Mandal, Kumram Bheem Asifabad District'
+  );
+
+  return stripWhatsAppMarkdown(lines.filter((line, index, all) => line !== '' || all[index - 1] !== '').join('\n'));
 }
 
 function stripWhatsAppMarkdown(value: string) {
-  return value
+  const normalized = value
+    .normalize('NFKC')
     .replace(/^#+\s*/gm, '')
-    .replace(/\*/g, '')
-    .replace(/[ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â¾ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‹â€ ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚ÂªÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â±ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¹ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢]/g, '')
-    .replace(/\|/g, '  ');
+    .replace(/\*/g, '');
+
+  return normalized
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function isWhatsAppSafeCharacter(character: string) {
+  const code = character.codePointAt(0) || 0;
+  return code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126) || (code >= 0x0c00 && code <= 0x0c7f);
 }
 
 function generatePdfFilename(farmerDetails?: FarmerDetails): string {
@@ -564,7 +451,7 @@ function generatePdfFilename(farmerDetails?: FarmerDetails): string {
   filename = filename.replace(/\s+/g, '_');
   
   // Remove invalid characters: / \ : * ? " < > |
-  filename = filename.replace(/[\/\\:*?"<>|]/g, '');
+  filename = filename.replace(/[/\\:*?"<>|]/g, '');
   
   // Remove duplicate underscores
   filename = filename.replace(/_+/g, '_');
@@ -765,14 +652,14 @@ function buildFertilizerReportHtml(input: FertilizerReportInput, language: 'en' 
               <td style="color: ${getBalanceColor(excess.n)}">${round(excess.n)} kg</td>
             </tr>
             <tr>
-              <td>PÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Å¡OÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Â¦</td>
+              <td>P2O5</td>
               <td>${round(required.p)} kg</td>
               <td>${round(supplied.p)} kg</td>
               <td style="color: ${getBalanceColor(balance.p)}">${round(balance.p)} kg</td>
               <td style="color: ${getBalanceColor(excess.p)}">${round(excess.p)} kg</td>
             </tr>
             <tr>
-              <td>KÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Å¡O</td>
+              <td>K2O</td>
               <td>${round(required.k)} kg</td>
               <td>${round(supplied.k)} kg</td>
               <td style="color: ${getBalanceColor(balance.k)}">${round(balance.k)} kg</td>
@@ -818,8 +705,8 @@ function buildFertilizerReportHtml(input: FertilizerReportInput, language: 'en' 
               <tr>
                 <th>Stage</th>
                 <th>N (kg)</th>
-                <th>PÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Å¡OÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Â¦ (kg)</th>
-                <th>KÃƒÂ¢Ã¢â‚¬Å¡Ã¢â‚¬Å¡O (kg)</th>
+                <th>P2O5 (kg)</th>
+                <th>K2O (kg)</th>
                 <th>Fertilizers</th>
               </tr>
             </thead>
@@ -863,9 +750,9 @@ function buildFertilizerReportHtml(input: FertilizerReportInput, language: 'en' 
           <h2>${labels.agronomicNotes}</h2>
           <table class="notes-table">
             <tbody>
-              ${displayAgronomicNotes.map((note) => `
+              ${displayAgronomicNotes.map((note, index) => `
                 <tr>
-                  <td>ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ ${note}</td>
+                  <td>${index + 1}. ${note}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -1783,6 +1670,7 @@ export function FertilizerCalculator() {
       selectedRecommendation,
       recommendationNutrients,
       splitPlan: splitFertilizerPlan,
+      farmerDetails,
     });
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
   };

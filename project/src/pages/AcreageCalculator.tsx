@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Calculator } from 'lucide-react';
+import { Calculator, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BackButton } from '../components/ui/BackButton';
 
@@ -38,6 +38,20 @@ export function AcreageCalculator() {
   );
   const acreResult = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
   const guideItems = useMemo(() => getAcreageGuide(mode), [mode]);
+  const hasInput = Boolean(acreInput || centInput || guntaInput || hectareInput || acresCentsPasteInput);
+
+  const resetCalculator = () => {
+    setAcreInput('');
+    setCentInput('');
+    setGuntaInput('');
+    setHectareInput('');
+    setAcresCentsPasteInput('');
+    window.sessionStorage.removeItem(STORAGE_KEY);
+    window.sessionStorage.removeItem(CENTS_STORAGE_KEY);
+    window.sessionStorage.removeItem(GUNTAS_STORAGE_KEY);
+    window.sessionStorage.removeItem(HECTARES_STORAGE_KEY);
+    window.sessionStorage.removeItem(ACRES_CENTS_PASTE_STORAGE_KEY);
+  };
 
   useEffect(() => {
     window.sessionStorage.setItem(MODE_STORAGE_KEY, mode);
@@ -91,25 +105,35 @@ export function AcreageCalculator() {
       </section>
       <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-3 rounded-xl border border-sky-200 bg-gradient-to-br from-white via-sky-50 to-cyan-100 p-4 shadow-md dark:border-sky-900/60 dark:from-slate-900 dark:via-sky-950/30 dark:to-cyan-950/30">
-          <label className="block">
-            <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Input type</span>
-            <select
-              value={mode}
-              onChange={(event) => setMode(event.target.value as AcreageMode)}
-              className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <label className="block">
+              <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Input type</span>
+              <select
+                value={mode}
+                onChange={(event) => setMode(event.target.value as AcreageMode)}
+                className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
+              >
+                {modeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={resetCalculator}
+              disabled={!hasInput}
+              className="inline-flex min-h-[2.625rem] items-center justify-center gap-2 rounded-lg border border-rose-200 bg-white/90 px-4 py-2 text-sm font-black text-rose-700 shadow-sm transition hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-rose-900/70 dark:bg-slate-950 dark:text-rose-200 dark:hover:bg-rose-950/30"
+              title="Clear calculator inputs"
             >
-              {modeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </label>
+              <RotateCcw className="h-4 w-4" />
+              Clear
+            </button>
+          </div>
 
           {mode === 'acres' && (
             <label className="block">
               <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Acre values</span>
-              <textarea
+              <PasteTextarea
                 value={acreInput}
-                onChange={(event) => setAcreInput(event.target.value)}
-                rows={10}
-                className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-semibold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
+                onChange={setAcreInput}
                 placeholder={'Example:\n2.10\n2.36\n0.15'}
               />
               <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">Existing format: 2.10 means 2 acres 10 guntas.</p>
@@ -123,11 +147,9 @@ export function AcreageCalculator() {
           {mode === 'acres-cents' && (
             <label className="block">
               <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Acre.Cent values</span>
-              <textarea
+              <PasteTextarea
                 value={acresCentsPasteInput}
-                onChange={(event) => setAcresCentsPasteInput(event.target.value)}
-                rows={10}
-                className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-semibold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
+                onChange={setAcresCentsPasteInput}
                 placeholder={'Example:\n2.25\n1.50\n0.75'}
               />
               <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">Paste one column or type values. Example: 2.25 means 2 acres 25 cents.</p>
@@ -203,6 +225,19 @@ function getAcreageGuide(mode: AcreageMode) {
     'Read decimal acres and equivalent cents.',
     'Use hectares output for field records.',
   ];
+}
+function PasteTextarea({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) {
+  return (
+    <textarea
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      rows={12}
+      wrap="soft"
+      spellCheck={false}
+      className="min-h-[18rem] max-h-[32rem] w-full resize-y overflow-auto rounded-lg border border-sky-200 bg-white/95 px-3 py-2 font-mono text-sm font-semibold leading-6 text-slate-950 outline-none transition placeholder:font-sans focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
+      placeholder={placeholder}
+    />
+  );
 }
 function NumberInput({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder: string }) {
   return (
