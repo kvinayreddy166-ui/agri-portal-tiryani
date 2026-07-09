@@ -202,10 +202,6 @@ export function SeedForms() {
   };
 
   const preview = async (kind) => {
-    if (isDuplicateSeedGeneration(form)) {
-      setDuplicateAction({ type: 'preview', kind });
-      return;
-    }
     await completePreview(kind);
   };
 
@@ -236,7 +232,7 @@ export function SeedForms() {
           <button
             type="button"
             onClick={saveDraft}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-red-700 px-2.5 py-2 text-xs font-black text-red-800 hover:bg-red-50"
             title="Save draft"
           >
             <Save className="h-4 w-4" />
@@ -253,14 +249,14 @@ export function SeedForms() {
           </button>
       </div>
 
-      <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
-        <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-slate-600">OFFICER DRAFT</p>
+      <div className="mb-2 rounded-lg border border-red-700 bg-red-50 p-2">
+        <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-red-800">SAVED DRAFTS</p>
         <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
           <input
             type="text"
             value={draftName}
             onChange={(event) => setDraftName(event.target.value)}
-            placeholder="Auto from officer name"
+            placeholder="Draft name"
             className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
           />
           <select
@@ -292,17 +288,17 @@ export function SeedForms() {
       )}
 
       <div className="grid gap-3 lg:grid-cols-2">
-        <Card title="Officer / From Details" color="emerald">
-          <Input label="From officer name" value={form.officerName} onChange={(value) => setField('officerName', value)} />
-          <Select label="From designation" value={form.designation} onChange={(value) => setField('designation', value)} options={designationOptions.map(toOption)} />
-          <Input label="From office address" value={form.officeAddress} onChange={(value) => setField('officeAddress', value)} textarea />
+        <Card title="OFFICER DETAILS" color="emerald">
+          <Input label="Officer name" value={form.officerName} onChange={(value) => setField('officerName', value)} />
+          <Select label="Designation" value={form.designation} onChange={(value) => setField('designation', value)} options={designationOptions.map(toOption)} />
+          <Input label="Office address" value={form.officeAddress} onChange={(value) => setField('officeAddress', value)} textarea />
           <div className="grid gap-2 sm:grid-cols-2">
-            <Input label="From place" value={form.place} onChange={(value) => setField('place', value)} />
-            <Input label="From date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
+            <Input label="Place" value={form.place} onChange={(value) => setField('place', value)} />
+            <Input label="Date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
           </div>
         </Card>
 
-        <Card title="Laboratory / To Details" color="blue">
+        <Card title="LABORATORY DETAILS" color="blue">
           <Select label="To Address / Laboratory" value={form.labId} onChange={(value) => setField('labId', value)} options={labOptions.map((item) => ({ label: item.label, value: item.id }))} />
           {form.labId === 'other' ? (
             <Input label="Custom laboratory address" value={form.customLabAddress} onChange={(value) => setField('customLabAddress', value)} textarea />
@@ -313,12 +309,12 @@ export function SeedForms() {
         </Card>
 
         <div ref={sampleDetailsRef} className={highlightDetails ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}>
-        <Card title="Sample Details" color="amber">
+        <Card title="SAMPLE DETAILS" color="amber">
           <div className="grid gap-2 sm:grid-cols-2">
             <Input label="Serial No. of sample" value={form.serialNo} onChange={(value) => setField('serialNo', value)} />
             <Input label="Code No. of sample" value={form.codeNo} onChange={(value) => setField('codeNo', value)} />
             <Input label="Date of collection / sampling" type="date" value={form.collectionDate} onChange={(value) => setField('collectionDate', value)} />
-            <Input label="Place of collection (auto from From place)" value={resolved.collectionPlace} onChange={(value) => setField('collectionPlace', value)} />
+            <Input label="Place of collection" value={resolved.collectionPlace} onChange={(value) => setField('collectionPlace', value)} />
           </div>
           <SelectWithOther label="Nature of article submitted" valueKey="nature" otherKey="natureOther" form={form} setField={setField} options={natureOptions} />
           <div className="grid gap-2 sm:grid-cols-2">
@@ -337,7 +333,7 @@ export function SeedForms() {
         </div>
 
         <div ref={dealerDetailsRef} className={highlightDetails ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}>
-        <Card title="Dealer / Form VI & VIII Details" color="maroon">
+        <Card title="DEALER DETAILS" color="maroon">
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
           <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea placeholder="village" />
           <div className="grid gap-2 sm:grid-cols-2">

@@ -59,11 +59,13 @@ const compositionFields: FieldConfig[] = [
 
 const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
-    title: 'INSPECTOR / FORM K DETAILS',
+    title: 'INSPECTOR DETAILS',
     fields: [
       { key: 'officerName', label: 'OFFICER NAME' },
       { key: 'designation', label: 'DESIGNATION', type: 'select', options: designationOptions },
       { key: 'officeAddress', label: 'OFFICE ADDRESS', type: 'textarea' },
+      { key: 'place', label: 'PLACE' },
+      { key: 'date', label: 'DATE', type: 'date' },
     ],
   },
   {
@@ -72,16 +74,13 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'no', label: 'NO.' },
       { key: 'sampleCode', label: 'CODE NO. OF SAMPLE' },
       { key: 'samplingDate', label: 'DATE OF SAMPLING', type: 'date' },
-      { key: 'place', label: 'PLACE' },
-      { key: 'date', label: 'FORM DATE', type: 'date' },
     ],
   },
   {
-    title: 'DEALER / FERTILIZER DETAILS',
+    title: 'DEALER & SAMPLE DETAILS',
     fields: [
       { key: 'dealerName', label: 'DEALER / PARTY NAME' },
       { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS', type: 'textarea', placeholder: 'village' },
-      { key: 'premisesLocation', label: 'DEALER LOCATION (MANDAL)', placeholder: 'mandal' },
       { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER' },
       { key: 'fertilizerTypeGrade', label: 'TYPE AND GRADE OF FERTILIZER' },
       { key: 'dealerManufacturerImporterName', label: 'NAME OF DEALER/MANUFACTURER/IMPORTER', placeholder: 'company details' },
@@ -147,7 +146,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       if (key === 'codeNumber' && (!current.sampleCode || current.sampleCode === current.codeNumber)) {
         next.sampleCode = value;
       }
-      if (key === 'dealerName' || key === 'dealerAddress' || key === 'premisesLocation') {
+      if (key === 'dealerName' || key === 'dealerAddress' || key === 'place') {
         next.dealerNameAddress = buildDealerNameAddress(next);
       }
       if (key === 'dealerName' && (!current.dealerManufacturerImporterName || current.dealerManufacturerImporterName === current.dealerName)) {
@@ -236,10 +235,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const previewPdf = async (type = formType) => {
-    if (isDuplicateFertilizerGeneration(values)) {
-      setDuplicateAction({ type: 'preview', formType: type });
-      return;
-    }
     await completePreviewPdf(type);
   };
 
@@ -262,10 +257,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const previewAllPdf = async () => {
-    if (isDuplicateFertilizerGeneration(values)) {
-      setDuplicateAction({ type: 'previewAll' });
-      return;
-    }
     await completePreviewAllPdf();
   };
 
@@ -352,7 +343,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
             <button
               type="button"
               onClick={saveDraft}
-              className="inline-flex min-h-7 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-50"
+              className="inline-flex min-h-7 items-center justify-center gap-1.5 rounded-lg border border-red-700 px-2 py-1 text-xs font-black text-red-800 hover:bg-red-50"
               title="Save draft"
             >
               <Save className="h-3.5 w-3.5" />
@@ -374,14 +365,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-            <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
-              <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-slate-600">OFFICER DRAFT</p>
+            <div className="mb-2 rounded-lg border border-red-700 bg-red-50 p-2">
+              <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-red-800">SAVED DRAFTS</p>
               <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
                 <input
                   type="text"
                   value={draftName}
                   onChange={(event) => setDraftName(event.target.value)}
-                  placeholder="Auto from officer name"
+                  placeholder="Draft name"
                   className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
                 <select
@@ -421,17 +412,17 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
             <div className="grid gap-3 lg:grid-cols-2">
               {allFields.map((section) => {
                 const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'maroon' | 'slate'> = {
-                  'INSPECTOR / FORM K DETAILS': 'emerald',
+                  'INSPECTOR DETAILS': 'emerald',
                   'COMMON DETAILS': 'blue',
-                  'DEALER / FERTILIZER DETAILS': 'amber',
+                  'DEALER & SAMPLE DETAILS': 'amber',
                   'COMPOSITION': 'maroon',
                 };
                 const color = colorMap[section.title] || 'slate';
                 return (
                   <div
                     key={section.title}
-                    ref={section.title === 'COMMON DETAILS' ? sampleDetailsRef : section.title === 'DEALER / FERTILIZER DETAILS' ? dealerDetailsRef : undefined}
-                    className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER / FERTILIZER DETAILS') ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}
+                    ref={section.title === 'COMMON DETAILS' ? sampleDetailsRef : section.title === 'DEALER & SAMPLE DETAILS' ? dealerDetailsRef : undefined}
+                    className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER & SAMPLE DETAILS') ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}
                   >
                   <FieldSection title={section.title} color={color}>
                     {section.fields.map((field) => (
@@ -508,7 +499,7 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
 }
 
 function buildDealerNameAddress(values: FertilizerPdfValues) {
-  return [values.dealerName, values.dealerAddress, values.premisesLocation]
+  return [values.dealerName, values.dealerAddress, values.place]
     .map((part) => part.trim())
     .filter(Boolean)
     .join('\n');

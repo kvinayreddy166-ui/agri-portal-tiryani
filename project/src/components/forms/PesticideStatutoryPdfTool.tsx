@@ -45,7 +45,7 @@ const packingOptions = [
 
 const fieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
-    title: 'INSPECTOR / LAB DETAILS',
+    title: 'INSPECTOR DETAILS',
     fields: [
       { key: 'officerName', label: 'OFFICER NAME' },
       { key: 'designation', label: 'DESIGNATION', type: 'select', options: designationOptions },
@@ -68,7 +68,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
     ],
   },
   {
-    title: 'DEALER / LICENSE DETAILS',
+    title: 'DEALER DETAILS',
     fields: [
       { key: 'dealerName', label: 'DEALER / LICENSEE NAME' },
       { key: 'dealerAddress', label: 'DEALER ADDRESS', type: 'textarea', placeholder: 'village' },
@@ -228,10 +228,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const preview = async (formType: PesticideStatutoryFormType) => {
-    if (isDuplicateGeneration(values)) {
-      setDuplicateAction({ type: 'preview', formType });
-      return;
-    }
     await completePreview(formType);
   };
 
@@ -277,10 +273,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const previewAll = async () => {
-    if (isDuplicateGeneration(values)) {
-      setDuplicateAction({ type: 'previewAll' });
-      return;
-    }
     await completePreviewAll();
   };
 
@@ -335,7 +327,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             <h2 className="max-w-full whitespace-normal text-sm font-black leading-snug text-slate-950 sm:text-base">Generate FORM V(C) / V(D) / V(E) / Docket Sheet</h2>
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            <button type="button" onClick={saveDraft} className="inline-flex min-h-7 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-50" title="Save draft">
+            <button type="button" onClick={saveDraft} className="inline-flex min-h-7 items-center justify-center gap-1.5 rounded-lg border border-red-700 px-2 py-1 text-xs font-black text-red-800 hover:bg-red-50" title="Save draft">
               <Save className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Save Draft</span>
             </button>
@@ -350,10 +342,10 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-          <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
-            <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-slate-600">OFFICER DRAFT</p>
+          <div className="mb-2 rounded-lg border border-red-700 bg-red-50 p-2">
+            <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-red-800">SAVED DRAFTS</p>
             <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-              <input type="text" value={draftName} onChange={(event) => setDraftName(event.target.value)} placeholder="Auto from officer name" className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
+              <input type="text" value={draftName} onChange={(event) => setDraftName(event.target.value)} placeholder="Draft name" className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
               <select value="" onChange={(event) => loadDraft(event.target.value)} className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
                 <option value="">Load saved draft...</option>
                 {savedDrafts.map((draft) => <option key={draft.name} value={draft.name}>{draft.name}</option>)}
@@ -368,9 +360,9 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
           <div className="grid gap-3 lg:grid-cols-2">
             {sections.map((section) => {
               const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'slate'> = {
-                'INSPECTOR / LAB DETAILS': 'emerald',
+                'INSPECTOR DETAILS': 'emerald',
                 'COMMON DETAILS': 'blue',
-                'DEALER / LICENSE DETAILS': 'amber',
+                'DEALER DETAILS': 'amber',
                 'INSECTICIDE DETAILS': 'slate',
                 'BATCH / STOCK DETAILS': 'emerald',
               };
@@ -378,8 +370,8 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               return (
                 <div
                   key={section.title}
-                  ref={section.title === 'COMMON DETAILS' ? sampleDetailsRef : section.title === 'DEALER / LICENSE DETAILS' ? dealerDetailsRef : undefined}
-                  className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER / LICENSE DETAILS') ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}
+                  ref={section.title === 'COMMON DETAILS' ? sampleDetailsRef : section.title === 'DEALER DETAILS' ? dealerDetailsRef : undefined}
+                  className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER DETAILS') ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}
                 >
                   <FieldSection title={section.title} color={color}>
                     {section.fields.map((field) => <PdfInput key={field.key} field={field} value={values[field.key]} onChange={(value) => setField(field.key, value)} />)}
