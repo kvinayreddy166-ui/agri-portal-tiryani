@@ -298,7 +298,7 @@ export function SeedForms() {
           <Input label="From office address" value={form.officeAddress} onChange={(value) => setField('officeAddress', value)} textarea />
           <div className="grid gap-2 sm:grid-cols-2">
             <Input label="From place" value={form.place} onChange={(value) => setField('place', value)} />
-            <Input label="Form date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
+            <Input label="From date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
           </div>
         </Card>
 
@@ -318,7 +318,7 @@ export function SeedForms() {
             <Input label="Serial No. of sample" value={form.serialNo} onChange={(value) => setField('serialNo', value)} />
             <Input label="Code No. of sample" value={form.codeNo} onChange={(value) => setField('codeNo', value)} />
             <Input label="Date of collection / sampling" type="date" value={form.collectionDate} onChange={(value) => setField('collectionDate', value)} />
-            <Input label="Place of collection" value={resolved.collectionPlace} onChange={(value) => setField('collectionPlace', value)} />
+            <Input label="Place of collection (auto from From place)" value={resolved.collectionPlace} onChange={(value) => setField('collectionPlace', value)} />
           </div>
           <SelectWithOther label="Nature of article submitted" valueKey="nature" otherKey="natureOther" form={form} setField={setField} options={natureOptions} />
           <div className="grid gap-2 sm:grid-cols-2">
@@ -337,10 +337,9 @@ export function SeedForms() {
         </div>
 
         <div ref={dealerDetailsRef} className={highlightDetails ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}>
-        <Card title="Dealer / Form VI & VIII Details" color="slate">
+        <Card title="Dealer / Form VI & VIII Details" color="maroon">
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
           <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea placeholder="village" />
-          <Input label="Dealer location (mandal)" value={form.premisesLocation} onChange={(value) => setField('premisesLocation', value)} placeholder="mandal" />
           <div className="grid gap-2 sm:grid-cols-2">
             <Select label="Cost of sample demanded" value={form.costDemanded} onChange={(value) => setField('costDemanded', value)} options={['Yes', 'No'].map(toOption)} />
             <Select label="Cost paid" value={form.costPaid} onChange={(value) => setField('costPaid', value)} options={['Paid', 'Not Paid', 'Not Applicable'].map(toOption)} />
@@ -376,6 +375,7 @@ function Card({ title, children, color = 'slate' }) {
     emerald: 'border-emerald-200 bg-emerald-50/50',
     blue: 'border-blue-200 bg-blue-50/50',
     amber: 'border-amber-200 bg-amber-50/50',
+    maroon: 'border-red-700 bg-red-50/50',
     slate: 'border-slate-200 bg-slate-50/50',
   };
   
@@ -383,6 +383,7 @@ function Card({ title, children, color = 'slate' }) {
     emerald: 'text-emerald-700',
     blue: 'text-blue-700',
     amber: 'text-amber-700',
+    maroon: 'text-red-800',
     slate: 'text-slate-700',
   };
   
@@ -591,7 +592,7 @@ function drawSeedFormVI(doc, form) {
   doc.setFontSize(PDF_BODY_SIZE);
   doc.text('To', 20, p.y);
   p.y += 7;
-  const dealerAddress = [r.dealerName, r.dealerAddress, r.premisesLocation].filter(Boolean).join('\n');
+  const dealerAddress = [r.dealerName, r.dealerAddress, r.place].filter(Boolean).join('\n');
   doc.text(doc.splitTextToSize(dealerAddress || '.......................................................', 170), 20, p.y);
   doc.setFont(PDF_FONT, 'normal');
   p.y += Math.max(24, doc.splitTextToSize(dealerAddress || '', 170).length * 6 + 8);
@@ -617,7 +618,7 @@ function drawSeedFormVIII(doc, form) {
     { text: ' taken from the premises of ' },
     { text: [r.dealerName, r.dealerAddress].filter(Boolean).join(', ') || '________________', bold: true },
     { text: ' situated at ' },
-    { text: blank(r.premisesLocation), bold: true },
+    { text: blank(r.place), bold: true },
     { text: ' Samples of Seeds specified below to have same tested / Analyzed by Seed Analyst.' },
   ]);
   doc.setFont(PDF_FONT, 'bold');

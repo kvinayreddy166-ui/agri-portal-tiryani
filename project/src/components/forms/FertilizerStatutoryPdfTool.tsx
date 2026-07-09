@@ -420,11 +420,11 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
             <div className="grid gap-3 lg:grid-cols-2">
               {allFields.map((section) => {
-                const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'slate'> = {
+                const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'maroon' | 'slate'> = {
                   'INSPECTOR / FORM K DETAILS': 'emerald',
                   'COMMON DETAILS': 'blue',
                   'DEALER / FERTILIZER DETAILS': 'amber',
-                  'COMPOSITION': 'slate',
+                  'COMPOSITION': 'maroon',
                 };
                 const color = colorMap[section.title] || 'slate';
                 return (
@@ -593,11 +593,12 @@ function DuplicateDownloadModal({
   );
 }
 
-function FieldSection({ title, children, color = 'slate' }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'slate' }) {
+function FieldSection({ title, children, color = 'slate' }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'maroon' | 'slate' }) {
   const colorStyles = {
     emerald: 'border-emerald-200 bg-emerald-50/50',
     blue: 'border-blue-200 bg-blue-50/50',
     amber: 'border-amber-200 bg-amber-50/50',
+    maroon: 'border-red-700 bg-red-50/50',
     slate: 'border-slate-200 bg-slate-50/50',
   };
   
@@ -605,6 +606,7 @@ function FieldSection({ title, children, color = 'slate' }: { title: string; chi
     emerald: 'text-emerald-700',
     blue: 'text-blue-700',
     amber: 'text-amber-700',
+    maroon: 'text-red-800',
     slate: 'text-slate-700',
   };
   
