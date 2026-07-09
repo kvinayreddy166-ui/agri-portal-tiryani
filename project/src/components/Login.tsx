@@ -719,10 +719,10 @@ export function Login() {
                     <button
                       type="button"
                       onClick={closePdfTool}
-                      className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+                      className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white hover:bg-red-800"
                       aria-label="Close seed PDF generator"
                     >
-                      <X className="h-5 w-5" />
+                      <X className="h-3.5 w-3.5" />
                     </button>
                   </header>
                   <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">

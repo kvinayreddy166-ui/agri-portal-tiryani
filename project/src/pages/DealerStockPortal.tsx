@@ -208,7 +208,7 @@ function receiptDetails(row: StockInventoryLine): ReceiptDetails {
   return {
     invoiceNo: row.invoice_no || fallback.invoiceNo,
     invoiceDate: row.invoice_date || fallback.invoiceDate,
-    source: row.supplier || fallback.source,
+    source: row.source || row.supplier || fallback.source,
     remarks: row.remarks || fallback.remarks,
   };
 }
@@ -307,7 +307,7 @@ export function DealerStockPortal() {
     setLoading(true);
     const query = supabase
       .from('stock_inventory_lines')
-      .select('id, dealer_id, category, product_name, opening_stock, receipts, sales, closing_stock, report_date, last_updated')
+      .select('id, dealer_id, category, product_name, product_type, opening_stock, receipts, sales, closing_stock, report_date, last_updated, invoice_no, invoice_date, source, supplier, remarks, entry_type, submitted_by, financial_year, total, opening_balance, closing_balance')
       .eq('dealer_id', dealerId)
       .eq('category', category)
       .order('report_date', { ascending: false })
@@ -338,12 +338,12 @@ export function DealerStockPortal() {
   }, [category]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!recordsLoaded) void loadRecords();
-  }, [loadRecords, recordsLoaded, receiptFilter.financialYear, section]);
+    void loadRecords();
+  }, [loadRecords, category, dealerId]);
 
   useEffect(() => {
     if (section === 'saved') void loadRecords();
-  }, [receiptFilter.financialYear]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [receiptFilter.financialYear, section]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveReceipt = async () => {
     if (!dealerId || saving) return;

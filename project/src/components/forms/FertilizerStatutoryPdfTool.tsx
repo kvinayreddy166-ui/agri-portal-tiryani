@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Eye, RotateCcw, Save } from 'lucide-react';
-import { BackButton } from '../ui/BackButton';
+import { Download, Eye, RotateCcw, Save, X } from 'lucide-react';
 import {
   FertilizerPdfValues,
   FertilizerStatutoryFormType,
@@ -358,9 +357,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               <RotateCcw className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Reset</span>
             </button>
-            <BackButton onClick={onClose} tone="light" className="min-h-7 px-2 py-1 text-xs">
-              Close
-            </BackButton>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white hover:bg-red-800"
+              title="Close"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
         </header>
 
@@ -576,8 +580,12 @@ function DuplicateDownloadModal({
             Download Anyway
           </button>
         </div>
-        <button type="button" onClick={onClose} className="mt-3 w-full text-xs font-bold text-slate-500 hover:text-slate-700">
-          Close
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-red-700 px-3 py-2 text-red-800 hover:bg-red-50"
+        >
+          <X className="h-3.5 w-3.5" />
         </button>
       </div>
     </div>

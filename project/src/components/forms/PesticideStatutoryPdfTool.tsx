@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Eye, RotateCcw, Save } from 'lucide-react';
-import { BackButton } from '../ui/BackButton';
+import { Download, Eye, RotateCcw, Save, X } from 'lucide-react';
 import {
   generateAllPesticideStatutoryPdf,
   generatePesticideStatutoryPdf,
@@ -335,9 +334,14 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               <RotateCcw className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Reset</span>
             </button>
-            <BackButton onClick={onClose} tone="light" className="min-h-7 px-2 py-1 text-xs">
-              Close
-            </BackButton>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white hover:bg-red-800"
+              title="Close"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
         </header>
 
@@ -474,7 +478,13 @@ function DuplicateDownloadModal({ onReview, onContinue, onClose }: { onReview: (
           <button type="button" onClick={onReview} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">Review/Edit Details</button>
           <button type="button" onClick={onContinue} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">Download Anyway</button>
         </div>
-        <button type="button" onClick={onClose} className="mt-3 w-full text-xs font-bold text-slate-500 hover:text-slate-700">Close</button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-red-700 px-3 py-2 text-red-800 hover:bg-red-50"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   );
