@@ -20,7 +20,7 @@ type FertilizerDailyStockLine = {
   submitted_by?: string | null;
   invoice_no?: string | null;
   supplier?: string | null;
-  updated_at: string | null;
+  updated_at?: string | null;
   created_at: string | null;
 };
 
@@ -138,13 +138,22 @@ export async function fetchDailyFertilizerStockSummary(
 
     if (!primary.error) return primary;
 
-    return supabase
+    const compatibility = await supabase
       .from('stock_inventory_lines')
-      .select('dealer_id, product_type, sales, closing_balance, report_date, updated_at, created_at, submitted_by')
+      .select('dealer_id, product_type, entry_type, submitted_by, invoice_no, supplier, sales, closing_balance, report_date, created_at')
       .eq('category', 'fertilizer')
       .lte('report_date', reportDate)
       .order('report_date', { ascending: false, nullsFirst: false })
-      .order('updated_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false, nullsFirst: false });
+
+    if (!compatibility.error) return compatibility;
+
+    return supabase
+      .from('stock_inventory_lines')
+      .select('dealer_id, product_type, sales, closing_balance, report_date, created_at, submitted_by')
+      .eq('category', 'fertilizer')
+      .lte('report_date', reportDate)
+      .order('report_date', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false, nullsFirst: false });
   }
 }

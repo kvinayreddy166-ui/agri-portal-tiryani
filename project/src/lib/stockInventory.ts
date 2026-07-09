@@ -22,8 +22,15 @@ export interface StockInventoryLine {
   unit?: string;
   invoice_no?: string;
   invoice_date?: string;
+  source?: string;
   supplier?: string;
   remarks?: string;
+  product_name?: string;
+  opening_stock?: number;
+  closing_stock?: number;
+  last_updated?: string;
+  created_at?: string;
+  updated_at?: string;
   opening_balance: number;
   receipts: number;
   total: number;

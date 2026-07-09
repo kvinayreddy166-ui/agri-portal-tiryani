@@ -111,6 +111,14 @@ type ReceiptDetails = {
   remarks: string;
 };
 
+const DEALER_PROFILE_COLUMNS = 'id, dealer_name, ifms_id, phone_number, license_number, location, dealer_category';
+const STOCK_COLUMNS =
+  'id, dealer_id, category, serial_no, product_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month, updated_at, created_at, submitted_by, financial_year, entry_type, firm_name, ifms_id, variety, batch_number, unit, invoice_no, invoice_date, supplier, remarks';
+const LEGACY_STOCK_COLUMNS =
+  'id, dealer_id, category, product_name, product_type, opening_stock, receipts, sales, closing_stock, report_date, last_updated, invoice_no, invoice_date, source, supplier, remarks, entry_type, submitted_by, financial_year, total, opening_balance, closing_balance';
+const MINIMAL_STOCK_COLUMNS =
+  'id, dealer_id, category, serial_no, product_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month, created_at, submitted_by';
+
 function productsFor(category: StockCategory) {
   return category === 'fertilizer' ? FERTILIZER_PRODUCTS : productTypesForCategory(category);
 }
@@ -229,6 +237,29 @@ function parseLegacyReceiptDetails(value?: string): ReceiptDetails {
   }
 }
 
+function normalizeStockRows(rows: StockInventoryLine[]): StockInventoryLine[] {
+  return rows.map((row) => {
+    const opening = row.opening_balance ?? row.opening_stock ?? 0;
+    const receipts = Number(row.receipts || 0);
+    const sales = Number(row.sales || 0);
+    const total = row.total ?? Number(opening || 0) + receipts;
+    const closing = row.closing_balance ?? row.closing_stock ?? Number(total || 0) - sales;
+
+    return {
+      ...row,
+      product_type: row.product_type || row.product_name || '',
+      opening_balance: Number(opening || 0),
+      receipts,
+      total: Number(total || 0),
+      sales,
+      closing_balance: Number(closing || 0),
+      report_date: row.report_date || row.invoice_date || row.created_at?.slice(0, 10),
+      financial_year: row.financial_year || financialYearForDate(row.report_date || row.invoice_date || row.created_at?.slice(0, 10) || currentReportDate()),
+      supplier: row.supplier || row.source || '',
+    };
+  });
+}
+
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   if (typeof error === 'string') return error;
@@ -276,7 +307,6 @@ export function DealerStockPortal() {
   const [unit, setUnit] = useState(CATEGORY_UNITS.fertilizer[0]);
   const [dealerProfile, setDealerProfile] = useState<DealerProfile | null>(null);
   const [records, setRecords] = useState<StockInventoryLine[]>([]);
-  const [recordsLoaded, setRecordsLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState('');
@@ -294,33 +324,67 @@ export function DealerStockPortal() {
 
   const loadDealerProfile = useCallback(async () => {
     if (!dealerId) return;
-    const { data } = await supabase
+
+    const primary = await supabase
       .from('dealers')
-      .select('id, dealer_name, firm_name, village, mobile, license_no, status')
+      .select(DEALER_PROFILE_COLUMNS)
       .eq('id', dealerId)
       .maybeSingle();
-    setDealerProfile((data || null) as DealerProfile | null);
+
+    if (!primary.error) {
+      setDealerProfile((primary.data || null) as DealerProfile | null);
+      return;
+    }
+
+    const fallback = await supabase
+      .from('dealers')
+      .select('id, dealer_name')
+      .eq('id', dealerId)
+      .maybeSingle();
+
+    if (fallback.error) console.error(fallback.error);
+    setDealerProfile((fallback.data || null) as DealerProfile | null);
   }, [dealerId]);
 
   const loadRecords = useCallback(async () => {
     if (!dealerId) return;
     setLoading(true);
-    const query = supabase
-      .from('stock_inventory_lines')
-      .select('id, dealer_id, category, product_name, product_type, opening_stock, receipts, sales, closing_stock, report_date, last_updated, invoice_no, invoice_date, source, supplier, remarks, entry_type, submitted_by, financial_year, total, opening_balance, closing_balance')
-      .eq('dealer_id', dealerId)
-      .eq('category', category)
-      .order('report_date', { ascending: false })
-      .order('created_at', { ascending: false });
 
-    const { data, error } = await query;
-    if (error) {
-      console.error(error);
-      setRecords([]);
-    } else {
-      setRecords((data || []) as StockInventoryLine[]);
+    const fetchRows = (columns: string, includeUpdatedOrder: boolean) => {
+      let query = supabase
+        .from('stock_inventory_lines')
+        .select(columns)
+        .eq('dealer_id', dealerId)
+        .eq('category', category)
+        .order('report_date', { ascending: false });
+
+      if (includeUpdatedOrder) {
+        query = query.order('updated_at', { ascending: false, nullsFirst: false });
+      }
+
+      return query.order('created_at', { ascending: false, nullsFirst: false });
+    };
+
+    const attempts = [
+      () => fetchRows(STOCK_COLUMNS, true),
+      () => fetchRows(STOCK_COLUMNS, false),
+      () => fetchRows(LEGACY_STOCK_COLUMNS, false),
+      () => fetchRows(MINIMAL_STOCK_COLUMNS, false),
+    ];
+
+    let lastError: unknown = null;
+    for (const attempt of attempts) {
+      const { data, error } = await attempt();
+      if (!error) {
+        setRecords(normalizeStockRows((data || []) as unknown as StockInventoryLine[]));
+        setLoading(false);
+        return;
+      }
+      lastError = error;
     }
-    setRecordsLoaded(true);
+
+    console.error(lastError);
+    setRecords([]);
     setLoading(false);
   }, [category, dealerId]);
 
@@ -330,7 +394,6 @@ export function DealerStockPortal() {
 
   useEffect(() => {
     setRecords([]);
-    setRecordsLoaded(false);
     setReceiptForm(emptyReceipt(category));
     setDailyRows([emptyDaily(category)]);
     setUnit(CATEGORY_UNITS[category][0]);
@@ -383,7 +446,6 @@ export function DealerStockPortal() {
       await saveStockLine(payload);
       setMessage('Receipt saved.');
       setReceiptForm(emptyReceipt(category));
-      setRecordsLoaded(false);
     } catch (error) {
       alert(`Could not save receipt: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
@@ -408,7 +470,7 @@ export function DealerStockPortal() {
     }
 
     if (preparedRows.some(({ computed }) => computed.sales > computed.total || computed.closing_balance < 0)) {
-      alert('Sales cannot be more than total stock. Closing stock must be Total - Sales.');
+      alert('Sales cannot be more than available stock (Opening + Receipts). Closing stock must be Total - Sales.');
       return;
     }
 
@@ -438,7 +500,6 @@ export function DealerStockPortal() {
       await Promise.all(payloads.map((payload) => saveStockLine(payload)));
       setMessage('Daily stock saved.');
       setDailyRows([emptyDaily(category)]);
-      setRecordsLoaded(false);
     } catch (error) {
       alert(`Could not save daily stock: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
@@ -1107,14 +1168,16 @@ function previousDailyClosing(records: StockInventoryLine[], category: StockCate
 }
 
 function buildSummary(dailyRows: StockInventoryLine[], receiptRows: StockInventoryLine[]) {
+  const opening = dailyRows.reduce((sum, row) => sum + Number(row.opening_balance || 0), 0);
   const receipts = receiptRows.reduce((sum, row) => sum + Number(row.receipts || 0), 0) + dailyRows.reduce((sum, row) => sum + Number(row.receipts || 0), 0);
   const sales = dailyRows.reduce((sum, row) => sum + Number(row.sales || 0), 0);
-  const stock = receipts - sales;
+  const stock = opening + receipts - sales;
+  const openingBags = dailyRows.reduce((sum, row) => sum + mtToBags(Number(row.opening_balance || 0), row.product_type), 0);
   const receiptBags =
     receiptRows.reduce((sum, row) => sum + mtToBags(Number(row.receipts || 0), row.product_type), 0) +
     dailyRows.reduce((sum, row) => sum + mtToBags(Number(row.receipts || 0), row.product_type), 0);
   const salesBags = dailyRows.reduce((sum, row) => sum + mtToBags(Number(row.sales || 0), row.product_type), 0);
-  const stockBags = receiptBags - salesBags;
+  const stockBags = openingBags + receiptBags - salesBags;
   return { receipts, sales, stock, receiptBags, salesBags, stockBags };
 }
 
@@ -1138,14 +1201,15 @@ function buildProductStats(dailyRows: StockInventoryLine[], receiptRows: StockIn
 
   dailyRows.forEach((row) => {
     const current = ensure(row);
+    const opening = Number(row.opening_balance || 0);
     const receipts = Number(row.receipts || 0);
     const sales = Number(row.sales || 0);
     current.receipts += receipts;
     current.sales += sales;
-    current.stock += receipts - sales;
+    current.stock += opening + receipts - sales;
     current.receiptBags += mtToBags(receipts, row.product_type);
     current.salesBags += mtToBags(sales, row.product_type);
-    current.stockBags += mtToBags(receipts - sales, row.product_type);
+    current.stockBags += mtToBags(opening + receipts - sales, row.product_type);
   });
 
   return [...map.values()].sort((a, b) => b.receipts + b.sales - (a.receipts + a.sales));
