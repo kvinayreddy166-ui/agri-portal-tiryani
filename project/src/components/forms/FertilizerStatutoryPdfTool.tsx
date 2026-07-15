@@ -413,7 +413,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               </div>
             )}
 
-            <div className="grid gap-3">
+            <div className="grid gap-3 lg:grid-cols-2">
               {allFields.map((section) => {
                 const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'maroon' | 'slate'> = {
                   'INSPECTOR DETAILS': 'emerald',

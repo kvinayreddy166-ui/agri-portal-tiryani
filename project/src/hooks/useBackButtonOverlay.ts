@@ -30,6 +30,12 @@ export function useBackButtonOverlay(overlayKey: string, onBackClose: () => void
   const closeOverlay = useCallback(() => {
     if (ownsHistoryRef.current && getHistoryState().tiryaniOverlay === overlayKey) {
       window.history.back();
+      ownsHistoryRef.current = false;
+      setTimeout(() => {
+        if (getHistoryState().tiryaniOverlay === overlayKey) {
+          onBackCloseRef.current();
+        }
+      }, 100);
       return;
     }
     ownsHistoryRef.current = false;
