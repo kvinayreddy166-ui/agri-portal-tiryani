@@ -612,7 +612,7 @@ function FieldSection({ title, children, color = 'slate' }: { title: string; chi
   return (
     <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>
       <h3 className={`mb-2 text-sm font-black ${headerColors[color]}`}>{title}</h3>
-      <div className="grid gap-2 sm:grid-cols-2">{children}</div>
+      <div className="grid gap-2">{children}</div>
     </div>
   );
 }
