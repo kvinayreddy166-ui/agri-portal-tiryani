@@ -232,7 +232,7 @@ export function SeedForms() {
           <button
             type="button"
             onClick={saveDraft}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-50 px-2.5 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-800 bg-emerald-800 px-2.5 py-2 text-xs font-black text-white shadow-md hover:bg-emerald-900 hover:border-emerald-900"
             title="Save draft"
           >
             <Save className="h-4 w-4" />
@@ -241,7 +241,7 @@ export function SeedForms() {
           <button
             type="button"
             onClick={resetDraft}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-600 bg-slate-600 px-2.5 py-2 text-xs font-black text-white shadow-md hover:bg-slate-700 hover:border-slate-700"
             title="Reset draft"
           >
             <RotateCcw className="h-4 w-4" />
@@ -251,14 +251,7 @@ export function SeedForms() {
 
       <div className="mb-2 rounded-lg border border-red-700 bg-red-50 p-2">
         <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-red-800">SAVED DRAFTS</p>
-        <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-          <input
-            type="text"
-            value={draftName}
-            onChange={(event) => setDraftName(event.target.value)}
-            placeholder="Draft name"
-            className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
+        <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <select
             value=""
             onChange={(event) => loadDraft(event.target.value)}
