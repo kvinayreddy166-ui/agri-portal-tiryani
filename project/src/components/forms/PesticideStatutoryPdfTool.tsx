@@ -371,7 +371,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
           </div>
 
           {previewError && <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">{previewError}</div>}
-          {message && <div className="mb-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">{message}</div>}
+          {message && <div className="mb-2 rounded-lg border border-red-600 bg-white px-3 py-2 text-xs font-bold text-red-600">{message}</div>}
 
           <div className="grid gap-3 lg:grid-cols-2">
             {sections.map((section) => {

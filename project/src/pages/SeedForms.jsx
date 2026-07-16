@@ -275,7 +275,7 @@ export function SeedForms() {
       </div>
 
       {message && (
-        <div className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">
+        <div className="mb-3 rounded-lg border border-red-600 bg-white px-3 py-2 text-sm font-bold text-red-600">
           {message}
         </div>
       )}
