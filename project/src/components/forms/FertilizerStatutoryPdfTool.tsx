@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Eye, RotateCcw, Save, X } from 'lucide-react';
+import { Download, Eye, RotateCcw, X } from 'lucide-react';
 import {
   FertilizerPdfValues,
   FertilizerStatutoryFormType,
@@ -341,34 +341,36 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
           <div className="flex shrink-0 items-center gap-1">
             <button
               type="button"
-              onClick={saveDraft}
-              className="inline-flex min-h-7 items-center justify-center gap-1.5 rounded-lg border border-red-700 px-2 py-1 text-xs font-black text-red-800 hover:bg-red-50"
-              title="Save draft"
-            >
-              <Save className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Save Draft</span>
-            </button>
-            <button
-              type="button"
-              onClick={resetDraft}
-              className="inline-flex min-h-7 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-50"
-              title="Reset draft"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Reset</span>
-            </button>
-            <button
-              type="button"
               onClick={onClose}
-              className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white hover:bg-red-800"
+              className="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-700 px-3 py-2 text-white hover:bg-red-800"
               title="Close"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+            <div className="mb-2 flex justify-end gap-1">
+              <button
+                type="button"
+                onClick={saveDraft}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-50 px-2.5 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100"
+                title="Save draft"
+              >
+                <span className="hidden sm:inline">Save Draft</span>
+              </button>
+              <button
+                type="button"
+                onClick={resetDraft}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+                title="Reset draft"
+              >
+                <RotateCcw className="h-4 w-4" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+            </div>
+
             <div className="mb-2 rounded-lg border border-red-700 bg-red-50 p-2">
               <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-red-800">SAVED DRAFTS</p>
               <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">

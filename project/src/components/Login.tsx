@@ -215,7 +215,8 @@ export function Login() {
   };
 
   const closePdfTool = () => {
-    pdfToolOverlay.closeOverlay();
+    pdfToolOverlay.releaseOverlay();
+    setPdfToolOpen(false);
   };
 
   const openGrievance = () => {
@@ -719,10 +720,10 @@ export function Login() {
                     <button
                       type="button"
                       onClick={closePdfTool}
-                      className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white hover:bg-red-800"
+                      className="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-700 px-3 py-2 text-white hover:bg-red-800"
                       aria-label="Close seed PDF generator"
                     >
-                      <X className="h-3.5 w-3.5" />
+                      <X className="h-4 w-4" />
                     </button>
                   </header>
                   <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
