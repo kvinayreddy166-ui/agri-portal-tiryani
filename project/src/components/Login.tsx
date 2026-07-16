@@ -776,7 +776,7 @@ export function Login() {
             <button
               type="button"
               onClick={openOfficerToolkit}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-800 shadow-sm transition hover:bg-emerald-100 hover:border-emerald-300 animate-slide-up delay-200"
+              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-800 shadow-lg shadow-emerald-300/50 transition hover:bg-emerald-100 hover:border-emerald-600 animate-slide-up delay-200 pulse-border-animation"
             >
               <ShieldCheck className="h-4 w-4" />
               <span>{t('Officer Toolkit', 'à°…à°§à°¿à°•à°¾à°°à±à°² à°Ÿà±‚à°²à±â€Œà°•à°¿à°Ÿà±')}</span>
