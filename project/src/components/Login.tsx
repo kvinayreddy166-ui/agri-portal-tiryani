@@ -175,10 +175,6 @@ export function Login() {
   }, [acreInput, statutoryFolder, statutoryPage]);
 
   const goBackWithinPublicToolkit = (fallbackPath: string) => {
-    if (getBrowserHistoryIndex() > 0) {
-      navigate(-1);
-      return;
-    }
     navigate(fallbackPath, { replace: true });
   };
 

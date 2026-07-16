@@ -235,15 +235,17 @@ export function SeedForms() {
             className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-50 px-2.5 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100"
             title="Save draft"
           >
-            <span className="hidden sm:inline">Save Draft</span>
+            <Save className="h-4 w-4" />
+            <span>Save Draft</span>
           </button>
           <button
             type="button"
             onClick={resetDraft}
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
             title="Reset draft"
           >
             <RotateCcw className="h-4 w-4" />
+            <span>Reset</span>
           </button>
       </div>
 

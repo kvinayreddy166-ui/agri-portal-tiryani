@@ -563,11 +563,8 @@ function AppContent() {
   }, [currentPage]);
 
   const handleBack = useCallback(() => {
-    if (getHistoryIndex() > 0) {
-      navigate(-1);
-      return;
-    }
-    navigate(getPageBackFallback(currentPage, isDealerUser), { replace: true });
+    const fallbackPage = getPageBackFallback(currentPage, isDealerUser);
+    navigate(pageToPath(fallbackPage), { replace: true });
   }, [currentPage, isDealerUser, navigate]);
 
   useEffect(() => {
