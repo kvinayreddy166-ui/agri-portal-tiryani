@@ -33,7 +33,7 @@ export default defineConfig({
       resolveDependencies: (_filename, deps) =>
         deps.filter((dep) => {
           // Keep PDF and chart modules preloaded for mobile compatibility
-          if (/(office|html2canvas|purify|three|tensorflow|vendor-xlsx)/.test(dep)) {
+          if (/(office|html2canvas|purify|tensorflow|vendor-xlsx)/.test(dep)) {
             return false;
           }
           if (/page-(?!dashboard)/.test(dep)) {
@@ -58,6 +58,30 @@ export default defineConfig({
           // Group PDF libraries together for better mobile loading
           if (id.includes('jspdf') || id.includes('pdfjs-dist') || id.includes('pdf-lib')) {
             return 'vendor-pdf';
+          }
+          // Group Excel library separately
+          if (id.includes('xlsx')) {
+            return 'vendor-xlsx';
+          }
+          // Group React libraries
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            return 'vendor-react';
+          }
+          // Group chart libraries
+          if (id.includes('recharts')) {
+            return 'vendor-charts';
+          }
+          // Group Supabase libraries
+          if (id.includes('@supabase')) {
+            return 'vendor-supabase';
+          }
+          // Group TensorFlow separately (lazy loaded)
+          if (id.includes('@tensorflow')) {
+            return 'vendor-tensorflow';
+          }
+          // Group document processing libraries
+          if (id.includes('docx') || id.includes('html2canvas') || id.includes('mammoth')) {
+            return 'vendor-docs';
           }
           return undefined;
         },

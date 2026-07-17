@@ -2,6 +2,14 @@
 export default {
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  safelist: [
+    'bg-[#eef6f0]', 'bg-emerald-700', 'bg-emerald-800', 'bg-emerald-50', 'bg-slate-950',
+    'bg-white', 'bg-white/90', 'bg-white/95', 'text-slate-600', 'text-slate-400',
+    'text-slate-300', 'text-slate-950', 'text-slate-500', 'text-white', 'text-emerald-800',
+    'text-red-700', 'text-red-300', 'border-emerald-200', 'border-red-200', 'border-red-900',
+    'border-amber-200', 'border-amber-900', 'shadow-sm', 'rounded-2xl', 'rounded-xl',
+    'hover:bg-emerald-800', 'hover:bg-emerald-50',
+  ],
   theme: {
     extend: {
       colors: {

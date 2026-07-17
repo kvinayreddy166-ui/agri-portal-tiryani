@@ -1,21 +1,42 @@
-const RESCUE_SW_VERSION = 'tiryani-portal-rescue-sw-v3';
+const RESCUE_SW_VERSION = 'tiryani-portal-rescue-sw-v4';
 const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
+const STATIC_CACHE_NAME = 'tiryani-static-v1';
+const RUNTIME_CACHE_NAME = 'tiryani-runtime-v1';
+
+const STATIC_ASSETS = [
+  '/',
+  '/offline.html',
+  '/icons/icon-192x192.png?v=emblem-v5',
+  '/icons/icon-512x512.png?v=emblem-v5',
+  '/images/agri-emblem-192.webp',
+  '/fonts/atkinson-hyperlegible-next-latin-400-normal.woff2',
+  '/fonts/atkinson-hyperlegible-next-latin-800-normal.woff2',
+];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(self.skipWaiting());
+  event.waitUntil(
+    caches.open(STATIC_CACHE_NAME)
+      .then((cache) => cache.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    clearAllCaches()
-      .then(() => self.clients.claim())
+    Promise.all([
+      clearOldCaches(),
+      self.clients.claim(),
+    ])
       .then(() => notifyClients({ type: 'SW_READY', version: RESCUE_SW_VERSION }))
   );
 });
 
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'CLEAR_RUNTIME_CACHES' || event.data?.type === 'SKIP_WAITING') {
-    event.waitUntil(clearAllCaches().then(() => self.skipWaiting()).then(() => self.clients.claim()));
+  if (event.data?.type === 'CLEAR_RUNTIME_CACHES') {
+    event.waitUntil(clearRuntimeCaches().then(() => self.clients.claim()));
+  }
+  if (event.data?.type === 'SKIP_WAITING') {
+    event.waitUntil(self.skipWaiting().then(() => self.clients.claim()));
   }
 });
 
@@ -31,6 +52,13 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  // Cache static assets with stale-while-revalidate
+  if (STATIC_ASSETS.some(asset => url.pathname === asset || url.pathname.startsWith('/fonts/') || url.pathname.startsWith('/icons/'))) {
+    event.respondWith(staleWhileRevalidate(request));
+    return;
+  }
+
+  // Handle scripts and styles with recovery
   if (request.destination === 'script' || request.destination === 'style') {
     event.respondWith(fetchOrRecoverMissingBuildAsset(request));
   }
@@ -85,6 +113,37 @@ function missingAssetRecoveryResponse(request) {
 async function clearAllCaches() {
   const keys = await caches.keys();
   await Promise.all(keys.map((key) => caches.delete(key)));
+}
+
+async function clearOldCaches() {
+  const keys = await caches.keys();
+  await Promise.all(
+    keys.map((key) => {
+      if (key !== STATIC_CACHE_NAME && key !== RUNTIME_CACHE_NAME) {
+        return caches.delete(key);
+      }
+    })
+  );
+}
+
+async function clearRuntimeCaches() {
+  if (caches.delete(RUNTIME_CACHE_NAME)) {
+    await caches.delete(RUNTIME_CACHE_NAME);
+  }
+}
+
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(STATIC_CACHE_NAME);
+  const cached = await cache.match(request);
+  
+  const networkFetch = fetch(request).then((response) => {
+    if (response.ok) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  }).catch(() => cached);
+  
+  return cached || networkFetch;
 }
 
 async function notifyClients(message) {

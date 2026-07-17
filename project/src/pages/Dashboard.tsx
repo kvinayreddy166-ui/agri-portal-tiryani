@@ -36,7 +36,7 @@ type FarmerDashboardStats = {
 
 let farmerDashboardSeedCache: FarmerDashboardRow[] | null = null;
 
-export function Dashboard() {
+export const Dashboard = React.memo(function Dashboard() {
   const { isAdminUser } = useAuth();
   const { t } = useLanguage();
   const [crops, setCrops] = useState<Crop[]>([]);
@@ -640,7 +640,7 @@ export function Dashboard() {
       )}
     </div>
   );
-}
+});
 
 function DashboardEmptyState({ message }: { message: string }) {
   return (
