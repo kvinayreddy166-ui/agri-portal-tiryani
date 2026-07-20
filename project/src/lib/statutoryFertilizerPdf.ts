@@ -19,6 +19,7 @@ export type FertilizerPdfValues = {
   compositionN_T: string;
   compositionP_T: string;
   compositionP_WS: string;
+  compositionP_available: string;
   compositionZn: string;
   compositionP_CS: string;
   compositionP2O5_T: string;
@@ -78,6 +79,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   compositionN_T: '',
   compositionP_T: '',
   compositionP_WS: '',
+  compositionP_available: '',
   compositionZn: '',
   compositionP_CS: '',
   compositionP2O5_T: '',
@@ -551,6 +553,7 @@ function formatComposition(values: FertilizerPdfValues) {
     'N_T': { label: 'N(T)', value: values.compositionN_T },
     'P_T': { label: 'P(T)', value: values.compositionP_T },
     'P_WS': { label: 'P(WS)', value: values.compositionP_WS },
+    'P_available': { label: 'P(available)', value: values.compositionP_available },
     'Zn': { label: 'Zn', value: values.compositionZn },
     'P_CS': { label: 'P(CS)', value: values.compositionP_CS },
     'P2O5_T': { label: 'P2O5(T)', value: values.compositionP2O5_T },
