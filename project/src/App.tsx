@@ -3,7 +3,7 @@ import { useAuth, AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
-import { OfflineStatus } from './components/ui/OfflineStatus';
+import { OfflineScreen } from './components/ui/OfflineScreen';
 import { APP_BUILD_LABEL, clearAppCacheAndReload, hasNewAppVersion, rememberCurrentAppVersion } from './lib/appVersion';
 import { isRecoverableChunkError } from './lib/pwaRecovery';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
@@ -862,7 +862,7 @@ function App() {
       <LanguageProvider>
         <AuthProvider>
           <BrowserRouter>
-            <OfflineStatus />
+            <OfflineScreen />
             <AppUpdateBanner />
             <AppContent />
             <AppVersionBadge />
