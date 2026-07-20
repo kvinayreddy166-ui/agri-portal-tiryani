@@ -55,6 +55,12 @@
           box-shadow: 0 0 20px 10px rgba(16, 185, 129, 0.2);
         }
       }
+      @keyframes ping {
+        75%, 100% {
+          transform: scale(2);
+          opacity: 0;
+        }
+      }
       h1 {
         margin: 18px 0 8px;
         font-size: 1.5rem;
@@ -84,7 +90,12 @@
   </head>
   <body>
     <main>
-      <img src="/icons/icon-192x192.png?v=agronix-v2" alt="Agronix" />
+      <div style="position: relative; display: inline-block; margin-bottom: 32px;">
+        <img src="/images/agronix-logo-original.jpeg" alt="Agronix" />
+        <div style="position: absolute; inset: -16px; display: flex; align-items: center; justify-content: center;">
+          <div style="width: 128px; height: 128px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+        </div>
+      </div>
       <h1>AGRONIX is offline</h1>
       <p>Please reconnect and reopen the app</p>
     </main>

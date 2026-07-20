@@ -4,6 +4,14 @@ import { PortalLogo } from './PortalLogo';
 export const OfflineScreen = React.memo(function OfflineScreen() {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
   const [visible, setVisible] = useState(false);
+  const [alreadyShown, setAlreadyShown] = useState(() => {
+    // Check if we already showed the offline screen this session
+    try {
+      return sessionStorage.getItem('tiryani-offline-screen-shown') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     const updateStatus = () => setOnline(navigator.onLine);
@@ -18,14 +26,30 @@ export const OfflineScreen = React.memo(function OfflineScreen() {
   useEffect(() => {
     // Small delay for smooth entrance animation when going offline
     if (!online) {
-      const timer = setTimeout(() => setVisible(true), 100);
+      const timer = setTimeout(() => {
+        setVisible(true);
+        // Remember that we showed the offline screen this session
+        try {
+          sessionStorage.setItem('tiryani-offline-screen-shown', 'true');
+        } catch {
+          // Session storage might not be available
+        }
+      }, 100);
       return () => clearTimeout(timer);
     } else {
       setVisible(false);
+      // Clear the flag when we come back online
+      try {
+        sessionStorage.removeItem('tiryani-offline-screen-shown');
+      } catch {
+        // Session storage might not be available
+      }
     }
   }, [online]);
 
-  if (online) return null;
+  // Don't show the blocking screen if it was already shown this session
+  // This prevents getting stuck in the offline screen loop when refreshing
+  if (online || alreadyShown) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#eef6f0] p-6 text-center dark:bg-slate-950">
