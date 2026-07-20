@@ -10,94 +10,196 @@
         color-scheme: light;
         font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
+      * { box-sizing: border-box; }
       body {
         margin: 0;
         min-height: 100vh;
-        display: grid;
-        place-items: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background: #eef6f0;
         color: #0f172a;
-      }
-      main {
-        width: min(88vw, 460px);
-        border: 1px solid #d1fae5;
-        border-radius: 24px;
-        background: #ffffff;
-        padding: 28px;
+        overflow: hidden;
+        padding: 24px;
         text-align: center;
-        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
-        animation: fadeIn 0.6s ease-out;
       }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+      .stage {
+        display: flex;
+        max-width: 28rem;
+        flex-direction: column;
+        align-items: center;
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+        transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
       }
-      img {
-        width: 92px;
-        height: 92px;
+      .stage.is-visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      .logo-wrap {
+        position: relative;
+        margin-bottom: 2.5rem;
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s;
+      }
+      .stage.is-visible .logo-wrap {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .ring-ping,
+      .ring-pulse {
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        border-radius: 999px;
+      }
+      .ring-ping {
+        width: 144px;
+        height: 144px;
+        background: rgba(16, 185, 129, 0.15);
+        animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+      }
+      .ring-pulse {
+        width: 112px;
+        height: 112px;
+        background: rgba(52, 211, 153, 0.1);
+        animation: softPulse 2.4s ease-in-out infinite;
+      }
+      .logo {
+        position: relative;
+        z-index: 1;
+        width: 112px;
+        height: 112px;
         border-radius: 999px;
         object-fit: cover;
-        animation: pulse 2s ease-in-out infinite;
+        background: #fff;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+        outline: 2px solid rgba(16, 185, 129, 0.35);
+        outline-offset: 0;
+        animation: logoHero 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both, logoBreathe 4.5s ease-in-out 0.9s infinite;
+        transform-origin: center;
       }
-      @keyframes pulse {
-        0%, 100% {
-          transform: scale(1);
-          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
-        }
-        50% {
-          transform: scale(1.05);
-          box-shadow: 0 0 20px 10px rgba(16, 185, 129, 0.2);
-        }
-      }
-      @keyframes ping {
-        75%, 100% {
-          transform: scale(2);
-          opacity: 0;
-        }
-      }
-      h1 {
-        margin: 18px 0 8px;
-        font-size: 1.5rem;
-        font-weight: 900;
-        color: #0f766e;
-        animation: slideUp 0.6s ease-out 0.2s backwards;
-      }
-      @keyframes slideUp {
-        from {
-          opacity: 0;
-          transform: translateY(15px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      p {
+      .msg {
         margin: 0;
-        color: #475569;
-        font-size: 1rem;
-        font-weight: 700;
-        line-height: 1.55;
-        animation: slideUp 0.6s ease-out 0.4s backwards;
+        font-size: clamp(1.25rem, 4.5vw, 1.5rem);
+        font-weight: 900;
+        line-height: 1.35;
+        letter-spacing: -0.02em;
+        color: #020617;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s;
+      }
+      .stage.is-visible .msg {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 12px;
+        transform: translateX(-50%);
+        display: none;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        background: #020617;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 900;
+        padding: 8px 12px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+      }
+      .toast-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #fcd34d;
+      }
+      .hidden { display: none !important; }
+      .toast.show { display: flex; }
+      @keyframes ping {
+        75%, 100% { transform: scale(2); opacity: 0; }
+      }
+      @keyframes softPulse {
+        0%, 100% { opacity: 0.55; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.06); }
+      }
+      @keyframes logoHero {
+        0% {
+          opacity: 0;
+          transform: translateY(12px) scale(0.86) rotate(-2deg);
+          filter: drop-shadow(0 0 0 rgba(4, 120, 87, 0));
+        }
+        55% {
+          opacity: 1;
+          transform: translateY(-3px) scale(1.08) rotate(1deg);
+          filter: drop-shadow(0 12px 18px rgba(4, 120, 87, 0.22));
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1) rotate(0);
+          filter: drop-shadow(0 8px 14px rgba(4, 120, 87, 0.16));
+        }
+      }
+      @keyframes logoBreathe {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-2px) scale(1.025); }
       }
     </style>
+    <script>
+      (function () {
+        var KEY = 'tiryani-offline-screen-shown';
+        var RETRY_KEY = 'tiryani-offline-shell-retry';
+        try {
+          var alreadyShown = sessionStorage.getItem(KEY) === 'true';
+          sessionStorage.setItem(KEY, 'true');
+          if (alreadyShown) {
+            if (!sessionStorage.getItem(RETRY_KEY)) {
+              sessionStorage.setItem(RETRY_KEY, '1');
+              location.replace('/');
+              return;
+            }
+            document.documentElement.classList.add('offline-already-shown');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
-    <main>
-      <div style="position: relative; display: inline-block; margin-bottom: 32px;">
-        <img src="/images/agronix-logo-original.jpeg" alt="Agronix" />
-        <div style="position: absolute; inset: -16px; display: flex; align-items: center; justify-content: center;">
-          <div style="width: 128px; height: 128px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
-        </div>
+    <div id="offline-banner" class="stage" aria-live="polite">
+      <div class="logo-wrap">
+        <div class="ring-ping"></div>
+        <div class="ring-pulse"></div>
+        <img class="logo" src="/images/agronix-logo-original.jpeg" alt="Agronix" width="112" height="112" />
       </div>
-      <h1>AGRONIX is offline</h1>
-      <p>Please reconnect and reopen the app</p>
-    </main>
+      <p class="msg">
+        AGRONIX is offline<br />
+        Please reconnect and reopen the app
+      </p>
+    </div>
+    <div id="offline-toast" class="toast">
+      <span class="toast-dot"></span>
+      You are offline. Cached data available.
+    </div>
+    <script>
+      (function () {
+        if (document.documentElement.classList.contains('offline-already-shown')) {
+          var banner = document.getElementById('offline-banner');
+          var toast = document.getElementById('offline-toast');
+          if (banner) banner.classList.add('hidden');
+          if (toast) toast.classList.add('show');
+          return;
+        }
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            var stage = document.getElementById('offline-banner');
+            if (stage) stage.classList.add('is-visible');
+          });
+        });
+      })();
+    </script>
   </body>
 </html>

@@ -66,7 +66,13 @@ if ('serviceWorker' in navigator) {
 
         if ('caches' in window) {
           const keys = await caches.keys();
-          await Promise.all(keys.map((key) => caches.delete(key)));
+          // Keep the current static shell so offline refresh can load the SPA
+          // (and honor the offline-banner session flag) instead of a hard fallback page.
+          await Promise.all(
+            keys
+              .filter((key) => !key.startsWith('agronix-static-'))
+              .map((key) => caches.delete(key))
+          );
         }
 
         if (hadController) {

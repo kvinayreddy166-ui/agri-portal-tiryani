@@ -1,7 +1,7 @@
-const RESCUE_SW_VERSION = 'agronix-rescue-sw-v3';
+const RESCUE_SW_VERSION = 'agronix-rescue-sw-v5';
 const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
-const STATIC_CACHE_NAME = 'agronix-static-v3';
-const RUNTIME_CACHE_NAME = 'agronix-runtime-v3';
+const STATIC_CACHE_NAME = 'agronix-static-v5';
+const RUNTIME_CACHE_NAME = 'agronix-runtime-v5';
 
 const STATIC_ASSETS = [
   '/',
@@ -68,6 +68,10 @@ async function networkOnlyNavigation(request) {
   try {
     return await fetch(new Request(request, { cache: 'no-store' }));
   } catch (error) {
+    // Prefer the app shell so React can suppress a repeat full-screen offline banner on refresh
+    const shell = (await caches.match('/')) || (await caches.match('/index.html'));
+    if (shell) return shell;
+
     const offline = await caches.match('/offline.html');
     return offline || new Response('Agronix is offline. Please reconnect and reopen the app.', {
       status: 503,
