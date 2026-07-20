@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
 import { OfflineStatus } from './components/ui/OfflineStatus';
 import { APP_BUILD_LABEL, clearAppCacheAndReload, hasNewAppVersion, rememberCurrentAppVersion } from './lib/appVersion';
+import { isRecoverableChunkError } from './lib/pwaRecovery';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
 const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
@@ -60,17 +61,9 @@ function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
         <div className="max-w-md rounded-2xl border border-amber-200 bg-white/90 p-4 shadow-sm dark:border-amber-900 dark:bg-slate-900">
           <h2 className="text-base font-black text-slate-950 dark:text-white">App is taking longer than expected.</h2>
           <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
-            A stale deployment cache or slow auth check may be blocking startup.
+            A stale deployment cache or slow auth check may be blocking startup. Clearing cache and reloading...
           </p>
           <p className="mt-2 text-xs font-bold text-slate-500 dark:text-slate-400">App Version: {APP_BUILD_LABEL}</p>
-          <div className="mt-3 flex flex-wrap justify-center gap-2">
-            <button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
-              Retry
-            </button>
-            <button type="button" onClick={() => void clearAppCacheAndReload()} className="rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-black text-emerald-800 hover:bg-emerald-50">
-              Clear cache
-            </button>
-          </div>
         </div>
       )}
     </div>
@@ -100,6 +93,10 @@ class LazyLoadBoundary extends Component<LazyLoadBoundaryProps, LazyLoadBoundary
 
   componentDidCatch(error: Error) {
     console.error('Page failed to load:', error);
+    // Automatically clear cache and reload on chunk load errors
+    if (isRecoverableChunkError(error.message)) {
+      void clearAppCacheAndReload();
+    }
   }
 
   render() {

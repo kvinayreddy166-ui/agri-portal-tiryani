@@ -22,6 +22,8 @@ export class ErrorBoundary extends Component<Props, State> {
     if (import.meta.env.DEV) console.error('App error:', error, info.componentStack);
     if (isRecoverableChunkError(error.message)) {
       void recoverFromStaleAssets();
+      // Automatically clear cache and reload for recoverable errors
+      void clearAppCacheAndReload();
     }
   }
 

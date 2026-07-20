@@ -324,6 +324,11 @@ export function Login() {
 
   const acreCalculation = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
 
+  const handleTestLogin = () => {
+    setEmail(TEST_EMAIL);
+    setPassword(TEST_PASSWORD);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -839,18 +844,16 @@ export function Login() {
             </form>
 
             {loginMode === 'staff' && (
-              <div className="mt-3 rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm text-sky-950 animate-slide-up delay-600">
-                <p className="flex items-center gap-2 font-bold">
+              <button
+                type="button"
+                onClick={handleTestLogin}
+                className="mt-3 w-full rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm font-bold text-sky-950 transition hover:bg-sky-100 animate-slide-up delay-600"
+              >
+                <span className="flex items-center justify-center gap-2">
                   <UserRoundCheck className="h-4 w-4" />
-                  {t('Test login', 'à°ªà°°à±€à°•à±à°· à°²à°¾à°—à°¿à°¨à±')}
-                </p>
-                <p className="mt-2">
-                  <span className="font-semibold">Email:</span> {TEST_EMAIL}
-                </p>
-                <p>
-                  <span className="font-semibold">Password:</span> {TEST_PASSWORD}
-                </p>
-              </div>
+                  {t('Test Login', 'à°ªà°°à±€à°•à±à°· à°²à°¾à°—à°¿à°¨à±')}
+                </span>
+              </button>
             )}
 
             {siteHitSummary && (
