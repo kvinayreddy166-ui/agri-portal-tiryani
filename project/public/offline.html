@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f766e" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
     <title>Offline | Agronix</title>
     <style>
       :root {
@@ -77,7 +78,6 @@
         background: #fff;
         box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
         outline: 2px solid rgba(16, 185, 129, 0.35);
-        outline-offset: 0;
         animation: logoHero 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both, logoBreathe 4.5s ease-in-out 0.9s infinite;
         transform-origin: center;
       }
@@ -96,30 +96,6 @@
         opacity: 1;
         transform: translateY(0);
       }
-      .toast {
-        position: fixed;
-        left: 50%;
-        bottom: 12px;
-        transform: translateX(-50%);
-        display: none;
-        align-items: center;
-        gap: 8px;
-        border-radius: 999px;
-        background: #020617;
-        color: #fff;
-        font-size: 12px;
-        font-weight: 900;
-        padding: 8px 12px;
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
-      }
-      .toast-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: #fcd34d;
-      }
-      .hidden { display: none !important; }
-      .toast.show { display: flex; }
       @keyframes ping {
         75%, 100% { transform: scale(2); opacity: 0; }
       }
@@ -149,24 +125,6 @@
         50% { transform: translateY(-2px) scale(1.025); }
       }
     </style>
-    <script>
-      (function () {
-        var KEY = 'tiryani-offline-screen-shown';
-        var RETRY_KEY = 'tiryani-offline-shell-retry';
-        try {
-          var alreadyShown = sessionStorage.getItem(KEY) === 'true';
-          sessionStorage.setItem(KEY, 'true');
-          if (alreadyShown) {
-            if (!sessionStorage.getItem(RETRY_KEY)) {
-              sessionStorage.setItem(RETRY_KEY, '1');
-              location.replace('/');
-              return;
-            }
-            document.documentElement.classList.add('offline-already-shown');
-          }
-        } catch (e) {}
-      })();
-    </script>
   </head>
   <body>
     <div id="offline-banner" class="stage" aria-live="polite">
@@ -180,26 +138,13 @@
         Please reconnect and reopen the app
       </p>
     </div>
-    <div id="offline-toast" class="toast">
-      <span class="toast-dot"></span>
-      You are offline. Cached data available.
-    </div>
     <script>
-      (function () {
-        if (document.documentElement.classList.contains('offline-already-shown')) {
-          var banner = document.getElementById('offline-banner');
-          var toast = document.getElementById('offline-toast');
-          if (banner) banner.classList.add('hidden');
-          if (toast) toast.classList.add('show');
-          return;
-        }
+      requestAnimationFrame(function () {
         requestAnimationFrame(function () {
-          requestAnimationFrame(function () {
-            var stage = document.getElementById('offline-banner');
-            if (stage) stage.classList.add('is-visible');
-          });
+          var stage = document.getElementById('offline-banner');
+          if (stage) stage.classList.add('is-visible');
         });
-      })();
+      });
     </script>
   </body>
 </html>

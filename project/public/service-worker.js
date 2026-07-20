@@ -1,11 +1,12 @@
-const RESCUE_SW_VERSION = 'agronix-rescue-sw-v5';
+const RESCUE_SW_VERSION = 'agronix-rescue-sw-v6';
 const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
-const STATIC_CACHE_NAME = 'agronix-static-v5';
-const RUNTIME_CACHE_NAME = 'agronix-runtime-v5';
+const STATIC_CACHE_NAME = 'agronix-static-v6';
+const RUNTIME_CACHE_NAME = 'agronix-runtime-v6';
 
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
+  '/images/agronix-logo-original.jpeg',
   '/icons/icon-192x192.png?v=agronix-v2',
   '/icons/icon-512x512.png?v=agronix-v2',
   '/images/agri-emblem-192.webp',
@@ -38,6 +39,9 @@ self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     event.waitUntil(self.skipWaiting().then(() => self.clients.claim()));
   }
+  if (event.data?.type === 'PRECACHE_OFFLINE') {
+    event.waitUntil(precacheOfflineAssets());
+  }
 });
 
 self.addEventListener('fetch', (event) => {
@@ -52,13 +56,17 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Cache static assets with stale-while-revalidate
+  // Always keep offline page + logo fresh when online
+  if (url.pathname === '/offline.html' || url.pathname === '/images/agronix-logo-original.jpeg') {
+    event.respondWith(networkFirstStatic(request));
+    return;
+  }
+
   if (STATIC_ASSETS.some(asset => url.pathname === asset || url.pathname.startsWith('/fonts/') || url.pathname.startsWith('/icons/'))) {
     event.respondWith(staleWhileRevalidate(request));
     return;
   }
 
-  // Handle scripts and styles with recovery
   if (request.destination === 'script' || request.destination === 'style') {
     event.respondWith(fetchOrRecoverMissingBuildAsset(request));
   }
@@ -68,15 +76,60 @@ async function networkOnlyNavigation(request) {
   try {
     return await fetch(new Request(request, { cache: 'no-store' }));
   } catch (error) {
-    // Prefer the app shell so React can suppress a repeat full-screen offline banner on refresh
+    // Prefer branded offline page so refresh keeps the animated logo screen
+    const offline = await caches.match('/offline.html');
+    if (offline) return offline;
+
     const shell = (await caches.match('/')) || (await caches.match('/index.html'));
     if (shell) return shell;
 
-    const offline = await caches.match('/offline.html');
-    return offline || new Response('Agronix is offline. Please reconnect and reopen the app.', {
+    return new Response(offlineFallbackHtml(), {
       status: 503,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
     });
+  }
+}
+
+function offlineFallbackHtml() {
+  return `<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Offline | Agronix</title>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#eef6f0;font-family:system-ui,sans-serif;text-align:center;padding:24px}
+.logo{width:112px;height:112px;border-radius:999px;object-fit:cover;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.14);animation:breathe 4.5s ease-in-out infinite}
+.msg{margin:28px 0 0;font-size:1.35rem;font-weight:900;line-height:1.35;color:#020617}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:translateY(-2px) scale(1.025)}}</style></head>
+<body><div><img class="logo" src="/images/agronix-logo-original.jpeg" alt="Agronix" width="112" height="112"/>
+<p class="msg">AGRONIX is offline<br/>Please reconnect and reopen the app</p></div></body></html>`;
+}
+
+async function precacheOfflineAssets() {
+  const cache = await caches.open(STATIC_CACHE_NAME);
+  await Promise.all(
+    STATIC_ASSETS.map(async (asset) => {
+      try {
+        const response = await fetch(asset, { cache: 'no-store' });
+        if (response.ok) await cache.put(asset, response.clone());
+      } catch {
+        // Best-effort while online
+      }
+    })
+  );
+}
+
+async function networkFirstStatic(request) {
+  const cache = await caches.open(STATIC_CACHE_NAME);
+  try {
+    const response = await fetch(new Request(request, { cache: 'no-store' }));
+    if (response.ok) await cache.put(request, response.clone());
+    return response;
+  } catch (error) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    if (new URL(request.url).pathname === '/offline.html') {
+      return new Response(offlineFallbackHtml(), {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
+    throw error;
   }
 }
 
@@ -114,11 +167,6 @@ function missingAssetRecoveryResponse(request) {
   );
 }
 
-async function clearAllCaches() {
-  const keys = await caches.keys();
-  await Promise.all(keys.map((key) => caches.delete(key)));
-}
-
 async function clearOldCaches() {
   const keys = await caches.keys();
   await Promise.all(
@@ -131,22 +179,20 @@ async function clearOldCaches() {
 }
 
 async function clearRuntimeCaches() {
-  if (caches.delete(RUNTIME_CACHE_NAME)) {
-    await caches.delete(RUNTIME_CACHE_NAME);
-  }
+  await caches.delete(RUNTIME_CACHE_NAME);
 }
 
 async function staleWhileRevalidate(request) {
   const cache = await caches.open(STATIC_CACHE_NAME);
   const cached = await cache.match(request);
-  
+
   const networkFetch = fetch(request).then((response) => {
     if (response.ok) {
       cache.put(request, response.clone());
     }
     return response;
   }).catch(() => cached);
-  
+
   return cached || networkFetch;
 }
 

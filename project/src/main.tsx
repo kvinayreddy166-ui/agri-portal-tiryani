@@ -57,23 +57,32 @@ if ('serviceWorker' in navigator) {
 
         await Promise.all(appRegistrations.map(async (registration) => {
           try { registration.active?.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch {}
+          try { registration.active?.postMessage({ type: 'PRECACHE_OFFLINE' }); } catch {}
           try { await registration.update(); } catch {}
         }));
 
         if (!appRegistrations.some((registration) => new URL(registration.scope).pathname === '/')) {
-          await navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
+          await navigator.serviceWorker.register('/service-worker.js', {
+            scope: '/',
+            updateViaCache: 'none',
+          });
         }
 
         if ('caches' in window) {
           const keys = await caches.keys();
-          // Keep the current static shell so offline refresh can load the SPA
-          // (and honor the offline-banner session flag) instead of a hard fallback page.
+          // Drop stale static caches so an older offline.html banner cannot survive refresh
           await Promise.all(
             keys
-              .filter((key) => !key.startsWith('agronix-static-'))
+              .filter((key) => key !== 'agronix-static-v6' && key !== 'agronix-runtime-v6')
               .map((key) => caches.delete(key))
           );
         }
+
+        // Clear legacy offline-banner session flags from earlier builds
+        try {
+          window.sessionStorage.removeItem('tiryani-offline-screen-shown');
+          window.sessionStorage.removeItem('tiryani-offline-shell-retry');
+        } catch {}
 
         if (hadController) {
           const reloadKey = 'tiryani-service-worker-rescue-reload';
