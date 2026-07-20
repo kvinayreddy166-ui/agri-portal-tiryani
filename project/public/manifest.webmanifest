@@ -1,6 +1,6 @@
 {
-  "name": "Tiryani Agriculture Portal",
-  "short_name": "Tiryani Agri",
+  "name": "Agronix",
+  "short_name": "Agronix",
   "id": "/",
   "description": "Agriculture Department Digital Platform",
   "start_url": "/",
@@ -10,25 +10,25 @@
   "theme_color": "#0f766e",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png?v=emblem-v5",
+      "src": "/icons/icon-192x192.png?v=agronix",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512x512.png?v=emblem-v5",
+      "src": "/icons/icon-512x512.png?v=agronix",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-maskable-192x192.png?v=emblem-v5",
+      "src": "/icons/icon-maskable-192x192.png?v=agronix",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-maskable-512x512.png?v=emblem-v5",
+      "src": "/icons/icon-maskable-512x512.png?v=agronix",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
