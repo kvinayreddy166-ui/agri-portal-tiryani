@@ -1,7 +1,7 @@
-const RESCUE_SW_VERSION = 'agronix-rescue-sw-v2';
+const RESCUE_SW_VERSION = 'agronix-rescue-sw-v3';
 const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
-const STATIC_CACHE_NAME = 'agronix-static-v2';
-const RUNTIME_CACHE_NAME = 'agronix-runtime-v2';
+const STATIC_CACHE_NAME = 'agronix-static-v3';
+const RUNTIME_CACHE_NAME = 'agronix-runtime-v3';
 
 const STATIC_ASSETS = [
   '/',
