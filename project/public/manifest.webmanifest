@@ -10,25 +10,25 @@
   "theme_color": "#0f766e",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png?v=agronix",
+      "src": "/icons/icon-192x192.png?v=agronix-v2",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512x512.png?v=agronix",
+      "src": "/icons/icon-512x512.png?v=agronix-v2",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-maskable-192x192.png?v=agronix",
+      "src": "/icons/icon-maskable-192x192.png?v=agronix-v2",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-maskable-512x512.png?v=agronix",
+      "src": "/icons/icon-maskable-512x512.png?v=agronix-v2",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

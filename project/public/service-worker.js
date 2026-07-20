@@ -1,13 +1,13 @@
-const RESCUE_SW_VERSION = 'tiryani-portal-rescue-sw-v4';
+const RESCUE_SW_VERSION = 'agronix-rescue-sw-v1';
 const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
-const STATIC_CACHE_NAME = 'tiryani-static-v1';
-const RUNTIME_CACHE_NAME = 'tiryani-runtime-v1';
+const STATIC_CACHE_NAME = 'agronix-static-v1';
+const RUNTIME_CACHE_NAME = 'agronix-runtime-v1';
 
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
-  '/icons/icon-192x192.png?v=emblem-v5',
-  '/icons/icon-512x512.png?v=emblem-v5',
+  '/icons/icon-192x192.png?v=agronix-v2',
+  '/icons/icon-512x512.png?v=agronix-v2',
   '/images/agri-emblem-192.webp',
   '/fonts/atkinson-hyperlegible-next-latin-400-normal.woff2',
   '/fonts/atkinson-hyperlegible-next-latin-800-normal.woff2',
@@ -69,7 +69,7 @@ async function networkOnlyNavigation(request) {
     return await fetch(new Request(request, { cache: 'no-store' }));
   } catch (error) {
     const offline = await caches.match('/offline.html');
-    return offline || new Response('Tiryani Agriculture Portal is offline. Please reconnect and reopen the app.', {
+    return offline || new Response('Agronix is offline. Please reconnect and reopen the app.', {
       status: 503,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });
