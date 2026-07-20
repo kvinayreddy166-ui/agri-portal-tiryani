@@ -863,7 +863,7 @@ export function Login() {
 
             <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 sm:mb-16 animate-slide-up delay-600">
               <p className="font-black text-emerald-700">version-1.0.1</p>
-              <p>&copy; 2026 Tiryani Agri Portal - Department of Agriculture, Telangana</p>
+              <p>&copy; 2026 Agronix - Information Management System</p>
               <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
             </div>
           </div>

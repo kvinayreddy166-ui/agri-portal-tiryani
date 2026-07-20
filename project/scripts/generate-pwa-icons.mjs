@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, '../public');
 const imagesDir = path.join(publicDir, 'images');
 const iconsDir = path.join(publicDir, 'icons');
-const logoPath = path.join(imagesDir, 'agri-emblem.webp');
+const logoPath = path.join(imagesDir, 'agronix-logo-original.jpeg');
 const white = { r: 255, g: 255, b: 255 };
 
 fs.mkdirSync(iconsDir, { recursive: true });
@@ -64,4 +64,4 @@ await (await renderLogo(180, 0.96))
   .png()
   .toFile(path.join(iconsDir, 'apple-touch-icon.png'));
 
-console.log('PWA icons generated successfully from agri-emblem.webp!');
+console.log('PWA icons generated successfully from agronix-logo-original.jpeg!');
