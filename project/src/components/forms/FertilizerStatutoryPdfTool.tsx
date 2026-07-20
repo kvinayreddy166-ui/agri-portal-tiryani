@@ -13,9 +13,10 @@ import {
 type FieldConfig = {
   key: keyof FertilizerPdfValues;
   label: string;
-  type?: 'text' | 'date' | 'textarea' | 'select';
+  type?: 'text' | 'date' | 'textarea' | 'select' | 'composition-checkboxes';
   options?: { label: string; value: string }[];
   placeholder?: string;
+  displayFlag?: string;
 };
 
 const STORAGE_KEY = 'tiryani-fertilizer-forms-draft';
@@ -49,11 +50,35 @@ const designationOptions = [
 ];
 
 const compositionFields: FieldConfig[] = [
-  { key: 'compositionN', label: 'N (%)' },
-  { key: 'compositionP', label: 'P2O5 (%)' },
-  { key: 'compositionK', label: 'K2O (%)' },
-  { key: 'compositionS', label: 'S (%)' },
-  { key: 'compositionCa', label: 'Ca (%)' },
+  { key: 'compositionN', label: 'N %', displayFlag: 'N' },
+  { key: 'compositionN_T', label: 'N(T) %', displayFlag: 'N_T' },
+  { key: 'compositionP_T', label: 'P(T) %', displayFlag: 'P_T' },
+  { key: 'compositionP_WS', label: 'P(WS) %', displayFlag: 'P_WS' },
+  { key: 'compositionP_CS', label: 'P(CS) %', displayFlag: 'P_CS' },
+  { key: 'compositionZn', label: 'Zn %', displayFlag: 'Zn' },
+  { key: 'compositionP2O5_T', label: 'P2O5(T) %', displayFlag: 'P2O5_T' },
+  { key: 'compositionP2O5_WS', label: 'P2O5(WS) %', displayFlag: 'P2O5_WS' },
+  { key: 'compositionP2O5_CS', label: 'P2O5(CS) %', displayFlag: 'P2O5_CS' },
+  { key: 'compositionK', label: 'K %', displayFlag: 'K' },
+  { key: 'compositionK2O', label: 'K2O %', displayFlag: 'K2O' },
+  { key: 'compositionS', label: 'S %', displayFlag: 'S' },
+  { key: 'compositionCa', label: 'Ca %', displayFlag: 'Ca' },
+];
+
+const compositionDisplayOptions = [
+  { key: 'N', label: 'N', group: 'N' },
+  { key: 'N_T', label: 'N(T)', group: 'N' },
+  { key: 'P_T', label: 'P(T)', group: 'P' },
+  { key: 'P_WS', label: 'P(WS)', group: 'P' },
+  { key: 'P_CS', label: 'P(CS)', group: 'P' },
+  { key: 'P2O5_T', label: 'P2O5(T)', group: 'P2O5' },
+  { key: 'P2O5_WS', label: 'P2O5(WS)', group: 'P2O5' },
+  { key: 'P2O5_CS', label: 'P2O5(CS)', group: 'P2O5' },
+  { key: 'K', label: 'K', group: 'K' },
+  { key: 'K2O', label: 'K2O', group: 'K' },
+  { key: 'Zn', label: 'Zn', group: 'Other' },
+  { key: 'S', label: 'S', group: 'Other' },
+  { key: 'Ca', label: 'Ca', group: 'Other' },
 ];
 
 const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
@@ -93,6 +118,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
     title: 'COMPOSITION',
     fields: [
+      { key: 'compositionDisplayFlags', label: 'SELECT LABELS AS ON BAG', type: 'composition-checkboxes' },
       ...compositionFields,
       { key: 'composition', label: 'ADDITIONAL COMPOSITION REMARKS', type: 'textarea' },
     ],
@@ -104,7 +130,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [values, setValues] = useState<FertilizerPdfValues>(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      return normalizeFertilizerValues(saved ? { ...initialFertilizerPdfValues, ...JSON.parse(saved) } : initialFertilizerPdfValues);
+      const loaded = saved ? { ...initialFertilizerPdfValues, ...JSON.parse(saved) } : initialFertilizerPdfValues;
+      // Always ensure default compositionDisplayFlags for new form
+      loaded.compositionDisplayFlags = 'N,P_T,P_WS,P_CS,K';
+      return normalizeFertilizerValues(loaded);
     } catch {
       return initialFertilizerPdfValues;
     }
@@ -425,14 +454,23 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                     className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER & SAMPLE DETAILS') ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}
                   >
                   <FieldSection title={section.title} color={color}>
-                    {section.fields.map((field) => (
-                      <PdfInput
-                        key={field.key}
-                        field={field}
-                        value={values[field.key]}
-                        onChange={(value) => setField(field.key, value)}
-                      />
-                    ))}
+                    {section.fields.map((field) => {
+                      // Hide composition fields if their display flag is not selected
+                      if (field.displayFlag) {
+                        const selectedFlags = values.compositionDisplayFlags.split(',').map(f => f.trim());
+                        if (!selectedFlags.includes(field.displayFlag)) {
+                          return null;
+                        }
+                      }
+                      return (
+                        <PdfInput
+                          key={field.key}
+                          field={field}
+                          value={values[field.key]}
+                          onChange={(value) => setField(field.key, value)}
+                        />
+                      );
+                    })}
                   </FieldSection>
                   </div>
                 );
@@ -494,6 +532,10 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   normalized.dealerNameAddress = buildDealerNameAddress(normalized);
   if (!normalized.dealerManufacturerImporterName && normalized.dealerName) {
     normalized.dealerManufacturerImporterName = normalized.dealerName;
+  }
+  // Ensure compositionDisplayFlags has default value if missing
+  if (!normalized.compositionDisplayFlags) {
+    normalized.compositionDisplayFlags = 'N,P_T,P_WS,P_CS,K';
   }
   return normalized;
 }
@@ -669,6 +711,39 @@ function PdfInput({
 }) {
   const commonClass =
     'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+
+  if (field.type === 'composition-checkboxes' || field.key === 'compositionDisplayFlags') {
+    const selectedFlags = value.split(',').map(f => f.trim());
+    
+    const toggleFlag = (key: string) => {
+      const newFlags = selectedFlags.includes(key)
+        ? selectedFlags.filter(f => f !== key)
+        : [...selectedFlags, key];
+      onChange(newFlags.join(','));
+    };
+
+    return (
+      <label className="sm:col-span-2">
+        <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700">{field.label}</span>
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {compositionDisplayOptions.map((option) => (
+            <label
+              key={option.key}
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"
+            >
+              <input
+                type="checkbox"
+                checked={selectedFlags.includes(option.key)}
+                onChange={() => toggleFlag(option.key)}
+                className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <span>{option.label}</span>
+            </label>
+          ))}
+        </div>
+      </label>
+    );
+  }
 
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>

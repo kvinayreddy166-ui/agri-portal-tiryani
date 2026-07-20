@@ -16,8 +16,16 @@ export type FertilizerPdfValues = {
   batchDetails: string;
   composition: string;
   compositionN: string;
-  compositionP: string;
+  compositionN_T: string;
+  compositionP_T: string;
+  compositionP_WS: string;
+  compositionZn: string;
+  compositionP_CS: string;
+  compositionP2O5_T: string;
+  compositionP2O5_WS: string;
+  compositionP2O5_CS: string;
   compositionK: string;
+  compositionK2O: string;
   compositionS: string;
   compositionCa: string;
   stockReceiptDate: string;
@@ -37,6 +45,7 @@ export type FertilizerPdfValues = {
   officerName: string;
   designation: string;
   officeAddress: string;
+  compositionDisplayFlags: string;
 };
 
 export const FERTILIZER_K_ADDRESS_OPTIONS = {
@@ -64,8 +73,16 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   batchDetails: '',
   composition: '',
   compositionN: '',
-  compositionP: '',
+  compositionN_T: '',
+  compositionP_T: '',
+  compositionP_WS: '',
+  compositionZn: '',
+  compositionP_CS: '',
+  compositionP2O5_T: '',
+  compositionP2O5_WS: '',
+  compositionP2O5_CS: '',
   compositionK: '',
+  compositionK2O: '',
   compositionS: '',
   compositionCa: '',
   stockReceiptDate: '',
@@ -85,6 +102,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   officerName: '',
   designation: '',
   officeAddress: '',
+  compositionDisplayFlags: 'N,P_T,P_WS,P_CS,K',
 };
 
 export const fertilizerFormTitles: Record<FertilizerStatutoryFormType, string> = {
@@ -522,13 +540,32 @@ function formatDate(value: string) {
 }
 
 function formatComposition(values: FertilizerPdfValues) {
-  const parts = [
-    `N: ${formatPercent(values.compositionN)}`,
-    `P2O5: ${formatPercent(values.compositionP)}`,
-    `K2O: ${formatPercent(values.compositionK)}`,
-    `S: ${formatPercent(values.compositionS)}`,
-    `Ca: ${formatPercent(values.compositionCa)}`,
-  ];
+  const displayFlags = values.compositionDisplayFlags.split(',').map(f => f.trim());
+  
+  const labelMap: Record<string, { label: string; value: string }> = {
+    'N': { label: 'N', value: values.compositionN },
+    'N_T': { label: 'N(T)', value: values.compositionN_T },
+    'P_T': { label: 'P(T)', value: values.compositionP_T },
+    'P_WS': { label: 'P(WS)', value: values.compositionP_WS },
+    'Zn': { label: 'Zn', value: values.compositionZn },
+    'P_CS': { label: 'P(CS)', value: values.compositionP_CS },
+    'P2O5_T': { label: 'P2O5(T)', value: values.compositionP2O5_T },
+    'P2O5_WS': { label: 'P2O5(WS)', value: values.compositionP2O5_WS },
+    'P2O5_CS': { label: 'P2O5(CS)', value: values.compositionP2O5_CS },
+    'K': { label: 'K', value: values.compositionK },
+    'K2O': { label: 'K2O', value: values.compositionK2O },
+    'S': { label: 'S', value: values.compositionS },
+    'Ca': { label: 'Ca', value: values.compositionCa },
+  };
+
+  const parts: string[] = [];
+  for (const flag of displayFlags) {
+    const item = labelMap[flag];
+    if (item && item.value.trim()) {
+      parts.push(`${item.label}: ${formatPercent(item.value)}`);
+    }
+  }
+
   const structured = parts.join('    ');
   return values.composition.trim() ? `${structured}\n${values.composition}` : structured;
 }
