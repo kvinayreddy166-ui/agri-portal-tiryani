@@ -145,6 +145,25 @@
           if (stage) stage.classList.add('is-visible');
         });
       });
+
+      function returnToApp() {
+        location.replace('/');
+      }
+
+      function probeNetwork() {
+        fetch('/service-worker.js?net=' + Date.now(), { cache: 'no-store', method: 'GET' })
+          .then(function (response) {
+            if (response.ok) returnToApp();
+          })
+          .catch(function () {});
+      }
+
+      window.addEventListener('online', returnToApp);
+      window.addEventListener('focus', probeNetwork);
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') probeNetwork();
+      });
+      setInterval(probeNetwork, 4000);
     </script>
   </body>
 </html>

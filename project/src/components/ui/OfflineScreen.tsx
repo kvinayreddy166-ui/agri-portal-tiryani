@@ -1,27 +1,61 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { checkNetworkOnline } from '../../lib/networkStatus';
 import { PortalLogo } from './PortalLogo';
 
 export const OfflineScreen = React.memo(function OfflineScreen() {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    const updateStatus = () => setOnline(navigator.onLine);
-    window.addEventListener('online', updateStatus);
-    window.addEventListener('offline', updateStatus);
-    return () => {
-      window.removeEventListener('online', updateStatus);
-      window.removeEventListener('offline', updateStatus);
-    };
+  const syncOnlineStatus = useCallback(async () => {
+    const isUp = await checkNetworkOnline();
+    setOnline(isUp);
+    return isUp;
   }, []);
 
   useEffect(() => {
-    if (!online) {
-      const timer = setTimeout(() => setVisible(true), 40);
-      return () => clearTimeout(timer);
+    const handleBrowserOnline = () => {
+      void syncOnlineStatus();
+    };
+    const handleBrowserOffline = () => {
+      setOnline(false);
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void syncOnlineStatus();
+      }
+    };
+
+    window.addEventListener('online', handleBrowserOnline);
+    window.addEventListener('offline', handleBrowserOffline);
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleBrowserOnline);
+
+    void syncOnlineStatus();
+
+    return () => {
+      window.removeEventListener('online', handleBrowserOnline);
+      window.removeEventListener('offline', handleBrowserOffline);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleBrowserOnline);
+    };
+  }, [syncOnlineStatus]);
+
+  useEffect(() => {
+    if (online) {
+      setVisible(false);
+      return;
     }
-    setVisible(false);
-  }, [online]);
+
+    const showTimer = window.setTimeout(() => setVisible(true), 40);
+    const probeTimer = window.setInterval(() => {
+      void syncOnlineStatus();
+    }, 4000);
+
+    return () => {
+      window.clearTimeout(showTimer);
+      window.clearInterval(probeTimer);
+    };
+  }, [online, syncOnlineStatus]);
 
   if (online) return null;
 
