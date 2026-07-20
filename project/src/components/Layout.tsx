@@ -118,8 +118,8 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               {!hidePortalLogo && <PortalLogo size="sm" />}
               <div className="min-w-0">
-                <h1 className="truncate text-sm font-black tracking-tight sm:text-base">
-                  {t('Tiryani Agriculture Portal', 'Ã Â°Â¤Ã Â°Â¿Ã Â°Â°Ã Â±ÂÃ Â°Â¯Ã Â°Â¾Ã Â°Â¨Ã Â°Â¿ Ã Â°ÂµÃ Â±ÂÃ Â°Â¯Ã Â°ÂµÃ Â°Â¸Ã Â°Â¾Ã Â°Â¯ Ã Â°ÂªÃ Â±â€¹Ã Â°Â°Ã Â±ÂÃ Â°Å¸Ã Â°Â²Ã Â±Â')}
+                <h1 className="truncate text-sm font-black tracking-tight sm:text-base font-[var(--font-stylish)]">
+                  {t('Agronix', 'Ã Â°Â¤Ã Â°Â¿Ã Â°Â°Ã Â±ÂÃ Â°Â¯Ã Â°Â¾Ã Â°Â¨Ã Â°Â¿ Ã Â°ÂµÃ Â±ÂÃ Â°Â¯Ã Â°ÂµÃ Â°Â¸Ã Â°Â¾Ã Â°Â¯ Ã Â°ÂªÃ Â±â€¹Ã Â°Â°Ã Â±ÂÃ Â°Å¸Ã Â°Â²Ã Â±Â')}
                 </h1>
                 <p className="truncate text-[10px] font-medium text-emerald-100 sm:text-xs">
                   {t('Information Management System', 'Ã Â°Â¸Ã Â°Â®Ã Â°Â¾Ã Â°Å¡Ã Â°Â¾Ã Â°Â° Ã Â°Â¨Ã Â°Â¿Ã Â°Â°Ã Â±ÂÃ Â°ÂµÃ Â°Â¹Ã Â°Â£ Ã Â°ÂµÃ Â±ÂÃ Â°Â¯Ã Â°ÂµÃ Â°Â¸Ã Â±ÂÃ Â°Â¥')}
@@ -177,7 +177,7 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-wide text-emerald-100">Navigation</p>
-              <h2 className="mt-0.5 truncate text-base font-black tracking-tight">Tiryani Portal</h2>
+              <h2 className="mt-0.5 truncate text-base font-black tracking-tight font-[var(--font-stylish)]">Agronix</h2>
               <p className="mt-0.5 truncate text-[11px] font-semibold text-emerald-100">{pageMeta.title}</p>
             </div>
             <button

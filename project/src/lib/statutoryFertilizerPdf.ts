@@ -25,7 +25,9 @@ export type FertilizerPdfValues = {
   compositionP2O5_WS: string;
   compositionP2O5_CS: string;
   compositionK: string;
+  compositionK_T: string;
   compositionK2O: string;
+  compositionK2O_T: string;
   compositionS: string;
   compositionCa: string;
   stockReceiptDate: string;
@@ -82,7 +84,9 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   compositionP2O5_WS: '',
   compositionP2O5_CS: '',
   compositionK: '',
+  compositionK_T: '',
   compositionK2O: '',
+  compositionK2O_T: '',
   compositionS: '',
   compositionCa: '',
   stockReceiptDate: '',
@@ -553,7 +557,9 @@ function formatComposition(values: FertilizerPdfValues) {
     'P2O5_WS': { label: 'P2O5(WS)', value: values.compositionP2O5_WS },
     'P2O5_CS': { label: 'P2O5(CS)', value: values.compositionP2O5_CS },
     'K': { label: 'K', value: values.compositionK },
+    'K_T': { label: 'K(T)', value: values.compositionK_T },
     'K2O': { label: 'K2O', value: values.compositionK2O },
+    'K2O_T': { label: 'K2O(T)', value: values.compositionK2O_T },
     'S': { label: 'S', value: values.compositionS },
     'Ca': { label: 'Ca', value: values.compositionCa },
   };

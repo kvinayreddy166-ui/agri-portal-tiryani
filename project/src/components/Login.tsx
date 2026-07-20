@@ -747,11 +747,11 @@ export function Login() {
           <div className="mx-auto w-full max-w-md">
             <div className="mb-6 flex flex-col items-center gap-4 text-center animate-slide-up">
               <div className="login-logo-hero inline-flex">
-                <PortalLogo size="lg" />
+                <PortalLogo size="xl" />
               </div>
               <div>
-                <h2 className="whitespace-nowrap text-xl font-black tracking-tight text-slate-950 sm:text-2xl">
-                  {t('Tiryani Agriculture Portal', 'à°¤à°¿à°°à±à°¯à°¾à°£à°¿ à°µà±à°¯à°µà°¸à°¾à°¯ à°ªà±‹à°°à±à°Ÿà°²à±')}
+                <h2 className="whitespace-nowrap text-xl font-black tracking-tight text-slate-950 sm:text-2xl font-[var(--font-stylish)]">
+                  {t('AGRONIX', 'AGRONIX')}
                 </h2>
                 <p className="mt-1 text-sm font-bold text-emerald-700">
                   {t('Information Management System', 'à°¸à°®à°¾à°šà°¾à°° à°¨à°¿à°°à±à°µà°¹à°£ à°µà±à°¯à°µà°¸à±à°¥')}

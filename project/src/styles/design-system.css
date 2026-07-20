@@ -1,7 +1,10 @@
-/* Unified Design System for Tiryani Agriculture Portal */
+/* Unified Design System for Agronix */
 
 /* Typography Scale */
 :root {
+  /* Font Families */
+  --font-stylish: 'Playfair Display', 'Georgia', serif;
+
   /* Font Sizes */
   --text-xs: 0.75rem;      /* 12px */
   --text-sm: 0.875rem;     /* 14px */

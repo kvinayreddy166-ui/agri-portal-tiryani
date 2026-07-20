@@ -60,7 +60,9 @@ const compositionFields: FieldConfig[] = [
   { key: 'compositionP2O5_WS', label: 'P2O5(WS) %', displayFlag: 'P2O5_WS' },
   { key: 'compositionP2O5_CS', label: 'P2O5(CS) %', displayFlag: 'P2O5_CS' },
   { key: 'compositionK', label: 'K %', displayFlag: 'K' },
+  { key: 'compositionK_T', label: 'K(T) %', displayFlag: 'K_T' },
   { key: 'compositionK2O', label: 'K2O %', displayFlag: 'K2O' },
+  { key: 'compositionK2O_T', label: 'K2O(T) %', displayFlag: 'K2O_T' },
   { key: 'compositionS', label: 'S %', displayFlag: 'S' },
   { key: 'compositionCa', label: 'Ca %', displayFlag: 'Ca' },
 ];
@@ -75,7 +77,9 @@ const compositionDisplayOptions = [
   { key: 'P2O5_WS', label: 'P2O5(WS)', group: 'P2O5' },
   { key: 'P2O5_CS', label: 'P2O5(CS)', group: 'P2O5' },
   { key: 'K', label: 'K', group: 'K' },
+  { key: 'K_T', label: 'K(T)', group: 'K' },
   { key: 'K2O', label: 'K2O', group: 'K' },
+  { key: 'K2O_T', label: 'K2O(T)', group: 'K' },
   { key: 'Zn', label: 'Zn', group: 'Other' },
   { key: 'S', label: 'S', group: 'Other' },
   { key: 'Ca', label: 'Ca', group: 'Other' },
@@ -118,7 +122,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
     title: 'COMPOSITION',
     fields: [
-      { key: 'compositionDisplayFlags', label: 'SELECT LABELS AS ON BAG', type: 'composition-checkboxes' },
+      { key: 'compositionDisplayFlags', label: 'SELECT COMPOSITION AS ON BAG', type: 'composition-checkboxes' },
       ...compositionFields,
       { key: 'composition', label: 'ADDITIONAL COMPOSITION REMARKS', type: 'textarea' },
     ],

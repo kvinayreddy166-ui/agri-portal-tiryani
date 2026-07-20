@@ -53,7 +53,7 @@ function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
       <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
       {!hideLogo && (
         <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-          Loading Tiryani Agriculture Portal...
+          Loading AGRONIX...
         </p>
       )}
       {slow && (
@@ -351,7 +351,7 @@ function PublicReadOnlyShell({
           <div className="flex min-w-0 items-center gap-3">
             <PortalLogo size="sm" />
             <div className="min-w-0">
-              <h1 className="truncate text-sm font-black sm:text-base">Tiryani Agriculture Portal</h1>
+              <h1 className="truncate text-sm font-black sm:text-base font-[var(--font-stylish)]">AGRONIX</h1>
               <p className="truncate text-xs font-semibold text-emerald-100">{title} - Public view</p>
             </div>
           </div>

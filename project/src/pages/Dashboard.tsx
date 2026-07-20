@@ -205,7 +205,7 @@ export const Dashboard = React.memo(function Dashboard() {
       <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
         <PortalLogo size="xl" />
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
-        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading Tiryani Agriculture Portal...</p>
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading AGRONIX...</p>
       </div>
     );
   }
@@ -226,8 +226,8 @@ export const Dashboard = React.memo(function Dashboard() {
             <PortalLogo size="lg" />
           </div>
           <div>
-            <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
-              {t('Tiryani Agriculture Portal', 'à°¤à°¿à°°à±à°¯à°¾à°¨à°¿ à°µà±à°¯à°µà°¸à°¾à°¯ à°ªà±‹à°°à±à°Ÿà°²à±')}
+            <h1 className="text-2xl font-black tracking-tight sm:text-3xl font-[var(--font-stylish)]">
+              {t('AGRONIX', 'AGRONIX')}
             </h1>
             <p className="mt-2 text-slate-600 dark:text-slate-300">
               {t(
