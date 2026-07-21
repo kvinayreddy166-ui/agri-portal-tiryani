@@ -393,7 +393,7 @@ function AppUpdateBanner() {
         <button type="button" onClick={() => setVisible(false)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200">
           Later
         </button>
-        <button type="button" onClick={() => { rememberCurrentAppVersion(); window.location.reload(); }} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white hover:bg-emerald-800">
+        <button type="button" onClick={() => { rememberCurrentAppVersion(); setTimeout(() => window.location.reload(), 100); }} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white hover:bg-emerald-800">
           Reload
         </button>
       </div>

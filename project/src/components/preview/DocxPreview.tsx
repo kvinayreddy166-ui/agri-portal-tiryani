@@ -34,7 +34,8 @@ export function DocxPreview({ file, onClose, onDownload, className = '' }: DocxP
             "p[style-name='Heading 1'] => h2:fresh",
             "p[style-name='Heading 2'] => h3:fresh",
             "p[style-name='Heading 3'] => h4:fresh",
-          ]
+          ],
+          includeDefaultStyleMap: false,
         });
 
         if (mounted) {
