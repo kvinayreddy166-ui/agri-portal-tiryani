@@ -39,7 +39,7 @@ export function FertilizerInstructionModal({ isOpen, onClose }: FertilizerInstru
       <div
         className={`relative w-full max-w-4xl rounded-xl bg-white shadow-2xl transition-all duration-300 ${
           isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-        }`}
+        } sm:max-h-[85vh] sm:overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button at top */}
@@ -52,20 +52,13 @@ export function FertilizerInstructionModal({ isOpen, onClose }: FertilizerInstru
           <X className="h-5 w-5" />
         </button>
 
-        {/* Image container */}
-        <div className="max-h-[85vh] overflow-auto p-6">
+        {/* Image container - full screen on mobile */}
+        <div className="h-screen w-full overflow-auto p-4 sm:max-h-[85vh] sm:p-6">
           <img
             src="/images/Fertilizer Drawal Procedure.png"
             alt="Fertilizer Drawal Procedure"
             className="mx-auto w-full rounded-lg shadow-md"
           />
-        </div>
-
-        {/* Footer note */}
-        <div className="border-t border-slate-200 bg-slate-50 px-6 py-3">
-          <p className="text-center text-xs font-semibold text-slate-600">
-            Press ESC or click the X button to close
-          </p>
         </div>
       </div>
     </div>
