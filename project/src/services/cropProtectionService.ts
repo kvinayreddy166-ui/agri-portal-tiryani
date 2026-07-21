@@ -193,15 +193,27 @@ export async function uploadCropProtectionCropImage(cropKey: string, file: File)
 
   const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const filePath = `${CROP_IMAGE_UPLOAD_FOLDER}/${cropKey || 'crop'}-${Date.now()}-${cleanName}`;
-  const { error } = await supabase.storage.from('uploads').upload(filePath, file, {
-    upsert: true,
-    contentType: file.type || 'image/jpeg',
-  });
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for uploads
 
-  if (error) throw error;
+  try {
+    const { error } = await supabase.storage.from('uploads').upload(filePath, file, {
+      upsert: true,
+      contentType: file.type || 'image/jpeg',
+      duplex: 'half',
+    });
 
-  const { data } = supabase.storage.from('uploads').getPublicUrl(filePath);
-  return data.publicUrl;
+    clearTimeout(timeoutId);
+
+    if (error) throw error;
+
+    const { data } = supabase.storage.from('uploads').getPublicUrl(filePath);
+    return data.publicUrl;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
 }
 
 export function clearCropProtectionCache() {

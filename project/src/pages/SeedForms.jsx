@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Download, Eye, RotateCcw, Save, X } from 'lucide-react';
+import { SeedInstructionModal } from '../components/ui/SeedInstructionModal';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
@@ -66,6 +67,7 @@ const initialSeedForm = {
 };
 
 export function SeedForms() {
+  const [showInstructionModal, setShowInstructionModal] = useState(true);
   const [form, setForm] = useState(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -355,6 +357,10 @@ export function SeedForms() {
       {duplicateAction && (
         <DuplicateDownloadModal onReview={reviewDuplicateDetails} onContinue={downloadAnyway} onClose={() => setDuplicateAction(null)} />
       )}
+      <SeedInstructionModal
+        isOpen={showInstructionModal}
+        onClose={() => setShowInstructionModal(false)}
+      />
     </section>
   );
 }

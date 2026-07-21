@@ -300,16 +300,29 @@ export async function uploadCropImage(file, cropSlug, entityType = 'crop') {
   const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
   const safeEntityType = String(entityType || 'crop').replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
   const path = `crop-intelligence/${cropSlug}/${safeEntityType}-${Date.now()}.${ext}`;
-  const { error: uploadError } = await supabase.storage.from('uploads').upload(path, file, {
-    cacheControl: '31536000',
-    contentType: getContentType(file),
-    upsert: true,
-  });
-  if (uploadError) throw uploadError;
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for uploads
 
-  const { data } = supabase.storage.from('uploads').getPublicUrl(path);
-  invalidateCropCaches();
-  return data.publicUrl;
+  try {
+    const { error: uploadError } = await supabase.storage.from('uploads').upload(path, file, {
+      cacheControl: '31536000',
+      contentType: getContentType(file),
+      upsert: true,
+      duplex: 'half',
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage.from('uploads').getPublicUrl(path);
+    invalidateCropCaches();
+    return data.publicUrl;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
 }
 
 export async function deleteUploadedCropImage(imageUrl) {

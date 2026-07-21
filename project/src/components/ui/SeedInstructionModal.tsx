@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 
-interface FertilizerInstructionModalProps {
+interface SeedInstructionModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function FertilizerInstructionModal({ isOpen, onClose }: FertilizerInstructionModalProps) {
+export function SeedInstructionModal({ isOpen, onClose }: SeedInstructionModalProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -55,8 +55,8 @@ export function FertilizerInstructionModal({ isOpen, onClose }: FertilizerInstru
         {/* Image container - full screen on mobile */}
         <div className="w-full overflow-auto p-4 sm:max-h-[85vh] sm:p-6">
           <img
-            src="/images/Fertilizer Drawal Procedure.png"
-            alt="Fertilizer Drawal Procedure"
+            src="/images/Cotton Seed sample drawl procedure.png"
+            alt="Cotton Seed Sample Drawl Procedure"
             className="mx-auto w-full rounded-lg shadow-md object-contain"
           />
         </div>
