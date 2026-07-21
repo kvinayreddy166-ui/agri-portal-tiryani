@@ -9,6 +9,7 @@ import {
   getFertilizerPdfFileName,
   initialFertilizerPdfValues,
 } from '../../lib/statutoryFertilizerPdf';
+import { FertilizerInstructionModal } from '../ui/FertilizerInstructionModal';
 
 type FieldConfig = {
   key: keyof FertilizerPdfValues;
@@ -133,6 +134,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
 
 export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void }) {
   const [formType, setFormType] = useState<FertilizerStatutoryFormType>('J');
+  const [showInstructionModal, setShowInstructionModal] = useState(true);
   const [values, setValues] = useState<FertilizerPdfValues>(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -499,6 +501,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
         </div>
       </section>
+      <FertilizerInstructionModal
+        isOpen={showInstructionModal}
+        onClose={() => setShowInstructionModal(false)}
+      />
       {duplicateAction && (
         <DuplicateDownloadModal onReview={reviewDuplicateDetails} onContinue={downloadAnyway} onClose={() => setDuplicateAction(null)} />
       )}

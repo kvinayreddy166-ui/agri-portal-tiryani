@@ -70,7 +70,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     fetch: (url, options) => {
       return fetch(url, {
         ...options,
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(60000),
       });
     },
   },
