@@ -83,3 +83,11 @@ export function getGoogleViewerTabUrl(fileUrl: string): string {
   }
   return `https://docs.google.com/viewer?url=${encodeURIComponent(src)}`;
 }
+
+export function getOfficeViewerTabUrl(fileUrl: string): string {
+  const src = resolveViewerSourceUrl(fileUrl);
+  if (/docs\.google\.com\/.*\/preview|drive\.google\.com\/file\/d\/.*\/preview/i.test(src)) {
+    return src;
+  }
+  return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(src)}`;
+}

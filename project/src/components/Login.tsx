@@ -34,7 +34,7 @@ import { recordSiteHit, fetchSiteHitSummary, SiteHitSummary } from '../lib/siteH
 import { FormDownload } from '../types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
-import { getGoogleViewerTabUrl } from '../lib/filePreviewUrls';
+import { getGoogleViewerTabUrl, getOfficeViewerTabUrl } from '../lib/filePreviewUrls';
 const FertilizerStatutoryPdfTool = lazy(() =>
   import('./forms/FertilizerStatutoryPdfTool').then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
 );
@@ -295,8 +295,13 @@ export function Login() {
     if (!form.file_url) return;
     // Check if it's an image file
     const isImage = /\.(jpg|jpeg|png|webp|gif|bmp|svg)$/i.test(form.file_url) || form.file_type?.startsWith('image/');
+    // Check if it's an Excel file
+    const isExcel = /\.(xlsx|xls|csv)$/i.test(form.file_url) || form.file_type?.includes('excel') || form.file_type?.includes('spreadsheet');
     if (isImage) {
       window.open(form.file_url, '_blank', 'noopener,noreferrer');
+    } else if (isExcel) {
+      const viewerUrl = getOfficeViewerTabUrl(form.file_url);
+      window.open(viewerUrl, '_blank', 'noopener,noreferrer');
     } else {
       const viewerUrl = getGoogleViewerTabUrl(form.file_url);
       window.open(viewerUrl, '_blank', 'noopener,noreferrer');

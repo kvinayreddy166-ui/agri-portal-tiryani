@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { resolveFileIdentity } from '../../lib/fileTypes';
 import { downloadFileFromUrl } from '../../lib/fileBlob';
-import { getGoogleViewerTabUrl } from '../../lib/filePreviewUrls';
+import { getGoogleViewerTabUrl, getOfficeViewerTabUrl } from '../../lib/filePreviewUrls';
 
 interface FileActionButtonsProps {
   fileUrl: string;
@@ -10,6 +10,7 @@ interface FileActionButtonsProps {
   fileType?: string;
   className?: string;
   size?: 'sm' | 'md';
+  onView?: () => void;
 }
 
 export function FileActionButtons({
@@ -18,6 +19,7 @@ export function FileActionButtons({
   fileType,
   className = '',
   size = 'md',
+  onView,
 }: FileActionButtonsProps) {
   const [downloading, setDownloading] = useState(false);
   const iconClass = 'h-4 w-4';
@@ -28,11 +30,18 @@ export function FileActionButtons({
   const handleView = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // For images, open directly in new tab; for docs/PDFs, use Google viewer
-    if (resolvedType === 'image') {
-      window.open(fileUrl, '_blank', 'noopener,noreferrer');
+    // If onView callback is provided, use it for inline preview
+    if (onView) {
+      onView();
     } else {
-      window.open(getGoogleViewerTabUrl(fileUrl), '_blank', 'noopener,noreferrer');
+      // Fallback to external viewers
+      if (resolvedType === 'image') {
+        window.open(fileUrl, '_blank', 'noopener,noreferrer');
+      } else if (resolvedType === 'excel') {
+        window.open(getOfficeViewerTabUrl(fileUrl), '_blank', 'noopener,noreferrer');
+      } else {
+        window.open(getGoogleViewerTabUrl(fileUrl), '_blank', 'noopener,noreferrer');
+      }
     }
   };
 

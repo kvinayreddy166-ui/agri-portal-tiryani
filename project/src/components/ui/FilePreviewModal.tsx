@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, Download, ExternalLink, FileSpreadsheet, Loader2, RefreshCw } from 'lucide-react';
 import { resolveFileIdentity } from '../../lib/fileTypes';
 import {
@@ -9,8 +9,10 @@ import {
   isGoogleDriveUrl,
 } from '../../lib/filePreviewUrls';
 import { downloadFileFromUrl, fetchBlobUrl, revokeBlobUrl } from '../../lib/fileBlob';
-import { fetchExcelPreviewFromUrl, type ExcelPreviewData } from '../../lib/excelParser';
 import { PdfPreview } from '../pdf/PdfPreview';
+import { DocxPreview } from '../preview/DocxPreview';
+import { ExcelPreview } from '../preview/ExcelPreview';
+import { PptxPreview } from '../preview/PptxPreview';
 
 interface FilePreviewModalProps {
   fileUrl: string;
@@ -38,16 +40,18 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
-  const [excelData, setExcelData] = useState<ExcelPreviewData | null>(null);
   const [embedViewer, setEmbedViewer] = useState<EmbedViewer>('google');
   const [embedFailed, setEmbedFailed] = useState(false);
   const [pdfUseEmbed, setPdfUseEmbed] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [docxFile, setDocxFile] = useState<File | null>(null);
+  const [excelFile, setExcelFile] = useState<File | null>(null);
+  const [pptxFile, setPptxFile] = useState<File | null>(null);
   const embedTimerRef = useRef<number | null>(null);
 
-  const useExcelPreview = isSpreadsheet;
-  const useEmbedPreview = isOfficeDoc || isDriveLink || pdfUseEmbed;
+  const useClientPreview = isPdf || isOfficeDoc || isSpreadsheet;
+  const useEmbedPreview = isDriveLink || pdfUseEmbed;
 
   const officeEmbedSrc = getOfficeViewerEmbedUrl(fileUrl);
   const googleEmbedSrc = getGoogleViewerEmbedUrl(fileUrl);
@@ -55,19 +59,23 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
 
   const showImageInline = isImage && previewSrc && !loading && !loadFailed;
   const showPdfPreview = isPdf && pdfFile && !loading && !loadFailed && !pdfUseEmbed;
-  const showExcelTable = useExcelPreview && excelData && !loading && !loadFailed;
+  const showDocxPreview = isOfficeDoc && docxFile && !loading && !loadFailed;
+  const showExcelPreview = isSpreadsheet && excelFile && !loading && !loadFailed;
+  const showPptxPreview = isOfficeDoc && pptxFile && !loading && !loadFailed;
   const DownloadIcon = isSpreadsheet ? FileSpreadsheet : Download;
   const showEmbed =
     !loading &&
     !loadFailed &&
     !showImageInline &&
     !showPdfPreview &&
-    !showExcelTable &&
+    !showDocxPreview &&
+    !showExcelPreview &&
+    !showPptxPreview &&
     useEmbedPreview &&
     !embedFailed;
   const showDownloadFallback =
     !loading &&
-    (loadFailed || embedFailed || (!showImageInline && !showPdfPreview && !showExcelTable && !showEmbed));
+    (loadFailed || embedFailed || (!showImageInline && !showPdfPreview && !showDocxPreview && !showExcelPreview && !showPptxPreview && !showEmbed));
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -82,40 +90,58 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
     setLoading(true);
     setLoadFailed(false);
     setPreviewSrc(null);
-    setExcelData(null);
     setEmbedFailed(false);
     setEmbedViewer('google');
     setPdfUseEmbed(false);
     setPdfFile(null);
+    setDocxFile(null);
+    setExcelFile(null);
+    setPptxFile(null);
 
     const load = async () => {
       try {
-        if (isSpreadsheet) {
-          const data = await fetchExcelPreviewFromUrl(fileUrl, displayName);
-          if (!cancelled) setExcelData(data);
-          return;
-        }
-
-        if (isImage || isPdf) {
+        if (isImage) {
           try {
             const blobUrl = await fetchBlobUrl(fileUrl, displayName);
             if (!cancelled) setPreviewSrc(blobUrl);
+          } catch {
+            if (!cancelled) setPreviewSrc(fileUrl);
+          }
+          return;
+        }
+
+        if (useClientPreview) {
+          try {
+            const blobUrl = await fetchBlobUrl(fileUrl, displayName);
+            if (!blobUrl) throw new Error('Failed to fetch blob');
             
-            // For PDFs, also create a File object for PdfPreview
-            if (isPdf && blobUrl) {
-              const response = await fetch(blobUrl);
-              const blob = await response.blob();
-              const file = new File([blob], displayName || 'preview.pdf', { type: 'application/pdf' });
-              if (!cancelled) setPdfFile(file);
+            const response = await fetch(blobUrl);
+            const blob = await response.blob();
+            
+            // Determine MIME type based on file type
+            let mimeType = 'application/octet-stream';
+            if (isPdf) mimeType = 'application/pdf';
+            else if (isSpreadsheet) mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            else if (isOfficeDoc) {
+              // Try to determine if it's DOCX or PPTX from extension
+              const ext = displayName?.split('.').pop()?.toLowerCase() || '';
+              if (ext === 'pptx') mimeType = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+              else mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            }
+            
+            const file = new File([blob], displayName || 'preview', { type: mimeType });
+            
+            if (!cancelled) {
+              if (isPdf) setPdfFile(file);
+              else if (isSpreadsheet) setExcelFile(file);
+              else if (isOfficeDoc) {
+                const ext = displayName?.split('.').pop()?.toLowerCase() || '';
+                if (ext === 'pptx') setPptxFile(file);
+                else setDocxFile(file);
+              }
             }
           } catch {
-            if (isImage && !cancelled) {
-              setPreviewSrc(fileUrl);
-            } else if (isPdf && !cancelled) {
-              setPdfUseEmbed(true);
-            } else if (!cancelled) {
-              setLoadFailed(true);
-            }
+            if (!cancelled) setLoadFailed(true);
           }
           return;
         }
@@ -131,7 +157,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
     return () => {
       cancelled = true;
     };
-  }, [fileUrl, displayName, isImage, isPdf, isSpreadsheet]);
+  }, [fileUrl, displayName, isImage, isPdf, isSpreadsheet, isOfficeDoc, useClientPreview]);
 
   useEffect(() => {
     return () => revokeBlobUrl(previewSrc);
@@ -261,54 +287,31 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
             />
           )}
 
-          {!loading && showExcelTable && excelData && (
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
-              <p className="mb-2 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {excelData.sheetName}
-                {excelData.rows.length >= 50 ? ' - first 50 rows' : ''}
-              </p>
-              <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                <table className="min-w-full border-collapse text-left text-sm">
-                  <thead className="sticky top-0 bg-emerald-700 text-white">
-                    <tr>
-                      {excelData.headers.map((header, i) => (
-                        <th key={i} className="border border-emerald-600 whitespace-nowrap px-3 py-2 font-bold">
-                          {header || `Col ${i + 1}`}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {excelData.rows.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={Math.max(excelData.headers.length, 1)}
-                          className="px-3 py-6 text-center text-slate-500 dark:text-slate-400"
-                        >
-                          No data rows in this sheet.
-                        </td>
-                      </tr>
-                    ) : (
-                      excelData.rows.map((row, rowIdx) => (
-                        <tr
-                          key={rowIdx}
-                          className={rowIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/60'}
-                        >
-                          {row.map((cell, cellIdx) => (
-                            <td
-                              key={cellIdx}
-                              className="border border-slate-200 whitespace-nowrap px-3 py-1.5 text-slate-700 dark:border-slate-700 dark:text-slate-200"
-                            >
-                              {cell}
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+          {!loading && showDocxPreview && docxFile && (
+            <DocxPreview
+              file={docxFile}
+              onClose={onClose}
+              onDownload={handleDownload}
+              className="flex-1"
+            />
+          )}
+
+          {!loading && showExcelPreview && excelFile && (
+            <ExcelPreview
+              file={excelFile}
+              onClose={onClose}
+              onDownload={handleDownload}
+              className="flex-1"
+            />
+          )}
+
+          {!loading && showPptxPreview && pptxFile && (
+            <PptxPreview
+              file={pptxFile}
+              onClose={onClose}
+              onDownload={handleDownload}
+              className="flex-1"
+            />
           )}
 
           {!loading && showEmbed && (
@@ -339,9 +342,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
           {showDownloadFallback && (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
               <p className="max-w-md text-sm text-slate-600 dark:text-slate-300">
-                {isSpreadsheet
-                  ? 'Could not load the Excel preview. Download the file to open in Excel.'
-                  : 'Inline preview could not load. Download the file or try opening in a new tab.'}
+                Inline preview could not load. Download the file or try opening in a new tab.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <button
@@ -353,7 +354,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
                   {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <DownloadIcon className="h-5 w-5" />}
                   Download file
                 </button>
-                {!hideOpenInNewTab && !isSpreadsheet && (
+                {!hideOpenInNewTab && (
                   <a
                     href={googleViewerTabSrc}
                     target="_blank"
@@ -364,7 +365,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
                     Open in new tab
                   </a>
                 )}
-                {(isOfficeDoc || isDriveLink || isPdf) && !isSpreadsheet && (
+                {(isOfficeDoc || isDriveLink || isPdf) && (
                   <button
                     type="button"
                     onClick={() => {
@@ -386,7 +387,10 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
 
         <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-600 dark:text-slate-300">
-            {showExcelTable && <span>Excel spreadsheet preview</span>}
+            {showPdfPreview && <span>PDF preview</span>}
+            {showDocxPreview && <span>Word document preview</span>}
+            {showExcelPreview && <span>Excel spreadsheet preview</span>}
+            {showPptxPreview && <span>PowerPoint preview</span>}
             {showEmbed && <span>Document viewer embed</span>}
             <button
               type="button"
