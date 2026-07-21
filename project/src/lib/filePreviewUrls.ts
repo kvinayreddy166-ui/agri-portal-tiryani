@@ -5,6 +5,12 @@ export function getViewerFileUrl(fileUrl: string): string {
     if (url.protocol === 'http:') {
       url.protocol = 'https:';
     }
+    // Remove any transformation parameters that might cause 415 errors
+    url.searchParams.delete('thumb');
+    url.searchParams.delete('width');
+    url.searchParams.delete('height');
+    url.searchParams.delete('resize');
+    url.searchParams.delete('transform');
     return url.toString();
   } catch {
     return fileUrl;

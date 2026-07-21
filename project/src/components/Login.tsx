@@ -34,10 +34,7 @@ import { recordSiteHit, fetchSiteHitSummary, SiteHitSummary } from '../lib/siteH
 import { FormDownload } from '../types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
-
-const FilePreviewModal = lazy(() =>
-  import('./ui/FilePreviewModal').then((module) => ({ default: module.FilePreviewModal }))
-);
+import { getGoogleViewerTabUrl } from '../lib/filePreviewUrls';
 const FertilizerStatutoryPdfTool = lazy(() =>
   import('./forms/FertilizerStatutoryPdfTool').then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
 );
@@ -144,7 +141,6 @@ export function Login() {
   const [statutoryPage, setStatutoryPage] = useState(() => loadPublicToolkitState().statutoryPage || 0);
   const [statutoryForms, setStatutoryForms] = useState<FormDownload[]>([]);
   const [formsLoading, setFormsLoading] = useState(false);
-  const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
   const [pdfToolOpen, setPdfToolOpen] = useState(false);
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -166,7 +162,6 @@ export function Login() {
 
   const { signIn, signInDealer } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
-  const previewOverlay = useBackButtonOverlay('public-file-preview', () => setPreviewForm(null));
   const pdfToolOverlay = useBackButtonOverlay('public-pdf-tool', () => setPdfToolOpen(false));
   const grievanceOverlay = useBackButtonOverlay('public-grievance', () => setGrievanceOpen(false));
 
@@ -179,7 +174,6 @@ export function Login() {
   };
 
   const closeToolPage = () => {
-    setPreviewForm(null);
     setPdfToolOpen(false);
     goBackWithinPublicToolkit('/officer-toolkit');
   };
@@ -299,12 +293,14 @@ export function Login() {
 
   const openPublicPreview = (form: FormDownload) => {
     if (!form.file_url) return;
-    previewOverlay.pushOverlay();
-    setPreviewForm(form);
-  };
-
-  const closePublicPreview = () => {
-    previewOverlay.closeOverlay();
+    // Check if it's an image file
+    const isImage = /\.(jpg|jpeg|png|webp|gif|bmp|svg)$/i.test(form.file_url) || form.file_type?.startsWith('image/');
+    if (isImage) {
+      window.open(form.file_url, '_blank', 'noopener,noreferrer');
+    } else {
+      const viewerUrl = getGoogleViewerTabUrl(form.file_url);
+      window.open(viewerUrl, '_blank', 'noopener,noreferrer');
+    }
   };
 
   const handlePublicDownload = async (form: FormDownload) => {
@@ -686,22 +682,6 @@ export function Login() {
             </Suspense>
           )}
         </div>
-        {showStatutoryForms && previewForm?.file_url && (
-          <Suspense
-            fallback={
-              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 text-white">
-                <Loader2 className="h-8 w-8 animate-spin" />
-              </div>
-            }
-          >
-            <FilePreviewModal
-              fileUrl={previewForm.file_url}
-              fileName={previewForm.title}
-              fileType={previewForm.file_type}
-              onClose={closePublicPreview}
-            />
-          </Suspense>
-        )}
         {showStatutoryForms && pdfToolOpen && (
           <Suspense
             fallback={

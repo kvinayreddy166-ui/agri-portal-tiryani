@@ -10,6 +10,7 @@ import {
 } from '../../lib/filePreviewUrls';
 import { downloadFileFromUrl, fetchBlobUrl, revokeBlobUrl } from '../../lib/fileBlob';
 import { fetchExcelPreviewFromUrl, type ExcelPreviewData } from '../../lib/excelParser';
+import { PdfPreview } from '../pdf/PdfPreview';
 
 interface FilePreviewModalProps {
   fileUrl: string;
@@ -42,6 +43,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
   const [embedFailed, setEmbedFailed] = useState(false);
   const [pdfUseEmbed, setPdfUseEmbed] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const embedTimerRef = useRef<number | null>(null);
 
   const useExcelPreview = isSpreadsheet;
@@ -52,20 +54,20 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
   const activeEmbedSrc = embedViewer === 'google' ? googleEmbedSrc : officeEmbedSrc;
 
   const showImageInline = isImage && previewSrc && !loading && !loadFailed;
-  const showPdfInline = isPdf && previewSrc && !loading && !loadFailed && !pdfUseEmbed;
+  const showPdfPreview = isPdf && pdfFile && !loading && !loadFailed && !pdfUseEmbed;
   const showExcelTable = useExcelPreview && excelData && !loading && !loadFailed;
   const DownloadIcon = isSpreadsheet ? FileSpreadsheet : Download;
   const showEmbed =
     !loading &&
     !loadFailed &&
     !showImageInline &&
-    !showPdfInline &&
+    !showPdfPreview &&
     !showExcelTable &&
     useEmbedPreview &&
     !embedFailed;
   const showDownloadFallback =
     !loading &&
-    (loadFailed || embedFailed || (!showImageInline && !showPdfInline && !showExcelTable && !showEmbed));
+    (loadFailed || embedFailed || (!showImageInline && !showPdfPreview && !showExcelTable && !showEmbed));
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -84,6 +86,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
     setEmbedFailed(false);
     setEmbedViewer('google');
     setPdfUseEmbed(false);
+    setPdfFile(null);
 
     const load = async () => {
       try {
@@ -97,6 +100,14 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
           try {
             const blobUrl = await fetchBlobUrl(fileUrl, displayName);
             if (!cancelled) setPreviewSrc(blobUrl);
+            
+            // For PDFs, also create a File object for PdfPreview
+            if (isPdf && blobUrl) {
+              const response = await fetch(blobUrl);
+              const blob = await response.blob();
+              const file = new File([blob], displayName || 'preview.pdf', { type: 'application/pdf' });
+              if (!cancelled) setPdfFile(file);
+            }
           } catch {
             if (isImage && !cancelled) {
               setPreviewSrc(fileUrl);
@@ -241,19 +252,13 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
             </div>
           )}
 
-          {!loading && showPdfInline && previewSrc && (
-            <div className="flex min-h-0 flex-1 flex-col p-4">
-              <embed
-                src={previewSrc}
-                type="application/pdf"
-                title={fileName || 'PDF preview'}
-                className="min-h-[65vh] flex-1 rounded-lg border-0 bg-white shadow-lg"
-                onError={() => {
-                  setPdfUseEmbed(true);
-                  setLoadFailed(false);
-                }}
-              />
-            </div>
+          {!loading && showPdfPreview && pdfFile && (
+            <PdfPreview
+              file={pdfFile}
+              onClose={onClose}
+              onDownload={handleDownload}
+              className="flex-1"
+            />
           )}
 
           {!loading && showExcelTable && excelData && (
