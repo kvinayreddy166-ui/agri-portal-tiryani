@@ -55,7 +55,7 @@ export function SeedInstructionModal({ isOpen, onClose }: SeedInstructionModalPr
         {/* Image container - full screen on mobile */}
         <div className="w-full overflow-auto p-4 sm:max-h-[85vh] sm:p-6">
           <img
-            src="/images/Cotton Seed sample drawl procedure.png"
+            src="/images/Cotton Seed sample drawl procedure .png"
             alt="Cotton Seed Sample Drawl Procedure"
             className="mx-auto w-full rounded-lg shadow-md object-contain"
           />
