@@ -186,7 +186,7 @@ export async function saveCropProtectionCrop(crop: Partial<CropProtectionCrop> &
     .eq('id', crop.id);
 }
 
-export async function uploadCropProtectionCropImage(cropKey: string, file: File) {
+export async function uploadCropProtectionCropImage(cropKey: string, file: File, maxRetries = 3) {
   if (!file.type.startsWith('image/')) {
     throw new Error('Please upload an image file.');
   }
@@ -194,26 +194,42 @@ export async function uploadCropProtectionCropImage(cropKey: string, file: File)
   const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const filePath = `${CROP_IMAGE_UPLOAD_FOLDER}/${cropKey || 'crop'}-${Date.now()}-${cleanName}`;
   
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for uploads
+  // Dynamic timeout based on file size: minimum 5 minutes, plus 1 minute per MB
+  const fileSizeMB = file.size / (1024 * 1024);
+  const timeoutMs = Math.max(300000, 60000 * fileSizeMB + 300000); // 5 min base + 1 min per MB
 
-  try {
-    const { error } = await supabase.storage.from('uploads').upload(filePath, file, {
-      upsert: true,
-      contentType: file.type || 'image/jpeg',
-      duplex: 'half',
-    });
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    clearTimeout(timeoutId);
+    try {
+      const { error } = await supabase.storage.from('uploads').upload(filePath, file, {
+        upsert: true,
+        contentType: file.type || 'image/jpeg',
+        duplex: 'half',
+      });
 
-    if (error) throw error;
+      clearTimeout(timeoutId);
 
-    const { data } = supabase.storage.from('uploads').getPublicUrl(filePath);
-    return data.publicUrl;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
+      if (error) throw error;
+
+      const { data } = supabase.storage.from('uploads').getPublicUrl(filePath);
+      return data.publicUrl;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      // Exponential backoff: wait 2^attempt seconds before retry
+      const backoffMs = Math.pow(2, attempt) * 1000;
+      console.warn(`Upload attempt ${attempt} failed, retrying in ${backoffMs}ms...`, error);
+      await new Promise(resolve => setTimeout(resolve, backoffMs));
+    }
   }
+  
+  throw new Error('Upload failed after maximum retries');
 }
 
 export function clearCropProtectionCache() {

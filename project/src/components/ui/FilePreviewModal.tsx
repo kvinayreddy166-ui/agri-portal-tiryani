@@ -24,7 +24,7 @@ interface FilePreviewModalProps {
 
 type EmbedViewer = 'office' | 'google';
 
-const EMBED_TIMEOUT_MS = 12000;
+const EMBED_TIMEOUT_MS = 6000;
 
 export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab = false, onClose }: FilePreviewModalProps) {
   const { displayName, resolvedType } = resolveFileIdentity(fileName, fileType, fileUrl);
@@ -101,18 +101,20 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
     const load = async () => {
       try {
         if (isImage) {
-          try {
-            const blobUrl = await fetchBlobUrl(fileUrl, displayName);
-            if (!cancelled) setPreviewSrc(blobUrl);
-          } catch {
-            if (!cancelled) setPreviewSrc(fileUrl);
-          }
+          // Use direct URL for images to avoid unnecessary blob conversion
+          if (!cancelled) setPreviewSrc(fileUrl);
           return;
         }
 
         if (useClientPreview) {
           try {
+            // Fetch with timeout to prevent hanging
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+            
             const blobUrl = await fetchBlobUrl(fileUrl, displayName);
+            clearTimeout(timeoutId);
+            
             if (!blobUrl) throw new Error('Failed to fetch blob');
             
             const response = await fetch(blobUrl);

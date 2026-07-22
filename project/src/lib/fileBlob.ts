@@ -30,18 +30,28 @@ function normalizeBlob(blob: Blob, fileName?: string): Blob {
 
 async function downloadBlob(fileUrl: string, fileName?: string): Promise<Blob> {
   const errors: string[] = [];
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout for initial fetch
 
   try {
-    const res = await fetch(fileUrl, { mode: 'cors', credentials: 'omit' });
+    const res = await fetch(fileUrl, { mode: 'cors', credentials: 'omit', signal: controller.signal });
+    clearTimeout(timeoutId);
     if (res.ok) return normalizeBlob(await res.blob(), fileName);
     errors.push(`fetch ${res.status}`);
   } catch (error) {
+    clearTimeout(timeoutId);
     errors.push(error instanceof Error ? error.message : 'fetch failed');
   }
 
   const storagePath = extractSupabaseStoragePath(fileUrl);
   if (storagePath) {
+    // Add timeout for Supabase storage download
+    const storageController = new AbortController();
+    const storageTimeoutId = setTimeout(() => storageController.abort(), 25000); // 25s timeout
+    
     const { data, error } = await supabase.storage.from('uploads').download(storagePath);
+    clearTimeout(storageTimeoutId);
+    
     if (!error && data) return normalizeBlob(data, fileName || storagePath);
 
     const { data: signed, error: signError } = await supabase.storage

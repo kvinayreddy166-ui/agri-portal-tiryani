@@ -293,7 +293,7 @@ export async function deleteCropIntelligenceCard(slug, table, index) {
   invalidateCropCaches();
 }
 
-export async function uploadCropImage(file, cropSlug, entityType = 'crop') {
+export async function uploadCropImage(file, cropSlug, entityType = 'crop', maxRetries = 3) {
   const validationError = validateImageUploadFile(file);
   if (validationError) throw new Error(validationError);
 
@@ -301,28 +301,44 @@ export async function uploadCropImage(file, cropSlug, entityType = 'crop') {
   const safeEntityType = String(entityType || 'crop').replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
   const path = `crop-intelligence/${cropSlug}/${safeEntityType}-${Date.now()}.${ext}`;
   
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for uploads
+  // Dynamic timeout based on file size: minimum 5 minutes, plus 1 minute per MB
+  const fileSizeMB = file.size / (1024 * 1024);
+  const timeoutMs = Math.max(300000, 60000 * fileSizeMB + 300000); // 5 min base + 1 min per MB
 
-  try {
-    const { error: uploadError } = await supabase.storage.from('uploads').upload(path, file, {
-      cacheControl: '31536000',
-      contentType: getContentType(file),
-      upsert: true,
-      duplex: 'half',
-    });
-    
-    clearTimeout(timeoutId);
-    
-    if (uploadError) throw uploadError;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    const { data } = supabase.storage.from('uploads').getPublicUrl(path);
-    invalidateCropCaches();
-    return data.publicUrl;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
+    try {
+      const { error: uploadError } = await supabase.storage.from('uploads').upload(path, file, {
+        cacheControl: '31536000',
+        contentType: getContentType(file),
+        upsert: true,
+        duplex: 'half',
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('uploads').getPublicUrl(path);
+      invalidateCropCaches();
+      return data.publicUrl;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      // Exponential backoff: wait 2^attempt seconds before retry
+      const backoffMs = Math.pow(2, attempt) * 1000;
+      console.warn(`Upload attempt ${attempt} failed, retrying in ${backoffMs}ms...`, error);
+      await new Promise(resolve => setTimeout(resolve, backoffMs));
+    }
   }
+  
+  throw new Error('Upload failed after maximum retries');
 }
 
 export async function deleteUploadedCropImage(imageUrl) {

@@ -24,7 +24,8 @@ export const PortalLogo = React.memo(function PortalLogo({ size = 'md', classNam
     <div
       className={`shrink-0 overflow-hidden rounded-full bg-white shadow-lg ring-2 ring-emerald-500/30 ${sizeMap[size]} ${className}`}
       style={{
-        animation: 'hero-glow 3s ease-in-out infinite',
+        willChange: 'transform, box-shadow',
+        backfaceVisibility: 'hidden',
       }}
     >
       <img
@@ -32,19 +33,11 @@ export const PortalLogo = React.memo(function PortalLogo({ size = 'md', classNam
         alt="Agronix"
         width={pixelSizeMap[size]}
         height={pixelSizeMap[size]}
-        decoding="async"
+        decoding="sync"
+        loading="eager"
         className="h-full w-full object-cover"
+        style={{ backfaceVisibility: 'hidden' }}
       />
-      <style jsx>{`
-        @keyframes hero-glow {
-          0%, 100% {
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
-          }
-          50% {
-            box-shadow: 0 0 20px 10px rgba(16, 185, 129, 0.2);
-          }
-        }
-      `}</style>
     </div>
   );
 });
