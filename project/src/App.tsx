@@ -370,31 +370,49 @@ function PublicReadOnlyShell({
 
 function AppUpdateBanner() {
   const [visible, setVisible] = useState(() => hasNewAppVersion());
+  const [isOnlineTransition, setIsOnlineTransition] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     if (!hasNewAppVersion()) rememberCurrentAppVersion();
   }, []);
 
   useEffect(() => {
-    const show = () => setVisible(true);
+    const show = () => {
+      // Don't show banner during online/offline transition
+      if (!isOnlineTransition) setVisible(true);
+    };
     window.addEventListener('tiryani:update-available', show);
     return () => window.removeEventListener('tiryani:update-available', show);
+  }, [isOnlineTransition]);
+
+  // Handle online/offline transitions
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnlineTransition(true);
+      // Clear transition flag after 5 seconds
+      setTimeout(() => setIsOnlineTransition(false), 5000);
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
   }, []);
 
-  if (!visible) return null;
+  // Only show on login page
+  if (!visible || location.pathname !== '/login') return null;
 
   return (
-    <div className="fixed inset-x-3 bottom-3 z-[10000] mx-auto flex max-w-xl flex-col gap-2 rounded-2xl border border-emerald-200 bg-white p-3 text-sm shadow-2xl dark:border-emerald-900 dark:bg-slate-950 sm:flex-row sm:items-center sm:justify-between">
-      <div>
+    <div className="fixed bottom-4 left-4 z-[10000] max-w-sm rounded-2xl border border-emerald-200 bg-white p-4 text-sm shadow-2xl dark:border-emerald-900 dark:bg-slate-950">
+      <div className="mb-3">
         <p className="font-black text-slate-950 dark:text-white">New update available</p>
         <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Reload to use the latest deployed version.</p>
       </div>
       <div className="flex gap-2">
-        <button type="button" onClick={() => setVisible(false)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200">
+        <button type="button" onClick={() => setVisible(false)} className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200">
           Later
         </button>
-        <button type="button" onClick={() => { rememberCurrentAppVersion(); setTimeout(() => window.location.reload(), 100); }} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white hover:bg-emerald-800">
-          Reload
+        <button type="button" onClick={() => { rememberCurrentAppVersion(); setTimeout(() => window.location.reload(), 100); }} className="flex-1 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white hover:bg-emerald-800">
+          Update
         </button>
       </div>
     </div>

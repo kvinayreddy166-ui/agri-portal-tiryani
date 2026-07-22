@@ -454,7 +454,7 @@ export function Login() {
         <div className="mx-auto w-full max-w-4xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
           {showStatutoryForms ? (
             <section className="mb-4 overflow-hidden rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-700 via-green-700 to-teal-800 p-4 text-white shadow-sm sm:p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-4">
                 <div className="flex min-w-0 items-start gap-3">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
                     <FileText className="h-6 w-6" />
@@ -474,7 +474,7 @@ export function Login() {
                 <button
                   type="button"
                   onClick={closeToolPage}
-                  className="inline-flex items-center justify-center gap-2 rounded-md bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm ring-1 ring-white/20 transition hover:bg-white/25"
+                  className="inline-flex self-start items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   {t('Back', 'వెనుకకు')}
