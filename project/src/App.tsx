@@ -427,7 +427,7 @@ function AppVersionBadge() {
   );
 }
 function AppContent() {
-  const { user, loading, authChecked, appReady, isAdminUser, isDealerUser, signOut } = useAuth();
+  const { user, loading, authChecked, appReady, isAdminUser, isTestUser, isDealerUser, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const navigationType = useNavigationType();
@@ -687,7 +687,7 @@ function AppContent() {
   if (!user && currentPage === 'officer-toolkit') {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
-        <OfficersToolkit />
+        <OfficersToolkit isAdmin={false} isTestUser={false} />
       </SafeSuspense>
     );
   }
@@ -839,7 +839,7 @@ function AppContent() {
           />
         );
       case 'officer-toolkit':
-        return <OfficersToolkit />;
+        return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} />;
       case 'farm-calculators':
         return <FarmCalculators />;
       case 'acreage-calculator':

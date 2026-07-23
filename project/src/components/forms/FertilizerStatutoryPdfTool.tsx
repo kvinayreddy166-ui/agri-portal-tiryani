@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Eye, RotateCcw, Save, X } from 'lucide-react';
+import { Download, Eye, FlaskConical, RotateCcw, Save, X } from 'lucide-react';
 import {
   FertilizerPdfValues,
   FertilizerStatutoryFormType,
@@ -369,20 +369,26 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-      <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
-        <header className="flex shrink-0 flex-wrap items-start justify-between gap-2 border-b border-slate-200 px-3 py-2.5 sm:px-4">
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Fertilizer sampling</p>
-            <h2 className="max-w-full whitespace-normal text-sm font-black leading-snug text-slate-950 sm:text-base">Generate FORM J / FORM K / FORM P</h2>
+      <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-amber-100/50 bg-gradient-to-r from-amber-50 via-white to-orange-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-orange-500/5 to-amber-500/5 opacity-50" />
+          <div className="relative flex min-w-0 flex-1 items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25">
+              <FlaskConical className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/80">Fertilizer sampling</p>
+              <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 sm:text-lg">Generate FORM J / FORM K / FORM P</h2>
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="relative flex shrink-0 items-center gap-1">
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-700 px-3 py-2 text-white hover:bg-red-800"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-white/80 text-red-600 shadow-sm backdrop-blur-sm transition-all hover:bg-red-50 hover:border-red-300 hover:shadow-md"
               title="Close"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </button>
           </div>
         </header>
@@ -409,13 +415,18 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               </button>
             </div>
 
-            <div className="mb-2 rounded-lg border border-red-700 bg-red-50 p-2">
-              <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-red-800">SAVED DRAFTS</p>
+            <div className="mb-2 rounded-xl border border-amber-200/50 bg-gradient-to-br from-amber-50/80 to-orange-50/80 p-3 shadow-sm backdrop-blur-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-500/10">
+                  <Save className="h-3.5 w-3.5 text-amber-600" />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-700">SAVED DRAFTS</p>
+              </div>
               <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
                 <select
                   value=""
                   onChange={(event) => loadDraft(event.target.value)}
-                  className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="rounded-lg border border-amber-200 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-100/50 backdrop-blur-sm transition-all"
                 >
                   <option value="">Load saved draft...</option>
                   {savedDrafts.map((draft) => (
@@ -427,7 +438,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                 <button
                   type="button"
                   onClick={deleteDraft}
-                  className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-black text-red-700 hover:bg-red-50"
+                  className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition-all backdrop-blur-sm"
                 >
                   Delete
                 </button>

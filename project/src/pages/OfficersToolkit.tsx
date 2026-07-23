@@ -16,6 +16,11 @@ interface ToolkitItem {
   statusMessage?: string;
 }
 
+interface OfficersToolkitProps {
+  isAdmin?: boolean;
+  isTestUser?: boolean;
+}
+
 const toolkitItems: ToolkitItem[] = [
   {
     title: 'Statutory Forms',
@@ -223,10 +228,12 @@ function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: numbe
   );
 }
 
-export function OfficersToolkit() {
+export function OfficersToolkit({ isAdmin = false, isTestUser = false }: OfficersToolkitProps) {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
+
+  const shouldHideHeader = isAdmin || isTestUser;
 
   useEffect(() => {
     setMounted(true);
@@ -242,29 +249,31 @@ export function OfficersToolkit() {
       </div>
 
       <div className="relative mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
-        {/* Header Section */}
-        <div className={`mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="rounded-3xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-emerald-800/50 dark:bg-slate-900/80">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
-                  <ShieldCheck className="h-8 w-8" />
+        {/* Header Section - Only shown for public access */}
+        {!shouldHideHeader && (
+          <div className={`mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="rounded-3xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-emerald-800/50 dark:bg-slate-900/80">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
+                    <ShieldCheck className="h-8 w-8" />
+                  </div>
+                  <div className="min-w-0">
+                    <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+                      {t('Officer Toolkit', 'ÃƒÂ Ã‚Â°Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â«ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
+                    </h1>
+                    <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                      {t('Agricultural Tools & Government Portals', 'ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¯ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â & ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â­ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Âµ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h1 className="text-2xl font-black text-slate-900 dark:text-white">
-                    {t('Officer Toolkit', 'ÃƒÂ Ã‚Â°Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â«ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
-                  </h1>
-                  <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                    {t('Agricultural Tools & Government Portals', 'ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¯ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â & ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â­ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Âµ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
-                  </p>
-                </div>
+                <BackButton onClick={() => navigate('/login')}>
+                  Back
+                </BackButton>
               </div>
-              <BackButton onClick={() => navigate('/login')}>
-                Back
-              </BackButton>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Internal Tools Section */}
         <div className={`mb-8 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>

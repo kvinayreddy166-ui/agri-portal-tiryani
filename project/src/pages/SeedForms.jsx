@@ -251,13 +251,18 @@ export function SeedForms() {
           </button>
       </div>
 
-      <div className="mb-2 rounded-lg border border-red-700 bg-red-50 p-2">
-        <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-red-800">SAVED DRAFTS</p>
+      <div className="mb-2 rounded-xl border border-green-200/50 bg-gradient-to-br from-green-50/80 to-emerald-50/80 p-3 shadow-sm backdrop-blur-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-green-500/10">
+            <Save className="h-3.5 w-3.5 text-green-600" />
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-green-700">SAVED DRAFTS</p>
+        </div>
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <select
             value=""
             onChange={(event) => loadDraft(event.target.value)}
-            className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            className="rounded-lg border border-green-200 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100/50 backdrop-blur-sm transition-all"
           >
             <option value="">Load saved draft...</option>
             {savedDrafts.map((draft) => (
@@ -269,7 +274,7 @@ export function SeedForms() {
           <button
             type="button"
             onClick={deleteDraft}
-            className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-black text-red-700 hover:bg-red-50"
+            className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition-all backdrop-blur-sm"
           >
             Delete
           </button>
@@ -303,7 +308,7 @@ export function SeedForms() {
           <PreviewCard title="Information Slip Logic" lines={resolved.crop === 'Cotton' ? ['Cotton selected: two slips will be generated.', '1. Germination, Purity & Moisture Test', '2. BT Protein Test'] : [`One slip: ${resolved.testRequired}`]} />
         </Card>
 
-        <div ref={sampleDetailsRef} className={highlightDetails ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}>
+        <div ref={sampleDetailsRef} className={highlightDetails ? 'rounded-xl border-4 border-red-500' : ''}>
         <Card title="SAMPLE DETAILS" color="amber">
           <div className="grid gap-2 sm:grid-cols-2">
             <Input label="Serial No. of sample" value={form.serialNo} onChange={(value) => setField('serialNo', value)} />
@@ -327,7 +332,7 @@ export function SeedForms() {
         </Card>
         </div>
 
-        <div ref={dealerDetailsRef} className={highlightDetails ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}>
+        <div ref={dealerDetailsRef} className={highlightDetails ? 'rounded-xl border-4 border-red-500' : ''}>
         <Card title="DEALER DETAILS" color="maroon">
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
           <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea placeholder="village" />

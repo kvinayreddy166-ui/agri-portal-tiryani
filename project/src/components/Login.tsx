@@ -17,6 +17,7 @@ import {
   Send,
   ShieldCheck,
   Smartphone,
+  Sprout,
   Store,
   UserRoundCheck,
   X,
@@ -697,19 +698,25 @@ export function Login() {
           >
             {statutoryFolder === 'seed' ? (
               <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-                <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-slate-50 shadow-2xl">
-                  <header className="flex shrink-0 flex-wrap items-start justify-between gap-2 border-b border-slate-200 bg-white px-3 py-2.5 sm:px-4">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Seed sampling</p>
-                      <h2 className="max-w-full whitespace-normal text-sm font-black leading-snug text-slate-950 sm:text-base">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
+                <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+                  <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-green-100/50 bg-gradient-to-r from-green-50 via-white to-emerald-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-emerald-500/5 to-green-500/5 opacity-50" />
+                    <div className="relative flex min-w-0 flex-1 items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25">
+                        <Sprout className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-green-600/80">Seed sampling</p>
+                        <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 sm:text-lg">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
+                      </div>
                     </div>
                     <button
                       type="button"
                       onClick={closePdfTool}
-                      className="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-700 px-3 py-2 text-white hover:bg-red-800"
+                      className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-white/80 text-red-600 shadow-sm backdrop-blur-sm transition-all hover:bg-red-50 hover:border-red-300 hover:shadow-md"
                       aria-label="Close seed PDF generator"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-5 w-5" />
                     </button>
                   </header>
                   <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
