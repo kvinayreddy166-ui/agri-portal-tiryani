@@ -470,7 +470,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                   <div
                     key={section.title}
                     ref={section.title === 'COMMON DETAILS' ? sampleDetailsRef : section.title === 'DEALER & SAMPLE DETAILS' ? dealerDetailsRef : undefined}
-                    className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER & SAMPLE DETAILS') ? 'rounded-xl ring-4 ring-amber-300 ring-offset-2 ring-offset-white' : ''}
+                    className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER & SAMPLE DETAILS') ? 'rounded-xl border-4 border-red-500' : ''}
                   >
                   <FieldSection title={section.title} color={color}>
                     {section.fields.map((field) => {
@@ -496,8 +496,13 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               })}
             </div>
 
-            <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
-              <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-600">PDF Generation</p>
+            <div className="mt-3 rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50/80 to-orange-50/80 p-3 shadow-sm backdrop-blur-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-500/10">
+                  <Download className="h-3.5 w-3.5 text-amber-600" />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-700">PDF Generation</p>
+              </div>
               <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 <FertilizerPdfAction label="Form J" busy={busyAction !== null} onPreview={() => previewPdf('J')} onDownload={() => downloadPdf('J')} />
                 <FertilizerPdfAction label="Form K ADA" busy={busyAction !== null} onPreview={() => previewPdf('K_ADA')} onDownload={() => downloadPdf('K_ADA')} />
@@ -505,7 +510,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                 <FertilizerPdfAction label="Form P" busy={busyAction !== null} onPreview={() => previewPdf('P')} onDownload={() => downloadPdf('P')} />
                 <FertilizerPdfAction label="All Forms" busy={busyAction !== null} onPreview={previewAllPdf} onDownload={downloadAllPdf} primary />
               </div>
-              <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold leading-4 text-amber-800">
+              <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-bold leading-4 text-red-700">
                 Note: Please update sample details and dealer details before generating a new file.
               </p>
             </div>

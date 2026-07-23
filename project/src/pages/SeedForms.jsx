@@ -344,8 +344,13 @@ export function SeedForms() {
         </div>
       </div>
 
-      <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
-        <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-600">PDF Generation</p>
+      <div className="mt-3 rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50/80 to-emerald-50/80 p-3 shadow-sm backdrop-blur-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-green-500/10">
+            <Download className="h-3.5 w-3.5 text-green-600" />
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-green-700">PDF Generation</p>
+        </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {isCottonCrop && <PdfAction label="Form II" onPreview={() => preview('II')} onDownload={() => generate('II')} />}
           <PdfAction label="Form V" onPreview={() => preview('V')} onDownload={() => generate('V')} />
@@ -354,7 +359,7 @@ export function SeedForms() {
           <PdfAction label="Information Slip" onPreview={() => preview('SLIP')} onDownload={() => generate('SLIP')} />
           <PdfAction label="All Forms" onPreview={() => preview('ALL')} onDownload={() => generate('ALL')} primary />
         </div>
-        <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold leading-4 text-amber-800">
+        <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-bold leading-4 text-red-700">
           Note: Please update sample details and dealer details before generating a new file.
         </p>
       </div>
