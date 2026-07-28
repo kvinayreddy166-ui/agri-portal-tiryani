@@ -3,6 +3,7 @@ import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, G
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
+import { LanguageToggle } from '../components/ui/LanguageToggle';
 
 interface ToolkitItem {
   title: string;
@@ -185,7 +186,58 @@ const externalPortals: ToolkitItem[] = [
   },
 ];
 
+function translateToolkit(label?: string) {
+  const labels: Record<string, string> = {
+    'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
+    'Prepare and download field forms.': 'క్షేత్ర ఫారాలను సిద్ధం చేసి డౌన్‌లోడ్ చేయండి.',
+    'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
+    'Crop, seed, fertilizer and pesticide calculations.': 'పంట, విత్తనం, ఎరువు మరియు పురుగుమందుల లెక్కలు.',
+    'Crop Doctor': 'పంట డాక్టర్',
+    'Crop-wise pests, diseases, weeds and nutrient deficiencies.': 'పంటల వారీగా పురుగులు, వ్యాధులు, కలుపు మొక్కలు మరియు పోషక లోపాలు.',
+    'Legal Ready Reckoner': 'లీగల్ రెడీ రెకనర్',
+    'Acts, clauses, stop sale, seizure, sampling and notice tools.': 'చట్టాలు, క్లాజులు, స్టాప్ సేల్, సీజర్, శాంప్లింగ్ మరియు నోటీస్ సాధనాలు.',
+    'Under development': 'అభివృద్ధిలో ఉంది',
+    'Urea Dashboard': 'యూరియా డ్యాష్‌బోర్డ్',
+    'Urea Fertilizer Dashboard Portal': 'యూరియా ఎరువుల డ్యాష్‌బోర్డ్ పోర్టల్',
+    'Crop Loan Waiver': 'పంట రుణమాఫీ',
+    'Telangana Crop Loan Waiver Portal': 'తెలంగాణ పంట రుణమాఫీ పోర్టల్',
+    'Soil Health Card': 'సాయిల్ హెల్త్ కార్డ్',
+    'Soil Health Card Portal': 'సాయిల్ హెల్త్ కార్డ్ పోర్టల్',
+    OLMS: 'ఓఎల్ఎంఎస్',
+    'Online License Management System': 'ఆన్‌లైన్ లైసెన్స్ నిర్వహణ వ్యవస్థ',
+    IFMS: 'ఐఎఫ్‌ఎంఎస్',
+    'Integrated Fertilizer Management System': 'ఇంటిగ్రేటెడ్ ఫర్టిలైజర్ మేనేజ్‌మెంట్ సిస్టమ్',
+    'Treasury Challan Generation': 'ట్రెజరీ చలాన్ జనరేషన్',
+    'Telangana IFMIS e-Challan Portal': 'తెలంగాణ IFMIS ఈ-చలాన్ పోర్టల్',
+    'Agromet Advisories': 'అగ్రోమెట్ సలహాలు',
+    'Agricultural Meteorological Advisories': 'వ్యవసాయ వాతావరణ సలహాలు',
+    'IMD Weather': 'IMD వాతావరణం',
+    'India Meteorological Department Weather': 'భారత వాతావరణ శాఖ వాతావరణం',
+    'Quality Control - Court Judgements': 'నాణ్యత నియంత్రణ - కోర్టు తీర్పులు',
+    'Fertilizer Control Order Court Judgements': 'ఎరువుల నియంత్రణ ఉత్తర్వుల కోర్టు తీర్పులు',
+    'Rythu Bharosa': 'రైతు భరోసా',
+    'Telangana Government Agriculture Portal': 'తెలంగాణ ప్రభుత్వ వ్యవసాయ పోర్టల్',
+    'PM-Kisan': 'పీఎం-కిసాన్',
+    'Pradhan Mantri Kisan Samman Nidhi': 'ప్రధాన్ మంత్రి కిసాన్ సమ్మాన్ నిధి',
+    'T-Seed Portal': 'టి-సీడ్ పోర్టల్',
+    'Telangana Seed Portal': 'తెలంగాణ విత్తన పోర్టల్',
+    OPMS: 'ఓపీఎంఎస్',
+    'Online Procurement Management System': 'ఆన్‌లైన్ కొనుగోలు నిర్వహణ వ్యవస్థ',
+    NMNF: 'ఎన్‌ఎంఎన్‌ఎఫ్',
+    'Natural Farming National Portal': 'ప్రకృతి వ్యవసాయ జాతీయ పోర్టల్',
+    'Farmer Registry': 'రైతు రిజిస్ట్రీ',
+    'Telangana Farmer Registry': 'తెలంగాణ రైతు రిజిస్ట్రీ',
+    'Officer Toolkit': 'అధికారుల టూల్‌కిట్',
+    'Agricultural Tools & Government Portals': 'వ్యవసాయ సాధనాలు & ప్రభుత్వ పోర్టళ్లు',
+    'Field Tools': 'క్షేత్ర సాధనాలు',
+    'Government Portals': 'ప్రభుత్వ పోర్టళ్లు',
+    'Empowering Agriculture with Digital Tools': 'డిజిటల్ సాధనాలతో వ్యవసాయాన్ని శక్తివంతం చేయడం',
+  };
+  return label ? labels[label] || label : '';
+}
+
 function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: number; onClick: () => void }) {
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -205,20 +257,20 @@ function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: numbe
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-bold text-slate-900 dark:text-white transition-colors group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
-            {item.title}
+            {t(item.title, translateToolkit(item.title))}
           </h3>
           <p className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-300 line-clamp-2">
-            {item.description}
+            {t(item.description, translateToolkit(item.description))}
           </p>
           {item.statusMessage && (
             <div className="mt-2 inline-flex w-fit rounded-full bg-red-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-red-800 dark:bg-red-900/40 dark:text-red-200">
-              {item.statusMessage}
+              {t(item.statusMessage, translateToolkit(item.statusMessage))}
             </div>
           )}
           {item.externalUrl && (
             <div className="mt-2 flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
               <ExternalLink className="h-3 w-3" />
-              <span>External Portal</span>
+              <span>{t('External Portal', 'బాహ్య పోర్టల్')}</span>
             </div>
           )}
         </div>
@@ -230,7 +282,7 @@ function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: numbe
 
 export function OfficersToolkit({ isAdmin = false, isTestUser = false }: OfficersToolkitProps) {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language, toggleLanguage } = useLanguage();
   const [mounted, setMounted] = useState(false);
 
   const shouldHideHeader = isAdmin || isTestUser;
@@ -260,18 +312,27 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                   </div>
                   <div className="min-w-0">
                     <h1 className="text-2xl font-black text-slate-900 dark:text-white">
-                      {t('Officer Toolkit', 'ÃƒÂ Ã‚Â°Ã¢â‚¬Â ÃƒÂ Ã‚Â°Ã‚Â«ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
+                      {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                     </h1>
                     <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                      {t('Agricultural Tools & Government Portals', 'ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¯ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚Â®ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â & ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â­ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Âµ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
+                      {t('Agricultural Tools & Government Portals', 'వ్యవసాయ పనిముట్లు & ప్రభుత్వ పోర్టల్స్')}
                     </p>
                   </div>
                 </div>
-                <BackButton onClick={() => navigate('/login')}>
-                  Back
-                </BackButton>
+                <div className="flex shrink-0 items-center gap-2">
+                  <LanguageToggle language={language} onClick={toggleLanguage} />
+                  <BackButton onClick={() => navigate('/login')}>
+                    Back
+                  </BackButton>
+                </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {shouldHideHeader && (
+          <div className={`mb-4 flex justify-end transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <LanguageToggle language={language} onClick={toggleLanguage} />
           </div>
         )}
 
@@ -282,7 +343,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
               <Calculator className="h-4 w-4" />
             </div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              {t('Field Tools', 'ÃƒÂ Ã‚Â°Ã‚Â«ÃƒÂ Ã‚Â±Ã¢â€šÂ¬ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
+              {t('Field Tools', 'ఫీల్డ్ టూల్స్')}
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -304,7 +365,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
               <ExternalLink className="h-4 w-4" />
             </div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              {t('Government Portals', 'ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â°Ã‚Â­ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Âµ ÃƒÂ Ã‚Â°Ã‚ÂªÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ÃƒÂ Ã‚Â°Ã‚Â°ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚Â')}
+              {t('Government Portals', 'ప్రభుత్వ పోర్టల్స్')}
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -328,10 +389,11 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         {/* Footer */}
         <div className={`mt-8 text-center transition-all duration-700 delay-600 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            {t('Empowering Agriculture with Digital Tools', 'ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã…â€œÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚Â ÃƒÂ Ã‚Â°Ã…Â¸ÃƒÂ Ã‚Â±Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â²ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã…â€™ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â±Ã¢â‚¬Â¹ ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã‚Â¸ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â¾ÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¨ÃƒÂ Ã‚Â°Ã‚Â¿ ÃƒÂ Ã‚Â°Ã‚Â¶ÃƒÂ Ã‚Â°Ã¢â‚¬Â¢ÃƒÂ Ã‚Â±Ã‚ÂÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã‚Â¿ÃƒÂ Ã‚Â°Ã‚ÂµÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ÃƒÂ Ã‚Â°Ã‚Â¤ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡ ÃƒÂ Ã‚Â°Ã…Â¡ÃƒÂ Ã‚Â±Ã¢â‚¬Â¡ÃƒÂ Ã‚Â°Ã‚Â¯ÃƒÂ Ã‚Â°Ã‚Â¡ÃƒÂ Ã‚Â°Ã¢â‚¬Å¡')}
+            {t('Empowering Agriculture with Digital Tools', 'డిజిటల్ టూల్స్‌తో వ్యవసాయాన్ని శక్తివంతం చేయడం')}
           </p>
         </div>
       </div>
     </div>
   );
 }
+

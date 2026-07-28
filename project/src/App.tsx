@@ -4,7 +4,7 @@ import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
 import { OfflineScreen } from './components/ui/OfflineScreen';
-import { APP_BUILD_LABEL, clearAppCacheAndReload, hasNewAppVersion, rememberCurrentAppVersion } from './lib/appVersion';
+import { APP_BUILD_LABEL, clearAppCacheAndReload, dismissUpdateBanner, hasNewAppVersion, rememberCurrentAppVersion } from './lib/appVersion';
 import { isRecoverableChunkError } from './lib/pwaRecovery';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
@@ -408,7 +408,7 @@ function AppUpdateBanner() {
         <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Reload to use the latest deployed version.</p>
       </div>
       <div className="flex gap-2">
-        <button type="button" onClick={() => setVisible(false)} className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200">
+        <button type="button" onClick={() => { dismissUpdateBanner(); setVisible(false); }} className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200">
           Later
         </button>
         <button type="button" onClick={() => { rememberCurrentAppVersion(); setTimeout(() => window.location.reload(), 100); }} className="flex-1 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white hover:bg-emerald-800">
@@ -874,19 +874,37 @@ function AppContent() {
   );
 }
 
+function languageSectionFromPath(pathname: string) {
+  const normalized = pathname.replace(/^\/+|\/+$/g, '') || 'login';
+  return normalized.replace(/\/+ /g, ':').replace(/\/+/g, ':');
+}
+
+function LanguageScope({ children }: { children: React.ReactNode }) {
+  const { user, dealerId } = useAuth();
+  const location = useLocation();
+  const userKey = dealerId || user?.id || user?.email || 'public';
+  const sectionKey = languageSectionFromPath(location.pathname);
+
+  return (
+    <LanguageProvider userKey={userKey} sectionKey={sectionKey}>
+      {children}
+    </LanguageProvider>
+  );
+}
+
 function App() {
   return (
     <ThemeProvider>
-      <LanguageProvider>
-        <AuthProvider>
-          <BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <LanguageScope>
             <OfflineScreen />
             <AppUpdateBanner />
             <AppContent />
             <AppVersionBadge />
-          </BrowserRouter>
-        </AuthProvider>
-      </LanguageProvider>
+          </LanguageScope>
+        </BrowserRouter>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

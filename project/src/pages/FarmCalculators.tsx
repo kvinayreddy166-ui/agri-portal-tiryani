@@ -3,6 +3,7 @@ import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, Wheat } from 'lucide-re
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
+import { LanguageToggle } from '../components/ui/LanguageToggle';
 
 const calculatorItems = [
   {
@@ -17,9 +18,9 @@ const calculatorItems = [
   },
   {
     title: 'Plant Population Calculator',
-    titleTe: 'Ã Â°Â®Ã Â±Å Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â² Ã Â°Å“Ã Â°Â¨Ã Â°Â¾Ã Â°Â­Ã Â°Â¾ Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â°Â¿Ã Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Å¸Ã Â°Â°Ã Â±Â',
+    titleTe: 'మొక్కల జనాభా కాలిక్యులేటర్',
     description: 'Enter spacing and get plants per field.',
-    descriptionTe: 'Ã Â°ÂµÃ Â°Â°Ã Â±ÂÃ Â°Â¸ Ã Â°Â®Ã Â°Â°Ã Â°Â¿Ã Â°Â¯Ã Â±Â Ã Â°Â®Ã Â±Å Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â² Ã Â°Â®Ã Â°Â§Ã Â±ÂÃ Â°Â¯ Ã Â°Â¦Ã Â±â€šÃ Â°Â°Ã Â°â€šÃ Â°Â¤Ã Â±â€¹ Ã Â°Â®Ã Â±Å Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â² Ã Â°Â¸Ã Â°â€šÃ Â°â€“Ã Â±ÂÃ Â°Â¯Ã Â°Â¨Ã Â±Â Ã Â°Â²Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â¿Ã Â°â€šÃ Â°Å¡Ã Â°â€šÃ Â°Â¡Ã Â°Â¿.',
+    descriptionTe: 'వరుస మరియు మొక్కల మధ్య దూరంతో మొక్కల సంఖ్యను లెక్కించండి.',
     path: '/officer-toolkit/plant-population-calculator',
     icon: Sprout,
     accent: 'from-green-600 to-teal-700',
@@ -27,9 +28,9 @@ const calculatorItems = [
   },
   {
     title: 'Seed Rate Calculator',
-    titleTe: 'Ã Â°ÂµÃ Â°Â¿Ã Â°Â¤Ã Â±ÂÃ Â°Â¤Ã Â°Â¨ Ã Â°Â®Ã Â±â€¹Ã Â°Â¤Ã Â°Â¾Ã Â°Â¦Ã Â±Â Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â°Â¿Ã Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Å¸Ã Â°Â°Ã Â±Â',
+    titleTe: 'విత్తన మోతాదు కాలిక్యులేటర్',
     description: 'Enter population and seed label details.',
-    descriptionTe: 'Ã Â°Å¸Ã Â±â€ Ã Â°Â¸Ã Â±ÂÃ Â°Å¸Ã Â±Â Ã Â°ÂµÃ Â±â€ Ã Â°Â¯Ã Â°Â¿Ã Â°Å¸Ã Â±Â, Ã Â°Â®Ã Â±Å Ã Â°Â²Ã Â°â€¢ Ã Â°Â¶Ã Â°Â¾Ã Â°Â¤Ã Â°â€š Ã Â°Â®Ã Â°Â°Ã Â°Â¿Ã Â°Â¯Ã Â±Â Ã Â°Â®Ã Â±Å Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â² Ã Â°Â¸Ã Â°â€šÃ Â°â€“Ã Â±ÂÃ Â°Â¯Ã Â°Â¤Ã Â±â€¹ Ã Â°ÂµÃ Â°Â¿Ã Â°Â¤Ã Â±ÂÃ Â°Â¤Ã Â°Â¨ Ã Â°â€¦Ã Â°ÂµÃ Â°Â¸Ã Â°Â°Ã Â°Â¾Ã Â°Â¨Ã Â±ÂÃ Â°Â¨Ã Â°Â¿ Ã Â°Â²Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â¿Ã Â°â€šÃ Â°Å¡Ã Â°â€šÃ Â°Â¡Ã Â°Â¿.',
+    descriptionTe: 'టెస్ట్ వెయిట్, మొలక శాతం మరియు మొక్కల సంఖ్యతో విత్తన అవసరాన్ని లెక్కించండి.',
     path: '/officer-toolkit/seed-rate-calculator',
     icon: Wheat,
     accent: 'from-lime-600 to-emerald-700',
@@ -37,9 +38,9 @@ const calculatorItems = [
   },
   {
     title: 'Fertilizer Calculator',
-    titleTe: 'Ã Â°Å½Ã Â°Â°Ã Â±ÂÃ Â°ÂµÃ Â±ÂÃ Â°Â² Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â°Â¿Ã Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Å¸Ã Â°Â°Ã Â±Â',
+    titleTe: 'ఎరువుల కాలిక్యులేటర్',
     description: 'Use crop recommendation or manual nutrients.',
-    descriptionTe: 'Ã Â°ÂªÃ Â±â€¹Ã Â°Â·Ã Â°â€¢ Ã Â°â€¦Ã Â°ÂµÃ Â°Â¸Ã Â°Â°Ã Â°Â¾Ã Â°Â² Ã Â°â€ Ã Â°Â§Ã Â°Â¾Ã Â°Â°Ã Â°â€šÃ Â°â€”Ã Â°Â¾ Ã Â°Å½Ã Â°Â°Ã Â±ÂÃ Â°ÂµÃ Â±Â Ã Â°ÂªÃ Â°Â°Ã Â°Â¿Ã Â°Â®Ã Â°Â¾Ã Â°Â£Ã Â°Â¾Ã Â°Â¨Ã Â±ÂÃ Â°Â¨Ã Â°Â¿ Ã Â°Â²Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â¿Ã Â°â€šÃ Â°Å¡Ã Â°â€šÃ Â°Â¡Ã Â°Â¿.',
+    descriptionTe: 'పోషక అవసరాల ఆధారంగా ఎరువు పరిమాణాన్ని లెక్కించండి.',
     path: '/officer-toolkit/fertilizer-calculator',
     icon: PackageCheck,
     accent: 'from-emerald-600 to-green-700',
@@ -47,9 +48,9 @@ const calculatorItems = [
   },
   {
     title: 'Pesticide Calculator',
-    titleTe: 'Ã Â°ÂªÃ Â±ÂÃ Â°Â°Ã Â±ÂÃ Â°â€”Ã Â±ÂÃ Â°Â®Ã Â°â€šÃ Â°Â¦Ã Â±Â Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â°Â¿Ã Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Å¸Ã Â°Â°Ã Â±Â',
+    titleTe: 'పురుగుమందు కాలిక్యులేటర్',
     description: 'Enter dose, tank and area for spray quantity.',
-    descriptionTe: 'Ã Â°â€¢Ã Â±ÂÃ Â°Â°Ã Â°Â¿Ã Â°Â¯Ã Â°Â¾Ã Â°Â¶Ã Â±â‚¬Ã Â°Â² Ã Â°ÂªÃ Â°Â¦Ã Â°Â¾Ã Â°Â°Ã Â±ÂÃ Â°Â¥Ã Â°â€š Ã Â°Â²Ã Â±â€¡Ã Â°Â¦Ã Â°Â¾ Ã Â°Â²Ã Â±â‚¬Ã Â°Å¸Ã Â°Â°Ã Â±ÂÃ Â°â€¢Ã Â±Â Ã Â°Â®Ã Â±â€¹Ã Â°Â¤Ã Â°Â¾Ã Â°Â¦Ã Â±ÂÃ Â°Â¤Ã Â±â€¹ Ã Â°ÂªÃ Â±ÂÃ Â°Â°Ã Â±ÂÃ Â°â€”Ã Â±ÂÃ Â°Â®Ã Â°â€šÃ Â°Â¦Ã Â±Â Ã Â°ÂªÃ Â°Â°Ã Â°Â¿Ã Â°Â®Ã Â°Â¾Ã Â°Â£Ã Â°Â¾Ã Â°Â¨Ã Â±ÂÃ Â°Â¨Ã Â°Â¿ Ã Â°Â²Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â¿Ã Â°â€šÃ Â°Å¡Ã Â°â€šÃ Â°Â¡Ã Â°Â¿.',
+    descriptionTe: 'క్రియాశీల పదార్థం లేదా లీటరుకు మోతాదుతో పురుగుమందు పరిమాణాన్ని లెక్కించండి.',
     path: '/officer-toolkit/pesticide-calculator',
     icon: Bug,
     accent: 'from-red-500 to-amber-600',
@@ -59,7 +60,7 @@ const calculatorItems = [
 
 export function FarmCalculators() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language, toggleLanguage } = useLanguage();
 
   return (
     <div className="space-y-4">
@@ -71,19 +72,22 @@ export function FarmCalculators() {
             </div>
             <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-wide text-emerald-100">
-                {t('Officer Toolkit', 'Ã Â°â€¦Ã Â°Â§Ã Â°Â¿Ã Â°â€¢Ã Â°Â¾Ã Â°Â°Ã Â±ÂÃ Â°Â² Ã Â°Å¸Ã Â±â€šÃ Â°Â²Ã Â±ÂÃ¢â‚¬Å’Ã Â°â€¢Ã Â°Â¿Ã Â°Å¸Ã Â±Â')}
+                {t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}
               </p>
               <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
-                {t('Farm Calculators', 'Ã Â°ÂµÃ Â±ÂÃ Â°Â¯Ã Â°ÂµÃ Â°Â¸Ã Â°Â¾Ã Â°Â¯ Ã Â°â€¢Ã Â°Â¾Ã Â°Â²Ã Â°Â¿Ã Â°â€¢Ã Â±ÂÃ Â°Â¯Ã Â±ÂÃ Â°Â²Ã Â±â€¡Ã Â°Å¸Ã Â°Â°Ã Â±ÂÃ Â°Â²Ã Â±Â')}
+                {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
               </h1>
               <p className="mt-1 text-sm font-semibold text-emerald-50">
-                {t('Crop, Seed, Fertilizer and Pesticide Calculations', 'Ã Â°ÂªÃ Â°â€šÃ Â°Å¸, Ã Â°ÂµÃ Â°Â¿Ã Â°Â¤Ã Â±ÂÃ Â°Â¤Ã Â°Â¨Ã Â°â€š, Ã Â°Å½Ã Â°Â°Ã Â±ÂÃ Â°ÂµÃ Â±Â Ã Â°Â®Ã Â°Â°Ã Â°Â¿Ã Â°Â¯Ã Â±Â Ã Â°ÂªÃ Â±ÂÃ Â°Â°Ã Â±ÂÃ Â°â€”Ã Â±ÂÃ Â°Â®Ã Â°â€šÃ Â°Â¦Ã Â±Â Ã Â°Â²Ã Â±â€ Ã Â°â€¢Ã Â±ÂÃ Â°â€¢Ã Â°Â²Ã Â±Â')}
+                {t('Crop, Seed, Fertilizer and Pesticide Calculations', 'పంట, విత్తనం, ఎరువు మరియు పురుగుమందు లెక్కలు')}
               </p>
             </div>
           </div>
-          <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid">
-            Back
-          </BackButton>
+          <div className="flex shrink-0 items-center gap-2">
+            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
+            <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid">
+              Back
+            </BackButton>
+          </div>
         </div>
       </section>
 

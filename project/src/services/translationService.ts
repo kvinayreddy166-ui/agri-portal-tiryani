@@ -1,4 +1,5 @@
 import type { LanguageCode } from './cropProtectionService';
+import { repairTeluguText } from '../utils/textRepair';
 
 export const teLabels: Record<string, string> = {
   'Crop Doctor': '\u0C15\u0C4D\u0C30\u0C3E\u0C2A\u0C4D \u0C21\u0C3E\u0C15\u0C4D\u0C1F\u0C30\u0C4D',
@@ -45,6 +46,22 @@ export const teLabels: Record<string, string> = {
   'Telugu information will be updated soon': '\u0C24\u0C46\u0C32\u0C41\u0C17\u0C41 \u0C38\u0C2E\u0C3E\u0C1A\u0C3E\u0C30\u0C02 \u0C24\u0C4D\u0C35\u0C30\u0C32\u0C4B \u0C28\u0C35\u0C40\u0C15\u0C30\u0C3F\u0C02\u0C1A\u0C2C\u0C21\u0C41\u0C24\u0C41\u0C02\u0C26\u0C3F',
 };
 
+function hasValidTelugu(text?: string | null): boolean {
+  if (!text?.trim()) return false;
+  return /[\u0C00-\u0C7F]/.test(text);
+}
+
 export function label(text: string, language: LanguageCode) {
-  return language === 'te' ? teLabels[text] || text : text;
+  if (language !== 'te') return text;
+  
+  const teluguTranslation = teLabels[text];
+  if (!teluguTranslation) return text;
+  
+  const repairedTelugu = repairTeluguText(teluguTranslation);
+  
+  if (hasValidTelugu(repairedTelugu)) {
+    return repairedTelugu;
+  }
+  
+  return text;
 }

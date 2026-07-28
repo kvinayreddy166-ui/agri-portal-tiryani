@@ -49,6 +49,12 @@ export type FertilizerPdfValues = {
   designation: string;
   officeAddress: string;
   compositionDisplayFlags: string;
+  qualification: string;
+  manualQualification: string;
+  district: string;
+  mandal: string;
+  manualDistrict: string;
+  manualMandal: string;
 };
 
 export const FERTILIZER_K_ADDRESS_OPTIONS = {
@@ -109,6 +115,12 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   designation: '',
   officeAddress: '',
   compositionDisplayFlags: 'N,P_T,P_WS,P_CS,K',
+  qualification: '',
+  manualQualification: '',
+  district: '',
+  mandal: '',
+  manualDistrict: '',
+  manualMandal: '',
 };
 
 export const fertilizerFormTitles: Record<FertilizerStatutoryFormType, string> = {
@@ -130,8 +142,8 @@ const PAGE = {
 };
 
 const PDF_FONT = 'times';
-const BODY_SIZE = 12.8;
-const TITLE_SIZE = 16.3;
+const BODY_SIZE = 12.5;
+const TITLE_SIZE = 16;
 const ROW_LINE_HEIGHT = 5.9;
 const ROW_GAP = 1.7;
 const PARA_LINE_HEIGHT = 6.1;
@@ -247,6 +259,16 @@ function drawHeader(cursor: PdfCursor, formType: FertilizerStatutoryFormType, va
   doc.setFont(PDF_FONT, 'bold');
   const headingLines = split(cursor, getHeading(formType), cursor.contentWidth);
   doc.text(headingLines, PAGE.width / 2, cursor.y, { align: 'center' });
+  if (headingLines.length === 1) {
+    const headingWidth = doc.getTextWidth(headingLines[0]);
+    doc.line(PAGE.width / 2 - headingWidth / 2, cursor.y + 1.5, PAGE.width / 2 + headingWidth / 2, cursor.y + 1.5);
+  } else {
+    for (let i = 0; i < headingLines.length; i++) {
+      const lineWidth = doc.getTextWidth(headingLines[i]);
+      const lineY = cursor.y + i * PARA_LINE_HEIGHT + 1.5;
+      doc.line(PAGE.width / 2 - lineWidth / 2, lineY, PAGE.width / 2 + lineWidth / 2, lineY);
+    }
+  }
   cursor.y += headingLines.length * PARA_LINE_HEIGHT + 7;
   doc.setFont(PDF_FONT, 'normal');
 }

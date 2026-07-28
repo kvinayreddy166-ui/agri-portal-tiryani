@@ -1,4 +1,5 @@
 ﻿import { supabase } from '../lib/supabase';
+import { repairTeluguText } from '../utils/textRepair';
 
 export type CropProtectionCategory = 'weed' | 'pest' | 'disease' | 'nutrient';
 export type ControlType = 'cultural' | 'mechanical' | 'biological' | 'chemical' | 'general_ipm';
@@ -337,7 +338,14 @@ export function advisoryText(
 }
 
 export function pickLang(en?: string | null, te?: string | null, language: LanguageCode = 'en') {
-  const cleanTe = hasTelugu(te) ? te?.trim() : '';
+  if (!te) {
+    if (language === 'te') return en?.trim() || FALLBACK_MESSAGE;
+    return en?.trim() || FALLBACK_MESSAGE;
+  }
+  
+  const repairedTe = repairTeluguText(te);
+  const cleanTe = hasTelugu(repairedTe) ? repairedTe.trim() : '';
+  
   if (language === 'te') return cleanTe || en?.trim() || FALLBACK_MESSAGE;
   return en?.trim() || cleanTe || FALLBACK_MESSAGE;
 }

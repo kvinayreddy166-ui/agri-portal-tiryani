@@ -1,6 +1,7 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Calendar, ChevronDown, FileSpreadsheet, Menu, Plus, Save, Table2, Trash2, Truck, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import {
   CATEGORY_UNITS,
   FINANCIAL_YEARS,
@@ -72,6 +73,43 @@ type ProductStat = {
   salesBags: number;
   stockBags: number;
 };
+
+function splitDealerUnitLabel(label: string) {
+  const match = label.match(/^(.*) \((.*)\)$/);
+  return match ? { base: match[1], suffix: ' (' + match[2] + ')' } : { base: label, suffix: '' };
+}
+
+function translateDealerUi(label: string) {
+  const labels: Record<string, string> = {
+    Fertilizer: 'ఎరువులు',
+    Seed: 'విత్తనాలు',
+    Pesticide: 'పురుగుమందులు',
+    'Receipts Entry': 'రసీదు ఎంట్రీ',
+    'Daily Stock / Sales Entry': 'రోజువారీ స్టాక్ / అమ్మకాల ఎంట్రీ',
+    Date: 'తేదీ',
+    Product: 'ఉత్పత్తి',
+    'Variety / Hybrid': 'రకం / హైబ్రిడ్',
+    Opening: 'ప్రారంభ స్టాక్',
+    Receipts: 'రసీదులు',
+    Total: 'మొత్తం',
+    Sales: 'అమ్మకాలు',
+    Closing: 'ముగింపు స్టాక్',
+    Delete: 'తొలగించు',
+    'Save Daily Entry': 'రోజువారీ ఎంట్రీ సేవ్ చేయండి',
+    'Saved Receipts': 'సేవ్ చేసిన రసీదులు',
+    'Saved Daily Stock / Sales': 'సేవ్ చేసిన రోజువారీ స్టాక్ / అమ్మకాలు',
+    'Export Excel': 'Excel ఎగుమతి',
+    'S.No': 'క్ర.సం.',
+    'Invoice No': 'ఇన్వాయిస్ నంబర్',
+    'Invoice Date': 'ఇన్వాయిస్ తేదీ',
+    Source: 'మూలం',
+    Remarks: 'గమనికలు',
+    Stock: 'స్టాక్',
+    'Product-wise Receipts, Sales & Stock': 'ఉత్పత్తి వారీ రసీదులు, అమ్మకాలు & స్టాక్',
+    'Manual Entry': 'మాన్యువల్ ఎంట్రీ',
+  };
+  return labels[label] || label;
+}
 
 const COLORS = {
   primary: '#0B7A5C',
@@ -301,6 +339,7 @@ function emptyDaily(category: StockCategory): DailyForm {
 
 export function DealerStockPortal() {
   const { dealerId, dealerName, user } = useAuth();
+  const { t } = useLanguage();
   const [section, setSection] = useState<Section>('entry');
   const [menuOpen, setMenuOpen] = useState(false);
   const [category, setCategory] = useState<StockCategory>('fertilizer');
@@ -412,7 +451,7 @@ export function DealerStockPortal() {
     if (!dealerId || saving) return;
     const quantity = category === 'fertilizer' ? receiptForm.quantityMt : receiptForm.quantity;
     if (quantity <= 0 || !receiptForm.invoiceNo.trim()) {
-      alert('Enter quantity and invoice number.');
+      alert(t('Enter quantity and invoice number.', 'పరిమాణం మరియు ఇన్వాయిస్ నంబర్ నమోదు చేయండి.'));
       return;
     }
 
@@ -444,10 +483,10 @@ export function DealerStockPortal() {
         updated_at: new Date().toISOString(),
       };
       await saveStockLine(payload);
-      setMessage('Receipt saved.');
+      setMessage(t('Receipt saved.', 'రసీదు సేవ్ అయింది.'));
       setReceiptForm(emptyReceipt(category));
     } catch (error) {
-      alert(`Could not save receipt: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(`${t('Could not save receipt', 'రసీదు సేవ్ చేయలేకపోయాం')}: ${error instanceof Error ? error.message : t('Unknown error', 'తెలియని లోపం')}`);
     } finally {
       setSaving(false);
     }
@@ -465,12 +504,12 @@ export function DealerStockPortal() {
       });
 
     if (!preparedRows.length) {
-      alert('Add at least one daily stock row.');
+      alert(t('Add at least one daily stock row.', 'కనీసం ఒక రోజువారీ స్టాక్ వరుసను జోడించండి.'));
       return;
     }
 
     if (preparedRows.some(({ computed }) => computed.sales > computed.total || computed.closing_balance < 0)) {
-      alert('Sales cannot be more than available stock (Opening + Receipts). Closing stock must be Total - Sales.');
+      alert(t('Sales cannot be more than available stock (Opening + Receipts). Closing stock must be Total - Sales.', 'అమ్మకాలు అందుబాటులో ఉన్న స్టాక్‌ కంటే ఎక్కువగా ఉండకూడదు (ప్రారంభం + రసీదులు). ముగింపు స్టాక్ మొత్తం - అమ్మకాలు కావాలి.'));
       return;
     }
 
@@ -498,10 +537,10 @@ export function DealerStockPortal() {
         updated_at: new Date().toISOString(),
       }));
       await Promise.all(payloads.map((payload) => saveStockLine(payload)));
-      setMessage('Daily stock saved.');
+      setMessage(t('Daily stock saved.', 'రోజువారీ స్టాక్ సేవ్ అయింది.'));
       setDailyRows([emptyDaily(category)]);
     } catch (error) {
-      alert(`Could not save daily stock: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(`${t('Could not save daily stock', 'రోజువారీ స్టాక్ సేవ్ చేయలేకపోయాం')}: ${error instanceof Error ? error.message : t('Unknown error', 'తెలియని లోపం')}`);
     } finally {
       setSaving(false);
     }
@@ -509,23 +548,23 @@ export function DealerStockPortal() {
 
   const deleteEntry = async (row: StockInventoryLine) => {
     if (!row.id || deletingId) return;
-    const confirmed = window.confirm('Delete this saved entry?');
+    const confirmed = window.confirm(t('Delete this saved entry?', 'ఈ సేవ్ చేసిన ఎంట్రీని తొలగించాలా?'));
     if (!confirmed) return;
 
     setDeletingId(row.id);
     try {
       await deleteStockLine(row.id);
       setRecords((current) => current.filter((item) => item.id !== row.id));
-      setMessage('Saved entry deleted.');
+      setMessage(t('Saved entry deleted.', 'సేవ్ చేసిన ఎంట్రీ తొలగించబడింది.'));
     } catch (error) {
-      alert(`Could not delete entry: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(`${t('Could not delete entry', 'ఎంట్రీని తొలగించలేకపోయాం')}: ${error instanceof Error ? error.message : t('Unknown error', 'తెలియని లోపం')}`);
     } finally {
       setDeletingId('');
     }
   };
 
   if (!dealerId) {
-    return <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-900">Dealer account not linked. Please sign in with your registered phone number.</div>;
+    return <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-900">{t('Dealer account not linked. Please sign in with your registered phone number.', 'డీలర్ ఖాతా లింక్ కాలేదు. దయచేసి మీ నమోదిత ఫోన్ నంబర్‌తో సైన్ ఇన్ చేయండి.')}</div>;
   }
 
   return (
@@ -533,12 +572,12 @@ export function DealerStockPortal() {
       <div className="sticky top-0 z-30 border-b border-emerald-900/10 bg-[#F4F8F5]/95 px-2 py-2 backdrop-blur sm:px-3">
         <div className="mb-1.5 flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Welcome</p>
+            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">{t('Welcome', 'స్వాగతం')}</p>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="truncate text-base font-black uppercase sm:text-lg">{firmName}</h1>
               {category === 'fertilizer' && ifmsId && <span className="rounded-md bg-slate-950 px-2.5 py-1 text-xs font-black text-white">IFMS ID: {ifmsId}</span>}
             </div>
-            <p className="mt-0.5 text-xs font-semibold" style={{ color: COLORS.muted }}>{licenseNumber || 'License No. Not Updated'}</p>
+            <p className="mt-0.5 text-xs font-semibold" style={{ color: COLORS.muted }}>{licenseNumber || t('License No. Not Updated', 'లైసెన్స్ నంబర్ నవీకరించబడలేదు')}</p>
           </div>
           <div className="relative">
             <button type="button" onClick={() => setMenuOpen((value) => !value)} className="rounded-xl border border-emerald-200 bg-white p-2 text-emerald-900 shadow-sm">
@@ -546,8 +585,8 @@ export function DealerStockPortal() {
             </button>
             {menuOpen && (
               <div className="absolute right-0 top-11 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-                <MenuButton icon={<Truck className="h-4 w-4" />} label="Receipts & Daily Stock" active={section === 'entry'} onClick={() => { setSection('entry'); setMenuOpen(false); }} />
-                <MenuButton icon={<Table2 className="h-4 w-4" />} label="Saved Entries" active={section === 'saved'} onClick={() => { setSection('saved'); setMenuOpen(false); void loadRecords(); }} />
+                <MenuButton icon={<Truck className="h-4 w-4" />} label={t('Receipts & Daily Stock', 'రసీదులు & రోజువారీ స్టాక్')} active={section === 'entry'} onClick={() => { setSection('entry'); setMenuOpen(false); }} />
+                <MenuButton icon={<Table2 className="h-4 w-4" />} label={t('Saved Entries', 'సేవ్ చేసిన ఎంట్రీలు')} active={section === 'saved'} onClick={() => { setSection('saved'); setMenuOpen(false); void loadRecords(); }} />
               </div>
             )}
           </div>
@@ -557,7 +596,7 @@ export function DealerStockPortal() {
 
       <main className="w-full max-w-full space-y-2 overflow-hidden px-1.5 py-2 sm:px-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-black">{section === 'entry' ? 'Receipts & Daily Stock' : 'Saved Entries'}</h2>
+          <h2 className="text-base font-black">{section === 'entry' ? t('Receipts & Daily Stock', 'రసీదులు & రోజువారీ స్టాక్') : t('Saved Entries', 'సేవ్ చేసిన ఎంట్రీలు')}</h2>
           <label className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-black shadow-sm">
             Unit
             <select value={unit} onChange={(event) => setUnit(event.target.value)} className="bg-transparent outline-none">
@@ -607,6 +646,8 @@ export function DealerStockPortal() {
 }
 
 const CategoryTabs = memo(function CategoryTabs({ category, onChange }: { category: StockCategory; onChange: (category: StockCategory) => void }) {
+  const { t } = useLanguage();
+
   return (
     <div className="grid grid-cols-3 gap-1.5">
       {(['fertilizer', 'seed', 'pesticide'] as StockCategory[]).map((item) => (
@@ -617,7 +658,7 @@ const CategoryTabs = memo(function CategoryTabs({ category, onChange }: { catego
           className={`rounded-xl border px-2 py-2 text-sm font-black transition ${category === item ? 'text-white' : 'bg-white text-emerald-800'}`}
           style={{ background: category === item ? COLORS.primary : '#FFFFFF', borderColor: COLORS.primary }}
         >
-          {CATEGORY_LABELS[item]}
+          {t(CATEGORY_LABELS[item], translateDealerUi(CATEGORY_LABELS[item]))}
         </button>
       ))}
     </div>
@@ -653,6 +694,7 @@ function MenuButton({ icon, label, active, onClick }: { icon: React.ReactNode; l
 }
 
 function ReceiptEntryCard({ category, unit, form, setForm, saving, onSave }: { category: StockCategory; unit: string; form: ReceiptForm; setForm: React.Dispatch<React.SetStateAction<ReceiptForm>>; saving: boolean; onSave: () => void }) {
+  const { t } = useLanguage();
   const update = (patch: Partial<ReceiptForm>) => setForm((current) => ({ ...current, ...patch }));
   const [open, setOpen] = useState(category !== 'fertilizer');
   const quantityBags = mtToBags(form.quantityMt, form.product);
@@ -665,7 +707,7 @@ function ReceiptEntryCard({ category, unit, form, setForm, saving, onSave }: { c
   return (
     <section className="rounded-[14px] border border-red-100 bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
       <button type="button" onClick={() => setOpen((value) => !value)} className="flex w-full items-center justify-between gap-2 text-left text-sm font-black text-red-800">
-        <span className="flex items-center gap-2"><Truck className="h-4 w-4" /> Receipts Entry</span>
+        <span className="flex items-center gap-2"><Truck className="h-4 w-4" /> {t('Receipts Entry', translateDealerUi('Receipts Entry'))}</span>
         <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
@@ -702,6 +744,7 @@ function ReceiptEntryCard({ category, unit, form, setForm, saving, onSave }: { c
 }
 
 function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave }: { category: StockCategory; unit: string; rows: DailyForm[]; setRows: React.Dispatch<React.SetStateAction<DailyForm[]>>; records: StockInventoryLine[]; saving: boolean; onSave: () => void }) {
+  const { t } = useLanguage();
   const withCarriedOpening = (row: DailyForm) => {
     const previousClosing = previousDailyClosing(records, category, row.product, row.date);
     if (previousClosing === null) return row;
@@ -729,7 +772,7 @@ function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave
   return (
     <section className="rounded-[14px] border border-emerald-100 bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-sm font-black text-emerald-900"><Calendar className="h-4 w-4" /> Daily Stock / Sales Entry</h3>
+        <h3 className="flex items-center gap-2 text-sm font-black text-emerald-900"><Calendar className="h-4 w-4" /> {t('Daily Stock / Sales Entry', translateDealerUi('Daily Stock / Sales Entry'))}</h3>
         <button type="button" onClick={addRow} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-800">
           <Plus className="h-3.5 w-3.5" /> Add row
         </button>
@@ -751,9 +794,9 @@ function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave
               {category === 'seed' && <div className="mt-2"><Field label="Variety / Hybrid" value={row.variety} onChange={(value) => updateRow(row.id, { variety: value })} /></div>}
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <MobileNumber label={`Opening (${unit})`} value={category === 'fertilizer' ? display(row.openingMt, row.product) : row.opening} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { openingMt: parse(value, row.product) }) : updateRow(row.id, { opening: value })} />
-                <MobileNumber label={`Receipts (${unit})`} value={category === 'fertilizer' ? display(row.receiptsMt, row.product) : row.receipts} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { receiptsMt: parse(value, row.product) }) : updateRow(row.id, { receipts: value })} />
+                <MobileNumber label={`${t('Receipts', translateDealerUi('Receipts'))} (${unit})`} value={category === 'fertilizer' ? display(row.receiptsMt, row.product) : row.receipts} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { receiptsMt: parse(value, row.product) }) : updateRow(row.id, { receipts: value })} />
                 <Readonly label={`Total (${unit})`} value={String(category === 'fertilizer' ? display(computed.total, row.product) : computed.total)} />
-                <MobileNumber label={`Sales (${unit})`} value={category === 'fertilizer' ? display(row.salesMt, row.product) : row.sales} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { salesMt: parse(value, row.product) }) : updateRow(row.id, { sales: value })} />
+                <MobileNumber label={`${t('Sales', translateDealerUi('Sales'))} (${unit})`} value={category === 'fertilizer' ? display(row.salesMt, row.product) : row.sales} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { salesMt: parse(value, row.product) }) : updateRow(row.id, { sales: value })} />
                 <div className="col-span-2"><Readonly label={`Closing (${unit})`} value={String(category === 'fertilizer' ? display(computed.closing_balance, row.product) : computed.closing_balance)} /></div>
               </div>
             </div>
@@ -764,7 +807,7 @@ function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave
         <table className="w-full min-w-[860px] text-xs">
           <thead className="sticky top-0 text-white" style={{ background: COLORS.text }}>
             <tr>
-              {['Date', 'Product', ...(category === 'seed' ? ['Variety / Hybrid'] : []), `Opening (${unit})`, `Receipts (${unit})`, `Total (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'].map((head) => <th key={head} className="px-2 py-2 text-left">{head}</th>)}
+              {['Date', 'Product', ...(category === 'seed' ? ['Variety / Hybrid'] : []), `Opening (${unit})`, `Receipts (${unit})`, `Total (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'].map((head) => { const label = splitDealerUnitLabel(head); return <th key={head} className="px-2 py-2 text-left">{t(label.base, translateDealerUi(label.base))}{label.suffix}</th>; })}
             </tr>
           </thead>
           <tbody>
@@ -795,7 +838,7 @@ function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave
       </div>
       {category === 'fertilizer' && <p className="mt-2 text-xs font-bold text-slate-500">Fertilizer values are saved in MT. Display follows selected unit.</p>}
       <button type="button" onClick={onSave} disabled={saving} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-black text-white disabled:opacity-60" style={{ background: COLORS.primary }}>
-        <Save className="h-4 w-4" /> Save Daily Entry
+        <Save className="h-4 w-4" /> {t('Save Daily Entry', translateDealerUi('Save Daily Entry'))}
       </button>
     </section>
   );
@@ -819,6 +862,7 @@ function SavedEntries(props: {
   deletingId: string;
   onDelete: (row: StockInventoryLine) => void;
 }) {
+  const { t } = useLanguage();
   const { category, unit, records, loading, receiptFilter, setReceiptFilter, dailyFilter, setDailyFilter } = props;
   const receiptRows = useFilteredRows(records, category, receiptFilter, 'receipt');
   const dailyRows = useFilteredRows(records, category, dailyFilter, 'daily_stock');
@@ -834,7 +878,7 @@ function SavedEntries(props: {
       <SummaryCards summary={summary} category={category} unit={unit} />
       <ProductWiseBars stats={productStats} category={category} unit={unit} />
       <SavedTableSection
-        title="Saved Receipts"
+        title={t('Saved Receipts', translateDealerUi('Saved Receipts'))}
         category={category}
         unit={unit}
         rows={receiptRows}
@@ -850,7 +894,7 @@ function SavedEntries(props: {
         onDelete={props.onDelete}
       />
       <SavedTableSection
-        title="Saved Daily Stock / Sales"
+        title={t('Saved Daily Stock / Sales', translateDealerUi('Saved Daily Stock / Sales'))}
         category={category}
         unit={unit}
         rows={dailyRows}
@@ -885,6 +929,8 @@ function SavedTableSection(props: {
   deletingId: string;
   onDelete: (row: StockInventoryLine) => void;
 }) {
+  const { t } = useLanguage();
+
   return (
     <section className="border border-slate-200 bg-white">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -896,7 +942,7 @@ function SavedTableSection(props: {
           <button type="button" onClick={() => props.setFiltersOpen(!props.filtersOpen)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black">
             Filters <ChevronDown className={`h-3 w-3 transition ${props.filtersOpen ? 'rotate-180' : ''}`} />
           </button>
-          <IconButton label="Export Excel" tone="excel" onClick={props.onExport} className="h-9 w-9">
+          <IconButton label={t('Export Excel', translateDealerUi('Export Excel'))} tone="excel" onClick={props.onExport} className="h-9 w-9">
             <FileSpreadsheet className="h-3.5 w-3.5" />
           </IconButton>
         </div>
@@ -999,6 +1045,7 @@ function displayQuantity(value: number, product: string, category: StockCategory
 }
 
 function SummaryCards({ summary, category, unit }: { summary: { receipts: number; sales: number; stock: number; receiptBags: number; salesBags: number; stockBags: number }; category: StockCategory; unit: string }) {
+  const { t } = useLanguage();
   const display = (value: number, bags: number) => category === 'fertilizer' && unit === 'Bags'
     ? `${formatBags(bags)} Bags`
     : category === 'fertilizer'
@@ -1006,14 +1053,15 @@ function SummaryCards({ summary, category, unit }: { summary: { receipts: number
       : `${Number(value || 0).toFixed(2)} ${unit}`;
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-      <Summary label="Receipts" value={display(summary.receipts, summary.receiptBags)} />
-      <Summary label="Sales" value={display(summary.sales, summary.salesBags)} />
-      <Summary label="Stock" value={display(summary.stock, summary.stockBags)} />
+      <Summary label={t('Receipts', translateDealerUi('Receipts'))} value={display(summary.receipts, summary.receiptBags)} />
+      <Summary label={t('Sales', translateDealerUi('Sales'))} value={display(summary.sales, summary.salesBags)} />
+      <Summary label={t('Stock', translateDealerUi('Stock'))} value={display(summary.stock, summary.stockBags)} />
     </div>
   );
 }
 
 function ProductWiseBars({ stats, category, unit }: { stats: ProductStat[]; category: StockCategory; unit: string }) {
+  const { t } = useLanguage();
   if (!stats.length) return null;
   const max = Math.max(...stats.map((item) => Math.max(item.receipts, item.sales, Math.abs(item.stock))), 1);
   const display = (value: number, bags: number) => category === 'fertilizer' && unit === 'Bags'
@@ -1023,14 +1071,14 @@ function ProductWiseBars({ stats, category, unit }: { stats: ProductStat[]; cate
       : `${Number(value || 0).toFixed(2)} ${unit}`;
   return (
     <section className="rounded-[14px] bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
-      <h3 className="mb-2 text-sm font-black text-slate-950">Product-wise Receipts, Sales & Stock</h3>
+      <h3 className="mb-2 text-sm font-black text-slate-950">{t('Product-wise Receipts, Sales & Stock', translateDealerUi('Product-wise Receipts, Sales & Stock'))}</h3>
       <div className="grid gap-2 lg:grid-cols-2">
         {stats.map((item) => (
           <div key={item.product} className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
             <p className="mb-2 truncate text-xs font-black text-slate-900">{item.product}</p>
-            <BarLine label="Receipts" color="bg-emerald-600" width={(item.receipts / max) * 100} value={display(item.receipts, item.receiptBags)} />
-            <BarLine label="Sales" color="bg-red-600" width={(item.sales / max) * 100} value={display(item.sales, item.salesBags)} />
-            <BarLine label="Stock" color="bg-slate-800" width={(Math.abs(item.stock) / max) * 100} value={display(item.stock, item.stockBags)} />
+            <BarLine label={t('Receipts', translateDealerUi('Receipts'))} color="bg-emerald-600" width={(item.receipts / max) * 100} value={display(item.receipts, item.receiptBags)} />
+            <BarLine label={t('Sales', translateDealerUi('Sales'))} color="bg-red-600" width={(item.sales / max) * 100} value={display(item.sales, item.salesBags)} />
+            <BarLine label={t('Stock', translateDealerUi('Stock'))} color="bg-slate-800" width={(Math.abs(item.stock) / max) * 100} value={display(item.stock, item.stockBags)} />
           </div>
         ))}
       </div>
@@ -1055,6 +1103,7 @@ function Summary({ label, value }: { label: string; value: string }) {
 }
 
 function ProductInput({ category, label, value, onChange }: { category: StockCategory; label: string; value: string; onChange: (value: string) => void }) {
+  const { t } = useLanguage();
   const [manual, setManual] = useState(!productsFor(category).includes(value));
   useEffect(() => setManual(!productsFor(category).includes(value)), [category, value]);
   if (manual) {
@@ -1062,7 +1111,7 @@ function ProductInput({ category, label, value, onChange }: { category: StockCat
   }
   return (
     <div className="grid gap-1">
-      <SelectField label={label || 'Product'} value={value} onChange={(next) => next === '__manual__' ? setManual(true) : onChange(next)} options={[...productsFor(category), '__manual__']} display={(option) => option === '__manual__' ? 'Manual Entry' : option} />
+      <SelectField label={label || 'Product'} value={value} onChange={(next) => next === '__manual__' ? setManual(true) : onChange(next)} options={[...productsFor(category), '__manual__']} display={(option) => option === '__manual__' ? t('Manual Entry', translateDealerUi('Manual Entry')) : option} />
     </div>
   );
 }
@@ -1324,3 +1373,5 @@ function displayProduct(row: StockInventoryLine) {
   const product = row.product_type || '-';
   return row.variety ? `${product} - ${row.variety}` : product;
 }
+
+

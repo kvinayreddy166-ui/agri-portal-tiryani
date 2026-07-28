@@ -1,6 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Download, Eye, RotateCcw, Save, X } from 'lucide-react';
 import { SeedInstructionModal } from '../components/ui/SeedInstructionModal';
+import {
+  QUALIFICATION_OPTIONS,
+  TELANGANA_DISTRICTS,
+  SEED_DESIGNATION_OPTIONS,
+  getMandalsForDistrict,
+} from '../data/telanganaDistrictMandalData';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
@@ -8,26 +14,25 @@ const LAST_GENERATED_KEY = 'tiryani-seed-forms-last-generated';
 const DUPLICATE_WARNING_MESSAGE =
   'You are generating a file with the same previous sample/dealer details. Please verify whether new sample details or dealer details are required before downloading.';
 const PDF_FONT = 'times';
-const PDF_BODY_SIZE = 13.4;
-const PDF_TITLE_SIZE = 16.4;
-const PDF_SUBTITLE_SIZE = 14.4;
+const PDF_BODY_SIZE = 12.5;
+const PDF_TITLE_SIZE = 16;
+const PDF_SUBTITLE_SIZE = 14;
 const FORM_II_COTTON_QUANTITY = '25 G * 3';
 
 const cropOptions = ['Paddy', 'Cotton', 'Maize', 'Redgram', 'Greengram', 'Blackgram', 'Soybean', 'Bengalgram', 'Jowar', 'Other'];
 const natureOptions = ['Seed sample', 'Other'];
 const classOptions = ['Breeder Seed', 'Foundation Seed', 'Certified Seed', 'Truthfully Labelled Seed', 'Hybrid Seed', 'Other'];
 const testOptions = ['Germination, Purity & Moisture Test', 'BT Protein Test', 'Genetic Purity Test', 'Seed Health Test', 'Complete Analysis', 'Other'];
-const designationOptions = ['Mandal Agriculture Officer', 'Asst. Director of Agriculture'];
 const labOptions = [
   {
     id: 'seed-testing',
     label: 'Seed Testing Laboratory, Rajendranagar',
-    value: 'The Asst. Director of Agriculture,\nSeed Testing Laboratory,\nRajendranagar, Hyderabad - 500030',
+    value: 'The Asst. Director of Agriculture,\nSeed Testing Laboratory,\nRajendranagar,\nHyderabad - 500030.',
   },
   {
     id: 'dna-lab',
     label: 'DNA Finger Printing Lab, Old Malakpet',
-    value: 'The Govt. Analyst/ADA,\nDNA Finger Printing Lab,\nOld Malakpet, Hyderabad - 500036',
+    value: 'The Govt. Analyst/ADA,\nDNA Finger Printing Lab,\nOld Malakpet,\nHyderabad - 500036.',
   },
   { id: 'other', label: 'Other', value: '' },
 ];
@@ -64,6 +69,12 @@ const initialSeedForm = {
   costPaid: 'Not Applicable',
   labId: 'seed-testing',
   customLabAddress: '',
+  qualification: '',
+  manualQualification: '',
+  district: '',
+  mandal: '',
+  manualDistrict: '',
+  manualMandal: '',
 };
 
 export function SeedForms() {
@@ -99,6 +110,19 @@ export function SeedForms() {
         if (!currentDraftName || currentDraftName === previousOfficerName) {
           setDraftName(value.trim());
         }
+      }
+      if (key === 'district') {
+        return { ...current, district: value, mandal: '', manualDistrict: '', manualMandal: '', place: '' };
+      }
+      if (key === 'mandal') {
+        const resolvedPlace = value === 'Others' ? current.manualMandal : value;
+        return { ...current, mandal: value, manualMandal: '', place: resolvedPlace };
+      }
+      if (key === 'manualMandal') {
+        return { ...current, manualMandal: value, place: value };
+      }
+      if (key === 'qualification') {
+        return { ...current, qualification: value, manualQualification: '' };
       }
       if (key === 'place') {
         return { ...current, place: value, collectionPlace: value };
@@ -290,12 +314,14 @@ export function SeedForms() {
       <div className="grid gap-3 lg:grid-cols-2">
         <Card title="OFFICER DETAILS" color="emerald">
           <Input label="Officer name" value={form.officerName} onChange={(value) => setField('officerName', value)} />
-          <Select label="Designation" value={form.designation} onChange={(value) => setField('designation', value)} options={designationOptions.map(toOption)} />
-          <Input label="Office address" value={form.officeAddress} onChange={(value) => setField('officeAddress', value)} textarea />
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Input label="Place" value={form.place} onChange={(value) => setField('place', value)} />
-            <Input label="Date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
-          </div>
+          <Select label="Qualification" value={form.qualification} onChange={(value) => setField('qualification', value)} options={QUALIFICATION_OPTIONS} />
+          {form.qualification === 'Others' && <Input label="Enter qualification" value={form.manualQualification} onChange={(value) => setField('manualQualification', value)} />}
+          <Select label="Designation" value={form.designation} onChange={(value) => setField('designation', value)} options={SEED_DESIGNATION_OPTIONS} />
+          <Select label="District" value={form.district} onChange={(value) => setField('district', value)} options={TELANGANA_DISTRICTS.map(toOption)} />
+          <Select label="Mandal" value={form.mandal} onChange={(value) => setField('mandal', value)} options={form.district && form.district !== 'Others' ? getMandalsForDistrict(form.district).map(toOption) : []} />
+          {form.district === 'Others' && <Input label="Enter district name" value={form.manualDistrict} onChange={(value) => setField('manualDistrict', value)} />}
+          {form.mandal === 'Others' && <Input label="Enter mandal name" value={form.manualMandal} onChange={(value) => setField('manualMandal', value)} />}
+          <Input label="Date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
         </Card>
 
         <Card title="LABORATORY DETAILS" color="blue">
@@ -489,6 +515,13 @@ function resolveSeedValues(form) {
   const lab = labOptions.find((item) => item.id === form.labId) || labOptions[0];
   const fromPlace = String(form.place || '').trim();
   const resolvedPlace = fromPlace || form.collectionPlace;
+  const resolvedMandal = form.mandal === 'Others' ? form.manualMandal : form.mandal;
+  const resolvedDistrict = form.district === 'Others' ? form.manualDistrict : form.district;
+  const resolvedQualification = form.qualification === 'Others' ? form.manualQualification : form.qualification;
+  const officerNameWithQualification = form.officerName && resolvedQualification 
+    ? `${form.officerName}, ${resolvedQualification}`
+    : form.officerName;
+  
   return {
     ...form,
     place: resolvedPlace,
@@ -498,8 +531,8 @@ function resolveSeedValues(form) {
     seedClass: form.seedClass === 'Other' ? form.seedClassOther : form.seedClass,
     testRequired: form.testRequired === 'Other' ? form.testRequiredOther : form.testRequired,
     labAddress: form.labId === 'other' ? form.customLabAddress : lab.value,
-    fromAddress: [form.officerName, form.designation, form.officeAddress].filter(Boolean).join('\n'),
-    senderAddress: [form.designation, form.officeAddress].filter(Boolean).join('\n'),
+    fromAddress: [officerNameWithQualification, form.designation, resolvedMandal ? `${resolvedMandal} Mandal` : '', resolvedDistrict].filter(Boolean).join('\n'),
+    senderAddress: [form.designation, resolvedMandal ? `${resolvedMandal} Mandal` : '', resolvedDistrict].filter(Boolean).join('\n'),
   };
 }
 
@@ -510,6 +543,24 @@ function isCottonSeedForm(form) {
 function validateSeedForm(form, kind) {
   if (kind === 'II' && !isCottonSeedForm(form)) {
     return 'Form II is available only when Cotton crop is selected.';
+  }
+  if (!form.qualification) {
+    return 'Qualification is required';
+  }
+  if (form.qualification === 'Others' && !form.manualQualification) {
+    return 'Qualification name is required when "Others" is selected';
+  }
+  if (!form.district) {
+    return 'District is required';
+  }
+  if (!form.mandal) {
+    return 'Mandal is required';
+  }
+  if (form.district === 'Others' && !form.manualDistrict) {
+    return 'District name is required when "Others" is selected';
+  }
+  if (form.mandal === 'Others' && !form.manualMandal) {
+    return 'Mandal name is required when "Others" is selected';
   }
   return '';
 }
@@ -591,6 +642,8 @@ function drawSeedFormVI(doc, form) {
   p.y += 8;
   doc.setFontSize(PDF_SUBTITLE_SIZE);
   doc.text('FORM OF NOTICE', 105, p.y, { align: 'center' });
+  const textWidth = doc.getTextWidth('FORM OF NOTICE');
+  doc.line(105 - textWidth / 2, p.y + 2, 105 + textWidth / 2, p.y + 2);
   p.y += 18;
 
   doc.setFont(PDF_FONT, 'bold');
@@ -628,9 +681,10 @@ function drawSeedFormVIII(doc, form) {
   ]);
   doc.setFont(PDF_FONT, 'bold');
   doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 28, p.y);
-  doc.text('SEED INSPECTOR', 176, p.y, { align: 'right' });
+  p.y += 8;
+  doc.text('Seed Inspector', 176, p.y, { align: 'right' });
   doc.setFont(PDF_FONT, 'normal');
-  p.y += 12;
+  p.y += 16;
   details(doc, p, [
     ['1. Serial No. of the sample', r.serialNo],
     ['2. Code No. of the sample', r.codeNo],
@@ -650,7 +704,7 @@ function drawSeedFormVIII(doc, form) {
   field(doc, p, 'Whether Cost Paid', r.costPaid, 78);
   const signatureY = Math.min(Math.max(p.y + 8, 224), 242);
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(['Signature of the party / Dealer', 'from whose premises samples taken', 'and payment made'], 28, signatureY);
+  doc.text(['Signature of the party / Dealer', 'from whose premises samples taken', 'and payment made'], 20, signatureY);
   signatureRight(doc, signatureY, ['Seed Inspector/', 'Mandal Agriculture Officer']);
   doc.setFont(PDF_FONT, 'normal');
   doc.text(`Place: ${r.place || '__________'}`, 28, signatureY + 24);
@@ -711,6 +765,8 @@ function title(doc, p, heading, subheading, titleText) {
   }
   doc.setFontSize(PDF_SUBTITLE_SIZE);
   doc.text(titleText, 105, p.y, { align: 'center' });
+  const textWidth = doc.getTextWidth(titleText);
+  doc.line(105 - textWidth / 2, p.y + 2, 105 + textWidth / 2, p.y + 2);
   p.y += 14;
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(PDF_BODY_SIZE);
@@ -719,9 +775,9 @@ function title(doc, p, heading, subheading, titleText) {
 function drawFromTo(doc, p, r) {
   doc.setFont(PDF_FONT, 'bold');
   doc.text('From', 20, p.y);
-  doc.text('To', 112, p.y);
+  doc.text('To', 128, p.y);
   doc.text(doc.splitTextToSize(r.fromAddress || '________________', 78), 20, p.y + 7);
-  doc.text(doc.splitTextToSize(r.labAddress || '________________', 78), 112, p.y + 7);
+  doc.text(doc.splitTextToSize(r.labAddress || '________________', 78), 128, p.y + 7);
   doc.setFont(PDF_FONT, 'normal');
   p.y += 44;
 }
@@ -793,7 +849,7 @@ function footer(doc, p, r, options = {}) {
 function signatureRight(doc, y, label) {
   doc.setFont(PDF_FONT, 'bold');
   const labelLines = Array.isArray(label) ? label : [label];
-  doc.text(['Signature', ...labelLines], 176, y, { align: 'right' });
+  doc.text(['Signature', ...labelLines], 162, y, { align: 'center' });
   doc.setFont(PDF_FONT, 'normal');
 }
 

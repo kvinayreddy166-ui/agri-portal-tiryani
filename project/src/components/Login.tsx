@@ -62,9 +62,9 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 }
 
 const STATUTORY_FOLDERS = [
-  { id: 'fertilizers', label: 'Fertilizer', telugu: 'à°Žà°°à±à°µà±à°²à±' },
-  { id: 'seed', label: 'Seed', telugu: 'à°µà°¿à°¤à±à°¤à°¨à°¾à°²à±' },
-  { id: 'pesticides', label: 'Pesticide', telugu: 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à±à°²à±' },
+  { id: 'fertilizers', label: 'Fertilizer', telugu: 'ఎరువులు' },
+  { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
+  { id: 'pesticides', label: 'Pesticide', telugu: 'పురుగుమందులు' },
 ];
 
 const PUBLIC_FORM_CATEGORY_ALIASES: Record<string, string[]> = {
@@ -225,7 +225,7 @@ export function Login() {
     const handleAppInstalled = () => {
       setAppInstalled(true);
       setInstallPrompt(null);
-      setInstallMessage(t('App installed successfully.', 'App installed successfully.'));
+      setInstallMessage(t('App installed successfully.', 'యాప్ విజయవంతంగా ఇన్‌స్టాల్ అయింది.'));
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -419,10 +419,10 @@ export function Login() {
         setInstallMessage(
           choice.outcome === 'accepted'
             ? t('Installing app...', 'Installing app...')
-            : t('Install cancelled. Tap Install App again when the browser prompt is available.', 'Install cancelled. Tap Install App again when the browser prompt is available.')
+            : t('Install cancelled. Tap Install App again when the browser prompt is available.', 'à°‡à°¨à±â€Œà°¸à±à°Ÿà°¾à°²à± à°°à°¦à±à°¦à± à°šà±‡à°¯à°¬à°¡à°¿à°‚à°¦à°¿. à°¬à±à°°à±Œà°œà°°à± à°ªà±à°°à°¾à°‚à°ªà±à°Ÿà± à°…à°‚à°¦à±à°¬à°¾à°Ÿà±à°²à±‹ à°‰à°¨à±à°¨à°ªà±à°ªà±à°¡à± à°®à°³à±à°²à±€ Install App à°¨à±Šà°•à±à°•à°‚à°¡à°¿.')
         );
       } catch {
-        setInstallMessage(t('Use your browser menu and choose Install app.', 'à°¬à±à°°à±Œà°œà°°à± à°®à±†à°¨à±‚à°²à±‹ Install app à°Žà°‚à°šà±à°•à±‹à°‚à°¡à°¿.'));
+        setInstallMessage(t('Use your browser menu and choose Install app.', 'బ్రౌజర్ మెనూలో Install app ఎంచుకోండి.'));
       }
       return;
     }
@@ -436,11 +436,11 @@ export function Login() {
 
     const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
     if (!isIos) {
-      setInstallMessage(t('Use your browser menu and choose Install app. If it is not visible, refresh once and tap Install App again.', 'Use your browser menu and choose Install app. If it is not visible, refresh once and tap Install App again.'));
+      setInstallMessage(t('Use your browser menu and choose Install app. If it is not visible, refresh once and tap Install App again.', 'à°¬à±à°°à±Œà°œà°°à± à°®à±†à°¨à±‚à°²à±‹ Install app à°Žà°‚à°šà±à°•à±‹à°‚à°¡à°¿. à°•à°¨à°¿à°ªà°¿à°‚à°šà°•à°ªà±‹à°¤à±‡ à°’à°•à°¸à°¾à°°à°¿ à°°à°¿à°«à±à°°à±†à°·à± à°šà±‡à°¸à°¿ à°®à°³à±à°²à±€ Install App à°¨à±Šà°•à±à°•à°‚à°¡à°¿.'));
       return;
     }
 
-    setInstallMessage(t('On iPhone/iPad: tap Share, then Add to Home Screen.', 'On iPhone/iPad: tap Share, then Add to Home Screen.'));
+    setInstallMessage(t('On iPhone/iPad: tap Share, then Add to Home Screen.', 'iPhone/iPadలో Share నొక్కి, Add to Home Screen ఎంచుకోండి.'));
   };
 
   // Officer toolkit is now handled by App.tsx with OfficersToolkit component
@@ -462,7 +462,7 @@ export function Login() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-black uppercase tracking-wide text-emerald-100">
-                      {t('Officer Toolkit', 'Officer Toolkit')}
+                      {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                     </p>
                     <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
                       {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
@@ -514,7 +514,7 @@ export function Login() {
               }`}
             >
               <FileText className="h-4 w-4" />
-              {t('Statutory Forms', 'à°šà°Ÿà±à°Ÿà°¬à°¦à±à°§ à°«à°¾à°°à°¾à°²à±')}
+              {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
             </button>
             <button
               type="button"
@@ -534,7 +534,7 @@ export function Login() {
               }`}
             >
               <FlaskConical className="h-4 w-4" />
-              {t('Fertilizer Calculator', 'à°Žà°°à±à°µà±à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
+              {t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')}
             </button>
           </div>
           <div className={calculatorOpen || fertilizerCalculatorOpen ? 'hidden' : ''}>
@@ -651,7 +651,7 @@ export function Login() {
           {calculatorOpen && (
             <div className="rounded-xl border border-sky-100 bg-white p-4">
               <label className="block">
-                <span className="mb-1.5 block text-sm font-bold text-slate-700">Type or paste acre values</span>
+                <span className="mb-1.5 block text-sm font-bold text-slate-700">{t('Type or paste acre values', 'à°Žà°•à°°à°¾à°² à°µà°¿à°²à±à°µà°²à°¨à± à°Ÿà±ˆà°ªà± à°šà±‡à°¯à°‚à°¡à°¿ à°²à±‡à°¦à°¾ à°…à°¤à°¿à°•à°¿à°‚à°šà°‚à°¡à°¿')}</span>
                 <textarea
                   value={acreInput}
                   onChange={(event) => setAcreInput(event.target.value)}
@@ -665,20 +665,20 @@ export function Login() {
               </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Total acres</p>
+                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700">{t('Total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°²à±')}</p>
                   <p className="mt-1 text-3xl font-black text-emerald-950">{acreCalculation.formatted}</p>
                   <p className="mt-1 text-xs font-semibold text-emerald-800">
                     {acreCalculation.acres} acres {acreCalculation.guntas} guntas
                   </p>
                 </div>
                 <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
-                  <p className="text-xs font-black uppercase tracking-wide text-sky-700">Hectares</p>
+                  <p className="text-xs font-black uppercase tracking-wide text-sky-700">{t('Hectares', 'à°¹à±†à°•à±à°Ÿà°¾à°°à±à°²à±')}</p>
                   <p className="mt-1 text-3xl font-black text-sky-950">{acreCalculation.hectares}</p>
-                  <p className="mt-1 text-xs font-semibold text-sky-800">Converted from total acres</p>
+                  <p className="mt-1 text-xs font-semibold text-sky-800">{t('Converted from total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°² à°¨à±à°‚à°¡à°¿ à°®à°¾à°°à±à°šà°¬à°¡à°¿à°‚à°¦à°¿')}</p>
                 </div>
               </div>
               <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700">
-                Read values: {acreCalculation.count} item{acreCalculation.count === 1 ? '' : 's'}
+                {t('Read values', 'à°šà°¦à°¿à°µà°¿à°¨ à°µà°¿à°²à±à°µà°²à±')}: {acreCalculation.count} {t(acreCalculation.count === 1 ? 'item' : 'items', acreCalculation.count === 1 ? 'à°…à°‚à°¶à°‚' : 'à°…à°‚à°¶à°¾à°²à±')}
               </div>
             </div>
           )}
@@ -776,7 +776,7 @@ export function Login() {
               className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-800 shadow-lg shadow-emerald-300/50 transition hover:bg-emerald-100 hover:border-emerald-600 animate-slide-up delay-200 pulse-border-animation"
             >
               <ShieldCheck className="h-4 w-4" />
-              <span>{t('Officer Toolkit', 'à°…à°§à°¿à°•à°¾à°°à±à°² à°Ÿà±‚à°²à±â€Œà°•à°¿à°Ÿà±')}</span>
+              <span>{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
             </button>
 
             <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-bold animate-slide-up delay-300">
@@ -785,14 +785,14 @@ export function Login() {
                 onClick={() => setLoginMode('staff')}
                 className={`rounded-lg px-3 py-2 ${loginMode === 'staff' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}
               >
-                {t('Staff / Test', 'à°¸à°¿à°¬à±à°¬à°‚à°¦à°¿ / à°ªà°°à±€à°•à±à°·')}
+                {t('Staff / Test', 'సిబ్బంది / పరీక్ష')}
               </button>
               <button
                 type="button"
                 onClick={() => setLoginMode('dealer')}
                 className={`rounded-lg px-3 py-2 ${loginMode === 'dealer' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}
               >
-                {t('Dealer', 'à°¡à±€à°²à°°à±')}
+                {t('Dealer', 'డీలర్')}
               </button>
             </div>
 
@@ -902,7 +902,7 @@ export function Login() {
               </button>
             </div>
             <label className="block">
-              <span className="mb-1.5 block text-sm font-bold text-slate-700">Type or paste acre values</span>
+              <span className="mb-1.5 block text-sm font-bold text-slate-700">{t('Type or paste acre values', 'à°Žà°•à°°à°¾à°² à°µà°¿à°²à±à°µà°²à°¨à± à°Ÿà±ˆà°ªà± à°šà±‡à°¯à°‚à°¡à°¿ à°²à±‡à°¦à°¾ à°…à°¤à°¿à°•à°¿à°‚à°šà°‚à°¡à°¿')}</span>
               <textarea
                 value={acreInput}
                 onChange={(event) => setAcreInput(event.target.value)}
@@ -916,20 +916,20 @@ export function Login() {
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Total acres</p>
+                <p className="text-xs font-black uppercase tracking-wide text-emerald-700">{t('Total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°²à±')}</p>
                 <p className="mt-1 text-3xl font-black text-emerald-950">{acreCalculation.formatted}</p>
                 <p className="mt-1 text-xs font-semibold text-emerald-800">
                   {acreCalculation.acres} acres {acreCalculation.guntas} guntas
                 </p>
               </div>
               <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
-                <p className="text-xs font-black uppercase tracking-wide text-sky-700">Hectares</p>
+                <p className="text-xs font-black uppercase tracking-wide text-sky-700">{t('Hectares', 'à°¹à±†à°•à±à°Ÿà°¾à°°à±à°²à±')}</p>
                 <p className="mt-1 text-3xl font-black text-sky-950">{acreCalculation.hectares}</p>
-                <p className="mt-1 text-xs font-semibold text-sky-800">Converted from total acres</p>
+                <p className="mt-1 text-xs font-semibold text-sky-800">{t('Converted from total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°² à°¨à±à°‚à°¡à°¿ à°®à°¾à°°à±à°šà°¬à°¡à°¿à°‚à°¦à°¿')}</p>
               </div>
             </div>
             <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700">
-              Read values: {acreCalculation.count} item{acreCalculation.count === 1 ? '' : 's'}
+              {t('Read values', 'à°šà°¦à°¿à°µà°¿à°¨ à°µà°¿à°²à±à°µà°²à±')}: {acreCalculation.count} {t(acreCalculation.count === 1 ? 'item' : 'items', acreCalculation.count === 1 ? 'à°…à°‚à°¶à°‚' : 'à°…à°‚à°¶à°¾à°²à±')}
             </div>
           </div>
         </div>
@@ -948,33 +948,33 @@ export function Login() {
               </button>
             </div>
             <form onSubmit={handleGrievanceSubmit} className="space-y-4">
-              <p className="text-sm font-black text-slate-900">Farmer details</p>
+              <p className="text-sm font-black text-slate-900">{t('Farmer details', 'à°°à±ˆà°¤à± à°µà°¿à°µà°°à°¾à°²à±')}</p>
               <div className="grid gap-4 sm:grid-cols-2">
-                <input value={grievance.farmer_name} onChange={(e) => setGrievance({ ...grievance, farmer_name: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder="Farmer name" required />
-                <input value={grievance.mobile} onChange={(e) => setGrievance({ ...grievance, mobile: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder="Mobile number" required />
+                <input value={grievance.farmer_name} onChange={(e) => setGrievance({ ...grievance, farmer_name: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Farmer name', 'à°°à±ˆà°¤à± à°ªà±‡à°°à±')} required />
+                <input value={grievance.mobile} onChange={(e) => setGrievance({ ...grievance, mobile: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Mobile number', 'à°®à±Šà°¬à±ˆà°²à± à°¨à°‚à°¬à°°à±')} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <input type="email" value={grievance.email} onChange={(e) => setGrievance({ ...grievance, email: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder="Email (optional)" />
+                <input type="email" value={grievance.email} onChange={(e) => setGrievance({ ...grievance, email: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Email (optional)', 'à°‡à°®à±†à°¯à°¿à°²à± (à°à°šà±à°šà°¿à°•à°‚)')} />
                 <select value={grievance.district} onChange={(e) => setGrievance({ ...grievance, district: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
                   {TELANGANA_DISTRICTS.map((district) => (
                     <option key={district} value={district}>{district}</option>
                   ))}
                 </select>
               </div>
-              <input value={grievance.mandal} onChange={(e) => setGrievance({ ...grievance, mandal: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder="Mandal" required />
+              <input value={grievance.mandal} onChange={(e) => setGrievance({ ...grievance, mandal: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Mandal', 'à°®à°‚à°¡à°²à°‚')} required />
 
-              <p className="pt-2 text-sm font-black text-slate-900">Complaint details</p>
+              <p className="pt-2 text-sm font-black text-slate-900">{t('Complaint details', 'à°«à°¿à°°à±à°¯à°¾à°¦à± à°µà°¿à°µà°°à°¾à°²à±')}</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <select value={grievance.issue_type} onChange={(e) => setGrievance({ ...grievance, issue_type: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
-                  <option value="fertilizer">Fertilizer</option>
-                  <option value="seed">Seed</option>
-                  <option value="pesticide">Pesticide</option>
-                  <option value="govt_schemes">Govt schemes</option>
-                  <option value="others">Others</option>
+                  <option value="fertilizer">{t('Fertilizer', 'à°Žà°°à±à°µà±à°²à±')}</option>
+                  <option value="seed">{t('Seed', 'à°µà°¿à°¤à±à°¤à°¨à°¾à°²à±')}</option>
+                  <option value="pesticide">{t('Pesticide', 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à±à°²à±')}</option>
+                  <option value="govt_schemes">{t('Govt schemes', 'à°ªà±à°°à°­à±à°¤à±à°µ à°ªà°¥à°•à°¾à°²à±')}</option>
+                  <option value="others">{t('Others', 'à°‡à°¤à°°à±à°²à±')}</option>
                 </select>
-                <input value={grievance.subject} onChange={(e) => setGrievance({ ...grievance, subject: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder="Subject" required />
+                <input value={grievance.subject} onChange={(e) => setGrievance({ ...grievance, subject: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Subject', 'à°µà°¿à°·à°¯à°‚')} required />
               </div>
-              <textarea value={grievance.description} onChange={(e) => setGrievance({ ...grievance, description: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder="Description" required />
+              <textarea value={grievance.description} onChange={(e) => setGrievance({ ...grievance, description: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Description', 'à°µà°¿à°µà°°à°£')} required />
               <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3.5 font-bold text-white shadow-lg">
                 <Send className="h-5 w-5" />
                 {t('Submit Complaint', 'à°«à°¿à°°à±à°¯à°¾à°¦à± à°ªà°‚à°ªà°‚à°¡à°¿')}
@@ -1018,12 +1018,6 @@ function savePublicToolkitState(state: PublicToolkitState) {
     // Persisting toolkit UI state is best effort.
   }
 }
-
-function getBrowserHistoryIndex() {
-  const state = window.history.state as { idx?: number } | null;
-  return typeof state?.idx === 'number' ? state.idx : 0;
-}
-
 function PublicFormsPagination({
   currentPage,
   pageCount,
@@ -1033,6 +1027,8 @@ function PublicFormsPagination({
   pageCount: number;
   onPageChange: (page: number) => void;
 }) {
+  const { t } = useLanguage();
+
   return (
     <div className="mt-2 flex items-center justify-end gap-2 text-xs font-black text-slate-600">
       <button
@@ -1044,7 +1040,7 @@ function PublicFormsPagination({
         Previous
       </button>
       <span className="uppercase tracking-wide">
-        Page {currentPage + 1} / {pageCount}
+        {t('Page', 'à°ªà±‡à°œà±€')} {currentPage + 1} / {pageCount}
       </span>
       <button
         type="button"
@@ -1175,3 +1171,4 @@ function isMissingPublicLabelColumnError(error: unknown) {
 }
 
 export default Login;
+

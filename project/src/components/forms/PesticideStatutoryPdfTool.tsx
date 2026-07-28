@@ -9,6 +9,12 @@ import {
   PesticidePdfValues,
   PesticideStatutoryFormType,
 } from '../../lib/statutoryPesticidePdf';
+import {
+  QUALIFICATION_OPTIONS,
+  TELANGANA_DISTRICTS,
+  DESIGNATION_OPTIONS,
+  getMandalsForDistrict,
+} from '../../data/telanganaDistrictMandalData';
 
 type FieldConfig = {
   key: keyof PesticidePdfValues;
@@ -30,11 +36,6 @@ const LAST_GENERATED_KEY = 'tiryani-pesticide-forms-last-generated';
 const DUPLICATE_WARNING_MESSAGE =
   'You are generating a file with the same previous sample/dealer details. Please verify whether new sample details or dealer details are required before downloading.';
 
-const designationOptions = [
-  { label: 'Mandal Agriculture Officer', value: 'Mandal Agriculture Officer' },
-  { label: 'Asst. Director of Agriculture', value: 'Asst. Director of Agriculture' },
-  { label: 'Insecticide Inspector', value: 'Insecticide Inspector' },
-];
 
 const packingOptions = [
   { label: 'Original sealed', value: 'Original sealed' },
@@ -47,18 +48,20 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
     title: 'INSPECTOR DETAILS',
     fields: [
       { key: 'officerName', label: 'OFFICER NAME' },
-      { key: 'designation', label: 'DESIGNATION', type: 'select', options: designationOptions },
+      { key: 'qualification', label: 'QUALIFICATION', type: 'select', options: QUALIFICATION_OPTIONS },
+      { key: 'manualQualification', label: 'ENTER QUALIFICATION', placeholder: 'Enter qualification' },
+      { key: 'designation', label: 'DESIGNATION', type: 'select', options: DESIGNATION_OPTIONS },
       { key: 'officerEmail', label: 'OFFICER EMAIL' },
-      { key: 'officeAddress', label: 'OFFICE ADDRESS', type: 'textarea' },
+      { key: 'district', label: 'DISTRICT', type: 'select', options: TELANGANA_DISTRICTS.map(d => ({ label: d, value: d })) },
+      { key: 'mandal', label: 'MANDAL', type: 'select', options: [] },
+      { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
+      { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
       { key: 'labAddress', label: 'INSECTICIDE ANALYST / LAB ADDRESS', type: 'textarea' },
     ],
   },
   {
     title: 'COMMON DETAILS',
     fields: [
-      { key: 'district', label: 'DISTRICT' },
-      { key: 'mandal', label: 'MANDAL' },
-      { key: 'place', label: 'PLACE' },
       { key: 'date', label: 'FORM DATE', type: 'date' },
       { key: 'sampleDrawnDate', label: 'SAMPLE DRAWN DATE', type: 'date' },
       { key: 'cdaCode', label: 'C & DA CODE' },
@@ -151,8 +154,29 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
         const previousOfficerName = current.officerName.trim();
         if (!currentDraftName || currentDraftName === previousOfficerName) setDraftName(value.trim());
       }
-      if (key === 'place' && (!current.premisesLocation || current.premisesLocation === current.place)) {
-        next.premisesLocation = value;
+      if (key === 'place') {
+        const resolvedPlace = next.mandal === 'Others' ? next.manualMandal : next.mandal;
+        next.place = resolvedPlace || value;
+        if (!current.premisesLocation || current.premisesLocation === current.place) {
+          next.premisesLocation = next.place;
+        }
+      }
+      if (key === 'district') {
+        next.mandal = '';
+        next.manualDistrict = '';
+        next.manualMandal = '';
+        next.place = '';
+      }
+      if (key === 'mandal') {
+        next.manualMandal = '';
+        const resolvedPlace = value === 'Others' ? next.manualMandal : value;
+        next.place = resolvedPlace;
+      }
+      if (key === 'manualMandal') {
+        next.place = value;
+      }
+      if (key === 'qualification') {
+        next.manualQualification = '';
       }
       if (key === 'sampleDrawnDate') {
         const date = new Date(`${value}T00:00:00`);
@@ -210,6 +234,32 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completePreview = async (formType: PesticideStatutoryFormType) => {
+    // Validation
+    if (!values.qualification) {
+      setMessage('Qualification is required');
+      return;
+    }
+    if (values.qualification === 'Others' && !values.manualQualification) {
+      setMessage('Qualification name is required when "Others" is selected');
+      return;
+    }
+    if (!values.district) {
+      setMessage('District is required');
+      return;
+    }
+    if (!values.mandal) {
+      setMessage('Mandal is required');
+      return;
+    }
+    if (values.district === 'Others' && !values.manualDistrict) {
+      setMessage('District name is required when "Others" is selected');
+      return;
+    }
+    if (values.mandal === 'Others' && !values.manualMandal) {
+      setMessage('Mandal name is required when "Others" is selected');
+      return;
+    }
+
     const targetWindow = openBlankPdfTab();
     setBusy(true);
     try {
@@ -231,6 +281,32 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completeDownload = async (formType: PesticideStatutoryFormType) => {
+    // Validation
+    if (!values.qualification) {
+      setMessage('Qualification is required');
+      return;
+    }
+    if (values.qualification === 'Others' && !values.manualQualification) {
+      setMessage('Qualification name is required when "Others" is selected');
+      return;
+    }
+    if (!values.district) {
+      setMessage('District is required');
+      return;
+    }
+    if (!values.mandal) {
+      setMessage('Mandal is required');
+      return;
+    }
+    if (values.district === 'Others' && !values.manualDistrict) {
+      setMessage('District name is required when "Others" is selected');
+      return;
+    }
+    if (values.mandal === 'Others' && !values.manualMandal) {
+      setMessage('Mandal name is required when "Others" is selected');
+      return;
+    }
+
     setBusy(true);
     try {
       const doc = await generatePesticideStatutoryPdf(formType, values);
@@ -255,6 +331,32 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completePreviewAll = async () => {
+    // Validation
+    if (!values.qualification) {
+      setMessage('Qualification is required');
+      return;
+    }
+    if (values.qualification === 'Others' && !values.manualQualification) {
+      setMessage('Qualification name is required when "Others" is selected');
+      return;
+    }
+    if (!values.district) {
+      setMessage('District is required');
+      return;
+    }
+    if (!values.mandal) {
+      setMessage('Mandal is required');
+      return;
+    }
+    if (values.district === 'Others' && !values.manualDistrict) {
+      setMessage('District name is required when "Others" is selected');
+      return;
+    }
+    if (values.mandal === 'Others' && !values.manualMandal) {
+      setMessage('Mandal name is required when "Others" is selected');
+      return;
+    }
+
     const targetWindow = openBlankPdfTab();
     setBusy(true);
     try {
@@ -276,6 +378,32 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completeDownloadAll = async () => {
+    // Validation
+    if (!values.qualification) {
+      setMessage('Qualification is required');
+      return;
+    }
+    if (values.qualification === 'Others' && !values.manualQualification) {
+      setMessage('Qualification name is required when "Others" is selected');
+      return;
+    }
+    if (!values.district) {
+      setMessage('District is required');
+      return;
+    }
+    if (!values.mandal) {
+      setMessage('Mandal is required');
+      return;
+    }
+    if (values.district === 'Others' && !values.manualDistrict) {
+      setMessage('District name is required when "Others" is selected');
+      return;
+    }
+    if (values.mandal === 'Others' && !values.manualMandal) {
+      setMessage('Mandal name is required when "Others" is selected');
+      return;
+    }
+
     setBusy(true);
     try {
       const doc = await generateAllPesticideStatutoryPdf(values);
@@ -401,7 +529,34 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                   className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER DETAILS') ? 'rounded-xl border-4 border-red-500' : ''}
                 >
                   <FieldSection title={section.title} color={color}>
-                    {section.fields.map((field) => <PdfInput key={field.key} field={field} value={values[field.key]} onChange={(value) => setField(field.key, value)} />)}
+                    {section.fields.map((field) => {
+                      // Hide manual district field unless district is "Others"
+                      if (field.key === 'manualDistrict' && values.district !== 'Others') {
+                        return null;
+                      }
+                      // Hide manual mandal field unless mandal is "Others"
+                      if (field.key === 'manualMandal' && values.mandal !== 'Others') {
+                        return null;
+                      }
+                      // Hide manual qualification field unless qualification is "Others"
+                      if (field.key === 'manualQualification' && values.qualification !== 'Others') {
+                        return null;
+                      }
+                      // Get mandal options based on selected district
+                      let fieldOptions = field.options;
+                      if (field.key === 'mandal' && values.district && values.district !== 'Others') {
+                        fieldOptions = getMandalsForDistrict(values.district).map(m => ({ label: m, value: m }));
+                      }
+                      return (
+                        <PdfInput
+                          key={field.key}
+                          field={field}
+                          value={values[field.key]}
+                          onChange={(value) => setField(field.key, value)}
+                          options={fieldOptions}
+                        />
+                      );
+                    })}
                   </FieldSection>
                 </div>
               );
@@ -456,8 +611,14 @@ function FieldSection({ title, children, color = 'slate' }: { title: string; chi
   );
 }
 
-function PdfInput({ field, value, onChange }: { field: FieldConfig; value: string; onChange: (value: string) => void }) {
+function PdfInput({ field, value, onChange, options }: { field: FieldConfig; value: string; onChange: (value: string) => void; options?: { label: string; value: string }[] }) {
   const commonClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+  
+  // Handle mandal dropdown with "Others" option
+  const selectOptions = field.key === 'mandal' && options 
+    ? [...options, { label: 'Others', value: 'Others' }]
+    : (options || field.options || []);
+
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{field.label}</span>
@@ -466,7 +627,7 @@ function PdfInput({ field, value, onChange }: { field: FieldConfig; value: strin
       ) : field.type === 'select' ? (
         <select value={value} onChange={(event) => onChange(event.target.value)} className={commonClass}>
           <option value="">Select...</option>
-          {field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          {selectOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
       ) : (
         <input type={field.type === 'date' ? 'date' : 'text'} value={value} onChange={(event) => onChange(event.target.value)} placeholder={field.placeholder} className={commonClass} />

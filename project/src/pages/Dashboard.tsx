@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+﻿import React, { useCallback, useState, useEffect } from 'react';
 import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../lib/fertilizerStock';
@@ -159,7 +159,7 @@ export const Dashboard = React.memo(function Dashboard() {
   };
 
   const deleteScheme = async (schemeId: string, schemeName: string) => {
-    if (!confirm(t(`Delete scheme "${schemeName}"?`, `"${schemeName}" à°ªà°¥à°•à°¾à°¨à±à°¨à°¿ à°¤à±Šà°²à°—à°¿à°‚à°šà°¾à°²à°¾?`))) return;
+    if (!confirm(t(`Delete scheme "${schemeName}"?`, `"${schemeName}" పథకాన్ని తొలగించాలా?`))) return;
     await supabase.from('scheme_beneficiaries').delete().eq('scheme_id', schemeId);
     const { error } = await supabase.from('schemes').delete().eq('id', schemeId);
     if (error) {
@@ -170,7 +170,7 @@ export const Dashboard = React.memo(function Dashboard() {
   };
 
   const deleteBeneficiary = async (id: string) => {
-    if (!confirm(t('Delete this beneficiary record?', 'à°ˆ à°²à°¬à±à°§à°¿à°¦à°¾à°°à± à°°à°¿à°•à°¾à°°à±à°¡à±à°¨à± à°¤à±Šà°²à°—à°¿à°‚à°šà°¾à°²à°¾?'))) return;
+    if (!confirm(t('Delete this beneficiary record?', 'ఈ లబ్ధిదారు రికార్డును తొలగించాలా?'))) return;
     await supabase.from('scheme_beneficiaries').delete().eq('id', id);
     void fetchDashboardData();
   };
@@ -179,7 +179,7 @@ export const Dashboard = React.memo(function Dashboard() {
     if (!beneficiaryForm.scheme_id || !beneficiaryForm.financial_year.trim()) return;
     const count = Number(beneficiaryForm.beneficiaries_count);
     if (!Number.isFinite(count) || count < 0) {
-      alert('Please enter a valid beneficiary count');
+      alert(t('Please enter a valid beneficiary count', 'దయచేసి సరైన లబ్ధిదారుల సంఖ్య నమోదు చేయండి')); 
       return;
     }
 
@@ -205,7 +205,7 @@ export const Dashboard = React.memo(function Dashboard() {
       <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
         <PortalLogo size="xl" />
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
-        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading AGRONIX...</p>
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">{t('Loading AGRONIX...', 'AGRONIX లోడ్ అవుతోంది...')}</p>
       </div>
     );
   }
@@ -232,13 +232,13 @@ export const Dashboard = React.memo(function Dashboard() {
             <p className="mt-2 text-slate-600 dark:text-slate-300">
               {t(
                 'Kumram Bheem Asifabad District - Asifabad Division',
-                'à°•à±à°®à±à°°à°‚ à°­à±€à°‚ à°†à°¸à°¿à°«à°¾à°¬à°¾à°¦à± à°œà°¿à°²à±à°²à°¾ - à°†à°¸à°¿à°«à°¾à°¬à°¾à°¦à± à°¡à°¿à°µà°¿à°œà°¨à±'
+                'కుమ్రం భీం ఆసిఫాబాద్ జిల్లా - ఆసిఫాబాద్ డివిజన్'
               )}
             </p>
             <p className="mt-3 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
               {t(
                 'Developed and maintained by K. Vinay Reddy, MAO, Tiryani',
-                'à°…à°­à°¿à°µà±ƒà°¦à±à°§à°¿ à°®à°°à°¿à°¯à± à°¨à°¿à°°à±à°µà°¹à°£: à°•à±†. à°µà°¿à°¨à°¯à± à°°à±†à°¡à±à°¡à°¿, à°Žà°‚.à°.à°“, à°¤à°¿à°°à±à°¯à°¾à°¨à°¿'
+                'అభివృద్ధి మరియు నిర్వహణ: కె. వినయ్ రెడ్డి, ఎం.ఏ.ఓ, తిర్యాని'
               )}
             </p>
           </div>
@@ -253,7 +253,7 @@ export const Dashboard = React.memo(function Dashboard() {
 
       {!hasAnyDashboardData ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-          {t('No data available', 'No data available')}
+          {t('No data available', 'డేటా అందుబాటులో లేదు')}
         </div>
       ) : (
         <>
@@ -262,35 +262,35 @@ export const Dashboard = React.memo(function Dashboard() {
             <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <MapPin className="w-6 h-6 text-emerald-600" />
-            {t('Mandal Overview', 'à°®à°‚à°¡à°² à°µà°¿à°µà°°à°¾à°²à±')}
+            {t('Mandal Overview', 'మండల వివరాలు')}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
               <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
                 <Building2 className="w-14 h-14" />
               </div>
-              <p className="text-xs opacity-90 relative z-10">{t('Gram Panchayats', 'à°—à±à°°à°¾à°® à°ªà°‚à°šà°¾à°¯à°¤à±€à°²à±')}</p>
+              <p className="text-xs opacity-90 relative z-10">{t('Gram Panchayats', 'గ్రామ పంచాయతీలు')}</p>
               <p className="text-2xl font-bold mt-1 relative z-10">{mandalData.total_gram_panchayats}</p>
             </div>
             <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
               <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
                 <Layers className="w-14 h-14" />
               </div>
-              <p className="text-xs opacity-90 relative z-10">{t('Revenue Villages', 'à°°à±†à°µà±†à°¨à±à°¯à±‚ à°—à±à°°à°¾à°®à°¾à°²à±')}</p>
+              <p className="text-xs opacity-90 relative z-10">{t('Revenue Villages', 'రెవెన్యూ గ్రామాలు')}</p>
               <p className="text-2xl font-bold mt-1 relative z-10">{dashboardRevenueVillages}</p>
             </div>
             <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
               <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
                 <Users className="w-14 h-14" />
               </div>
-              <p className="text-xs opacity-90 relative z-10">{t('Total Farmers', 'à°®à±Šà°¤à±à°¤à°‚ à°°à±ˆà°¤à±à°²à±')}</p>
+              <p className="text-xs opacity-90 relative z-10">{t('Total Farmers', 'మొత్తం రైతులు')}</p>
               <p className="text-2xl font-bold mt-1 relative z-10">{dashboardTotalFarmers.toLocaleString('en-IN')}</p>
             </div>
             <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
               <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
                 <TrendingUp className="w-14 h-14" />
               </div>
-              <p className="text-xs opacity-90 relative z-10">{t('Cultivable Area', 'à°¸à°¾à°—à± à°µà°¿à°¸à±à°¤à±€à°°à±à°£à°‚')}</p>
+              <p className="text-xs opacity-90 relative z-10">{t('Cultivable Area', 'సాగు విస్తీర్ణం')}</p>
               <p className="text-2xl font-bold mt-1 relative z-10">{formatDashboardNumber(dashboardCultivableArea)}</p>
             </div>
           </div>
@@ -299,7 +299,7 @@ export const Dashboard = React.memo(function Dashboard() {
               <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-slate-700 dark:text-slate-200" />
                 <div>
-                  <p className="text-xs text-gray-600 dark:text-slate-300">{t('Geographical Area', 'à°­à±Œà°—à±‹à°³à°¿à°• à°µà°¿à°¸à±à°¤à±€à°°à±à°£à°‚')}</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-300">{t('Geographical Area', 'భౌగోళిక విస్తీర్ణం')}</p>
                   <p className="text-xl font-bold text-gray-900 dark:text-white">{mandalData.geographical_area.toLocaleString()}</p>
                   <p className="text-xs text-gray-500 dark:text-slate-400">{mandalData.area_unit}</p>
                 </div>
@@ -309,7 +309,7 @@ export const Dashboard = React.memo(function Dashboard() {
               <div className="flex items-center gap-2">
                 <CloudRain className="w-5 h-5 text-cyan-700 dark:text-cyan-300" />
                 <div>
-                  <p className="text-xs text-gray-600 dark:text-slate-300">{t('Normal Rainfall', 'à°¸à°¾à°§à°¾à°°à°£ à°µà°°à±à°·à°ªà°¾à°¤à°‚')}</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-300">{t('Normal Rainfall', 'సాధారణ వర్షపాతం')}</p>
                   <p className="text-xl font-bold text-gray-900 dark:text-white">{mandalData.normal_rainfall}</p>
                   <p className="text-xs text-gray-500 dark:text-slate-400">{mandalData.rainfall_unit}</p>
                 </div>
@@ -319,7 +319,7 @@ export const Dashboard = React.memo(function Dashboard() {
               <div className="flex items-center gap-2">
                 <Droplets className="w-5 h-5 text-stone-700 dark:text-stone-300" />
                 <div>
-                  <p className="text-xs text-gray-600 dark:text-slate-300">{t('Soil Types', 'à°¨à±‡à°² à°°à°•à°¾à°²à±')}</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-300">{t('Soil Types', 'నేల రకాలు')}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {mandalData.soil_types.map((soil, i) => (
                       <span key={i} className="bg-white/90 text-stone-700 dark:bg-slate-700 dark:text-slate-100 px-2 py-0.5 rounded text-xs font-medium">
@@ -333,7 +333,7 @@ export const Dashboard = React.memo(function Dashboard() {
           </div>
             </div>
           ) : (
-            <DashboardEmptyState message={t('No mandal overview data available', 'No mandal overview data available')} />
+            <DashboardEmptyState message={t('No mandal overview data available', 'మండల వివరాల డేటా అందుబాటులో లేదు')} />
           )}
 
           {/* Crop Statistics */}
@@ -342,7 +342,7 @@ export const Dashboard = React.memo(function Dashboard() {
           <div className="mb-4 flex items-center">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <TrendingUp className="w-6 h-6 text-emerald-600" />
-              {t('Major Crops', 'à°ªà±à°°à°§à°¾à°¨ à°ªà°‚à°Ÿà°²à±')} - {t('Total', 'à°®à±Šà°¤à±à°¤à°‚')}: {formatDashboardNumber(totalAcreage)} {t('acres', 'à°Žà°•à°°à°¾à°²à±')}
+              {t('Major Crops', 'ప్రధాన పంటలు')} - {t('Total', 'మొత్తం')}: {formatDashboardNumber(totalAcreage)} {t('acres', 'ఎకరాలు')}
             </h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -366,7 +366,7 @@ export const Dashboard = React.memo(function Dashboard() {
                 )}
                 <p className="text-xs opacity-90">{crop.crop_name}</p>
                 <p className="text-2xl font-bold mt-1">{formatDashboardNumber(crop.acreage)}</p>
-                <p className="text-[10px] opacity-75">{t('acres', 'à°Žà°•à°°à°¾à°²à±')}</p>
+                <p className="text-[10px] opacity-75">{t('acres', 'ఎకరాలు')}</p>
               </div>
             );
           })}
@@ -382,7 +382,7 @@ export const Dashboard = React.memo(function Dashboard() {
           <div>
             <h2 className="flex items-center gap-2 text-lg font-black tracking-tight text-gray-900 dark:text-white">
               <PackageCheck className="w-5 h-5 text-emerald-600" />
-              {t('Fertilizer Availability', 'à°Žà°°à±à°µà±à°² à°²à°­à±à°¯à°¤')}
+              {t('Fertilizer Availability', 'ఎరువుల లభ్యత')}
             </h2>
             <p className="mt-0.5 text-[11px] text-gray-500 dark:text-slate-400">
               {t(
@@ -392,7 +392,7 @@ export const Dashboard = React.memo(function Dashboard() {
             </p>
           </div>
           <div className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-            {fertilizers.length} {t('fertilizer types', 'à°Žà°°à±à°µà±à°² à°°à°•à°¾à°²à±')}
+            {fertilizers.length} {t('fertilizer types', 'ఎరువుల రకాలు')}
           </div>
         </div>
 
@@ -404,10 +404,10 @@ export const Dashboard = React.memo(function Dashboard() {
             );
             const status =
               percentage >= 70
-                ? t('Well stocked', 'à°¸à°°à°¿à°ªà°¡à°¾ à°¸à±à°Ÿà°¾à°•à±')
+                ? t('Well stocked', 'సరిపడా స్టాక్')
                 : percentage >= 35
-                  ? t('Moderate stock', 'à°®à°§à±à°¯à°¸à±à°¥ à°¸à±à°Ÿà°¾à°•à±')
-                  : t('Low stock', 'à°¤à°•à±à°•à±à°µ à°¸à±à°Ÿà°¾à°•à±');
+                  ? t('Moderate stock', 'మధ్యస్థ స్టాక్')
+                  : t('Low stock', 'తక్కువ స్టాక్');
             const statusClass =
               percentage >= 70
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
@@ -423,7 +423,7 @@ export const Dashboard = React.memo(function Dashboard() {
                 <div className="mb-2 flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                      {t('Fertilizer', 'à°Žà°°à±à°µà±')}
+                      {t('Fertilizer', 'ఎరువు')}
                     </p>
                     <h3 className="mt-0.5 truncate text-sm font-black text-gray-950 dark:text-white">
                       {fertilizer.fertilizer_type}
@@ -454,7 +454,7 @@ export const Dashboard = React.memo(function Dashboard() {
         </div>
             </div>
           ) : (
-            <DashboardEmptyState message={t('No fertilizer availability data available', 'No fertilizer availability data available')} />
+            <DashboardEmptyState message={t('No fertilizer availability data available', 'ఎరువుల లభ్యత డేటా అందుబాటులో లేదు')} />
           )}
 
           {/* Government Schemes */}
@@ -462,7 +462,7 @@ export const Dashboard = React.memo(function Dashboard() {
             <div className="dashboard-rise dashboard-delay-3 portal-card p-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Users className="w-6 h-6 text-emerald-600" />
-          {t('Government Schemes', 'à°ªà±à°°à°­à±à°¤à±à°µ à°ªà°¥à°•à°¾à°²à±')}
+          {t('Government Schemes', 'ప్రభుత్వ పథకాలు')}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {schemes.map((scheme, idx) => {
@@ -485,21 +485,21 @@ export const Dashboard = React.memo(function Dashboard() {
                       <button
                         onClick={() => openBeneficiaryForm(scheme.id)}
                         className="text-blue-600 hover:bg-blue-50 p-2 rounded"
-                        title={t('Add beneficiaries', 'à°²à°¬à±à°§à°¿à°¦à°¾à°°à±à°²à°¨à± à°œà±‹à°¡à°¿à°‚à°šà°‚à°¡à°¿')}
+                        title={t('Add beneficiaries', 'లబ్ధిదారులను జోడించండి')}
                       >
                         <Plus className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => openSchemeEdit(scheme)}
                         className="text-amber-600 hover:bg-amber-50 p-2 rounded"
-                        title={t('Edit scheme', 'à°ªà°¥à°•à°‚ à°¸à°µà°°à°¿à°‚à°šà±')}
+                        title={t('Edit scheme', 'పథకం సవరించు')}
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => deleteScheme(scheme.id, scheme.scheme_name)}
                         className="text-red-600 hover:bg-red-50 p-2 rounded"
-                        title={t('Delete scheme', 'à°ªà°¥à°•à°‚ à°¤à±Šà°²à°—à°¿à°‚à°šà±')}
+                        title={t('Delete scheme', 'పథకం తొలగించు')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -512,28 +512,28 @@ export const Dashboard = React.memo(function Dashboard() {
                       value={schemeForm.scheme_name}
                       onChange={(e) => setSchemeForm({ ...schemeForm, scheme_name: e.target.value })}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                      placeholder={t('Scheme name', 'à°ªà°¥à°•à°‚ à°ªà±‡à°°à±')}
+                      placeholder={t('Scheme name', 'పథకం పేరు')}
                     />
                     <textarea
                       value={schemeForm.description}
                       onChange={(e) => setSchemeForm({ ...schemeForm, description: e.target.value })}
                       rows={2}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                      placeholder={t('Description', 'à°µà°¿à°µà°°à°£')}
+                      placeholder={t('Description', 'వివరణ')}
                     />
                     <textarea
                       value={schemeForm.benefits}
                       onChange={(e) => setSchemeForm({ ...schemeForm, benefits: e.target.value })}
                       rows={2}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                      placeholder={t('Benefits', 'à°ªà±à°°à°¯à±‹à°œà°¨à°¾à°²à±')}
+                      placeholder={t('Benefits', 'ప్రయోజనాలు')}
                     />
                     <textarea
                       value={schemeForm.eligibility}
                       onChange={(e) => setSchemeForm({ ...schemeForm, eligibility: e.target.value })}
                       rows={2}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                      placeholder={t('Eligibility', 'à°…à°°à±à°¹à°¤')}
+                      placeholder={t('Eligibility', 'అర్హత')}
                     />
                     <div className="flex gap-1">
                       <button type="button" onClick={saveSchemeDetails} className="rounded-lg bg-emerald-700 p-2 text-white">
@@ -549,11 +549,11 @@ export const Dashboard = React.memo(function Dashboard() {
                     <p className="text-gray-600 dark:text-slate-300 text-sm mt-1.5">{scheme.description}</p>
                     <div className="space-y-1.5 mt-2 text-sm">
                       <div className="flex items-start gap-2">
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 min-w-fit">{t('Benefits:', 'à°ªà±à°°à°¯à±‹à°œà°¨à°¾à°²à±:')}</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 min-w-fit">{t('Benefits:', 'ప్రయోజనాలు:')}</span>
                         <span className="text-gray-700 dark:text-slate-200">{scheme.benefits}</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 min-w-fit">{t('Eligibility:', 'à°…à°°à±à°¹à°¤:')}</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 min-w-fit">{t('Eligibility:', 'అర్హత:')}</span>
                         <span className="text-gray-700 dark:text-slate-200">{eligibility}</span>
                       </div>
                     </div>
@@ -561,11 +561,11 @@ export const Dashboard = React.memo(function Dashboard() {
                 )}
                 <div className="mt-3 rounded-lg border border-slate-200 bg-white/80 p-2.5 dark:border-slate-600 dark:bg-slate-800/80">
                   <p className="mb-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    {t('Financial year beneficiaries', 'à°†à°°à±à°¥à°¿à°• à°¸à°‚à°µà°¤à±à°¸à°°à°‚ à°²à°¬à±à°§à°¿à°¦à°¾à°°à±à°²à±')}
+                    {t('Financial year beneficiaries', 'ఆర్థిక సంవత్సరం లబ్ధిదారులు')}
                   </p>
                   <div className="space-y-2">
                     {schemeBeneficiaries.filter((row) => row.scheme_id === scheme.id).length === 0 && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{t('No beneficiary records yet', 'à°‡à°‚à°•à°¾ à°²à°¬à±à°§à°¿à°¦à°¾à°°à±à°² à°°à°¿à°•à°¾à°°à±à°¡à±à°²à± à°²à±‡à°µà±')}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{t('No beneficiary records yet', 'ఇంకా లబ్ధిదారుల రికార్డులు లేవు')}</p>
                     )}
                     {schemeBeneficiaries
                       .filter((row) => row.scheme_id === scheme.id)
@@ -584,7 +584,7 @@ export const Dashboard = React.memo(function Dashboard() {
                                 type="button"
                                 onClick={() => deleteBeneficiary(row.id)}
                                 className="rounded p-1 text-red-500 hover:bg-red-50"
-                                title={t('Delete record', 'à°°à°¿à°•à°¾à°°à±à°¡à± à°¤à±Šà°²à°—à°¿à°‚à°šà±')}
+                                title={t('Delete record', 'రికార్డు తొలగించు')}
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
@@ -600,7 +600,7 @@ export const Dashboard = React.memo(function Dashboard() {
                         value={beneficiaryForm.financial_year}
                         onChange={(e) => setBeneficiaryForm({ ...beneficiaryForm, financial_year: e.target.value })}
                         className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                        placeholder={t('Financial year', 'à°†à°°à±à°¥à°¿à°• à°¸à°‚à°µà°¤à±à°¸à°°à°‚')}
+                        placeholder={t('Financial year', 'ఆర్థిక సంవత్సరం')}
                       />
                       <input
                         type="number"
@@ -608,7 +608,7 @@ export const Dashboard = React.memo(function Dashboard() {
                         value={beneficiaryForm.beneficiaries_count}
                         onChange={(e) => setBeneficiaryForm({ ...beneficiaryForm, beneficiaries_count: e.target.value })}
                         className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                        placeholder={t('Beneficiaries', 'à°²à°¬à±à°§à°¿à°¦à°¾à°°à±à°²à±')}
+                        placeholder={t('Beneficiaries', 'లబ్ధిదారులు')}
                       />
                       <div className="flex gap-1">
                         <button type="button" onClick={saveBeneficiaryRecord} className="rounded-lg bg-emerald-700 p-2 text-white">
@@ -623,7 +623,7 @@ export const Dashboard = React.memo(function Dashboard() {
                         value={beneficiaryForm.notes}
                         onChange={(e) => setBeneficiaryForm({ ...beneficiaryForm, notes: e.target.value })}
                         className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-3 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                        placeholder={t('Notes / village / category', 'à°—à°®à°¨à°¿à°•à°²à± / à°—à±à°°à°¾à°®à°‚ / à°µà°°à±à°—à°‚')}
+                        placeholder={t('Notes / village / category', 'గమనికలు / గ్రామం / వర్గం')}
                       />
                     </div>
                   )}
@@ -634,7 +634,7 @@ export const Dashboard = React.memo(function Dashboard() {
         </div>
             </div>
           ) : (
-            <DashboardEmptyState message={t('No schemes data available', 'No schemes data available')} />
+            <DashboardEmptyState message={t('No schemes data available', 'పథకాల డేటా అందుబాటులో లేదు')} />
           )}
         </>
       )}
@@ -752,3 +752,4 @@ function guntasToExtent(totalGuntas: number): number {
   const guntas = totalGuntas % 40;
   return acres + (guntas / 100);
 }
+

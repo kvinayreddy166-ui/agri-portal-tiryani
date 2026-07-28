@@ -2,6 +2,13 @@
  * Telugu translation dictionary for dealer stock screens.
  */
 
+import { repairTeluguText } from '../utils/textRepair';
+
+function hasValidTelugu(text?: string | null): boolean {
+  if (!text?.trim()) return false;
+  return /[\u0C00-\u0C7F]/.test(text);
+}
+
 export const dealerTranslations = {
   'Fertilizer Receipts': 'ఎరువుల స్వీకరణలు',
   'Daily Stock / Sales': 'దినసరి నిల్వ / అమ్మకాలు',
@@ -102,5 +109,16 @@ export function getDealerTranslation(englishText: string): string {
 }
 
 export function translateDealerText(englishText: string, language: 'en' | 'te'): string {
-  return language === 'te' ? getDealerTranslation(englishText) : englishText;
+  if (language !== 'te') return englishText;
+  
+  const teluguTranslation = getDealerTranslation(englishText);
+  if (teluguTranslation === englishText) return englishText;
+  
+  const repairedTelugu = repairTeluguText(teluguTranslation);
+  
+  if (hasValidTelugu(repairedTelugu)) {
+    return repairedTelugu;
+  }
+  
+  return englishText;
 }

@@ -12,6 +12,7 @@ export const APP_BUILD_LABEL = APP_BUILD_TIMESTAMP === 'dev'
     });
 
 const BUILD_VERSION_KEY = 'tiryani-app-build-version';
+const UPDATE_DISMISSED_KEY = 'tiryani-update-dismissed-timestamp';
 
 export function getCachedAppVersion() {
   try {
@@ -24,14 +25,40 @@ export function getCachedAppVersion() {
 export function rememberCurrentAppVersion() {
   try {
     window.localStorage.setItem(BUILD_VERSION_KEY, APP_VERSION);
+    // Clear the dismissed flag when we remember the current version
+    window.localStorage.removeItem(UPDATE_DISMISSED_KEY);
   } catch {
     // Version persistence is best-effort only.
   }
 }
 
+export function dismissUpdateBanner() {
+  try {
+    window.localStorage.setItem(UPDATE_DISMISSED_KEY, String(Date.now()));
+  } catch {
+    // Dismissal persistence is best-effort only.
+  }
+}
+
 export function hasNewAppVersion() {
   const cached = getCachedAppVersion();
-  return Boolean(cached && cached !== APP_VERSION);
+  if (!cached || cached === APP_VERSION) return false;
+
+  // Check if the banner was dismissed in the last 5 minutes
+  try {
+    const dismissed = window.localStorage.getItem(UPDATE_DISMISSED_KEY);
+    if (dismissed) {
+      const dismissedTime = parseInt(dismissed, 10);
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+      if (dismissedTime > fiveMinutesAgo) {
+        return false; // Don't show banner if dismissed recently
+      }
+    }
+  } catch {
+    // If we can't check the dismissed flag, proceed with showing the banner
+  }
+
+  return true;
 }
 
 export async function clearAppCacheAndReload() {

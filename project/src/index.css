@@ -1,4 +1,22 @@
-@import './styles/design-system.css';
+﻿@import './styles/design-system.css';
+
+@font-face {
+  font-family: 'Noto Sans Telugu';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('/fonts/noto-sans-telugu-telugu-400-normal.woff2') format('woff2');
+  unicode-range: U+0C00-0C7F,U+200C-200D,U+25CC;
+}
+
+@font-face {
+  font-family: 'Noto Sans Telugu';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700 800;
+  src: url('/fonts/noto-sans-telugu-telugu-700-normal.woff2') format('woff2');
+  unicode-range: U+0C00-0C7F,U+200C-200D,U+25CC;
+}
 
 @font-face {
   font-family: 'Atkinson Hyperlegible Next';

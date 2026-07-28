@@ -10,6 +10,11 @@ import {
   initialFertilizerPdfValues,
 } from '../../lib/statutoryFertilizerPdf';
 import { FertilizerInstructionModal } from '../ui/FertilizerInstructionModal';
+import {
+  QUALIFICATION_OPTIONS,
+  TELANGANA_DISTRICTS,
+  getMandalsForDistrict,
+} from '../../data/telanganaDistrictMandalData';
 
 type FieldConfig = {
   key: keyof FertilizerPdfValues;
@@ -48,6 +53,7 @@ const bagSourceOptions = [
 const designationOptions = [
   { label: 'Mandal Agriculture Officer', value: 'Mandal Agriculture Officer' },
   { label: 'Asst. Director of Agriculture', value: 'Asst. Director of Agriculture' },
+  { label: 'Fertilizer Inspector', value: 'Fertilizer Inspector' },
 ];
 
 const compositionFields: FieldConfig[] = [
@@ -93,9 +99,13 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
     title: 'INSPECTOR DETAILS',
     fields: [
       { key: 'officerName', label: 'OFFICER NAME' },
+      { key: 'qualification', label: 'QUALIFICATION', type: 'select', options: QUALIFICATION_OPTIONS },
+      { key: 'manualQualification', label: 'ENTER QUALIFICATION', placeholder: 'Enter qualification' },
       { key: 'designation', label: 'DESIGNATION', type: 'select', options: designationOptions },
-      { key: 'officeAddress', label: 'OFFICE ADDRESS', type: 'textarea' },
-      { key: 'place', label: 'PLACE' },
+      { key: 'district', label: 'DISTRICT', type: 'select', options: TELANGANA_DISTRICTS.map(d => ({ label: d, value: d })) },
+      { key: 'mandal', label: 'MANDAL', type: 'select', options: [] },
+      { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
+      { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
       { key: 'date', label: 'DATE', type: 'date' },
     ],
   },
@@ -182,17 +192,38 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       if (key === 'codeNumber' && (!current.sampleCode || current.sampleCode === current.codeNumber)) {
         next.sampleCode = value;
       }
-      if (key === 'dealerName' || key === 'dealerAddress' || key === 'place') {
+      if (key === 'dealerName' || key === 'dealerAddress') {
         next.dealerNameAddress = buildDealerNameAddress(next);
       }
-      if (key === 'dealerName' && (!current.dealerManufacturerImporterName || current.dealerManufacturerImporterName === current.dealerName)) {
-        next.dealerManufacturerImporterName = value;
-      }
-      if (key === 'officerName' || key === 'designation' || key === 'officeAddress') {
-        const inspectorAddress = [next.officerName, next.designation, next.officeAddress].filter(Boolean).join('\n');
+      if (key === 'officerName' || key === 'designation' || key === 'qualification' || key === 'manualQualification' || key === 'district' || key === 'mandal' || key === 'manualDistrict' || key === 'manualMandal') {
+        const resolvedQualification = next.qualification === 'Others' ? next.manualQualification : next.qualification;
+        const officerNameWithQualification = next.officerName && resolvedQualification 
+          ? `${next.officerName}, ${resolvedQualification}`
+          : next.officerName;
+        const resolvedMandal = next.mandal === 'Others' ? next.manualMandal : next.mandal;
+        const resolvedDistrict = next.district === 'Others' ? next.manualDistrict : next.district;
+        const inspectorAddress = [officerNameWithQualification, next.designation, resolvedMandal, resolvedDistrict].filter(Boolean).join('\n');
         next.inspectorNameAddress = inspectorAddress;
         next.fromAddress = inspectorAddress;
         next.forwardReportAddress = inspectorAddress;
+      }
+      if (key === 'district') {
+        next.mandal = '';
+        next.manualDistrict = '';
+        next.manualMandal = '';
+      }
+      if (key === 'mandal') {
+        next.manualMandal = '';
+        // Auto-populate place field with mandal value
+        if (value && value !== 'Others') {
+          next.place = value;
+        }
+      }
+      if (key === 'manualMandal') {
+        // Auto-populate place field with manual mandal value
+        if (value) {
+          next.place = value;
+        }
       }
       if (key === 'officerName') {
         const currentDraftName = draftName.trim();
@@ -252,6 +283,32 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completePreviewPdf = async (type = formType) => {
+    // Validation
+    if (!values.qualification) {
+      setMessage('Qualification is required');
+      return;
+    }
+    if (values.qualification === 'Others' && !values.manualQualification) {
+      setMessage('Qualification name is required when "Others" is selected');
+      return;
+    }
+    if (!values.district) {
+      setMessage('District is required');
+      return;
+    }
+    if (!values.mandal) {
+      setMessage('Mandal is required');
+      return;
+    }
+    if (values.district === 'Others' && !values.manualDistrict) {
+      setMessage('District name is required when "Others" is selected');
+      return;
+    }
+    if (values.mandal === 'Others' && !values.manualMandal) {
+      setMessage('Mandal name is required when "Others" is selected');
+      return;
+    }
+
     const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
@@ -275,6 +332,32 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completePreviewAllPdf = async () => {
+    // Validation
+    if (!values.qualification) {
+      setMessage('Qualification is required');
+      return;
+    }
+    if (values.qualification === 'Others' && !values.manualQualification) {
+      setMessage('Qualification name is required when "Others" is selected');
+      return;
+    }
+    if (!values.district) {
+      setMessage('District is required');
+      return;
+    }
+    if (!values.mandal) {
+      setMessage('Mandal is required');
+      return;
+    }
+    if (values.district === 'Others' && !values.manualDistrict) {
+      setMessage('District name is required when "Others" is selected');
+      return;
+    }
+    if (values.mandal === 'Others' && !values.manualMandal) {
+      setMessage('Mandal name is required when "Others" is selected');
+      return;
+    }
+
     const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
@@ -297,6 +380,32 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completeDownloadPdf = async (type = formType) => {
+    // Validation
+    if (!values.qualification) {
+      setMessage('Qualification is required');
+      return;
+    }
+    if (values.qualification === 'Others' && !values.manualQualification) {
+      setMessage('Qualification name is required when "Others" is selected');
+      return;
+    }
+    if (!values.district) {
+      setMessage('District is required');
+      return;
+    }
+    if (!values.mandal) {
+      setMessage('Mandal is required');
+      return;
+    }
+    if (values.district === 'Others' && !values.manualDistrict) {
+      setMessage('District name is required when "Others" is selected');
+      return;
+    }
+    if (values.mandal === 'Others' && !values.manualMandal) {
+      setMessage('Mandal name is required when "Others" is selected');
+      return;
+    }
+
     setBusyAction('download');
     setPreviewError(null);
     try {
@@ -323,6 +432,32 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completeDownloadAllPdf = async () => {
+    // Validation
+    if (!values.qualification) {
+      setMessage('Qualification is required');
+      return;
+    }
+    if (values.qualification === 'Others' && !values.manualQualification) {
+      setMessage('Qualification name is required when "Others" is selected');
+      return;
+    }
+    if (!values.district) {
+      setMessage('District is required');
+      return;
+    }
+    if (!values.mandal) {
+      setMessage('Mandal is required');
+      return;
+    }
+    if (values.district === 'Others' && !values.manualDistrict) {
+      setMessage('District name is required when "Others" is selected');
+      return;
+    }
+    if (values.mandal === 'Others' && !values.manualMandal) {
+      setMessage('Mandal name is required when "Others" is selected');
+      return;
+    }
+
     setBusyAction('downloadAll');
     setPreviewError(null);
     try {
@@ -481,12 +616,30 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                           return null;
                         }
                       }
+                      // Hide manual district field unless district is "Others"
+                      if (field.key === 'manualDistrict' && values.district !== 'Others') {
+                        return null;
+                      }
+                      // Hide manual mandal field unless mandal is "Others"
+                      if (field.key === 'manualMandal' && values.mandal !== 'Others') {
+                        return null;
+                      }
+                      // Hide manual qualification field unless qualification is "Others"
+                      if (field.key === 'manualQualification' && values.qualification !== 'Others') {
+                        return null;
+                      }
+                      // Get mandal options based on selected district
+                      let fieldOptions = field.options;
+                      if (field.key === 'mandal' && values.district && values.district !== 'Others') {
+                        fieldOptions = getMandalsForDistrict(values.district).map(m => ({ label: m, value: m }));
+                      }
                       return (
                         <PdfInput
                           key={field.key}
                           field={field}
                           value={values[field.key]}
                           onChange={(value) => setField(field.key, value)}
+                          options={fieldOptions}
                         />
                       );
                     })}
@@ -558,18 +711,34 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
     normalized.dealerAddress = normalized.dealerAddress || lines.slice(1).join('\n');
   }
   normalized.dealerNameAddress = buildDealerNameAddress(normalized);
-  if (!normalized.dealerManufacturerImporterName && normalized.dealerName) {
-    normalized.dealerManufacturerImporterName = normalized.dealerName;
-  }
   // Ensure compositionDisplayFlags has default value if missing
   if (!normalized.compositionDisplayFlags) {
     normalized.compositionDisplayFlags = 'N,P_T,P_WS,P_CS,K';
+  }
+  // Ensure new fields have default values for backward compatibility
+  if (!normalized.qualification) {
+    normalized.qualification = '';
+  }
+  if (!normalized.manualQualification) {
+    normalized.manualQualification = '';
+  }
+  if (!normalized.district) {
+    normalized.district = '';
+  }
+  if (!normalized.mandal) {
+    normalized.mandal = '';
+  }
+  if (!normalized.manualDistrict) {
+    normalized.manualDistrict = '';
+  }
+  if (!normalized.manualMandal) {
+    normalized.manualMandal = '';
   }
   return normalized;
 }
 
 function buildDealerNameAddress(values: FertilizerPdfValues) {
-  return [values.dealerName, values.dealerAddress, values.place]
+  return [values.dealerName, values.dealerAddress]
     .map((part) => part.trim())
     .filter(Boolean)
     .join('\n');
@@ -732,10 +901,12 @@ function PdfInput({
   field,
   value,
   onChange,
+  options,
 }: {
   field: FieldConfig;
   value: string;
   onChange: (value: string) => void;
+  options?: { label: string; value: string }[];
 }) {
   const commonClass =
     'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
@@ -773,6 +944,11 @@ function PdfInput({
     );
   }
 
+  // Handle mandal dropdown with "Others" option
+  const selectOptions = field.key === 'mandal' && options 
+    ? [...options, { label: 'Others', value: 'Others' }]
+    : (options || field.options || []);
+
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{field.label}</span>
@@ -781,7 +957,7 @@ function PdfInput({
       ) : field.type === 'select' ? (
         <select value={value} onChange={(event) => onChange(event.target.value)} className={commonClass}>
           <option value="">Select...</option>
-          {field.options?.map((option) => (
+          {selectOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>

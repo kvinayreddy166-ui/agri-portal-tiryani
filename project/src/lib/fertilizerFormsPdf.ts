@@ -47,7 +47,7 @@ const PAGE = {
 };
 
 const PDF_FONT = 'times';
-const BODY_SIZE = 12;
+const BODY_SIZE = 12.5;
 const TITLE_SIZE = 16;
 const ROW_LINE_HEIGHT = 6;
 const ROW_GAP = 2;

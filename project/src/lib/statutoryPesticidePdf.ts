@@ -49,6 +49,10 @@ export type PesticidePdfValues = {
   caSealParticulars: string;
   otherInformation: string;
   labAddress: string;
+  qualification: string;
+  manualQualification: string;
+  manualDistrict: string;
+  manualMandal: string;
 };
 
 export const initialPesticidePdfValues: PesticidePdfValues = {
@@ -98,6 +102,10 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   caSealParticulars: '',
   otherInformation: '',
   labAddress: 'The Insecticide Analyst,\nDeputy Director of Agriculture (IA),\nPesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad - 36.',
+  qualification: '',
+  manualQualification: '',
+  manualDistrict: '',
+  manualMandal: '',
 };
 
 export const pesticideFormTitles: Record<PesticideStatutoryFormType, string> = {
@@ -109,8 +117,8 @@ export const pesticideFormTitles: Record<PesticideStatutoryFormType, string> = {
 
 const PAGE = { marginX: 18, top: 22, bottom: 276, width: 210, height: 297 };
 const PDF_FONT = 'times';
-const BODY_SIZE = 12.2;
-const TITLE_SIZE = 15.4;
+const BODY_SIZE = 12.5;
+const TITLE_SIZE = 16;
 const LINE_HEIGHT = 6.2;
 
 type PdfCursor = {
@@ -236,9 +244,11 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
 }
 
 function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
+  const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
+  
   centeredTitle(cursor, 'DOCKET SHEET');
   fieldList(cursor, [
-    ['1. Name of the District', values.district],
+    ['1. Name of the District', resolvedDistrict],
     ['2. Sample drawn by - a) Name', values.officerName],
     ['   b) Designation', designationLine(values)],
     ['3. Name of the Chemical - a) Trade Name', values.tradeName],
@@ -254,7 +264,7 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ['12. Date of Drawl of Sample', formatDate(values.sampleDrawnDate)],
     ['13. Date of receipt of stock by the dealer and from whom received', values.stockReceiptDetails],
     ['14. Particulars of Invoice', values.invoiceParticulars],
-    ['15. Stock position of batch at the time of drawal of sample', values.stockPosition],
+    ['15. Stock position of batch at the time of drawl of sample', values.stockPosition],
     ['16. Code No. of A.O./A.D./D.D.A.', values.cdaCode],
     ['17. Q.C.I. Seal Particulars', values.qciSealParticulars],
     ['18. C.A. Seal Particulars', values.caSealParticulars],
@@ -386,6 +396,8 @@ function normalizePesticideValues(values: PesticidePdfValues): PesticidePdfValue
       normalized.sampleDrawnYear = normalized.sampleDrawnYear || String(date.getFullYear()).slice(-2);
     }
   }
+  // Ensure new fields have default values for backward compatibility
+  // (already handled by spreading initialPesticidePdfValues which includes defaults)
   return normalized;
 }
 
@@ -398,18 +410,36 @@ function pesticideName(values: PesticidePdfValues) {
 }
 
 function inspectorAddress(values: PesticidePdfValues) {
-  return [values.officerName, 'Insecticide Inspector and', values.designation, values.officeAddress, values.officerEmail]
+  const resolvedQualification = values.qualification === 'Others' ? values.manualQualification : values.qualification;
+  const officerNameWithQualification = values.officerName && resolvedQualification 
+    ? `${values.officerName}, ${resolvedQualification}`
+    : values.officerName;
+  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
+  
+  return [
+    officerNameWithQualification,
+    values.designation,
+    resolvedMandal ? `${resolvedMandal} Mandal` : '',
+    resolvedDistrict || '',
+  ]
     .map((part) => part.trim())
     .filter(Boolean)
     .join('\n');
 }
 
 function inspectorLine(values: PesticidePdfValues) {
-  return [values.officerName, values.designation, values.mandal].map((part) => part.trim()).filter(Boolean).join(', ');
+  const resolvedQualification = values.qualification === 'Others' ? values.manualQualification : values.qualification;
+  const officerNameWithQualification = values.officerName && resolvedQualification 
+    ? `${values.officerName}, ${resolvedQualification}`
+    : values.officerName;
+  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
+  return [officerNameWithQualification, values.designation, resolvedMandal, resolvedDistrict].map((part) => part.trim()).filter(Boolean).join(', ');
 }
 
 function designationLine(values: PesticidePdfValues) {
-  return [values.designation, values.mandal].map((part) => part.trim()).filter(Boolean).join(', ');
+  return [values.designation].map((part) => part.trim()).filter(Boolean).join(', ');
 }
 
 function buildDealerAddress(values: PesticidePdfValues) {
