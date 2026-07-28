@@ -7,6 +7,8 @@ import { OfflineScreen } from './components/ui/OfflineScreen';
 import { APP_BUILD_LABEL, clearAppCacheAndReload, dismissUpdateBanner, hasNewAppVersion, rememberCurrentAppVersion } from './lib/appVersion';
 import { isRecoverableChunkError } from './lib/pwaRecovery';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import { SEO, OrganizationSchema } from './components/seo/SEO';
 
 const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
 const Layout = lazy(() => import('./components/Layout').then((m) => ({ default: m.Layout })));
@@ -894,18 +896,22 @@ function LanguageScope({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <LanguageScope>
-            <OfflineScreen />
-            <AppUpdateBanner />
-            <AppContent />
-            <AppVersionBadge />
-          </LanguageScope>
-        </BrowserRouter>
-      </AuthProvider>
-    </ThemeProvider>
+    <HelmetProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <LanguageScope>
+              <SEO />
+              <OrganizationSchema />
+              <OfflineScreen />
+              <AppUpdateBanner />
+              <AppContent />
+              <AppVersionBadge />
+            </LanguageScope>
+          </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
+    </HelmetProvider>
   );
 }
 

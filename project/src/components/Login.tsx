@@ -296,9 +296,14 @@ export function Login() {
     if (!form.file_url) return;
     // Check if it's an image file
     const isImage = /\.(jpg|jpeg|png|webp|gif|bmp|svg)$/i.test(form.file_url) || form.file_type?.startsWith('image/');
+    // Check if it's a PDF file
+    const isPdf = /\.pdf$/i.test(form.file_url) || form.file_type === 'application/pdf' || form.file_type?.includes('pdf');
     // Check if it's an Excel file
     const isExcel = /\.(xlsx|xls|csv)$/i.test(form.file_url) || form.file_type?.includes('excel') || form.file_type?.includes('spreadsheet');
     if (isImage) {
+      window.open(form.file_url, '_blank', 'noopener,noreferrer');
+    } else if (isPdf) {
+      // Open PDF directly in browser's native PDF viewer
       window.open(form.file_url, '_blank', 'noopener,noreferrer');
     } else if (isExcel) {
       const viewerUrl = getOfficeViewerTabUrl(form.file_url);

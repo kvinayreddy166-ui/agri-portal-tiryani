@@ -50,8 +50,11 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
   const [pptxFile, setPptxFile] = useState<File | null>(null);
   const embedTimerRef = useRef<number | null>(null);
 
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
   const useClientPreview = isPdf || isOfficeDoc || isSpreadsheet;
-  const useEmbedPreview = isDriveLink || pdfUseEmbed;
+  // On mobile, use direct PDF opening instead of embed preview
+  const useEmbedPreview = isDriveLink || (pdfUseEmbed && !isMobile);
 
   const officeEmbedSrc = getOfficeViewerEmbedUrl(fileUrl);
   const googleEmbedSrc = getGoogleViewerEmbedUrl(fileUrl);
@@ -234,7 +237,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
             </button>
             {!hideOpenInNewTab && !isSpreadsheet && (
               <a
-                href={googleViewerTabSrc}
+                href={isPdf ? fileUrl : googleViewerTabSrc}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-lg p-2 text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-slate-800"
