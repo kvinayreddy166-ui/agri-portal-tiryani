@@ -283,32 +283,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completePreviewPdf = async (type = formType) => {
-    // Validation
-    if (!values.qualification) {
-      setMessage('Qualification is required');
-      return;
-    }
-    if (values.qualification === 'Others' && !values.manualQualification) {
-      setMessage('Qualification name is required when "Others" is selected');
-      return;
-    }
-    if (!values.district) {
-      setMessage('District is required');
-      return;
-    }
-    if (!values.mandal) {
-      setMessage('Mandal is required');
-      return;
-    }
-    if (values.district === 'Others' && !values.manualDistrict) {
-      setMessage('District name is required when "Others" is selected');
-      return;
-    }
-    if (values.mandal === 'Others' && !values.manualMandal) {
-      setMessage('Mandal name is required when "Others" is selected');
-      return;
-    }
-
+    // Validation removed - users can preview PDFs even with empty fields
     const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
@@ -332,32 +307,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completePreviewAllPdf = async () => {
-    // Validation
-    if (!values.qualification) {
-      setMessage('Qualification is required');
-      return;
-    }
-    if (values.qualification === 'Others' && !values.manualQualification) {
-      setMessage('Qualification name is required when "Others" is selected');
-      return;
-    }
-    if (!values.district) {
-      setMessage('District is required');
-      return;
-    }
-    if (!values.mandal) {
-      setMessage('Mandal is required');
-      return;
-    }
-    if (values.district === 'Others' && !values.manualDistrict) {
-      setMessage('District name is required when "Others" is selected');
-      return;
-    }
-    if (values.mandal === 'Others' && !values.manualMandal) {
-      setMessage('Mandal name is required when "Others" is selected');
-      return;
-    }
-
+    // Validation removed - users can preview PDFs even with empty fields
     const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
@@ -380,32 +330,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completeDownloadPdf = async (type = formType) => {
-    // Validation
-    if (!values.qualification) {
-      setMessage('Qualification is required');
-      return;
-    }
-    if (values.qualification === 'Others' && !values.manualQualification) {
-      setMessage('Qualification name is required when "Others" is selected');
-      return;
-    }
-    if (!values.district) {
-      setMessage('District is required');
-      return;
-    }
-    if (!values.mandal) {
-      setMessage('Mandal is required');
-      return;
-    }
-    if (values.district === 'Others' && !values.manualDistrict) {
-      setMessage('District name is required when "Others" is selected');
-      return;
-    }
-    if (values.mandal === 'Others' && !values.manualMandal) {
-      setMessage('Mandal name is required when "Others" is selected');
-      return;
-    }
-
+    // Validation removed - users can download PDFs even with empty fields
     setBusyAction('download');
     setPreviewError(null);
     try {
@@ -432,32 +357,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completeDownloadAllPdf = async () => {
-    // Validation
-    if (!values.qualification) {
-      setMessage('Qualification is required');
-      return;
-    }
-    if (values.qualification === 'Others' && !values.manualQualification) {
-      setMessage('Qualification name is required when "Others" is selected');
-      return;
-    }
-    if (!values.district) {
-      setMessage('District is required');
-      return;
-    }
-    if (!values.mandal) {
-      setMessage('Mandal is required');
-      return;
-    }
-    if (values.district === 'Others' && !values.manualDistrict) {
-      setMessage('District name is required when "Others" is selected');
-      return;
-    }
-    if (values.mandal === 'Others' && !values.manualMandal) {
-      setMessage('Mandal name is required when "Others" is selected');
-      return;
-    }
-
+    // Validation removed - users can download PDFs even with empty fields
     setBusyAction('downloadAll');
     setPreviewError(null);
     try {

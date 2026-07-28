@@ -234,32 +234,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completePreview = async (formType: PesticideStatutoryFormType) => {
-    // Validation
-    if (!values.qualification) {
-      setMessage('Qualification is required');
-      return;
-    }
-    if (values.qualification === 'Others' && !values.manualQualification) {
-      setMessage('Qualification name is required when "Others" is selected');
-      return;
-    }
-    if (!values.district) {
-      setMessage('District is required');
-      return;
-    }
-    if (!values.mandal) {
-      setMessage('Mandal is required');
-      return;
-    }
-    if (values.district === 'Others' && !values.manualDistrict) {
-      setMessage('District name is required when "Others" is selected');
-      return;
-    }
-    if (values.mandal === 'Others' && !values.manualMandal) {
-      setMessage('Mandal name is required when "Others" is selected');
-      return;
-    }
-
+    // Validation removed - users can preview PDFs even with empty fields
     const targetWindow = openBlankPdfTab();
     setBusy(true);
     try {
@@ -281,32 +256,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completeDownload = async (formType: PesticideStatutoryFormType) => {
-    // Validation
-    if (!values.qualification) {
-      setMessage('Qualification is required');
-      return;
-    }
-    if (values.qualification === 'Others' && !values.manualQualification) {
-      setMessage('Qualification name is required when "Others" is selected');
-      return;
-    }
-    if (!values.district) {
-      setMessage('District is required');
-      return;
-    }
-    if (!values.mandal) {
-      setMessage('Mandal is required');
-      return;
-    }
-    if (values.district === 'Others' && !values.manualDistrict) {
-      setMessage('District name is required when "Others" is selected');
-      return;
-    }
-    if (values.mandal === 'Others' && !values.manualMandal) {
-      setMessage('Mandal name is required when "Others" is selected');
-      return;
-    }
-
+    // Validation removed - users can download PDFs even with empty fields
     setBusy(true);
     try {
       const doc = await generatePesticideStatutoryPdf(formType, values);
@@ -331,32 +281,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completePreviewAll = async () => {
-    // Validation
-    if (!values.qualification) {
-      setMessage('Qualification is required');
-      return;
-    }
-    if (values.qualification === 'Others' && !values.manualQualification) {
-      setMessage('Qualification name is required when "Others" is selected');
-      return;
-    }
-    if (!values.district) {
-      setMessage('District is required');
-      return;
-    }
-    if (!values.mandal) {
-      setMessage('Mandal is required');
-      return;
-    }
-    if (values.district === 'Others' && !values.manualDistrict) {
-      setMessage('District name is required when "Others" is selected');
-      return;
-    }
-    if (values.mandal === 'Others' && !values.manualMandal) {
-      setMessage('Mandal name is required when "Others" is selected');
-      return;
-    }
-
+    // Validation removed - users can preview PDFs even with empty fields
     const targetWindow = openBlankPdfTab();
     setBusy(true);
     try {
@@ -378,32 +303,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completeDownloadAll = async () => {
-    // Validation
-    if (!values.qualification) {
-      setMessage('Qualification is required');
-      return;
-    }
-    if (values.qualification === 'Others' && !values.manualQualification) {
-      setMessage('Qualification name is required when "Others" is selected');
-      return;
-    }
-    if (!values.district) {
-      setMessage('District is required');
-      return;
-    }
-    if (!values.mandal) {
-      setMessage('Mandal is required');
-      return;
-    }
-    if (values.district === 'Others' && !values.manualDistrict) {
-      setMessage('District name is required when "Others" is selected');
-      return;
-    }
-    if (values.mandal === 'Others' && !values.manualMandal) {
-      setMessage('Mandal name is required when "Others" is selected');
-      return;
-    }
-
+    // Validation removed - users can download PDFs even with empty fields
     setBusy(true);
     try {
       const doc = await generateAllPesticideStatutoryPdf(values);

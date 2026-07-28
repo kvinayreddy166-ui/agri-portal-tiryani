@@ -64,7 +64,7 @@ export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
     'Banswada', 'Bichkunda', 'Birkoor', 'Jukkal', 'Madnur', 'Nasurullabad', 'Nizamsagar', 'Pedda Kodapgal', 'Pitlam', 'Dongli', 'Bhiknoor', 'Bibipet', 'Domakonda', 'Kamareddy', 'Machareddy', 'Rajampet', 'Ramareddy', 'Sadasivanagar', 'Tadwai', 'Palvancha', 'Gandhari', 'Lingampet', 'Naga Reddipet', 'Yellareddy',
   ],
   'Karimnagar': [
-    'Chigurumamidi', 'Choppadandi', 'Gangadhara', 'Ganneruvaram', 'Karimnagar', 'Karimnagar (Rural-I)', 'Karimnagar (Rural-II)', 'Manakondur', 'Ramadugu', 'Thimmapur', 'Ellandakunta', 'Huzurabad', 'Jammikunta', 'Shankarapatnam', 'V Saidapur', 'Veenavanka',
+    'Chigurumamidi', 'Choppadandi', 'Gangadhara', 'Ganneruvaram', 'Karimnagar', 'Karimnagar Rural', 'Kothapally', 'Manakondur', 'Ramadugu', 'Thimmapur', 'Ellandakunta', 'Huzurabad', 'Jammikunta', 'Shankarapatnam', 'V Saidapur', 'Veenavanka',
   ],
   'Khammam': [
     'Enkuru', 'Kalluru', 'Penuballi', 'Sathupalli', 'Thallada', 'Vemsoor', 'Bonakal', 'Chinthakani', 'Kamepalle', 'Khammam (Rural)', 'Khammam (Urban)', 'Konijerla', 'Kusumanchi', 'Madhira', 'Mudigonda', 'Nelakondapalle', 'Raghunadhapalem', 'Singareni', 'Thirumalayapalem', 'Wyra', 'Yerrupalem',
@@ -79,7 +79,7 @@ export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
     'Addakal', 'Balanagar', 'Bhoothpur', 'Chinna Chinthakunta', 'Devarkadara', 'Gandeed', 'Hanwada', 'Jadcherla', 'Koilkonda', 'Mahabubnagar(Rural)', 'Mahabubnagar(Urban)', 'Midjil', 'Mohammadabad', 'Musapet', 'Nawabpet', 'Rajapur',
   ],
   'Mancherial': [
-    'Bheemaram', 'Chennur', 'Dandepally', 'Hajipur', 'Jaipur', 'Jannaram', 'Kotapally', 'Luxettipet', 'Mancherial', 'Mandamarri', 'Naspur', 'Bellampally Mandal', 'Bheemini', 'Kannepally', 'Kasipet', 'Nennel', 'Tandur', 'Vempally',
+    'Bheemaram', 'Chennur', 'Dandepally', 'Hajipur', 'Jaipur', 'Jannaram', 'Kotapally', 'Luxettipet', 'Mancherial', 'Mandamarri', 'Naspur', 'Bellampally', 'Bheemini', 'Kannepally', 'Kasipet', 'Nennel', 'Tandur', 'Vempally',
   ],
   'Medak': [
     'Alladurg', 'Havelighanpur', 'Medak', 'Nizampet', 'Papannapet', 'Ramayampet', 'Regode', 'Shankarampet(A)', 'Shankarampet(R)', 'Tekmal', 'Chilipched', 'Kowdipalle', 'Kulcharam', 'Narsapur', 'Shivampet', 'Chegunta', 'Manoharabad', 'Masaipet', 'Narsingi', 'Tupran', 'Yeldurthy',

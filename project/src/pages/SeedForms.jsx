@@ -541,27 +541,7 @@ function isCottonSeedForm(form) {
 }
 
 function validateSeedForm(form, kind) {
-  if (kind === 'II' && !isCottonSeedForm(form)) {
-    return 'Form II is available only when Cotton crop is selected.';
-  }
-  if (!form.qualification) {
-    return 'Qualification is required';
-  }
-  if (form.qualification === 'Others' && !form.manualQualification) {
-    return 'Qualification name is required when "Others" is selected';
-  }
-  if (!form.district) {
-    return 'District is required';
-  }
-  if (!form.mandal) {
-    return 'Mandal is required';
-  }
-  if (form.district === 'Others' && !form.manualDistrict) {
-    return 'District name is required when "Others" is selected';
-  }
-  if (form.mandal === 'Others' && !form.manualMandal) {
-    return 'Mandal name is required when "Others" is selected';
-  }
+  // Validation removed - users can preview/download PDFs even with empty fields
   return '';
 }
 
