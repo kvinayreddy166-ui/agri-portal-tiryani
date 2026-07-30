@@ -212,7 +212,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
           : next.officerName;
         const resolvedMandal = next.mandal === 'Others' ? next.manualMandal : next.mandal;
         const resolvedDistrict = next.district === 'Others' ? next.manualDistrict : next.district;
-        const inspectorAddress = [officerNameWithQualification, next.designation, resolvedMandal, resolvedDistrict].filter(Boolean).join('\n');
+        const inspectorAddress = [officerNameWithQualification, next.designation, resolvedMandal ? `${resolvedMandal} Mandal` : '', resolvedDistrict].filter(Boolean).join('\n');
         next.inspectorNameAddress = inspectorAddress;
         next.fromAddress = inspectorAddress;
         next.forwardReportAddress = inspectorAddress;
@@ -240,6 +240,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         const previousOfficerName = current.officerName.trim();
         if (!currentDraftName || currentDraftName === previousOfficerName) {
           setDraftName(value.trim());
+        }
+      }
+      if (key === 'date') {
+        // Auto-populate samplingDate from date field
+        if (value && (!current.samplingDate || current.samplingDate === current.date)) {
+          next.samplingDate = value;
         }
       }
       return next;
@@ -740,6 +746,19 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
     normalized.dealerAddress = normalized.dealerAddress || lines.slice(1).join('\n');
   }
   normalized.dealerNameAddress = buildDealerNameAddress(normalized);
+  
+  // Rebuild inspector address with Mandal suffix
+  const resolvedQualification = normalized.qualification === 'Others' ? normalized.manualQualification : normalized.qualification;
+  const officerNameWithQualification = normalized.officerName && resolvedQualification 
+    ? `${normalized.officerName}, ${resolvedQualification}`
+    : normalized.officerName;
+  const resolvedMandal = normalized.mandal === 'Others' ? normalized.manualMandal : normalized.mandal;
+  const resolvedDistrict = normalized.district === 'Others' ? normalized.manualDistrict : normalized.district;
+  const inspectorAddress = [officerNameWithQualification, normalized.designation, resolvedMandal ? `${resolvedMandal} Mandal` : '', resolvedDistrict].filter(Boolean).join('\n');
+  normalized.inspectorNameAddress = inspectorAddress;
+  normalized.fromAddress = inspectorAddress;
+  normalized.forwardReportAddress = inspectorAddress;
+  
   // Ensure compositionDisplayFlags has default value if missing
   if (!normalized.compositionDisplayFlags) {
     normalized.compositionDisplayFlags = 'N,P_T,P_WS,P_CS,K';

@@ -19,8 +19,27 @@ const PDF_TITLE_SIZE = 16;
 const PDF_SUBTITLE_SIZE = 14;
 const FORM_II_COTTON_QUANTITY = '25 G * 3';
 
-const cropOptions = ['Paddy', 'Cotton', 'Maize', 'Redgram', 'Greengram', 'Blackgram', 'Soybean', 'Bengalgram', 'Jowar', 'Other'];
+const cropOptions = ['Bajra', 'Bengalgram', 'Blackgram', 'Castor', 'Cotton', 'Cowpea', 'Greengram', 'Groundnut', 'Maize', 'Paddy', 'Redgram', 'Safflower', 'Sesamum', 'Sorghum', 'Soybean', 'Sunflower', 'Other'];
 const natureOptions = ['Seed sample', 'Other'];
+
+const cropQuantityMapping = {
+  'Cotton': '250 Grams * 3',
+  'Paddy': '400 Grams * 3',
+  'Maize': '1000 Grams * 3',
+  'Bajra': '150 Grams * 3',
+  'Sorghum': '900 Grams * 3',
+  'Safflower': '900 Grams * 3',
+  'Blackgram': '1000 Grams * 3',
+  'Cowpea': '1000 Grams * 3',
+  'Bengalgram': '1000 Grams * 3',
+  'Redgram': '1000 Grams * 3',
+  'Soybean': '1000 Grams * 3',
+  'Castor': '1000 Grams * 3',
+  'Groundnut': '1000 Grams * 3',
+  'Sunflower': '1000 Grams * 3',
+  'Sesamum': '70 Grams * 3',
+  'Greengram': '1000 Grams * 3',
+};
 const classOptions = ['Breeder Seed', 'Foundation Seed', 'Certified Seed', 'Truthfully Labelled Seed', 'Hybrid Seed', 'Other'];
 const testOptions = ['Germination, Purity & Moisture Test', 'BT Protein Test', 'Genetic Purity Test', 'Seed Health Test', 'Complete Analysis', 'Other'];
 const labOptions = [
@@ -110,6 +129,10 @@ export function SeedForms() {
         if (!currentDraftName || currentDraftName === previousOfficerName) {
           setDraftName(value.trim());
         }
+      }
+      if (key === 'crop') {
+        const defaultQuantity = cropQuantityMapping[value] || '';
+        return { ...current, crop: value, cropOther: '', quantityDrawn: defaultQuantity };
       }
       if (key === 'district') {
         return { ...current, district: value, mandal: '', manualDistrict: '', manualMandal: '', place: '' };
@@ -636,7 +659,7 @@ function drawSeedFormII(doc, form) {
   title(doc, p, 'ENVIRONMENT (PROTECTION) RULES, 1986', 'FORM II (SEE RULE 8)', 'MEMORANDUM TO GOVERNMENT ANALYST');
   drawFromTo(doc, p, r);
   para(doc, p, 'The portion of sample described below is sent herewith for analysis under Rule 6 of the Environment (Protection) Rules, 1986.');
-  para(doc, p, 'The portion of sample has been marked by me with the following mark:');
+  richPara(doc, p, [{ text: 'The portion of sample has been marked by me with the following mark:', bold: true }]);
   details(doc, p, [
     ['1. Serial No. of the sample', r.serialNo],
     ['2. Code No. of the sample', r.codeNo],
@@ -656,7 +679,7 @@ function drawSeedFormV(doc, form) {
   title(doc, p, 'FORM V', '', 'MEMORANDUM TO GOVERNMENT ANALYST');
   drawFromTo(doc, p, r);
   para(doc, p, 'The portion of the sample described below is sent herewith for analysis under Clause (b) of Sub Section (1) of Section 14 and Clauses (b) and (c) of Sub Section (2) of Section 15 of the Seeds Act, 1966.');
-  para(doc, p, 'The portion of the sample has been marked by me with the following mark.');
+  richPara(doc, p, [{ text: 'The portion of the sample has been marked by me with the following mark.', bold: true }]);
   details(doc, p, [
     ['1. Serial No. of the sample', r.serialNo],
     ['2. Code No. of the sample', r.codeNo],
@@ -812,8 +835,8 @@ function title(doc, p, heading, subheading, titleText) {
 
 function drawFromTo(doc, p, r) {
   doc.setFont(PDF_FONT, 'bold');
-  doc.text('From', 20, p.y);
-  doc.text('To', 128, p.y);
+  doc.text('From:', 20, p.y);
+  doc.text('To:', 128, p.y);
   doc.text(doc.splitTextToSize(r.fromAddress || '________________', 78), 20, p.y + 7);
   doc.text(doc.splitTextToSize(r.labAddress || '________________', 78), 128, p.y + 7);
   doc.setFont(PDF_FONT, 'normal');

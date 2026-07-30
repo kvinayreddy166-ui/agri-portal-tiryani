@@ -103,4 +103,45 @@ if ('serviceWorker' in navigator) {
 
     void installRescueServiceWorker();
   });
+
+  // Listen for service worker updates
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.dispatchEvent(new CustomEvent('serviceWorkerUpdate'));
+  });
+
+  // Listen for SW_READY messages from service worker
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data?.type === 'SW_READY') {
+      window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
+        detail: { version: event.data.version } 
+      }));
+    }
+  });
+
+  // Check for waiting service worker (new version available)
+  const checkForWaitingServiceWorker = async () => {
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration?.waiting) {
+        window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
+          detail: { version: 'waiting' } 
+        }));
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) console.warn('Service worker check failed:', error);
+    }
+  };
+
+  // Check immediately on load
+  void checkForWaitingServiceWorker();
+
+  // Periodically check for updates (every 5 minutes)
+  const updateCheckInterval = setInterval(() => {
+    void checkForWaitingServiceWorker();
+  }, 5 * 60 * 1000);
+
+  // Cleanup interval on page unload
+  window.addEventListener('beforeunload', () => {
+    clearInterval(updateCheckInterval);
+  });
 }

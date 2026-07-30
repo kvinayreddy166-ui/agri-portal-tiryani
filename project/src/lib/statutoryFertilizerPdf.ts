@@ -253,7 +253,9 @@ function drawHeader(cursor: PdfCursor, formType: FertilizerStatutoryFormType, va
   doc.text(getClauseReference(formType), PAGE.width / 2, cursor.y, { align: 'center' });
   cursor.y += 9;
 
+  doc.setFont(PDF_FONT, 'bolditalic');
   doc.text(displayType === 'J' ? `No: ${values.no || ''}` : `No. ${values.no || ''}`, PAGE.marginX, cursor.y);
+  doc.setFont(PDF_FONT, 'normal');
   cursor.y += 8;
 
   doc.setFont(PDF_FONT, 'bold');
@@ -280,7 +282,7 @@ function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
   field(cursor, '(1A) Letter of Authorization No.', values.authorizationNumber, 91, PAGE.marginX, fieldOptions);
   field(cursor, '(2) Date of Sampling', formatFieldValue(values.samplingDate), 91, PAGE.marginX, fieldOptions);
 
-  heading(cursor, '(3) Details of markings on the bags from where sample has been taken', true);
+  paragraph(cursor, '(3) Details of markings on the bags from where sample has been taken');
   if (values.markings.trim()) paragraph(cursor, values.markings, PAGE.marginX + 6, cursor.contentWidth - 6, 5, true);
   field(cursor, 'a) Type and Grade of Fertilizer', values.fertilizerTypeGrade, 84, PAGE.marginX + 6, fieldOptions);
   field(cursor, 'b) Name of Dealer/Manufacturer/Importer', values.dealerManufacturerImporterName, 84, PAGE.marginX + 6, fieldOptions);
@@ -347,11 +349,11 @@ function drawFormK(cursor: PdfCursor, formType: 'K_ADA' | 'K_JDA', values: Ferti
   const { doc } = cursor;
   doc.setFont(PDF_FONT, 'normal');
 
-  boldText(cursor, 'From');
+  boldText(cursor, 'From:');
   addressBlock(cursor, values.inspectorNameAddress, PAGE.marginX + 10, 4, true);
   cursor.y += 3;
 
-  boldText(cursor, 'To');
+  boldText(cursor, 'To:');
   addressBlock(cursor, getKAddress(formType), PAGE.marginX + 10, 5, true);
   cursor.y += 5;
 

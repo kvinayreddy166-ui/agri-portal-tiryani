@@ -148,7 +148,7 @@ function drawFromToSections(cursor: PdfCursor, metadata: CoveringLetterMetadata,
   // From section - left aligned
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(BODY_SIZE);
-  doc.text('From', leftColumnX, startY);
+  doc.text('From:', leftColumnX, startY);
   
   let currentY = startY + ROW_LINE_HEIGHT;
   
@@ -172,7 +172,7 @@ function drawFromToSections(cursor: PdfCursor, metadata: CoveringLetterMetadata,
   const mandal = officerDetails?.mandal || getFromLocalStorage('mandal') || '{{Mandal}}';
   const district = officerDetails?.district || getFromLocalStorage('district') || '{{District}}';
   
-  doc.text(`${mandal},`, leftColumnX, currentY);
+  doc.text(`${mandal} Mandal,`, leftColumnX, currentY);
   currentY += ROW_LINE_HEIGHT;
   doc.text(`${district} District.`, leftColumnX, currentY);
   currentY += ROW_LINE_HEIGHT;
@@ -181,7 +181,7 @@ function drawFromToSections(cursor: PdfCursor, metadata: CoveringLetterMetadata,
   doc.text(`Phone: ${phone}.`, leftColumnX, currentY);
   
   // To section - right aligned
-  doc.text('To', rightColumnX + columnWidth, startY, { align: 'right' });
+  doc.text('To:', rightColumnX + columnWidth, startY, { align: 'right' });
   
   currentY = startY + ROW_LINE_HEIGHT;
   const toAddress = [

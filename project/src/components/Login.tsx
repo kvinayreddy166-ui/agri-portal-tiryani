@@ -25,6 +25,7 @@ import {
 import { FileTypeIcon } from './ui/FileTypeIcon';
 import { PortalLogo } from './ui/PortalLogo';
 import { LanguageToggle } from './ui/LanguageToggle';
+import { UpdateBanner } from './UpdateBanner';
 import { DEALER_DEFAULT_PASSWORD } from '../lib/dealerAuth';
 import { translateDealerLoginError } from '../lib/dealerLoginMessages';
 import { useAuth } from '../context/AuthContext';
@@ -743,6 +744,7 @@ export function Login() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24 lg:p-4 lg:pb-24">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(4,120,87,0.08),rgba(14,165,233,0.08)_48%,rgba(250,204,21,0.08))]" />
+      <UpdateBanner />
 
       <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm animate-fadeIn">
         <section className="flex flex-col justify-start p-6 sm:p-8 lg:p-10">
