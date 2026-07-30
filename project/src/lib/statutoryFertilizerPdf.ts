@@ -665,11 +665,44 @@ function formatComposition(values: FertilizerPdfValues) {
       'Cd': { label: 'Cd', value: values.microCd },
     };
 
-    const parts: string[] = [];
+    // Order nutrients based on composition map order for selected fertilizer
+    const nutrientOrder: string[] = [];
+    if (values.microNutrientTypeGrade && values.microNutrientTypeGrade !== 'Other') {
+      // Import the composition map from the form component
+      // For now, use a default order based on common fertilizer compositions
+      const compositionOrderMap: Record<string, string[]> = {
+        'Borax (Sodium Tetraborate) (B 10.5%)': ['B'],
+        'Boric Acid (B 17%)': ['B'],
+        'Di-Sodium Octa Borate Tetrahydrate (B 20%)': ['B'],
+        'Di-Sodium Tetra Borate Pentahydrate (B 14.5%)': ['B'],
+        'Di-Sodium Tetra Borate Pentahydrate (B 15%)': ['B'],
+        'Zinc Sulphate Heptahydrate (Zn 21%, S 10%)': ['Zn', 'S'],
+        'Zinc Sulphate Monohydrate (Zn 33%, S 15%)': ['Zn', 'S'],
+        'Magnesium Sulphate (Mg 9.5%, S 12%)': ['Mg', 'S'],
+        'Ferrous Sulphate (Fe 19%, S 10.5%)': ['Fe', 'S'],
+        'Copper Sulphate (Cu 24%, S 12%)': ['Cu', 'S'],
+        'Manganese Sulphate (Mn 30.5%, S 17%)': ['Mn', 'S'],
+        'Ammonium Molybdate (Mo 52%)': ['Mo'],
+        'Chelated Zinc as Zn-EDTA (Zn 12%)': ['Zn_EDTA'],
+        'Chelated Iron as Fe-EDTA (Fe 12%)': ['Fe_EDTA'],
+      };
+      nutrientOrder.push(...(compositionOrderMap[values.microNutrientTypeGrade] || []));
+    }
+    
+    // Add any checked nutrients not in the predefined order
     for (const nutrient of checkedNutrients) {
-      const item = microLabelMap[nutrient];
-      if (item && item.value) {
-        parts.push(`${item.label}: ${item.value}`);
+      if (!nutrientOrder.includes(nutrient)) {
+        nutrientOrder.push(nutrient);
+      }
+    }
+
+    const parts: string[] = [];
+    for (const nutrient of nutrientOrder) {
+      if (checkedNutrients.includes(nutrient)) {
+        const item = microLabelMap[nutrient];
+        if (item && item.value) {
+          parts.push(`${item.label}: ${item.value}`);
+        }
       }
     }
 

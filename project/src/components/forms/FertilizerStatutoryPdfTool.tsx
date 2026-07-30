@@ -202,6 +202,51 @@ const microNutrientCompositionFields: FieldConfig[] = [
   { key: 'microCd', label: 'Cd %' },
 ];
 
+function reorderMicroNutrientFields(fields: FieldConfig[], microNutrientTypeGrade: string): FieldConfig[] {
+  const fieldOrderMap: Record<string, string[]> = {
+    'Borax (Sodium Tetraborate) (B 10.5%)': ['microB'],
+    'Boric Acid (B 17%)': ['microB'],
+    'Di-Sodium Octa Borate Tetrahydrate (B 20%)': ['microB'],
+    'Di-Sodium Tetra Borate Pentahydrate (B 14.5%)': ['microB'],
+    'Di-Sodium Tetra Borate Pentahydrate (B 15%)': ['microB'],
+    'Zinc Sulphate Heptahydrate (Zn 21%, S 10%)': ['microZn', 'microS'],
+    'Zinc Sulphate Monohydrate (Zn 33%, S 15%)': ['microZn', 'microS'],
+    'Magnesium Sulphate (Mg 9.5%, S 12%)': ['microMg', 'microS'],
+    'Ferrous Sulphate (Fe 19%, S 10.5%)': ['microFe', 'microS'],
+    'Copper Sulphate (Cu 24%, S 12%)': ['microCu', 'microS'],
+    'Manganese Sulphate (Mn 30.5%, S 17%)': ['microMn', 'microS'],
+    'Ammonium Molybdate (Mo 52%)': ['microMo'],
+    'Chelated Zinc as Zn-EDTA (Zn 12%)': ['microZn_EDTA'],
+    'Chelated Iron as Fe-EDTA (Fe 12%)': ['microFe_EDTA'],
+  };
+
+  const order = fieldOrderMap[microNutrientTypeGrade];
+  if (!order || order.length === 0) {
+    return fields;
+  }
+
+  const fieldMap = new Map(fields.map(f => [f.key as string, f]));
+  const orderedFields: FieldConfig[] = [];
+  const remainingFields: FieldConfig[] = [];
+
+  // Add fields in the specified order
+  for (const key of order) {
+    const field = fieldMap.get(key);
+    if (field) {
+      orderedFields.push(field);
+    }
+  }
+
+  // Add any remaining micro nutrient fields that weren't in the order
+  for (const field of fields) {
+    if (!order.includes(field.key as string)) {
+      remainingFields.push(field);
+    }
+  }
+
+  return [...orderedFields, ...remainingFields];
+}
+
 const microNutrientCheckboxOptions = [
   { key: 'Zn', label: 'Zn' },
   { key: 'Cu', label: 'Cu' },
@@ -274,9 +319,9 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
     title: 'COMPOSITION',
     fields: [
+      { key: 'microNutrientCheckboxes', label: 'MICRO NUTRIENT COMPOSITION', type: 'micro-nutrient-checkboxes' },
       { key: 'compositionDisplayFlags', label: 'SELECT COMPOSITION AS ON BAG', type: 'composition-checkboxes' },
       ...compositionFields,
-      { key: 'microNutrientCheckboxes', label: 'MICRO NUTRIENT COMPOSITION', type: 'micro-nutrient-checkboxes' },
       ...microNutrientCompositionFields,
       { key: 'composition', label: 'ADDITIONAL COMPOSITION REMARKS', type: 'textarea' },
     ],
@@ -842,7 +887,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                     className={highlightDetails && (section.title === 'DEALER DETAILS' || section.title === 'SAMPLE DETAILS') ? 'rounded-xl border-4 border-red-500' : ''}
                   >
                   <FieldSection title={section.title} color={color} onReset={getResetHandler(section.title)}>
-                    {section.fields.map((field) => {
+                    {(section.title === 'COMPOSITION' && values.fertilizerCategory === 'Micro Nutrient Fertilizers' && values.microNutrientTypeGrade && values.microNutrientTypeGrade !== 'Other'
+                      ? reorderMicroNutrientFields(section.fields, values.microNutrientTypeGrade)
+                      : section.fields
+                    ).map((field) => {
                       // Hide composition fields if their display flag is not selected
                       if (field.displayFlag) {
                         const selectedFlags = values.compositionDisplayFlags.split(',').map(f => f.trim());
@@ -911,6 +959,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                           microCd: 'Cd',
                         };
                         const compositionKey = fieldToCompositionKey[field.key];
+                        // Only show field if it's checked
                         if (compositionKey && !checkedNutrients.includes(compositionKey)) {
                           return null;
                         }
