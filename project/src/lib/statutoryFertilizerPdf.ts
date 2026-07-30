@@ -12,6 +12,7 @@ export type FertilizerPdfValues = {
   samplingDate: string;
   markings: string;
   fertilizerTypeGrade: string;
+  manualFertilizerTypeGrade: string;
   dealerManufacturerImporterName: string;
   batchDetails: string;
   composition: string;
@@ -78,6 +79,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   samplingDate: '',
   markings: '',
   fertilizerTypeGrade: '',
+  manualFertilizerTypeGrade: '',
   dealerManufacturerImporterName: '',
   batchDetails: '',
   composition: '',

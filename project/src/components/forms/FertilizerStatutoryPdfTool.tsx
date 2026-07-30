@@ -66,6 +66,43 @@ const designationOptions = [
   { label: 'Fertilizer Inspector', value: 'Fertilizer Inspector' },
 ];
 
+const fertilizerTypeGradeOptions = [
+  { label: 'Ammonium Nitrate Phosphate (23-23-0)', value: 'Ammonium Nitrate Phosphate (23-23-0)' },
+  { label: 'Ammonium Phosphate (14-28-0)', value: 'Ammonium Phosphate (14-28-0)' },
+  { label: 'Ammonium Phosphate Sulphate (16-20-0-13)', value: 'Ammonium Phosphate Sulphate (16-20-0-13)' },
+  { label: 'Ammonium Phosphate Sulphate (18-9-0)', value: 'Ammonium Phosphate Sulphate (18-9-0)' },
+  { label: 'Ammonium Phosphate Sulphate (20-20-0-13)', value: 'Ammonium Phosphate Sulphate (20-20-0-13)' },
+  { label: 'Ammonium Sulphate (25% N, 23%S)', value: 'Ammonium Sulphate (25% N, 23%S)' },
+  { label: 'Calcium Ammonium Nitrate (25% N)', value: 'Calcium Ammonium Nitrate (25% N)' },
+  { label: 'Calcium Ammonium Nitrate (26% N)', value: 'Calcium Ammonium Nitrate (26% N)' },
+  { label: 'Diammonium Phosphate (16:44:0)', value: 'Diammonium Phosphate (16:44:0)' },
+  { label: 'Diammonium Phosphate (18-46-0)', value: 'Diammonium Phosphate (18-46-0)' },
+  { label: 'Mono Ammonium Phosphate (11-52-0)', value: 'Mono Ammonium Phosphate (11-52-0)' },
+  { label: 'Muriate of Potash (60% K)', value: 'Muriate of Potash (60% K)' },
+  { label: 'N.P.K (22-22-11)', value: 'N.P.K (22-22-11)' },
+  { label: 'N.P.K. (10-26-26)', value: 'N.P.K. (10-26-26)' },
+  { label: 'N.P.K. (12-32-16)', value: 'N.P.K. (12-32-16)' },
+  { label: 'N.P.K. (14-28-14)', value: 'N.P.K. (14-28-14)' },
+  { label: 'N.P.K. (14-35-14)', value: 'N.P.K. (14-35-14)' },
+  { label: 'N.P.K. (15:15:15)', value: 'N.P.K. (15:15:15)' },
+  { label: 'N.P.K. (16:16:16)', value: 'N.P.K. (16:16:16)' },
+  { label: 'N.P.K. (17-17-17)', value: 'N.P.K. (17-17-17)' },
+  { label: 'N.P.K. (19-19-19)', value: 'N.P.K. (19-19-19)' },
+  { label: 'N.P.K.(20-10-10)', value: 'N.P.K.(20-10-10)' },
+  { label: 'Nitrophosphate (24-24-0)', value: 'Nitrophosphate (24-24-0)' },
+  { label: 'Nitrophosphate with Potash (15-15-15)', value: 'Nitrophosphate with Potash (15-15-15)' },
+  { label: 'Potassium Sulphate (50% K)', value: 'Potassium Sulphate (50% K)' },
+  { label: 'Single Superphosphate (16% P2O5)', value: 'Single Superphosphate (16% P2O5)' },
+  { label: 'Triple Superphosphate (46% P2O5)', value: 'Triple Superphosphate (46% P2O5)' },
+  { label: 'Urea (46% N)', value: 'Urea (46% N)' },
+  { label: 'Urea Ammonium Nitrate (32%N)', value: 'Urea Ammonium Nitrate (32%N)' },
+  { label: 'Urea Ammonium Phosphate (20-20-0)', value: 'Urea Ammonium Phosphate (20-20-0)' },
+  { label: 'Urea Ammonium Phosphate (24-24-0)', value: 'Urea Ammonium Phosphate (24-24-0)' },
+  { label: 'Urea Ammonium Phosphate (28-28-0)', value: 'Urea Ammonium Phosphate (28-28-0)' },
+  { label: 'Urea Neemcoated (46% N)', value: 'Urea Neemcoated (46% N)' },
+  { label: 'Other', value: 'Other' },
+];
+
 const compositionFields: FieldConfig[] = [
   { key: 'compositionN', label: 'N %', displayFlag: 'N' },
   { key: 'compositionN_T', label: 'N(T) %', displayFlag: 'N_T' },
@@ -125,7 +162,8 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'no', label: 'NO.' },
       { key: 'sampleCode', label: 'CODE NO. OF SAMPLE' },
       { key: 'samplingDate', label: 'DATE OF SAMPLING', type: 'date' },
-      { key: 'fertilizerTypeGrade', label: 'TYPE AND GRADE OF FERTILIZER' },
+      { key: 'fertilizerTypeGrade', label: 'TYPE AND GRADE OF FERTILIZER', type: 'select', options: fertilizerTypeGradeOptions },
+      { key: 'manualFertilizerTypeGrade', label: 'ENTER FERTILIZER TYPE AND GRADE', placeholder: 'Enter fertilizer type and grade' },
       { key: 'dealerManufacturerImporterName', label: 'NAME OF DEALER/MANUFACTURER/IMPORTER', placeholder: 'company details' },
       { key: 'batchDetails', label: 'BATCH NO. AND DATE OF MANUFACTURE/IMPORT' },
       { key: 'stockReceiptDate', label: 'DATE OF RECEIPT OF STOCK', type: 'date' },
@@ -246,6 +284,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         // Auto-populate samplingDate from date field
         if (value && (!current.samplingDate || current.samplingDate === current.date)) {
           next.samplingDate = value;
+        }
+      }
+      if (key === 'fertilizerTypeGrade') {
+        // Clear manual field when switching from Other
+        if (value !== 'Other') {
+          next.manualFertilizerTypeGrade = '';
         }
       }
       return next;
@@ -425,6 +469,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       sampleCode: '',
       samplingDate: '',
       fertilizerTypeGrade: '',
+      manualFertilizerTypeGrade: '',
       dealerManufacturerImporterName: '',
       batchDetails: '',
       stockReceiptDate: '',
@@ -634,6 +679,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                       if (field.key === 'manualQualification' && values.qualification !== 'Others') {
                         return null;
                       }
+                      // Hide manual fertilizer type/grade field unless fertilizerTypeGrade is "Other"
+                      if (field.key === 'manualFertilizerTypeGrade' && values.fertilizerTypeGrade !== 'Other') {
+                        return null;
+                      }
                       // Get mandal options based on selected district
                       let fieldOptions = field.options;
                       if (field.key === 'mandal' && values.district && values.district !== 'Others') {
@@ -747,6 +796,11 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   }
   normalized.dealerNameAddress = buildDealerNameAddress(normalized);
   
+  // Resolve fertilizer type/grade when Other is selected
+  if (normalized.fertilizerTypeGrade === 'Other') {
+    normalized.fertilizerTypeGrade = normalized.manualFertilizerTypeGrade;
+  }
+  
   // Rebuild inspector address with Mandal suffix
   const resolvedQualification = normalized.qualification === 'Others' ? normalized.manualQualification : normalized.qualification;
   const officerNameWithQualification = normalized.officerName && resolvedQualification 
@@ -782,6 +836,9 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   if (!normalized.manualMandal) {
     normalized.manualMandal = '';
   }
+  if (!normalized.manualFertilizerTypeGrade) {
+    normalized.manualFertilizerTypeGrade = '';
+  }
   return normalized;
 }
 
@@ -804,7 +861,7 @@ function fertilizerGenerationSnapshot(values: FertilizerPdfValues) {
     dealerAddress: values.dealerAddress,
     premisesLocation: values.premisesLocation,
     authorizationNumber: values.authorizationNumber,
-    fertilizerTypeGrade: values.fertilizerTypeGrade,
+    fertilizerTypeGrade: values.fertilizerTypeGrade === 'Other' ? values.manualFertilizerTypeGrade : values.fertilizerTypeGrade,
     dealerManufacturerImporterName: values.dealerManufacturerImporterName,
     batchDetails: values.batchDetails,
     stockReceiptDate: values.stockReceiptDate,
