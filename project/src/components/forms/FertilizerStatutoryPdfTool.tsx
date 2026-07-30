@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Eye, FlaskConical, RotateCcw, Save, X } from 'lucide-react';
+import { Download, Eye, FlaskConical, RotateCcw, Save, X /*, FileText */ } from 'lucide-react';
 import {
   FertilizerPdfValues,
   FertilizerStatutoryFormType,
@@ -10,6 +10,7 @@ import {
   initialFertilizerPdfValues,
 } from '../../lib/statutoryFertilizerPdf';
 import { FertilizerInstructionModal } from '../ui/FertilizerInstructionModal';
+// import { CoveringLetterModal } from './CoveringLetterModal';
 import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
@@ -23,13 +24,22 @@ type FieldConfig = {
   options?: { label: string; value: string }[];
   placeholder?: string;
   displayFlag?: string;
+  dynamicLabel?: boolean;
 };
 
 const STORAGE_KEY = 'tiryani-fertilizer-forms-draft';
 const DRAFTS_KEY = 'tiryani-fertilizer-forms-named-drafts';
 const LAST_GENERATED_KEY = 'tiryani-fertilizer-forms-last-generated';
+// const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 const DUPLICATE_WARNING_MESSAGE =
   'You are generating a file with the same previous sample/dealer details. Please verify whether new sample details or dealer details are required before downloading.';
+
+/* type CoveringLetterQueueItem = {
+  sampleCode: string;
+  fertilizerName: string;
+  quantity: string;
+  dateOfSampling: string;
+}; */
 
 type SavedFertilizerDraft = {
   name: string;
@@ -98,31 +108,23 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
     title: 'INSPECTOR DETAILS',
     fields: [
-      { key: 'officerName', label: 'OFFICER NAME' },
+      { key: 'officerName', label: 'INSPECTOR NAME' },
       { key: 'qualification', label: 'QUALIFICATION', type: 'select', options: QUALIFICATION_OPTIONS },
       { key: 'manualQualification', label: 'ENTER QUALIFICATION', placeholder: 'Enter qualification' },
       { key: 'designation', label: 'DESIGNATION', type: 'select', options: designationOptions },
       { key: 'district', label: 'DISTRICT', type: 'select', options: TELANGANA_DISTRICTS.map(d => ({ label: d, value: d })) },
-      { key: 'mandal', label: 'MANDAL', type: 'select', options: [] },
+      { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true },
       { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
       { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
       { key: 'date', label: 'DATE', type: 'date' },
     ],
   },
   {
-    title: 'COMMON DETAILS',
+    title: 'SAMPLE DETAILS',
     fields: [
       { key: 'no', label: 'NO.' },
       { key: 'sampleCode', label: 'CODE NO. OF SAMPLE' },
       { key: 'samplingDate', label: 'DATE OF SAMPLING', type: 'date' },
-    ],
-  },
-  {
-    title: 'DEALER & SAMPLE DETAILS',
-    fields: [
-      { key: 'dealerName', label: 'DEALER / PARTY NAME' },
-      { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS', type: 'textarea', placeholder: 'village' },
-      { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER' },
       { key: 'fertilizerTypeGrade', label: 'TYPE AND GRADE OF FERTILIZER' },
       { key: 'dealerManufacturerImporterName', label: 'NAME OF DEALER/MANUFACTURER/IMPORTER', placeholder: 'company details' },
       { key: 'batchDetails', label: 'BATCH NO. AND DATE OF MANUFACTURE/IMPORT' },
@@ -140,11 +142,20 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'composition', label: 'ADDITIONAL COMPOSITION REMARKS', type: 'textarea' },
     ],
   },
+  {
+    title: 'DEALER DETAILS',
+    fields: [
+      { key: 'dealerName', label: 'DEALER / PARTY NAME' },
+      { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS', type: 'textarea', placeholder: 'village' },
+      { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER' },
+    ],
+  },
 ];
 
 export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void }) {
   const [formType, setFormType] = useState<FertilizerStatutoryFormType>('J');
   const [showInstructionModal, setShowInstructionModal] = useState(true);
+  // const [showCoveringLetterModal, setShowCoveringLetterModal] = useState(false);
   const [values, setValues] = useState<FertilizerPdfValues>(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -169,7 +180,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     | null
   >(null);
   const [highlightDetails, setHighlightDetails] = useState(false);
-  const sampleDetailsRef = useRef<HTMLDivElement | null>(null);
   const dealerDetailsRef = useRef<HTMLDivElement | null>(null);
   const allFields = useMemo(() => fertilizerFieldSections, []);
 
@@ -385,7 +395,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const reviewDuplicateDetails = () => {
     setDuplicateAction(null);
     setHighlightDetails(true);
-    sampleDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    dealerDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     window.setTimeout(() => {
       dealerDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 450);
@@ -401,6 +411,90 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     if (action.type === 'previewAll') await completePreviewAllPdf();
     if (action.type === 'downloadAll') await completeDownloadAllPdf();
   };
+
+  const resetSampleDetails = () => {
+    setValues(prev => ({
+      ...prev,
+      no: '',
+      sampleCode: '',
+      samplingDate: '',
+      fertilizerTypeGrade: '',
+      dealerManufacturerImporterName: '',
+      batchDetails: '',
+      stockReceiptDate: '',
+      stockPosition: '',
+      physicalCondition: '',
+      bagSource: '',
+    }));
+    setMessage('Sample details reset successfully.');
+  };
+
+  const resetDealerDetails = () => {
+    setValues(prev => ({
+      ...prev,
+      dealerName: '',
+      dealerAddress: '',
+      authorizationNumber: '',
+    }));
+    setMessage('Dealer details reset successfully.');
+  };
+
+  const resetComposition = () => {
+    setValues(prev => ({
+      ...prev,
+      compositionDisplayFlags: 'N,P_T,P_WS,P_CS,K',
+      composition: '',
+      compositionN: '',
+      compositionN_T: '',
+      compositionP_T: '',
+      compositionP_WS: '',
+      compositionP_available: '',
+      compositionZn: '',
+      compositionP_CS: '',
+      compositionP2O5_T: '',
+      compositionP2O5_WS: '',
+      compositionP2O5_CS: '',
+      compositionK: '',
+      compositionK_T: '',
+      compositionK2O: '',
+      compositionK2O_T: '',
+      compositionS: '',
+      compositionCa: '',
+    }));
+    setMessage('Composition reset successfully.');
+  };
+
+  /* const addToCoveringLetter = () => {
+    if (!values.sampleCode.trim()) {
+      setMessage('Sample Code is required to add to Covering Letter.');
+      return;
+    }
+
+    try {
+      const queue: CoveringLetterQueueItem[] = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
+      
+      const existingIndex = queue.findIndex(item => item.sampleCode === values.sampleCode.trim());
+      if (existingIndex !== -1) {
+        setMessage('This sample has already been added to the Covering Letter.');
+        return;
+      }
+
+      const newItem: CoveringLetterQueueItem = {
+        sampleCode: values.sampleCode.trim(),
+        fertilizerName: values.fertilizerTypeGrade.trim(),
+        quantity: values.stockPosition.trim(),
+        dateOfSampling: values.samplingDate.trim(),
+      };
+
+      queue.push(newItem);
+      window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+      window.dispatchEvent(new Event('local-storage-update'));
+      setMessage('Sample successfully added to Covering Letter.');
+    } catch (error) {
+      console.error('Error adding to covering letter queue:', error);
+      setMessage('Failed to add to Covering Letter. Please try again.');
+    }
+  }; */
 
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
@@ -496,18 +590,24 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               {allFields.map((section) => {
                 const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'maroon' | 'slate'> = {
                   'INSPECTOR DETAILS': 'emerald',
-                  'COMMON DETAILS': 'blue',
-                  'DEALER & SAMPLE DETAILS': 'amber',
+                  'DEALER DETAILS': 'blue',
+                  'SAMPLE DETAILS': 'amber',
                   'COMPOSITION': 'maroon',
                 };
                 const color = colorMap[section.title] || 'slate';
+                const getResetHandler = (title: string) => {
+                  if (title === 'SAMPLE DETAILS') return resetSampleDetails;
+                  if (title === 'DEALER DETAILS') return resetDealerDetails;
+                  if (title === 'COMPOSITION') return resetComposition;
+                  return undefined;
+                };
                 return (
                   <div
                     key={section.title}
-                    ref={section.title === 'COMMON DETAILS' ? sampleDetailsRef : section.title === 'DEALER & SAMPLE DETAILS' ? dealerDetailsRef : undefined}
-                    className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER & SAMPLE DETAILS') ? 'rounded-xl border-4 border-red-500' : ''}
+                    ref={section.title === 'DEALER DETAILS' ? dealerDetailsRef : section.title === 'SAMPLE DETAILS' ? dealerDetailsRef : undefined}
+                    className={highlightDetails && (section.title === 'DEALER DETAILS' || section.title === 'SAMPLE DETAILS') ? 'rounded-xl border-4 border-red-500' : ''}
                   >
-                  <FieldSection title={section.title} color={color}>
+                  <FieldSection title={section.title} color={color} onReset={getResetHandler(section.title)}>
                     {section.fields.map((field) => {
                       // Hide composition fields if their display flag is not selected
                       if (field.displayFlag) {
@@ -540,6 +640,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                           value={values[field.key]}
                           onChange={(value) => setField(field.key, value)}
                           options={fieldOptions}
+                          values={values}
                         />
                       );
                     })}
@@ -563,6 +664,24 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                 <FertilizerPdfAction label="Form P" busy={busyAction !== null} onPreview={() => previewPdf('P')} onDownload={() => downloadPdf('P')} />
                 <FertilizerPdfAction label="All Forms" busy={busyAction !== null} onPreview={previewAllPdf} onDownload={downloadAllPdf} primary />
               </div>
+              {/* <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={addToCoveringLetter}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 py-2 text-xs font-black text-white shadow-md hover:bg-blue-700 hover:border-blue-700"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>Add to Covering Letter</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCoveringLetterModal(true)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-black text-white shadow-md hover:bg-emerald-700 hover:border-emerald-700"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>View Covering Letter</span>
+                </button>
+              </div> */}
               <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-bold leading-4 text-red-700">
                 Note: Please update sample details and dealer details before generating a new file.
               </p>
@@ -577,6 +696,16 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       {duplicateAction && (
         <DuplicateDownloadModal onReview={reviewDuplicateDetails} onContinue={downloadAnyway} onClose={() => setDuplicateAction(null)} />
       )}
+      {/* <CoveringLetterModal
+        isOpen={showCoveringLetterModal}
+        onClose={() => setShowCoveringLetterModal(false)}
+        officerDetails={{
+          mandal: values.mandal || values.manualMandal || '',
+          district: values.district || values.manualDistrict || '',
+          officerName: values.officerName || '',
+          phone: '',
+        }}
+      /> */}
     </div>
   );
 }
@@ -727,7 +856,7 @@ function DuplicateDownloadModal({
   );
 }
 
-function FieldSection({ title, children, color = 'slate' }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'maroon' | 'slate' }) {
+function FieldSection({ title, children, color = 'slate', onReset }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'maroon' | 'slate'; onReset?: () => void }) {
   const colorStyles = {
     emerald: 'border-emerald-200 bg-emerald-50/50',
     blue: 'border-blue-200 bg-blue-50/50',
@@ -743,10 +872,30 @@ function FieldSection({ title, children, color = 'slate' }: { title: string; chi
     maroon: 'text-red-800',
     slate: 'text-slate-700',
   };
+
+  const iconButtonColors = {
+    emerald: 'border-emerald-200 text-emerald-400 hover:bg-emerald-50 hover:text-emerald-600',
+    blue: 'border-blue-200 text-blue-400 hover:bg-blue-50 hover:text-blue-600',
+    amber: 'border-amber-200 text-amber-400 hover:bg-amber-50 hover:text-amber-600',
+    maroon: 'border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600',
+    slate: 'border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600',
+  };
   
   return (
     <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>
-      <h3 className={`mb-2 text-sm font-black ${headerColors[color]}`}>{title}</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
+        {onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border ${iconButtonColors[color]}`}
+            title={`Reset ${title}`}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
       <div className="grid gap-2">{children}</div>
     </div>
   );
@@ -802,14 +951,20 @@ function PdfInput({
   value,
   onChange,
   options,
+  values,
 }: {
   field: FieldConfig;
   value: string;
   onChange: (value: string) => void;
   options?: { label: string; value: string }[];
+  values?: FertilizerPdfValues;
 }) {
   const commonClass =
     'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+
+  const displayLabel = field.dynamicLabel && values?.designation === 'Asst. Director of Agriculture' && field.key === 'mandal'
+    ? 'Division'
+    : field.label;
 
   if (field.type === 'composition-checkboxes' || field.key === 'compositionDisplayFlags') {
     const selectedFlags = value.split(',').map(f => f.trim());
@@ -851,7 +1006,7 @@ function PdfInput({
 
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
-      <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{field.label}</span>
+      <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{displayLabel}</span>
       {field.type === 'textarea' ? (
         <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} placeholder={field.placeholder} className={commonClass} />
       ) : field.type === 'select' ? (

@@ -53,6 +53,8 @@ export type PesticidePdfValues = {
   manualQualification: string;
   manualDistrict: string;
   manualMandal: string;
+  ptlName: string;
+  dispatchDate: string;
 };
 
 export const initialPesticidePdfValues: PesticidePdfValues = {
@@ -106,6 +108,8 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   manualQualification: '',
   manualDistrict: '',
   manualMandal: '',
+  ptlName: '',
+  dispatchDate: '',
 };
 
 export const pesticideFormTitles: Record<PesticideStatutoryFormType, string> = {
@@ -117,7 +121,7 @@ export const pesticideFormTitles: Record<PesticideStatutoryFormType, string> = {
 
 const PAGE = { marginX: 18, top: 22, bottom: 276, width: 210, height: 297 };
 const PDF_FONT = 'times';
-const BODY_SIZE = 12.5;
+const BODY_SIZE = 11.5;
 const TITLE_SIZE = 16;
 const LINE_HEIGHT = 6.2;
 
@@ -197,6 +201,11 @@ function drawFormVD(cursor: PdfCursor, values: PesticidePdfValues) {
     ['10. Distinct mark on the sealed packet of sample', values.distinctMark],
     ['11. C & DA Code', values.cdaCode],
   ]);
+  cursor.y += 8;
+  signatureLine(cursor, `Date: ${formatDate(values.date)}`, 'Insecticide Inspector');
+  cursor.y += 3;
+  cursor.doc.text('(Signature & seal)', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
+  cursor.y += LINE_HEIGHT;
 }
 
 function drawFormVE(cursor: PdfCursor, values: PesticidePdfValues) {
@@ -215,9 +224,17 @@ function drawFormVE(cursor: PdfCursor, values: PesticidePdfValues) {
 }
 
 function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
-  centeredTitle(cursor, 'V(C): INTIMATION TO PERSON/LICENSEE FROM WHOM SAMPLE IS TAKEN', '[See Rule 33]');
+  cursor.doc.setLineHeightFactor(0.9);
+  cursor.doc.setFont(PDF_FONT, 'bold');
+  cursor.doc.setFontSize(12);
+  cursor.doc.text('V(C): INTIMATION TO PERSON/LICENSEE FROM WHOM SAMPLE IS TAKEN', PAGE.width / 2, cursor.y, { align: 'center' });
+  cursor.y += 5;
+  cursor.doc.setFontSize(BODY_SIZE);
+  cursor.doc.text('[See Rule 33]', PAGE.width / 2, cursor.y, { align: 'center' });
+  cursor.y += 6;
+  cursor.doc.setFont(PDF_FONT, 'normal');
   text(cursor, 'To');
-  addressBlock(cursor, buildDealerAddress(values), PAGE.marginX, 4);
+  addressBlock(cursor, buildDealerAddress(values), PAGE.marginX, 2);
   const drawDate = splitDrawnDate(values);
   paragraph(cursor, `I have this ${drawDate.day} day of month ${drawDate.month} year 20${drawDate.year} taken sample from the premises of M/s ${values.dealerName || '____________________'} (Sale/stock/distribution License number ${values.licenseNumber || '________'} dated ${formatDate(values.licenseDate) || '________'})`);
   paragraph(cursor, `Situated at ${dealerLocation(values) || '____________________'}, a sample of the insecticide specified below for the purposes of test or analysis:`);
@@ -237,10 +254,19 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
     ['13. Folio/page number of stock register', values.stockRegisterFolio],
     ['14. Any other relevant information', values.otherInformation],
   ], 82);
-  cursor.y += 3;
+  cursor.y += 1;
   signatureLine(cursor, `Date: ${formatDate(values.date)}`, 'Insecticide Inspector Seal');
-  cursor.y += 10;
+  cursor.y += 2;
   text(cursor, '1. Signature of witness:');
+  cursor.y += 1;
+  text(cursor, '2. Signature of witness:');
+  cursor.y += 2;
+  paragraph(cursor, 'Received one sealed portion of sample along with a copy of this Form.');
+  cursor.y += 1;
+  text(cursor, 'Signature of the person from whom the sample is taken');
+  cursor.y += 1;
+  text(cursor, 'With date and seal');
+  cursor.doc.setLineHeightFactor(1.25);
 }
 
 function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
@@ -268,6 +294,8 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ['16. Code No. of A.O./A.D./D.D.A.', values.cdaCode],
     ['17. Q.C.I. Seal Particulars', values.qciSealParticulars],
     ['18. C.A. Seal Particulars', values.caSealParticulars],
+    ['19. Name of the P.T.L.to which sent For analysis', values.ptlName],
+    ['20. Date of Dispatch', formatDate(values.dispatchDate)],
   ], 82);
 }
 

@@ -1,8 +1,8 @@
-﻿import React, { useMemo, useState, ReactNode } from 'react';
+﻿import React, { useMemo, useState, ReactNode, useEffect } from 'react';
 import {
   ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Database,
+  FolderOpen, Moon, Sun, Landmark, Database, FileText,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
 import { useAuth } from '../context/AuthContext';

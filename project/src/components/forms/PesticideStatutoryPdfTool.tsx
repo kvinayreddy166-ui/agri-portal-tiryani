@@ -22,6 +22,7 @@ type FieldConfig = {
   type?: 'text' | 'date' | 'textarea' | 'select';
   options?: { label: string; value: string }[];
   placeholder?: string;
+  dynamicLabel?: boolean;
 };
 
 type SavedPesticideDraft = {
@@ -47,34 +48,24 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
     title: 'INSPECTOR DETAILS',
     fields: [
-      { key: 'officerName', label: 'OFFICER NAME' },
+      { key: 'officerName', label: 'INSPECTOR NAME' },
       { key: 'qualification', label: 'QUALIFICATION', type: 'select', options: QUALIFICATION_OPTIONS },
       { key: 'manualQualification', label: 'ENTER QUALIFICATION', placeholder: 'Enter qualification' },
       { key: 'designation', label: 'DESIGNATION', type: 'select', options: DESIGNATION_OPTIONS },
-      { key: 'officerEmail', label: 'OFFICER EMAIL' },
       { key: 'district', label: 'DISTRICT', type: 'select', options: TELANGANA_DISTRICTS.map(d => ({ label: d, value: d })) },
-      { key: 'mandal', label: 'MANDAL', type: 'select', options: [] },
+      { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true },
       { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
       { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
       { key: 'labAddress', label: 'INSECTICIDE ANALYST / LAB ADDRESS', type: 'textarea' },
     ],
   },
   {
-    title: 'COMMON DETAILS',
+    title: 'DEALER DETAILS',
     fields: [
       { key: 'date', label: 'FORM DATE', type: 'date' },
       { key: 'sampleDrawnDate', label: 'SAMPLE DRAWN DATE', type: 'date' },
-      { key: 'cdaCode', label: 'C & DA CODE' },
-      { key: 'distinctMark', label: 'DISTINCT MARK ON SEALED PACKET' },
-      { key: 'specimenSeal', label: 'SPECIMEN SEAL PARTICULARS' },
-    ],
-  },
-  {
-    title: 'DEALER DETAILS',
-    fields: [
       { key: 'dealerName', label: 'DEALER / LICENSEE NAME' },
       { key: 'dealerAddress', label: 'DEALER ADDRESS', type: 'textarea', placeholder: 'village' },
-      { key: 'premisesLocation', label: 'PREMISES LOCATION', placeholder: 'mandal' },
       { key: 'licenseNumber', label: 'SALE / STOCK / DISTRIBUTION LICENSE NO.' },
       { key: 'licenseDate', label: 'LICENSE DATE', type: 'date' },
     ],
@@ -82,7 +73,6 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
     title: 'INSECTICIDE DETAILS',
     fields: [
-      { key: 'insecticideCommonName', label: 'COMMON NAME OF INSECTICIDE' },
       { key: 'technicalName', label: 'TECHNICAL NAME' },
       { key: 'tradeName', label: 'TRADE NAME' },
       { key: 'activeIngredient', label: 'ACTIVE INGREDIENT / % AI' },
@@ -92,6 +82,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'manufacturedBy', label: 'MANUFACTURED BY', type: 'textarea' },
       { key: 'marketedBy', label: 'MARKETED BY', type: 'textarea' },
       { key: 'distributorName', label: 'DISTRIBUTOR NAME' },
+      { key: 'cdaCode', label: 'Code No. of A.O./A.D./D.D.A.' },
     ],
   },
   {
@@ -112,6 +103,8 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'qciSealParticulars', label: 'Q.C.I. SEAL PARTICULARS' },
       { key: 'caSealParticulars', label: 'C.A. SEAL PARTICULARS' },
       { key: 'otherInformation', label: 'ANY OTHER RELEVANT INFORMATION', type: 'textarea' },
+      { key: 'ptlName', label: 'Name of the P.T.L.to which sent For analysis' },
+      { key: 'dispatchDate', label: 'Date of Dispatch', type: 'date' },
     ],
   },
 ];
@@ -138,7 +131,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     | null
   >(null);
   const [highlightDetails, setHighlightDetails] = useState(false);
-  const sampleDetailsRef = useRef<HTMLDivElement | null>(null);
   const dealerDetailsRef = useRef<HTMLDivElement | null>(null);
   const sections = useMemo(() => fieldSections, []);
 
@@ -330,8 +322,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const reviewDuplicateDetails = () => {
     setDuplicateAction(null);
     setHighlightDetails(true);
-    sampleDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    window.setTimeout(() => dealerDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 450);
+    dealerDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     window.setTimeout(() => setHighlightDetails(false), 3500);
   };
 
@@ -416,7 +407,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             {sections.map((section) => {
               const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'slate'> = {
                 'INSPECTOR DETAILS': 'emerald',
-                'COMMON DETAILS': 'blue',
                 'DEALER DETAILS': 'amber',
                 'INSECTICIDE DETAILS': 'slate',
                 'BATCH / STOCK DETAILS': 'emerald',
@@ -425,8 +415,8 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               return (
                 <div
                   key={section.title}
-                  ref={section.title === 'COMMON DETAILS' ? sampleDetailsRef : section.title === 'DEALER DETAILS' ? dealerDetailsRef : undefined}
-                  className={highlightDetails && (section.title === 'COMMON DETAILS' || section.title === 'DEALER DETAILS') ? 'rounded-xl border-4 border-red-500' : ''}
+                  ref={section.title === 'DEALER DETAILS' ? dealerDetailsRef : undefined}
+                  className={highlightDetails && section.title === 'DEALER DETAILS' ? 'rounded-xl border-4 border-red-500' : ''}
                 >
                   <FieldSection title={section.title} color={color}>
                     {section.fields.map((field) => {
@@ -454,6 +444,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                           value={values[field.key]}
                           onChange={(value) => setField(field.key, value)}
                           options={fieldOptions}
+                          values={values}
                         />
                       );
                     })}
@@ -511,8 +502,12 @@ function FieldSection({ title, children, color = 'slate' }: { title: string; chi
   );
 }
 
-function PdfInput({ field, value, onChange, options }: { field: FieldConfig; value: string; onChange: (value: string) => void; options?: { label: string; value: string }[] }) {
+function PdfInput({ field, value, onChange, options, values }: { field: FieldConfig; value: string; onChange: (value: string) => void; options?: { label: string; value: string }[]; values?: PesticidePdfValues }) {
   const commonClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+  
+  const displayLabel = field.dynamicLabel && values?.designation === 'Asst. Director of Agriculture' && field.key === 'mandal'
+    ? 'Division'
+    : field.label;
   
   // Handle mandal dropdown with "Others" option
   const selectOptions = field.key === 'mandal' && options 
@@ -521,7 +516,7 @@ function PdfInput({ field, value, onChange, options }: { field: FieldConfig; val
 
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
-      <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{field.label}</span>
+      <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{displayLabel}</span>
       {field.type === 'textarea' ? (
         <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} placeholder={field.placeholder} className={commonClass} />
       ) : field.type === 'select' ? (

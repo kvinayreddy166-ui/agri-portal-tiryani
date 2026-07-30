@@ -252,6 +252,44 @@ export function SeedForms() {
     }
   };
 
+  const resetSampleDetails = () => {
+    setForm(prev => ({
+      ...prev,
+      serialNo: '',
+      codeNo: '',
+      collectionDate: new Date().toISOString().slice(0, 10),
+      collectionPlace: '',
+      nature: 'Seed sample',
+      natureOther: '',
+      crop: 'Paddy',
+      cropOther: '',
+      variety: '',
+      lotNo: '',
+      quantityDrawn: '',
+      quantityInLot: '',
+      seedClass: 'Truthfully Labelled Seed',
+      seedClassOther: '',
+      packingDate: '',
+      sourceOfSupply: '',
+      testRequired: 'Germination, Purity & Moisture Test',
+      testRequiredOther: '',
+      remarks: '',
+    }));
+    setMessage('Sample details reset successfully.');
+  };
+
+  const resetDealerDetails = () => {
+    setForm(prev => ({
+      ...prev,
+      dealerName: '',
+      dealerAddress: '',
+      premisesLocation: '',
+      costDemanded: 'No',
+      costPaid: 'Not Applicable',
+    }));
+    setMessage('Dealer details reset successfully.');
+  };
+
   return (
     <section className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm">
       <div className="mb-2 flex justify-end gap-1">
@@ -312,13 +350,13 @@ export function SeedForms() {
       )}
 
       <div className="grid gap-3 lg:grid-cols-2">
-        <Card title="OFFICER DETAILS" color="emerald">
-          <Input label="Officer name" value={form.officerName} onChange={(value) => setField('officerName', value)} />
+        <Card title="INSPECTOR DETAILS" color="emerald">
+          <Input label="INSPECTOR NAME" value={form.officerName} onChange={(value) => setField('officerName', value)} />
           <Select label="Qualification" value={form.qualification} onChange={(value) => setField('qualification', value)} options={QUALIFICATION_OPTIONS} />
           {form.qualification === 'Others' && <Input label="Enter qualification" value={form.manualQualification} onChange={(value) => setField('manualQualification', value)} />}
           <Select label="Designation" value={form.designation} onChange={(value) => setField('designation', value)} options={SEED_DESIGNATION_OPTIONS} />
           <Select label="District" value={form.district} onChange={(value) => setField('district', value)} options={TELANGANA_DISTRICTS.map(toOption)} />
-          <Select label="Mandal" value={form.mandal} onChange={(value) => setField('mandal', value)} options={form.district && form.district !== 'Others' ? getMandalsForDistrict(form.district).map(toOption) : []} />
+          <Select label={form.designation === 'Asst. Director of Agriculture' ? 'Division' : 'Mandal'} value={form.mandal} onChange={(value) => setField('mandal', value)} options={form.district && form.district !== 'Others' ? getMandalsForDistrict(form.district).map(toOption) : []} />
           {form.district === 'Others' && <Input label="Enter district name" value={form.manualDistrict} onChange={(value) => setField('manualDistrict', value)} />}
           {form.mandal === 'Others' && <Input label="Enter mandal name" value={form.manualMandal} onChange={(value) => setField('manualMandal', value)} />}
           <Input label="Date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
@@ -335,7 +373,7 @@ export function SeedForms() {
         </Card>
 
         <div ref={sampleDetailsRef} className={highlightDetails ? 'rounded-xl border-4 border-red-500' : ''}>
-        <Card title="SAMPLE DETAILS" color="amber">
+        <Card title="SAMPLE DETAILS" color="amber" onReset={resetSampleDetails}>
           <div className="grid gap-2 sm:grid-cols-2">
             <Input label="Serial No. of sample" value={form.serialNo} onChange={(value) => setField('serialNo', value)} />
             <Input label="Code No. of sample" value={form.codeNo} onChange={(value) => setField('codeNo', value)} />
@@ -359,7 +397,7 @@ export function SeedForms() {
         </div>
 
         <div ref={dealerDetailsRef} className={highlightDetails ? 'rounded-xl border-4 border-red-500' : ''}>
-        <Card title="DEALER DETAILS" color="maroon">
+        <Card title="DEALER DETAILS" color="maroon" onReset={resetDealerDetails}>
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
           <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea placeholder="village" />
           <div className="grid gap-2 sm:grid-cols-2">
@@ -401,7 +439,7 @@ export function SeedForms() {
   );
 }
 
-function Card({ title, children, color = 'slate' }) {
+function Card({ title, children, color = 'slate', onReset }) {
   const colorStyles = {
     emerald: 'border-emerald-200 bg-emerald-50/50',
     blue: 'border-blue-200 bg-blue-50/50',
@@ -417,10 +455,30 @@ function Card({ title, children, color = 'slate' }) {
     maroon: 'text-red-800',
     slate: 'text-slate-700',
   };
+
+  const iconButtonColors = {
+    emerald: 'border-emerald-200 text-emerald-400 hover:bg-emerald-50 hover:text-emerald-600',
+    blue: 'border-blue-200 text-blue-400 hover:bg-blue-50 hover:text-blue-600',
+    amber: 'border-amber-200 text-amber-400 hover:bg-amber-50 hover:text-amber-600',
+    maroon: 'border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600',
+    slate: 'border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600',
+  };
   
   return (
     <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>
-      <h3 className={`mb-2 text-sm font-black ${headerColors[color]}`}>{title}</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
+        {onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border ${iconButtonColors[color]}`}
+            title={`Reset ${title}`}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
       <div className="grid gap-2">{children}</div>
     </div>
   );
