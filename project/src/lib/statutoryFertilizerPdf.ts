@@ -11,8 +11,13 @@ export type FertilizerPdfValues = {
   authorizationNumber: string;
   samplingDate: string;
   markings: string;
+  fertilizerCategory: string;
   fertilizerTypeGrade: string;
   manualFertilizerTypeGrade: string;
+  microNutrientTypeGrade: string;
+  manualMicroNutrientTypeGrade: string;
+  waterSolubleTypeGrade: string;
+  manualWaterSolubleTypeGrade: string;
   dealerManufacturerImporterName: string;
   batchDetails: string;
   composition: string;
@@ -28,10 +33,33 @@ export type FertilizerPdfValues = {
   compositionP2O5_CS: string;
   compositionK: string;
   compositionK_T: string;
+  compositionK_WS: string;
+  compositionK_CS: string;
   compositionK2O: string;
   compositionK2O_T: string;
   compositionS: string;
   compositionCa: string;
+  compositionMg: string;
+  compositionFe: string;
+  compositionMn: string;
+  compositionB: string;
+  compositionCu: string;
+  compositionZn_EDTA: string;
+  compositionFe_EDTA: string;
+  compositionMo: string;
+  compositionCd: string;
+  microZn: string;
+  microCu: string;
+  microS: string;
+  microMn: string;
+  microMg: string;
+  microB: string;
+  microFe: string;
+  microMo: string;
+  microZn_EDTA: string;
+  microFe_EDTA: string;
+  microCd: string;
+  microNutrientCheckboxes: string;
   stockReceiptDate: string;
   sampleCode: string;
   stockPosition: string;
@@ -78,8 +106,13 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   authorizationNumber: '',
   samplingDate: '',
   markings: '',
+  fertilizerCategory: '',
   fertilizerTypeGrade: '',
   manualFertilizerTypeGrade: '',
+  microNutrientTypeGrade: '',
+  manualMicroNutrientTypeGrade: '',
+  waterSolubleTypeGrade: '',
+  manualWaterSolubleTypeGrade: '',
   dealerManufacturerImporterName: '',
   batchDetails: '',
   composition: '',
@@ -95,10 +128,33 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   compositionP2O5_CS: '',
   compositionK: '',
   compositionK_T: '',
+  compositionK_WS: '',
+  compositionK_CS: '',
   compositionK2O: '',
   compositionK2O_T: '',
   compositionS: '',
   compositionCa: '',
+  compositionMg: '',
+  compositionFe: '',
+  compositionMn: '',
+  compositionB: '',
+  compositionCu: '',
+  compositionZn_EDTA: '',
+  compositionFe_EDTA: '',
+  compositionMo: '',
+  compositionCd: '',
+  microZn: '',
+  microCu: '',
+  microS: '',
+  microMn: '',
+  microMg: '',
+  microB: '',
+  microFe: '',
+  microMo: '',
+  microZn_EDTA: '',
+  microFe_EDTA: '',
+  microCd: '',
+  microNutrientCheckboxes: '',
   stockReceiptDate: '',
   sampleCode: '',
   stockPosition: '',
@@ -286,7 +342,7 @@ function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
 
   paragraph(cursor, '(3) Details of markings on the bags from where sample has been taken');
   if (values.markings.trim()) paragraph(cursor, values.markings, PAGE.marginX + 6, cursor.contentWidth - 6, 5, true);
-  field(cursor, 'a) Type and Grade of Fertilizer', values.fertilizerTypeGrade, 84, PAGE.marginX + 6, fieldOptions);
+  field(cursor, 'a) Type and Grade of Fertilizer', resolveFertilizerTypeGrade(values), 84, PAGE.marginX + 6, fieldOptions);
   field(cursor, 'b) Name of Dealer/Manufacturer/Importer', values.dealerManufacturerImporterName, 84, PAGE.marginX + 6, fieldOptions);
   field(cursor, 'c) Batch No. and Date of Manufacture/Import', values.batchDetails, 84, PAGE.marginX + 6, fieldOptions);
   field(cursor, 'd) Composition of Fertilizer', formatComposition(values), 84, PAGE.marginX + 6, fieldOptions);
@@ -360,7 +416,7 @@ function drawFormK(cursor: PdfCursor, formType: 'K_ADA' | 'K_JDA', values: Ferti
   cursor.y += 5;
 
   paragraph(cursor, '1) The fertilizer samples as per details given below are sent for analysis: -');
-  field(cursor, 'a. Type & Grade of Fertilizer', values.fertilizerTypeGrade, 72, PAGE.marginX + 6);
+  field(cursor, 'a. Name & Grade of Fertilizer', resolveFertilizerTypeGrade(values), 72, PAGE.marginX + 6);
   field(cursor, 'b. Date of Sampling', formatFieldValue(values.samplingDate), 72, PAGE.marginX + 6);
   field(cursor, 'c. Physical Condition', values.physicalCondition, 72, PAGE.marginX + 6);
   field(cursor, 'd. Code Number', values.sampleCode, 72, PAGE.marginX + 6);
@@ -373,7 +429,7 @@ function drawFormK(cursor: PdfCursor, formType: 'K_ADA' | 'K_JDA', values: Ferti
 }
 
 function drawFormP(cursor: PdfCursor, values: FertilizerPdfValues) {
-  field(cursor, '1. Name and Grade of Fertilizer', values.nameGrade, 82);
+  field(cursor, '1. Name and Grade of Fertilizer', resolveFertilizerTypeGrade(values), 82);
   cursor.y += 2;
   field(cursor, '2. Composition', formatComposition(values), 82);
   cursor.y += 2;
@@ -571,7 +627,57 @@ function formatDate(value: string) {
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+function resolveFertilizerTypeGrade(values: FertilizerPdfValues): string {
+  if (values.fertilizerCategory === 'Micro Nutrient Fertilizers') {
+    if (values.microNutrientTypeGrade === 'Other') {
+      return values.manualMicroNutrientTypeGrade;
+    }
+    return values.microNutrientTypeGrade;
+  } else if (values.fertilizerCategory === 'Water Soluble Fertilizers') {
+    if (values.waterSolubleTypeGrade === 'Other') {
+      return values.manualWaterSolubleTypeGrade;
+    }
+    return values.waterSolubleTypeGrade;
+  } else {
+    if (values.fertilizerTypeGrade === 'Other') {
+      return values.manualFertilizerTypeGrade;
+    }
+    return values.fertilizerTypeGrade;
+  }
+}
+
 function formatComposition(values: FertilizerPdfValues) {
+  // Handle micro nutrient fertilizers separately
+  if (values.fertilizerCategory === 'Micro Nutrient Fertilizers') {
+    const checkedNutrients = values.microNutrientCheckboxes.split(',').map(n => n.trim()).filter(Boolean);
+    
+    const microLabelMap: Record<string, { label: string; value: string }> = {
+      'Zn': { label: 'Zn', value: values.microZn },
+      'Cu': { label: 'Cu', value: values.microCu },
+      'S': { label: 'S', value: values.microS },
+      'Mn': { label: 'Mn', value: values.microMn },
+      'Mg': { label: 'Mg', value: values.microMg },
+      'B': { label: 'B', value: values.microB },
+      'Fe': { label: 'Fe', value: values.microFe },
+      'Mo': { label: 'Mo', value: values.microMo },
+      'Zn_EDTA': { label: 'Zn-EDTA', value: values.microZn_EDTA },
+      'Fe_EDTA': { label: 'Fe-EDTA', value: values.microFe_EDTA },
+      'Cd': { label: 'Cd', value: values.microCd },
+    };
+
+    const parts: string[] = [];
+    for (const nutrient of checkedNutrients) {
+      const item = microLabelMap[nutrient];
+      if (item && item.value) {
+        parts.push(`${item.label}: ${item.value}`);
+      }
+    }
+
+    const structured = parts.join('    ');
+    return values.composition.trim() ? `${structured}\n${values.composition}` : structured;
+  }
+
+  // Handle regular fertilizers
   const displayFlags = values.compositionDisplayFlags.split(',').map(f => f.trim());
   
   const labelMap: Record<string, { label: string; value: string }> = {
@@ -596,8 +702,8 @@ function formatComposition(values: FertilizerPdfValues) {
   const parts: string[] = [];
   for (const flag of displayFlags) {
     const item = labelMap[flag];
-    if (item && item.value.trim()) {
-      parts.push(`${item.label}: ${formatPercent(item.value)}`);
+    if (item && item.value) {
+      parts.push(`${item.label}: ${item.value}`);
     }
   }
 
