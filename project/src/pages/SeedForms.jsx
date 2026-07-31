@@ -150,6 +150,10 @@ export function SeedForms() {
       if (key === 'place') {
         return { ...current, place: value, collectionPlace: value };
       }
+      if (key === 'date') {
+        // Sync collectionDate with date
+        return { ...current, date: value, collectionDate: value };
+      }
       return { ...current, [key]: value };
     });
     setMessage('');

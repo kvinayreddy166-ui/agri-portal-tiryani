@@ -51,7 +51,6 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     const installRescueServiceWorker = async () => {
       try {
-        const hadController = Boolean(navigator.serviceWorker.controller);
         const registrations = await navigator.serviceWorker.getRegistrations();
         const appRegistrations = registrations.filter((registration) => new URL(registration.scope).origin === window.location.origin);
 
@@ -84,18 +83,19 @@ if ('serviceWorker' in navigator) {
           window.sessionStorage.removeItem('tiryani-offline-shell-retry');
         } catch {}
 
-        if (hadController) {
-          const reloadKey = 'tiryani-service-worker-rescue-reload';
-          try {
-            if (window.sessionStorage.getItem(reloadKey)) return;
-            window.sessionStorage.setItem(reloadKey, '1');
-          } catch {
-            return;
-          }
-          const url = new URL(window.location.href);
-          url.searchParams.set('sw-rescue', String(Date.now()));
-          window.location.replace(url.toString());
-        }
+        // Disable auto-reload to prevent unwanted app updates
+        // if (hadController) {
+        //   const reloadKey = 'tiryani-service-worker-rescue-reload';
+        //   try {
+        //     if (window.sessionStorage.getItem(reloadKey)) return;
+        //     window.sessionStorage.setItem(reloadKey, '1');
+        //   } catch {
+        //     return;
+        //   }
+        //   const url = new URL(window.location.href);
+        //   url.searchParams.set('sw-rescue', String(Date.now()));
+        //   window.location.replace(url.toString());
+        // }
       } catch (error) {
         if (import.meta.env.DEV) console.warn('Service worker rescue setup failed:', error);
       }
@@ -104,10 +104,10 @@ if ('serviceWorker' in navigator) {
     void installRescueServiceWorker();
   });
 
-  // Listen for service worker updates
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    window.dispatchEvent(new CustomEvent('serviceWorkerUpdate'));
-  });
+  // Listen for service worker updates - disabled to prevent auto-reload
+  // navigator.serviceWorker.addEventListener('controllerchange', () => {
+  //   window.dispatchEvent(new CustomEvent('serviceWorkerUpdate'));
+  // });
 
   // Listen for SW_READY messages from service worker
   navigator.serviceWorker.addEventListener('message', (event) => {

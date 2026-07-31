@@ -565,16 +565,16 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
           if (composition.Ca) next.compositionCa = composition.Ca;
           if (composition.MgO) next.compositionMgO = composition.MgO;
           if (composition.Zn) next.compositionZn = composition.Zn;
-          // Auto-tick relevant water soluble checkboxes
+          // Auto-tick relevant water soluble checkboxes only if value > 0
           const checkedNutrients: string[] = [];
-          if (composition.N) checkedNutrients.push('N');
-          if (composition.P_WS) checkedNutrients.push('P_WS');
-          if (composition.K) checkedNutrients.push('K');
-          if (composition.K2O) checkedNutrients.push('K2O');
-          if (composition.S) checkedNutrients.push('S');
-          if (composition.Ca) checkedNutrients.push('Ca');
-          if (composition.MgO) checkedNutrients.push('MgO');
-          if (composition.Zn) checkedNutrients.push('Zn');
+          if (composition.N && composition.N !== '0%' && composition.N !== '0') checkedNutrients.push('N');
+          if (composition.P_WS && composition.P_WS !== '0%' && composition.P_WS !== '0') checkedNutrients.push('P_WS');
+          if (composition.K && composition.K !== '0%' && composition.K !== '0') checkedNutrients.push('K');
+          if (composition.K2O && composition.K2O !== '0%' && composition.K2O !== '0') checkedNutrients.push('K2O');
+          if (composition.S && composition.S !== '0%' && composition.S !== '0') checkedNutrients.push('S');
+          if (composition.Ca && composition.Ca !== '0%' && composition.Ca !== '0') checkedNutrients.push('Ca');
+          if (composition.MgO && composition.MgO !== '0%' && composition.MgO !== '0') checkedNutrients.push('MgO');
+          if (composition.Zn && composition.Zn !== '0%' && composition.Zn !== '0') checkedNutrients.push('Zn');
           next.waterSolubleCheckboxes = checkedNutrients.join(',');
         } else {
           next.waterSolubleCheckboxes = '';
@@ -1056,13 +1056,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                           return null;
                         }
                       }
-                      // For water soluble fertilizers, hide composition fields with 0% values
-                      if (field.displayFlag && values.fertilizerCategory === 'Water Soluble Fertilizers') {
-                        const fieldValue = values[field.key as keyof FertilizerPdfValues];
-                        if (!fieldValue || fieldValue === '0%' || fieldValue === '0') {
-                          return null;
-                        }
-                      }
                       // Hide manual district field unless district is "Others"
                       if (field.key === 'manualDistrict' && values.district !== 'Others') {
                         return null;
@@ -1145,7 +1138,8 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                       if (field.key === 'waterSolubleCheckboxes' && values.fertilizerCategory !== 'Water Soluble Fertilizers') {
                         return null;
                       }
-                      // Show water soluble composition fields based on checked checkboxes
+                      // Show water soluble composition fields - all fields visible for manual selection
+                      // Checkbox controls whether field is shown, but all checkboxes are available
                       if (values.fertilizerCategory === 'Water Soluble Fertilizers' && compositionFields.some(f => f.key === field.key)) {
                         const checkedNutrients = values.waterSolubleCheckboxes.split(',').map(n => n.trim()).filter(Boolean);
                         const fieldToCompositionKey: Record<string, string> = {
@@ -1178,7 +1172,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                           compositionCd: 'Cd',
                         };
                         const compositionKey = fieldToCompositionKey[field.key];
-                        // Only show field if it's checked
+                        // Show field if it's checked (allows manual selection of any nutrient)
                         if (compositionKey && !checkedNutrients.includes(compositionKey)) {
                           return null;
                         }

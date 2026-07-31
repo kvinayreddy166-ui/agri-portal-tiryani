@@ -111,7 +111,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   premisesLocation: '',
   dealerNameAddress: '',
   authorizationNumber: '',
-  samplingDate: '',
+  samplingDate: new Date().toISOString().slice(0, 10),
   markings: '',
   fertilizerCategory: '',
   fertilizerTypeGrade: '',
