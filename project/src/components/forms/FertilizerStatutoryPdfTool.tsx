@@ -165,7 +165,7 @@ const waterSolubleCompositionMap: Record<string, { N?: string; P_WS?: string; K?
 const fertilizerCategoryOptions = [
   { label: 'Macro Nutrient Fertilizers', value: 'Macro Nutrient Fertilizers' },
   { label: 'Micro Nutrient Fertilizers', value: 'Micro Nutrient Fertilizers' },
-  { label: 'Water Soluble Fertilizers', value: 'Water Soluble Fertilizers' },
+  { label: '100 % Water Soluble Fertilizers', value: 'Water Soluble Fertilizers' },
 ];
 
 const waterSolubleTypeGradeOptions = [
@@ -263,22 +263,34 @@ function reorderMicroNutrientFields(fields: FieldConfig[], microNutrientTypeGrad
   const orderedFields: FieldConfig[] = [];
   const remainingFields: FieldConfig[] = [];
 
+  // Add checkboxes first for mobile accessibility
+  const checkboxField = fieldMap.get('microNutrientCheckboxes');
+  if (checkboxField) {
+    orderedFields.push(checkboxField);
+  }
+
   // Add fields in the specified order
   for (const key of order) {
     const field = fieldMap.get(key);
-    if (field) {
+    if (field && field.key !== 'microNutrientCheckboxes') {
       orderedFields.push(field);
     }
   }
 
   // Add any remaining micro nutrient fields that weren't in the order
   for (const field of fields) {
-    if (!order.includes(field.key as string)) {
+    if (!order.includes(field.key as string) && field.key !== 'microNutrientCheckboxes') {
       remainingFields.push(field);
     }
   }
 
   return [...orderedFields, ...remainingFields];
+}
+
+function reorderMicroNutrientCheckboxesToTop(fields: FieldConfig[]): FieldConfig[] {
+  const checkboxField = fields.find(f => f.key === 'microNutrientCheckboxes');
+  const otherFields = fields.filter(f => f.key !== 'microNutrientCheckboxes');
+  return checkboxField ? [checkboxField, ...otherFields] : fields;
 }
 
 const microNutrientCheckboxOptions = [
@@ -1031,14 +1043,23 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                     className={highlightDetails && (section.title === 'DEALER DETAILS' || section.title === 'SAMPLE DETAILS') ? 'rounded-xl border-4 border-red-500' : ''}
                   >
                   <FieldSection title={section.title} color={color} onReset={getResetHandler(section.title)}>
-                    {(section.title === 'COMPOSITION' && values.fertilizerCategory === 'Micro Nutrient Fertilizers' && values.microNutrientTypeGrade && values.microNutrientTypeGrade !== 'Other'
-                      ? reorderMicroNutrientFields(section.fields, values.microNutrientTypeGrade)
+                    {(section.title === 'COMPOSITION' && values.fertilizerCategory === 'Micro Nutrient Fertilizers'
+                      ? (values.microNutrientTypeGrade && values.microNutrientTypeGrade !== 'Other'
+                        ? reorderMicroNutrientFields(section.fields, values.microNutrientTypeGrade)
+                        : reorderMicroNutrientCheckboxesToTop(section.fields))
                       : section.fields
-                    ).map((field) => {
+                    ).map((field: FieldConfig) => {
                       // Hide composition fields if their display flag is not selected (skip for water soluble which uses checkboxes)
                       if (field.displayFlag && values.fertilizerCategory !== 'Water Soluble Fertilizers') {
                         const selectedFlags = values.compositionDisplayFlags.split(',').map(f => f.trim());
                         if (!selectedFlags.includes(field.displayFlag)) {
+                          return null;
+                        }
+                      }
+                      // For water soluble fertilizers, hide composition fields with 0% values
+                      if (field.displayFlag && values.fertilizerCategory === 'Water Soluble Fertilizers') {
+                        const fieldValue = values[field.key as keyof FertilizerPdfValues];
+                        if (!fieldValue || fieldValue === '0%' || fieldValue === '0') {
                           return null;
                         }
                       }

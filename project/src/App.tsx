@@ -373,7 +373,6 @@ function PublicReadOnlyShell({
 function AppUpdateBanner() {
   const [visible, setVisible] = useState(() => hasNewAppVersion());
   const [isOnlineTransition, setIsOnlineTransition] = useState(false);
-  const location = useLocation();
 
   useEffect(() => {
     if (!hasNewAppVersion()) rememberCurrentAppVersion();
@@ -400,8 +399,8 @@ function AppUpdateBanner() {
     return () => window.removeEventListener('online', handleOnline);
   }, []);
 
-  // Only show on login page
-  if (!visible || location.pathname !== '/login') return null;
+  // Show on all pages when update is available
+  if (!visible) return null;
 
   return (
     <div className="fixed bottom-4 left-4 z-[10000] max-w-sm rounded-2xl border border-emerald-200 bg-white p-4 text-sm shadow-2xl dark:border-emerald-900 dark:bg-slate-950">
