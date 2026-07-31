@@ -20,7 +20,7 @@ import {
 type FieldConfig = {
   key: keyof FertilizerPdfValues;
   label: string;
-  type?: 'text' | 'date' | 'textarea' | 'select' | 'composition-checkboxes' | 'micro-nutrient-checkboxes';
+  type?: 'text' | 'date' | 'textarea' | 'select' | 'composition-checkboxes' | 'micro-nutrient-checkboxes' | 'water-soluble-checkboxes';
   options?: { label: string; value: string }[];
   placeholder?: string;
   displayFlag?: string;
@@ -143,6 +143,25 @@ const microNutrientCompositionMap: Record<string, { Zn?: string; Cu?: string; S?
   'Zinc Sulphate Monohydrate (Zn 33%, S 15%)': { Zn: '33%', S: '15%' },
 };
 
+const waterSolubleCompositionMap: Record<string, { N?: string; P_WS?: string; K?: string; K2O?: string; Ca?: string; MgO?: string; S?: string; Zn?: string }> = {
+  'Calcium Nitrate (N 15.5%, Ca 18.8%)': { N: '15.5%', P_WS: '0%', K: '0%', Ca: '18.8%' },
+  'Mono Ammonium Phosphate (12:61:0)': { N: '12%', P_WS: '61%', K: '0%' },
+  'Mono Potassium Phosphate (0:52:34)': { N: '0%', P_WS: '52%', K: '34%' },
+  'NPK 12:30:15': { N: '12%', P_WS: '30%', K: '15%' },
+  'NPK 12:32:14': { N: '12%', P_WS: '32%', K: '14%' },
+  'NPK 13:5:26': { N: '13%', P_WS: '5%', K: '26%' },
+  'NPK 13:40:13': { N: '13%', P_WS: '40%', K: '13%' },
+  'NPK 18:18:18': { N: '18%', P_WS: '18%', K: '18%' },
+  'NPK 19:19:19': { N: '19%', P_WS: '19%', K: '19%' },
+  'NPK 20:20:20': { N: '20%', P_WS: '20%', K: '20%' },
+  'NPK 6:12:36': { N: '6%', P_WS: '12%', K: '36%' },
+  'NPK 7.6:23.5:7.6:3.5 (Zn)': { N: '7.6%', P_WS: '23.5%', K: '7.6%', Zn: '3.5%' },
+  'Potassium Magnesium Sulphate (K2O 22%, MgO 18%, S 20%)': { N: '0%', P_WS: '0%', K2O: '22%', MgO: '18%', S: '20%' },
+  'Potassium Nitrate (13:0:45)': { N: '13%', P_WS: '0%', K: '45%' },
+  'Urea Phosphate (17:44:0)': { N: '17%', P_WS: '44%', K: '0%' },
+  'Urea Phosphate with SOP (18:18:18)': { N: '18%', P_WS: '18%', K: '18%' },
+};
+
 const fertilizerCategoryOptions = [
   { label: 'Macro Nutrient Fertilizers', value: 'Macro Nutrient Fertilizers' },
   { label: 'Micro Nutrient Fertilizers', value: 'Micro Nutrient Fertilizers' },
@@ -162,7 +181,7 @@ const waterSolubleTypeGradeOptions = [
   { label: 'NPK 20:20:20', value: 'NPK 20:20:20' },
   { label: 'NPK 6:12:36', value: 'NPK 6:12:36' },
   { label: 'NPK 7.6:23.5:7.6:3.5 (Zn)', value: 'NPK 7.6:23.5:7.6:3.5 (Zn)' },
-  { label: 'Potassium Magnesium Sulphate (K₂O 22%, MgO 18%, S 20%)', value: 'Potassium Magnesium Sulphate (K₂O 22%, MgO 18%, S 20%)' },
+  { label: 'Potassium Magnesium Sulphate (K2O 22%, MgO 18%, S 20%)', value: 'Potassium Magnesium Sulphate (K2O 22%, MgO 18%, S 20%)' },
   { label: 'Potassium Nitrate (13:0:45)', value: 'Potassium Nitrate (13:0:45)' },
   { label: 'Urea Phosphate (17:44:0)', value: 'Urea Phosphate (17:44:0)' },
   { label: 'Urea Phosphate with SOP (18:18:18)', value: 'Urea Phosphate with SOP (18:18:18)' },
@@ -172,11 +191,11 @@ const waterSolubleTypeGradeOptions = [
 const compositionFields: FieldConfig[] = [
   { key: 'compositionN', label: 'N %', displayFlag: 'N' },
   { key: 'compositionN_T', label: 'N(T) %', displayFlag: 'N_T' },
+  { key: 'compositionP', label: 'P %', displayFlag: 'P' },
   { key: 'compositionP_T', label: 'P(T) %', displayFlag: 'P_T' },
   { key: 'compositionP_WS', label: 'P(WS) %', displayFlag: 'P_WS' },
   { key: 'compositionP_available', label: 'P(available) %', displayFlag: 'P_available' },
   { key: 'compositionP_CS', label: 'P(CS) %', displayFlag: 'P_CS' },
-  { key: 'compositionZn', label: 'Zn %', displayFlag: 'Zn' },
   { key: 'compositionP2O5_T', label: 'P2O5(T) %', displayFlag: 'P2O5_T' },
   { key: 'compositionP2O5_WS', label: 'P2O5(WS) %', displayFlag: 'P2O5_WS' },
   { key: 'compositionP2O5_CS', label: 'P2O5(CS) %', displayFlag: 'P2O5_CS' },
@@ -186,6 +205,17 @@ const compositionFields: FieldConfig[] = [
   { key: 'compositionK2O_T', label: 'K2O(T) %', displayFlag: 'K2O_T' },
   { key: 'compositionS', label: 'S %', displayFlag: 'S' },
   { key: 'compositionCa', label: 'Ca %', displayFlag: 'Ca' },
+  { key: 'compositionMg', label: 'Mg %', displayFlag: 'Mg' },
+  { key: 'compositionMgO', label: 'MgO %', displayFlag: 'MgO' },
+  { key: 'compositionZn', label: 'Zn %', displayFlag: 'Zn' },
+  { key: 'compositionFe', label: 'Fe %', displayFlag: 'Fe' },
+  { key: 'compositionMn', label: 'Mn %', displayFlag: 'Mn' },
+  { key: 'compositionB', label: 'B %', displayFlag: 'B' },
+  { key: 'compositionCu', label: 'Cu %', displayFlag: 'Cu' },
+  { key: 'compositionZn_EDTA', label: 'Zn-EDTA %', displayFlag: 'Zn_EDTA' },
+  { key: 'compositionFe_EDTA', label: 'Fe-EDTA %', displayFlag: 'Fe_EDTA' },
+  { key: 'compositionMo', label: 'Mo %', displayFlag: 'Mo' },
+  { key: 'compositionCd', label: 'Cd %', displayFlag: 'Cd' },
 ];
 
 const microNutrientCompositionFields: FieldConfig[] = [
@@ -200,6 +230,10 @@ const microNutrientCompositionFields: FieldConfig[] = [
   { key: 'microZn_EDTA', label: 'Zn-EDTA %' },
   { key: 'microFe_EDTA', label: 'Fe-EDTA %' },
   { key: 'microCd', label: 'Cd %' },
+  { key: 'microCl', label: 'Cl %' },
+  { key: 'microNi', label: 'Ni %' },
+  { key: 'microSi', label: 'Si %' },
+  { key: 'microCo', label: 'Co %' },
 ];
 
 function reorderMicroNutrientFields(fields: FieldConfig[], microNutrientTypeGrade: string): FieldConfig[] {
@@ -259,11 +293,46 @@ const microNutrientCheckboxOptions = [
   { key: 'Zn_EDTA', label: 'Zn-EDTA' },
   { key: 'Fe_EDTA', label: 'Fe-EDTA' },
   { key: 'Cd', label: 'Cd' },
+  { key: 'Cl', label: 'Cl' },
+  { key: 'Ni', label: 'Ni' },
+  { key: 'Si', label: 'Si' },
+  { key: 'Co', label: 'Co' },
+];
+
+const waterSolubleCheckboxOptions = [
+  { key: 'N', label: 'N' },
+  { key: 'N_T', label: 'N(T)' },
+  { key: 'P', label: 'P' },
+  { key: 'P_T', label: 'P(T)' },
+  { key: 'P_WS', label: 'P(WS)' },
+  { key: 'P_available', label: 'P(available)' },
+  { key: 'P_CS', label: 'P(CS)' },
+  { key: 'P2O5_T', label: 'P2O5(T)' },
+  { key: 'P2O5_WS', label: 'P2O5(WS)' },
+  { key: 'P2O5_CS', label: 'P2O5(CS)' },
+  { key: 'K', label: 'K' },
+  { key: 'K_T', label: 'K(T)' },
+  { key: 'K2O', label: 'K2O' },
+  { key: 'K2O_T', label: 'K2O(T)' },
+  { key: 'Ca', label: 'Ca' },
+  { key: 'Mg', label: 'Mg' },
+  { key: 'MgO', label: 'MgO' },
+  { key: 'S', label: 'S' },
+  { key: 'Fe', label: 'Fe' },
+  { key: 'Mn', label: 'Mn' },
+  { key: 'B', label: 'B' },
+  { key: 'Cu', label: 'Cu' },
+  { key: 'Zn', label: 'Zn' },
+  { key: 'Zn_EDTA', label: 'Zn-EDTA' },
+  { key: 'Fe_EDTA', label: 'Fe-EDTA' },
+  { key: 'Mo', label: 'Mo' },
+  { key: 'Cd', label: 'Cd' },
 ];
 
 const compositionDisplayOptions = [
   { key: 'N', label: 'N', group: 'N' },
   { key: 'N_T', label: 'N(T)', group: 'N' },
+  { key: 'P', label: 'P', group: 'P' },
   { key: 'P_T', label: 'P(T)', group: 'P' },
   { key: 'P_WS', label: 'P(WS)', group: 'P' },
   { key: 'P_available', label: 'P(available)', group: 'P' },
@@ -275,7 +344,7 @@ const compositionDisplayOptions = [
   { key: 'K_T', label: 'K(T)', group: 'K' },
   { key: 'K2O', label: 'K2O', group: 'K' },
   { key: 'K2O_T', label: 'K2O(T)', group: 'K' },
-  { key: 'Zn', label: 'Zn', group: 'Other' },
+  { key: 'Mg', label: 'Mg', group: 'Other' },
   { key: 'S', label: 'S', group: 'Other' },
   { key: 'Ca', label: 'Ca', group: 'Other' },
 ];
@@ -320,6 +389,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
     title: 'COMPOSITION',
     fields: [
       { key: 'microNutrientCheckboxes', label: 'MICRO NUTRIENT COMPOSITION', type: 'micro-nutrient-checkboxes' },
+      { key: 'waterSolubleCheckboxes', label: 'WATER SOLUBLE COMPOSITION', type: 'water-soluble-checkboxes' },
       { key: 'compositionDisplayFlags', label: 'SELECT COMPOSITION AS ON BAG', type: 'composition-checkboxes' },
       ...compositionFields,
       ...microNutrientCompositionFields,
@@ -345,7 +415,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       const saved = window.localStorage.getItem(STORAGE_KEY);
       const loaded = saved ? { ...initialFertilizerPdfValues, ...JSON.parse(saved) } : initialFertilizerPdfValues;
       // Always ensure default compositionDisplayFlags for new form
-      loaded.compositionDisplayFlags = 'N,P_T,P_WS,P_CS,K';
+      loaded.compositionDisplayFlags = 'N,P_WS,P_CS,K';
       return normalizeFertilizerValues(loaded);
     } catch {
       return initialFertilizerPdfValues;
@@ -437,6 +507,66 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         if (value !== 'Other') {
           next.manualFertilizerTypeGrade = '';
         }
+        // No auto-population for macro nutrient fertilizers
+      }
+      if (key === 'waterSolubleTypeGrade') {
+        // Clear manual field when switching from Other
+        if (value !== 'Other') {
+          next.manualWaterSolubleTypeGrade = '';
+        }
+        // Clear all water soluble composition fields first
+        next.compositionN = '';
+        next.compositionN_T = '';
+        next.compositionP = '';
+        next.compositionP_T = '';
+        next.compositionP_WS = '';
+        next.compositionP_available = '';
+        next.compositionP_CS = '';
+        next.compositionP2O5_T = '';
+        next.compositionP2O5_WS = '';
+        next.compositionP2O5_CS = '';
+        next.compositionK = '';
+        next.compositionK_T = '';
+        next.compositionK2O = '';
+        next.compositionK2O_T = '';
+        next.compositionS = '';
+        next.compositionCa = '';
+        next.compositionMg = '';
+        next.compositionMgO = '';
+        next.compositionZn = '';
+        next.compositionFe = '';
+        next.compositionMn = '';
+        next.compositionB = '';
+        next.compositionCu = '';
+        next.compositionZn_EDTA = '';
+        next.compositionFe_EDTA = '';
+        next.compositionMo = '';
+        next.compositionCd = '';
+        // Auto-populate only relevant water soluble composition from selected fertilizer
+        if (value && waterSolubleCompositionMap[value]) {
+          const composition = waterSolubleCompositionMap[value];
+          if (composition.N) next.compositionN = composition.N;
+          if (composition.P_WS) next.compositionP_WS = composition.P_WS;
+          if (composition.K) next.compositionK = composition.K;
+          if (composition.K2O) next.compositionK2O = composition.K2O;
+          if (composition.S) next.compositionS = composition.S;
+          if (composition.Ca) next.compositionCa = composition.Ca;
+          if (composition.MgO) next.compositionMgO = composition.MgO;
+          if (composition.Zn) next.compositionZn = composition.Zn;
+          // Auto-tick relevant water soluble checkboxes
+          const checkedNutrients: string[] = [];
+          if (composition.N) checkedNutrients.push('N');
+          if (composition.P_WS) checkedNutrients.push('P_WS');
+          if (composition.K) checkedNutrients.push('K');
+          if (composition.K2O) checkedNutrients.push('K2O');
+          if (composition.S) checkedNutrients.push('S');
+          if (composition.Ca) checkedNutrients.push('Ca');
+          if (composition.MgO) checkedNutrients.push('MgO');
+          if (composition.Zn) checkedNutrients.push('Zn');
+          next.waterSolubleCheckboxes = checkedNutrients.join(',');
+        } else {
+          next.waterSolubleCheckboxes = '';
+        }
       }
       if (key === 'microNutrientTypeGrade') {
         // Clear manual field when switching from Other
@@ -455,6 +585,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         next.microZn_EDTA = '';
         next.microFe_EDTA = '';
         next.microCd = '';
+        next.microCl = '';
+        next.microNi = '';
+        next.microSi = '';
+        next.microCo = '';
         // Auto-populate only relevant micro nutrient composition from selected fertilizer
         if (value && microNutrientCompositionMap[value]) {
           const composition = microNutrientCompositionMap[value];
@@ -496,12 +630,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         next.manualMicroNutrientTypeGrade = '';
         next.waterSolubleTypeGrade = '';
         next.manualWaterSolubleTypeGrade = '';
-      }
-      if (key === 'waterSolubleTypeGrade') {
-        // Clear manual field when switching from Other
-        if (value !== 'Other') {
-          next.manualWaterSolubleTypeGrade = '';
-        }
       }
       return next;
     });
@@ -709,14 +837,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const resetComposition = () => {
     setValues(prev => ({
       ...prev,
-      compositionDisplayFlags: 'N,P_T,P_WS,P_CS,K',
+      compositionDisplayFlags: 'N,P_WS,P_CS,K',
       composition: '',
       compositionN: '',
       compositionN_T: '',
+      compositionP: '',
       compositionP_T: '',
       compositionP_WS: '',
       compositionP_available: '',
-      compositionZn: '',
       compositionP_CS: '',
       compositionP2O5_T: '',
       compositionP2O5_WS: '',
@@ -727,6 +855,17 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       compositionK2O_T: '',
       compositionS: '',
       compositionCa: '',
+      compositionMg: '',
+      compositionMgO: '',
+      compositionZn: '',
+      compositionFe: '',
+      compositionMn: '',
+      compositionB: '',
+      compositionCu: '',
+      compositionZn_EDTA: '',
+      compositionFe_EDTA: '',
+      compositionMo: '',
+      compositionCd: '',
       microZn: '',
       microCu: '',
       microS: '',
@@ -738,7 +877,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       microZn_EDTA: '',
       microFe_EDTA: '',
       microCd: '',
+      microCl: '',
+      microNi: '',
+      microSi: '',
+      microCo: '',
       microNutrientCheckboxes: '',
+      waterSolubleCheckboxes: '',
     }));
     setMessage('Composition details reset successfully.');
   };
@@ -891,8 +1035,8 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                       ? reorderMicroNutrientFields(section.fields, values.microNutrientTypeGrade)
                       : section.fields
                     ).map((field) => {
-                      // Hide composition fields if their display flag is not selected
-                      if (field.displayFlag) {
+                      // Hide composition fields if their display flag is not selected (skip for water soluble which uses checkboxes)
+                      if (field.displayFlag && values.fertilizerCategory !== 'Water Soluble Fertilizers') {
                         const selectedFlags = values.compositionDisplayFlags.split(',').map(f => f.trim());
                         if (!selectedFlags.includes(field.displayFlag)) {
                           return null;
@@ -957,6 +1101,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                           microZn_EDTA: 'Zn_EDTA',
                           microFe_EDTA: 'Fe_EDTA',
                           microCd: 'Cd',
+                          microCl: 'Cl',
+                          microNi: 'Ni',
+                          microSi: 'Si',
+                          microCo: 'Co',
                         };
                         const compositionKey = fieldToCompositionKey[field.key];
                         // Only show field if it's checked
@@ -970,6 +1118,52 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                       }
                       // Hide micro nutrient checkboxes unless category is "Micro Nutrient Fertilizers"
                       if (field.key === 'microNutrientCheckboxes' && values.fertilizerCategory !== 'Micro Nutrient Fertilizers') {
+                        return null;
+                      }
+                      // Hide water soluble checkboxes unless category is "Water Soluble Fertilizers"
+                      if (field.key === 'waterSolubleCheckboxes' && values.fertilizerCategory !== 'Water Soluble Fertilizers') {
+                        return null;
+                      }
+                      // Show water soluble composition fields based on checked checkboxes
+                      if (values.fertilizerCategory === 'Water Soluble Fertilizers' && compositionFields.some(f => f.key === field.key)) {
+                        const checkedNutrients = values.waterSolubleCheckboxes.split(',').map(n => n.trim()).filter(Boolean);
+                        const fieldToCompositionKey: Record<string, string> = {
+                          compositionN: 'N',
+                          compositionN_T: 'N_T',
+                          compositionP: 'P',
+                          compositionP_T: 'P_T',
+                          compositionP_WS: 'P_WS',
+                          compositionP_available: 'P_available',
+                          compositionP_CS: 'P_CS',
+                          compositionP2O5_T: 'P2O5_T',
+                          compositionP2O5_WS: 'P2O5_WS',
+                          compositionP2O5_CS: 'P2O5_CS',
+                          compositionK: 'K',
+                          compositionK_T: 'K_T',
+                          compositionK2O: 'K2O',
+                          compositionK2O_T: 'K2O_T',
+                          compositionS: 'S',
+                          compositionCa: 'Ca',
+                          compositionMg: 'Mg',
+                          compositionMgO: 'MgO',
+                          compositionFe: 'Fe',
+                          compositionMn: 'Mn',
+                          compositionB: 'B',
+                          compositionCu: 'Cu',
+                          compositionZn: 'Zn',
+                          compositionZn_EDTA: 'Zn_EDTA',
+                          compositionFe_EDTA: 'Fe_EDTA',
+                          compositionMo: 'Mo',
+                          compositionCd: 'Cd',
+                        };
+                        const compositionKey = fieldToCompositionKey[field.key];
+                        // Only show field if it's checked
+                        if (compositionKey && !checkedNutrients.includes(compositionKey)) {
+                          return null;
+                        }
+                      }
+                      // Hide composition display flags when category is "Water Soluble Fertilizers"
+                      if (field.key === 'compositionDisplayFlags' && values.fertilizerCategory === 'Water Soluble Fertilizers') {
                         return null;
                       }
                       // Get mandal options based on selected district
@@ -1118,7 +1312,7 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   
   // Ensure compositionDisplayFlags has default value if missing
   if (!normalized.compositionDisplayFlags) {
-    normalized.compositionDisplayFlags = 'N,P_T,P_WS,P_CS,K';
+    normalized.compositionDisplayFlags = 'N,P_WS,P_CS,K';
   }
   // Ensure new fields have default values for backward compatibility
   if (!normalized.qualification) {
@@ -1141,6 +1335,12 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   }
   if (!normalized.manualFertilizerTypeGrade) {
     normalized.manualFertilizerTypeGrade = '';
+  }
+  if (!normalized.microNutrientCheckboxes) {
+    normalized.microNutrientCheckboxes = '';
+  }
+  if (!normalized.waterSolubleCheckboxes) {
+    normalized.waterSolubleCheckboxes = '';
   }
   if (!normalized.fertilizerCategory) {
     normalized.fertilizerCategory = '';
@@ -1453,6 +1653,39 @@ function PdfInput({
         <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700">{field.label}</span>
         <div className="flex gap-2 overflow-x-auto whitespace-nowrap pb-2">
           {microNutrientCheckboxOptions.map((option) => (
+            <label
+              key={option.key}
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"
+            >
+              <input
+                type="checkbox"
+                checked={selectedFlags.includes(option.key)}
+                onChange={() => toggleFlag(option.key)}
+                className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <span>{option.label}</span>
+            </label>
+          ))}
+        </div>
+      </label>
+    );
+  }
+
+  if (field.type === 'water-soluble-checkboxes' || field.key === 'waterSolubleCheckboxes') {
+    const selectedFlags = value.split(',').map(f => f.trim());
+    
+    const toggleFlag = (key: string) => {
+      const newFlags = selectedFlags.includes(key)
+        ? selectedFlags.filter(f => f !== key)
+        : [...selectedFlags, key];
+      onChange(newFlags.join(','));
+    };
+
+    return (
+      <label className="sm:col-span-2">
+        <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700">{field.label}</span>
+        <div className="flex gap-2 overflow-x-auto whitespace-nowrap pb-2">
+          {waterSolubleCheckboxOptions.map((option) => (
             <label
               key={option.key}
               className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"

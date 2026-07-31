@@ -572,7 +572,7 @@ export function Login() {
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-black text-white shadow-md shadow-red-900/10 transition hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-red-700 hover:shadow-lg"
                 >
                   <FileText className="h-4 w-4" />
-                  Generate PDF
+                  Draw Sample
                 </button>
               </div>
             </div>

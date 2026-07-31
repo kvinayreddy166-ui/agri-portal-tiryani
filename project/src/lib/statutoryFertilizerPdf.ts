@@ -23,10 +23,10 @@ export type FertilizerPdfValues = {
   composition: string;
   compositionN: string;
   compositionN_T: string;
+  compositionP: string;
   compositionP_T: string;
   compositionP_WS: string;
   compositionP_available: string;
-  compositionZn: string;
   compositionP_CS: string;
   compositionP2O5_T: string;
   compositionP2O5_WS: string;
@@ -40,6 +40,8 @@ export type FertilizerPdfValues = {
   compositionS: string;
   compositionCa: string;
   compositionMg: string;
+  compositionMgO: string;
+  compositionZn: string;
   compositionFe: string;
   compositionMn: string;
   compositionB: string;
@@ -59,7 +61,12 @@ export type FertilizerPdfValues = {
   microZn_EDTA: string;
   microFe_EDTA: string;
   microCd: string;
+  microCl: string;
+  microNi: string;
+  microSi: string;
+  microCo: string;
   microNutrientCheckboxes: string;
+  waterSolubleCheckboxes: string;
   stockReceiptDate: string;
   sampleCode: string;
   stockPosition: string;
@@ -118,10 +125,10 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   composition: '',
   compositionN: '',
   compositionN_T: '',
+  compositionP: '',
   compositionP_T: '',
   compositionP_WS: '',
   compositionP_available: '',
-  compositionZn: '',
   compositionP_CS: '',
   compositionP2O5_T: '',
   compositionP2O5_WS: '',
@@ -135,6 +142,8 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   compositionS: '',
   compositionCa: '',
   compositionMg: '',
+  compositionMgO: '',
+  compositionZn: '',
   compositionFe: '',
   compositionMn: '',
   compositionB: '',
@@ -154,7 +163,12 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   microZn_EDTA: '',
   microFe_EDTA: '',
   microCd: '',
+  microCl: '',
+  microNi: '',
+  microSi: '',
+  microCo: '',
   microNutrientCheckboxes: '',
+  waterSolubleCheckboxes: '',
   stockReceiptDate: '',
   sampleCode: '',
   stockPosition: '',
@@ -172,7 +186,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   officerName: '',
   designation: '',
   officeAddress: '',
-  compositionDisplayFlags: 'N,P_T,P_WS,P_CS,K',
+  compositionDisplayFlags: 'N,P_WS,P_CS,K',
   qualification: '',
   manualQualification: '',
   district: '',
@@ -647,6 +661,85 @@ function resolveFertilizerTypeGrade(values: FertilizerPdfValues): string {
 }
 
 function formatComposition(values: FertilizerPdfValues) {
+  // Handle water soluble fertilizers
+  if (values.fertilizerCategory === 'Water Soluble Fertilizers') {
+    const checkedNutrients = values.waterSolubleCheckboxes.split(',').map(n => n.trim()).filter(Boolean);
+    
+    const waterSolubleLabelMap: Record<string, { label: string; value: string }> = {
+      'N': { label: 'N', value: values.compositionN },
+      'N_T': { label: 'N(T)', value: values.compositionN_T },
+      'P': { label: 'P', value: values.compositionP },
+      'P_T': { label: 'P(T)', value: values.compositionP_T },
+      'P_WS': { label: 'P (WS)', value: values.compositionP_WS },
+      'P_available': { label: 'P(available)', value: values.compositionP_available },
+      'P_CS': { label: 'P(CS)', value: values.compositionP_CS },
+      'P2O5_T': { label: 'P2O5(T)', value: values.compositionP2O5_T },
+      'P2O5_WS': { label: 'P2O5(WS)', value: values.compositionP2O5_WS },
+      'P2O5_CS': { label: 'P2O5(CS)', value: values.compositionP2O5_CS },
+      'K': { label: 'K', value: values.compositionK },
+      'K_T': { label: 'K(T)', value: values.compositionK_T },
+      'K2O': { label: 'K2O', value: values.compositionK2O },
+      'K2O_T': { label: 'K2O(T)', value: values.compositionK2O_T },
+      'Ca': { label: 'Ca', value: values.compositionCa },
+      'Mg': { label: 'Mg', value: values.compositionMg },
+      'MgO': { label: 'MgO', value: values.compositionMgO },
+      'S': { label: 'S', value: values.compositionS },
+      'Fe': { label: 'Fe', value: values.compositionFe },
+      'Mn': { label: 'Mn', value: values.compositionMn },
+      'B': { label: 'B', value: values.compositionB },
+      'Cu': { label: 'Cu', value: values.compositionCu },
+      'Zn': { label: 'Zn', value: values.compositionZn },
+      'Zn_EDTA': { label: 'Zn-EDTA', value: values.compositionZn_EDTA },
+      'Fe_EDTA': { label: 'Fe-EDTA', value: values.compositionFe_EDTA },
+      'Mo': { label: 'Mo', value: values.compositionMo },
+      'Cd': { label: 'Cd', value: values.compositionCd },
+    };
+
+    // Order nutrients based on composition map order for selected fertilizer
+    const nutrientOrder: string[] = [];
+    if (values.waterSolubleTypeGrade && values.waterSolubleTypeGrade !== 'Other') {
+      const compositionOrderMap: Record<string, string[]> = {
+        'Calcium Nitrate (N 15.5%, Ca 18.8%)': ['N', 'P_WS', 'K', 'Ca'],
+        'Mono Ammonium Phosphate (12:61:0)': ['N', 'P_WS', 'K'],
+        'Mono Potassium Phosphate (0:52:34)': ['N', 'P_WS', 'K'],
+        'NPK 12:30:15': ['N', 'P_WS', 'K'],
+        'NPK 12:32:14': ['N', 'P_WS', 'K'],
+        'NPK 13:5:26': ['N', 'P_WS', 'K'],
+        'NPK 13:40:13': ['N', 'P_WS', 'K'],
+        'NPK 18:18:18': ['N', 'P_WS', 'K'],
+        'NPK 19:19:19': ['N', 'P_WS', 'K'],
+        'NPK 20:20:20': ['N', 'P_WS', 'K'],
+        'NPK 6:12:36': ['N', 'P_WS', 'K'],
+        'NPK 7.6:23.5:7.6:3.5 (Zn)': ['N', 'P_WS', 'K', 'Zn'],
+        'Potassium Magnesium Sulphate (K2O 22%, MgO 18%, S 20%)': ['N', 'P_WS', 'K2O', 'MgO', 'S'],
+        'Potassium Nitrate (13:0:45)': ['N', 'P_WS', 'K'],
+        'Urea Phosphate (17:44:0)': ['N', 'P_WS', 'K'],
+        'Urea Phosphate with SOP (18:18:18)': ['N', 'P_WS', 'K'],
+      };
+      nutrientOrder.push(...(compositionOrderMap[values.waterSolubleTypeGrade] || []));
+    }
+    
+    // Add any checked nutrients not in the predefined order
+    for (const nutrient of checkedNutrients) {
+      if (!nutrientOrder.includes(nutrient)) {
+        nutrientOrder.push(nutrient);
+      }
+    }
+
+    const parts: string[] = [];
+    for (const nutrient of nutrientOrder) {
+      if (checkedNutrients.includes(nutrient)) {
+        const item = waterSolubleLabelMap[nutrient];
+        if (item && item.value) {
+          parts.push(`${item.label}: ${item.value}`);
+        }
+      }
+    }
+
+    const structured = parts.join('    ');
+    return values.composition.trim() ? `${structured}\n${values.composition}` : structured;
+  }
+
   // Handle micro nutrient fertilizers separately
   if (values.fertilizerCategory === 'Micro Nutrient Fertilizers') {
     const checkedNutrients = values.microNutrientCheckboxes.split(',').map(n => n.trim()).filter(Boolean);
@@ -663,6 +756,10 @@ function formatComposition(values: FertilizerPdfValues) {
       'Zn_EDTA': { label: 'Zn-EDTA', value: values.microZn_EDTA },
       'Fe_EDTA': { label: 'Fe-EDTA', value: values.microFe_EDTA },
       'Cd': { label: 'Cd', value: values.microCd },
+      'Cl': { label: 'Cl', value: values.microCl },
+      'Ni': { label: 'Ni', value: values.microNi },
+      'Si': { label: 'Si', value: values.microSi },
+      'Co': { label: 'Co', value: values.microCo },
     };
 
     // Order nutrients based on composition map order for selected fertilizer
