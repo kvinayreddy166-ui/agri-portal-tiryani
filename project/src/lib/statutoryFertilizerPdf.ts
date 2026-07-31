@@ -730,14 +730,15 @@ function formatComposition(values: FertilizerPdfValues) {
     for (const nutrient of nutrientOrder) {
       if (checkedNutrients.includes(nutrient)) {
         const item = waterSolubleLabelMap[nutrient];
-        if (item && item.value) {
+        // Skip nutrients with 0% values for water soluble fertilizers
+        if (item && item.value && item.value !== '0%' && item.value !== '0') {
           parts.push(`${item.label}: ${item.value}`);
         }
       }
     }
 
-    const structured = parts.join('    ');
-    return values.composition.trim() ? `${structured}\n${values.composition}` : structured;
+    const structured = parts.join(', ');
+    return values.composition.trim() ? `${structured}, ${values.composition}` : structured;
   }
 
   // Handle micro nutrient fertilizers separately
@@ -803,8 +804,8 @@ function formatComposition(values: FertilizerPdfValues) {
       }
     }
 
-    const structured = parts.join('    ');
-    return values.composition.trim() ? `${structured}\n${values.composition}` : structured;
+    const structured = parts.join(', ');
+    return values.composition.trim() ? `${structured}, ${values.composition}` : structured;
   }
 
   // Handle regular fertilizers
@@ -837,8 +838,8 @@ function formatComposition(values: FertilizerPdfValues) {
     }
   }
 
-  const structured = parts.join('    ');
-  return values.composition.trim() ? `${structured}\n${values.composition}` : structured;
+  const structured = parts.join(', ');
+  return values.composition.trim() ? `${structured}, ${values.composition}` : structured;
 }
 
 function formatPercent(value: string) {
