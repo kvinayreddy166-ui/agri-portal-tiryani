@@ -211,22 +211,22 @@ const CERTIFICATION_TEXT =
 
 const PAGE = {
   marginX: 20,
-  top: 20,
-  bottom: 277,
+  top: 15,
+  bottom: 291,
   width: 210,
   height: 297,
 };
 
 const PDF_FONT = 'times';
-const BODY_SIZE = 12.5;
-const TITLE_SIZE = 16;
+const BODY_SIZE = 12;
+const TITLE_SIZE = 14;
 const ROW_LINE_HEIGHT = 5.9;
 const ROW_GAP = 1.7;
 const PARA_LINE_HEIGHT = 6.1;
-const FORM_J_SIGNATURE_GAP = 10;
-const FORM_J_INSPECTOR_SIGNATURE_GAP = 22;
+const FORM_J_SIGNATURE_GAP = 0;
+const FORM_J_INSPECTOR_SIGNATURE_GAP = 19;
 const FORM_J_PRE_RECEIPT_SIGNATURE_LIFT = 14;
-const FORM_J_RECEIPT_DOWN_SHIFT = 11;
+const FORM_J_RECEIPT_DOWN_SHIFT = 84;
 const FORM_J_SIGNATURE_BOTTOM_CLEARANCE = 16;
 const SIGNATURE_RIGHT_X = PAGE.width - PAGE.marginX - 8;
 
@@ -339,6 +339,7 @@ function drawHeader(cursor: PdfCursor, formType: FertilizerStatutoryFormType, va
   cursor.y += 8;
 
   doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(13);
   const headingLines = split(cursor, getHeading(formType), cursor.contentWidth);
   doc.text(headingLines, PAGE.width / 2, cursor.y, { align: 'center' });
   if (headingLines.length === 1) {
@@ -353,6 +354,7 @@ function drawHeader(cursor: PdfCursor, formType: FertilizerStatutoryFormType, va
   }
   cursor.y += headingLines.length * PARA_LINE_HEIGHT + 7;
   doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(BODY_SIZE);
 }
 
 function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
@@ -391,7 +393,7 @@ function drawPreReceiptInspectorSignature(cursor: PdfCursor) {
     align: 'right',
   });
   doc.setFont(PDF_FONT, 'normal');
-  cursor.y += 66;
+  cursor.y += 87;
 }
 
 function drawDealerReceipt(cursor: PdfCursor) {
