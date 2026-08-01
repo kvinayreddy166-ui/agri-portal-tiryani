@@ -211,8 +211,8 @@ const CERTIFICATION_TEXT =
 
 const PAGE = {
   marginX: 20,
-  top: 15,
-  bottom: 291,
+  top: 17,
+  bottom: 284,
   width: 210,
   height: 297,
 };
