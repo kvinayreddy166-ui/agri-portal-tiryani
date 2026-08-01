@@ -19,6 +19,7 @@ export type FertilizerPdfValues = {
   waterSolubleTypeGrade: string;
   manualWaterSolubleTypeGrade: string;
   dealerManufacturerImporterName: string;
+  manualDealerManufacturerImporterName: string;
   batchDetails: string;
   composition: string;
   compositionN: string;
@@ -60,6 +61,7 @@ export type FertilizerPdfValues = {
   microMo: string;
   microZn_EDTA: string;
   microFe_EDTA: string;
+  microMn_EDTA: string;
   microCd: string;
   microCl: string;
   microNi: string;
@@ -121,6 +123,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   waterSolubleTypeGrade: '',
   manualWaterSolubleTypeGrade: '',
   dealerManufacturerImporterName: '',
+  manualDealerManufacturerImporterName: '',
   batchDetails: '',
   composition: '',
   compositionN: '',
@@ -162,6 +165,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   microMo: '',
   microZn_EDTA: '',
   microFe_EDTA: '',
+  microMn_EDTA: '',
   microCd: '',
   microCl: '',
   microNi: '',
@@ -320,13 +324,17 @@ function drawHeader(cursor: PdfCursor, formType: FertilizerStatutoryFormType, va
   doc.text(`FORM '${displayType}'`, PAGE.width / 2, cursor.y, { align: 'center' });
   cursor.y += 6.5;
 
-  doc.setFont(PDF_FONT, 'normal');
+  doc.setFont(PDF_FONT, 'italic');
   doc.setFontSize(BODY_SIZE);
   doc.text(getClauseReference(formType), PAGE.width / 2, cursor.y, { align: 'center' });
   cursor.y += 9;
 
+  doc.setFont(PDF_FONT, 'bold');
+  const label = displayType === 'J' ? 'No: ' : 'No. ';
+  doc.text(label, PAGE.marginX, cursor.y);
+  const labelWidth = doc.getTextWidth(label);
   doc.setFont(PDF_FONT, 'bolditalic');
-  doc.text(displayType === 'J' ? `No: ${values.no || ''}` : `No. ${values.no || ''}`, PAGE.marginX, cursor.y);
+  doc.text(values.no || '', PAGE.marginX + labelWidth, cursor.y);
   doc.setFont(PDF_FONT, 'normal');
   cursor.y += 8;
 
@@ -383,7 +391,7 @@ function drawPreReceiptInspectorSignature(cursor: PdfCursor) {
     align: 'right',
   });
   doc.setFont(PDF_FONT, 'normal');
-  cursor.y += 16;
+  cursor.y += 66;
 }
 
 function drawDealerReceipt(cursor: PdfCursor) {
@@ -756,6 +764,7 @@ function formatComposition(values: FertilizerPdfValues) {
       'Mo': { label: 'Mo', value: values.microMo },
       'Zn_EDTA': { label: 'Zn-EDTA', value: values.microZn_EDTA },
       'Fe_EDTA': { label: 'Fe-EDTA', value: values.microFe_EDTA },
+      'Mn_EDTA': { label: 'Mn-EDTA', value: values.microMn_EDTA },
       'Cd': { label: 'Cd', value: values.microCd },
       'Cl': { label: 'Cl', value: values.microCl },
       'Ni': { label: 'Ni', value: values.microNi },

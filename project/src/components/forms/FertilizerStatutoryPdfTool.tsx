@@ -115,30 +115,34 @@ const microNutrientTypeGradeOptions = [
   { label: 'Chelated Iron as Fe-EDTA (Fe 12%)', value: 'Chelated Iron as Fe-EDTA (Fe 12%)' },
   { label: 'Chelated Zinc as Zn-EDTA (Zn 12%)', value: 'Chelated Zinc as Zn-EDTA (Zn 12%)' },
   { label: 'Copper Sulphate (Cu 24%, S 12%)', value: 'Copper Sulphate (Cu 24%, S 12%)' },
+  { label: 'Copper Sulphate Monohydrate (Cu 36%)', value: 'Copper Sulphate Monohydrate (Cu 36%)' },
   { label: 'Di-Sodium Octa Borate Tetrahydrate (B 20%)', value: 'Di-Sodium Octa Borate Tetrahydrate (B 20%)' },
   { label: 'Di-Sodium Tetra Borate Pentahydrate (B 14.5%)', value: 'Di-Sodium Tetra Borate Pentahydrate (B 14.5%)' },
   { label: 'Di-Sodium Tetra Borate Pentahydrate (B 15%)', value: 'Di-Sodium Tetra Borate Pentahydrate (B 15%)' },
   { label: 'Ferrous Sulphate (Fe 19%, S 10.5%)', value: 'Ferrous Sulphate (Fe 19%, S 10.5%)' },
   { label: 'Magnesium Sulphate (Mg 9.5%, S 12%)', value: 'Magnesium Sulphate (Mg 9.5%, S 12%)' },
   { label: 'Manganese Sulphate (Mn 30.5%, S 17%)', value: 'Manganese Sulphate (Mn 30.5%, S 17%)' },
+  { label: 'Mn EDTA (Mn 13%)', value: 'Mn EDTA (Mn 13%)' },
   { label: 'Zinc Sulphate Heptahydrate (Zn 21%, S 10%)', value: 'Zinc Sulphate Heptahydrate (Zn 21%, S 10%)' },
   { label: 'Zinc Sulphate Monohydrate (Zn 33%, S 15%)', value: 'Zinc Sulphate Monohydrate (Zn 33%, S 15%)' },
   { label: 'Other', value: 'Other' },
 ];
 
-const microNutrientCompositionMap: Record<string, { Zn?: string; Cu?: string; S?: string; Mn?: string; Mg?: string; B?: string; Fe?: string; Mo?: string; Zn_EDTA?: string; Fe_EDTA?: string; Cd?: string }> = {
+const microNutrientCompositionMap: Record<string, { Zn?: string; Cu?: string; S?: string; Mn?: string; Mg?: string; B?: string; Fe?: string; Mo?: string; Zn_EDTA?: string; Fe_EDTA?: string; Mn_EDTA?: string; Cd?: string }> = {
   'Ammonium Molybdate (Mo 52%)': { Mo: '52%' },
   'Borax (Sodium Tetraborate) (B 10.5%)': { B: '10.5%' },
   'Boric Acid (B 17%)': { B: '17%' },
   'Chelated Iron as Fe-EDTA (Fe 12%)': { Fe_EDTA: '12%' },
   'Chelated Zinc as Zn-EDTA (Zn 12%)': { Zn_EDTA: '12%' },
   'Copper Sulphate (Cu 24%, S 12%)': { Cu: '24%', S: '12%' },
+  'Copper Sulphate Monohydrate (Cu 36%)': { Cu: '36%' },
   'Di-Sodium Octa Borate Tetrahydrate (B 20%)': { B: '20%' },
   'Di-Sodium Tetra Borate Pentahydrate (B 14.5%)': { B: '14.5%' },
   'Di-Sodium Tetra Borate Pentahydrate (B 15%)': { B: '15%' },
   'Ferrous Sulphate (Fe 19%, S 10.5%)': { Fe: '19%', S: '10.5%' },
   'Magnesium Sulphate (Mg 9.5%, S 12%)': { Mg: '9.5%', S: '12%' },
   'Manganese Sulphate (Mn 30.5%, S 17%)': { Mn: '30.5%', S: '17%' },
+  'Mn EDTA (Mn 13%)': { Mn_EDTA: '13%' },
   'Zinc Sulphate Heptahydrate (Zn 21%, S 10%)': { Zn: '21%', S: '10%' },
   'Zinc Sulphate Monohydrate (Zn 33%, S 15%)': { Zn: '33%', S: '15%' },
 };
@@ -156,8 +160,12 @@ const waterSolubleCompositionMap: Record<string, { N?: string; P_WS?: string; K?
   'NPK 20:20:20': { N: '20%', P_WS: '20%', K: '20%' },
   'NPK 6:12:36': { N: '6%', P_WS: '12%', K: '36%' },
   'NPK 7.6:23.5:7.6:3.5 (Zn)': { N: '7.6%', P_WS: '23.5%', K: '7.6%', Zn: '3.5%' },
+  'NPK 11:0:37': { N: '11%', P_WS: '0%', K: '37%' },
+  'NPK 15:05:30': { N: '15%', P_WS: '5%', K: '30%' },
+  'NPK 24:24:24': { N: '24%', P_WS: '24%', K: '24%' },
   'Potassium Magnesium Sulphate (K2O 22%, MgO 18%, S 20%)': { N: '0%', P_WS: '0%', K2O: '22%', MgO: '18%', S: '20%' },
   'Potassium Nitrate (13:0:45)': { N: '13%', P_WS: '0%', K: '45%' },
+  'Potassium Sulphate (SOP)(00:00:50)': { N: '0%', P_WS: '0%', K: '50%' },
   'Urea Phosphate (17:44:0)': { N: '17%', P_WS: '44%', K: '0%' },
   'Urea Phosphate with SOP (18:18:18)': { N: '18%', P_WS: '18%', K: '18%' },
 };
@@ -165,7 +173,62 @@ const waterSolubleCompositionMap: Record<string, { N?: string; P_WS?: string; K?
 const fertilizerCategoryOptions = [
   { label: 'Macro Nutrient Fertilizers', value: 'Macro Nutrient Fertilizers' },
   { label: 'Micro Nutrient Fertilizers', value: 'Micro Nutrient Fertilizers' },
-  { label: '100 % Water Soluble Fertilizers', value: 'Water Soluble Fertilizers' },
+  { label: '100% Water Soluble Fertilizers', value: 'Water Soluble Fertilizers' },
+];
+
+const dealerManufacturerImporterOptions = [
+  { label: 'Agro Phos (India) Ltd.', value: 'Agro Phos (India) Ltd.' },
+  { label: 'Arawali Phosphates Ltd.', value: 'Arawali Phosphates Ltd.' },
+  { label: 'Aries Agro Ltd.', value: 'Aries Agro Ltd.' },
+  { label: 'Arihant Fertilizers & Chemicals Ltd.', value: 'Arihant Fertilizers & Chemicals Ltd.' },
+  { label: 'Arihant Phosphates & Fertilisers Ltd.', value: 'Arihant Phosphates & Fertilisers Ltd.' },
+  { label: 'Asha Phosphates Ltd.', value: 'Asha Phosphates Ltd.' },
+  { label: 'Asian Fertilizers Ltd.', value: 'Asian Fertilizers Ltd.' },
+  { label: 'Basant Agro Tech (India) Ltd.', value: 'Basant Agro Tech (India) Ltd.' },
+  { label: 'BEC Fertilizers', value: 'BEC Fertilizers' },
+  { label: 'Bharat Agri Fert & Realty Ltd.', value: 'Bharat Agri Fert & Realty Ltd.' },
+  { label: 'Brahmaputra Valley Fertilizer Corporation Ltd. (BVFCL)', value: 'Brahmaputra Valley Fertilizer Corporation Ltd. (BVFCL)' },
+  { label: 'Chambal Fertilisers & Chemicals Ltd.', value: 'Chambal Fertilisers & Chemicals Ltd.' },
+  { label: 'Coimbatore Pioneer Fertilizers Pvt. Ltd.', value: 'Coimbatore Pioneer Fertilizers Pvt. Ltd.' },
+  { label: 'Coromandel International Ltd.', value: 'Coromandel International Ltd.' },
+  { label: 'DCM Shriram Ltd.', value: 'DCM Shriram Ltd.' },
+  { label: 'Deepak Fertilisers & Petrochemicals Corporation Ltd.', value: 'Deepak Fertilisers & Petrochemicals Corporation Ltd.' },
+  { label: 'Dharmaj Crop Guard Ltd.', value: 'Dharmaj Crop Guard Ltd.' },
+  { label: 'Fertilizer Corporation of India Ltd. (FCIL)', value: 'Fertilizer Corporation of India Ltd. (FCIL)' },
+  { label: 'Gujarat Agro Industries Corporation Ltd.', value: 'Gujarat Agro Industries Corporation Ltd.' },
+  { label: 'Gujarat Narmada Valley Fertilizers & Chemicals Ltd. (GNFC)', value: 'Gujarat Narmada Valley Fertilizers & Chemicals Ltd. (GNFC)' },
+  { label: 'Gujarat State Fertilizers & Chemicals Ltd. (GSFC)', value: 'Gujarat State Fertilizers & Chemicals Ltd. (GSFC)' },
+  { label: 'Hindustan Fertilizer Corporation Ltd. (HFCL)', value: 'Hindustan Fertilizer Corporation Ltd. (HFCL)' },
+  { label: 'Hindustan Urvarak & Rasayan Ltd. (HURL)', value: 'Hindustan Urvarak & Rasayan Ltd. (HURL)' },
+  { label: 'IFFCO-MC Crop Science Pvt. Ltd.', value: 'IFFCO-MC Crop Science Pvt. Ltd.' },
+  { label: 'Indian Farmers Fertiliser Cooperative Ltd. (IFFCO)', value: 'Indian Farmers Fertiliser Cooperative Ltd. (IFFCO)' },
+  { label: 'Indian Phosphate Ltd.', value: 'Indian Phosphate Ltd.' },
+  { label: 'Indian Potash Ltd. (IPL)', value: 'Indian Potash Ltd. (IPL)' },
+  { label: 'Jay Shree Chemicals & Fertilisers', value: 'Jay Shree Chemicals & Fertilisers' },
+  { label: 'Khaitan Chemicals & Fertilizers Ltd.', value: 'Khaitan Chemicals & Fertilizers Ltd.' },
+  { label: 'Krishak Bharati Cooperative Ltd. (KRIBHCO)', value: 'Krishak Bharati Cooperative Ltd. (KRIBHCO)' },
+  { label: 'Liberty Phosphate Ltd.', value: 'Liberty Phosphate Ltd.' },
+  { label: 'Madras Fertilizers Ltd. (MFL)', value: 'Madras Fertilizers Ltd. (MFL)' },
+  { label: 'Mahadhan AgriTech Ltd.', value: 'Mahadhan AgriTech Ltd.' },
+  { label: 'Mangalore Chemicals & Fertilizers Ltd. (MCFL)', value: 'Mangalore Chemicals & Fertilizers Ltd. (MCFL)' },
+  { label: 'Matix Fertilisers & Chemicals Ltd.', value: 'Matix Fertilisers & Chemicals Ltd.' },
+  { label: 'Madhya Bharat Agro Products Ltd.', value: 'Madhya Bharat Agro Products Ltd.' },
+  { label: 'Nagarjuna Fertilizers & Chemicals Ltd.', value: 'Nagarjuna Fertilizers & Chemicals Ltd.' },
+  { label: 'National Fertilizers Ltd. (NFL)', value: 'National Fertilizers Ltd. (NFL)' },
+  { label: 'Paradeep Phosphates Ltd. (PPL)', value: 'Paradeep Phosphates Ltd. (PPL)' },
+  { label: 'Ramagundam Fertilizers & Chemicals Ltd. (RFCL)', value: 'Ramagundam Fertilizers & Chemicals Ltd. (RFCL)' },
+  { label: 'Rama Phosphates Ltd.', value: 'Rama Phosphates Ltd.' },
+  { label: 'Rashtriya Chemicals & Fertilizers Ltd. (RCF)', value: 'Rashtriya Chemicals & Fertilizers Ltd. (RCF)' },
+  { label: 'Smartchem Technologies Ltd.', value: 'Smartchem Technologies Ltd.' },
+  { label: 'Southern Petrochemical Industries Corporation Ltd. (SPIC)', value: 'Southern Petrochemical Industries Corporation Ltd. (SPIC)' },
+  { label: 'Talcher Fertilizers Ltd. (TFL)', value: 'Talcher Fertilizers Ltd. (TFL)' },
+  { label: 'Tata Chemicals Ltd.', value: 'Tata Chemicals Ltd.' },
+  { label: 'The Andhra Sugars Ltd.', value: 'The Andhra Sugars Ltd.' },
+  { label: 'The Fertilisers & Chemicals Travancore Ltd. (FACT)', value: 'The Fertilisers & Chemicals Travancore Ltd. (FACT)' },
+  { label: 'The Phosphate Company Ltd.', value: 'The Phosphate Company Ltd.' },
+  { label: 'Yara Fertilisers India Pvt. Ltd.', value: 'Yara Fertilisers India Pvt. Ltd.' },
+  { label: 'Zuari Agro Chemicals Ltd.', value: 'Zuari Agro Chemicals Ltd.' },
+  { label: 'Other', value: 'Other' },
 ];
 
 const waterSolubleTypeGradeOptions = [
@@ -181,8 +244,12 @@ const waterSolubleTypeGradeOptions = [
   { label: 'NPK 20:20:20', value: 'NPK 20:20:20' },
   { label: 'NPK 6:12:36', value: 'NPK 6:12:36' },
   { label: 'NPK 7.6:23.5:7.6:3.5 (Zn)', value: 'NPK 7.6:23.5:7.6:3.5 (Zn)' },
+  { label: 'NPK 11:0:37', value: 'NPK 11:0:37' },
+  { label: 'NPK 15:05:30', value: 'NPK 15:05:30' },
+  { label: 'NPK 24:24:24', value: 'NPK 24:24:24' },
   { label: 'Potassium Magnesium Sulphate (K2O 22%, MgO 18%, S 20%)', value: 'Potassium Magnesium Sulphate (K2O 22%, MgO 18%, S 20%)' },
   { label: 'Potassium Nitrate (13:0:45)', value: 'Potassium Nitrate (13:0:45)' },
+  { label: 'Potassium Sulphate (SOP)(00:00:50)', value: 'Potassium Sulphate (SOP)(00:00:50)' },
   { label: 'Urea Phosphate (17:44:0)', value: 'Urea Phosphate (17:44:0)' },
   { label: 'Urea Phosphate with SOP (18:18:18)', value: 'Urea Phosphate with SOP (18:18:18)' },
   { label: 'Other', value: 'Other' },
@@ -229,6 +296,7 @@ const microNutrientCompositionFields: FieldConfig[] = [
   { key: 'microMo', label: 'Mo %' },
   { key: 'microZn_EDTA', label: 'Zn-EDTA %' },
   { key: 'microFe_EDTA', label: 'Fe-EDTA %' },
+  { key: 'microMn_EDTA', label: 'Mn-EDTA %' },
   { key: 'microCd', label: 'Cd %' },
   { key: 'microCl', label: 'Cl %' },
   { key: 'microNi', label: 'Ni %' },
@@ -248,7 +316,9 @@ function reorderMicroNutrientFields(fields: FieldConfig[], microNutrientTypeGrad
     'Magnesium Sulphate (Mg 9.5%, S 12%)': ['microMg', 'microS'],
     'Ferrous Sulphate (Fe 19%, S 10.5%)': ['microFe', 'microS'],
     'Copper Sulphate (Cu 24%, S 12%)': ['microCu', 'microS'],
+    'Copper Sulphate Monohydrate (Cu 36%)': ['microCu'],
     'Manganese Sulphate (Mn 30.5%, S 17%)': ['microMn', 'microS'],
+    'Mn EDTA (Mn 13%)': ['microMn_EDTA'],
     'Ammonium Molybdate (Mo 52%)': ['microMo'],
     'Chelated Zinc as Zn-EDTA (Zn 12%)': ['microZn_EDTA'],
     'Chelated Iron as Fe-EDTA (Fe 12%)': ['microFe_EDTA'],
@@ -304,6 +374,7 @@ const microNutrientCheckboxOptions = [
   { key: 'Mo', label: 'Mo' },
   { key: 'Zn_EDTA', label: 'Zn-EDTA' },
   { key: 'Fe_EDTA', label: 'Fe-EDTA' },
+  { key: 'Mn_EDTA', label: 'Mn-EDTA' },
   { key: 'Cd', label: 'Cd' },
   { key: 'Cl', label: 'Cl' },
   { key: 'Ni', label: 'Ni' },
@@ -389,7 +460,8 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'manualMicroNutrientTypeGrade', label: 'ENTER MICRO NUTRIENT TYPE AND GRADE', placeholder: 'Enter micro nutrient type and grade' },
       { key: 'waterSolubleTypeGrade', label: 'NAME AND GRADE OF WATER SOLUBLE FERTILIZER', type: 'select', options: waterSolubleTypeGradeOptions },
       { key: 'manualWaterSolubleTypeGrade', label: 'ENTER WATER SOLUBLE FERTILIZER TYPE AND GRADE', placeholder: 'Enter water soluble fertilizer type and grade' },
-      { key: 'dealerManufacturerImporterName', label: 'NAME OF DEALER/MANUFACTURER/IMPORTER', placeholder: 'company details' },
+      { key: 'dealerManufacturerImporterName', label: 'NAME OF DEALER/MANUFACTURER/IMPORTER', type: 'select', options: dealerManufacturerImporterOptions },
+      { key: 'manualDealerManufacturerImporterName', label: 'ENTER DEALER/MANUFACTURER/IMPORTER NAME', placeholder: 'Enter dealer/manufacturer/importer name' },
       { key: 'batchDetails', label: 'BATCH NO. AND DATE OF MANUFACTURE/IMPORT' },
       { key: 'stockReceiptDate', label: 'DATE OF RECEIPT OF STOCK', type: 'date' },
       { key: 'stockPosition', label: 'STOCK POSITION OF LOT' },
@@ -596,6 +668,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         next.microMo = '';
         next.microZn_EDTA = '';
         next.microFe_EDTA = '';
+        next.microMn_EDTA = '';
         next.microCd = '';
         next.microCl = '';
         next.microNi = '';
@@ -614,6 +687,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
           if (composition.Mo) next.microMo = composition.Mo;
           if (composition.Zn_EDTA) next.microZn_EDTA = composition.Zn_EDTA;
           if (composition.Fe_EDTA) next.microFe_EDTA = composition.Fe_EDTA;
+          if (composition.Mn_EDTA) next.microMn_EDTA = composition.Mn_EDTA;
           if (composition.Cd) next.microCd = composition.Cd;
           // Auto-tick relevant micro nutrient checkboxes
           const checkedNutrients: string[] = [];
@@ -627,11 +701,18 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
           if (composition.Mo) checkedNutrients.push('Mo');
           if (composition.Zn_EDTA) checkedNutrients.push('Zn_EDTA');
           if (composition.Fe_EDTA) checkedNutrients.push('Fe_EDTA');
+          if (composition.Mn_EDTA) checkedNutrients.push('Mn_EDTA');
           if (composition.Cd) checkedNutrients.push('Cd');
           next.microNutrientCheckboxes = checkedNutrients.join(',');
         } else {
           // Clear checkboxes when Other is selected
           next.microNutrientCheckboxes = '';
+        }
+      }
+      if (key === 'dealerManufacturerImporterName') {
+        // Clear manual field when switching from Other
+        if (value !== 'Other') {
+          next.manualDealerManufacturerImporterName = '';
         }
       }
       if (key === 'fertilizerCategory') {
@@ -827,6 +908,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       waterSolubleTypeGrade: '',
       manualWaterSolubleTypeGrade: '',
       dealerManufacturerImporterName: '',
+      manualDealerManufacturerImporterName: '',
       batchDetails: '',
       stockReceiptDate: '',
       stockPosition: '',
@@ -888,6 +970,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       microMo: '',
       microZn_EDTA: '',
       microFe_EDTA: '',
+      microMn_EDTA: '',
       microCd: '',
       microCl: '',
       microNi: '',
@@ -1088,6 +1171,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                       if (field.key === 'manualWaterSolubleTypeGrade' && values.waterSolubleTypeGrade !== 'Other') {
                         return null;
                       }
+                      // Hide manual dealer/manufacturer/importer field unless dealerManufacturerImporterName is "Other"
+                      if (field.key === 'manualDealerManufacturerImporterName' && values.dealerManufacturerImporterName !== 'Other') {
+                        return null;
+                      }
                       // Hide water soluble dropdown unless category is "Water Soluble Fertilizers"
                       if (field.key === 'waterSolubleTypeGrade' && values.fertilizerCategory !== 'Water Soluble Fertilizers') {
                         return null;
@@ -1114,6 +1201,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                           microMo: 'Mo',
                           microZn_EDTA: 'Zn_EDTA',
                           microFe_EDTA: 'Fe_EDTA',
+                          microMn_EDTA: 'Mn_EDTA',
                           microCd: 'Cd',
                           microCl: 'Cl',
                           microNi: 'Ni',
@@ -1313,6 +1401,11 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
     }
   }
   
+  // Resolve dealer/manufacturer/importer name based on Other selection
+  if (normalized.dealerManufacturerImporterName === 'Other') {
+    normalized.dealerManufacturerImporterName = normalized.manualDealerManufacturerImporterName;
+  }
+  
   // Rebuild inspector address with Mandal suffix
   const resolvedQualification = normalized.qualification === 'Others' ? normalized.manualQualification : normalized.qualification;
   const officerNameWithQualification = normalized.officerName && resolvedQualification 
@@ -1372,6 +1465,9 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   if (!normalized.manualWaterSolubleTypeGrade) {
     normalized.manualWaterSolubleTypeGrade = '';
   }
+  if (!normalized.manualDealerManufacturerImporterName) {
+    normalized.manualDealerManufacturerImporterName = '';
+  }
   if (!normalized.microZn) {
     normalized.microZn = '';
   }
@@ -1428,6 +1524,8 @@ function fertilizerGenerationSnapshot(values: FertilizerPdfValues) {
     resolvedFertilizerTypeGrade = values.fertilizerTypeGrade === 'Other' ? values.manualFertilizerTypeGrade : values.fertilizerTypeGrade;
   }
   
+  const resolvedDealerManufacturerImporterName = values.dealerManufacturerImporterName === 'Other' ? values.manualDealerManufacturerImporterName : values.dealerManufacturerImporterName;
+  
   return stableFertilizerString({
     no: values.no,
     sampleCode: values.sampleCode,
@@ -1440,7 +1538,7 @@ function fertilizerGenerationSnapshot(values: FertilizerPdfValues) {
     premisesLocation: values.premisesLocation,
     authorizationNumber: values.authorizationNumber,
     fertilizerTypeGrade: resolvedFertilizerTypeGrade,
-    dealerManufacturerImporterName: values.dealerManufacturerImporterName,
+    dealerManufacturerImporterName: resolvedDealerManufacturerImporterName,
     batchDetails: values.batchDetails,
     stockReceiptDate: values.stockReceiptDate,
     stockPosition: values.stockPosition,
