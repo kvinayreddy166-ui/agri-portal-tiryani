@@ -484,7 +484,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
     title: 'DEALER DETAILS',
     fields: [
       { key: 'dealerName', label: 'DEALER / PARTY NAME' },
-      { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS', type: 'textarea', placeholder: 'village' },
+      { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS (Enter only D.No, village/town - Mandal and Dist autofilled)', type: 'textarea', placeholder: 'village' },
       { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER' },
     ],
   },
@@ -540,7 +540,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       if (key === 'codeNumber' && (!current.sampleCode || current.sampleCode === current.codeNumber)) {
         next.sampleCode = value;
       }
-      if (key === 'dealerName' || key === 'dealerAddress') {
+      if (key === 'dealerName' || key === 'dealerAddress' || key === 'district' || key === 'mandal' || key === 'manualDistrict' || key === 'manualMandal') {
         next.dealerNameAddress = buildDealerNameAddress(next);
       }
       if (key === 'officerName' || key === 'designation' || key === 'qualification' || key === 'manualQualification' || key === 'district' || key === 'mandal' || key === 'manualDistrict' || key === 'manualMandal') {
@@ -1508,10 +1508,18 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
 }
 
 function buildDealerNameAddress(values: FertilizerPdfValues) {
-  return [values.dealerName, values.dealerAddress]
+  const resolvedDistrict = values.district === 'Other' ? values.manualDistrict : values.district;
+  const resolvedMandal = values.mandal === 'Other' ? values.manualMandal : values.mandal;
+  
+  const addressParts = [values.dealerName, values.dealerAddress]
     .map((part) => part.trim())
-    .filter(Boolean)
-    .join('\n');
+    .filter(Boolean);
+  
+  // Add Mandal and District if available
+  if (resolvedMandal) addressParts.push(`Mandal: ${resolvedMandal}`);
+  if (resolvedDistrict) addressParts.push(`District: ${resolvedDistrict}`);
+  
+  return addressParts.join('\n');
 }
 
 function fertilizerGenerationSnapshot(values: FertilizerPdfValues) {

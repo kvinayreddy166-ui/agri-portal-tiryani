@@ -94,6 +94,8 @@ const initialSeedForm = {
   mandal: '',
   manualDistrict: '',
   manualMandal: '',
+  placeManuallyEdited: false,
+  collectionPlaceManuallyEdited: false,
 };
 
 export function SeedForms() {
@@ -101,7 +103,13 @@ export function SeedForms() {
   const [form, setForm] = useState(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      return saved ? { ...initialSeedForm, ...JSON.parse(saved) } : initialSeedForm;
+      const loaded = saved ? { ...initialSeedForm, ...JSON.parse(saved) } : initialSeedForm;
+      // Ensure manual edit flags are initialized for old saved drafts
+      return {
+        ...loaded,
+        placeManuallyEdited: loaded.placeManuallyEdited ?? false,
+        collectionPlaceManuallyEdited: loaded.collectionPlaceManuallyEdited ?? false,
+      };
     } catch {
       return initialSeedForm;
     }
@@ -135,20 +143,53 @@ export function SeedForms() {
         return { ...current, crop: value, cropOther: '', quantityDrawn: defaultQuantity };
       }
       if (key === 'district') {
-        return { ...current, district: value, mandal: '', manualDistrict: '', manualMandal: '', place: '' };
+        // Reset manual edit flags when district changes
+        return { ...current, district: value, mandal: '', manualDistrict: '', manualMandal: '', place: '', placeManuallyEdited: false, collectionPlaceManuallyEdited: false };
       }
       if (key === 'mandal') {
-        const resolvedPlace = value === 'Others' ? current.manualMandal : value;
-        return { ...current, mandal: value, manualMandal: '', place: resolvedPlace };
+        // Only auto-populate place and collectionPlace if it has NEVER been set before (not just if currently empty)
+        const hasNeverBeenSet = !current.placeManuallyEdited && !current.collectionPlaceManuallyEdited;
+        if (hasNeverBeenSet && value) {
+          const resolvedPlace = value === 'Others' ? current.manualMandal : value;
+          // Auto-populate both place and collectionPlace for all designations
+          return { ...current, mandal: value, manualMandal: '', place: resolvedPlace, collectionPlace: resolvedPlace };
+        }
+        return { ...current, mandal: value, manualMandal: '' };
       }
       if (key === 'manualMandal') {
-        return { ...current, manualMandal: value, place: value };
+        // Only auto-populate place and collectionPlace if it has NEVER been set before
+        const hasNeverBeenSet = !current.placeManuallyEdited && !current.collectionPlaceManuallyEdited;
+        if (hasNeverBeenSet && value) {
+          // Auto-populate both place and collectionPlace for all designations
+          return { ...current, manualMandal: value, place: value, collectionPlace: value };
+        }
+        return { ...current, manualMandal: value };
+      }
+      if (key === 'designation') {
+        // When designation changes to ADA or Mandal Agriculture Officer, auto-populate place and collectionPlace if NEVER set before
+        const resolvedMandal = current.mandal === 'Others' ? current.manualMandal : current.mandal;
+        const isADA = value === 'Asst. Director of Agriculture';
+        const isMandalAO = value === 'Mandal Agriculture Officer';
+        const wasADA = current.designation === 'Asst. Director of Agriculture';
+        const wasMandalAO = current.designation === 'Mandal Agriculture Officer';
+        const hasNeverBeenSet = !current.placeManuallyEdited && !current.collectionPlaceManuallyEdited;
+        // Auto-populate when switching to ADA or Mandal Agriculture Officer and place has never been set
+        if ((isADA && !wasADA || isMandalAO && !wasMandalAO) && hasNeverBeenSet && resolvedMandal) {
+          // Auto-populate both place and collectionPlace for both ADA and Mandal Agriculture Officer
+          return { ...current, designation: value, place: resolvedMandal, collectionPlace: resolvedMandal };
+        }
+        return { ...current, designation: value };
       }
       if (key === 'qualification') {
         return { ...current, qualification: value, manualQualification: '' };
       }
       if (key === 'place') {
-        return { ...current, place: value, collectionPlace: value };
+        // Mark as manually edited when user changes it (even if deleting)
+        return { ...current, place: value, placeManuallyEdited: true };
+      }
+      if (key === 'collectionPlace') {
+        // Mark as manually edited when user changes it (even if deleting)
+        return { ...current, collectionPlace: value, collectionPlaceManuallyEdited: true };
       }
       if (key === 'date') {
         // Sync collectionDate with date
@@ -300,6 +341,8 @@ export function SeedForms() {
       sourceOfSupply: '',
       testRequired: 'Germination, Purity & Moisture Test',
       testRequiredOther: '',
+      placeManuallyEdited: false,
+      collectionPlaceManuallyEdited: false,
       remarks: '',
     }));
     setMessage('Sample details reset successfully.');
@@ -599,7 +642,6 @@ function toOption(value) {
 function resolveSeedValues(form) {
   const lab = labOptions.find((item) => item.id === form.labId) || labOptions[0];
   const fromPlace = String(form.place || '').trim();
-  const resolvedPlace = fromPlace || form.collectionPlace;
   const resolvedMandal = form.mandal === 'Others' ? form.manualMandal : form.mandal;
   const resolvedDistrict = form.district === 'Others' ? form.manualDistrict : form.district;
   const resolvedQualification = form.qualification === 'Others' ? form.manualQualification : form.qualification;
@@ -607,17 +649,27 @@ function resolveSeedValues(form) {
     ? `${form.officerName}, ${resolvedQualification}`
     : form.officerName;
   
+  // Check if ADA is selected to determine whether to use Division or Mandal
+  const isADA = form.designation === 'Asst. Director of Agriculture';
+  const isMandalAO = form.designation === 'Mandal Agriculture Officer';
+  const locationLabel = isADA ? 'Division' : 'Mandal';
+  
+  // When ADA is selected, use collectionPlace for place field (for Forms VI & VIII)
+  // When Mandal Agriculture Officer is selected, use mandal value (fromPlace)
+  // Otherwise use the auto-populated place value
+  const resolvedPlace = isADA ? (form.collectionPlace || fromPlace) : (fromPlace || form.collectionPlace);
+  
   return {
     ...form,
     place: resolvedPlace,
-    collectionPlace: resolvedPlace,
+    collectionPlace: form.collectionPlace,
     crop: form.crop === 'Other' ? form.cropOther : form.crop,
     nature: form.nature === 'Other' ? form.natureOther : form.nature,
     seedClass: form.seedClass === 'Other' ? form.seedClassOther : form.seedClass,
     testRequired: form.testRequired === 'Other' ? form.testRequiredOther : form.testRequired,
     labAddress: form.labId === 'other' ? form.customLabAddress : lab.value,
-    fromAddress: [officerNameWithQualification, form.designation, resolvedMandal ? `${resolvedMandal} Mandal` : '', resolvedDistrict].filter(Boolean).join('\n'),
-    senderAddress: [form.designation, resolvedMandal ? `${resolvedMandal} Mandal` : '', resolvedDistrict].filter(Boolean).join('\n'),
+    fromAddress: [officerNameWithQualification, form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', resolvedDistrict].filter(Boolean).join('\n'),
+    senderAddress: [form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', resolvedDistrict].filter(Boolean).join('\n'),
   };
 }
 
