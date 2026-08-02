@@ -82,6 +82,7 @@ export type FertilizerPdfValues = {
   nameGrade: string;
   codeNumber: string;
   place: string;
+  placeOfCollection: string;
   date: string;
   officerName: string;
   designation: string;
@@ -186,6 +187,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   nameGrade: '',
   codeNumber: '',
   place: '',
+  placeOfCollection: '',
   date: new Date().toISOString().slice(0, 10),
   officerName: '',
   designation: '',
@@ -484,7 +486,10 @@ function drawPlaceDateAndInspectorSignature(
   const { doc } = cursor;
   if (options.showPlaceDate) {
     doc.setFont(PDF_FONT, 'normal');
-    doc.text(`Place: ${values.place || '___________'}`, PAGE.marginX, cursor.y);
+    // Use placeOfCollection when ADA is selected, otherwise use place
+    const isADA = values.designation === 'Asst. Director of Agriculture';
+    const resolvedPlace = isADA ? (values.placeOfCollection || values.place) : values.place;
+    doc.text(`Place: ${resolvedPlace || '___________'}`, PAGE.marginX, cursor.y);
     doc.text(`Date: ${formatFieldValue(values.date) || '____________'}`, PAGE.marginX, cursor.y + 8);
   }
   doc.setFont(PDF_FONT, 'bold');

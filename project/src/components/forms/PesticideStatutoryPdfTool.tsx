@@ -646,8 +646,24 @@ function openBlankPdfTab() {
 function openDocInTab(doc: { output: (type: 'blob') => Blob }, fileName: string, targetWindow: Window | null) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
-  if (targetWindow && !targetWindow.closed) targetWindow.location.href = blobUrl;
-  else window.open(blobUrl, '_blank', 'noopener,noreferrer');
+  
+  if (targetWindow && !targetWindow.closed) {
+    try {
+      targetWindow.location.href = blobUrl;
+      // Add error listener to detect if PDF plugin fails
+      targetWindow.onerror = () => {
+        console.warn('PDF preview failed, falling back to download');
+        targetWindow.close();
+        downloadDoc(doc, fileName);
+      };
+    } catch (error) {
+      console.warn('Failed to open PDF in tab, falling back to download:', error);
+      targetWindow.close();
+      downloadDoc(doc, fileName);
+    }
+  } else {
+    window.open(blobUrl, '_blank', 'noopener,noreferrer');
+  }
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 

@@ -10,6 +10,7 @@ import {
   initialFertilizerPdfValues,
 } from '../../lib/statutoryFertilizerPdf';
 import { FertilizerInstructionModal } from '../ui/FertilizerInstructionModal';
+import { PopupHintWrapper } from '../PopupHint';
 // import { CoveringLetterModal } from './CoveringLetterModal';
 import {
   QUALIFICATION_OPTIONS,
@@ -444,6 +445,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true },
       { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
       { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
+      { key: 'placeOfCollection', label: 'PLACE OF COLLECTION' },
       { key: 'date', label: 'DATE', type: 'date' },
     ],
   },
@@ -484,7 +486,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
     title: 'DEALER DETAILS',
     fields: [
       { key: 'dealerName', label: 'DEALER / PARTY NAME' },
-      { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS (Enter only D.No, village/town - Mandal and Dist autofilled)', type: 'textarea', placeholder: 'village' },
+      { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS', type: 'textarea', placeholder: 'village' },
       { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER' },
     ],
   },
@@ -550,7 +552,9 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
           : next.officerName;
         const resolvedMandal = next.mandal === 'Others' ? next.manualMandal : next.mandal;
         const resolvedDistrict = next.district === 'Others' ? next.manualDistrict : next.district;
-        const inspectorAddress = [officerNameWithQualification, next.designation, resolvedMandal ? `${resolvedMandal} Mandal` : '', resolvedDistrict].filter(Boolean).join('\n');
+        const isADA = next.designation === 'Asst. Director of Agriculture';
+        const locationLabel = isADA ? 'Division' : 'Mandal';
+        const inspectorAddress = [officerNameWithQualification, next.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', resolvedDistrict].filter(Boolean).join('\n');
         next.inspectorNameAddress = inspectorAddress;
         next.fromAddress = inspectorAddress;
         next.forwardReportAddress = inspectorAddress;
@@ -565,12 +569,30 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         // Auto-populate place field with mandal value
         if (value && value !== 'Others') {
           next.place = value;
+          // Also auto-populate placeOfCollection if ADA is selected
+          if (current.designation === 'Asst. Director of Agriculture') {
+            next.placeOfCollection = value;
+          }
         }
       }
       if (key === 'manualMandal') {
         // Auto-populate place field with manual mandal value
         if (value) {
           next.place = value;
+          // Also auto-populate placeOfCollection if ADA is selected
+          if (current.designation === 'Asst. Director of Agriculture') {
+            next.placeOfCollection = value;
+          }
+        }
+      }
+      if (key === 'designation') {
+        // When switching to ADA, copy current place to placeOfCollection
+        if (value === 'Asst. Director of Agriculture' && current.designation !== 'Asst. Director of Agriculture') {
+          next.placeOfCollection = current.place || '';
+        }
+        // When switching away from ADA, clear placeOfCollection
+        if (value !== 'Asst. Director of Agriculture' && current.designation === 'Asst. Director of Agriculture') {
+          next.placeOfCollection = '';
         }
       }
       if (key === 'officerName') {
@@ -788,7 +810,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     } catch (error) {
       console.error('Unable to preview fertilizer PDF:', error);
       targetWindow?.close();
-      setPreviewError('PDF preview could not open. Please try again.');
+      setPreviewError('PDF preview could not open. Your browser PDF plugin may have failed. Please try downloading the PDF instead.');
     } finally {
       setBusyAction(null);
     }
@@ -811,7 +833,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     } catch (error) {
       console.error('Unable to preview all fertilizer PDFs:', error);
       targetWindow?.close();
-      setPreviewError('Preview All could not open. Please try again.');
+      setPreviewError('PDF preview could not open. Your browser PDF plugin may have failed. Please try downloading the PDF instead.');
     } finally {
       setBusyAction(null);
     }
@@ -1132,6 +1154,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                         : reorderMicroNutrientCheckboxesToTop(section.fields))
                       : section.fields
                     ).map((field: FieldConfig) => {
+                      // Hide place of collection field unless designation is ADA
+                      if (field.key === 'placeOfCollection' && values.designation !== 'Asst. Director of Agriculture') {
+                        return null;
+                      }
                       // Hide composition fields if their display flag is not selected (skip for water soluble which uses checkboxes)
                       if (field.displayFlag && values.fertilizerCategory !== 'Water Soluble Fertilizers') {
                         const selectedFlags = values.compositionDisplayFlags.split(',').map(f => f.trim());
@@ -1407,13 +1433,12 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   }
   
   // Rebuild inspector address with Mandal suffix
-  const resolvedQualification = normalized.qualification === 'Others' ? normalized.manualQualification : normalized.qualification;
-  const officerNameWithQualification = normalized.officerName && resolvedQualification 
-    ? `${normalized.officerName}, ${resolvedQualification}`
-    : normalized.officerName;
+  const officerNameWithQualification = normalized.qualification === 'Others' ? normalized.manualQualification : normalized.qualification;
   const resolvedMandal = normalized.mandal === 'Others' ? normalized.manualMandal : normalized.mandal;
   const resolvedDistrict = normalized.district === 'Others' ? normalized.manualDistrict : normalized.district;
-  const inspectorAddress = [officerNameWithQualification, normalized.designation, resolvedMandal ? `${resolvedMandal} Mandal` : '', resolvedDistrict].filter(Boolean).join('\n');
+  const isADA = normalized.designation === 'Asst. Director of Agriculture';
+  const locationLabel = isADA ? 'Division' : 'Mandal';
+  const inspectorAddress = [officerNameWithQualification, normalized.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', resolvedDistrict].filter(Boolean).join('\n');
   normalized.inspectorNameAddress = inspectorAddress;
   normalized.fromAddress = inspectorAddress;
   normalized.forwardReportAddress = inspectorAddress;
@@ -1431,6 +1456,9 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   }
   if (!normalized.district) {
     normalized.district = '';
+  }
+  if (!normalized.placeOfCollection) {
+    normalized.placeOfCollection = '';
   }
   if (!normalized.mandal) {
     normalized.mandal = '';
@@ -1830,28 +1858,36 @@ function PdfInput({
     ? [...options, { label: 'Others', value: 'Others' }]
     : (options || field.options || []);
 
+  const inputElement = field.type === 'textarea' ? (
+    <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} placeholder={field.placeholder} className={commonClass} />
+  ) : field.type === 'select' ? (
+    <select value={value} onChange={(event) => onChange(event.target.value)} className={commonClass}>
+      <option value="">Select...</option>
+      {selectOptions.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  ) : (
+    <input
+      type={field.type === 'date' ? 'date' : 'text'}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      placeholder={field.placeholder}
+      className={commonClass}
+    />
+  );
+
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{displayLabel}</span>
-      {field.type === 'textarea' ? (
-        <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} placeholder={field.placeholder} className={commonClass} />
-      ) : field.type === 'select' ? (
-        <select value={value} onChange={(event) => onChange(event.target.value)} className={commonClass}>
-          <option value="">Select...</option>
-          {selectOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+      {field.key === 'dealerAddress' ? (
+        <PopupHintWrapper message="Enter only D.No. and Village/Town; Mandal and District will be auto-populated">
+          {inputElement}
+        </PopupHintWrapper>
       ) : (
-        <input
-          type={field.type === 'date' ? 'date' : 'text'}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder={field.placeholder}
-          className={commonClass}
-        />
+        inputElement
       )}
     </label>
   );
@@ -1874,8 +1910,21 @@ function openFertilizerDocInTab(
 ) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
+  
   if (targetWindow && !targetWindow.closed) {
-    targetWindow.location.href = blobUrl;
+    try {
+      targetWindow.location.href = blobUrl;
+      // Add error listener to detect if PDF plugin fails
+      targetWindow.onerror = () => {
+        console.warn('PDF preview failed, falling back to download');
+        targetWindow.close();
+        downloadFertilizerDoc(doc, fileName);
+      };
+    } catch (error) {
+      console.warn('Failed to open PDF in tab, falling back to download:', error);
+      targetWindow.close();
+      downloadFertilizerDoc(doc, fileName);
+    }
   } else {
     window.open(blobUrl, '_blank', 'noopener,noreferrer');
   }

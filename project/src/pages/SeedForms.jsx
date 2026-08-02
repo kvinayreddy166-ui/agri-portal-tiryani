@@ -7,6 +7,7 @@ import {
   SEED_DESIGNATION_OPTIONS,
   getMandalsForDistrict,
 } from '../data/telanganaDistrictMandalData';
+import { PopupHintWrapper } from '../components/PopupHint';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
@@ -469,7 +470,9 @@ export function SeedForms() {
         <div ref={dealerDetailsRef} className={highlightDetails ? 'rounded-xl border-4 border-red-500' : ''}>
         <Card title="DEALER DETAILS" color="maroon" onReset={resetDealerDetails}>
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
-          <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea placeholder="village" />
+          <PopupHintWrapper message="Enter only D.No. and Village/Town; Mandal and District will be auto-populated">
+            <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea placeholder="village" />
+          </PopupHintWrapper>
           <div className="grid gap-2 sm:grid-cols-2">
             <Select label="Cost of sample demanded" value={form.costDemanded} onChange={(value) => setField('costDemanded', value)} options={['Yes', 'No'].map(toOption)} />
             <Select label="Cost paid" value={form.costPaid} onChange={(value) => setField('costPaid', value)} options={['Paid', 'Not Paid', 'Not Applicable'].map(toOption)} />
