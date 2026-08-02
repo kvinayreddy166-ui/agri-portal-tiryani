@@ -359,10 +359,27 @@ function drawHeader(cursor: PdfCursor, formType: FertilizerStatutoryFormType, va
   doc.setFontSize(BODY_SIZE);
 }
 
+function buildFormJDealerAddress(values: FertilizerPdfValues): string {
+  const resolvedDistrict = values.district === 'Other' ? values.manualDistrict : values.district;
+  const resolvedMandal = values.mandal === 'Other' ? values.manualMandal : values.mandal;
+  
+  const addressParts = [values.dealerName, values.dealerAddress]
+    .map((part) => part.trim())
+    .filter(Boolean);
+  
+  // Use placeOfCollection for Mandal value when ADA is selected (Form J specific)
+  const isADA = values.designation === 'Asst. Director of Agriculture';
+  const mandalValue = isADA && values.placeOfCollection ? values.placeOfCollection : resolvedMandal;
+  if (mandalValue) addressParts.push(`Mandal: ${mandalValue}`);
+  if (resolvedDistrict) addressParts.push(`District: ${resolvedDistrict}`);
+  
+  return addressParts.join('\n');
+}
+
 function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
   const fieldOptions = { lineHeight: 5.25, gap: 0.85, noPageBreak: true };
 
-  field(cursor, '(1) Name and Address of Dealer/Manufacturer/Importer', values.dealerNameAddress, 91, PAGE.marginX, fieldOptions);
+  field(cursor, '(1) Name and Address of Dealer/Manufacturer/Importer', buildFormJDealerAddress(values), 91, PAGE.marginX, fieldOptions);
   field(cursor, '(1A) Letter of Authorization No.', values.authorizationNumber, 91, PAGE.marginX, fieldOptions);
   field(cursor, '(2) Date of Sampling', formatFieldValue(values.samplingDate), 91, PAGE.marginX, fieldOptions);
 

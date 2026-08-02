@@ -11,6 +11,7 @@ import {
 } from '../../lib/statutoryFertilizerPdf';
 import { FertilizerInstructionModal } from '../ui/FertilizerInstructionModal';
 import { PopupHintWrapper } from '../PopupHint';
+import { ToastContainer, useToast } from '../ui/Toast';
 // import { CoveringLetterModal } from './CoveringLetterModal';
 import {
   QUALIFICATION_OPTIONS,
@@ -493,24 +494,35 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
 ];
 
 export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void }) {
+  console.log('FertilizerStatutoryPdfTool mounted');
+  const [error, setError] = useState<string | null>(null);
   const [formType, setFormType] = useState<FertilizerStatutoryFormType>('J');
   const [showInstructionModal, setShowInstructionModal] = useState(true);
   // const [showCoveringLetterModal, setShowCoveringLetterModal] = useState(false);
   const [values, setValues] = useState<FertilizerPdfValues>(() => {
     try {
+      console.log('Loading initial values');
       const saved = window.localStorage.getItem(STORAGE_KEY);
       const loaded = saved ? { ...initialFertilizerPdfValues, ...JSON.parse(saved) } : initialFertilizerPdfValues;
       // Always ensure default compositionDisplayFlags for new form
       loaded.compositionDisplayFlags = 'N,P_WS,P_CS,K';
       return normalizeFertilizerValues(loaded);
-    } catch {
+    } catch (error) {
+      console.error('Error loading saved values:', error);
       return initialFertilizerPdfValues;
     }
   });
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
-  const [savedDrafts, setSavedDrafts] = useState<SavedFertilizerDraft[]>(() => loadFertilizerDrafts());
+  const [savedDrafts, setSavedDrafts] = useState<SavedFertilizerDraft[]>(() => {
+    try {
+      return loadFertilizerDrafts();
+    } catch (error) {
+      console.error('Error loading drafts:', error);
+      return [];
+    }
+  });
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | 'downloadAll' | null>(null);
   const [duplicateAction, setDuplicateAction] = useState<
     | { type: 'preview'; formType: FertilizerStatutoryFormType }
@@ -522,9 +534,46 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [highlightDetails, setHighlightDetails] = useState(false);
   const dealerDetailsRef = useRef<HTMLDivElement | null>(null);
   const allFields = useMemo(() => fertilizerFieldSections, []);
+  const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded } = useToast();
+
+  // Error boundary for rendering
+  if (error) {
+    console.error('FertilizerStatutoryPdfTool error:', error);
+    return (
+      <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4">
+        <div className="max-w-md rounded-lg bg-white p-6 shadow-xl">
+          <h3 className="text-lg font-bold text-red-600 mb-2">Error Loading Fertilizer Form</h3>
+          <p className="text-sm text-slate-700 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
+          >
+            Reload Page
+          </button>
+          <button
+            onClick={onClose}
+            className="ml-2 rounded-lg bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-300"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('FertilizerStatutoryPdfTool rendering, showInstructionModal:', showInstructionModal);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    console.log('FertilizerStatutoryPdfTool useEffect ran');
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    } catch (error) {
+      console.error('Error in useEffect:', error);
+      setError('Failed to save form data to localStorage');
+    }
+    return () => {
+      console.log('FertilizerStatutoryPdfTool cleanup/unmount');
+    };
   }, [values]);
 
   const setField = (key: keyof FertilizerPdfValues, value: string) => {
@@ -748,21 +797,19 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       }
       return next;
     });
-    setMessage(null);
   };
 
   const saveDraft = () => {
-    const name = buildDraftName(draftName, values);
-    const nextDrafts = upsertFertilizerDraft(savedDrafts, {
-      name,
-      values,
-      updatedAt: new Date().toISOString(),
-    });
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    const name = draftName.trim();
+    if (!name) {
+      showInfo('No Draft Name', 'Please enter a draft name to save.');
+      return;
+    }
+    const nextDrafts = upsertFertilizerDraft(savedDrafts, { name, values, updatedAt: Date.now() });
     window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
     setDraftName(name);
     setSavedDrafts(nextDrafts);
-    setMessage(`Draft saved: ${name}`);
+    showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
   };
 
   const resetDraft = () => {
@@ -770,7 +817,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setValues(initialFertilizerPdfValues);
     window.localStorage.removeItem(STORAGE_KEY);
     setPreviewError(null);
-    setMessage('Draft reset.');
+    showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.');
   };
 
   const loadDraft = (name: string) => {
@@ -779,21 +826,21 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setValues(normalizeFertilizerValues({ ...initialFertilizerPdfValues, ...draft.values }));
     setDraftName(draft.name);
     setPreviewError(null);
-    setMessage(`Draft loaded: ${draft.name}`);
+    showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
   };
 
   const deleteDraft = () => {
     const name = draftName.trim();
     if (!name) {
-      setMessage('Select a saved draft to delete.');
+      showInfo('No Draft Found', 'There is no saved draft to delete.');
       return;
     }
     if (!window.confirm(`Delete saved draft "${name}"?`)) return;
-    const nextDrafts = savedDrafts.filter((draft) => draft.name !== name);
+    const nextDrafts = savedDrafts.filter((item) => item.name !== name);
     window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
     setSavedDrafts(nextDrafts);
     setDraftName('');
-    setMessage(`Draft deleted: ${name}`);
+    showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.');
   };
 
   const completePreviewPdf = async (type = formType) => {
@@ -806,7 +853,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       openFertilizerDocInTab(doc, getFertilizerPdfFileName(type, values), targetWindow);
       rememberFertilizerGeneratedData(values);
       setFormType(type);
-      setMessage('PDF preview opened in a new tab.');
+      showInfo('Preview Opened', 'PDF preview opened in a new tab.');
     } catch (error) {
       console.error('Unable to preview fertilizer PDF:', error);
       targetWindow?.close();
@@ -829,7 +876,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       const doc = await generateAllFertilizerStatutoryPdf(values);
       openFertilizerDocInTab(doc, getAllFertilizerPdfFileName(values), targetWindow);
       rememberFertilizerGeneratedData(values);
-      setMessage('All forms preview opened in a new tab.');
+      showInfo('Preview Opened', 'All forms preview opened in a new tab.');
     } catch (error) {
       console.error('Unable to preview all fertilizer PDFs:', error);
       targetWindow?.close();
@@ -853,7 +900,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       downloadFertilizerDoc(doc, fileName);
       rememberFertilizerGeneratedData(values);
       setFormType(type);
-      setMessage(`PDF downloaded: ${fileName}`);
+      showSuccess('PDF Downloaded Successfully', fileName);
     } catch (error) {
       console.error('Unable to download fertilizer PDF:', error);
       setPreviewError('PDF could not download. Please try again.');
@@ -879,7 +926,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       const fileName = getAllFertilizerPdfFileName(values);
       downloadFertilizerDoc(doc, fileName);
       rememberFertilizerGeneratedData(values);
-      setMessage(`All forms PDF downloaded: ${fileName}`);
+      showSuccess('All Forms PDF Downloaded Successfully', fileName);
     } catch (error) {
       console.error('Unable to download all fertilizer PDFs:', error);
       setPreviewError('All forms PDF could not download. Please try again.');
@@ -1037,32 +1084,34 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   }; */
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-      <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-amber-100/50 bg-gradient-to-r from-amber-50 via-white to-orange-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-orange-500/5 to-amber-500/5 opacity-50" />
-          <div className="relative flex min-w-0 flex-1 items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25">
-              <FlaskConical className="h-5 w-5" />
+    <>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
+        <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-amber-100/50 bg-gradient-to-r from-amber-50 via-white to-orange-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-orange-500/5 to-amber-500/5 opacity-50" />
+            <div className="relative flex min-w-0 flex-1 items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25">
+                <FlaskConical className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/80">Fertilizer sampling</p>
+                <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 sm:text-lg">Generate FORM J / FORM K / FORM P</h2>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/80">Fertilizer sampling</p>
-              <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 sm:text-lg">Generate FORM J / FORM K / FORM P</h2>
+            <div className="relative flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-white/80 text-red-600 shadow-sm backdrop-blur-sm transition-all hover:bg-red-50 hover:border-red-300 hover:shadow-md"
+                title="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-          </div>
-          <div className="relative flex shrink-0 items-center gap-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-white/80 text-red-600 shadow-sm backdrop-blur-sm transition-all hover:bg-red-50 hover:border-red-300 hover:shadow-md"
-              title="Close"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        </header>
+          </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+          <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
             <div className="mb-2 flex justify-end gap-1">
               <button
                 type="button"
@@ -1084,22 +1133,27 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               </button>
             </div>
 
-            <div className="mb-2 rounded-xl border border-amber-200/50 bg-gradient-to-br from-amber-50/80 to-orange-50/80 p-3 shadow-sm backdrop-blur-sm">
+            <div className="mb-2 rounded-xl border border-violet-200/50 bg-gradient-to-br from-violet-50/80 to-purple-50/80 p-3 shadow-sm backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-500/10">
-                  <Save className="h-3.5 w-3.5 text-amber-600" />
+                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-500/10">
+                  <Save className="h-3.5 w-3.5 text-violet-600" />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-amber-700">SAVED DRAFTS</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-violet-700">SAVED DRAFTS</p>
               </div>
               <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
                 <select
-                  value=""
+                  value={draftName}
                   onChange={(event) => loadDraft(event.target.value)}
-                  className="rounded-lg border border-amber-200 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-100/50 backdrop-blur-sm transition-all"
+                  className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition-all ${
+                    draftName
+                      ? 'border-violet-400 bg-violet-50 text-violet-700 focus:border-violet-500 focus:bg-violet-100 focus:ring-2 focus:ring-violet-100/50'
+                      : 'border-violet-200 bg-white/90 text-slate-900 focus:border-violet-500 focus:bg-white focus:ring-2 focus:ring-violet-100/50'
+                  }`}
+                  title={draftName || 'Load saved draft...'}
                 >
                   <option value="">Load saved draft...</option>
                   {savedDrafts.map((draft) => (
-                    <option key={draft.name} value={draft.name}>
+                    <option key={draft.name} value={draft.name} className={draftName === draft.name ? 'bg-violet-50 text-violet-700 font-bold' : ''}>
                       {draft.name}
                     </option>
                   ))}
@@ -1354,26 +1408,27 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               </p>
             </div>
 
-        </div>
-      </section>
-      <FertilizerInstructionModal
-        isOpen={showInstructionModal}
-        onClose={() => setShowInstructionModal(false)}
-      />
-      {duplicateAction && (
-        <DuplicateDownloadModal onReview={reviewDuplicateDetails} onContinue={downloadAnyway} onClose={() => setDuplicateAction(null)} />
-      )}
-      {/* <CoveringLetterModal
-        isOpen={showCoveringLetterModal}
-        onClose={() => setShowCoveringLetterModal(false)}
-        officerDetails={{
-          mandal: values.mandal || values.manualMandal || '',
-          district: values.district || values.manualDistrict || '',
-          officerName: values.officerName || '',
-          phone: '',
-        }}
-      /> */}
-    </div>
+          </div>
+        </section>
+        <FertilizerInstructionModal
+          isOpen={showInstructionModal}
+          onClose={() => setShowInstructionModal(false)}
+        />
+        {duplicateAction && (
+          <DuplicateDownloadModal onReview={reviewDuplicateDetails} onContinue={downloadAnyway} onClose={() => setDuplicateAction(null)} />
+        )}
+        {/* <CoveringLetterModal
+          isOpen={showCoveringLetterModal}
+          onClose={() => setShowCoveringLetterModal(false)}
+          officerDetails={{
+            mandal: values.mandal || values.manualMandal || '',
+            district: values.district || values.manualDistrict || '',
+            officerName: values.officerName || '',
+            phone: '',
+          }}
+        /> */}
+      </div>
+    </>
   );
 }
 
@@ -1544,7 +1599,10 @@ function buildDealerNameAddress(values: FertilizerPdfValues) {
     .filter(Boolean);
   
   // Add Mandal and District if available
-  if (resolvedMandal) addressParts.push(`Mandal: ${resolvedMandal}`);
+  // Use placeOfCollection for Mandal value when ADA is selected (for Form J)
+  const isADA = values.designation === 'Asst. Director of Agriculture';
+  const mandalValue = isADA && values.placeOfCollection ? values.placeOfCollection : resolvedMandal;
+  if (mandalValue) addressParts.push(`Mandal: ${mandalValue}`);
   if (resolvedDistrict) addressParts.push(`District: ${resolvedDistrict}`);
   
   return addressParts.join('\n');

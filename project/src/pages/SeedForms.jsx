@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Download, Eye, RotateCcw, Save, X } from 'lucide-react';
 import { SeedInstructionModal } from '../components/ui/SeedInstructionModal';
+import { ToastContainer, useToast } from '../components/ui/Toast';
 import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
@@ -122,6 +123,7 @@ export function SeedForms() {
   const [highlightDetails, setHighlightDetails] = useState(false);
   const sampleDetailsRef = useRef(null);
   const dealerDetailsRef = useRef(null);
+  const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded } = useToast();
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
@@ -202,24 +204,23 @@ export function SeedForms() {
   };
 
   const saveDraft = () => {
-    const name = buildSeedDraftName(draftName, form);
-    const nextDrafts = upsertSeedDraft(savedDrafts, {
-      name,
-      form,
-      updatedAt: new Date().toISOString(),
-    });
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+    const name = draftName.trim();
+    if (!name) {
+      showInfo('No Draft Name', 'Please enter a draft name to save.');
+      return;
+    }
+    const nextDrafts = upsertSeedDraft(savedDrafts, { name, form, updatedAt: Date.now() });
     window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
     setDraftName(name);
     setSavedDrafts(nextDrafts);
-    setMessage(`Draft saved: ${name}`);
+    showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
   };
 
   const resetDraft = () => {
     if (!confirm('Reset seed form draft?')) return;
     setForm(initialSeedForm);
     window.localStorage.removeItem(STORAGE_KEY);
-    setMessage('Draft reset.');
+    showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.');
   };
 
   const loadDraft = (name) => {
@@ -227,21 +228,21 @@ export function SeedForms() {
     if (!draft) return;
     setForm({ ...initialSeedForm, ...draft.form });
     setDraftName(draft.name);
-    setMessage(`Draft loaded: ${draft.name}`);
+    showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
   };
 
   const deleteDraft = () => {
     const name = draftName.trim();
     if (!name) {
-      setMessage('Select a saved draft to delete.');
+      showInfo('No Draft Found', 'There is no saved draft to delete.');
       return;
     }
     if (!confirm(`Delete saved draft "${name}"?`)) return;
-    const nextDrafts = savedDrafts.filter((draft) => draft.name !== name);
+    const nextDrafts = savedDrafts.filter((item) => item.name !== name);
     window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
     setSavedDrafts(nextDrafts);
     setDraftName('');
-    setMessage(`Draft deleted: ${name}`);
+    showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.');
   };
 
   const buildValidatedPdf = async (kind) => {
@@ -255,24 +256,24 @@ export function SeedForms() {
       return await buildSeedPdf(kind, form);
     } catch (error) {
       console.error('Seed PDF generation failed:', error);
-      setMessage('PDF could not be generated. Please check the entered details and try again.');
+      showInfo('PDF Generation Failed', 'Please check the entered details and try again.');
       return null;
     }
   };
 
-  const completeGenerate = async (kind) => {
+  const download = async (kind) => {
     const doc = await buildValidatedPdf(kind);
     if (!doc) return;
     try {
       downloadSeedDoc(doc, seedFileName(kind, form));
       rememberSeedGeneratedData(form);
-      setMessage(`PDF downloaded: ${seedFileName(kind, form)}`);
+      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form));
     } catch (error) {
       console.error('Download failed, opening in new tab:', error);
       const targetWindow = openBlankSeedPdfTab();
       openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
       rememberSeedGeneratedData(form);
-      setMessage('PDF opened in a new tab (download failed).');
+      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).');
     }
   };
 
@@ -293,10 +294,14 @@ export function SeedForms() {
     }
     openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
     rememberSeedGeneratedData(form);
-    setMessage('PDF preview opened in a new tab.');
+    showInfo('Preview Opened', 'PDF preview opened in a new tab.');
   };
 
   const preview = async (kind) => {
+    if (isDuplicateSeedGeneration(form)) {
+      setDuplicateAction({ type: 'preview', kind });
+      return;
+    }
     await completePreview(kind);
   };
 
@@ -362,7 +367,9 @@ export function SeedForms() {
   };
 
   return (
-    <section className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm">
+    <>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <section className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm">
       <div className="mb-2 flex justify-end gap-1">
           <button
             type="button"
@@ -384,22 +391,27 @@ export function SeedForms() {
           </button>
       </div>
 
-      <div className="mb-2 rounded-xl border border-green-200/50 bg-gradient-to-br from-green-50/80 to-emerald-50/80 p-3 shadow-sm backdrop-blur-sm">
+      <div className="mb-2 rounded-xl border border-orange-200/50 bg-gradient-to-br from-orange-50/80 to-rose-50/80 p-3 shadow-sm backdrop-blur-sm">
         <div className="flex items-center gap-2 mb-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-green-500/10">
-            <Save className="h-3.5 w-3.5 text-green-600" />
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-500/10">
+            <Save className="h-3.5 w-3.5 text-orange-600" />
           </div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-green-700">SAVED DRAFTS</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-orange-700">SAVED DRAFTS</p>
         </div>
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <select
-            value=""
+            value={draftName}
             onChange={(event) => loadDraft(event.target.value)}
-            className="rounded-lg border border-green-200 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100/50 backdrop-blur-sm transition-all"
+            className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition-all ${
+              draftName
+                ? 'border-orange-400 bg-orange-50 text-orange-700 focus:border-orange-500 focus:bg-orange-100 focus:ring-2 focus:ring-orange-100/50'
+                : 'border-orange-200 bg-white/90 text-slate-900 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-100/50'
+            }`}
+            title={draftName || 'Load saved draft...'}
           >
             <option value="">Load saved draft...</option>
             {savedDrafts.map((draft) => (
-              <option key={draft.name} value={draft.name}>
+              <option key={draft.name} value={draft.name} className={draftName === draft.name ? 'bg-orange-50 text-orange-700 font-bold' : ''}>
                 {draft.name}
               </option>
             ))}
@@ -470,9 +482,12 @@ export function SeedForms() {
         <div ref={dealerDetailsRef} className={highlightDetails ? 'rounded-xl border-4 border-red-500' : ''}>
         <Card title="DEALER DETAILS" color="maroon" onReset={resetDealerDetails}>
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
-          <PopupHintWrapper message="Enter only D.No. and Village/Town; Mandal and District will be auto-populated">
-            <Input label="Dealer / Party address" value={form.dealerAddress} onChange={(value) => setField('dealerAddress', value)} textarea placeholder="village" />
-          </PopupHintWrapper>
+          <label>
+            <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600">Dealer / Party address</span>
+            <PopupHintWrapper message="Enter only D.No. and Village/Town; Mandal and District will be auto-populated">
+              <textarea rows={2} value={form.dealerAddress} onChange={(event) => setField('dealerAddress', event.target.value)} placeholder="village" className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" />
+            </PopupHintWrapper>
+          </label>
           <div className="grid gap-2 sm:grid-cols-2">
             <Select label="Cost of sample demanded" value={form.costDemanded} onChange={(value) => setField('costDemanded', value)} options={['Yes', 'No'].map(toOption)} />
             <Select label="Cost paid" value={form.costPaid} onChange={(value) => setField('costPaid', value)} options={['Paid', 'Not Paid', 'Not Applicable'].map(toOption)} />
@@ -509,6 +524,7 @@ export function SeedForms() {
         onClose={() => setShowInstructionModal(false)}
       />
     </section>
+    </>
   );
 }
 

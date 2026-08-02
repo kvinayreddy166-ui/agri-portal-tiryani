@@ -38,7 +38,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
 import { getGoogleViewerTabUrl, getOfficeViewerTabUrl } from '../lib/filePreviewUrls';
 const FertilizerStatutoryPdfTool = lazy(() =>
-  import('./forms/FertilizerStatutoryPdfTool').then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
+  import('./forms/FertilizerStatutoryPdfTool')
+    .then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
+    .catch((error) => {
+      console.error('Failed to load FertilizerStatutoryPdfTool:', error);
+      return { default: () => <div>Error loading fertilizer form</div> };
+    })
 );
 const PesticideStatutoryPdfTool = lazy(() =>
   import('./forms/PesticideStatutoryPdfTool').then((module) => ({ default: module.PesticideStatutoryPdfTool }))
@@ -202,8 +207,12 @@ export function Login() {
   };
 
   const openPdfTool = () => {
+    console.log('Opening PDF tool, current folder:', statutoryFolder);
+    console.log('showStatutoryForms:', showStatutoryForms);
+    console.log('pdfToolOpen before:', pdfToolOpen);
     pdfToolOverlay.pushOverlay();
     setPdfToolOpen(true);
+    console.log('pdfToolOpen after set:', true);
   };
 
   const closePdfTool = () => {
@@ -694,14 +703,17 @@ export function Login() {
             </Suspense>
           )}
         </div>
+        {console.log('Conditional check - showStatutoryForms:', showStatutoryForms, 'pdfToolOpen:', pdfToolOpen)}
         {showStatutoryForms && pdfToolOpen && (
-          <Suspense
-            fallback={
-              <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4 text-white">
-                <Loader2 className="h-8 w-8 animate-spin" />
-              </div>
-            }
-          >
+          <>
+            {console.log('Rendering PDF tool, statutoryFolder:', statutoryFolder)}
+            <Suspense
+              fallback={
+                <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4 text-white">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              }
+            >
             {statutoryFolder === 'seed' ? (
               <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
                 <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
@@ -733,9 +745,13 @@ export function Login() {
             ) : statutoryFolder === 'pesticides' ? (
               <PesticideStatutoryPdfTool onClose={closePdfTool} />
             ) : (
-              <FertilizerStatutoryPdfTool onClose={closePdfTool} />
+              <>
+                {console.log('Rendering FertilizerStatutoryPdfTool')}
+                <FertilizerStatutoryPdfTool onClose={closePdfTool} />
+              </>
             )}
           </Suspense>
+          </>
         )}
       </div>
     );

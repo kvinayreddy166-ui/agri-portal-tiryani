@@ -9,6 +9,7 @@ import {
   PesticidePdfValues,
   PesticideStatutoryFormType,
 } from '../../lib/statutoryPesticidePdf';
+import { ToastContainer, useToast } from '../ui/Toast';
 import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
@@ -130,6 +131,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     | { type: 'downloadAll' }
     | null
   >(null);
+  const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded } = useToast();
   const [highlightDetails, setHighlightDetails] = useState(false);
   const dealerDetailsRef = useRef<HTMLDivElement | null>(null);
   const sections = useMemo(() => fieldSections, []);
@@ -185,20 +187,23 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const saveDraft = () => {
-    const name = buildDraftName(draftName, values);
-    const nextDrafts = upsertDraft(savedDrafts, { name, values, updatedAt: new Date().toISOString() });
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    const name = draftName.trim();
+    if (!name) {
+      showInfo('No Draft Name', 'Please enter a draft name to save.');
+      return;
+    }
+    const nextDrafts = upsertDraft(savedDrafts, { name, values, updatedAt: Date.now() });
     window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
     setDraftName(name);
     setSavedDrafts(nextDrafts);
-    setMessage(`Draft saved: ${name}`);
+    showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
   };
 
   const resetDraft = () => {
     if (!window.confirm('Reset pesticide form draft?')) return;
     setValues(initialPesticidePdfValues);
     window.localStorage.removeItem(STORAGE_KEY);
-    setMessage('Draft reset.');
+    showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.');
     setPreviewError(null);
   };
 
@@ -207,22 +212,22 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     if (!draft) return;
     setValues({ ...initialPesticidePdfValues, ...draft.values });
     setDraftName(draft.name);
-    setMessage(`Draft loaded: ${draft.name}`);
     setPreviewError(null);
+    showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
   };
 
   const deleteDraft = () => {
     const name = draftName.trim();
     if (!name) {
-      setMessage('Select a saved draft to delete.');
+      showInfo('No Draft Found', 'There is no saved draft to delete.');
       return;
     }
     if (!window.confirm(`Delete saved draft "${name}"?`)) return;
-    const nextDrafts = savedDrafts.filter((draft) => draft.name !== name);
+    const nextDrafts = savedDrafts.filter((item) => item.name !== name);
     window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
     setSavedDrafts(nextDrafts);
     setDraftName('');
-    setMessage(`Draft deleted: ${name}`);
+    showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.');
   };
 
   const completePreview = async (formType: PesticideStatutoryFormType) => {
@@ -233,7 +238,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       const doc = await generatePesticideStatutoryPdf(formType, values);
       openDocInTab(doc, getPesticidePdfFileName(formType, values), targetWindow);
       rememberGeneratedData(values);
-      setMessage('PDF preview opened in a new tab.');
+      showInfo('Preview Opened', 'PDF preview opened in a new tab.');
     } catch (error) {
       console.error('Unable to preview pesticide PDF:', error);
       targetWindow?.close();
@@ -255,7 +260,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       const fileName = getPesticidePdfFileName(formType, values);
       downloadDoc(doc, fileName);
       rememberGeneratedData(values);
-      setMessage(`PDF downloaded: ${fileName}`);
+      showSuccess('PDF Downloaded Successfully', fileName);
     } catch (error) {
       console.error('Unable to download pesticide PDF:', error);
       setPreviewError('PDF could not download. Please try again.');
@@ -280,7 +285,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       const doc = await generateAllPesticideStatutoryPdf(values);
       openDocInTab(doc, getAllPesticidePdfFileName(values), targetWindow);
       rememberGeneratedData(values);
-      setMessage('All pesticide forms preview opened in a new tab.');
+      showInfo('All Forms Previewed', 'All pesticide forms preview opened in a new tab.');
     } catch (error) {
       console.error('Unable to preview all pesticide PDFs:', error);
       targetWindow?.close();
@@ -302,7 +307,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       const fileName = getAllPesticidePdfFileName(values);
       downloadDoc(doc, fileName);
       rememberGeneratedData(values);
-      setMessage(`All forms PDF downloaded: ${fileName}`);
+      showSuccess('All Forms PDF Downloaded Successfully', fileName);
     } catch (error) {
       console.error('Unable to download all pesticide PDFs:', error);
       setPreviewError('All forms PDF could not download. Please try again.');
@@ -337,7 +342,9 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
+    <>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
       <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-red-100/50 bg-gradient-to-r from-red-50 via-white to-rose-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
           <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-rose-500/5 to-red-500/5 opacity-50" />
@@ -392,9 +399,18 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               <p className="text-[10px] font-black uppercase tracking-widest text-red-700">SAVED DRAFTS</p>
             </div>
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-              <select value="" onChange={(event) => loadDraft(event.target.value)} className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-100/50 backdrop-blur-sm transition-all">
+              <select
+                value={draftName}
+                onChange={(event) => loadDraft(event.target.value)}
+                className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition-all ${
+                  draftName
+                    ? 'border-red-400 bg-red-50 text-red-700 focus:border-red-500 focus:bg-red-100 focus:ring-2 focus:ring-red-100/50'
+                    : 'border-red-200 bg-white/90 text-slate-900 focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-100/50'
+                }`}
+                title={draftName || 'Load saved draft...'}
+              >
                 <option value="">Load saved draft...</option>
-                {savedDrafts.map((draft) => <option key={draft.name} value={draft.name}>{draft.name}</option>)}
+                {savedDrafts.map((draft) => <option key={draft.name} value={draft.name} className={draftName === draft.name ? 'bg-red-50 text-red-700 font-bold' : ''}>{draft.name}</option>)}
               </select>
               <button type="button" onClick={deleteDraft} className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition-all backdrop-blur-sm">Delete</button>
             </div>
@@ -476,6 +492,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       </section>
       {duplicateAction && <DuplicateDownloadModal onReview={reviewDuplicateDetails} onContinue={downloadAnyway} onClose={() => setDuplicateAction(null)} />}
     </div>
+    </>
   );
 }
 
