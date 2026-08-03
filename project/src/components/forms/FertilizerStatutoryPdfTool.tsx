@@ -497,7 +497,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
     fields: [
       { key: 'dealerName', label: 'DEALER / PARTY NAME' },
       { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS', type: 'textarea', placeholder: 'village' },
-      { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER' },
+      { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER', placeholder: 'Enter License No:' },
     ],
   },
 ];

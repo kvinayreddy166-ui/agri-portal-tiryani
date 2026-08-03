@@ -102,11 +102,11 @@ export type FertilizerPdfValues = {
 export const FERTILIZER_K_ADDRESS_OPTIONS = {
   K_ADA: {
     label: 'Form K (ADA)',
-    value: 'Assistant Director of Agriculture\nFertilizer Coding Centre\nSAMETI Complex\nOld Malakpet\nHyderabad',
+    value: 'Assistant Director of Agriculture\nFertilizer Coding Centre\nSAMETI Complex\nOld Malakpet\nHyderabad -500036',
   },
   K_JDA: {
     label: 'Form K (JDA)',
-    value: 'The Designated Authority\nJDA Soil Correlator\nFertilizer Coding Centre\nSAMETI Complex\nOld Malakpet\nHyderabad',
+    value: 'The Designated Authority\nJDA Soil Correlator\nFertilizer Coding Centre\nSAMETI Complex\nOld Malakpet\nHyderabad -500036',
   },
 } as const;
 

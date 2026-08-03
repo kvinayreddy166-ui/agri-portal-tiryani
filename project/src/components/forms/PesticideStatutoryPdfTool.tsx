@@ -58,54 +58,50 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true },
       { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
       { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
-      { key: 'labAddress', label: 'INSECTICIDE ANALYST / LAB ADDRESS', type: 'textarea' },
     ],
   },
   {
     title: 'DEALER DETAILS',
     fields: [
-      { key: 'date', label: 'FORM DATE', type: 'date' },
       { key: 'sampleDrawnDate', label: 'SAMPLE DRAWN DATE', type: 'date' },
       { key: 'dealerName', label: 'DEALER / LICENSEE NAME' },
       { key: 'dealerAddress', label: 'DEALER ADDRESS', type: 'textarea', placeholder: 'village' },
-      { key: 'licenseNumber', label: 'SALE / STOCK / DISTRIBUTION LICENSE NO.' },
-      { key: 'licenseDate', label: 'LICENSE DATE', type: 'date' },
     ],
   },
   {
-    title: 'INSECTICIDE DETAILS',
+    title: 'PRODUCT DETAILS',
     fields: [
-      { key: 'technicalName', label: 'TECHNICAL NAME' },
       { key: 'tradeName', label: 'TRADE NAME' },
-      { key: 'activeIngredient', label: 'ACTIVE INGREDIENT / % AI' },
+      { key: 'technicalName', label: 'TECHNICAL NAME' },
       { key: 'formulationType', label: 'FORMULATION TYPE' },
-      { key: 'registrationNumber', label: 'REGISTRATION NUMBER' },
-      { key: 'manufacturingLicenseNumber', label: 'MANUFACTURING LICENSE NO.' },
-      { key: 'manufacturedBy', label: 'MANUFACTURED BY', type: 'textarea' },
-      { key: 'marketedBy', label: 'MARKETED BY', type: 'textarea' },
-      { key: 'distributorName', label: 'DISTRIBUTOR NAME' },
-      { key: 'cdaCode', label: 'Code No. of A.O./A.D./D.D.A.' },
+      { key: 'batchNumber', label: 'BATCH NUMBER' },
     ],
   },
   {
-    title: 'BATCH / STOCK DETAILS',
+    title: 'MANUFACTURER DETAILS',
     fields: [
-      { key: 'batchNumber', label: 'BATCH NUMBER' },
+      { key: 'manufacturedBy', label: 'MANUFACTURED BY', type: 'textarea' },
+      { key: 'manufacturingLicenseNumber', label: 'MANUFACTURING LICENSE NO.' },
       { key: 'manufactureDate', label: 'DATE OF MANUFACTURE', type: 'date' },
       { key: 'expiryDate', label: 'DATE OF EXPIRY', type: 'date' },
+    ],
+  },
+  {
+    title: 'SAMPLING DETAILS',
+    fields: [
+      { key: 'activeIngredient', label: 'ACTIVE INGREDIENT / % AI' },
+      { key: 'registrationNumber', label: 'REGISTRATION NUMBER' },
+      { key: 'marketedBy', label: 'MARKETED BY', type: 'textarea' },
+      { key: 'distributorName', label: 'DISTRIBUTOR NAME' },
+      { key: 'cdaCode', label: 'C & DA CODE' },
       { key: 'packingCondition', label: 'PACKING CONDITION', type: 'select', options: packingOptions },
-      { key: 'sampleQuantity', label: 'QUANTITY OF SAMPLE TAKEN' },
-      { key: 'sampleQuantityAnalysis', label: 'QTY. DRAWN FOR ANALYSIS' },
+      { key: 'sampleQuantity', label: 'QUANTITY OF SAMPLE DRAWN' },
       { key: 'stockBeforeSampling', label: 'STOCK BEFORE SAMPLING' },
-      { key: 'stockAfterSampling', label: 'STOCK AFTER SAMPLING' },
       { key: 'stockRegisterFolio', label: 'STOCK REGISTER FOLIO / PAGE NO.' },
       { key: 'stockReceiptDetails', label: 'DATE OF RECEIPT / SOURCE RECEIVED', type: 'textarea' },
       { key: 'invoiceParticulars', label: 'PARTICULARS OF INVOICE', type: 'textarea' },
       { key: 'stockPosition', label: 'STOCK POSITION OF BATCH', type: 'textarea' },
-      { key: 'qciSealParticulars', label: 'Q.C.I. SEAL PARTICULARS' },
-      { key: 'caSealParticulars', label: 'C.A. SEAL PARTICULARS' },
       { key: 'otherInformation', label: 'ANY OTHER RELEVANT INFORMATION', type: 'textarea' },
-      { key: 'ptlName', label: 'Name of the P.T.L.to which sent For analysis' },
       { key: 'dispatchDate', label: 'Date of Dispatch', type: 'date' },
     ],
   },
@@ -469,13 +465,14 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
           {previewError && <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">{previewError}</div>}
           {message && <div className="mb-2 rounded-lg border border-red-600 bg-white px-3 py-2 text-xs font-bold text-red-600">{message}</div>}
 
-          <div className="grid gap-3 lg:grid-cols-2">
+          <div className="grid gap-3">
             {sections.map((section) => {
               const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'slate'> = {
                 'INSPECTOR DETAILS': 'emerald',
                 'DEALER DETAILS': 'amber',
-                'INSECTICIDE DETAILS': 'slate',
-                'BATCH / STOCK DETAILS': 'emerald',
+                'PRODUCT DETAILS': 'slate',
+                'MANUFACTURER DETAILS': 'blue',
+                'SAMPLING DETAILS': 'emerald',
               };
               const color = colorMap[section.title] || 'slate';
               return (
