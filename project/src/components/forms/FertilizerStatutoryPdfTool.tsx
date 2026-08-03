@@ -1492,7 +1492,10 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   }
   
   // Rebuild inspector address with Mandal suffix
-  const officerNameWithQualification = normalized.qualification === 'Others' ? normalized.manualQualification : normalized.qualification;
+  const resolvedQualification = normalized.qualification === 'Others' ? normalized.manualQualification : normalized.qualification;
+  const officerNameWithQualification = normalized.officerName && resolvedQualification
+    ? `${normalized.officerName}, ${resolvedQualification}`
+    : normalized.officerName;
   const resolvedMandal = normalized.mandal === 'Others' ? normalized.manualMandal : normalized.mandal;
   const resolvedDistrict = normalized.district === 'Others' ? normalized.manualDistrict : normalized.district;
   const isADA = normalized.designation === 'Asst. Director of Agriculture';
