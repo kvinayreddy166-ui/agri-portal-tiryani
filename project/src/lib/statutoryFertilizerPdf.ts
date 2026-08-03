@@ -24,6 +24,9 @@ export type FertilizerPdfValues = {
   composition: string;
   compositionN: string;
   compositionN_T: string;
+  compositionN_NO3: string;
+  compositionN_NH4: string;
+  compositionN_Urea: string;
   compositionP: string;
   compositionP_T: string;
   compositionP_WS: string;
@@ -126,6 +129,9 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   dealerManufacturerImporterName: '',
   manualDealerManufacturerImporterName: '',
   batchDetails: '',
+  compositionN_NO3: '',
+  compositionN_NH4: '',
+  compositionN_Urea: '',
   composition: '',
   compositionN: '',
   compositionN_T: '',
@@ -700,6 +706,9 @@ function formatComposition(values: FertilizerPdfValues) {
     const waterSolubleLabelMap: Record<string, { label: string; value: string }> = {
       'N': { label: 'N', value: values.compositionN },
       'N_T': { label: 'N(T)', value: values.compositionN_T },
+      'N_NO3': { label: 'N(NO3)', value: values.compositionN_NO3 },
+      'N_NH4': { label: 'N(NH4)', value: values.compositionN_NH4 },
+      'N_Urea': { label: 'N(Urea)', value: values.compositionN_Urea },
       'P': { label: 'P', value: values.compositionP },
       'P_T': { label: 'P(T)', value: values.compositionP_T },
       'P_WS': { label: 'P (WS)', value: values.compositionP_WS },
@@ -710,6 +719,7 @@ function formatComposition(values: FertilizerPdfValues) {
       'P2O5_CS': { label: 'P2O5(CS)', value: values.compositionP2O5_CS },
       'K': { label: 'K', value: values.compositionK },
       'K_T': { label: 'K(T)', value: values.compositionK_T },
+      'K_WS': { label: 'K(WS)', value: values.compositionK_WS },
       'K2O': { label: 'K2O', value: values.compositionK2O },
       'K2O_T': { label: 'K2O(T)', value: values.compositionK2O_T },
       'Ca': { label: 'Ca', value: values.compositionCa },
