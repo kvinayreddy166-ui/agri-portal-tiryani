@@ -118,9 +118,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   });
   const [message, setMessage] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  const [draftName, setDraftName] = useState('');
-  const draftNameRef = useRef(draftName);
-  draftNameRef.current = draftName;
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedPesticideDraft[]>(() => loadDrafts());
   const [busy, setBusy] = useState(false);
@@ -194,16 +191,11 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       return;
     }
     
-    // Use ref to get the latest value, avoiding stale state
-    const name = draftNameRef.current.trim();
-    
-    // Debug logging (to be removed after confirming fix)
-    console.log('saveDraft - Draft Name:', name);
-    console.log('saveDraft - Inspector Name:', values.officerName);
-    console.log('saveDraft - Validation Result:', !!name);
+    // Use Inspector Name as the draft identifier
+    const name = values.officerName.trim();
     
     if (!name) {
-      showInfo('No Draft Name', 'Please enter a draft name to save.');
+      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.');
       return;
     }
     
@@ -211,9 +203,8 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     try {
       const nextDrafts = upsertDraft(savedDrafts, { name, values, updatedAt: Date.now() });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
-      setDraftName(name);
       setSavedDrafts(nextDrafts);
-      showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
+      showSaved('Draft Saved Successfully', `Draft saved as ${name}`);
     } finally {
       isSavingDraft.current = false;
     }
@@ -223,31 +214,34 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     if (!window.confirm('Reset pesticide form draft?')) return;
     setValues(initialPesticidePdfValues);
     window.localStorage.removeItem(STORAGE_KEY);
-    setDraftName('');
     setPreviewError(null);
     showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.');
   };
 
   const loadDraft = (name: string) => {
-    const draft = savedDrafts.find((item) => item.name === name);
+    // Use case-insensitive comparison for loading
+    const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
     setValues({ ...initialPesticidePdfValues, ...draft.values });
-    setDraftName(draft.name);
     setPreviewError(null);
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
   };
 
   const deleteDraft = () => {
-    const name = draftName.trim();
+    const name = values.officerName.trim();
     if (!name) {
       showInfo('No Draft Found', 'There is no saved draft to delete.');
       return;
     }
     if (!window.confirm(`Delete saved draft "${name}"?`)) return;
-    const nextDrafts = savedDrafts.filter((item) => item.name !== name);
+    // Use case-insensitive comparison for deletion
+    const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
     window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
     setSavedDrafts(nextDrafts);
-    setDraftName('');
+    // Clear auto-save storage to prevent the deleted draft from reappearing
+    window.localStorage.removeItem(STORAGE_KEY);
+    // Clear officerName after deletion to reflect the change in UI
+    setValues((prev) => ({ ...prev, officerName: '' }));
     showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.');
   };
 
@@ -462,17 +456,17 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             </div>
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
               <select
-                value={draftName}
+                value={values.officerName}
                 onChange={(event) => loadDraft(event.target.value)}
                 className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition-all ${
-                  draftName
+                  values.officerName
                     ? 'border-red-400 bg-red-50 text-red-700 focus:border-red-500 focus:bg-red-100 focus:ring-2 focus:ring-red-100/50'
                     : 'border-red-200 bg-white/90 text-slate-900 focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-100/50'
                 }`}
-                title={draftName || 'Load saved draft...'}
+                title={values.officerName || 'Load saved draft...'}
               >
                 <option value="">Load saved draft...</option>
-                {savedDrafts.map((draft) => <option key={draft.name} value={draft.name} className={draftName === draft.name ? 'bg-red-50 text-red-700 font-bold' : ''}>{draft.name}</option>)}
+                {savedDrafts.map((draft) => <option key={draft.name} value={draft.name} className={values.officerName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-red-50 text-red-700 font-bold' : ''}>{draft.name}</option>)}
               </select>
               <button type="button" onClick={deleteDraft} className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition-all backdrop-blur-sm">Delete</button>
             </div>
@@ -664,13 +658,9 @@ function loadDrafts(): SavedPesticideDraft[] {
   }
 }
 
-function buildDraftName(name: string, values: PesticidePdfValues) {
-  const fallback = values.officerName.trim() || values.cdaCode.trim() || values.batchNumber.trim() || values.dealerName.trim();
-  return (name.trim() || fallback || `Draft ${new Date().toLocaleString('en-IN')}`).slice(0, 80);
-}
-
 function upsertDraft(drafts: SavedPesticideDraft[], draft: SavedPesticideDraft) {
-  return [draft, ...drafts.filter((item) => item.name !== draft.name)].slice(0, 30);
+  // Use case-insensitive comparison to prevent duplicates
+  return [draft, ...drafts.filter((item) => item.name.trim().toLowerCase() !== draft.name.trim().toLowerCase())].slice(0, 30);
 }
 
 function generationSnapshot(values: PesticidePdfValues) {

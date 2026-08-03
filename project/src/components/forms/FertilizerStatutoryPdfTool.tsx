@@ -525,9 +525,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   });
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [draftName, setDraftName] = useState('');
-  const draftNameRef = useRef(draftName);
-  draftNameRef.current = draftName;
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedFertilizerDraft[]>(() => {
     try {
@@ -813,16 +810,11 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       return;
     }
     
-    // Use ref to get the latest value, avoiding stale state
-    const name = draftNameRef.current.trim();
-    
-    // Debug logging (to be removed after confirming fix)
-    console.log('saveDraft - Draft Name:', name);
-    console.log('saveDraft - Inspector Name:', values.officerName);
-    console.log('saveDraft - Validation Result:', !!name);
+    // Use Inspector Name as the draft identifier
+    const name = values.officerName.trim();
     
     if (!name) {
-      showInfo('No Draft Name', 'Please enter a draft name to save.');
+      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.');
       return;
     }
     
@@ -830,9 +822,8 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     try {
       const nextDrafts = upsertFertilizerDraft(savedDrafts, { name, values, updatedAt: Date.now() });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
-      setDraftName(name);
       setSavedDrafts(nextDrafts);
-      showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
+      showSaved('Draft Saved Successfully', `Draft saved as ${name}`);
     } finally {
       isSavingDraft.current = false;
     }
@@ -842,31 +833,34 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     if (!window.confirm('Reset fertilizer form draft?')) return;
     setValues(initialFertilizerPdfValues);
     window.localStorage.removeItem(STORAGE_KEY);
-    setDraftName('');
     setPreviewError(null);
     showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.');
   };
 
   const loadDraft = (name: string) => {
-    const draft = savedDrafts.find((item) => item.name === name);
+    // Use case-insensitive comparison for loading
+    const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
     setValues(normalizeFertilizerValues({ ...initialFertilizerPdfValues, ...draft.values }));
-    setDraftName(draft.name);
     setPreviewError(null);
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
   };
 
   const deleteDraft = () => {
-    const name = draftName.trim();
+    const name = values.officerName.trim();
     if (!name) {
       showInfo('No Draft Found', 'There is no saved draft to delete.');
       return;
     }
     if (!window.confirm(`Delete saved draft "${name}"?`)) return;
-    const nextDrafts = savedDrafts.filter((item) => item.name !== name);
+    // Use case-insensitive comparison for deletion
+    const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
     window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
     setSavedDrafts(nextDrafts);
-    setDraftName('');
+    // Clear auto-save storage to prevent the deleted draft from reappearing
+    window.localStorage.removeItem(STORAGE_KEY);
+    // Clear officerName after deletion to reflect the change in UI
+    setValues((prev) => ({ ...prev, officerName: '' }));
     showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.');
   };
 
@@ -1169,18 +1163,18 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               </div>
               <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
                 <select
-                  value={draftName}
+                  value={values.officerName}
                   onChange={(event) => loadDraft(event.target.value)}
                   className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition-all ${
-                    draftName
+                    values.officerName
                       ? 'border-violet-400 bg-violet-50 text-violet-700 focus:border-violet-500 focus:bg-violet-100 focus:ring-2 focus:ring-violet-100/50'
                       : 'border-violet-200 bg-white/90 text-slate-900 focus:border-violet-500 focus:bg-white focus:ring-2 focus:ring-violet-100/50'
                   }`}
-                  title={draftName || 'Load saved draft...'}
+                  title={values.officerName || 'Load saved draft...'}
                 >
                   <option value="">Load saved draft...</option>
                   {savedDrafts.map((draft) => (
-                    <option key={draft.name} value={draft.name} className={draftName === draft.name ? 'bg-violet-50 text-violet-700 font-bold' : ''}>
+                    <option key={draft.name} value={draft.name} className={values.officerName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-violet-50 text-violet-700 font-bold' : ''}>
                       {draft.name}
                     </option>
                   ))}
@@ -1473,13 +1467,9 @@ function loadFertilizerDrafts(): SavedFertilizerDraft[] {
   }
 }
 
-function buildDraftName(name: string, values: FertilizerPdfValues) {
-  const fallback = values.officerName.trim() || values.sampleCode.trim() || values.no.trim() || values.dealerManufacturerImporterName.trim();
-  return (name.trim() || fallback || `Draft ${new Date().toLocaleString('en-IN')}`).slice(0, 80);
-}
-
 function upsertFertilizerDraft(drafts: SavedFertilizerDraft[], draft: SavedFertilizerDraft) {
-  return [draft, ...drafts.filter((item) => item.name !== draft.name)].slice(0, 30);
+  // Use case-insensitive comparison to prevent duplicates
+  return [draft, ...drafts.filter((item) => item.name.trim().toLowerCase() !== draft.name.trim().toLowerCase())].slice(0, 30);
 }
 
 function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfValues {

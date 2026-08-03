@@ -117,9 +117,6 @@ export function SeedForms() {
     }
   });
   const [message, setMessage] = useState('');
-  const [draftName, setDraftName] = useState('');
-  const draftNameRef = useRef(draftName);
-  draftNameRef.current = draftName;
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
   const [duplicateAction, setDuplicateAction] = useState(null);
@@ -205,16 +202,11 @@ export function SeedForms() {
       return;
     }
     
-    // Use ref to get the latest value, avoiding stale state
-    const name = draftNameRef.current.trim();
-    
-    // Debug logging (to be removed after confirming fix)
-    console.log('saveDraft - Draft Name:', name);
-    console.log('saveDraft - Inspector Name:', form.officerName);
-    console.log('saveDraft - Validation Result:', !!name);
+    // Use Inspector Name as the draft identifier
+    const name = form.officerName.trim();
     
     if (!name) {
-      showInfo('No Draft Name', 'Please enter a draft name to save.');
+      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.');
       return;
     }
     
@@ -222,9 +214,8 @@ export function SeedForms() {
     try {
       const nextDrafts = upsertSeedDraft(savedDrafts, { name, form, updatedAt: Date.now() });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
-      setDraftName(name);
       setSavedDrafts(nextDrafts);
-      showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
+      showSaved('Draft Saved Successfully', `Draft saved as ${name}`);
     } finally {
       isSavingDraft.current = false;
     }
@@ -234,29 +225,32 @@ export function SeedForms() {
     if (!confirm('Reset seed form draft?')) return;
     setForm(initialSeedForm);
     window.localStorage.removeItem(STORAGE_KEY);
-    setDraftName('');
     setMessage('Draft reset successfully.');
   };
 
   const loadDraft = (name) => {
-    const draft = savedDrafts.find((item) => item.name === name);
+    // Use case-insensitive comparison for loading
+    const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
     setForm({ ...initialSeedForm, ...draft.form });
-    setDraftName(draft.name);
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
   };
 
   const deleteDraft = () => {
-    const name = draftName.trim();
+    const name = form.officerName.trim();
     if (!name) {
       showInfo('No Draft Found', 'There is no saved draft to delete.');
       return;
     }
     if (!confirm(`Delete saved draft "${name}"?`)) return;
-    const nextDrafts = savedDrafts.filter((item) => item.name !== name);
+    // Use case-insensitive comparison for deletion
+    const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
     window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
     setSavedDrafts(nextDrafts);
-    setDraftName('');
+    // Clear auto-save storage to prevent the deleted draft from reappearing
+    window.localStorage.removeItem(STORAGE_KEY);
+    // Clear officerName after deletion to reflect the change in UI
+    setForm((prev) => ({ ...prev, officerName: '' }));
     showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.');
   };
 
@@ -313,10 +307,6 @@ export function SeedForms() {
   };
 
   const preview = async (kind) => {
-    if (isDuplicateSeedGeneration(form)) {
-      setDuplicateAction({ type: 'preview', kind });
-      return;
-    }
     await completePreview(kind);
   };
 
@@ -330,13 +320,11 @@ export function SeedForms() {
     window.setTimeout(() => setHighlightDetails(false), 3500);
   };
 
-  const downloadAnyway = async () => {
+  const proceedWithDuplicateAction = async () => {
     const action = duplicateAction;
     setDuplicateAction(null);
     if (!action) return;
-    if (action.type === 'preview') {
-      await completePreview(action.kind);
-    } else {
+    if (action.type === 'download') {
       await completeGenerate(action.kind);
     }
   };
@@ -415,18 +403,18 @@ export function SeedForms() {
         </div>
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <select
-            value={draftName}
+            value={form.officerName}
             onChange={(event) => loadDraft(event.target.value)}
             className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition-all ${
-              draftName
+              form.officerName
                 ? 'border-orange-400 bg-orange-50 text-orange-700 focus:border-orange-500 focus:bg-orange-100 focus:ring-2 focus:ring-orange-100/50'
                 : 'border-orange-200 bg-white/90 text-slate-900 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-100/50'
             }`}
-            title={draftName || 'Load saved draft...'}
+            title={form.officerName || 'Load saved draft...'}
           >
             <option value="">Load saved draft...</option>
             {savedDrafts.map((draft) => (
-              <option key={draft.name} value={draft.name} className={draftName === draft.name ? 'bg-orange-50 text-orange-700 font-bold' : ''}>
+              <option key={draft.name} value={draft.name} className={form.officerName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-orange-50 text-orange-700 font-bold' : ''}>
                 {draft.name}
               </option>
             ))}
@@ -488,7 +476,7 @@ export function SeedForms() {
             <SelectWithOther label="Class / Origin of seed" valueKey="seedClass" otherKey="seedClassOther" form={form} setField={setField} options={classOptions} />
             <Input label="Date of packing" type="date" value={form.packingDate} onChange={(value) => setField('packingDate', value)} />
           </div>
-          <Input label="Source of supply" value={form.sourceOfSupply} onChange={(value) => setField('sourceOfSupply', value)} />
+          <Input label="Source of supply" value={form.sourceOfSupply} onChange={(value) => setField('sourceOfSupply', value)} placeholder="Enter Distributor Details" />
           <SelectWithOther label="Kind of test required" valueKey="testRequired" otherKey="testRequiredOther" form={form} setField={setField} options={testOptions} />
           <Input label="Remarks" value={form.remarks} onChange={(value) => setField('remarks', value)} textarea />
         </Card>
@@ -704,6 +692,7 @@ function resolveSeedValues(form) {
     labAddress: form.labId === 'other' ? form.customLabAddress : lab.value,
     fromAddress: [officerNameWithQualification, form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', resolvedDistrict].filter(Boolean).join('\n'),
     senderAddress: [form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', resolvedDistrict].filter(Boolean).join('\n'),
+    district: resolvedDistrict,
   };
 }
 
@@ -801,7 +790,7 @@ function drawSeedFormVI(doc, form) {
   doc.setFontSize(PDF_BODY_SIZE);
   doc.text('To', 20, p.y);
   p.y += 7;
-  const dealerAddress = [r.dealerName, r.dealerAddress, r.place].filter(Boolean).join('\n');
+  const dealerAddress = [r.dealerName, r.dealerAddress, r.place, r.district].filter(Boolean).join('\n');
   doc.text(doc.splitTextToSize(dealerAddress || '.......................................................', 170), 20, p.y);
   doc.setFont(PDF_FONT, 'normal');
   p.y += Math.max(24, doc.splitTextToSize(dealerAddress || '', 170).length * 6 + 8);
@@ -1073,13 +1062,9 @@ function loadSeedDrafts() {
   }
 }
 
-function buildSeedDraftName(name, form) {
-  const fallback = form.officerName || form.codeNo || form.dealerName;
-  return (name.trim() || fallback || `Draft ${new Date().toLocaleString('en-IN')}`).slice(0, 80);
-}
-
 function upsertSeedDraft(drafts, draft) {
-  return [draft, ...drafts.filter((item) => item.name !== draft.name)].slice(0, 30);
+  // Use case-insensitive comparison to prevent duplicates
+  return [draft, ...drafts.filter((item) => item.name.trim().toLowerCase() !== draft.name.trim().toLowerCase())].slice(0, 30);
 }
 
 function seedGenerationSnapshot(form) {
