@@ -817,6 +817,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     if (!window.confirm('Reset fertilizer form draft?')) return;
     setValues(initialFertilizerPdfValues);
     window.localStorage.removeItem(STORAGE_KEY);
+    setDraftName('');
     setPreviewError(null);
     showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.');
   };
@@ -1454,13 +1455,15 @@ function upsertFertilizerDraft(drafts: SavedFertilizerDraft[], draft: SavedFerti
 
 function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfValues {
   const normalized = { ...values };
-  if (!normalized.dealerName && normalized.dealerNameAddress) {
+  // Only parse dealerNameAddress if dealerName is empty (for new forms)
+  // Don't override dealerName/dealerAddress from saved drafts
+  if (!normalized.dealerName && !normalized.dealerAddress && normalized.dealerNameAddress) {
     const lines = normalized.dealerNameAddress
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean);
     normalized.dealerName = lines[0] || '';
-    normalized.dealerAddress = normalized.dealerAddress || lines.slice(1).join('\n');
+    normalized.dealerAddress = lines.slice(1).join('\n');
   }
   normalized.dealerNameAddress = buildDealerNameAddress(normalized);
   
@@ -1931,7 +1934,13 @@ function PdfInput({
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{displayLabel}</span>
-      {inputElement}
+      {field.key === 'dealerAddress' ? (
+        <PopupHintWrapper message="Enter complete address including D.No., Village/Town, Mandal, and District">
+          {inputElement}
+        </PopupHintWrapper>
+      ) : (
+        inputElement
+      )}
     </label>
   );
 }

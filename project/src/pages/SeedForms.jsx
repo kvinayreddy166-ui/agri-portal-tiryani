@@ -220,7 +220,8 @@ export function SeedForms() {
     if (!confirm('Reset seed form draft?')) return;
     setForm(initialSeedForm);
     window.localStorage.removeItem(STORAGE_KEY);
-    showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.');
+    setDraftName('');
+    setMessage('Draft reset successfully.');
   };
 
   const loadDraft = (name) => {

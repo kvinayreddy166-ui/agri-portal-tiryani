@@ -203,8 +203,9 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     if (!window.confirm('Reset pesticide form draft?')) return;
     setValues(initialPesticidePdfValues);
     window.localStorage.removeItem(STORAGE_KEY);
-    showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.');
+    setDraftName('');
     setPreviewError(null);
+    showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.');
   };
 
   const loadDraft = (name: string) => {
