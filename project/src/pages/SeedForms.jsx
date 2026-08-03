@@ -118,6 +118,9 @@ export function SeedForms() {
   });
   const [message, setMessage] = useState('');
   const [draftName, setDraftName] = useState('');
+  const draftNameRef = useRef(draftName);
+  draftNameRef.current = draftName;
+  const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
   const [duplicateAction, setDuplicateAction] = useState(null);
   const [highlightDetails, setHighlightDetails] = useState(false);
@@ -134,13 +137,6 @@ export function SeedForms() {
 
   const setField = (key, value) => {
     setForm((current) => {
-      if (key === 'officerName') {
-        const currentDraftName = draftName.trim();
-        const previousOfficerName = String(current.officerName || '').trim();
-        if (!currentDraftName || currentDraftName === previousOfficerName) {
-          setDraftName(value.trim());
-        }
-      }
       if (key === 'crop') {
         const defaultQuantity = cropQuantityMapping[value] || '';
         return { ...current, crop: value, cropOther: '', quantityDrawn: defaultQuantity };
@@ -204,16 +200,34 @@ export function SeedForms() {
   };
 
   const saveDraft = () => {
-    const name = draftName.trim();
+    // Prevent race conditions from rapid clicks
+    if (isSavingDraft.current) {
+      return;
+    }
+    
+    // Use ref to get the latest value, avoiding stale state
+    const name = draftNameRef.current.trim();
+    
+    // Debug logging (to be removed after confirming fix)
+    console.log('saveDraft - Draft Name:', name);
+    console.log('saveDraft - Inspector Name:', form.officerName);
+    console.log('saveDraft - Validation Result:', !!name);
+    
     if (!name) {
       showInfo('No Draft Name', 'Please enter a draft name to save.');
       return;
     }
-    const nextDrafts = upsertSeedDraft(savedDrafts, { name, form, updatedAt: Date.now() });
-    window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
-    setDraftName(name);
-    setSavedDrafts(nextDrafts);
-    showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
+    
+    isSavingDraft.current = true;
+    try {
+      const nextDrafts = upsertSeedDraft(savedDrafts, { name, form, updatedAt: Date.now() });
+      window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+      setDraftName(name);
+      setSavedDrafts(nextDrafts);
+      showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
+    } finally {
+      isSavingDraft.current = false;
+    }
   };
 
   const resetDraft = () => {

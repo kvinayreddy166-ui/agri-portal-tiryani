@@ -97,6 +97,7 @@ export type FertilizerPdfValues = {
   mandal: string;
   manualDistrict: string;
   manualMandal: string;
+  pinCode: string;
 };
 
 export const FERTILIZER_K_ADDRESS_OPTIONS = {
@@ -205,6 +206,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   mandal: '',
   manualDistrict: '',
   manualMandal: '',
+  pinCode: '',
 };
 
 export const fertilizerFormTitles: Record<FertilizerStatutoryFormType, string> = {
@@ -234,7 +236,7 @@ const PARA_LINE_HEIGHT = 6.1;
 const FORM_J_SIGNATURE_GAP = 0;
 const FORM_J_INSPECTOR_SIGNATURE_GAP = 19;
 const FORM_J_PRE_RECEIPT_SIGNATURE_LIFT = 14;
-const FORM_J_RECEIPT_DOWN_SHIFT = 84;
+const FORM_J_RECEIPT_DOWN_SHIFT = 78;
 const FORM_J_SIGNATURE_BOTTOM_CLEARANCE = 16;
 const SIGNATURE_RIGHT_X = PAGE.width - PAGE.marginX - 8;
 

@@ -436,6 +436,7 @@ const compositionDisplayOptions = [
   { key: 'P2O5_CS', label: 'P2O5(CS)', group: 'P2O5' },
   { key: 'K', label: 'K', group: 'K' },
   { key: 'K_T', label: 'K(T)', group: 'K' },
+  { key: 'K_WS', label: 'K(WS)', group: 'K' },
   { key: 'K2O', label: 'K2O', group: 'K' },
   { key: 'K2O_T', label: 'K2O(T)', group: 'K' },
   { key: 'Mg', label: 'Mg', group: 'Other' },
@@ -455,6 +456,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true },
       { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
       { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
+      { key: 'pinCode', label: 'PIN CODE', placeholder: 'Enter PIN Code (optional)' },
       { key: 'placeOfCollection', label: 'PLACE OF COLLECTION' },
       { key: 'date', label: 'DATE', type: 'date' },
     ],
@@ -462,8 +464,8 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
     title: 'SAMPLE DETAILS',
     fields: [
-      { key: 'no', label: 'NO.' },
-      { key: 'sampleCode', label: 'CODE NO. OF SAMPLE' },
+      { key: 'no', label: 'NO.', placeholder: 'Enter Your Sample Serial No.' },
+      { key: 'sampleCode', label: 'CODE NO. OF SAMPLE', placeholder: 'Enter Your J Form Number' },
       { key: 'samplingDate', label: 'DATE OF SAMPLING', type: 'date' },
       { key: 'fertilizerCategory', label: 'FERTILIZER CATEGORY', type: 'select', options: fertilizerCategoryOptions },
       { key: 'fertilizerTypeGrade', label: 'NAME AND GRADE OF FERTILIZER', type: 'select', options: fertilizerTypeGradeOptions },
@@ -524,6 +526,9 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
+  const draftNameRef = useRef(draftName);
+  draftNameRef.current = draftName;
+  const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedFertilizerDraft[]>(() => {
     try {
       return loadFertilizerDrafts();
@@ -603,7 +608,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       if (key === 'dealerName' || key === 'dealerAddress' || key === 'district' || key === 'mandal' || key === 'manualDistrict' || key === 'manualMandal') {
         next.dealerNameAddress = buildDealerNameAddress(next);
       }
-      if (key === 'officerName' || key === 'designation' || key === 'qualification' || key === 'manualQualification' || key === 'district' || key === 'mandal' || key === 'manualDistrict' || key === 'manualMandal') {
+      if (key === 'officerName' || key === 'designation' || key === 'qualification' || key === 'manualQualification' || key === 'district' || key === 'mandal' || key === 'manualDistrict' || key === 'manualMandal' || key === 'pinCode') {
         const resolvedQualification = next.qualification === 'Others' ? next.manualQualification : next.qualification;
         const officerNameWithQualification = next.officerName && resolvedQualification 
           ? `${next.officerName}, ${resolvedQualification}`
@@ -612,7 +617,8 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         const resolvedDistrict = next.district === 'Others' ? next.manualDistrict : next.district;
         const isADA = next.designation === 'Asst. Director of Agriculture';
         const locationLabel = isADA ? 'Division' : 'Mandal';
-        const inspectorAddress = [officerNameWithQualification, next.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', resolvedDistrict].filter(Boolean).join('\n');
+        const districtWithPinCode = next.pinCode ? `${resolvedDistrict} -${next.pinCode}` : resolvedDistrict;
+        const inspectorAddress = [officerNameWithQualification, next.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
         next.inspectorNameAddress = inspectorAddress;
         next.fromAddress = inspectorAddress;
         next.forwardReportAddress = inspectorAddress;
@@ -651,13 +657,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         // When switching away from ADA, clear placeOfCollection
         if (value !== 'Asst. Director of Agriculture' && current.designation === 'Asst. Director of Agriculture') {
           next.placeOfCollection = '';
-        }
-      }
-      if (key === 'officerName') {
-        const currentDraftName = draftName.trim();
-        const previousOfficerName = current.officerName.trim();
-        if (!currentDraftName || currentDraftName === previousOfficerName) {
-          setDraftName(value.trim());
         }
       }
       if (key === 'date') {
@@ -809,16 +808,34 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const saveDraft = () => {
-    const name = draftName.trim();
+    // Prevent race conditions from rapid clicks
+    if (isSavingDraft.current) {
+      return;
+    }
+    
+    // Use ref to get the latest value, avoiding stale state
+    const name = draftNameRef.current.trim();
+    
+    // Debug logging (to be removed after confirming fix)
+    console.log('saveDraft - Draft Name:', name);
+    console.log('saveDraft - Inspector Name:', values.officerName);
+    console.log('saveDraft - Validation Result:', !!name);
+    
     if (!name) {
       showInfo('No Draft Name', 'Please enter a draft name to save.');
       return;
     }
-    const nextDrafts = upsertFertilizerDraft(savedDrafts, { name, values, updatedAt: Date.now() });
-    window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
-    setDraftName(name);
-    setSavedDrafts(nextDrafts);
-    showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
+    
+    isSavingDraft.current = true;
+    try {
+      const nextDrafts = upsertFertilizerDraft(savedDrafts, { name, values, updatedAt: Date.now() });
+      window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+      setDraftName(name);
+      setSavedDrafts(nextDrafts);
+      showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
+    } finally {
+      isSavingDraft.current = false;
+    }
   };
 
   const resetDraft = () => {
@@ -1512,7 +1529,8 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   const resolvedDistrict = normalized.district === 'Others' ? normalized.manualDistrict : normalized.district;
   const isADA = normalized.designation === 'Asst. Director of Agriculture';
   const locationLabel = isADA ? 'Division' : 'Mandal';
-  const inspectorAddress = [officerNameWithQualification, normalized.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', resolvedDistrict].filter(Boolean).join('\n');
+  const districtWithPinCode = normalized.pinCode ? `${resolvedDistrict} -${normalized.pinCode}` : resolvedDistrict;
+  const inspectorAddress = [officerNameWithQualification, normalized.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
   normalized.inspectorNameAddress = inspectorAddress;
   normalized.fromAddress = inspectorAddress;
   normalized.forwardReportAddress = inspectorAddress;
@@ -1950,7 +1968,7 @@ function PdfInput({
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{displayLabel}</span>
       {field.key === 'dealerAddress' ? (
-        <PopupHintWrapper message="Enter complete address including D.No., Village/Town, Mandal, and District">
+        <PopupHintWrapper message="Enter only D.NO, Village/Town ;Mandal & District will be autopopulated from Inspector Details">
           {inputElement}
         </PopupHintWrapper>
       ) : (

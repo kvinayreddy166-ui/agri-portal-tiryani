@@ -119,6 +119,9 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const [message, setMessage] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
+  const draftNameRef = useRef(draftName);
+  draftNameRef.current = draftName;
+  const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedPesticideDraft[]>(() => loadDrafts());
   const [busy, setBusy] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(() => {
@@ -147,11 +150,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const setField = (key: keyof PesticidePdfValues, value: string) => {
     setValues((current) => {
       const next = { ...current, [key]: value };
-      if (key === 'officerName') {
-        const currentDraftName = draftName.trim();
-        const previousOfficerName = current.officerName.trim();
-        if (!currentDraftName || currentDraftName === previousOfficerName) setDraftName(value.trim());
-      }
       if (key === 'place') {
         const resolvedPlace = next.mandal === 'Others' ? next.manualMandal : next.mandal;
         next.place = resolvedPlace || value;
@@ -191,16 +189,34 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const saveDraft = () => {
-    const name = draftName.trim();
+    // Prevent race conditions from rapid clicks
+    if (isSavingDraft.current) {
+      return;
+    }
+    
+    // Use ref to get the latest value, avoiding stale state
+    const name = draftNameRef.current.trim();
+    
+    // Debug logging (to be removed after confirming fix)
+    console.log('saveDraft - Draft Name:', name);
+    console.log('saveDraft - Inspector Name:', values.officerName);
+    console.log('saveDraft - Validation Result:', !!name);
+    
     if (!name) {
       showInfo('No Draft Name', 'Please enter a draft name to save.');
       return;
     }
-    const nextDrafts = upsertDraft(savedDrafts, { name, values, updatedAt: Date.now() });
-    window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
-    setDraftName(name);
-    setSavedDrafts(nextDrafts);
-    showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
+    
+    isSavingDraft.current = true;
+    try {
+      const nextDrafts = upsertDraft(savedDrafts, { name, values, updatedAt: Date.now() });
+      window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+      setDraftName(name);
+      setSavedDrafts(nextDrafts);
+      showSaved('Draft Saved Successfully', 'Your draft has been saved successfully.');
+    } finally {
+      isSavingDraft.current = false;
+    }
   };
 
   const resetDraft = () => {
