@@ -200,6 +200,7 @@ const dealerManufacturerImporterOptions = [
   { label: 'Gujarat Agro Industries Corporation Ltd.', value: 'Gujarat Agro Industries Corporation Ltd.' },
   { label: 'Gujarat Narmada Valley Fertilizers & Chemicals Ltd. (GNFC)', value: 'Gujarat Narmada Valley Fertilizers & Chemicals Ltd. (GNFC)' },
   { label: 'Gujarat State Fertilizers & Chemicals Ltd. (GSFC)', value: 'Gujarat State Fertilizers & Chemicals Ltd. (GSFC)' },
+  { label: 'Greenstar Fertilizers Limited', value: 'Greenstar Fertilizers Limited' },
   { label: 'Hindustan Fertilizer Corporation Ltd. (HFCL)', value: 'Hindustan Fertilizer Corporation Ltd. (HFCL)' },
   { label: 'Hindustan Urvarak & Rasayan Ltd. (HURL)', value: 'Hindustan Urvarak & Rasayan Ltd. (HURL)' },
   { label: 'IFFCO-MC Crop Science Pvt. Ltd.', value: 'IFFCO-MC Crop Science Pvt. Ltd.' },
@@ -1591,19 +1592,9 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
 }
 
 function buildDealerNameAddress(values: FertilizerPdfValues) {
-  const resolvedDistrict = values.district === 'Other' ? values.manualDistrict : values.district;
-  const resolvedMandal = values.mandal === 'Other' ? values.manualMandal : values.mandal;
-  
   const addressParts = [values.dealerName, values.dealerAddress]
     .map((part) => part.trim())
     .filter(Boolean);
-  
-  // Add Mandal and District if available
-  // Use placeOfCollection for Mandal value when ADA is selected (for Form J)
-  const isADA = values.designation === 'Asst. Director of Agriculture';
-  const mandalValue = isADA && values.placeOfCollection ? values.placeOfCollection : resolvedMandal;
-  if (mandalValue) addressParts.push(`Mandal: ${mandalValue}`);
-  if (resolvedDistrict) addressParts.push(`District: ${resolvedDistrict}`);
   
   return addressParts.join('\n');
 }
@@ -1940,13 +1931,7 @@ function PdfInput({
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{displayLabel}</span>
-      {field.key === 'dealerAddress' ? (
-        <PopupHintWrapper message="Enter only D.No. and Village/Town; Mandal and District will be auto-populated">
-          {inputElement}
-        </PopupHintWrapper>
-      ) : (
-        inputElement
-      )}
+      {inputElement}
     </label>
   );
 }
