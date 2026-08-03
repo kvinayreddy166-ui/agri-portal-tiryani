@@ -104,10 +104,12 @@ if ('serviceWorker' in navigator) {
     void installRescueServiceWorker();
   });
 
-  // Listen for service worker updates - disabled to prevent auto-reload
-  // navigator.serviceWorker.addEventListener('controllerchange', () => {
-  //   window.dispatchEvent(new CustomEvent('serviceWorkerUpdate'));
-  // });
+  // Listen for service worker controller change - reload after new SW activates
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.dispatchEvent(new CustomEvent('serviceWorkerUpdate'));
+    // Reload to apply the new version
+    window.location.reload();
+  });
 
   // Listen for SW_READY messages from service worker
   navigator.serviceWorker.addEventListener('message', (event) => {

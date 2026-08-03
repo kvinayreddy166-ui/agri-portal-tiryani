@@ -25,6 +25,7 @@ import {
 import { FileTypeIcon } from './ui/FileTypeIcon';
 import { PortalLogo } from './ui/PortalLogo';
 import { LanguageToggle } from './ui/LanguageToggle';
+import { WhatsAppFab } from './ui/WhatsAppFab';
 import { UpdateBanner } from './UpdateBanner';
 import { DEALER_DEFAULT_PASSWORD } from '../lib/dealerAuth';
 import { translateDealerLoginError } from '../lib/dealerLoginMessages';
@@ -560,7 +561,7 @@ export function Login() {
                   <FileText className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-lg font-black text-slate-950 sm:text-xl">Auto Form Generator</h2>
+                  <h2 className="text-lg font-black text-slate-950 sm:text-xl">Smart Form Generator</h2>
                   <p className="text-sm font-semibold text-slate-600">Generate statutory PDF forms for the selected category.</p>
                 </div>
               </div>
@@ -779,17 +780,10 @@ export function Login() {
               </div>
             </div>
 
+            <div className="absolute top-6 left-6 animate-slide-up delay-100">
+              <WhatsAppFab />
+            </div>
             <div className="absolute top-6 right-6 flex items-center gap-2 animate-slide-up delay-100">
-              <a
-                href="https://whatsapp.com/channel/0029Vb61tsc59PwZEKYH3A0A"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 p-2.5 text-emerald-800 transition hover:bg-emerald-100"
-                aria-label="WhatsApp Channel"
-                title={t('WhatsApp Channel', 'à°µà°¾à°Ÿà±à°¸à°ªà± à°›à°¾à°¨à±†à°²à±')}
-              >
-                <WhatsAppIcon className="h-4 w-4" />
-              </a>
               <LanguageToggle language={language} onClick={toggleLanguage} className="shrink-0" />
             </div>
 
