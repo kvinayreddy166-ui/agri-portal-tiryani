@@ -75,6 +75,7 @@ export type FertilizerPdfValues = {
   stockReceiptDate: string;
   sampleCode: string;
   stockPosition: string;
+  wholesalerSource: string;
   physicalCondition: string;
   bagSource: string;
   inspectorNameAddress: string;
@@ -184,6 +185,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   stockReceiptDate: '',
   sampleCode: '',
   stockPosition: '',
+  wholesalerSource: '',
   physicalCondition: '',
   bagSource: '',
   inspectorNameAddress: '',
@@ -408,7 +410,10 @@ function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
   field(cursor, 'c) Batch No. and Date of Manufacture/Import', values.batchDetails, 84, PAGE.marginX + 6, fieldOptions);
   field(cursor, 'd) Composition of Fertilizer', formatComposition(values), 84, PAGE.marginX + 6, fieldOptions);
 
-  field(cursor, '(4) Date of Receipt of Stock by Dealer/Manufacturer/Importer/Pool Handling Agency', formatFieldValue(values.stockReceiptDate), 91, PAGE.marginX, fieldOptions);
+  const stockReceiptDisplay = values.wholesalerSource?.trim()
+    ? `${formatFieldValue(values.stockReceiptDate)}\n${values.wholesalerSource.trim()}`
+    : formatFieldValue(values.stockReceiptDate);
+  field(cursor, '(4) Date of Receipt of Stock by Dealer/Manufacturer/Importer/Pool Handling Agency', stockReceiptDisplay, 91, PAGE.marginX, fieldOptions);
   field(cursor, '(5) Code No. of Sample', values.sampleCode, 91, PAGE.marginX, fieldOptions);
   field(cursor, '(6) Stock Position of the Lot', values.stockPosition, 91, PAGE.marginX, fieldOptions);
   field(cursor, '(7) Physical Condition of Fertilizer', values.physicalCondition, 91, PAGE.marginX, fieldOptions);

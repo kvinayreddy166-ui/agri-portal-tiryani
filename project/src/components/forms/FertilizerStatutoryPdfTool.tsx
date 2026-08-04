@@ -478,6 +478,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'manualDealerManufacturerImporterName', label: 'ENTER DEALER/MANUFACTURER/IMPORTER NAME', placeholder: 'Enter dealer/manufacturer/importer name' },
       { key: 'batchDetails', label: 'BATCH NO. AND DATE OF MANUFACTURE/IMPORT' },
       { key: 'stockReceiptDate', label: 'DATE OF RECEIPT OF STOCK', type: 'date' },
+      { key: 'wholesalerSource', label: 'WHOLESALER/ SOURCE', placeholder: 'Enter wholesaler/source name (Optional)' },
       { key: 'stockPosition', label: 'STOCK POSITION OF LOT' },
       { key: 'physicalCondition', label: 'PHYSICAL CONDITION OF SAMPLE', type: 'select', options: physicalConditionOptions },
       { key: 'bagSource', label: 'SAMPLES DRAWN FROM OPEN BAGS / STITCHED BAGS / BULK', type: 'select', options: bagSourceOptions },

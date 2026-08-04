@@ -761,9 +761,10 @@ function designationLine(values: PesticidePdfValues) {
 
 function buildDealerAddress(values: PesticidePdfValues) {
   const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  const mandalWithText = resolvedMandal ? `${resolvedMandal} Mandal` : '';
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
   const districtWithPincode = values.pincode && resolvedDistrict ? `${resolvedDistrict} - ${values.pincode}.` : resolvedDistrict;
-  return [values.dealerName, values.dealerAddress, values.premisesLocation, resolvedMandal, districtWithPincode].map((part) => part.trim()).filter(Boolean).join('\n');
+  return [values.dealerName, values.dealerAddress, values.premisesLocation, mandalWithText, districtWithPincode].map((part) => part.trim()).filter(Boolean).join('\n');
 }
 
 function dealerLocation(values: PesticidePdfValues) {
