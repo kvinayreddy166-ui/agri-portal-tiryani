@@ -9,6 +9,7 @@ import {
   PesticidePdfValues,
   PesticideStatutoryFormType,
 } from '../../lib/statutoryPesticidePdf';
+import { PopupHintWrapper } from '../PopupHint';
 import { ToastContainer, useToast } from '../ui/Toast';
 import {
   QUALIFICATION_OPTIONS,
@@ -100,15 +101,8 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
       { key: 'pincode', label: 'PIN CODE' },
       { key: 'sampleSerialNumber', label: 'Code No. of A.O./A.D.A./D.D.A', placeholder: 'Serial No of Sample' },
+      { key: 'sampleDrawnDate', label: 'Date', type: 'date' },
       { key: 'email', label: 'EMAIL ID' },
-    ],
-  },
-  {
-    title: 'DEALER DETAILS',
-    fields: [
-      { key: 'sampleDrawnDate', label: 'SAMPLE DRAWN DATE', type: 'date' },
-      { key: 'dealerName', label: 'DEALER / LICENSEE NAME', placeholder: 'Firm Name' },
-      { key: 'dealerAddress', label: 'DEALER ADDRESS', type: 'textarea', placeholder: 'Door NO, Village/ town' },
     ],
   },
   {
@@ -121,15 +115,13 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'manualFormulationType', label: 'ENTER FORMULATION TYPE', placeholder: 'Enter formulation type' },
       { key: 'batchNumber', label: 'BATCH NUMBER', placeholder: 'Enter Batch No as Per Label' },
       { key: 'registrationNumber', label: 'REGISTRATION NUMBER', placeholder: 'CIBRC Number' },
-      { key: 'marketedBy', label: 'MARKETED BY', type: 'textarea' },
-      { key: 'distributorName', label: 'DISTRIBUTOR NAME' },
       { key: 'cdaCode', label: 'C & DA CODE', placeholder: 'Sticker No' },
       { key: 'packingCondition', label: 'PACKING CONDITION', type: 'select', options: packingOptions },
-      { key: 'sampleQuantity', label: 'QUANTITY OF SAMPLE DRAWN', placeholder: 'Eg: 3 X (120 Grams) / 3 X (120 Ml)' },
+      { key: 'sampleQuantity', label: 'QUANTITY OF SAMPLE DRAWN', placeholder: 'Eg: 120 Grams * 3' },
       { key: 'stockRegisterFolio', label: 'STOCK REGISTER FOLIO / PAGE NO.' },
       { key: 'invoiceNumber', label: 'INVOICE NO' },
       { key: 'invoiceDate', label: 'INVOICE DATE', type: 'date' },
-      { key: 'stockPosition', label: 'STOCK POSITION OF BATCH', type: 'textarea', placeholder: 'Eg:13 Units (120 GMS)' },
+      { key: 'stockPosition', label: 'STOCK POSITION OF BATCH', type: 'textarea', placeholder: 'Eg: 50 x (120 GMS) / 50 x (120 Ml)' },
       { key: 'otherInformation', label: 'ANY OTHER RELEVANT INFORMATION', type: 'textarea' },
       { key: 'dispatchDate', label: 'Date of Dispatch', type: 'date' },
     ],
@@ -138,9 +130,19 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
     title: 'MANUFACTURER DETAILS',
     fields: [
       { key: 'manufacturedBy', label: 'MANUFACTURED BY', type: 'textarea' },
+      { key: 'marketedBy', label: 'MARKETED BY', type: 'textarea' },
+      { key: 'distributorName', label: 'DISTRIBUTOR NAME' },
       { key: 'manufacturingLicenseNumber', label: 'MANUFACTURING LICENSE NO.' },
       { key: 'manufactureDate', label: 'DATE OF MANUFACTURE', type: 'date' },
       { key: 'expiryDate', label: 'DATE OF EXPIRY', type: 'date' },
+    ],
+  },
+  {
+    title: 'DEALER DETAILS',
+    fields: [
+      { key: 'dealerName', label: 'DEALER / LICENSEE NAME', placeholder: 'Firm Name' },
+      { key: 'dealerAddress', label: 'DEALER ADDRESS', type: 'textarea', placeholder: 'Door NO, Village/ town' },
+      { key: 'authorizationLicenseNumber', label: 'AUTHORIZATION/ LICENSE NO' },
     ],
   },
 ];
@@ -177,6 +179,52 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const [highlightDetails, setHighlightDetails] = useState(false);
   const dealerDetailsRef = useRef<HTMLDivElement | null>(null);
   const sections = useMemo(() => fieldSections, []);
+
+  const resetDealerDetails = () => {
+    setValues(prev => ({
+      ...prev,
+      dealerName: '',
+      dealerAddress: '',
+      authorizationLicenseNumber: '',
+    }));
+    showReset('Dealer Details Reset', 'Dealer details have been reset successfully.');
+  };
+
+  const resetProductDetails = () => {
+    setValues(prev => ({
+      ...prev,
+      tradeName: '',
+      technicalName: '',
+      activeIngredient: '',
+      formulationType: '',
+      manualFormulationType: '',
+      batchNumber: '',
+      registrationNumber: '',
+      cdaCode: '',
+      packingCondition: '',
+      sampleQuantity: '',
+      stockRegisterFolio: '',
+      invoiceNumber: '',
+      invoiceDate: '',
+      stockPosition: '',
+      otherInformation: '',
+      dispatchDate: '',
+    }));
+    showReset('Product Details Reset', 'Product details have been reset successfully.');
+  };
+
+  const resetManufacturerDetails = () => {
+    setValues(prev => ({
+      ...prev,
+      manufacturedBy: '',
+      marketedBy: '',
+      distributorName: '',
+      manufacturingLicenseNumber: '',
+      manufactureDate: '',
+      expiryDate: '',
+    }));
+    showReset('Manufacturer Details Reset', 'Manufacturer details have been reset successfully.');
+  };
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
@@ -529,20 +577,28 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
 
           <div className="grid gap-3">
             {sections.map((section) => {
-              const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'slate'> = {
+              const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'slate' | 'purple'> = {
                 'INSPECTOR DETAILS': 'emerald',
                 'DEALER DETAILS': 'amber',
-                'PRODUCT DETAILS': 'slate',
+                'PRODUCT DETAILS': 'purple',
                 'MANUFACTURER DETAILS': 'blue',
               };
               const color = colorMap[section.title] || 'slate';
+              
+              const getResetHandler = (title: string) => {
+                if (title === 'DEALER DETAILS') return resetDealerDetails;
+                if (title === 'PRODUCT DETAILS') return resetProductDetails;
+                if (title === 'MANUFACTURER DETAILS') return resetManufacturerDetails;
+                return undefined;
+              };
+              
               return (
                 <div
                   key={section.title}
                   ref={section.title === 'DEALER DETAILS' ? dealerDetailsRef : undefined}
                   className={highlightDetails && section.title === 'DEALER DETAILS' ? 'rounded-xl border-4 border-red-500' : ''}
                 >
-                  <FieldSection title={section.title} color={color}>
+                  <FieldSection title={section.title} color={color} onReset={getResetHandler(section.title)}>
                     {section.fields.map((field) => {
                       // Hide manual district field unless district is "Others"
                       if (field.key === 'manualDistrict' && values.district !== 'Others') {
@@ -608,12 +664,13 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   );
 }
 
-function FieldSection({ title, children, color = 'slate' }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'slate' }) {
+function FieldSection({ title, children, color = 'slate', onReset }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'slate' | 'purple'; onReset?: () => void }) {
   const colorStyles = {
     emerald: 'border-emerald-200 bg-emerald-50/50',
     blue: 'border-blue-200 bg-blue-50/50',
     amber: 'border-amber-200 bg-amber-50/50',
     slate: 'border-slate-200 bg-slate-50/50',
+    purple: 'border-purple-200 bg-purple-50/50',
   };
   
   const headerColors = {
@@ -621,11 +678,32 @@ function FieldSection({ title, children, color = 'slate' }: { title: string; chi
     blue: 'text-blue-700',
     amber: 'text-amber-700',
     slate: 'text-slate-700',
+    purple: 'text-purple-700',
+  };
+
+  const iconButtonColors = {
+    emerald: 'border-emerald-300 bg-emerald-100 text-emerald-600 hover:bg-emerald-200',
+    blue: 'border-blue-300 bg-blue-100 text-blue-600 hover:bg-blue-200',
+    amber: 'border-amber-300 bg-amber-100 text-amber-600 hover:bg-amber-200',
+    slate: 'border-slate-300 bg-slate-100 text-slate-600 hover:bg-slate-200',
+    purple: 'border-purple-300 bg-purple-100 text-purple-600 hover:bg-purple-200',
   };
   
   return (
     <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>
-      <h3 className={`mb-2 text-sm font-black ${headerColors[color]}`}>{title}</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
+        {onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border ${iconButtonColors[color]}`}
+            title={`Reset ${title}`}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
       <div className="grid gap-2 sm:grid-cols-2">{children}</div>
     </div>
   );
@@ -643,18 +721,26 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
     ? [...options, { label: 'Others', value: 'Others' }]
     : (options || field.options || []);
 
+  const inputElement = field.type === 'textarea' ? (
+    <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} placeholder={field.placeholder} className={commonClass} />
+  ) : field.type === 'select' ? (
+    <select value={value} onChange={(event) => onChange(event.target.value)} className={commonClass}>
+      <option value="">Select...</option>
+      {selectOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+    </select>
+  ) : (
+    <input type={field.type === 'date' ? 'date' : 'text'} value={value} onChange={(event) => onChange(event.target.value)} placeholder={field.placeholder} className={commonClass} />
+  );
+
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{displayLabel}</span>
-      {field.type === 'textarea' ? (
-        <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} placeholder={field.placeholder} className={commonClass} />
-      ) : field.type === 'select' ? (
-        <select value={value} onChange={(event) => onChange(event.target.value)} className={commonClass}>
-          <option value="">Select...</option>
-          {selectOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-        </select>
+      {field.key === 'dealerAddress' ? (
+        <PopupHintWrapper message="Enter only D.NO, Village/Town ;Mandal & District will be autopopulated from Inspector Details">
+          {inputElement}
+        </PopupHintWrapper>
       ) : (
-        <input type={field.type === 'date' ? 'date' : 'text'} value={value} onChange={(event) => onChange(event.target.value)} placeholder={field.placeholder} className={commonClass} />
+        inputElement
       )}
     </label>
   );

@@ -20,6 +20,7 @@ export type PesticidePdfValues = {
   premisesLocation: string;
   licenseNumber: string;
   licenseDate: string;
+  authorizationLicenseNumber: string;
   insecticideCommonName: string;
   technicalName: string;
   tradeName: string;
@@ -81,6 +82,7 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   premisesLocation: '',
   licenseNumber: '',
   licenseDate: '',
+  authorizationLicenseNumber: '',
   insecticideCommonName: '',
   technicalName: '',
   tradeName: '',
@@ -310,10 +312,32 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.y += LINE_HEIGHT;
   
   // Calculate stock after sampling: Stock Position - 3
-  const stockBefore = parseFloat(values.stockPosition) || 0;
-  const stockAfter = stockBefore > 0 ? String(stockBefore - 3) : values.stockAfterSampling;
-  // Display "Units" beside value if entered, otherwise show just "Units"
-  const stockPositionDisplay = values.stockPosition ? `${values.stockPosition} Units` : 'Units';
+  // Parse the stock position to extract quantity and preserve pack size/units
+  const calculateStockAfter = (stockPosition: string): string => {
+    if (!stockPosition || stockPosition.trim() === '') return '';
+    
+    const trimmed = stockPosition.trim();
+    // Match pattern: number * rest (e.g., "50 * 120 gms") or just number (e.g., "50")
+    const match = trimmed.match(/^(\d+)\s*(?:\*\s*(.*))?$/);
+    
+    if (match) {
+      const quantity = parseInt(match[1], 10);
+      const rest = match[2] || '';
+      const newQuantity = Math.max(0, quantity - 3);
+      
+      if (rest) {
+        return `${newQuantity} * ${rest}`;
+      }
+      return String(newQuantity);
+    }
+    
+    // If no match, return empty (invalid format)
+    return '';
+  };
+  
+  const stockAfter = calculateStockAfter(values.stockPosition);
+  // Display stock position value without appending "Units"
+  const stockPositionDisplay = values.stockPosition || '';
   
   // Move point 1 up by 3 units
   cursor.y -= 3;
