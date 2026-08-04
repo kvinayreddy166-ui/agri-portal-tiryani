@@ -948,7 +948,22 @@ function field(doc, p, label, value, labelWidth = 82) {
     p.y = 20;
   }
   doc.setFont(PDF_FONT, 'normal');
-  doc.text(labelLines, x, p.y);
+  
+  // Apply hanging indent for wrapped label lines
+  if (labelLines.length > 1) {
+    // Draw first line at original position
+    doc.text(labelLines[0], x, p.y);
+    // Calculate indent based on first space after the number prefix (e.g., "8. ")
+    const firstSpaceMatch = labelLines[0].match(/^\d+\.\s+/);
+    const indentWidth = firstSpaceMatch ? doc.getTextWidth(firstSpaceMatch[0]) : 8;
+    // Draw subsequent lines with hanging indent
+    for (let i = 1; i < labelLines.length; i++) {
+      doc.text(labelLines[i], x + indentWidth, p.y + i * lineHeight);
+    }
+  } else {
+    doc.text(labelLines, x, p.y);
+  }
+  
   doc.text(':', x + labelWidth, p.y);
   doc.text(valueLines, valueX, p.y);
   p.y += height;

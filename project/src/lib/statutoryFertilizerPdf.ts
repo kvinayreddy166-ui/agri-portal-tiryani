@@ -405,10 +405,10 @@ function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
 
   paragraph(cursor, '(3) Details of markings on the bags from where sample has been taken');
   if (values.markings.trim()) paragraph(cursor, values.markings, PAGE.marginX + 6, cursor.contentWidth - 6, 5, true);
-  field(cursor, 'a) Type and Grade of Fertilizer', resolveFertilizerTypeGrade(values), 84, PAGE.marginX + 6, fieldOptions);
-  field(cursor, 'b) Name of Dealer/Manufacturer/Importer', values.dealerManufacturerImporterName, 84, PAGE.marginX + 6, fieldOptions);
-  field(cursor, 'c) Batch No. and Date of Manufacture/Import', values.batchDetails, 84, PAGE.marginX + 6, fieldOptions);
-  field(cursor, 'd) Composition of Fertilizer', formatComposition(values), 84, PAGE.marginX + 6, fieldOptions);
+  field(cursor, 'a) Type and Grade of Fertilizer', resolveFertilizerTypeGrade(values), 85, PAGE.marginX + 6, fieldOptions);
+  field(cursor, 'b) Name of Dealer/Manufacturer/Importer', values.dealerManufacturerImporterName, 85, PAGE.marginX + 6, fieldOptions);
+  field(cursor, 'c) Batch No. and Date of Manufacture/Import', values.batchDetails, 85, PAGE.marginX + 6, fieldOptions);
+  field(cursor, 'd) Composition of Fertilizer', formatComposition(values), 85, PAGE.marginX + 6, fieldOptions);
 
   const stockReceiptDisplay = values.wholesalerSource?.trim()
     ? `${formatFieldValue(values.stockReceiptDate)}\n${values.wholesalerSource.trim()}`
@@ -575,7 +575,22 @@ function field(
   const rowHeight = Math.max(labelLines.length, valueLines.length) * lineHeight + gap;
 
   ensure(cursor, rowHeight, options.noPageBreak);
-  doc.text(labelLines, x, cursor.y);
+  
+  // Apply hanging indent for wrapped label lines
+  if (labelLines.length > 1) {
+    // Draw first line at original position
+    doc.text(labelLines[0], x, cursor.y);
+    // Calculate indent based on first space after the number prefix (e.g., "(1) ")
+    const firstSpaceMatch = labelLines[0].match(/^\(\d+\)\s+/);
+    const indentWidth = firstSpaceMatch ? doc.getTextWidth(firstSpaceMatch[0]) : 8;
+    // Draw subsequent lines with hanging indent
+    for (let i = 1; i < labelLines.length; i++) {
+      doc.text(labelLines[i], x + indentWidth, cursor.y + i * lineHeight);
+    }
+  } else {
+    doc.text(labelLines, x, cursor.y);
+  }
+  
   doc.text(':', colonX, cursor.y);
   doc.text(valueLines, valueX, cursor.y);
   cursor.y += rowHeight;
