@@ -84,37 +84,115 @@ type LazyLoadBoundaryProps = {
 
 type LazyLoadBoundaryState = {
   error: Error | null;
+  showUpdateScreen: boolean;
 };
 
+const RELOAD_ATTEMPT_KEY = 'agronix-lazy-reload-attempt';
+
 class LazyLoadBoundary extends Component<LazyLoadBoundaryProps, LazyLoadBoundaryState> {
-  state: LazyLoadBoundaryState = { error: null };
+  state: LazyLoadBoundaryState = { error: null, showUpdateScreen: false };
 
   static getDerivedStateFromError(error: Error): LazyLoadBoundaryState {
-    return { error };
+    return { error, showUpdateScreen: isRecoverableChunkError(error.message) };
   }
 
   componentDidCatch(error: Error) {
     console.error('Page failed to load:', error);
-    // Automatically clear cache and reload on chunk load errors
+    
     if (isRecoverableChunkError(error.message)) {
-      void clearAppCacheAndReload();
+      // Try automatic recovery first
+      void this.attemptAutomaticRecovery();
     }
   }
+
+  async attemptAutomaticRecovery() {
+    try {
+      // Check if we've already attempted recovery to prevent infinite loops
+      const lastAttempt = window.sessionStorage.getItem(RELOAD_ATTEMPT_KEY);
+      if (lastAttempt && Date.now() - Number(lastAttempt) < 30000) {
+        // Already attempted within last 30 seconds, show update screen
+        this.setState({ showUpdateScreen: true });
+        return;
+      }
+
+      window.sessionStorage.setItem(RELOAD_ATTEMPT_KEY, String(Date.now()));
+      
+      // Attempt automatic recovery with cache-busting
+      const { recoverFromStaleAssets } = await import('./lib/pwaRecovery');
+      await recoverFromStaleAssets();
+      
+      // If recovery succeeds, the page will reload automatically
+    } catch {
+      // If automatic recovery fails, show the update screen
+      this.setState({ showUpdateScreen: true });
+    }
+  }
+
+  handleRefreshNow = async () => {
+    try {
+      // Clear all caches
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key) => caches.delete(key)));
+      }
+
+      // Unregister all service workers
+      const registrations = await navigator.serviceWorker?.getRegistrations?.();
+      await Promise.all((registrations || []).map((registration) => registration.unregister()));
+
+      // Clear the reload attempt flag
+      window.sessionStorage.removeItem(RELOAD_ATTEMPT_KEY);
+
+      // Hard reload with cache-busting
+      const url = new URL(window.location.href);
+      url.searchParams.set('v', String(Date.now()));
+      window.location.replace(url.toString());
+    } catch {
+      // Fallback to simple reload
+      window.location.reload();
+    }
+  };
 
   render() {
     if (!this.state.error) {
       return this.props.children;
     }
 
+    if (this.state.showUpdateScreen) {
+      return (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#eef6f0] p-6 text-center">
+          <PortalLogo size="lg" />
+          <div className="mt-8 max-w-md">
+            <h1 className="text-2xl font-black text-slate-900">
+              AGRONIX
+            </h1>
+            <p className="mt-4 text-base font-bold text-slate-700">
+              A new version of AGRONIX is available.
+            </p>
+            <p className="mt-2 text-sm font-semibold text-slate-600">
+              Please refresh the application to continue.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={this.handleRefreshNow}
+            className="mt-8 rounded-xl bg-emerald-700 px-8 py-3 text-base font-bold text-white hover:bg-emerald-800 transition-colors"
+          >
+            Refresh Now
+          </button>
+        </div>
+      );
+    }
+
+    // Non-recoverable errors show a generic error message without technical details
     return (
       <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] p-6 text-center dark:bg-slate-950">
         <PortalLogo size="xl" />
         <div className="max-w-md rounded-2xl border border-red-200 bg-white/95 p-5 shadow-sm dark:border-red-900 dark:bg-slate-900">
-          <h2 className="text-base font-black text-slate-950 dark:text-white">App files could not load.</h2>
+          <h2 className="text-base font-black text-slate-950 dark:text-white">Something went wrong</h2>
           <p className="mt-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
-            This usually happens when an old deployment cache points to deleted JavaScript files.
+            The page could not load. Please try refreshing.
           </p>
-          <p className="mt-2 break-words text-xs font-bold text-red-700 dark:text-red-300">{this.state.error.message}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             <button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
               Retry

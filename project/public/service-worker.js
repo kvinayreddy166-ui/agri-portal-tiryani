@@ -1,7 +1,7 @@
-const RESCUE_SW_VERSION = 'agronix-rescue-sw-v9';
+const RESCUE_SW_VERSION = 'agronix-rescue-sw-v10';
 const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
-const STATIC_CACHE_NAME = 'agronix-static-v9';
-const RUNTIME_CACHE_NAME = 'agronix-runtime-v9';
+const STATIC_CACHE_NAME = 'agronix-static-v10';
+const RUNTIME_CACHE_NAME = 'agronix-runtime-v10';
 
 const STATIC_ASSETS = [
   '/',
@@ -26,8 +26,13 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.all([
       clearOldCaches(),
+      clearRuntimeCaches(),
       self.clients.claim(),
     ])
+      .then(() => {
+        // Immediately activate new service worker
+        return self.skipWaiting();
+      })
       .then(() => notifyClients({ type: 'SW_READY', version: RESCUE_SW_VERSION }))
   );
 });

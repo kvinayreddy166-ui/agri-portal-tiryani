@@ -72,7 +72,7 @@ if ('serviceWorker' in navigator) {
           // Drop stale static caches so an older offline.html banner cannot survive refresh
           await Promise.all(
             keys
-              .filter((key) => key !== 'agronix-static-v7' && key !== 'agronix-runtime-v7')
+              .filter((key) => key !== 'agronix-static-v10' && key !== 'agronix-runtime-v10')
               .map((key) => caches.delete(key))
           );
         }
