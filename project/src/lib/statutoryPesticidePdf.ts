@@ -291,15 +291,15 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   const drawDate = splitDrawnDate(values);
   
   // Build one continuous paragraph with bold values
-  const paraText = `I have this ${drawDate.day} day of month ${drawDate.month} year 20${drawDate.year} taken sample from the premises of M/s ${values.dealerName || '____________________'} (Sale/stock/distribution License number ${values.licenseNumber || '________'} dated ${formatDate(values.sampleDrawnDate) || '________'}) situated at ${dealerLocation(values) || '...........................................................'}, a sample of the insecticide specified below for the purposes of test or analysis:`;
+  const paraText = `I have this ${drawDate.day} day of month ${drawDate.month} year 20${drawDate.year} taken sample from the premises of M/s ${values.dealerName || '____________________'} (Sale/stock/distribution License number ${values.authorizationLicenseNumber || '________'} dated ${formatDate(values.sampleDrawnDate) || '________'}) situated at ${dealerLocation(values) || '...........................................................'}, a sample of the insecticide specified below for the purposes of test or analysis:`;
   
-  // Bold values: day, month, year, dealer name, license number, sample drawn date, dealer address
+  // Bold values: day, month, year, dealer name, authorization/license number, sample drawn date, dealer address
   const boldValues = [
     drawDate.day,
     drawDate.month,
     `20${drawDate.year}`,
     values.dealerName,
-    values.licenseNumber,
+    values.authorizationLicenseNumber,
     formatDate(values.sampleDrawnDate),
     dealerLocation(values)
   ].filter(Boolean);
@@ -317,18 +317,15 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
     if (!stockPosition || stockPosition.trim() === '') return '';
     
     const trimmed = stockPosition.trim();
-    // Match pattern: number * rest (e.g., "50 * 120 gms") or just number (e.g., "50")
-    const match = trimmed.match(/^(\d+)\s*(?:\*\s*(.*))?$/);
+    // Match pattern: first number at start, then everything else (including *, spaces, parentheses, etc.)
+    const match = trimmed.match(/^(\d+)(.*)$/);
     
     if (match) {
       const quantity = parseInt(match[1], 10);
       const rest = match[2] || '';
       const newQuantity = Math.max(0, quantity - 3);
       
-      if (rest) {
-        return `${newQuantity} * ${rest}`;
-      }
-      return String(newQuantity);
+      return `${newQuantity}${rest}`;
     }
     
     // If no match, return empty (invalid format)

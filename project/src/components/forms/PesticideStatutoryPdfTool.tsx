@@ -36,7 +36,6 @@ type SavedPesticideDraft = {
 const STORAGE_KEY = 'tiryani-pesticide-forms-draft';
 const DRAFTS_KEY = 'tiryani-pesticide-forms-named-drafts';
 const LAST_GENERATED_KEY = 'tiryani-pesticide-forms-last-generated';
-const BANNER_DISMISSED_KEY = 'tiryani-pesticide-banner-dismissed';
 const DUPLICATE_WARNING_MESSAGE =
   'You are generating a file with the same previous sample/dealer details. Please verify whether new sample details or dealer details are required before downloading.';
 
@@ -161,13 +160,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedPesticideDraft[]>(() => loadDrafts());
   const [busy, setBusy] = useState(false);
-  const [bannerDismissed, setBannerDismissed] = useState(() => {
-    try {
-      return window.localStorage.getItem(BANNER_DISMISSED_KEY) === 'true';
-    } catch {
-      return false;
-    }
-  });
   const [duplicateAction, setDuplicateAction] = useState<
     | { type: 'preview'; formType: PesticideStatutoryFormType }
     | { type: 'download'; formType: PesticideStatutoryFormType }
@@ -456,50 +448,10 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     if (action.type === 'downloadAll') await completeDownloadAll();
   };
 
-  const dismissBanner = () => {
-    setBannerDismissed(true);
-    try {
-      window.localStorage.setItem(BANNER_DISMISSED_KEY, 'true');
-    } catch {
-      // Best effort only
-    }
-  };
 
   return (
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      {!bannerDismissed && (
-        <div className="fixed top-4 left-1/2 z-[100] -translate-x-1/2 w-full max-w-2xl px-4">
-          <div className="relative overflow-hidden rounded-xl border-2 border-amber-400 bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 shadow-2xl shadow-amber-500/20">
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-400/10 via-yellow-400/10 to-amber-400/10 animate-pulse" />
-            <div className="relative flex items-start gap-3 p-4">
-              <div className="flex shrink-0 h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg">
-                <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white shadow-sm">
-                    Under Development
-                  </span>
-                </div>
-                <p className="mt-1.5 text-sm font-bold text-amber-900 leading-snug">
-                  Pesticide Sample Draw section is currently under development. Features may be incomplete or subject to change.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={dismissBanner}
-                className="flex shrink-0 h-8 w-8 items-center justify-center rounded-lg bg-white/80 text-amber-700 hover:bg-amber-100 transition-all shadow-sm border border-amber-200"
-                title="Dismiss banner"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
       <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-red-100/50 bg-gradient-to-r from-red-50 via-white to-rose-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
