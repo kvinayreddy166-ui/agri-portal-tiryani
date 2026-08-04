@@ -252,7 +252,15 @@ export async function generateFertilizerStatutoryPdf(
 ) {
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, `${fertilizerFormTitles[formType]} - Fertilizer Sampling`);
-  drawForm(doc, formType, values);
+  
+  if (formType === 'P') {
+    drawForm(doc, 'P', values);
+    doc.addPage();
+    drawForm(doc, 'P', values);
+  } else {
+    drawForm(doc, formType, values);
+  }
+  
   return doc;
 }
 
@@ -265,6 +273,8 @@ export async function generateAllFertilizerStatutoryPdf(values: FertilizerPdfVal
   drawForm(doc, 'K_ADA', values);
   doc.addPage();
   drawForm(doc, 'K_JDA', values);
+  doc.addPage();
+  drawForm(doc, 'P', values);
   doc.addPage();
   drawForm(doc, 'P', values);
   return doc;

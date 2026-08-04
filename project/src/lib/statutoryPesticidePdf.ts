@@ -25,6 +25,7 @@ export type PesticidePdfValues = {
   tradeName: string;
   activeIngredient: string;
   formulationType: string;
+  manualFormulationType: string;
   manufacturedBy: string;
   marketedBy: string;
   distributorName: string;
@@ -41,6 +42,8 @@ export type PesticidePdfValues = {
   stockRegisterFolio: string;
   stockReceiptDetails: string;
   invoiceParticulars: string;
+  invoiceNumber: string;
+  invoiceDate: string;
   stockPosition: string;
   specimenSeal: string;
   distinctMark: string;
@@ -55,6 +58,9 @@ export type PesticidePdfValues = {
   manualMandal: string;
   ptlName: string;
   dispatchDate: string;
+  pincode: string;
+  email: string;
+  sampleSerialNumber: string;
 };
 
 export const initialPesticidePdfValues: PesticidePdfValues = {
@@ -80,6 +86,7 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   tradeName: '',
   activeIngredient: '',
   formulationType: '',
+  manualFormulationType: '',
   manufacturedBy: '',
   marketedBy: '',
   distributorName: '',
@@ -96,6 +103,8 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   stockRegisterFolio: '',
   stockReceiptDetails: '',
   invoiceParticulars: '',
+  invoiceNumber: '',
+  invoiceDate: '',
   stockPosition: '',
   specimenSeal: '',
   distinctMark: '',
@@ -103,13 +112,16 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   qciSealParticulars: '',
   caSealParticulars: '',
   otherInformation: '',
-  labAddress: 'The Insecticide Analyst,\nDeputy Director of Agriculture (IA),\nPesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad - 36.',
+  labAddress: 'The Insecticide Analyst,\nDeputy Director of Agriculture (IA),\nPesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad - 500036.',
   qualification: '',
   manualQualification: '',
   manualDistrict: '',
   manualMandal: '',
   ptlName: '',
   dispatchDate: '',
+  pincode: '',
+  email: '',
+  sampleSerialNumber: '',
 };
 
 export const pesticideFormTitles: Record<PesticideStatutoryFormType, string> = {
@@ -189,7 +201,7 @@ function drawFormVD(cursor: PdfCursor, values: PesticidePdfValues) {
   address(cursor, 'To:', values.labAddress);
   cursor.y += 3;
   fieldList(cursor, [
-    ['1. Name of the Insecticide', pesticideName(values), '(Common Name with active ingredient % and formulation type)'],
+    ['1. Name of the Insecticide', pesticideNameWithoutTrade(values), '(Common Name with active ingredient % and formulation type)'],
     ['2. Batch Number', values.batchNumber],
     ['3. Date of Manufacture', formatDate(values.manufactureDate)],
     ['4. Date of Expiry', formatDate(values.expiryDate)],
@@ -198,8 +210,7 @@ function drawFormVD(cursor: PdfCursor, values: PesticidePdfValues) {
     ['7. Sample drawn on', formatDate(values.sampleDrawnDate)],
     ['8. Sample drawn by', inspectorLine(values)],
     ['9. Specimen seal of Insecticide Inspector/Licensee, if any', values.specimenSeal],
-    ['10. Distinct mark on the sealed packet of sample', values.distinctMark],
-    ['11. C & DA Code', values.cdaCode],
+    ['10. Distinct mark on the sealed packet of sample', values.cdaCode],
   ]);
   cursor.y += 8;
   cursor.y += 18;
@@ -211,22 +222,45 @@ function drawFormVD(cursor: PdfCursor, values: PesticidePdfValues) {
 
 function drawFormVE(cursor: PdfCursor, values: PesticidePdfValues) {
   centeredTitle(cursor, 'V(E): MEMORANDUM TO INSECTICIDE ANALYST', '[See sub-rule (3) of Rule 34]');
-  twoColumnAddresses(cursor, 'From:', inspectorAddress(values), 'To:', values.labAddress);
+  address(cursor, 'From:', inspectorAddress(values));
+  cursor.y += 3;
+  address(cursor, 'To:', values.labAddress);
   cursor.y += 6;
-  cursor.doc.setFont(PDF_FONT, 'bold');
-  paragraph(cursor, 'The portion of sample / container described below is sent herewith for test or analysis under rule 34 of the Insecticide Rules, 1971:');
-  cursor.doc.setFont(PDF_FONT, 'normal');
+  paragraph(cursor, '1. The portion of sample / container described below is sent herewith for test or analysis under rule 34 of the Insecticide Rules, 1971:');
   cursor.y += 5;
   fieldList(cursor, [
-    ['(a) Common name of the Insecticide', pesticideName(values), '(nominal content, type of formulation etc.)'],
+    ['(a) Common name of the Insecticide', pesticideNameWithoutTrade(values), '(nominal content, type of formulation etc.)'],
     ['(b) State of packing of the sample', values.packingCondition],
-    ['(c) C&DA Code', values.cdaCode],
+    ['(c) Specimen Impression of the seal of the Inspector:', ''],
   ], 68);
+  cursor.y += 5;
+  cursor.doc.setFont(PDF_FONT, 'normal');
+  const labelText = '2. The portion of sample/container has been assigned the distinct number or marked by me with the following mark:';
+  const labelLines = split(cursor, labelText, cursor.contentWidth);
+  
+  // Render label lines
+  ensure(cursor, labelLines.length * LINE_HEIGHT + 2);
+  cursor.doc.text(labelLines, PAGE.marginX, cursor.y);
+  cursor.y += labelLines.length * LINE_HEIGHT;
+  
+  // Render code on next line with bold formatting
+  cursor.doc.setFont(PDF_FONT, 'bold');
+  cursor.doc.text(values.cdaCode || '', PAGE.marginX + 5, cursor.y);
+  cursor.doc.setFont(PDF_FONT, 'normal');
+  cursor.y += LINE_HEIGHT + 2;
+  cursor.doc.setFont(PDF_FONT, 'normal');
+  const point3Text = '3. A copy of this Memorandum along with a Form V (D) has been sent separately with the sample by Registered Post or by hand.';
+  const point3Lines = split(cursor, point3Text, cursor.contentWidth);
+  ensure(cursor, point3Lines.length * LINE_HEIGHT + 2);
+  cursor.doc.text(point3Lines, PAGE.marginX, cursor.y);
+  cursor.y += point3Lines.length * LINE_HEIGHT + 2;
+  cursor.y += 5;
   cursor.y = Math.max(cursor.y + 12, 216);
   signatureLine(cursor, `Date: ${formatDate(values.sampleDrawnDate)}`, 'Insecticide Inspector');
 }
 
 function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
+  cursor.y -= 6;
   cursor.doc.setLineHeightFactor(0.9);
   cursor.doc.setFont(PDF_FONT, 'bold');
   cursor.doc.setFontSize(12);
@@ -248,37 +282,44 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.doc.text(']', startX + bracketWidth + textWidth, cursor.y);
   cursor.y += 6;
+  cursor.doc.setFont(PDF_FONT, 'bold');
+  text(cursor, 'To:');
   cursor.doc.setFont(PDF_FONT, 'normal');
-  text(cursor, 'To');
   addressBlock(cursor, buildDealerAddress(values), PAGE.marginX, 2, true);
   const drawDate = splitDrawnDate(values);
   
   // Build one continuous paragraph with bold values
-  const paraText = `I have this ${drawDate.day} day of month ${drawDate.month} year 20${drawDate.year} taken sample from the premises of M/s ${values.dealerName || '____________________'} (Sale/stock/distribution License number ${values.licenseNumber || '________'} dated ${formatDate(values.licenseDate) || '________'}) situated at ${dealerLocation(values) || '____________________'}, a sample of the insecticide specified below for the purposes of test or analysis:`;
+  const paraText = `I have this ${drawDate.day} day of month ${drawDate.month} year 20${drawDate.year} taken sample from the premises of M/s ${values.dealerName || '____________________'} (Sale/stock/distribution License number ${values.licenseNumber || '________'} dated ${formatDate(values.sampleDrawnDate) || '________'}) situated at ${dealerLocation(values) || '...........................................................'}, a sample of the insecticide specified below for the purposes of test or analysis:`;
   
-  // Bold values: day, month, year, dealer name, license number, license date, dealer address
+  // Bold values: day, month, year, dealer name, license number, sample drawn date, dealer address
   const boldValues = [
     drawDate.day,
     drawDate.month,
     `20${drawDate.year}`,
     values.dealerName,
     values.licenseNumber,
-    formatDate(values.licenseDate),
+    formatDate(values.sampleDrawnDate),
     dealerLocation(values)
   ].filter(Boolean);
   
   // Render as one continuous justified paragraph with first-line indent
+  cursor.y -= 6;
   renderJustifiedParagraph(cursor, paraText, boldValues);
   
   // Add consistent spacing after paragraph before numbered items
   cursor.y += LINE_HEIGHT;
   
-  // Calculate stock after sampling: Stock Before Sampling - 3
-  const stockBefore = parseFloat(values.stockBeforeSampling) || 0;
+  // Calculate stock after sampling: Stock Position - 3
+  const stockBefore = parseFloat(values.stockPosition) || 0;
   const stockAfter = stockBefore > 0 ? String(stockBefore - 3) : values.stockAfterSampling;
+  // Display "Units" beside value if entered, otherwise show just "Units"
+  const stockPositionDisplay = values.stockPosition ? `${values.stockPosition} Units` : 'Units';
+  
+  // Move point 1 up by 3 units
+  cursor.y -= 3;
   
   fieldList(cursor, [
-    ['1. Common name of the insecticide', pesticideName(values), '(Mention complete details, like type of formulation)'],
+    ['1. Common name of the insecticide', pesticideNameWithoutTrade(values), '(Mention complete details, like type of formulation)'],
     ['2. Trade name, if any', values.tradeName],
     ['3. Manufactured by', values.manufacturedBy],
     ['4. Registration number', values.registrationNumber],
@@ -287,28 +328,37 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
     ['7. Batch number', values.batchNumber],
     ['8. Date of manufacture', formatDate(values.manufactureDate)],
     ['9. Date of expiry', formatDate(values.expiryDate)],
-    ['10. Stock before sampling', values.stockBeforeSampling, '(Mention units)'],
+    ['10. Stock before sampling', stockPositionDisplay, '(Mention units)'],
     ['11. Quantity of the sample taken', values.sampleQuantity, '(Mention units)'],
     ['12. Stock after sampling', stockAfter, '(Mention units)'],
     ['13. Folio/page number of stock register', values.stockRegisterFolio],
     ['14. Any other relevant information', values.otherInformation],
   ], 82);
-  signatureLine(cursor, `Date: ${formatDate(values.sampleDrawnDate)}`, 'Insecticide Inspector Seal');
+  cursor.y += 3;
+  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  signatureLine(cursor, `Place: ${resolvedMandal || '________________'}`, 'Insecticide Inspector Seal');
   cursor.y += 2;
   cursor.y += 6;
-  text(cursor, '1. Signature of witness:');
-  cursor.y += 1;
-  text(cursor, '2. Signature of witness:');
-  cursor.y += 2;
+  const witness1Label = '1. Signature of witness:';
+  cursor.doc.text(witness1Label, PAGE.marginX, cursor.y);
+  const witness1Width = cursor.doc.getTextWidth(witness1Label);
+  drawBlank(cursor.doc, PAGE.marginX + witness1Width + 3, cursor.y, 80);
+  cursor.y += LINE_HEIGHT + 2;
+  cursor.y += 7;
+  const witness2Label = '2. Signature of witness:';
+  cursor.doc.text(witness2Label, PAGE.marginX, cursor.y);
+  const witness2Width = cursor.doc.getTextWidth(witness2Label);
+  drawBlank(cursor.doc, PAGE.marginX + witness2Width + 3, cursor.y, 80);
+  cursor.y += 8;
   cursor.doc.setFont(PDF_FONT, 'bold');
-  cursor.doc.text('(Received one sealed portion of sample along with a copy of this Form.)', PAGE.width / 2, cursor.y, { align: 'center' });
+  cursor.doc.text('(Received one sealed portion of sample along with a copy of this Form.)', PAGE.marginX, cursor.y);
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.y += LINE_HEIGHT + 2;
-  cursor.y += 12;
+  cursor.y += 6;
   cursor.doc.setFont(PDF_FONT, 'bold');
-  cursor.doc.text('Signature of the person from whom the sample is taken', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
+  cursor.doc.text('Signature of the person from whom the sample is taken', PAGE.width / 2 + 23, cursor.y, { align: 'center' });
   cursor.y += LINE_HEIGHT;
-  cursor.doc.text('With date and seal', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
+  cursor.doc.text('With date and seal', PAGE.width / 2 + 23, cursor.y, { align: 'center' });
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.doc.setLineHeightFactor(1.25);
 }
@@ -345,10 +395,20 @@ function subItemField(cursor: PdfCursor, mainLabel: string, subItems: Array<[str
 function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
   
-  // Map Q.C.I. SEAL PARTICULARS to C & DA Code
-  const qciSealValue = values.cdaCode || values.qciSealParticulars;
+  // Use Q.C.I. SEAL PARTICULARS value directly
+  const qciSealValue = values.qciSealParticulars;
   // Map Quantity Drawn for Analysis to Quantity of Sample Drawn
   const sampleQuantityAnalysis = values.sampleQuantity || values.sampleQuantityAnalysis;
+  // Format invoice particulars as "No: [invoiceNumber], Dt: [invoiceDate]"
+  const invoiceParticularsFormatted = [
+    values.invoiceNumber ? `No: ${values.invoiceNumber}` : '',
+    values.invoiceDate ? `Dt: ${formatDate(values.invoiceDate)}` : ''
+  ].filter(Boolean).join(', ');
+  // Format stock receipt details as "[invoiceDate] from [distributorName]"
+  const stockReceiptDetailsFormatted = [
+    values.invoiceDate ? formatDate(values.invoiceDate) : '',
+    values.distributorName ? `from ${values.distributorName}` : ''
+  ].filter(Boolean).join(' ');
   
   centeredTitle(cursor, 'DOCKET SHEET');
   fieldList(cursor, [
@@ -377,13 +437,13 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ['10. Date Manufacturing', formatDate(values.manufactureDate)],
     ['11. Date of Expiry', formatDate(values.expiryDate)],
     ['12. Date of Drawl of Sample', formatDate(values.sampleDrawnDate)],
-    ['13. Date of receipt of stock by the dealer and from whom received', values.stockReceiptDetails],
-    ['14. Particulars of Invoice', values.invoiceParticulars],
+    ['13. Date of receipt of stock by the dealer and from whom received', stockReceiptDetailsFormatted],
+    ['14. Particulars of Invoice', invoiceParticularsFormatted],
     ['15. Stock position of batch at the time of drawl of sample', values.stockPosition],
-    ['16. Code No. of A.O./A.D./D.D.A.', values.cdaCode],
+    ['16. Code No. of A.O./A.D.A./D.D.A.', values.sampleSerialNumber],
     ['17. Q.C.I. Seal Particulars', qciSealValue],
     ['18. C.A. Seal Particulars', values.cdaCode],
-    ['19. Name of the P.T.L.to which sent For analysis', 'Pesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad'],
+    ['19. Name of the P.T.L.to which sent For analysis', 'Pesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad - 500036'],
     ['20. Date of Dispatch', formatDate(values.dispatchDate)],
   ], 82);
   cursor.y += 10;
@@ -449,7 +509,7 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
   const availableLabelWidth = labelWidth - serialWidth;
   const labelLines = split(cursor, note ? `${labelText}\n${note}` : labelText, availableLabelWidth);
   const rows = Math.max(labelLines.length, valueLines.length, 1);
-  ensure(cursor, rows * LINE_HEIGHT + 2);
+  ensure(cursor, rows * LINE_HEIGHT + 0.5);
   
   // Render serial number separately if exists
   if (serialNumber) {
@@ -466,7 +526,7 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
   } else {
     drawBlank(cursor.doc, valueX, y, available);
   }
-  cursor.y += rows * LINE_HEIGHT + 2;
+  cursor.y += rows * LINE_HEIGHT + 0.5;
 }
 
 function address(cursor: PdfCursor, label: string, value: string) {
@@ -487,24 +547,6 @@ function addressBlock(cursor: PdfCursor, value: string, x: number, minRows: numb
   }
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.y += Math.max(lines.length || 0, minRows) * LINE_HEIGHT + 2;
-}
-
-function twoColumnAddresses(cursor: PdfCursor, leftLabel: string, left: string, rightLabel: string, right: string) {
-  const leftX = PAGE.marginX;
-  const rightX = PAGE.width / 2 + 4;
-  const colWidth = PAGE.width / 2 - PAGE.marginX - 8;
-  cursor.doc.setFont(PDF_FONT, 'bold');
-  cursor.doc.text(leftLabel, leftX, cursor.y);
-  cursor.doc.text(rightLabel, rightX, cursor.y);
-  cursor.y += LINE_HEIGHT;
-  const leftLines = split(cursor, left, colWidth);
-  const rightLines = split(cursor, right, colWidth);
-  const rows = Math.max(leftLines.length, rightLines.length, 4);
-  ensure(cursor, rows * LINE_HEIGHT);
-  cursor.doc.text(leftLines, leftX, cursor.y);
-  cursor.doc.text(rightLines, rightX, cursor.y);
-  cursor.y += rows * LINE_HEIGHT + 2;
-  cursor.doc.setFont(PDF_FONT, 'normal');
 }
 
 function signatureLine(cursor: PdfCursor, left: string, right: string) {
@@ -624,27 +666,27 @@ function normalizePesticideValues(values: PesticidePdfValues): PesticidePdfValue
       normalized.sampleDrawnYear = normalized.sampleDrawnYear || String(date.getFullYear()).slice(-2);
     }
   }
+  // Ensure activeIngredient has % symbol if missing
+  if (normalized.activeIngredient && !normalized.activeIngredient.includes('%')) {
+    normalized.activeIngredient = normalized.activeIngredient + '%';
+  }
   // Ensure new fields have default values for backward compatibility
   // (already handled by spreading initialPesticidePdfValues which includes defaults)
   return normalized;
 }
 
-function pesticideName(values: PesticidePdfValues) {
-  const tradeName = values.tradeName?.trim() || '';
+function pesticideNameWithoutTrade(values: PesticidePdfValues) {
   const technicalName = values.technicalName?.trim() || '';
   const activeIngredient = values.activeIngredient?.trim() || '';
-  const formulationType = values.formulationType?.trim() || '';
+  const formulationType = values.formulationType === 'Others' 
+    ? values.manualFormulationType?.trim() || ''
+    : values.formulationType?.trim() || '';
   
-  const secondLine = [
+  return [
     technicalName,
     activeIngredient,
     formulationType,
-  ].map((part) => part.trim()).filter(Boolean).join(' ');
-  
-  if (tradeName && secondLine) {
-    return `${tradeName}\n${secondLine}`;
-  }
-  return tradeName || secondLine || '';
+  ].filter((part) => part && part.trim() !== '').join(' ');
 }
 
 function inspectorAddress(values: PesticidePdfValues) {
@@ -655,15 +697,26 @@ function inspectorAddress(values: PesticidePdfValues) {
   const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
   
-  return [
+  // Format district with PIN Code (e.g., "Kumrambheem Asifabad -504297")
+  const districtWithPincode = values.pincode && resolvedDistrict 
+    ? `${resolvedDistrict} -${values.pincode}`
+    : resolvedDistrict || '';
+  
+  const addressParts = [
     officerNameWithQualification,
     values.designation,
     resolvedMandal ? `${resolvedMandal} Mandal` : '',
-    resolvedDistrict || '',
+    districtWithPincode,
   ]
     .map((part) => part.trim())
-    .filter(Boolean)
-    .join('\n');
+    .filter(Boolean);
+  
+  // Add email in brackets below if present
+  if (values.email) {
+    addressParts.push(`(${values.email})`);
+  }
+  
+  return addressParts.join('\n');
 }
 
 function inspectorLine(values: PesticidePdfValues) {
@@ -686,11 +739,15 @@ function designationLine(values: PesticidePdfValues) {
 }
 
 function buildDealerAddress(values: PesticidePdfValues) {
-  return [values.dealerName, values.dealerAddress, values.premisesLocation].map((part) => part.trim()).filter(Boolean).join('\n');
+  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
+  const districtWithPincode = values.pincode && resolvedDistrict ? `${resolvedDistrict} - ${values.pincode}.` : resolvedDistrict;
+  return [values.dealerName, values.dealerAddress, values.premisesLocation, resolvedMandal, districtWithPincode].map((part) => part.trim()).filter(Boolean).join('\n');
 }
 
 function dealerLocation(values: PesticidePdfValues) {
-  return [values.dealerAddress, values.premisesLocation].map((part) => part.trim()).filter(Boolean).join(', ');
+  const addressWithoutNewlines = values.dealerAddress.replace(/\n/g, ', ');
+  return [addressWithoutNewlines, values.premisesLocation].map((part) => part.trim()).filter(Boolean).join(', ');
 }
 
 function splitDrawnDate(values: PesticidePdfValues) {

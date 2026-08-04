@@ -46,6 +46,46 @@ const packingOptions = [
   { label: 'Container sealed', value: 'Container sealed' },
 ];
 
+const formulationTypeOptions = [
+  { label: 'AE', value: 'AE' },
+  { label: 'BB', value: 'BB' },
+  { label: 'BR', value: 'BR' },
+  { label: 'CS', value: 'CS' },
+  { label: 'D', value: 'D' },
+  { label: 'DC', value: 'DC' },
+  { label: 'DP', value: 'DP' },
+  { label: 'DS', value: 'DS' },
+  { label: 'EC', value: 'EC' },
+  { label: 'ES', value: 'ES' },
+  { label: 'EW', value: 'EW' },
+  { label: 'FS', value: 'FS' },
+  { label: 'FU', value: 'FU' },
+  { label: 'G', value: 'G' },
+  { label: 'GL', value: 'GL' },
+  { label: 'GR', value: 'GR' },
+  { label: 'LS', value: 'LS' },
+  { label: 'ME', value: 'ME' },
+  { label: 'OD', value: 'OD' },
+  { label: 'P', value: 'P' },
+  { label: 'PA', value: 'PA' },
+  { label: 'RB', value: 'RB' },
+  { label: 'SC', value: 'SC' },
+  { label: 'SE', value: 'SE' },
+  { label: 'SG', value: 'SG' },
+  { label: 'SL', value: 'SL' },
+  { label: 'SP', value: 'SP' },
+  { label: 'TB', value: 'TB' },
+  { label: 'TC', value: 'TC' },
+  { label: 'TK', value: 'TK' },
+  { label: 'ULV', value: 'ULV' },
+  { label: 'VP', value: 'VP' },
+  { label: 'WDG', value: 'WDG' },
+  { label: 'WG', value: 'WG' },
+  { label: 'WP', value: 'WP' },
+  { label: 'WS', value: 'WS' },
+  { label: 'Others', value: 'Others' },
+];
+
 const fieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
     title: 'INSPECTOR DETAILS',
@@ -58,23 +98,40 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true },
       { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
       { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
+      { key: 'pincode', label: 'PIN CODE' },
+      { key: 'sampleSerialNumber', label: 'Code No. of A.O./A.D.A./D.D.A', placeholder: 'Serial No of Sample' },
+      { key: 'email', label: 'EMAIL ID' },
     ],
   },
   {
     title: 'DEALER DETAILS',
     fields: [
       { key: 'sampleDrawnDate', label: 'SAMPLE DRAWN DATE', type: 'date' },
-      { key: 'dealerName', label: 'DEALER / LICENSEE NAME' },
-      { key: 'dealerAddress', label: 'DEALER ADDRESS', type: 'textarea', placeholder: 'village' },
+      { key: 'dealerName', label: 'DEALER / LICENSEE NAME', placeholder: 'Firm Name' },
+      { key: 'dealerAddress', label: 'DEALER ADDRESS', type: 'textarea', placeholder: 'Door NO, Village/ town' },
     ],
   },
   {
     title: 'PRODUCT DETAILS',
     fields: [
-      { key: 'tradeName', label: 'TRADE NAME' },
-      { key: 'technicalName', label: 'TECHNICAL NAME' },
-      { key: 'formulationType', label: 'FORMULATION TYPE' },
-      { key: 'batchNumber', label: 'BATCH NUMBER' },
+      { key: 'tradeName', label: 'TRADE NAME', placeholder: 'Brand Name Eg: Coragen' },
+      { key: 'technicalName', label: 'TECHNICAL NAME', placeholder: 'Eg: Chlorantraniliprole' },
+      { key: 'activeIngredient', label: 'ACTIVE INGREDIENT %', placeholder: 'Eg: 18.5% only, Dont enter Formulation type' },
+      { key: 'formulationType', label: 'FORMULATION TYPE', type: 'select', options: formulationTypeOptions },
+      { key: 'manualFormulationType', label: 'ENTER FORMULATION TYPE', placeholder: 'Enter formulation type' },
+      { key: 'batchNumber', label: 'BATCH NUMBER', placeholder: 'Enter Batch No as Per Label' },
+      { key: 'registrationNumber', label: 'REGISTRATION NUMBER', placeholder: 'CIBRC Number' },
+      { key: 'marketedBy', label: 'MARKETED BY', type: 'textarea' },
+      { key: 'distributorName', label: 'DISTRIBUTOR NAME' },
+      { key: 'cdaCode', label: 'C & DA CODE', placeholder: 'Sticker No' },
+      { key: 'packingCondition', label: 'PACKING CONDITION', type: 'select', options: packingOptions },
+      { key: 'sampleQuantity', label: 'QUANTITY OF SAMPLE DRAWN', placeholder: 'Eg: 3 X (120 Grams) / 3 X (120 Ml)' },
+      { key: 'stockRegisterFolio', label: 'STOCK REGISTER FOLIO / PAGE NO.' },
+      { key: 'invoiceNumber', label: 'INVOICE NO' },
+      { key: 'invoiceDate', label: 'INVOICE DATE', type: 'date' },
+      { key: 'stockPosition', label: 'STOCK POSITION OF BATCH', type: 'textarea', placeholder: 'Eg:13 Units (120 GMS)' },
+      { key: 'otherInformation', label: 'ANY OTHER RELEVANT INFORMATION', type: 'textarea' },
+      { key: 'dispatchDate', label: 'Date of Dispatch', type: 'date' },
     ],
   },
   {
@@ -84,25 +141,6 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'manufacturingLicenseNumber', label: 'MANUFACTURING LICENSE NO.' },
       { key: 'manufactureDate', label: 'DATE OF MANUFACTURE', type: 'date' },
       { key: 'expiryDate', label: 'DATE OF EXPIRY', type: 'date' },
-    ],
-  },
-  {
-    title: 'SAMPLING DETAILS',
-    fields: [
-      { key: 'activeIngredient', label: 'ACTIVE INGREDIENT / % AI' },
-      { key: 'registrationNumber', label: 'REGISTRATION NUMBER' },
-      { key: 'marketedBy', label: 'MARKETED BY', type: 'textarea' },
-      { key: 'distributorName', label: 'DISTRIBUTOR NAME' },
-      { key: 'cdaCode', label: 'C & DA CODE' },
-      { key: 'packingCondition', label: 'PACKING CONDITION', type: 'select', options: packingOptions },
-      { key: 'sampleQuantity', label: 'QUANTITY OF SAMPLE DRAWN' },
-      { key: 'stockBeforeSampling', label: 'STOCK BEFORE SAMPLING' },
-      { key: 'stockRegisterFolio', label: 'STOCK REGISTER FOLIO / PAGE NO.' },
-      { key: 'stockReceiptDetails', label: 'DATE OF RECEIPT / SOURCE RECEIVED', type: 'textarea' },
-      { key: 'invoiceParticulars', label: 'PARTICULARS OF INVOICE', type: 'textarea' },
-      { key: 'stockPosition', label: 'STOCK POSITION OF BATCH', type: 'textarea' },
-      { key: 'otherInformation', label: 'ANY OTHER RELEVANT INFORMATION', type: 'textarea' },
-      { key: 'dispatchDate', label: 'Date of Dispatch', type: 'date' },
     ],
   },
 ];
@@ -170,6 +208,20 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       }
       if (key === 'qualification') {
         next.manualQualification = '';
+      }
+      if (key === 'formulationType') {
+        next.manualFormulationType = '';
+      }
+      if (key === 'activeIngredient') {
+        // Auto-add % if not already present
+        if (value && !value.includes('%')) {
+          next.activeIngredient = value + '%';
+        }
+      }
+      if (key === 'manufacturedBy') {
+        // Auto-populate DISTRIBUTOR NAME and MARKETED BY with MANUFACTURED BY value
+        next.distributorName = value;
+        next.marketedBy = value;
       }
       if (key === 'sampleDrawnDate') {
         const date = new Date(`${value}T00:00:00`);
@@ -482,7 +534,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                 'DEALER DETAILS': 'amber',
                 'PRODUCT DETAILS': 'slate',
                 'MANUFACTURER DETAILS': 'blue',
-                'SAMPLING DETAILS': 'emerald',
               };
               const color = colorMap[section.title] || 'slate';
               return (
@@ -503,6 +554,10 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                       }
                       // Hide manual qualification field unless qualification is "Others"
                       if (field.key === 'manualQualification' && values.qualification !== 'Others') {
+                        return null;
+                      }
+                      // Hide manual formulation type field unless formulationType is "Others"
+                      if (field.key === 'manualFormulationType' && values.formulationType !== 'Others') {
                         return null;
                       }
                       // Get mandal options based on selected district
