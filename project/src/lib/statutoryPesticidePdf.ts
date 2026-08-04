@@ -114,7 +114,7 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   qciSealParticulars: '',
   caSealParticulars: '',
   otherInformation: '',
-  labAddress: 'The Insecticide Analyst,\nDeputy Director of Agriculture (IA),\nPesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad - 500036.',
+  labAddress: 'The Insecticide Analyst,\nDeputy Director of Agriculture (IA),\nPesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad -500036.',
   qualification: '',
   manualQualification: '',
   manualDistrict: '',
@@ -228,34 +228,18 @@ function drawFormVE(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.y += 3;
   address(cursor, 'To:', values.labAddress);
   cursor.y += 6;
-  paragraph(cursor, '1. The portion of sample / container described below is sent herewith for test or analysis under rule 34 of the Insecticide Rules, 1971:');
+  paragraphWithHangingIndent(cursor, '1. The portion of sample / container described below is sent herewith for test or analysis under rule 34 of the Insecticide Rules, 1971:');
   cursor.y += 5;
   fieldList(cursor, [
     ['(a) Common name of the Insecticide', pesticideNameWithoutTrade(values), '(nominal content, type of formulation etc.)'],
     ['(b) State of packing of the sample', values.packingCondition],
     ['(c) Specimen Impression of the seal of the Inspector:', ''],
-  ], 68);
+  ], 68, 6);
   cursor.y += 5;
   cursor.doc.setFont(PDF_FONT, 'normal');
-  const labelText = '2. The portion of sample/container has been assigned the distinct number or marked by me with the following mark:';
-  const labelLines = split(cursor, labelText, cursor.contentWidth);
-  
-  // Render label lines
-  ensure(cursor, labelLines.length * LINE_HEIGHT + 2);
-  cursor.doc.text(labelLines, PAGE.marginX, cursor.y);
-  cursor.y += labelLines.length * LINE_HEIGHT;
-  
-  // Render code on next line with bold formatting
-  cursor.doc.setFont(PDF_FONT, 'bold');
-  cursor.doc.text(values.cdaCode || '', PAGE.marginX + 5, cursor.y);
+  paragraphWithHangingIndentAndInlineValue(cursor, '2. The portion of sample/container has been assigned the distinct number or marked by me with the following mark:', values.cdaCode || '');
   cursor.doc.setFont(PDF_FONT, 'normal');
-  cursor.y += LINE_HEIGHT + 2;
-  cursor.doc.setFont(PDF_FONT, 'normal');
-  const point3Text = '3. A copy of this Memorandum along with a Form V (D) has been sent separately with the sample by Registered Post or by hand.';
-  const point3Lines = split(cursor, point3Text, cursor.contentWidth);
-  ensure(cursor, point3Lines.length * LINE_HEIGHT + 2);
-  cursor.doc.text(point3Lines, PAGE.marginX, cursor.y);
-  cursor.y += point3Lines.length * LINE_HEIGHT + 2;
+  paragraphWithHangingIndent(cursor, '3. A copy of this Memorandum along with a Form V (D) has been sent separately with the sample by Registered Post or by hand.');
   cursor.y += 5;
   cursor.y = Math.max(cursor.y + 12, 216);
   signatureLine(cursor, `Date: ${formatDate(values.sampleDrawnDate)}`, 'Insecticide Inspector');
@@ -415,6 +399,7 @@ function subItemField(cursor: PdfCursor, mainLabel: string, subItems: Array<[str
 
 function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
+  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
   
   // Use Q.C.I. SEAL PARTICULARS value directly
   const qciSealValue = values.qciSealParticulars;
@@ -430,6 +415,8 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     values.invoiceDate ? formatDate(values.invoiceDate) : '',
     values.distributorName ? `from ${values.distributorName}` : ''
   ].filter(Boolean).join(' ');
+  // Format dealer name with mandal
+  const dealerWithMandal = resolvedMandal ? `${values.dealerName}, ${resolvedMandal}` : values.dealerName;
   
   centeredTitle(cursor, 'DOCKET SHEET');
   fieldList(cursor, [
@@ -451,7 +438,7 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   fieldList(cursor, [
     ['4. Guaranteed of % ai', values.activeIngredient],
     ['5. Qty. of sample drawn for analysis', sampleQuantityAnalysis],
-    ['6. Name of the dealer from whom the sample drawn', values.dealerName],
+    ['6. Name of the dealer from whom the sample drawn', dealerWithMandal],
     ['7. Name of the Distributor', values.distributorName],
     ['8. Name of the Manufacturer', values.manufacturedBy],
     ['9. Batch Number', values.batchNumber],
@@ -464,7 +451,7 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ['16. Code No. of A.O./A.D.A./D.D.A.', values.sampleSerialNumber],
     ['17. Q.C.I. Seal Particulars', qciSealValue],
     ['18. C.A. Seal Particulars', values.cdaCode],
-    ['19. Name of the P.T.L.to which sent For analysis', 'Pesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad - 500036'],
+    ['19. Name of the P.T.L.to which sent For analysis', 'Pesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad -500036'],
     ['20. Date of Dispatch', formatDate(values.dispatchDate)],
   ], 82);
   cursor.y += 10;
@@ -504,19 +491,19 @@ function centeredTitle(cursor: PdfCursor, title: string, subtitle = '') {
   cursor.doc.setFontSize(BODY_SIZE);
 }
 
-function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, labelWidth = 74) {
-  rows.forEach(([label, value, note]) => fieldRow(cursor, label, value, note, labelWidth));
+function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, labelWidth = 74, xOffset = 0) {
+  rows.forEach(([label, value, note]) => fieldRow(cursor, label, value, note, labelWidth, xOffset));
 }
 
-function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', labelWidth = 74) {
-  const x = PAGE.marginX;
+function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', labelWidth = 74, xOffset = 0) {
+  const x = PAGE.marginX + xOffset;
   const y = cursor.y;
   const valueX = x + labelWidth + 5;
   const available = PAGE.width - valueX - PAGE.marginX;
   const valueLines = split(cursor, value || '', available);
   
-  // Handle hanging indent for multi-line labels
-  const labelMatch = label.match(/^(\d+\.\s*)(.*)$/);
+  // Handle hanging indent for multi-line labels (both numbered and sub-point labels)
+  const labelMatch = label.match(/^(\d+\.\s+|\([a-z]\)\s*)(.*)$/);
   let serialNumber = '';
   let labelText = label;
   let serialWidth = 0;
@@ -584,6 +571,74 @@ function paragraph(cursor: PdfCursor, value: string) {
   ensure(cursor, lines.length * LINE_HEIGHT + 2);
   cursor.doc.text(lines, PAGE.marginX, cursor.y);
   cursor.y += lines.length * LINE_HEIGHT + 2;
+}
+
+function paragraphWithHangingIndent(cursor: PdfCursor, value: string) {
+  const labelMatch = value.match(/^(\d+\.\s+)(.*)$/);
+  if (!labelMatch) {
+    paragraph(cursor, value);
+    return;
+  }
+  
+  const serialNumber = labelMatch[1];
+  const labelText = labelMatch[2];
+  const serialWidth = cursor.doc.getTextWidth(serialNumber);
+  const availableWidth = cursor.contentWidth - serialWidth;
+  
+  const labelLines = split(cursor, labelText, availableWidth);
+  ensure(cursor, labelLines.length * LINE_HEIGHT + 2);
+  
+  cursor.doc.text(serialNumber, PAGE.marginX, cursor.y);
+  cursor.doc.text(labelLines, PAGE.marginX + serialWidth, cursor.y);
+  cursor.y += labelLines.length * LINE_HEIGHT + 2;
+}
+
+function paragraphWithHangingIndentAndInlineValue(cursor: PdfCursor, value: string, inlineValue: string) {
+  const labelMatch = value.match(/^(\d+\.\s+)(.*)$/);
+  if (!labelMatch) {
+    paragraph(cursor, value);
+    if (inlineValue) {
+      cursor.doc.setFont(PDF_FONT, 'bold');
+      cursor.doc.text(inlineValue, PAGE.marginX, cursor.y);
+      cursor.doc.setFont(PDF_FONT, 'normal');
+      cursor.y += LINE_HEIGHT;
+    }
+    return;
+  }
+  
+  const serialNumber = labelMatch[1];
+  const labelText = labelMatch[2];
+  const serialWidth = cursor.doc.getTextWidth(serialNumber);
+  const labelStartX = PAGE.marginX + serialWidth;
+  
+  // Calculate text before the value
+  const textBeforeValue = labelText + ' ';
+  const availableWidth = cursor.contentWidth - serialWidth;
+  
+  // Split the text before value to handle wrapping
+  const textBeforeLines = split(cursor, textBeforeValue, availableWidth);
+  
+  // Calculate total height needed
+  const totalLines = textBeforeLines.length;
+  ensure(cursor, totalLines * LINE_HEIGHT + 2);
+  
+  cursor.doc.text(serialNumber, PAGE.marginX, cursor.y);
+  
+  // Render text before value (normal font)
+  cursor.doc.text(textBeforeLines, labelStartX, cursor.y);
+  
+  // Render the inline value in bold on the same line as the last line of text before value
+  if (inlineValue) {
+    const lastLineY = cursor.y + (textBeforeLines.length - 1) * LINE_HEIGHT;
+    const lastLineWidth = cursor.doc.getTextWidth(textBeforeLines[textBeforeLines.length - 1]);
+    const valueX = labelStartX + lastLineWidth + 2;
+    
+    cursor.doc.setFont(PDF_FONT, 'bold');
+    cursor.doc.text(inlineValue, valueX, lastLineY);
+    cursor.doc.setFont(PDF_FONT, 'normal');
+  }
+  
+  cursor.y += totalLines * LINE_HEIGHT + 2;
 }
 
 function renderJustifiedParagraph(cursor: PdfCursor, text: string, boldValues: string[], firstLineIndent = 12) {

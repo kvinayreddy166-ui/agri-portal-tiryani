@@ -479,7 +479,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'batchDetails', label: 'BATCH NO. AND DATE OF MANUFACTURE/IMPORT' },
       { key: 'stockReceiptDate', label: 'DATE OF RECEIPT OF STOCK', type: 'date' },
       { key: 'wholesalerSource', label: 'WHOLESALER/ SOURCE', placeholder: 'Enter wholesaler/source name (Optional)' },
-      { key: 'stockPosition', label: 'STOCK POSITION OF LOT' },
+      { key: 'stockPosition', label: 'STOCK POSITION OF LOT', placeholder: 'Eg: 50 Bags @ 50 Kgs' },
       { key: 'physicalCondition', label: 'PHYSICAL CONDITION OF SAMPLE', type: 'select', options: physicalConditionOptions },
       { key: 'bagSource', label: 'SAMPLES DRAWN FROM OPEN BAGS / STITCHED BAGS / BULK', type: 'select', options: bagSourceOptions },
     ],
@@ -498,7 +498,7 @@ const fertilizerFieldSections: { title: string; fields: FieldConfig[] }[] = [
   {
     title: 'DEALER DETAILS',
     fields: [
-      { key: 'dealerName', label: 'DEALER / PARTY NAME' },
+      { key: 'dealerName', label: 'DEALER / PARTY NAME', placeholder: 'Firm Name' },
       { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS', type: 'textarea', placeholder: 'village' },
       { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER', placeholder: 'Enter License No:' },
     ],

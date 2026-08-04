@@ -96,6 +96,7 @@ const initialSeedForm = {
   mandal: '',
   manualDistrict: '',
   manualMandal: '',
+  pinCode: '',
   placeManuallyEdited: false,
   collectionPlaceManuallyEdited: false,
 };
@@ -445,6 +446,7 @@ export function SeedForms() {
           <Select label={form.designation === 'Asst. Director of Agriculture' ? 'Division' : 'Mandal'} value={form.mandal} onChange={(value) => setField('mandal', value)} options={form.district && form.district !== 'Others' ? getMandalsForDistrict(form.district).map(toOption) : []} />
           {form.district === 'Others' && <Input label="Enter district name" value={form.manualDistrict} onChange={(value) => setField('manualDistrict', value)} />}
           {form.mandal === 'Others' && <Input label="Enter mandal name" value={form.manualMandal} onChange={(value) => setField('manualMandal', value)} />}
+          <Input label="PIN CODE" value={form.pinCode} onChange={(value) => setField('pinCode', value)} />
           <Input label="Date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
         </Card>
 
@@ -681,6 +683,11 @@ function resolveSeedValues(form) {
   // Otherwise use the auto-populated place value
   const resolvedPlace = isADA ? (form.collectionPlace || fromPlace) : (fromPlace || form.collectionPlace);
   
+  // Format district with PIN code for Form V and Form II
+  const districtWithPinCode = form.pinCode 
+    ? `${resolvedDistrict} -${form.pinCode}`
+    : resolvedDistrict;
+  
   return {
     ...form,
     place: resolvedPlace,
@@ -690,9 +697,10 @@ function resolveSeedValues(form) {
     seedClass: form.seedClass === 'Other' ? form.seedClassOther : form.seedClass,
     testRequired: form.testRequired === 'Other' ? form.testRequiredOther : form.testRequired,
     labAddress: form.labId === 'other' ? form.customLabAddress : lab.value,
-    fromAddress: [officerNameWithQualification, form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', resolvedDistrict].filter(Boolean).join('\n'),
-    senderAddress: [form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', resolvedDistrict].filter(Boolean).join('\n'),
+    fromAddress: [officerNameWithQualification, form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n'),
+    senderAddress: [form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n'),
     district: resolvedDistrict,
+    districtWithPinCode: districtWithPinCode,
   };
 }
 
@@ -790,7 +798,8 @@ function drawSeedFormVI(doc, form) {
   doc.setFontSize(PDF_BODY_SIZE);
   doc.text('To', 20, p.y);
   p.y += 7;
-  const dealerAddress = [r.dealerName, r.dealerAddress, r.place, r.district].filter(Boolean).join('\n');
+  const districtWithPin = r.districtWithPinCode ? `${r.districtWithPinCode}.` : `${r.district}.`;
+  const dealerAddress = [r.dealerName, r.dealerAddress, r.place, districtWithPin].filter(Boolean).join('\n');
   doc.text(doc.splitTextToSize(dealerAddress || '.......................................................', 170), 20, p.y);
   doc.setFont(PDF_FONT, 'normal');
   p.y += Math.max(24, doc.splitTextToSize(dealerAddress || '', 170).length * 6 + 8);
