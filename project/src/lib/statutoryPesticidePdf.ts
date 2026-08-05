@@ -288,8 +288,13 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
     dealerLocation(values)
   ].filter(Boolean);
   
+  // Only adjust cursor position upward if address has actual content to prevent overlap when empty
+  const hasAddressContent = values.dealerName || values.dealerAddress || values.premisesLocation || values.mandal || values.district;
+  if (hasAddressContent) {
+    cursor.y -= 6;
+  }
+  
   // Render as one continuous justified paragraph with first-line indent
-  cursor.y -= 6;
   renderJustifiedParagraph(cursor, paraText, boldValues);
   
   // Add consistent spacing after paragraph before numbered items
@@ -362,8 +367,8 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.y += 6;
   cursor.doc.setFont(PDF_FONT, 'bold');
   cursor.doc.text('Signature of the person from whom the sample is taken', PAGE.width / 2 + 23, cursor.y, { align: 'center' });
-  cursor.y += LINE_HEIGHT;
-  cursor.doc.text('With date and seal', PAGE.width / 2 + 23, cursor.y, { align: 'center' });
+  cursor.y += 3.1;
+  cursor.doc.text('with date and seal', PAGE.width / 2 + 23, cursor.y, { align: 'center' });
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.doc.setLineHeightFactor(1.25);
 }

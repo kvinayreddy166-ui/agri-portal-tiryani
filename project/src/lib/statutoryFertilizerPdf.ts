@@ -319,6 +319,8 @@ function createDocument(
 function drawForm(doc: JsPdfInstance, formType: FertilizerStatutoryFormType, values: FertilizerPdfValues) {
   const cursor = resetPage(doc);
 
+  if (formType === 'J') cursor.y -= 2;
+
   drawHeader(cursor, formType, values);
 
   if (formType === 'J') drawFormJ(cursor, values);
