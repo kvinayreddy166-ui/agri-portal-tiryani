@@ -765,6 +765,8 @@ function drawSeedFormV(doc, form) {
   const p = page(doc);
   title(doc, p, 'FORM V', '', 'MEMORANDUM TO GOVERNMENT ANALYST');
   drawFromTo(doc, p, r);
+  // Move bottom section upward by 4 units
+  p.y -= 4;
   para(doc, p, 'The portion of the sample described below is sent herewith for analysis under Clause (b) of Sub Section (1) of Section 14 and Clauses (b) and (c) of Sub Section (2) of Section 15 of the Seeds Act, 1966.');
   richPara(doc, p, [{ text: 'The portion of the sample has been marked by me with the following mark.', bold: true }]);
   details(doc, p, [
@@ -796,10 +798,24 @@ function drawSeedFormVI(doc, form) {
 
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(PDF_BODY_SIZE);
-  doc.text('To', 20, p.y);
+  doc.text('To:', 20, p.y);
   p.y += 7;
-  const districtWithPin = r.districtWithPinCode ? `${r.districtWithPinCode}.` : `${r.district}.`;
-  const dealerAddress = [r.dealerName, r.dealerAddress, r.place, districtWithPin].filter(Boolean).join('\n');
+  const districtWithPin = r.districtWithPinCode ? `${r.districtWithPinCode}` : `${r.district}`;
+  const mandalWithText = r.mandal ? `${r.mandal} Mandal` : '';
+  const addressLines = [r.dealerName, r.dealerAddress, r.place, mandalWithText, districtWithPin].filter(Boolean);
+  
+  // Add punctuation: commas to all lines except last, full stop to last line
+  const formattedLines = addressLines.map((line, index) => {
+    if (index === addressLines.length - 1) {
+      // Last line: add full stop if not already ending with . or ,
+      return line.endsWith('.') || line.endsWith(',') ? line : `${line}.`;
+    } else {
+      // Other lines: add comma if not already ending with , or .
+      return line.endsWith(',') || line.endsWith('.') ? line : `${line},`;
+    }
+  });
+  
+  const dealerAddress = formattedLines.join('\n');
   doc.text(doc.splitTextToSize(dealerAddress || '.......................................................', 170), 20, p.y);
   doc.setFont(PDF_FONT, 'normal');
   p.y += Math.max(24, doc.splitTextToSize(dealerAddress || '', 170).length * 6 + 8);
@@ -808,8 +824,14 @@ function drawSeedFormVI(doc, form) {
     'I hereby give you the notice of my intension to draw sample of Seed from the Stocks available at the above mentioned premises for the purpose of tests or analysis.';
   p.y += 8;
   doc.setFont(PDF_FONT, 'normal');
+  // Increase line spacing to 1.5 for notice paragraph
+  const originalLineHeightFactor = doc.getLineHeightFactor() || 1.15;
+  doc.setLineHeightFactor(1.5);
   doc.text(doc.splitTextToSize(notice, 170), 28, p.y);
-  p.y += 38;
+  doc.setLineHeightFactor(originalLineHeightFactor);
+  // Adjust height calculation for increased line spacing
+  const noticeLines = doc.splitTextToSize(notice, 170);
+  p.y += noticeLines.length * 7 * 1.5 + 8;
 
   doc.text(`Date : ${fmtDate(r.date) || '____ / ____ / ______'}`, 20, p.y);
   signatureRight(doc, Math.min(p.y + 16, 246), ['Seed Inspector/', 'Mandal Agriculture Officer']);

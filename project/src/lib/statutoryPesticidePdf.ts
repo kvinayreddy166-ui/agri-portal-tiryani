@@ -275,16 +275,16 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   const drawDate = splitDrawnDate(values);
   
   // Build one continuous paragraph with bold values
-  const paraText = `I have this ${drawDate.day} day of month ${drawDate.month} year 20${drawDate.year} taken sample from the premises of M/s ${values.dealerName || '____________________'} (Sale/stock/distribution License number ${values.authorizationLicenseNumber || '________'} dated ${formatDate(values.sampleDrawnDate) || '________'}) situated at ${dealerLocation(values) || '...........................................................'}, a sample of the insecticide specified below for the purposes of test or analysis:`;
+  const paraText = `I have this ${drawDate.day} day of month ${drawDate.month} year 20${drawDate.year} taken sample from the premises of M/s ${values.dealerName || '____________________'} (Sale/stock/distribution License number ${values.authorizationLicenseNumber || '________'} dated ${formatDate(values.licenseDate) || '________'}) situated at ${dealerLocation(values) || '...........................................................'}, a sample of the insecticide specified below for the purposes of test or analysis:`;
   
-  // Bold values: day, month, year, dealer name, authorization/license number, sample drawn date, dealer address
+  // Bold values: day, month, year, dealer name, authorization/license number, license date, dealer address
   const boldValues = [
     drawDate.day,
     drawDate.month,
     `20${drawDate.year}`,
     values.dealerName,
     values.authorizationLicenseNumber,
-    formatDate(values.sampleDrawnDate),
+    formatDate(values.licenseDate),
     dealerLocation(values)
   ].filter(Boolean);
   
@@ -324,7 +324,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.y -= 3;
   
   fieldList(cursor, [
-    ['1. Common name of the insecticide', pesticideNameWithoutTrade(values), '(Mention complete details, like type of formulation)'],
+    ['1. Common name of the insecticide', pesticideNameWithoutTrade(values), '(Mention complete details like nominal content, formulation type, etc.)'],
     ['2. Trade name, if any', values.tradeName],
     ['3. Manufactured by', values.manufacturedBy],
     ['4. Registration number', values.registrationNumber],
@@ -515,9 +515,22 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
   }
   
   const availableLabelWidth = labelWidth - serialWidth;
-  const labelLines = split(cursor, note ? `${labelText}\n${note}` : labelText, availableLabelWidth);
+  const labelLines = split(cursor, labelText, availableLabelWidth);
+  
+  // Calculate note lines separately with font 10
+  let noteLines: string[] = [];
+  let noteHeight = 0;
+  if (note) {
+    const originalFontSize = cursor.doc.getFontSize();
+    cursor.doc.setFontSize(10);
+    noteLines = split(cursor, note, availableLabelWidth);
+    noteHeight = noteLines.length * 4.5; // Tighter spacing for helper text
+    cursor.doc.setFontSize(originalFontSize);
+  }
+  
   const rows = Math.max(labelLines.length, valueLines.length, 1);
-  ensure(cursor, rows * LINE_HEIGHT + 0.5);
+  const totalHeight = rows * LINE_HEIGHT + noteHeight + 0.5;
+  ensure(cursor, totalHeight);
   
   // Render serial number separately if exists
   if (serialNumber) {
@@ -529,12 +542,20 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
   cursor.doc.text(labelLines, labelStartX, y);
   cursor.doc.text(':', x + labelWidth + 1, y);
   
+  // Render note with font 10 on new line
+  if (noteLines.length > 0) {
+    const originalFontSize = cursor.doc.getFontSize();
+    cursor.doc.setFontSize(10);
+    cursor.doc.text(noteLines, labelStartX, y + labelLines.length * 4.5);
+    cursor.doc.setFontSize(originalFontSize);
+  }
+  
   if (valueLines.length) {
     cursor.doc.text(valueLines, valueX, y);
   } else {
     drawBlank(cursor.doc, valueX, y, available);
   }
-  cursor.y += rows * LINE_HEIGHT + 0.5;
+  cursor.y += totalHeight;
 }
 
 function address(cursor: PdfCursor, label: string, value: string) {
@@ -546,6 +567,9 @@ function address(cursor: PdfCursor, label: string, value: string) {
 function addressBlock(cursor: PdfCursor, value: string, x: number, minRows: number, bold = false) {
   const lines = split(cursor, value || '', PAGE.width - PAGE.marginX - x);
   cursor.doc.setFont(PDF_FONT, bold ? 'bold' : 'normal');
+  // Increase line spacing by 0.1 for address lines
+  const originalLineHeightFactor = cursor.doc.getLineHeightFactor() || 1.15;
+  cursor.doc.setLineHeightFactor(originalLineHeightFactor + 0.1);
   if (lines.length && lines.join('').trim()) {
     ensure(cursor, Math.max(lines.length, minRows) * LINE_HEIGHT);
     cursor.doc.text(lines, x, cursor.y);
@@ -553,6 +577,7 @@ function addressBlock(cursor: PdfCursor, value: string, x: number, minRows: numb
     ensure(cursor, minRows * LINE_HEIGHT);
     for (let i = 0; i < minRows; i += 1) drawBlank(cursor.doc, x, cursor.y + i * LINE_HEIGHT, 72);
   }
+  cursor.doc.setLineHeightFactor(originalLineHeightFactor);
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.y += Math.max(lines.length || 0, minRows) * LINE_HEIGHT + 2;
 }
@@ -818,8 +843,21 @@ function buildDealerAddress(values: PesticidePdfValues) {
   const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
   const mandalWithText = resolvedMandal ? `${resolvedMandal} Mandal` : '';
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
-  const districtWithPincode = values.pincode && resolvedDistrict ? `${resolvedDistrict} - ${values.pincode}.` : resolvedDistrict;
-  return [values.dealerName, values.dealerAddress, values.premisesLocation, mandalWithText, districtWithPincode].map((part) => part.trim()).filter(Boolean).join('\n');
+  const districtWithPincode = values.pincode && resolvedDistrict ? `${resolvedDistrict} - ${values.pincode}` : resolvedDistrict;
+  const addressLines = [values.dealerName, values.dealerAddress, values.premisesLocation, mandalWithText, districtWithPincode].map((part) => part.trim()).filter(Boolean);
+  
+  // Add punctuation: commas to all lines except last, full stop to last line
+  const formattedLines = addressLines.map((line, index) => {
+    if (index === addressLines.length - 1) {
+      // Last line: add full stop if not already ending with . or ,
+      return line.endsWith('.') || line.endsWith(',') ? line : `${line}.`;
+    } else {
+      // Other lines: add comma if not already ending with , or .
+      return line.endsWith(',') || line.endsWith('.') ? line : `${line},`;
+    }
+  });
+  
+  return formattedLines.join('\n');
 }
 
 function dealerLocation(values: PesticidePdfValues) {

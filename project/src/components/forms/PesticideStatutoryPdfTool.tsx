@@ -142,6 +142,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'dealerName', label: 'DEALER / LICENSEE NAME', placeholder: 'Firm Name' },
       { key: 'dealerAddress', label: 'DEALER ADDRESS', type: 'textarea', placeholder: 'Door NO, Village/ town' },
       { key: 'authorizationLicenseNumber', label: 'AUTHORIZATION/ LICENSE NO' },
+      { key: 'licenseDate', label: 'LICENSE DATE', type: 'date' },
     ],
   },
 ];
@@ -178,6 +179,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       dealerName: '',
       dealerAddress: '',
       authorizationLicenseNumber: '',
+      licenseDate: '',
     }));
     showReset('Dealer Details Reset', 'Dealer details have been reset successfully.');
   };
@@ -294,7 +296,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     
     isSavingDraft.current = true;
     try {
-      const nextDrafts = upsertDraft(savedDrafts, { name, values, updatedAt: Date.now() });
+      const nextDrafts = upsertDraft(savedDrafts, { name, values, updatedAt: String(Date.now()) });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
       showSaved('Draft Saved Successfully', `Draft saved as ${name}`);

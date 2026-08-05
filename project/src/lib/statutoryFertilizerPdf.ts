@@ -239,7 +239,7 @@ const FORM_J_SIGNATURE_GAP = 0;
 const FORM_J_INSPECTOR_SIGNATURE_GAP = 19;
 const FORM_J_PRE_RECEIPT_SIGNATURE_LIFT = 14;
 const FORM_J_RECEIPT_DOWN_SHIFT = 78;
-const FORM_J_SIGNATURE_BOTTOM_CLEARANCE = 16;
+const FORM_J_SIGNATURE_BOTTOM_CLEARANCE = 19;
 const SIGNATURE_RIGHT_X = PAGE.width - PAGE.marginX - 8;
 
 type PdfCursor = {
@@ -580,8 +580,8 @@ function field(
   if (labelLines.length > 1) {
     // Draw first line at original position
     doc.text(labelLines[0], x, cursor.y);
-    // Calculate indent based on first space after the number prefix (e.g., "(1) ")
-    const firstSpaceMatch = labelLines[0].match(/^\(\d+\)\s+/);
+    // Calculate indent based on first space after the number prefix (e.g., "(1) " or "6. ")
+    const firstSpaceMatch = labelLines[0].match(/^\(\d+\)\s+/) || labelLines[0].match(/^\d+\.\s+/);
     const indentWidth = firstSpaceMatch ? doc.getTextWidth(firstSpaceMatch[0]) : 8;
     // Draw subsequent lines with hanging indent
     for (let i = 1; i < labelLines.length; i++) {
