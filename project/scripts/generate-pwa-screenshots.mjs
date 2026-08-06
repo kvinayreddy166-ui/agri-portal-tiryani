@@ -17,7 +17,7 @@ const svgMobile = `
   <rect width="100%" height="100%" fill="#eef6f0"/>
   <rect x="64" y="72" width="952" height="178" rx="36" fill="#0f766e"/>
   <circle cx="164" cy="161" r="50" fill="#ffffff"/>
-  <text x="240" y="150" font-family="Inter, Arial" font-size="48" font-weight="700" fill="#ffffff">Tiryani Agri</text>
+  <text x="240" y="150" font-family="Inter, Arial" font-size="48" font-weight="700" fill="#ffffff">AGRONIX</text>
   <text x="240" y="202" font-family="Inter, Arial" font-size="28" fill="#ccfbf1">Agriculture Department Digital Platform</text>
   <rect x="64" y="310" width="952" height="360" rx="32" fill="#ffffff"/>
   <text x="112" y="392" font-family="Inter, Arial" font-size="48" font-weight="700" fill="#0f172a">Dashboard</text>
@@ -50,13 +50,13 @@ const svgDesktop = `
   <rect width="100%" height="100%" fill="#eef6f0"/>
   <rect x="0" y="0" width="280" height="900" fill="#0f766e"/>
   <circle cx="72" cy="76" r="38" fill="#ffffff"/>
-  <text x="126" y="70" font-family="Inter, Arial" font-size="26" font-weight="700" fill="#ffffff">Tiryani</text>
-  <text x="126" y="102" font-family="Inter, Arial" font-size="18" fill="#ccfbf1">Agriculture Portal</text>
+  <text x="126" y="70" font-family="Inter, Arial" font-size="26" font-weight="700" fill="#ffffff">AGRONIX</text>
+  <text x="126" y="102" font-family="Inter, Arial" font-size="18" fill="#ccfbf1">Agriculture Intelligence Platform</text>
   <rect x="32" y="170" width="216" height="44" rx="14" fill="#14b8a6"/>
   <rect x="32" y="238" width="216" height="44" rx="14" fill="#0d9488"/>
   <rect x="32" y="306" width="216" height="44" rx="14" fill="#0d9488"/>
   <rect x="328" y="48" width="1048" height="172" rx="28" fill="#ffffff"/>
-  <text x="376" y="122" font-family="Inter, Arial" font-size="44" font-weight="700" fill="#0f172a">Tiryani Agriculture Portal</text>
+  <text x="376" y="122" font-family="Inter, Arial" font-size="44" font-weight="700" fill="#0f172a">AGRONIX</text>
   <text x="376" y="170" font-family="Inter, Arial" font-size="22" fill="#475569">Dashboard, farmer data, stock monitoring, reports and PDF tools</text>
   <rect x="328" y="260" width="316" height="150" rx="24" fill="#dcfce7"/>
   <rect x="682" y="260" width="316" height="150" rx="24" fill="#e0f2fe"/>

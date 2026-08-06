@@ -1,4 +1,4 @@
--- Agriculture Intelligence Database for Tiryani Agriculture Portal
+-- Agriculture Intelligence Database for AGRONIX
 -- Generated from supplied PJTAU crop PDFs plus public agricultural image/source references.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;

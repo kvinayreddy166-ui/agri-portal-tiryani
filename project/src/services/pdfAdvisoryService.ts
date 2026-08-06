@@ -10,7 +10,7 @@ export async function downloadAdvisoryPdf(
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const title = 'Crop Protection Advisory';
   const body = advisoryText(crop, item, language);
-  doc.setProperties({ title, creator: 'Tiryani Agriculture Portal' });
+  doc.setProperties({ title, creator: 'AGRONIX' });
   doc.setFont('times', 'bold');
   doc.setFontSize(16);
   doc.text(title, 105, 18, { align: 'center' });

@@ -1273,7 +1273,7 @@ async function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryL
     ? receiptExcelRow(row, index, category, unit)
     : dailyExcelRow(row, index, category, unit));
   const metadata = [
-    ['TIRYANI PORTAL EMBLEM', '', '', '', 'Tiryani Agriculture Portal'],
+    ['TIRYANI PORTAL EMBLEM', '', '', '', 'AGRONIX'],
     ['Firm Name', firmName, '', '', 'Official Dealer Stock Register'],
     ['Category', CATEGORY_LABELS[category], '', '', `Generated: ${new Date().toLocaleString('en-IN')}`],
   ];

@@ -1,5 +1,5 @@
 /*
-  # Tiryani Agriculture Portal - Initial Schema
+  # AGRONIX - Initial Schema
 
   1. New Tables
     - `dealers` - Dealer information with license details
@@ -336,7 +336,7 @@ ON CONFLICT (section_name) DO NOTHING;
 
 -- Insert default settings
 INSERT INTO settings (setting_key, setting_value) VALUES
-  ('site_name', 'Tiryani Agriculture Portal'),
+  ('site_name', 'AGRONIX'),
   ('district', 'Kumram Bheem Asifabad District'),
   ('division', 'Asifabad Division'),
   ('mandal', 'Tiryani Mandal'),

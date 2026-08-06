@@ -179,7 +179,7 @@ function createDocument(
   title: string
 ) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-  doc.setProperties({ title, subject: 'Pesticide statutory sampling form', creator: 'Tiryani Agriculture Portal' });
+  doc.setProperties({ title, subject: 'Pesticide statutory sampling form', creator: 'AGRONIX' });
   return doc;
 }
 
@@ -242,7 +242,11 @@ function drawFormVE(cursor: PdfCursor, values: PesticidePdfValues) {
   paragraphWithHangingIndent(cursor, '3. A copy of this Memorandum along with a Form V (D) has been sent separately with the sample by Registered Post or by hand.');
   cursor.y += 5;
   cursor.y = Math.max(cursor.y + 12, 216);
-  signatureLine(cursor, `Date: ${formatDate(values.sampleDrawnDate)}`, 'Insecticide Inspector');
+  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  signatureLine(cursor, `Place: ${resolvedMandal || '________________'}\nDate: ${formatDate(values.sampleDrawnDate)}`, 'Insecticide Inspector');
+  cursor.y += 1;
+  cursor.doc.text('(Signature & seal)', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
+  cursor.y += LINE_HEIGHT;
 }
 
 function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {

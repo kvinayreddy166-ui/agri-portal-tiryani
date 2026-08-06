@@ -3,8 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 
 const SITE_URL = 'https://www.tiryaniagriportal.in';
-const SITE_NAME = 'Tiryani Agri Portal';
-const DEFAULT_DESCRIPTION = 'Official Agriculture Department Portal for Tiryani Mandal, Kumram Bheem Asifabad District, Telangana. Farmer services, crop advisory, fertilizer calculator, dealer monitoring, statutory forms, and agriculture schemes.';
+const SITE_NAME = 'AGRONIX';
+const DEFAULT_DESCRIPTION = 'AGRONIX - Agriculture Intelligence Platform';
 
 interface SEOProps {
   title?: string;
@@ -16,135 +16,135 @@ interface SEOProps {
 
 const PAGE_SEO: Record<string, { title: string; description: string }> = {
   '/': {
-    title: 'Tiryani Agri Portal | Agriculture Department, Tiryani',
-    description: 'Official Agriculture Department Portal for Tiryani Mandal. Farmer database, crop advisory, fertilizer calculator, dealer monitoring, statutory forms, and government schemes.',
+    title: 'AGRONIX',
+    description: 'AGRONIX - Agriculture Intelligence Platform. Farmer database, crop advisory, fertilizer calculator, dealer monitoring, statutory forms, and government schemes.',
   },
   '/dashboard': {
-    title: 'Dashboard | Tiryani Agri Portal',
+    title: 'Dashboard | AGRONIX',
     description: 'Access your dashboard for farmer services, crop advisory, stock inventory, and agriculture department tools.',
   },
   '/dealers': {
-    title: 'Dealer Management | Tiryani Agri Portal',
+    title: 'Dealer Management | AGRONIX',
     description: 'Monitor fertilizer dealers, stock inventory, and distribution in Tiryani Mandal, Telangana.',
   },
   '/farmer-database': {
-    title: 'Farmer Database | Tiryani Agri Portal',
+    title: 'Farmer Database | AGRONIX',
     description: 'Comprehensive farmer database for Tiryani Mandal with land records, crop details, and government scheme eligibility.',
   },
   '/crops': {
-    title: 'Crop Management | Tiryani Agri Portal',
+    title: 'Crop Management | AGRONIX',
     description: 'Crop advisory, pest management, and cultivation guidance for farmers in Tiryani Mandal, Telangana.',
   },
   '/crop-cotton': {
-    title: 'Cotton Crop Advisory | Tiryani Agri Portal',
+    title: 'Cotton Crop Advisory | AGRONIX',
     description: 'Cotton cultivation guidance, pest management, and market information for Tiryani farmers.',
   },
   '/crop-paddy': {
-    title: 'Paddy Crop Advisory | Tiryani Agri Portal',
+    title: 'Paddy Crop Advisory | AGRONIX',
     description: 'Paddy cultivation guidance, pest management, and market information for Tiryani farmers.',
   },
   '/crop-maize': {
-    title: 'Maize Crop Advisory | Tiryani Agri Portal',
+    title: 'Maize Crop Advisory | AGRONIX',
     description: 'Maize cultivation guidance, pest management, and market information for Tiryani farmers.',
   },
   '/crop-pulses': {
-    title: 'Pulses Crop Advisory | Tiryani Agri Portal',
+    title: 'Pulses Crop Advisory | AGRONIX',
     description: 'Pulses cultivation guidance, pest management, and market information for Tiryani farmers.',
   },
   '/crop-oilseeds': {
-    title: 'Oilseeds Crop Advisory | Tiryani Agri Portal',
+    title: 'Oilseeds Crop Advisory | AGRONIX',
     description: 'Oilseeds cultivation guidance, pest management, and market information for Tiryani farmers.',
   },
   '/forms': {
-    title: 'Forms Downloads | Tiryani Agri Portal',
+    title: 'Forms Downloads | AGRONIX',
     description: 'Download agriculture department forms, statutory forms, and application templates for farmers and dealers.',
   },
   '/gos-circulars': {
-    title: 'GOs & Circulars | Tiryani Agri Portal',
+    title: 'GOs & Circulars | AGRONIX',
     description: 'Government orders, circulars, and notifications from Telangana Agriculture Department.',
   },
   '/quality': {
-    title: 'Quality Control | Tiryani Agri Portal',
+    title: 'Quality Control | AGRONIX',
     description: 'Quality control for seeds, fertilizers, and pesticides in Tiryani Mandal.',
   },
   '/quality-seeds': {
-    title: 'Seed Quality Control | Tiryani Agri Portal',
+    title: 'Seed Quality Control | AGRONIX',
     description: 'Seed sampling, testing, and quality certification services for Tiryani farmers.',
   },
   '/quality-pesticides': {
-    title: 'Pesticide Quality Control | Tiryani Agri Portal',
+    title: 'Pesticide Quality Control | AGRONIX',
     description: 'Pesticide sampling, testing, and quality monitoring in Tiryani Mandal.',
   },
   '/quality-fertilizers': {
-    title: 'Fertilizer Quality Control | Tiryani Agri Portal',
+    title: 'Fertilizer Quality Control | AGRONIX',
     description: 'Fertilizer sampling, testing, and quality monitoring services in Tiryani Mandal.',
   },
   '/farm-mechanization': {
-    title: 'Farm Mechanization | Tiryani Agri Portal',
+    title: 'Farm Mechanization | AGRONIX',
     description: 'Farm machinery, equipment, and mechanization services for Tiryani farmers.',
   },
   '/excel': {
-    title: 'Excel Uploads | Tiryani Agri Portal',
+    title: 'Excel Uploads | AGRONIX',
     description: 'Upload and manage Excel data for farmer database, stock inventory, and agriculture records.',
   },
   '/file-directory': {
-    title: 'File Directory | Tiryani Agri Portal',
+    title: 'File Directory | AGRONIX',
     description: 'Access agriculture department files, documents, and resources for Tiryani Mandal.',
   },
   '/subsidy': {
-    title: 'Subsidy Tracking | Tiryani Agri Portal',
+    title: 'Subsidy Tracking | AGRONIX',
     description: 'Track government subsidies, NFSM, and state seed subsidies for Tiryani farmers.',
   },
   '/officer-toolkit': {
-    title: 'Officer Toolkit | Tiryani Agri Portal',
+    title: 'Officer Toolkit | AGRONIX',
     description: 'Tools for agriculture officers including calculators, statutory forms, and legal ready reckoner.',
   },
   '/officer-toolkit/farm-calculators': {
-    title: 'Farm Calculators | Tiryani Agri Portal',
+    title: 'Farm Calculators | AGRONIX',
     description: 'Acreage calculator, seed rate calculator, plant population calculator for Tiryani farmers.',
   },
   '/officer-toolkit/fertilizer-calculator': {
-    title: 'Fertilizer Calculator | Tiryani Agri Portal',
+    title: 'Fertilizer Calculator | AGRONIX',
     description: 'Calculate fertilizer requirements based on crop, soil, and area for Tiryani farmers.',
   },
   '/officer-toolkit/crop-protection': {
-    title: 'Crop Protection Tool | Tiryani Agri Portal',
+    title: 'Crop Protection Tool | AGRONIX',
     description: 'Pesticide calculator and crop protection guidance for Tiryani farmers.',
   },
   '/officer-toolkit/pesticide-calculator': {
-    title: 'Pesticide Calculator | Tiryani Agri Portal',
+    title: 'Pesticide Calculator | AGRONIX',
     description: 'Calculate pesticide dosage and application rates for crop protection in Tiryani.',
   },
   '/officer-toolkit/plant-population-calculator': {
-    title: 'Plant Population Calculator | Tiryani Agri Portal',
+    title: 'Plant Population Calculator | AGRONIX',
     description: 'Calculate optimal plant population for various crops in Tiryani Mandal.',
   },
   '/officer-toolkit/seed-rate-calculator': {
-    title: 'Seed Rate Calculator | Tiryani Agri Portal',
+    title: 'Seed Rate Calculator | AGRONIX',
     description: 'Calculate seed requirements based on area and crop variety for Tiryani farmers.',
   },
   '/officer-toolkit/legal-ready-reckoner': {
-    title: 'Legal Ready Reckoner | Tiryani Agri Portal',
+    title: 'Legal Ready Reckoner | AGRONIX',
     description: 'Agriculture laws, FCO clauses, offences, and legal reference for officers and farmers.',
   },
   '/analytics': {
-    title: 'Analytics | Tiryani Agri Portal',
+    title: 'Analytics | AGRONIX',
     description: 'Agriculture analytics, reports, and data insights for Tiryani Mandal.',
   },
   '/settings': {
-    title: 'Settings | Tiryani Agri Portal',
+    title: 'Settings | AGRONIX',
     description: 'Manage your account settings, preferences, and profile information.',
   },
   '/dealer-portal': {
-    title: 'Dealer Stock Portal | Tiryani Agri Portal',
+    title: 'Dealer Stock Portal | AGRONIX',
     description: 'Fertilizer dealer stock management, inventory tracking, and reporting system.',
   },
   '/stock-analytics': {
-    title: 'Stock Analytics | Tiryani Agri Portal',
+    title: 'Stock Analytics | AGRONIX',
     description: 'Fertilizer stock analytics, trends, and inventory insights for Tiryani Mandal.',
   },
   '/stock-receipts-sales': {
-    title: 'Stock Receipts & Sales | Tiryani Agri Portal',
+    title: 'Stock Receipts & Sales | AGRONIX',
     description: 'Track fertilizer stock receipts, sales, and distribution in Tiryani Mandal.',
   },
 };
@@ -163,7 +163,7 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: SITE_NAME,
-    alternateName: 'Tiryani Agriculture Portal',
+    alternateName: 'AGRONIX',
     url: SITE_URL,
     description: DEFAULT_DESCRIPTION,
     publisher: {
@@ -207,7 +207,7 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
       <meta name="twitter:image" content={pageImage} />
       
       {/* Additional SEO */}
-      <meta name="keywords" content="Tiryani, Tiryani Agri Portal, Agriculture Department Tiryani, Kumuram Bheem Asifabad, Telangana Agriculture, Crop Advisory, Weather, Farmer Services, Agriculture Portal, Government Schemes" />
+      <meta name="keywords" content="Tiryani, AGRONIX, Agriculture Department Tiryani, Kumuram Bheem Asifabad, Telangana Agriculture, Crop Advisory, Weather, Farmer Services, Agriculture Portal, Government Schemes" />
       <meta name="author" content="Department of Agriculture, Telangana" />
       <meta name="theme-color" content="#0f766e" />
       
@@ -243,7 +243,7 @@ export function OrganizationSchema() {
     '@context': 'https://schema.org',
     '@type': 'GovernmentOrganization',
     name: 'Department of Agriculture, Telangana',
-    alternateName: 'Tiryani Agriculture Department',
+    alternateName: 'AGRONIX',
     url: SITE_URL,
     logo: `${SITE_URL}/images/agri-emerald-512.webp`,
     description: 'Agriculture Department serving Tiryani Mandal, Kumram Bheem Asifabad District, Telangana',

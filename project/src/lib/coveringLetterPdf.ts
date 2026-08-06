@@ -20,34 +20,43 @@ type CoveringLetterMetadata = {
 };
 
 const PAGE = {
-  marginX: 20,
-  top: 20,
-  bottom: 277,
+  marginX: 40,
+  top: 40,
+  bottom: 257,
   width: 210,
   height: 297,
-  contentWidth: 170,
+  contentWidth: 130,
 };
 
-const PDF_FONT = 'times';
-const BODY_SIZE = 10;
-const TITLE_SIZE = 13;
-const HEADER_SIZE = 13;
-const ROW_LINE_HEIGHT = 5;
+const PDF_FONT = 'bookantiqua';
+const BODY_SIZE = 12;
+const TITLE_SIZE = 12;
+const HEADER_SIZE = 12;
+const ROW_LINE_HEIGHT = 6.5;
 const FIRST_LINE_INDENT = 8;
-const PARAGRAPH_SPACING = 2;
+const PARAGRAPH_SPACING = 3;
 
 function addWrappedText(cursor: PdfCursor, label: string, text: string) {
   const { doc } = cursor;
-  const labelWidth = 18;
+  const labelWidth = 25;
   const x = PAGE.marginX;
 
   doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(BODY_SIZE);
   doc.text(label, x, cursor.y);
 
   doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(BODY_SIZE);
 
   const lines = doc.splitTextToSize(text, cursor.contentWidth - labelWidth);
-  doc.text(lines, x + labelWidth, cursor.y);
+  
+  // Draw first line at label position
+  doc.text(lines[0], x + labelWidth, cursor.y);
+  
+  // Draw remaining lines with hanging indent
+  for (let i = 1; i < lines.length; i++) {
+    doc.text(lines[i], x + labelWidth, cursor.y + i * ROW_LINE_HEIGHT);
+  }
 
   cursor.y += lines.length * ROW_LINE_HEIGHT;
   return cursor;
@@ -116,7 +125,7 @@ function createDocument(
   doc.setProperties({
     title,
     subject: 'Covering Letter for Fertilizer Sample Submission',
-    creator: 'Tiryani Agriculture Portal',
+    creator: 'AGRONIX',
   });
   return doc;
 }
@@ -127,11 +136,11 @@ function drawGovernmentHeader(cursor: PdfCursor) {
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(HEADER_SIZE);
   doc.text('GOVERNMENT OF TELANGANA', PAGE.width / 2, cursor.y, { align: 'center' });
-  cursor.y += 5;
+  cursor.y += 7;
   
   doc.setFontSize(TITLE_SIZE);
   doc.text('DEPARTMENT OF AGRICULTURE', PAGE.width / 2, cursor.y, { align: 'center' });
-  cursor.y += 5;
+  cursor.y += 7;
   
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(BODY_SIZE);
@@ -140,9 +149,9 @@ function drawGovernmentHeader(cursor: PdfCursor) {
 function drawFromToSections(cursor: PdfCursor, metadata: CoveringLetterMetadata, officerDetails?: { mandal: string; district: string; officerName: string; phone: string }) {
   const { doc } = cursor;
   
-  const leftColumnX = 20;
-  const rightColumnX = 110;
-  const columnWidth = 80;
+  const leftColumnX = PAGE.marginX;
+  const rightColumnX = PAGE.width / 2 + 10;
+  const columnWidth = PAGE.width / 2 - 50;
   const startY = cursor.y;
   
   // From section - left aligned
@@ -197,21 +206,19 @@ function drawFromToSections(cursor: PdfCursor, metadata: CoveringLetterMetadata,
     currentY += ROW_LINE_HEIGHT;
   });
   
-  cursor.y = currentY + 1;
+  cursor.y = currentY + 2;
 }
 
 function drawLetterDetails(cursor: PdfCursor, metadata: CoveringLetterMetadata) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(BODY_SIZE);
   const lrNoText = `Lr No: ${metadata.letterNumber || '_________'}`;
   doc.text(lrNoText, PAGE.width / 2, cursor.y, { align: 'center' });
-  const lrNoWidth = doc.getTextWidth(lrNoText);
-  doc.setDrawColor(0);
-  doc.line(PAGE.width / 2 - lrNoWidth / 2, cursor.y + 0.5, PAGE.width / 2 + lrNoWidth / 2, cursor.y + 0.5);
   const formattedDate = formatDate(metadata.letterDate);
   doc.text(`Date: ${formattedDate || '_________'}`, PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
-  cursor.y += ROW_LINE_HEIGHT + 2;
+  cursor.y += ROW_LINE_HEIGHT + 3;
 }
 
 function drawSubject(cursor: PdfCursor) {
@@ -231,8 +238,8 @@ function drawBody(cursor: PdfCursor, officerDetails?: { mandal: string; district
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(10);
-  doc.setLineHeightFactor(1.25);
+  doc.setFontSize(BODY_SIZE);
+  doc.setLineHeightFactor(1.3);
   const mandal = officerDetails?.mandal || getFromLocalStorage('mandal') || '{{Mandal}}';
   const district = officerDetails?.district || getFromLocalStorage('district') || '{{District}}';
   
@@ -290,39 +297,39 @@ function drawSampleTable(cursor: PdfCursor, queue: CoveringLetterQueueItem[]) {
     body: tableData,
     theme: 'grid',
     margin: {
-      left: 20,
-      right: 20
+      left: PAGE.marginX,
+      right: PAGE.marginX
     },
     styles: {
-      font: 'times',
-      fontSize: 9,
-      cellPadding: 1.5,
+      font: PDF_FONT,
+      fontSize: 10,
+      cellPadding: 2,
       lineWidth: 0.3,
       lineColor: [0, 0, 0],
       valign: 'middle',
       halign: 'center',
       overflow: 'linebreak',
-      minCellHeight: 7
+      minCellHeight: 8
     },
     headStyles: {
       fontStyle: 'bold',
-      fontSize: 9,
+      fontSize: 10,
       fillColor: [255, 255, 255],
       textColor: [0, 0, 0],
       halign: 'center',
       valign: 'middle',
-      minCellHeight: 8
+      minCellHeight: 10
     },
     bodyStyles: {
       valign: 'middle',
       halign: 'center'
     },
     columnStyles: {
-      0: { cellWidth: 18 },
-      1: { cellWidth: 70, halign: 'left' },
+      0: { cellWidth: 20 },
+      1: { cellWidth: 60, halign: 'left' },
       2: { cellWidth: 30 },
       3: { cellWidth: 25 },
-      4: { cellWidth: 27 }
+      4: { cellWidth: 25 }
     },
     pageBreak: 'avoid',
     rowPageBreak: 'avoid'
@@ -335,6 +342,8 @@ function drawClosing(cursor: PdfCursor) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(BODY_SIZE);
+  doc.setLineHeightFactor(1.3);
   const closingText = 'It is requested that the above fertilizer samples may kindly be analysed and the analysis reports may be communicated to this office as on early date.';
   const closingLines = doc.splitTextToSize(closingText, cursor.contentWidth);
   doc.text(closingLines, PAGE.marginX, cursor.y);
@@ -345,10 +354,12 @@ function drawEnclosures(cursor: PdfCursor, sampleCount: number) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(BODY_SIZE);
   doc.text('Enclosures:', PAGE.marginX, cursor.y);
   cursor.y += ROW_LINE_HEIGHT;
   
   doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(BODY_SIZE);
   doc.text(`1. Form K – ${sampleCount} Nos.`, PAGE.marginX, cursor.y);
   cursor.y += ROW_LINE_HEIGHT + 3;
 }
@@ -356,18 +367,21 @@ function drawEnclosures(cursor: PdfCursor, sampleCount: number) {
 function drawSignature(cursor: PdfCursor) {
   const { doc } = cursor;
   
-  const signatureY = cursor.y + 12;
+  const signatureY = cursor.y + 15;
+  const signatureX = PAGE.width - PAGE.marginX - 10;
   
   doc.setFont(PDF_FONT, 'normal');
-  doc.text('Yours faithfully,', PAGE.width - PAGE.marginX, signatureY, { align: 'right' });
+  doc.setFontSize(BODY_SIZE);
+  doc.text('Yours faithfully,', signatureX, signatureY, { align: 'right' });
   cursor.y = signatureY + ROW_LINE_HEIGHT;
   
   doc.setFont(PDF_FONT, 'bold');
-  doc.text('Mandal Agriculture Officer', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
+  doc.setFontSize(BODY_SIZE);
+  doc.text('Mandal Agriculture Officer', signatureX, cursor.y, { align: 'right' });
   cursor.y += ROW_LINE_HEIGHT;
-  doc.text('&', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
+  doc.text('&', signatureX, cursor.y, { align: 'right' });
   cursor.y += ROW_LINE_HEIGHT;
-  doc.text('Fertilizer Inspector', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
+  doc.text('Fertilizer Inspector', signatureX, cursor.y, { align: 'right' });
   cursor.y += ROW_LINE_HEIGHT + 3;
 }
 
@@ -375,12 +389,12 @@ function drawCopies(cursor: PdfCursor, officerDetails?: { mandal: string; distri
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(9);
+  doc.setFontSize(BODY_SIZE);
   doc.text('Copies Submitted to:', PAGE.marginX, cursor.y);
   cursor.y += ROW_LINE_HEIGHT;
   
   doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(9);
+  doc.setFontSize(BODY_SIZE);
   const district = officerDetails?.district || getFromLocalStorage('district') || '{{District}}';
   doc.text(`1. The DAO, ${district} District, For favour of kind information.`, PAGE.marginX + 5, cursor.y);
   cursor.y += ROW_LINE_HEIGHT;

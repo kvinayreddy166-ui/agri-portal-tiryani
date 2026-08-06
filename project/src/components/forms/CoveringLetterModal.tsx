@@ -30,18 +30,18 @@ const financialYears = [
   `${currentYear + 1}-${(currentYear + 2).toString().slice(-2)}`,
 ];
 
-export function CoveringLetterModal({ isOpen, onClose, officerDetails }: { isOpen: boolean; onClose: () => void; officerDetails?: { mandal: string; district: string; officerName: string; phone: string } }) {
+export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails }: { isOpen: boolean; onClose: () => void; officerDetails?: { mandal: string; district: string; officerName: string; phone: string }; coveringLetterDetails?: { financialYear: string; letterNumber: string; letterDate: string; authorityType: 'DAO' | 'ADA'; memoNumber: string; memoDate: string; division: string; officerPhone: string } }) {
   const [queue, setQueue] = useState<CoveringLetterQueueItem[]>([]);
   const [showMetadataDialog, setShowMetadataDialog] = useState(false);
   const [metadata, setMetadata] = useState<CoveringLetterMetadata>({
-    year: financialYears[0],
-    letterNumber: '',
-    letterDate: new Date().toISOString().slice(0, 10),
-    authorityType: 'DAO',
-    daoMemoNumber: '',
-    daoMemoDate: '',
-    division: '',
-    officePhone: '',
+    year: coveringLetterDetails?.financialYear || financialYears[0],
+    letterNumber: coveringLetterDetails?.letterNumber || '',
+    letterDate: coveringLetterDetails?.letterDate || new Date().toISOString().slice(0, 10),
+    authorityType: coveringLetterDetails?.authorityType || 'DAO',
+    daoMemoNumber: coveringLetterDetails?.memoNumber || '',
+    daoMemoDate: coveringLetterDetails?.memoDate || '',
+    division: coveringLetterDetails?.division || '',
+    officePhone: coveringLetterDetails?.officerPhone || '',
   });
   const [message, setMessage] = useState<string | null>(null);
   const [showClearDialog, setShowClearDialog] = useState(false);
@@ -52,8 +52,21 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails }: { isOpe
     if (isOpen) {
       loadQueue();
       loadLastGeneratedPdf();
+      // Update metadata from covering letter details when modal opens
+      if (coveringLetterDetails) {
+        setMetadata({
+          year: coveringLetterDetails.financialYear,
+          letterNumber: coveringLetterDetails.letterNumber,
+          letterDate: coveringLetterDetails.letterDate,
+          authorityType: coveringLetterDetails.authorityType,
+          daoMemoNumber: coveringLetterDetails.memoNumber,
+          daoMemoDate: coveringLetterDetails.memoDate,
+          division: coveringLetterDetails.division,
+          officePhone: coveringLetterDetails.officerPhone,
+        });
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, coveringLetterDetails]);
 
   const loadQueue = () => {
     try {

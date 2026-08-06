@@ -256,7 +256,7 @@ export function StockInventory() {
     const XLSX = await import('xlsx');
     const quantityUnit = category === 'fertilizer' ? (fertilizerQtyUnit === 'bags' ? 'Bags' : 'MT') : '';
     const metadataRows = [
-      ['Tiryani Agriculture Portal'],
+      ['AGRONIX'],
       ['Dealer Daily Stock Inventory'],
       ['Category', titleCase(category)],
       ['Financial Year', financialYear],

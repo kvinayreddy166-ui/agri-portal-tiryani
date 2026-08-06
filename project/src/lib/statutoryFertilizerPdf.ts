@@ -99,6 +99,15 @@ export type FertilizerPdfValues = {
   manualDistrict: string;
   manualMandal: string;
   pinCode: string;
+  // Covering Letter Details
+  financialYear: string;
+  letterNumber: string;
+  letterDate: string;
+  authorityType: 'DAO' | 'ADA';
+  memoNumber: string;
+  memoDate: string;
+  division: string;
+  officerPhone: string;
 };
 
 export const FERTILIZER_K_ADDRESS_OPTIONS = {
@@ -209,7 +218,30 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   manualDistrict: '',
   manualMandal: '',
   pinCode: '',
+  // Covering Letter Details
+  financialYear: calculateFinancialYear(),
+  letterNumber: '',
+  letterDate: new Date().toISOString().slice(0, 10),
+  authorityType: 'DAO',
+  memoNumber: '',
+  memoDate: '',
+  division: '',
+  officerPhone: '',
 };
+
+function calculateFinancialYear(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-indexed (0 = January)
+  // Financial year starts on April 1st
+  // If month is Jan-Mar (0-2), financial year is previous year - current year
+  // If month is Apr-Dec (3-11), financial year is current year - next year
+  if (month < 3) {
+    return `${year - 1}-${String(year).slice(-2)}`;
+  } else {
+    return `${year}-${String(year + 1).slice(-2)}`;
+  }
+}
 
 export const fertilizerFormTitles: Record<FertilizerStatutoryFormType, string> = {
   J: 'FORM J',
@@ -311,7 +343,7 @@ function createDocument(
   doc.setProperties({
     title,
     subject: 'Statutory fertilizer sampling form',
-    creator: 'Tiryani Agriculture Portal',
+    creator: 'AGRONIX',
   });
   return doc;
 }
@@ -713,7 +745,7 @@ function formatDate(value: string) {
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-function resolveFertilizerTypeGrade(values: FertilizerPdfValues): string {
+export function resolveFertilizerTypeGrade(values: FertilizerPdfValues): string {
   if (values.fertilizerCategory === 'Micro Nutrient Fertilizers') {
     if (values.microNutrientTypeGrade === 'Other') {
       return values.manualMicroNutrientTypeGrade;

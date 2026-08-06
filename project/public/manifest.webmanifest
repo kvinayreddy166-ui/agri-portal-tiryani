@@ -1,8 +1,8 @@
 {
-  "name": "Tiryani Agri Portal",
-  "short_name": "Tiryani Agri",
+  "name": "AGRONIX",
+  "short_name": "AGRONIX",
   "id": "/",
-  "description": "Official Agriculture Department Portal for Tiryani Mandal, Kumram Bheem Asifabad District, Telangana",
+  "description": "AGRONIX - Agriculture Intelligence Platform",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

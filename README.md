@@ -1,4 +1,4 @@
-# Tiryani Agriculture Portal
+# AGRONIX
 
 Bilingual (English / Telugu) **Information Management System** for the **Mandal Agricultural Office (MAO), Tiryani**, Kumram Bheem Asifabad District, Telangana. Developed and maintained for field operations, farmer services, dealer regulation, subsidy tracking, and document management.
 

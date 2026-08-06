@@ -716,7 +716,7 @@ function validateSeedForm(form, kind) {
 async function buildSeedPdf(kind, form) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  doc.setProperties({ title: `Seed Form ${kind}`, creator: 'Tiryani Agriculture Portal' });
+  doc.setProperties({ title: `Seed Form ${kind}`, creator: 'AGRONIX' });
 
   if (kind === 'ALL') {
     if (isCottonSeedForm(form)) {
@@ -852,7 +852,6 @@ function drawSeedFormVIII(doc, form) {
   ]);
   doc.setFont(PDF_FONT, 'bold');
   doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 28, p.y);
-  p.y += 8;
   doc.text('Seed Inspector', 176, p.y, { align: 'right' });
   doc.setFont(PDF_FONT, 'normal');
   p.y += 16;
@@ -900,7 +899,7 @@ function drawInfoSlips(doc, form, addPageBefore) {
 function drawInformationSlip(doc, form) {
   const r = resolveSeedValues(form);
   const p = page(doc);
-  title(doc, p, 'INFORMATION TO ACCOMPANY THE SAMPLE', '', 'INFORMATION SLIP');
+  title(doc, p, 'INFORMATION TO ACCOMPANY THE SAMPLE', '', '');
   p.y += 4;
   details(doc, p, [
     ['1. Date of sampling', fmtDate(r.collectionDate)],
@@ -928,17 +927,23 @@ function title(doc, p, heading, subheading, titleText) {
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(PDF_TITLE_SIZE);
   doc.text(heading, 105, p.y, { align: 'center' });
+  const headingWidth = doc.getTextWidth(heading);
+  doc.line(105 - headingWidth / 2, p.y + 2, 105 + headingWidth / 2, p.y + 2);
   p.y += 8;
   if (subheading) {
     doc.setFontSize(PDF_BODY_SIZE);
     doc.text(subheading, 105, p.y, { align: 'center' });
     p.y += 8;
   }
-  doc.setFontSize(PDF_SUBTITLE_SIZE);
-  doc.text(titleText, 105, p.y, { align: 'center' });
-  const textWidth = doc.getTextWidth(titleText);
-  doc.line(105 - textWidth / 2, p.y + 2, 105 + textWidth / 2, p.y + 2);
-  p.y += 14;
+  if (titleText) {
+    doc.setFontSize(PDF_SUBTITLE_SIZE);
+    doc.text(titleText, 105, p.y, { align: 'center' });
+    const textWidth = doc.getTextWidth(titleText);
+    doc.line(105 - textWidth / 2, p.y + 2, 105 + textWidth / 2, p.y + 2);
+    p.y += 14;
+  } else {
+    p.y += 6;
+  }
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(PDF_BODY_SIZE);
 }
