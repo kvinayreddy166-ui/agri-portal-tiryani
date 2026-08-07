@@ -24,7 +24,7 @@ import {
   getMandalsForDistrict,
 } from '../../data/telanganaDistrictMandalData';
 
-const showCoveringLetter = import.meta.env.DEV;
+const showCoveringLetter = true;
 
 type FieldConfig = {
   key: keyof FertilizerPdfValues;
