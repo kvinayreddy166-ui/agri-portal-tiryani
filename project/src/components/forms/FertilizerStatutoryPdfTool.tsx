@@ -46,10 +46,27 @@ type SectionConfig = {
 
 const STORAGE_KEY = 'tiryani-fertilizer-forms-draft';
 const DRAFTS_KEY = 'tiryani-fertilizer-forms-named-drafts';
-const LAST_GENERATED_KEY = 'tiryani-fertilizer-forms-last-generated';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
-const DUPLICATE_WARNING_MESSAGE =
-  'You are generating a file with the same previous sample/dealer details. Please verify whether new sample details or dealer details are required before downloading.';
+
+function getDefaultQuantity(values: FertilizerPdfValues): string {
+  if (values.fertilizerCategory === 'Macro Nutrient Fertilizers') {
+    return '400';
+  } else if (values.fertilizerCategory === 'Micro Nutrient Fertilizers') {
+    // Check if it's a chelated micro nutrient
+    const chelatedTypes = [
+      'Chelated Iron as Fe-EDTA (Fe 12%)',
+      'Chelated Zinc as Zn-EDTA (Zn 12%)',
+      'Mn EDTA (Mn 13%)',
+    ];
+    if (chelatedTypes.includes(values.microNutrientTypeGrade) || values.microNutrientTypeGrade?.includes('EDTA')) {
+      return '50'; // Chelated micro nutrients 50g
+    }
+    return '100'; // Non-chelated micro nutrients 100g
+  } else if (values.fertilizerCategory === 'Water Soluble Fertilizers') {
+    return '100';
+  }
+  return values.stockPosition.trim() || ''; // Fallback to stock position if category doesn't match
+}
 
 type CoveringLetterQueueItem = {
   sampleCode: string;
@@ -536,11 +553,17 @@ const fertilizerFieldSections: SectionConfig[] = [
 ];
 
 export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void }) {
-  console.log('FertilizerStatutoryPdfTool mounted');
+  console.log('FertilizerStatutoryPdfTool mounted, showCoveringLetter:', import.meta.env.DEV);
   const [error, setError] = useState<string | null>(null);
   const [formType, setFormType] = useState<FertilizerStatutoryFormType>('J');
   const [showInstructionModal, setShowInstructionModal] = useState(true);
   const [showCoveringLetterModal, setShowCoveringLetterModal] = useState(false);
+
+  useEffect(() => {
+    console.log('showCoveringLetterModal changed:', showCoveringLetterModal);
+  }, [showCoveringLetterModal]);
+  const [showDownloadAllDialog, setShowDownloadAllDialog] = useState(false);
+  const [addToCoveringLetterChecked, setAddToCoveringLetterChecked] = useState(true);
   const [values, setValues] = useState<FertilizerPdfValues>(() => {
     try {
       console.log('Loading initial values');
@@ -566,16 +589,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     }
   });
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | 'downloadAll' | null>(null);
-  const [duplicateAction, setDuplicateAction] = useState<
-    | { type: 'preview'; formType: FertilizerStatutoryFormType }
-    | { type: 'download'; formType: FertilizerStatutoryFormType }
-    | { type: 'previewAll' }
-    | { type: 'downloadAll' }
-    | null
-  >(null);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(showCoveringLetter ? ['COVERING LETTER DETAILS'] : []));
-  const [highlightDetails, setHighlightDetails] = useState(false);
-  const dealerDetailsRef = useRef<HTMLDivElement | null>(null);
   const allFields = useMemo(() => fertilizerFieldSections, []);
   const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded } = useToast();
 
@@ -912,7 +926,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     try {
       const doc = await generateFertilizerStatutoryPdf(type, values);
       openFertilizerDocInTab(doc, getFertilizerPdfFileName(type, values), targetWindow);
-      rememberFertilizerGeneratedData(values);
       setFormType(type);
       showInfo('Preview Opened', 'PDF preview opened in a new tab.');
     } catch (error) {
@@ -936,7 +949,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     try {
       const doc = await generateAllFertilizerStatutoryPdf(values);
       openFertilizerDocInTab(doc, getAllFertilizerPdfFileName(values), targetWindow);
-      rememberFertilizerGeneratedData(values);
       showInfo('Preview Opened', 'All forms preview opened in a new tab.');
     } catch (error) {
       console.error('Unable to preview all fertilizer PDFs:', error);
@@ -959,7 +971,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       const doc = await generateFertilizerStatutoryPdf(type, values);
       const fileName = getFertilizerPdfFileName(type, values);
       downloadFertilizerDoc(doc, fileName);
-      rememberFertilizerGeneratedData(values);
       setFormType(type);
       showSuccess('PDF Downloaded Successfully', fileName);
     } catch (error) {
@@ -971,10 +982,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const downloadPdf = async (type = formType) => {
-    if (isDuplicateFertilizerGeneration(values)) {
-      setDuplicateAction({ type: 'download', formType: type });
-      return;
-    }
     await completeDownloadPdf(type);
   };
 
@@ -986,7 +993,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       const doc = await generateAllFertilizerStatutoryPdf(values);
       const fileName = getAllFertilizerPdfFileName(values);
       downloadFertilizerDoc(doc, fileName);
-      rememberFertilizerGeneratedData(values);
       showSuccess('All Forms PDF Downloaded Successfully', fileName);
     } catch (error) {
       console.error('Unable to download all fertilizer PDFs:', error);
@@ -997,31 +1003,34 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const downloadAllPdf = async () => {
-    if (isDuplicateFertilizerGeneration(values)) {
-      setDuplicateAction({ type: 'downloadAll' });
-      return;
+    setShowDownloadAllDialog(true);
+  };
+
+  const handleDownloadAllConfirm = async () => {
+    setShowDownloadAllDialog(false);
+    
+    if (addToCoveringLetterChecked) {
+      try {
+        const queue: CoveringLetterQueueItem[] = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
+        
+        const existingIndex = queue.findIndex(item => item.sampleCode === values.sampleCode.trim());
+        if (existingIndex === -1 && values.sampleCode.trim()) {
+          const newItem: CoveringLetterQueueItem = {
+            sampleCode: values.sampleCode.trim(),
+            fertilizerName: resolveFertilizerTypeGrade(values).trim(),
+            quantity: getDefaultQuantity(values),
+            dateOfSampling: values.samplingDate.trim(),
+          };
+          queue.push(newItem);
+          window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+          window.dispatchEvent(new Event('local-storage-update'));
+        }
+      } catch (error) {
+        console.error('Error adding to covering letter queue:', error);
+      }
     }
+    
     await completeDownloadAllPdf();
-  };
-
-  const reviewDuplicateDetails = () => {
-    setDuplicateAction(null);
-    setHighlightDetails(true);
-    dealerDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    window.setTimeout(() => {
-      dealerDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 450);
-    window.setTimeout(() => setHighlightDetails(false), 3500);
-  };
-
-  const downloadAnyway = async () => {
-    const action = duplicateAction;
-    setDuplicateAction(null);
-    if (!action) return;
-    if (action.type === 'preview') await completePreviewPdf(action.formType);
-    if (action.type === 'download') await completeDownloadPdf(action.formType);
-    if (action.type === 'previewAll') await completePreviewAllPdf();
-    if (action.type === 'downloadAll') await completeDownloadAllPdf();
   };
 
   const resetSampleDetails = () => {
@@ -1112,42 +1121,11 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setMessage('Composition details reset successfully.');
   };
 
-  const addToCoveringLetter = () => {
-    if (!values.sampleCode.trim()) {
-      setMessage('Sample Code is required to add to Covering Letter.');
-      return;
-    }
-
-    try {
-      const queue: CoveringLetterQueueItem[] = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
-      
-      const existingIndex = queue.findIndex(item => item.sampleCode === values.sampleCode.trim());
-      if (existingIndex !== -1) {
-        setMessage('This sample has already been added to the Covering Letter.');
-        return;
-      }
-
-      const newItem: CoveringLetterQueueItem = {
-        sampleCode: values.sampleCode.trim(),
-        fertilizerName: resolveFertilizerTypeGrade(values).trim(),
-        quantity: values.stockPosition.trim(),
-        dateOfSampling: values.samplingDate.trim(),
-      };
-
-      queue.push(newItem);
-      window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
-      window.dispatchEvent(new Event('local-storage-update'));
-      setMessage('Sample successfully added to Covering Letter.');
-    } catch (error) {
-      console.error('Error adding to covering letter queue:', error);
-      setMessage('Failed to add to Covering Letter. Please try again.');
-    }
-  };
 
   return (
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
+      <div className="fixed inset-0 z-[50] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
         <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
           <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-amber-100/50 bg-gradient-to-r from-amber-50 via-white to-orange-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
             <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-orange-500/5 to-amber-500/5 opacity-50" />
@@ -1271,8 +1249,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                 return (
                   <div
                     key={section.title}
-                    ref={section.title === 'DEALER DETAILS' ? dealerDetailsRef : section.title === 'SAMPLE DETAILS' ? dealerDetailsRef : undefined}
-                    className={highlightDetails && (section.title === 'DEALER DETAILS' || section.title === 'SAMPLE DETAILS') ? 'rounded-xl border-4 border-red-500' : ''}
                   >
                   <FieldSection 
                     title={section.title} 
@@ -1476,22 +1452,18 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                 <FertilizerPdfAction label="All Forms" busy={busyAction !== null} onPreview={previewAllPdf} onDownload={downloadAllPdf} primary />
               </div>
               {showCoveringLetter && (
-                <div className="mt-2 flex gap-2">
+                <div className="mt-2">
                   <button
                     type="button"
-                    onClick={addToCoveringLetter}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 py-2 text-xs font-black text-white shadow-md hover:bg-blue-700 hover:border-blue-700"
+                    onClick={() => {
+                      console.log('Generate Covering Letter button clicked, setting showCoveringLetterModal to true');
+                      setShowCoveringLetterModal(true);
+                      console.log('showCoveringLetterModal after set:', true);
+                    }}
+                    className="group relative w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-0.5 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 active:scale-95 active:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-500/50 focus:ring-offset-2 min-h-[44px]"
                   >
-                    <FileText className="h-4 w-4" />
-                    <span>Add to Covering Letter</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowCoveringLetterModal(true)}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-black text-white shadow-md hover:bg-emerald-700 hover:border-emerald-700"
-                  >
-                    <FileText className="h-4 w-4" />
-                    <span>View Covering Letter</span>
+                    <FileText className="h-5 w-5" />
+                    <span>Generate Official Covering Letter</span>
                   </button>
                 </div>
               )}
@@ -1502,36 +1474,78 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
           </div>
         </section>
-        <FertilizerInstructionModal
-          isOpen={showInstructionModal}
-          onClose={() => setShowInstructionModal(false)}
-        />
-        {duplicateAction && (
-          <DuplicateDownloadModal onReview={reviewDuplicateDetails} onContinue={downloadAnyway} onClose={() => setDuplicateAction(null)} />
-        )}
-        {showCoveringLetter && (
-          <CoveringLetterModal
-            isOpen={showCoveringLetterModal}
-            onClose={() => setShowCoveringLetterModal(false)}
-            officerDetails={{
-              mandal: values.mandal || values.manualMandal || '',
-              district: values.district || values.manualDistrict || '',
-              officerName: values.officerName || '',
-              phone: values.officerPhone || '',
-            }}
-            coveringLetterDetails={{
-              financialYear: values.financialYear,
-              letterNumber: values.letterNumber,
-              letterDate: values.letterDate,
-              authorityType: values.authorityType,
-              memoNumber: values.memoNumber,
-              memoDate: values.memoDate,
-              division: values.division,
-              officerPhone: values.officerPhone,
-            }}
-          />
-        )}
       </div>
+      <FertilizerInstructionModal
+        isOpen={showInstructionModal}
+        onClose={() => setShowInstructionModal(false)}
+      />
+      {showDownloadAllDialog && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl border border-emerald-200 bg-white p-6 shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Download All Forms</h3>
+            
+            <label className="flex items-start gap-3 mb-6 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={addToCoveringLetterChecked}
+                onChange={(e) => setAddToCoveringLetterChecked(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <span className="text-sm text-gray-700">Add sample details to Covering Letter</span>
+            </label>
+            
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleDownloadAllConfirm}
+                className="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 font-bold"
+              >
+                Download
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDownloadAllDialog(false)}
+                className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 font-bold"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showCoveringLetter && (
+        <CoveringLetterModal
+          isOpen={showCoveringLetterModal}
+          onClose={() => setShowCoveringLetterModal(false)}
+          officerDetails={{
+            officerName: values.officerName || '',
+            qualification: values.qualification || '',
+            manualQualification: values.manualQualification || '',
+            designation: values.designation || '',
+            mandal: values.mandal || values.manualMandal || '',
+            manualMandal: values.manualMandal || '',
+            district: values.district || values.manualDistrict || '',
+            manualDistrict: values.manualDistrict || '',
+            pinCode: values.pinCode || '',
+            phone: values.officerPhone || '',
+          }}
+          coveringLetterDetails={{
+            financialYear: values.financialYear,
+            letterNumber: values.letterNumber,
+            letterDate: values.letterDate,
+            authorityType: values.authorityType,
+            memoNumber: values.memoNumber,
+            memoDate: values.memoDate,
+            division: values.division,
+            officerPhone: values.officerPhone,
+          }}
+          dealerDetails={{
+            dealerName: values.dealerName || '',
+            dealerAddress: values.dealerAddress || '',
+            authorizationNumber: values.authorizationNumber || '',
+          }}
+        />
+      )}
     </>
   );
 }
@@ -1704,101 +1718,9 @@ function buildDealerNameAddress(values: FertilizerPdfValues) {
   return addressParts.join('\n');
 }
 
-function fertilizerGenerationSnapshot(values: FertilizerPdfValues) {
-  let resolvedFertilizerTypeGrade = '';
-  if (values.fertilizerCategory === 'Micro Nutrient Fertilizers') {
-    resolvedFertilizerTypeGrade = values.microNutrientTypeGrade === 'Other' ? values.manualMicroNutrientTypeGrade : values.microNutrientTypeGrade;
-  } else if (values.fertilizerCategory === 'Water Soluble Fertilizers') {
-    resolvedFertilizerTypeGrade = values.waterSolubleTypeGrade === 'Other' ? values.manualWaterSolubleTypeGrade : values.waterSolubleTypeGrade;
-  } else {
-    resolvedFertilizerTypeGrade = values.fertilizerTypeGrade === 'Other' ? values.manualFertilizerTypeGrade : values.fertilizerTypeGrade;
-  }
-  
-  const resolvedDealerManufacturerImporterName = values.dealerManufacturerImporterName === 'Other' ? values.manualDealerManufacturerImporterName : values.dealerManufacturerImporterName;
-  
-  return stableFertilizerString({
-    no: values.no,
-    sampleCode: values.sampleCode,
-    codeNumber: values.codeNumber,
-    samplingDate: values.samplingDate,
-    place: values.place,
-    dealerNameAddress: values.dealerNameAddress,
-    dealerName: values.dealerName,
-    dealerAddress: values.dealerAddress,
-    premisesLocation: values.premisesLocation,
-    authorizationNumber: values.authorizationNumber,
-    fertilizerTypeGrade: resolvedFertilizerTypeGrade,
-    dealerManufacturerImporterName: resolvedDealerManufacturerImporterName,
-    batchDetails: values.batchDetails,
-    stockReceiptDate: values.stockReceiptDate,
-    stockPosition: values.stockPosition,
-    physicalCondition: values.physicalCondition,
-    bagSource: values.bagSource,
-  });
-}
-
-function isDuplicateFertilizerGeneration(values: FertilizerPdfValues) {
-  try {
-    return window.localStorage.getItem(LAST_GENERATED_KEY) === fertilizerGenerationSnapshot(values);
-  } catch {
-    return false;
-  }
-}
-
-function rememberFertilizerGeneratedData(values: FertilizerPdfValues) {
-  try {
-    window.localStorage.setItem(LAST_GENERATED_KEY, fertilizerGenerationSnapshot(values));
-  } catch {
-    // Duplicate warning is best-effort only.
-  }
-}
-
-function stableFertilizerString(value: Record<string, string>) {
-  return JSON.stringify(
-    Object.keys(value)
-      .sort()
-      .reduce<Record<string, string>>((acc, key) => {
-        acc[key] = String(value[key] ?? '').trim();
-        return acc;
-      }, {})
-  );
-}
-
-function DuplicateDownloadModal({
-  onReview,
-  onContinue,
-  onClose,
-}: {
-  onReview: () => void;
-  onContinue: () => void;
-  onClose: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-xl border border-amber-200 bg-white p-5 shadow-2xl">
-        <p className="text-sm font-black uppercase tracking-wide text-amber-700">Duplicate details warning</p>
-        <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">{DUPLICATE_WARNING_MESSAGE}</p>
-        <div className="mt-5 grid gap-2 sm:grid-cols-2">
-          <button type="button" onClick={onReview} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
-            Review/Edit Details
-          </button>
-          <button type="button" onClick={onContinue} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
-            Download Anyway
-          </button>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-red-700 px-3 py-2 text-red-800 hover:bg-red-50"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function FieldSection({ title, children, color = 'slate', onReset, isCollapsible = false, subtitle, isCollapsed, onToggle }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'maroon' | 'slate' | 'purple'; onReset?: () => void; isCollapsible?: boolean; subtitle?: string; isCollapsed?: boolean; onToggle?: () => void }) {
+  const isCoveringLetter = title === 'COVERING LETTER DETAILS';
+  
   const colorStyles = {
     emerald: 'border-emerald-200 bg-emerald-50/50',
     blue: 'border-blue-200 bg-blue-50/50',
@@ -1827,6 +1749,42 @@ function FieldSection({ title, children, color = 'slate', onReset, isCollapsible
   };
   
   const ChevronIcon = isCollapsed ? ChevronDown : ChevronUp;
+  
+  if (isCoveringLetter) {
+    return (
+      <div className={`rounded-lg border ${colorStyles[color]} p-3 shadow-sm`} style={{ backgroundColor: '#F5FAF6', borderLeft: '4px solid #2E7D32' }}>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              {isCollapsible && onToggle && (
+                <button
+                  type="button"
+                  onClick={onToggle}
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border ${iconButtonColors[color]}`}
+                  title={isCollapsed ? 'Expand' : 'Collapse'}
+                >
+                  <ChevronIcon className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
+            </div>
+            {subtitle && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
+          </div>
+          {onReset && (
+            <button
+              type="button"
+              onClick={onReset}
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border ${iconButtonColors[color]}`}
+              title={`Reset ${title}`}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        {!isCollapsed && <div className="grid gap-2">{children}</div>}
+      </div>
+    );
+  }
   
   return (
     <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>

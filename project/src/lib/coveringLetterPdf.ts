@@ -8,6 +8,8 @@ type CoveringLetterQueueItem = {
   dateOfSampling: string;
 };
 
+type LetterType = 'quality-analysis' | 'safe-custody';
+
 type CoveringLetterMetadata = {
   year: string;
   letterNumber: string;
@@ -19,48 +21,46 @@ type CoveringLetterMetadata = {
   officePhone: string;
 };
 
-const PAGE = {
-  marginX: 40,
-  top: 40,
-  bottom: 257,
-  width: 210,
-  height: 297,
-  contentWidth: 130,
+type OfficerDetails = {
+  officerName: string;
+  qualification: string;
+  manualQualification: string;
+  designation: string;
+  mandal: string;
+  manualMandal: string;
+  district: string;
+  manualDistrict: string;
+  pinCode: string;
+  phone: string;
 };
 
-const PDF_FONT = 'bookantiqua';
-const BODY_SIZE = 12;
-const TITLE_SIZE = 12;
-const HEADER_SIZE = 12;
-const ROW_LINE_HEIGHT = 6.5;
-const FIRST_LINE_INDENT = 8;
+// Page Configuration - A4 Portrait
+const PAGE = {
+  width: 210,
+  height: 297,
+  marginTop: 20,
+  marginBottom: 5, // Set to 0.5cm (5mm)
+  marginLeft: 20,
+  marginRight: 15,
+  contentWidth: 175, // 210 - 20 - 15
+};
+
+// Font Configuration - Roboto Serif (using times as fallback)
+const PDF_FONT = 'times';
+
+const FONT_SIZES = {
+  governmentHeading: 15,
+  departmentHeading: 13,
+  body: 12,
+  tableData: 11,
+};
+
+const LINE_HEIGHT = 4.5;
 const PARAGRAPH_SPACING = 3;
-
-function addWrappedText(cursor: PdfCursor, label: string, text: string) {
-  const { doc } = cursor;
-  const labelWidth = 25;
-  const x = PAGE.marginX;
-
-  doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(BODY_SIZE);
-  doc.text(label, x, cursor.y);
-
-  doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(BODY_SIZE);
-
-  const lines = doc.splitTextToSize(text, cursor.contentWidth - labelWidth);
-  
-  // Draw first line at label position
-  doc.text(lines[0], x + labelWidth, cursor.y);
-  
-  // Draw remaining lines with hanging indent
-  for (let i = 1; i < lines.length; i++) {
-    doc.text(lines[i], x + labelWidth, cursor.y + i * ROW_LINE_HEIGHT);
-  }
-
-  cursor.y += lines.length * ROW_LINE_HEIGHT;
-  return cursor;
-}
+const FIRST_LINE_INDENT = 10;
+const LINE_HEIGHTS = {
+  body: 1.15,
+};
 
 type PdfCursor = {
   doc: JsPdfInstance;
@@ -71,50 +71,125 @@ type PdfCursor = {
 export async function generateCoveringLetterPdf(
   queue: CoveringLetterQueueItem[],
   metadata: CoveringLetterMetadata,
-  officerDetails?: { mandal: string; district: string; officerName: string; phone: string }
+  officerDetails?: OfficerDetails,
+  letterType: LetterType = 'quality-analysis'
 ) {
   const { jsPDF } = await import('jspdf');
+  
+  // Auto-increment letter number based on letter type
+  const letterNumber = letterType === 'quality-analysis' 
+    ? metadata.letterNumber 
+    : (() => {
+        // Parse the serial number at the beginning (before first slash)
+        const match = metadata.letterNumber.match(/^(\d+)/);
+        if (!match) return metadata.letterNumber;
+        
+        const serial = parseInt(match[1], 10);
+        const incrementedSerial = serial + 1;
+        
+        // Preserve original width of serial number (e.g., 01 → 02, 09 → 10)
+        const originalWidth = match[1].length;
+        const paddedSerial = incrementedSerial.toString().padStart(originalWidth, '0');
+        
+        // Replace the serial number in the original string
+        return metadata.letterNumber.replace(/^\d+/, paddedSerial);
+      })();
+  
+  const updatedMetadata = { ...metadata, letterNumber };
+  
   const doc = createDocument(jsPDF, 'Covering Letter - Fertilizer Samples');
+  
+  // Set bottom margin based on letter type
+  const currentMarginBottom = letterType === 'safe-custody' ? 5 : 5; // 0.5cm for both letters
   
   const cursor = {
     doc,
-    y: PAGE.top,
-    contentWidth: PAGE.width - PAGE.marginX * 2,
+    y: PAGE.marginTop - 3, // Reduced upper margin by 3 units
+    contentWidth: PAGE.contentWidth,
   };
 
-  drawGovernmentHeader(cursor);
-  cursor.y += 3;
+  await drawGovernmentHeader(cursor);
+  cursor.y += 8; // 8mm below header
   
-  drawFromToSections(cursor, metadata, officerDetails);
-  cursor.y += 3;
+  // Move entire address block upward by 4 units
+  cursor.y -= 4;
   
-  drawLetterDetails(cursor, metadata);
-  cursor.y += 2;
+  drawFromToSections(cursor, officerDetails, letterType);
   
-  drawSubject(cursor);
-  cursor.y += 2;
+  // Move To section and all subsequent content upward by 6 units
+  cursor.y -= 6;
+  
+  drawLetterDetails(cursor, updatedMetadata);
+  cursor.y += LINE_HEIGHT;
+  
+  // Move entire body content upward by 12 units
+  cursor.y -= 12;
+  
+  drawSalutation(cursor);
+  cursor.y += 8;
+  
+  drawSubject(cursor, updatedMetadata, letterType);
+  cursor.y += PARAGRAPH_SPACING;
   
   drawReference(cursor, metadata);
-  cursor.y += 2;
   
-  drawBody(cursor, officerDetails);
-  cursor.y += 2;
+  drawSeparator(cursor);
+  
+  drawBody(cursor, officerDetails, letterType);
+  cursor.y += PARAGRAPH_SPACING;
+  
+  drawSampleTableHeading(cursor, letterType);
+  cursor.y += LINE_HEIGHT;
   
   drawSampleTable(cursor, queue);
-  cursor.y += 2;
+  cursor.y = (doc as any).lastAutoTable.finalY + 6;
   
-  drawClosing(cursor);
-  cursor.y += 2;
+  // Draw closing paragraph (flows naturally with body text)
+  drawClosing(cursor, letterType);
+  cursor.y += 1;
   
+  // Calculate footer block height (Enclosures + Signature + Copies only)
+  const footerHeight = calculateFooterHeight();
+  const remainingSpace = PAGE.height - currentMarginBottom - cursor.y;
+  
+  // If insufficient space for footer block, create new page
+  if (remainingSpace < footerHeight) {
+    doc.addPage();
+    cursor.y = PAGE.marginTop;
+  }
+  
+  // Move signature and copies section upward by 3 units
+  cursor.y -= 3;
+  
+  // Draw footer block (always kept together)
   drawEnclosures(cursor, queue.length);
-  cursor.y += 2;
+  cursor.y += PARAGRAPH_SPACING;
   
-  drawSignature(cursor);
-  cursor.y += 2;
+  drawSignature(cursor, officerDetails);
+  cursor.y += PARAGRAPH_SPACING;
   
-  drawCopies(cursor, officerDetails);
+  drawCopiesSection(cursor);
+
+  // Add AGRONIX branding to bottom-right corner of every page
+  drawBranding(doc);
 
   return doc;
+}
+
+function calculateFooterHeight(): number {
+  // Calculate height of footer block only (Enclosures + Signature + Copies)
+  // Closing paragraph is NOT included in footer pagination
+  
+  // Enclosures line
+  let height = LINE_HEIGHT + PARAGRAPH_SPACING;
+  
+  // Signature section (negative space + Yours faithfully + extra space + designation + Fertilizer Inspector + spacing)
+  height += -5 + LINE_HEIGHT + LINE_HEIGHT + LINE_HEIGHT + LINE_HEIGHT + PARAGRAPH_SPACING;
+  
+  // Copies section (heading + 2 lines)
+  height += LINE_HEIGHT + LINE_HEIGHT + LINE_HEIGHT;
+  
+  return height;
 }
 
 function createDocument(
@@ -130,146 +205,295 @@ function createDocument(
   return doc;
 }
 
-function drawGovernmentHeader(cursor: PdfCursor) {
+async function drawGovernmentHeader(cursor: PdfCursor) {
   const { doc } = cursor;
   
+  // Add Telangana Government emblem to the left of the header text
+  const emblemWidth = 21.78; // Increased width by another 10% (19.8 * 1.1)
+  const emblemHeight = 14.52; // Increased height by another 10% (13.2 * 1.1)
+  const horizontalGap = 3; // Reduced gap to move logo closer to text
+  
+  // Calculate text width for centering
   doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(HEADER_SIZE);
-  doc.text('GOVERNMENT OF TELANGANA', PAGE.width / 2, cursor.y, { align: 'center' });
-  cursor.y += 7;
+  doc.setFontSize(FONT_SIZES.governmentHeading);
+  const govTextWidth = doc.getTextWidth('GOVERNMENT OF TELANGANA');
   
-  doc.setFontSize(TITLE_SIZE);
-  doc.text('DEPARTMENT OF AGRICULTURE', PAGE.width / 2, cursor.y, { align: 'center' });
-  cursor.y += 7;
+  doc.setFontSize(FONT_SIZES.departmentHeading);
+  const deptTextWidth = doc.getTextWidth('DEPARTMENT OF AGRICULTURE');
   
-  doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(BODY_SIZE);
-}
-
-function drawFromToSections(cursor: PdfCursor, metadata: CoveringLetterMetadata, officerDetails?: { mandal: string; district: string; officerName: string; phone: string }) {
-  const { doc } = cursor;
+  const maxTextWidth = Math.max(govTextWidth, deptTextWidth);
+  const totalGroupWidth = emblemWidth + horizontalGap + maxTextWidth;
+  const groupStartX = (PAGE.width - totalGroupWidth) / 2;
   
-  const leftColumnX = PAGE.marginX;
-  const rightColumnX = PAGE.width / 2 + 10;
-  const columnWidth = PAGE.width / 2 - 50;
-  const startY = cursor.y;
+  // Emblem position (vertically centered with the two-line heading, moved 2 units up)
+  const emblemY = cursor.y + LINE_HEIGHT / 2 - emblemHeight / 2 - 2;
   
-  // From section - left aligned
-  doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(BODY_SIZE);
-  doc.text('From:', leftColumnX, startY);
-  
-  let currentY = startY + ROW_LINE_HEIGHT;
-  
-  const officerName = officerDetails?.officerName || getFromLocalStorage('officerName') || '';
-  const qualification = getFromLocalStorage('qualification') || '';
-  const resolvedQualification = qualification === 'Others' 
-    ? getFromLocalStorage('manualQualification') || ''
-    : qualification;
-  const officerNameWithQual = officerName && resolvedQualification 
-    ? `${officerName}, ${resolvedQualification}`
-    : officerName;
-  
-  if (officerNameWithQual) {
-    doc.text(officerNameWithQual, leftColumnX, currentY);
-    currentY += ROW_LINE_HEIGHT;
+  try {
+    const response = await fetch('/images/telangana-govt_emblem.webp');
+    const blob = await response.blob();
+    const reader = new FileReader();
+    await new Promise((resolve, reject) => {
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        doc.addImage(dataUrl, 'WEBP', groupStartX, emblemY, emblemWidth, emblemHeight);
+        resolve(null);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error loading emblem image:', error);
+    // Continue without emblem if image fails to load
   }
   
-  doc.text('Mandal Agriculture Officer,', leftColumnX, currentY);
-  currentY += ROW_LINE_HEIGHT;
+  // Text position (to the right of emblem)
+  const textStartX = groupStartX + emblemWidth + horizontalGap;
   
-  const mandal = officerDetails?.mandal || getFromLocalStorage('mandal') || '{{Mandal}}';
-  const district = officerDetails?.district || getFromLocalStorage('district') || '{{District}}';
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(FONT_SIZES.governmentHeading);
+  doc.text('GOVERNMENT OF TELANGANA', textStartX, cursor.y);
+  cursor.y += LINE_HEIGHT;
   
-  doc.text(`${mandal} Mandal,`, leftColumnX, currentY);
-  currentY += ROW_LINE_HEIGHT;
-  doc.text(`${district} District.`, leftColumnX, currentY);
-  currentY += ROW_LINE_HEIGHT;
+  doc.setFontSize(FONT_SIZES.departmentHeading);
+  doc.text('DEPARTMENT OF AGRICULTURE', textStartX, cursor.y);
+  cursor.y += LINE_HEIGHT + 2;
   
-  const phone = officerDetails?.phone || getFromLocalStorage('phone') || metadata.officePhone || '{{Phone}}';
-  doc.text(`Phone: ${phone}.`, leftColumnX, currentY);
+  doc.setFont(PDF_FONT, 'normal');
+}
+
+function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType: LetterType = 'quality-analysis') {
+  const { doc } = cursor;
   
-  // To section - right aligned
-  doc.text('To:', rightColumnX + columnWidth, startY, { align: 'right' });
+  const leftColumnX = PAGE.marginLeft;
+  const rightColumnX = PAGE.marginLeft + (PAGE.contentWidth * 0.52) + 13;
+  const startY = cursor.y;
   
-  currentY = startY + ROW_LINE_HEIGHT;
-  const toAddress = [
-    'The Assistant Director of Agriculture,',
-    'Fertilizer Coding Centre,',
-    'SAMETI Complex,',
-    'Old Malakpet,',
-    'Hyderabad.',
-  ];
+  // From section - left column
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(FONT_SIZES.body);
+  doc.text('From:', leftColumnX, startY);
   
+  let currentY = startY + LINE_HEIGHT;
+  
+  const officerName = officerDetails?.officerName || '';
+  const qualification = officerDetails?.qualification || '';
+  const manualQualification = officerDetails?.manualQualification || '';
+  const resolvedQualification = qualification === 'Other' ? manualQualification : qualification;
+  const officerNameWithQual = officerName && resolvedQualification ? `${officerName}, ${resolvedQualification},` : officerName;
+  
+  if (officerNameWithQual) {
+    doc.setFont(PDF_FONT, 'bold');
+    doc.text(officerNameWithQual, leftColumnX, currentY);
+    currentY += LINE_HEIGHT;
+  }
+  
+  const designation = officerDetails?.designation || 'Mandal Agriculture Officer';
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text(`${designation},`, leftColumnX, currentY);
+  currentY += LINE_HEIGHT;
+  
+  const mandal = officerDetails?.mandal || officerDetails?.manualMandal || '';
+  if (mandal) {
+    doc.setFont(PDF_FONT, 'bold');
+    doc.text(`${mandal} Mandal,`, leftColumnX, currentY);
+    currentY += LINE_HEIGHT;
+  }
+  
+  const district = officerDetails?.district || officerDetails?.manualDistrict || '';
+  const pinCode = officerDetails?.pinCode || '';
+  if (district) {
+    doc.setFont(PDF_FONT, 'bold');
+    const districtPin = pinCode ? `${district} -${pinCode},` : `${district},`;
+    doc.text(districtPin, leftColumnX, currentY);
+    currentY += LINE_HEIGHT;
+  }
+  
+  const phone = officerDetails?.phone || '';
+  if (phone) {
+    doc.setFont(PDF_FONT, 'bold');
+    doc.text(`Cell : ${phone}.`, leftColumnX, currentY);
+    currentY += LINE_HEIGHT;
+  }
+  
+  // To section - right column (left-aligned)
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('To:', rightColumnX, startY);
+  
+  currentY = startY + LINE_HEIGHT;
+  const toAddress = letterType === 'safe-custody' 
+    ? [
+        'The Designated Authority,',
+        'JDA Soil Correlator,',
+        'Fertilizer Coding Centre,',
+        'SAMETI Complex, Old Malakpet,',
+        'Hyderabad - 500036.',
+      ]
+    : [
+        'The Assistant Director of Agriculture,',
+        'Fertilizer Coding Centre,',
+        'SAMETI Complex,',
+        'Old Malakpet,',
+        'Hyderabad - 500036.',
+      ];
+  
+  doc.setFont(PDF_FONT, 'bold');
   toAddress.forEach(line => {
-    doc.text(line, rightColumnX + columnWidth, currentY, { align: 'right' });
-    currentY += ROW_LINE_HEIGHT;
+    doc.text(line, rightColumnX, currentY);
+    currentY += LINE_HEIGHT;
   });
   
-  cursor.y = currentY + 2;
+  cursor.y = currentY + LINE_HEIGHT;
 }
 
 function drawLetterDetails(cursor: PdfCursor, metadata: CoveringLetterMetadata) {
   const { doc } = cursor;
   
+  // Add spacing before letter number
+  cursor.y += 4;
+  
   doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(BODY_SIZE);
-  const lrNoText = `Lr No: ${metadata.letterNumber || '_________'}`;
-  doc.text(lrNoText, PAGE.width / 2, cursor.y, { align: 'center' });
-  const formattedDate = formatDate(metadata.letterDate);
-  doc.text(`Date: ${formattedDate || '_________'}`, PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
-  cursor.y += ROW_LINE_HEIGHT + 3;
+  doc.setFontSize(FONT_SIZES.body);
+  
+  const letterNumber = metadata.letterNumber || '_________';
+  const dateText = formatDate(metadata.letterDate) || '_________';
+  
+  const letterText = `Lr. No. ${letterNumber}    Dt. ${dateText}`;
+  doc.text(letterText, PAGE.width / 2, cursor.y, { align: 'center' });
+  
+  // Add underline
+  const textWidth = doc.getTextWidth(letterText);
+  const textX = (PAGE.width - textWidth) / 2;
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(0, 0, 0);
+  doc.line(textX, cursor.y + 1, textX + textWidth, cursor.y + 1);
+  
+  cursor.y += LINE_HEIGHT + 8;
 }
 
-function drawSubject(cursor: PdfCursor) {
-  const subject = `Fertilizer (Inorganic, Organic or Mixed) (Control) Order, 1985 - Quality Control 2026-27 - Submission of Fertilizer Samples- Request for Quality Analysis -Reg.`;
-  addWrappedText(cursor, 'Sub:', subject);
-  cursor.y += PARAGRAPH_SPACING;
-}
-
-function drawReference(cursor: PdfCursor, metadata: CoveringLetterMetadata) {
-  const authorityLabel = metadata.authorityType === 'ADA' ? 'ADA Memo No' : 'DAO Memo No';
-  const refText = `${authorityLabel}: ${metadata.daoMemoNumber || '_________'} Date: ${formatDate(metadata.daoMemoDate) || '_________'}`;
-  addWrappedText(cursor, 'Ref:', refText);
-  cursor.y += PARAGRAPH_SPACING;
-}
-
-function drawBody(cursor: PdfCursor, officerDetails?: { mandal: string; district: string; officerName: string; phone: string }) {
+function drawSalutation(cursor: PdfCursor) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(BODY_SIZE);
-  doc.setLineHeightFactor(1.3);
-  const mandal = officerDetails?.mandal || getFromLocalStorage('mandal') || '{{Mandal}}';
-  const district = officerDetails?.district || getFromLocalStorage('district') || '{{District}}';
-  
-  // First line with mixed bold/normal text
-  const startX = PAGE.marginX + FIRST_LINE_INDENT;
-  let x = startX;
-  
-  doc.setFont(PDF_FONT, 'normal');
-  doc.text('With reference to the subject cited, I submit herewith the fertilizer samples drawn from licensed fertilizer dealers in ', x, cursor.y, { align: 'justify' });
-  x += doc.getTextWidth('With reference to the subject cited, I submit herewith the fertilizer samples drawn from licensed fertilizer dealers in ');
+  doc.setFontSize(FONT_SIZES.body);
+  doc.text('Sir/Madam,', PAGE.marginLeft, cursor.y);
+}
+
+function drawSubject(cursor: PdfCursor, metadata: CoveringLetterMetadata, letterType: LetterType = 'quality-analysis') {
+  const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(mandal, x, cursor.y, { align: 'justify' });
-  x += doc.getTextWidth(mandal);
+  doc.setFontSize(FONT_SIZES.body);
+  doc.text('Sub: ', PAGE.marginLeft, cursor.y);
   
   doc.setFont(PDF_FONT, 'normal');
-  doc.text(' Mandal, ', x, cursor.y, { align: 'justify' });
-  x += doc.getTextWidth(' Mandal, ');
+  const subject = letterType === 'safe-custody'
+    ? `FCO, 1985 – Quality Control – ${metadata.year || '2026-27'} – Submission of III Portion of Fertilizer Samples along with Form K for Safe Custody – Request – Reg.`
+    : `FCO 1985 – Quality Control – ${metadata.year || '2026-27'} – Submission of Fertilizer Samples (Portion-I) drawn – Request for Quality Analysis – Reg.`;
+  const subjectX = PAGE.marginLeft + doc.getTextWidth('Sub: ');
+  const availableWidth = PAGE.contentWidth - doc.getTextWidth('Sub: ');
+  
+  const splitSubject = doc.splitTextToSize(subject, availableWidth);
+  doc.text(splitSubject, subjectX, cursor.y);
+  
+  cursor.y += (splitSubject.length * LINE_HEIGHT) + 1;
+}
+
+function drawReference(cursor: PdfCursor, metadata: CoveringLetterMetadata) {
+  const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(district, x, cursor.y, { align: 'justify' });
-  x += doc.getTextWidth(district);
+  doc.setFontSize(FONT_SIZES.body);
+  doc.text('Ref:', PAGE.marginLeft, cursor.y);
+  cursor.y += LINE_HEIGHT;
   
   doc.setFont(PDF_FONT, 'normal');
-  doc.text(' District under the Quality Control programme.', x, cursor.y, { align: 'justify' });
+  const ref1 = '1. C&DA, TS, Hyd Memo No. e-937125, COMAG-FERT/FQC/3/2026-FERT, Dt. 26.06.2026.';
+  doc.text(ref1, PAGE.marginLeft + 5, cursor.y);
+  cursor.y += LINE_HEIGHT;
   
-  cursor.y += ROW_LINE_HEIGHT + PARAGRAPH_SPACING;
+  const district = metadata.division || '';
+  const ref2Text = `2. DAO ${district} Memo No. ${metadata.daoMemoNumber || '_________'}, Dt. ${formatDate(metadata.daoMemoDate) || '_________'}.`;
   
-  doc.text('The particulars are furnished below.', PAGE.marginX, cursor.y, { align: 'justify' });
-  cursor.y += ROW_LINE_HEIGHT + PARAGRAPH_SPACING;
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(ref2Text, PAGE.marginLeft + 5, cursor.y);
+  
+  cursor.y += LINE_HEIGHT + 1;
+}
+
+function drawSeparator(cursor: PdfCursor) {
+  const { doc } = cursor;
+  
+  doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(FONT_SIZES.body);
+  doc.text('******', PAGE.width / 2, cursor.y, { align: 'center' });
+}
+
+function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType: LetterType = 'quality-analysis') {
+  const { doc } = cursor;
+  
+  doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(FONT_SIZES.body);
+  doc.setLineHeightFactor(LINE_HEIGHTS.body);
+  
+  const mandal = officerDetails?.mandal || officerDetails?.manualMandal || '{{Mandal}}';
+  const district = officerDetails?.district || officerDetails?.manualDistrict || '{{District}}';
+  
+  // Text segments with different font styles
+  const segments = letterType === 'safe-custody'
+    ? [
+        { text: 'In continuation to the subject cited above, I submit that the following fertilizer samples were drawn from the input dealer premises in ', bold: false },
+        { text: mandal, bold: true },
+        { text: ', ', bold: false },
+        { text: district, bold: true },
+        { text: ' District for quality analysis as per the allotment given by the District Agricultural Officer, ', bold: false },
+        { text: district, bold: false },
+        { text: '. The I Portion of the samples has already been forwarded for quality analysis.', bold: false },
+        { text: 'I am herewith submitting the III Portion of the fertilizer samples, along with the enclosed Form K, for safe custody.', bold: false },
+      ]
+    : [
+        { text: 'In continuation to the subject cited above, I am herewith submitting the fertilizer samples drawn from the input dealer premises in ', bold: false },
+        { text: mandal, bold: true },
+        { text: ' Mandal, ', bold: false },
+        { text: district, bold: true },
+        { text: ' District for quality analysis as per the allotment given by the District Agricultural Officer, ', bold: false },
+        { text: district, bold: false },
+        { text: ' District.', bold: false }
+      ];
+  
+  let xPos = PAGE.marginLeft + FIRST_LINE_INDENT;
+  let yPos = cursor.y;
+  const maxWidth = PAGE.contentWidth;
+  
+  segments.forEach(segment => {
+    doc.setFont(PDF_FONT, segment.bold ? 'bold' : 'normal');
+    const words = segment.text.split(' ');
+    
+    words.forEach((word, wordIndex) => {
+      const textToDraw = wordIndex === words.length - 1 ? word : word + ' ';
+      const textWidth = doc.getTextWidth(textToDraw);
+      
+      if (xPos + textWidth > PAGE.marginLeft + maxWidth) {
+        xPos = PAGE.marginLeft;
+        yPos += LINE_HEIGHT;
+      }
+      
+      doc.text(textToDraw, xPos, yPos);
+      xPos += textWidth;
+    });
+  });
+  
+  cursor.y = yPos + LINE_HEIGHT + PARAGRAPH_SPACING;
+}
+
+function drawSampleTableHeading(cursor: PdfCursor, letterType: LetterType = 'quality-analysis') {
+  const { doc } = cursor;
+  
+  doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(FONT_SIZES.body);
+  const headingText = letterType === 'safe-custody'
+    ? 'The details of the fertilizer samples submitted for safe custody are as follows:'
+    : 'The details of the samples drawn are as follows :';
+  doc.text(headingText, PAGE.marginLeft, cursor.y);
 }
 
 function drawSampleTable(cursor: PdfCursor, queue: CoveringLetterQueueItem[]) {
@@ -278,128 +502,154 @@ function drawSampleTable(cursor: PdfCursor, queue: CoveringLetterQueueItem[]) {
   const tableData = queue.map((item, index) => [
     String(index + 1),
     item.fertilizerName || '-',
-    item.sampleCode,
+    item.sampleCode || '-',
     item.quantity || '-',
     formatDate(item.dateOfSampling) || '-'
   ]);
 
+  const columnWidths = [
+    PAGE.contentWidth * 0.05,  // Sl. No. - 5% (reduced narrow width)
+    PAGE.contentWidth * 0.48,  // Product Name - 48% (widest for long names)
+    PAGE.contentWidth * 0.19,  // Sample Code - 19% (increased width)
+    PAGE.contentWidth * 0.12,  // Quantity - 12% (increased for better fit)
+    PAGE.contentWidth * 0.16,  // Sampling Date - 16% (fixed width)
+  ];
+
   autoTable(doc, {
     startY: cursor.y,
-    head: [
-      [
-        'Sl.No.',
-        'Name of Fertilizer Sample',
-        'Sample Code',
-        'Quantity',
-        'Date of Sampling'
-      ]
-    ],
+    head: [['S.No', 'Name of Fertilizer', 'Code No. of Sample', 'Quantity (gms)', 'Sampling Date']],
     body: tableData,
     theme: 'grid',
     margin: {
-      left: PAGE.marginX,
-      right: PAGE.marginX
+      left: PAGE.marginLeft,
+      right: PAGE.marginRight,
     },
     styles: {
       font: PDF_FONT,
-      fontSize: 10,
-      cellPadding: 2,
-      lineWidth: 0.3,
+      fontSize: FONT_SIZES.tableData,
+      cellPadding: 1.5,
+      lineWidth: 0.5,
       lineColor: [0, 0, 0],
       valign: 'middle',
-      halign: 'center',
       overflow: 'linebreak',
-      minCellHeight: 8
     },
     headStyles: {
       fontStyle: 'bold',
-      fontSize: 10,
+      fontSize: FONT_SIZES.body,
       fillColor: [255, 255, 255],
       textColor: [0, 0, 0],
       halign: 'center',
       valign: 'middle',
-      minCellHeight: 10
     },
     bodyStyles: {
-      valign: 'middle',
-      halign: 'center'
+      halign: 'center',
+      textColor: [0, 0, 0],
     },
     columnStyles: {
-      0: { cellWidth: 20 },
-      1: { cellWidth: 60, halign: 'left' },
-      2: { cellWidth: 30 },
-      3: { cellWidth: 25 },
-      4: { cellWidth: 25 }
+      0: { cellWidth: columnWidths[0], halign: 'center' },
+      1: { cellWidth: columnWidths[1], halign: 'left' },
+      2: { cellWidth: columnWidths[2], halign: 'center' },
+      3: { cellWidth: columnWidths[3], halign: 'center' },
+      4: { cellWidth: columnWidths[4], halign: 'center' },
     },
-    pageBreak: 'avoid',
-    rowPageBreak: 'avoid'
+    pageBreak: 'auto',
+    rowPageBreak: 'avoid',
+    horizontalPageBreak: false,
   });
-
-  cursor.y = (doc as any).lastAutoTable.finalY + PARAGRAPH_SPACING;
 }
 
-function drawClosing(cursor: PdfCursor) {
+function drawClosing(cursor: PdfCursor, letterType: LetterType = 'quality-analysis') {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(BODY_SIZE);
-  doc.setLineHeightFactor(1.3);
-  const closingText = 'It is requested that the above fertilizer samples may kindly be analysed and the analysis reports may be communicated to this office as on early date.';
-  const closingLines = doc.splitTextToSize(closingText, cursor.contentWidth);
-  doc.text(closingLines, PAGE.marginX, cursor.y);
-  cursor.y += closingLines.length * ROW_LINE_HEIGHT + 3;
+  doc.setFontSize(FONT_SIZES.body);
+  doc.setLineHeightFactor(LINE_HEIGHTS.body);
+  
+  // Only show closing request text for quality-analysis letter
+  if (letterType === 'quality-analysis') {
+    const closingText = 'Hence, I request the kind authority to arrange for quality analysis and communicate the results to the above address at an early date.';
+    const splitClosing = doc.splitTextToSize(closingText, PAGE.contentWidth);
+    doc.text(splitClosing, PAGE.marginLeft, cursor.y);
+    cursor.y += (splitClosing.length * LINE_HEIGHT) + PARAGRAPH_SPACING;
+  }
+  
+  doc.text('Thanking you.', PAGE.width / 2, cursor.y, { align: 'center' });
+  cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;
+  
+  doc.text('Form "P" is kept with the sample.', PAGE.marginLeft, cursor.y);
+  cursor.y += LINE_HEIGHT + 1;
 }
 
 function drawEnclosures(cursor: PdfCursor, sampleCount: number) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(BODY_SIZE);
-  doc.text('Enclosures:', PAGE.marginX, cursor.y);
-  cursor.y += ROW_LINE_HEIGHT;
-  
-  doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(BODY_SIZE);
-  doc.text(`1. Form K – ${sampleCount} Nos.`, PAGE.marginX, cursor.y);
-  cursor.y += ROW_LINE_HEIGHT + 3;
+  doc.setFontSize(FONT_SIZES.body);
+  doc.text(`Enclosures: Form K (${sampleCount})`, PAGE.marginLeft, cursor.y);
 }
 
-function drawSignature(cursor: PdfCursor) {
+function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   const { doc } = cursor;
   
-  const signatureY = cursor.y + 15;
-  const signatureX = PAGE.width - PAGE.marginX - 10;
+  // Leave -5mm blank space for signature (reduced by 25 units total to move section upward)
+  cursor.y -= 5;
+  
+  const signatureX = PAGE.width - PAGE.marginRight;
   
   doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(BODY_SIZE);
-  doc.text('Yours faithfully,', signatureX, signatureY, { align: 'right' });
-  cursor.y = signatureY + ROW_LINE_HEIGHT;
+  doc.setFontSize(FONT_SIZES.body);
+  doc.text('Yours faithfully,', signatureX, cursor.y, { align: 'right' });
+  cursor.y += LINE_HEIGHT;
   
+  cursor.y += LINE_HEIGHT; // Extra space
+  
+  const designation = officerDetails?.designation || 'Mandal Agricultural Officer';
   doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(BODY_SIZE);
-  doc.text('Mandal Agriculture Officer', signatureX, cursor.y, { align: 'right' });
-  cursor.y += ROW_LINE_HEIGHT;
-  doc.text('&', signatureX, cursor.y, { align: 'right' });
-  cursor.y += ROW_LINE_HEIGHT;
-  doc.text('Fertilizer Inspector', signatureX, cursor.y, { align: 'right' });
-  cursor.y += ROW_LINE_HEIGHT + 3;
+  doc.text(designation, signatureX, cursor.y, { align: 'right' });
+  cursor.y += LINE_HEIGHT;
+  
+  doc.text('& Fertilizer Inspector', signatureX, cursor.y, { align: 'right' });
+  cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;
 }
 
-function drawCopies(cursor: PdfCursor, officerDetails?: { mandal: string; district: string; officerName: string; phone: string }) {
+function drawCopiesSection(cursor: PdfCursor) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(BODY_SIZE);
-  doc.text('Copies Submitted to:', PAGE.marginX, cursor.y);
-  cursor.y += ROW_LINE_HEIGHT;
+  doc.setFontSize(FONT_SIZES.body);
+  doc.text('Copies submitted to:', PAGE.marginLeft, cursor.y);
+  cursor.y += LINE_HEIGHT;
   
   doc.setFont(PDF_FONT, 'normal');
-  doc.setFontSize(BODY_SIZE);
-  const district = officerDetails?.district || getFromLocalStorage('district') || '{{District}}';
-  doc.text(`1. The DAO, ${district} District, For favour of kind information.`, PAGE.marginX + 5, cursor.y);
-  cursor.y += ROW_LINE_HEIGHT;
-  doc.text(`2. The ADA(R), For favour of kind information.`, PAGE.marginX + 5, cursor.y);
-  cursor.y += ROW_LINE_HEIGHT;
+  doc.setFontSize(11);
+  doc.text(`1. The District Agricultural Officer, Asifabad for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
+  cursor.y += LINE_HEIGHT;
+  
+  doc.text(`2. The Asst. Director of Agriculture (R), Asifabad for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
+  cursor.y += LINE_HEIGHT;
+}
+
+function drawBranding(doc: JsPdfInstance) {
+  // Save current state
+  const currentFont = doc.getFont();
+  const currentFontSize = doc.getFontSize();
+  
+  // Set branding styling
+  doc.setFont('courier', 'bold'); // Monospaced font with semi-bold weight
+  doc.setFontSize(7); // 7pt font size
+  doc.setTextColor(128); // Gray color (single value for grayscale)
+  
+  // Position in bottom-right corner (10 units from edges)
+  const brandingX = PAGE.width - 10;
+  const brandingY = PAGE.height - 10;
+  
+  // Draw AGRONIX wordmark
+  doc.text('AGRONIX', brandingX, brandingY, { align: 'right' });
+  
+  // Restore original state
+  doc.setFont(currentFont.fontName, currentFont.fontStyle);
+  doc.setFontSize(currentFontSize);
+  doc.setTextColor(0); // Reset to black
 }
 
 function formatDate(dateStr: string): string {
@@ -407,28 +657,4 @@ function formatDate(dateStr: string): string {
   const date = new Date(`${dateStr}T00:00:00`);
   if (Number.isNaN(date.getTime())) return dateStr;
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function getFromLocalStorage(key: string): string {
-  try {
-    // Try to get from settings array in localStorage (Supabase format)
-    const settingsRaw = window.localStorage.getItem('tiryani-settings');
-    if (settingsRaw) {
-      const settings = JSON.parse(settingsRaw);
-      if (Array.isArray(settings)) {
-        const setting = settings.find((s: any) => s.setting_key === key);
-        if (setting && setting.setting_value) return setting.setting_value;
-      } else if (typeof settings === 'object' && settings[key]) {
-        return settings[key];
-      }
-    }
-    
-    // Try direct localStorage key
-    const directValue = window.localStorage.getItem(key);
-    if (directValue) return directValue;
-    
-    return '';
-  } catch {
-    return '';
-  }
 }

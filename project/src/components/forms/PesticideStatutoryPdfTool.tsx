@@ -35,9 +35,6 @@ type SavedPesticideDraft = {
 
 const STORAGE_KEY = 'tiryani-pesticide-forms-draft';
 const DRAFTS_KEY = 'tiryani-pesticide-forms-named-drafts';
-const LAST_GENERATED_KEY = 'tiryani-pesticide-forms-last-generated';
-const DUPLICATE_WARNING_MESSAGE =
-  'You are generating a file with the same previous sample/dealer details. Please verify whether new sample details or dealer details are required before downloading.';
 
 
 const packingOptions = [
@@ -161,16 +158,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedPesticideDraft[]>(() => loadDrafts());
   const [busy, setBusy] = useState(false);
-  const [duplicateAction, setDuplicateAction] = useState<
-    | { type: 'preview'; formType: PesticideStatutoryFormType }
-    | { type: 'download'; formType: PesticideStatutoryFormType }
-    | { type: 'previewAll' }
-    | { type: 'downloadAll' }
-    | null
-  >(null);
   const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded } = useToast();
-  const [highlightDetails, setHighlightDetails] = useState(false);
-  const dealerDetailsRef = useRef<HTMLDivElement | null>(null);
   const sections = useMemo(() => fieldSections, []);
 
   const resetDealerDetails = () => {
@@ -347,7 +335,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     try {
       const doc = await generatePesticideStatutoryPdf(formType, values);
       openDocInTab(doc, getPesticidePdfFileName(formType, values), targetWindow);
-      rememberGeneratedData(values);
       showInfo('Preview Opened', 'PDF preview opened in a new tab.');
     } catch (error) {
       console.error('Unable to preview pesticide PDF:', error);
@@ -380,10 +367,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const download = async (formType: PesticideStatutoryFormType) => {
-    if (isDuplicateGeneration(values)) {
-      setDuplicateAction({ type: 'download', formType });
-      return;
-    }
     await completeDownload(formType);
   };
 
@@ -394,7 +377,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     try {
       const doc = await generateAllPesticideStatutoryPdf(values);
       openDocInTab(doc, getAllPesticidePdfFileName(values), targetWindow);
-      rememberGeneratedData(values);
       showInfo('All Forms Previewed', 'All pesticide forms preview opened in a new tab.');
     } catch (error) {
       console.error('Unable to preview all pesticide PDFs:', error);
@@ -416,7 +398,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       const doc = await generateAllPesticideStatutoryPdf(values);
       const fileName = getAllPesticidePdfFileName(values);
       downloadDoc(doc, fileName);
-      rememberGeneratedData(values);
       showSuccess('All Forms PDF Downloaded Successfully', fileName);
     } catch (error) {
       console.error('Unable to download all pesticide PDFs:', error);
@@ -427,28 +408,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const downloadAll = async () => {
-    if (isDuplicateGeneration(values)) {
-      setDuplicateAction({ type: 'downloadAll' });
-      return;
-    }
     await completeDownloadAll();
-  };
-
-  const reviewDuplicateDetails = () => {
-    setDuplicateAction(null);
-    setHighlightDetails(true);
-    dealerDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    window.setTimeout(() => setHighlightDetails(false), 3500);
-  };
-
-  const downloadAnyway = async () => {
-    const action = duplicateAction;
-    setDuplicateAction(null);
-    if (!action) return;
-    if (action.type === 'preview') await completePreview(action.formType);
-    if (action.type === 'download') await completeDownload(action.formType);
-    if (action.type === 'previewAll') await completePreviewAll();
-    if (action.type === 'downloadAll') await completeDownloadAll();
   };
 
 
@@ -550,8 +510,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               return (
                 <div
                   key={section.title}
-                  ref={section.title === 'DEALER DETAILS' ? dealerDetailsRef : undefined}
-                  className={highlightDetails && section.title === 'DEALER DETAILS' ? 'rounded-xl border-4 border-red-500' : ''}
                 >
                   <FieldSection title={section.title} color={color} onReset={getResetHandler(section.title)}>
                     {section.fields.map((field) => {
@@ -613,7 +571,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
           </div>
         </div>
       </section>
-      {duplicateAction && <DuplicateDownloadModal onReview={reviewDuplicateDetails} onContinue={downloadAnyway} onClose={() => setDuplicateAction(null)} />}
     </div>
     </>
   );
@@ -722,28 +679,6 @@ function PesticidePdfAction({ label, onPreview, onDownload, busy, primary = fals
   );
 }
 
-function DuplicateDownloadModal({ onReview, onContinue, onClose }: { onReview: () => void; onContinue: () => void; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-xl border border-amber-200 bg-white p-5 shadow-2xl">
-        <p className="text-sm font-black uppercase tracking-wide text-amber-700">Duplicate details warning</p>
-        <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">{DUPLICATE_WARNING_MESSAGE}</p>
-        <div className="mt-5 grid gap-2 sm:grid-cols-2">
-          <button type="button" onClick={onReview} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">Review/Edit Details</button>
-          <button type="button" onClick={onContinue} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">Download Anyway</button>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-red-700 px-3 py-2 text-red-800 hover:bg-red-50"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function loadDrafts(): SavedPesticideDraft[] {
   try {
     const raw = window.localStorage.getItem(DRAFTS_KEY);
@@ -757,46 +692,6 @@ function loadDrafts(): SavedPesticideDraft[] {
 function upsertDraft(drafts: SavedPesticideDraft[], draft: SavedPesticideDraft) {
   // Use case-insensitive comparison to prevent duplicates
   return [draft, ...drafts.filter((item) => item.name.trim().toLowerCase() !== draft.name.trim().toLowerCase())].slice(0, 30);
-}
-
-function generationSnapshot(values: PesticidePdfValues) {
-  return stableString({
-    cdaCode: values.cdaCode,
-    sampleDrawnDate: values.sampleDrawnDate,
-    dealerName: values.dealerName,
-    dealerAddress: values.dealerAddress,
-    premisesLocation: values.premisesLocation,
-    licenseNumber: values.licenseNumber,
-    insecticideCommonName: values.insecticideCommonName,
-    tradeName: values.tradeName,
-    batchNumber: values.batchNumber,
-    manufactureDate: values.manufactureDate,
-    expiryDate: values.expiryDate,
-    sampleQuantity: values.sampleQuantity,
-  });
-}
-
-function isDuplicateGeneration(values: PesticidePdfValues) {
-  try {
-    return window.localStorage.getItem(LAST_GENERATED_KEY) === generationSnapshot(values);
-  } catch {
-    return false;
-  }
-}
-
-function rememberGeneratedData(values: PesticidePdfValues) {
-  try {
-    window.localStorage.setItem(LAST_GENERATED_KEY, generationSnapshot(values));
-  } catch {
-    // Duplicate warning is best-effort only.
-  }
-}
-
-function stableString(value: Record<string, string>) {
-  return JSON.stringify(Object.keys(value).sort().reduce<Record<string, string>>((acc, key) => {
-    acc[key] = String(value[key] ?? '').trim();
-    return acc;
-  }, {}));
 }
 
 function openBlankPdfTab() {
