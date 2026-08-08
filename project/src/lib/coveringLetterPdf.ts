@@ -131,7 +131,7 @@ export async function generateCoveringLetterPdf(
   drawSubject(cursor, updatedMetadata, letterType);
   cursor.y += PARAGRAPH_SPACING;
   
-  drawReference(cursor, metadata);
+  drawReference(cursor, metadata, officerDetails);
   
   drawSeparator(cursor);
   
@@ -182,7 +182,7 @@ export async function generateCoveringLetterPdf(
   drawSignature(cursor, officerDetails);
   cursor.y += PARAGRAPH_SPACING;
   
-  drawCopiesSection(cursor, officerDetails);
+  drawCopiesSection(cursor, officerDetails, updatedMetadata);
 
   // Add AGRONIX branding to bottom-right corner of every page
   drawBranding(doc);
@@ -412,7 +412,7 @@ function drawSubject(cursor: PdfCursor, metadata: CoveringLetterMetadata, letter
   cursor.y += (splitSubject.length * LINE_HEIGHT) + 1;
 }
 
-function drawReference(cursor: PdfCursor, metadata: CoveringLetterMetadata) {
+function drawReference(cursor: PdfCursor, metadata: CoveringLetterMetadata, officerDetails?: OfficerDetails) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
@@ -425,7 +425,7 @@ function drawReference(cursor: PdfCursor, metadata: CoveringLetterMetadata) {
   doc.text(ref1, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
   
-  const district = metadata.division || '';
+  const district = officerDetails?.district || officerDetails?.manualDistrict || '';
   const ref2Text = `2. DAO ${district} Memo No. ${metadata.daoMemoNumber || '_________'}, Dt. ${formatDate(metadata.daoMemoDate) || '_________'}.`;
   
   doc.setFont(PDF_FONT, 'normal');
@@ -627,10 +627,11 @@ function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;
 }
 
-function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails) {
+function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, metadata?: CoveringLetterMetadata) {
   const { doc } = cursor;
   
   const district = officerDetails?.district || officerDetails?.manualDistrict || 'Asifabad';
+  const division = metadata?.division || district;
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
@@ -642,7 +643,7 @@ function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   doc.text(`1. The District Agricultural Officer, ${district} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
   
-  doc.text(`2. The Asst. Director of Agriculture (R), ${district} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
+  doc.text(`2. The Asst. Director of Agriculture (R), ${division} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
 }
 

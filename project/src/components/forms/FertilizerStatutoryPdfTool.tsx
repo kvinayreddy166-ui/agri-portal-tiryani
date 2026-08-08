@@ -26,6 +26,13 @@ import {
 
 const showCoveringLetter = true;
 
+const currentYear = new Date().getFullYear();
+const financialYears = [
+  `${currentYear}-${(currentYear + 1).toString().slice(-2)}`,
+  `${currentYear - 1}-${currentYear.toString().slice(-2)}`,
+  `${currentYear + 1}-${(currentYear + 2).toString().slice(-2)}`,
+];
+
 type FieldConfig = {
   key: keyof FertilizerPdfValues;
   label: string;
@@ -570,7 +577,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       const saved = window.localStorage.getItem(STORAGE_KEY);
       const loaded = saved ? { ...initialFertilizerPdfValues, ...JSON.parse(saved) } : initialFertilizerPdfValues;
       // Always ensure default compositionDisplayFlags for new form
-      loaded.compositionDisplayFlags = 'N,P_WS,P_CS,K';
+      loaded.compositionDisplayFlags = 'N,P_T,P_CS,K';
       return normalizeFertilizerValues(loaded);
     } catch (error) {
       console.error('Error loading saved values:', error);
@@ -1116,7 +1123,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const resetComposition = () => {
     setValues(prev => ({
       ...prev,
-      compositionDisplayFlags: 'N,P_WS,P_CS,K',
+      compositionDisplayFlags: 'N,P_T,P_CS,K',
       composition: '',
       compositionN: '',
       compositionN_T: '',
