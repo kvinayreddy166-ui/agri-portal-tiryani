@@ -1098,6 +1098,21 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setMessage('Dealer details reset successfully.');
   };
 
+  const resetCoveringLetterDetails = () => {
+    setValues(prev => ({
+      ...prev,
+      financialYear: financialYears[0],
+      letterNumber: '',
+      letterDate: new Date().toISOString().slice(0, 10),
+      authorityType: 'DAO',
+      memoNumber: '',
+      memoDate: '',
+      division: '',
+      officerPhone: '',
+    }));
+    setMessage('Covering letter details reset successfully.');
+  };
+
   const resetComposition = () => {
     setValues(prev => ({
       ...prev,
@@ -1264,6 +1279,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                   if (title === 'SAMPLE DETAILS') return resetSampleDetails;
                   if (title === 'DEALER DETAILS') return resetDealerDetails;
                   if (title === 'COMPOSITION') return resetComposition;
+                  if (title === 'COVERING LETTER DETAILS') return resetCoveringLetterDetails;
                   return undefined;
                 };
                 const toggleSection = (title: string) => {

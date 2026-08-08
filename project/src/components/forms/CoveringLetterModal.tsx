@@ -353,7 +353,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
               </div>
             )}
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-red-600" />
