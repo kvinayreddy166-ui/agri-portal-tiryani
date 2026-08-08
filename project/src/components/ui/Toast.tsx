@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-export type ToastType = 'success' | 'info' | 'reset' | 'saved' | 'deleted' | 'loaded';
+export type ToastType = 'success' | 'info' | 'reset' | 'saved' | 'deleted' | 'loaded' | 'queue';
 
 interface ToastProps {
   type: ToastType;
@@ -41,6 +41,11 @@ const toastConfig: Record<ToastType, { icon: string; bgColor: string; borderColo
     bgColor: 'bg-violet-500/90',
     borderColor: 'border-violet-400',
   },
+  queue: {
+    icon: '📋',
+    bgColor: 'bg-indigo-500/90',
+    borderColor: 'border-indigo-400',
+  },
 };
 
 export function Toast({ type, title, subtitle, duration = 5000, onClose }: ToastProps) {
@@ -73,7 +78,7 @@ export function Toast({ type, title, subtitle, duration = 5000, onClose }: Toast
 
   return (
     <div
-      className={`fixed top-4 right-4 z-[9999] max-w-sm overflow-hidden rounded-xl ${config.bgColor} backdrop-blur-md ${config.borderColor} border shadow-2xl transition-all duration-300 ${
+      className={`max-w-sm overflow-hidden rounded-xl ${config.bgColor} backdrop-blur-md ${config.borderColor} border shadow-2xl transition-all duration-300 ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
       style={{
@@ -176,5 +181,9 @@ export function useToast() {
     showToast('loaded', title, subtitle, duration);
   };
 
-  return { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded };
+  const showQueue = (title: string, subtitle?: string, duration?: number) => {
+    showToast('queue', title, subtitle, duration);
+  };
+
+  return { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue };
 }

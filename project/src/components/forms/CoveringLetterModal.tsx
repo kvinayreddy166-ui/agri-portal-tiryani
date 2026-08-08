@@ -219,6 +219,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       const blob = doc.output('blob');
       const blobUrl = URL.createObjectURL(blob);
       setPreviewPdfUrl(blobUrl);
+      
       setShowPreviewDialog(true);
       setMessage('');
     } catch (error) {
@@ -438,24 +439,24 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
             </div>
           </div>
 
-          <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <label className="text-sm font-medium text-gray-700">Letter Type:</label>
+          <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 sm:px-6 sm:py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <label className="text-sm font-medium text-gray-700 shrink-0">Letter Type:</label>
               <select
                 value={letterType}
                 onChange={(e) => setLetterType(e.target.value as 'quality-analysis' | 'safe-custody')}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-w-0"
               >
                 <option value="quality-analysis">Quality Analysis (Portion-I)</option>
                 <option value="safe-custody">Safe Custody (III Portion)</option>
               </select>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handlePreview}
                 disabled={editedQueue.length === 0 || isGenerating}
-                className="inline-flex items-center gap-2 border border-emerald-200 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+                className="inline-flex items-center justify-center gap-2 border border-emerald-200 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white w-full sm:w-auto min-w-0"
               >
                 {isGenerating ? (
                   <>
@@ -473,7 +474,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                 type="button"
                 onClick={handleDownload}
                 disabled={!isValid || editedQueue.length === 0 || isGenerating}
-                className="inline-flex items-center gap-2 bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
+                className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 w-full sm:w-auto min-w-0"
               >
                 {isGenerating ? (
                   <>
@@ -522,11 +523,11 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
             />
           </div>
 
-          <footer className="flex shrink-0 items-center justify-end gap-2 sm:gap-3 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
+          <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
             <button
               type="button"
               onClick={closePreviewDialog}
-              className="inline-flex items-center gap-2 border border-gray-200 bg-white px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-lg"
+              className="inline-flex items-center justify-center gap-2 border border-gray-200 bg-white px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-lg w-full sm:w-auto min-w-0"
             >
               Close
             </button>
@@ -534,7 +535,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
               type="button"
               onClick={handleDownload}
               disabled={isGenerating}
-              className="inline-flex items-center gap-2 bg-emerald-600 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto min-w-0"
             >
               {isGenerating ? (
                 <>

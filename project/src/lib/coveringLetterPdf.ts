@@ -138,6 +138,11 @@ export async function generateCoveringLetterPdf(
   drawBody(cursor, officerDetails, letterType);
   cursor.y += PARAGRAPH_SPACING;
   
+  // Move sample table heading upward by 3 units for Portion 1 (Quality Analysis)
+  if (letterType === 'quality-analysis') {
+    cursor.y -= 3;
+  }
+  
   drawSampleTableHeading(cursor, letterType);
   cursor.y += LINE_HEIGHT;
   
@@ -489,7 +494,7 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType
 function drawSampleTableHeading(cursor: PdfCursor, letterType: LetterType = 'quality-analysis') {
   const { doc } = cursor;
   
-  doc.setFont(PDF_FONT, 'normal');
+  doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
   const headingText = letterType === 'safe-custody'
     ? 'The details of the fertilizer samples submitted for safe custody are as follows:'
@@ -578,7 +583,7 @@ function drawClosing(cursor: PdfCursor, letterType: LetterType = 'quality-analys
   cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;
   
   doc.text('Form "P" is kept with the sample.', PAGE.marginLeft, cursor.y);
-  cursor.y += LINE_HEIGHT + 1;
+  cursor.y += LINE_HEIGHT + 1.5;
 }
 
 function drawEnclosures(cursor: PdfCursor, sampleCount: number) {

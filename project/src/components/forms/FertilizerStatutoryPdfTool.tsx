@@ -1014,16 +1014,47 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         const queue: CoveringLetterQueueItem[] = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
         
         const existingIndex = queue.findIndex(item => item.sampleCode === values.sampleCode.trim());
-        if (existingIndex === -1 && values.sampleCode.trim()) {
-          const newItem: CoveringLetterQueueItem = {
-            sampleCode: values.sampleCode.trim(),
-            fertilizerName: resolveFertilizerTypeGrade(values).trim(),
-            quantity: getDefaultQuantity(values),
-            dateOfSampling: values.samplingDate.trim(),
-          };
-          queue.push(newItem);
-          window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
-          window.dispatchEvent(new Event('local-storage-update'));
+        const sampleCode = values.sampleCode.trim();
+        
+        if (sampleCode) {
+          if (existingIndex === -1) {
+            // New sample - add to queue
+            const newItem: CoveringLetterQueueItem = {
+              sampleCode: sampleCode,
+              fertilizerName: resolveFertilizerTypeGrade(values).trim(),
+              quantity: getDefaultQuantity(values),
+              dateOfSampling: values.samplingDate.trim(),
+            };
+            queue.push(newItem);
+            window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+            window.dispatchEvent(new Event('local-storage-update'));
+            showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 5000);
+          } else {
+            // Check if sample details have changed
+            const existingItem = queue[existingIndex];
+            const newItem = {
+              sampleCode: sampleCode,
+              fertilizerName: resolveFertilizerTypeGrade(values).trim(),
+              quantity: getDefaultQuantity(values),
+              dateOfSampling: values.samplingDate.trim(),
+            };
+            
+            const hasChanged = 
+              existingItem.fertilizerName !== newItem.fertilizerName ||
+              existingItem.quantity !== newItem.quantity ||
+              existingItem.dateOfSampling !== newItem.dateOfSampling;
+            
+            if (hasChanged) {
+              // Update existing sample
+              queue[existingIndex] = newItem;
+              window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+              window.dispatchEvent(new Event('local-storage-update'));
+              showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 5000);
+            } else {
+              // Sample already exists and unchanged
+              showQueue('Sample already in Covering Letter', `Sample ${sampleCode} already in Sample Queue`, 5000);
+            }
+          }
         }
       } catch (error) {
         console.error('Error adding to covering letter queue:', error);
