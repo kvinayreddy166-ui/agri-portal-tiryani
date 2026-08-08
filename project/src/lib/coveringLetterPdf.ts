@@ -39,7 +39,7 @@ const PAGE = {
   width: 210,
   height: 297,
   marginTop: 20,
-  marginBottom: 2, // Set to 0.2cm (2mm)
+  marginBottom: 1, // Set to 0.1cm (1mm)
   marginLeft: 20,
   marginRight: 15,
   contentWidth: 175, // 210 - 20 - 15
@@ -100,7 +100,7 @@ export async function generateCoveringLetterPdf(
   const doc = createDocument(jsPDF, 'Covering Letter - Fertilizer Samples');
   
   // Set bottom margin based on letter type
-  const currentMarginBottom = letterType === 'safe-custody' ? 2 : 2; // 0.2cm for both letters
+  const currentMarginBottom = letterType === 'safe-custody' ? 1 : 1; // 0.1cm for both letters
   
   const cursor = {
     doc,

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Download, Eye, FileText, X, Loader2, Trash2 } from 'lucide-react';
-import { PdfViewer } from '../ui/PdfViewer';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 
@@ -85,8 +84,6 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
-  const [previewPdfData, setPreviewPdfData] = useState<ArrayBuffer | null>(null);
-  const [useIframe, setUseIframe] = useState(false);
   const [letterType, setLetterType] = useState<'quality-analysis' | 'safe-custody'>('quality-analysis');
   const [isMobile, setIsMobile] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
@@ -215,7 +212,6 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
     setIsPreviewing(true);
     setIsGenerating(true);
-    setUseIframe(false);
     try {
       const { generateCoveringLetterPdf } = await import('../../lib/coveringLetterPdf');
       const doc = await generateCoveringLetterPdf(editedQueue, metadata, officerDetails, letterType);
@@ -223,10 +219,6 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       const blob = doc.output('blob');
       const blobUrl = URL.createObjectURL(blob);
       setPreviewPdfUrl(blobUrl);
-      
-      // Convert to ArrayBuffer for PDF.js on mobile
-      const arrayBuffer = await blob.arrayBuffer();
-      setPreviewPdfData(arrayBuffer);
       
       setShowPreviewDialog(true);
       setMessage('');
@@ -295,8 +287,6 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       URL.revokeObjectURL(previewPdfUrl);
       setPreviewPdfUrl(null);
     }
-    setPreviewPdfData(null);
-    setUseIframe(false);
   };
 
   if (!isOpen) return null;
@@ -325,10 +315,10 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   return (
     <>
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-        <div className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="flex max-h-[94vh] w-full max-w-[95vw] sm:max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
           <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-white px-6 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg">
                 <FileText className="h-5 w-5" />
               </div>
               <div>
@@ -359,7 +349,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-emerald-600" />
+                  <FileText className="w-5 h-5 text-red-600" />
                   <h3 className="text-lg font-semibold text-gray-900">Sample Queue Details</h3>
                   <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded-full">
                     {editedQueue.length} samples
@@ -451,7 +441,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
           <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 sm:px-6 sm:py-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <label className="text-sm font-medium text-gray-700 shrink-0">Letter Type:</label>
+              <label className="text-sm font-bold text-gray-700 shrink-0">Letter Type:</label>
               <select
                 value={letterType}
                 onChange={(e) => setLetterType(e.target.value as 'quality-analysis' | 'safe-custody')}
@@ -507,7 +497,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
         <div className={`fixed inset-0 z-[110] flex flex-col bg-slate-950 ${isMobile ? 'h-screen w-screen' : ''}`}>
           <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg">
+              <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg">
                 <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div>
@@ -525,29 +515,12 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
           </header>
 
           <div className="flex-1 overflow-hidden bg-gray-100">
-            {useIframe || !isMobile ? (
-              <iframe
-                src={previewPdfUrl}
-                className="w-full h-full"
-                title="Covering Letter Preview"
-                style={{ border: 'none' }}
-              />
-            ) : previewPdfData ? (
-              <PdfViewer 
-                pdfData={previewPdfData}
-                onError={(error) => {
-                  console.error('PDF viewer error:', error);
-                  setUseIframe(true);
-                }}
-                onLoadComplete={() => {
-                  console.log('PDF rendering complete');
-                }}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-              </div>
-            )}
+            <iframe
+              src={previewPdfUrl}
+              className="w-full h-full"
+              title="Covering Letter Preview"
+              style={{ border: 'none' }}
+            />
           </div>
 
           <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
