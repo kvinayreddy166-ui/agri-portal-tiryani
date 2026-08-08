@@ -217,10 +217,17 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       const doc = await generateCoveringLetterPdf(editedQueue, metadata, officerDetails, letterType);
       
       const blob = doc.output('blob');
-      const blobUrl = URL.createObjectURL(blob);
-      setPreviewPdfUrl(blobUrl);
       
-      setShowPreviewDialog(true);
+      // On mobile, open in new tab instead of preview dialog
+      if (isMobile) {
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+        setMessage('Covering Letter opened in new tab.');
+      } else {
+        const blobUrl = URL.createObjectURL(blob);
+        setPreviewPdfUrl(blobUrl);
+        setShowPreviewDialog(true);
+      }
       setMessage('');
     } catch (error) {
       console.error('Error generating covering letter PDF:', error);
@@ -494,7 +501,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       </div>
 
       {showPreviewDialog && previewPdfUrl && (
-        <div className={`fixed inset-0 z-[110] flex flex-col bg-slate-950 ${isMobile ? 'h-screen w-screen' : ''}`}>
+        <div className="fixed inset-0 z-[110] flex flex-col bg-slate-950 h-screen w-screen">
           <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg">
