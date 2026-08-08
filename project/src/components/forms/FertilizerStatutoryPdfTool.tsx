@@ -591,7 +591,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | 'downloadAll' | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(showCoveringLetter ? ['COVERING LETTER DETAILS'] : []));
   const allFields = useMemo(() => fertilizerFieldSections, []);
-  const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded } = useToast();
+  const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue } = useToast();
 
   // Error boundary for rendering
   if (error) {

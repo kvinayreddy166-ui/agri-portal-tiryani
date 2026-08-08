@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Download, Eye, FileText, X, Loader2, Trash2 } from 'lucide-react';
+import { PdfViewer } from '../ui/PdfViewer';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 
@@ -84,6 +85,8 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+  const [previewPdfData, setPreviewPdfData] = useState<ArrayBuffer | null>(null);
+  const [useIframe, setUseIframe] = useState(false);
   const [letterType, setLetterType] = useState<'quality-analysis' | 'safe-custody'>('quality-analysis');
   const [isMobile, setIsMobile] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
@@ -212,6 +215,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
     setIsPreviewing(true);
     setIsGenerating(true);
+    setUseIframe(false);
     try {
       const { generateCoveringLetterPdf } = await import('../../lib/coveringLetterPdf');
       const doc = await generateCoveringLetterPdf(editedQueue, metadata, officerDetails, letterType);
@@ -219,6 +223,10 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       const blob = doc.output('blob');
       const blobUrl = URL.createObjectURL(blob);
       setPreviewPdfUrl(blobUrl);
+      
+      // Convert to ArrayBuffer for PDF.js on mobile
+      const arrayBuffer = await blob.arrayBuffer();
+      setPreviewPdfData(arrayBuffer);
       
       setShowPreviewDialog(true);
       setMessage('');
@@ -287,6 +295,8 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       URL.revokeObjectURL(previewPdfUrl);
       setPreviewPdfUrl(null);
     }
+    setPreviewPdfData(null);
+    setUseIframe(false);
   };
 
   if (!isOpen) return null;
@@ -373,33 +383,33 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Sl. No.</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fertilizer Name</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Sample Code</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Sampling Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sl. No.</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Fertilizer Name</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sample Code</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sampling Date</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {editedQueue.map((item, index) => (
                         <tr key={index}>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{index + 1}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <td className="px-2 py-2 whitespace-nowrap text-xs font-medium text-gray-900">{index + 1}</td>
+                          <td className="px-2 py-2 whitespace-nowrap text-xs">
                             <input
                               type="text"
                               value={item.fertilizerName}
                               onChange={(e) => handleFertilizerNameChange(index, e.target.value)}
-                              className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                               placeholder="Enter Fertilizer Name"
                             />
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <td className="px-2 py-2 whitespace-nowrap text-xs">
                             <input
                               type="text"
                               value={item.sampleCode}
                               onChange={(e) => handleSampleCodeChange(index, e.target.value)}
-                              className={`w-full px-2 py-1.5 border rounded-md text-sm focus:outline-none focus:ring-2 ${
+                              className={`w-full px-1.5 py-1 border rounded-md text-xs focus:outline-none focus:ring-2 ${
                                 validationErrors[index]
                                   ? 'border-red-300 focus:ring-red-500 bg-red-50'
                                   : 'border-gray-300 focus:ring-emerald-500 focus:border-emerald-500'
@@ -407,20 +417,20 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                               placeholder="Enter Sample Code"
                             />
                             {validationErrors[index] && (
-                              <p className="text-red-600 text-xs mt-1">{validationErrors[index]}</p>
+                              <p className="text-red-600 text-[10px] mt-0.5">{validationErrors[index]}</p>
                             )}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <td className="px-2 py-2 whitespace-nowrap text-xs">
                             <input
                               type="text"
                               value={item.quantity}
                               onChange={(e) => handleQuantityChange(index, e.target.value)}
-                              className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                               placeholder="Enter Quantity"
                             />
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{item.dateOfSampling || '-'}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-700">{item.dateOfSampling || '-'}</td>
+                          <td className="px-2 py-2 whitespace-nowrap text-xs">
                             <button
                               type="button"
                               onClick={() => handleDeleteSample(index)}
@@ -515,12 +525,29 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
           </header>
 
           <div className="flex-1 overflow-hidden bg-gray-100">
-            <iframe
-              src={previewPdfUrl}
-              className="w-full h-full"
-              title="Covering Letter Preview"
-              style={{ border: 'none' }}
-            />
+            {useIframe || !isMobile ? (
+              <iframe
+                src={previewPdfUrl}
+                className="w-full h-full"
+                title="Covering Letter Preview"
+                style={{ border: 'none' }}
+              />
+            ) : previewPdfData ? (
+              <PdfViewer 
+                pdfData={previewPdfData}
+                onError={(error) => {
+                  console.error('PDF viewer error:', error);
+                  setUseIframe(true);
+                }}
+                onLoadComplete={() => {
+                  console.log('PDF rendering complete');
+                }}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+              </div>
+            )}
           </div>
 
           <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
