@@ -39,7 +39,7 @@ const PAGE = {
   width: 210,
   height: 297,
   marginTop: 20,
-  marginBottom: 5, // Set to 0.5cm (5mm)
+  marginBottom: 2, // Set to 0.2cm (2mm)
   marginLeft: 20,
   marginRight: 15,
   contentWidth: 175, // 210 - 20 - 15
@@ -100,11 +100,11 @@ export async function generateCoveringLetterPdf(
   const doc = createDocument(jsPDF, 'Covering Letter - Fertilizer Samples');
   
   // Set bottom margin based on letter type
-  const currentMarginBottom = letterType === 'safe-custody' ? 5 : 5; // 0.5cm for both letters
+  const currentMarginBottom = letterType === 'safe-custody' ? 2 : 2; // 0.2cm for both letters
   
   const cursor = {
     doc,
-    y: PAGE.marginTop - 3, // Reduced upper margin by 3 units
+    y: letterType === 'quality-analysis' ? PAGE.marginTop - 6 : PAGE.marginTop - 3, // Reduce upper margin by 6 units for Portion 1, 3 units for Portion 3
     contentWidth: PAGE.contentWidth,
   };
 
@@ -184,7 +184,7 @@ function calculateFooterHeight(): number {
   let height = LINE_HEIGHT + PARAGRAPH_SPACING;
   
   // Signature section (negative space + Yours faithfully + extra space + designation + Fertilizer Inspector + spacing)
-  height += -5 + LINE_HEIGHT + LINE_HEIGHT + LINE_HEIGHT + LINE_HEIGHT + PARAGRAPH_SPACING;
+  height += -5 + LINE_HEIGHT + LINE_HEIGHT + 5 + LINE_HEIGHT + LINE_HEIGHT + PARAGRAPH_SPACING;
   
   // Copies section (heading + 2 lines)
   height += LINE_HEIGHT + LINE_HEIGHT + LINE_HEIGHT;
@@ -209,8 +209,8 @@ async function drawGovernmentHeader(cursor: PdfCursor) {
   const { doc } = cursor;
   
   // Add Telangana Government emblem to the left of the header text
-  const emblemWidth = 21.78; // Increased width by another 10% (19.8 * 1.1)
-  const emblemHeight = 14.52; // Increased height by another 10% (13.2 * 1.1)
+  const emblemWidth = 23.96; // Increased width by another 10% (21.78 * 1.1)
+  const emblemHeight = 15.97; // Increased height by another 10% (14.52 * 1.1)
   const horizontalGap = 3; // Reduced gap to move logo closer to text
   
   // Calculate text width for centering
@@ -423,9 +423,10 @@ function drawReference(cursor: PdfCursor, metadata: CoveringLetterMetadata) {
 function drawSeparator(cursor: PdfCursor) {
   const { doc } = cursor;
   
-  doc.setFont(PDF_FONT, 'normal');
+  doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
   doc.text('******', PAGE.width / 2, cursor.y, { align: 'center' });
+  cursor.y += LINE_HEIGHT + 2;
 }
 
 function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType: LetterType = 'quality-analysis') {
@@ -601,7 +602,7 @@ function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   doc.text('Yours faithfully,', signatureX, cursor.y, { align: 'right' });
   cursor.y += LINE_HEIGHT;
   
-  cursor.y += LINE_HEIGHT; // Extra space
+  cursor.y += LINE_HEIGHT + 5; // Extra space increased by 5 units
   
   const designation = officerDetails?.designation || 'Mandal Agricultural Officer';
   doc.setFont(PDF_FONT, 'bold');

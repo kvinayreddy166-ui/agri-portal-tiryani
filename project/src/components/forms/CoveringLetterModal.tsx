@@ -85,6 +85,8 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [letterType, setLetterType] = useState<'quality-analysis' | 'safe-custody'>('quality-analysis');
+  const [isMobile, setIsMobile] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -104,6 +106,18 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       }
     }
   }, [isOpen, coveringLetterDetails]);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const loadQueue = () => {
     try {
@@ -191,6 +205,12 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       return;
     }
 
+    // Prevent multiple preview instances
+    if (isPreviewing) {
+      return;
+    }
+
+    setIsPreviewing(true);
     setIsGenerating(true);
     try {
       const { generateCoveringLetterPdf } = await import('../../lib/coveringLetterPdf');
@@ -206,6 +226,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       setMessage('Failed to generate Covering Letter. Please try again.');
     } finally {
       setIsGenerating(false);
+      setIsPreviewing(false);
     }
   };
 
@@ -472,15 +493,15 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       </div>
 
       {showPreviewDialog && previewPdfUrl && (
-        <div className="fixed inset-0 z-[110] flex flex-col bg-slate-950">
-          <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg">
-                <FileText className="h-5 w-5" />
+        <div className={`fixed inset-0 z-[110] flex flex-col bg-slate-950 ${isMobile ? 'h-screen w-screen' : ''}`}>
+          <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg">
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Covering Letter Preview</h2>
-                <p className="text-sm text-gray-600">Review the document before downloading</p>
+                <h2 className="text-base sm:text-lg font-bold text-gray-900">Covering Letter Preview</h2>
+                <p className="text-xs sm:text-sm text-gray-600">Review the document before downloading</p>
               </div>
             </div>
             <button
@@ -497,14 +518,15 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
               src={previewPdfUrl}
               className="w-full h-full"
               title="Covering Letter Preview"
+              style={{ border: 'none' }}
             />
           </div>
 
-          <footer className="flex shrink-0 items-center justify-end gap-3 border-t border-gray-200 bg-white px-6 py-4">
+          <footer className="flex shrink-0 items-center justify-end gap-2 sm:gap-3 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
             <button
               type="button"
               onClick={closePreviewDialog}
-              className="inline-flex items-center gap-2 border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-lg"
+              className="inline-flex items-center gap-2 border border-gray-200 bg-white px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-lg"
             >
               Close
             </button>
@@ -512,7 +534,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
               type="button"
               onClick={handleDownload}
               disabled={isGenerating}
-              className="inline-flex items-center gap-2 bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 bg-emerald-600 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGenerating ? (
                 <>
