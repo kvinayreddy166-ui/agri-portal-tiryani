@@ -39,7 +39,7 @@ const PAGE = {
   width: 210,
   height: 297,
   marginTop: 20,
-  marginBottom: 1, // Set to 0.1cm (1mm)
+  marginBottom: 1, // Set to 1 unit
   marginLeft: 20,
   marginRight: 15,
   contentWidth: 175, // 210 - 20 - 15
@@ -100,7 +100,7 @@ export async function generateCoveringLetterPdf(
   const doc = createDocument(jsPDF, 'Covering Letter - Fertilizer Samples');
   
   // Set bottom margin based on letter type
-  const currentMarginBottom = letterType === 'safe-custody' ? 1 : 1; // 0.1cm for both letters
+  const currentMarginBottom = letterType === 'safe-custody' ? 1 : 1; // 1 unit for both letters
   
   const cursor = {
     doc,
@@ -135,6 +135,11 @@ export async function generateCoveringLetterPdf(
   
   drawSeparator(cursor);
   
+  // Move body text upward by 2 units for Portion 1 (Quality Analysis)
+  if (letterType === 'quality-analysis') {
+    cursor.y -= 2;
+  }
+  
   drawBody(cursor, officerDetails, letterType);
   cursor.y += PARAGRAPH_SPACING;
   
@@ -159,8 +164,12 @@ export async function generateCoveringLetterPdf(
   
   // If insufficient space for footer block, create new page
   if (remainingSpace < footerHeight) {
+    // Add (Cont'd....) at bottom right before page break
+    doc.setFont(PDF_FONT, 'normal');
+    doc.setFontSize(10);
+    doc.text('(Cont\'d....)', PAGE.width - PAGE.marginRight, PAGE.height - currentMarginBottom - 2, { align: 'right' });
     doc.addPage();
-    cursor.y = PAGE.marginTop;
+    cursor.y = 35; // 3.5 cm upper margin for second page
   }
   
   // Move signature and copies section upward by 3 units
@@ -173,7 +182,7 @@ export async function generateCoveringLetterPdf(
   drawSignature(cursor, officerDetails);
   cursor.y += PARAGRAPH_SPACING;
   
-  drawCopiesSection(cursor);
+  drawCopiesSection(cursor, officerDetails);
 
   // Add AGRONIX branding to bottom-right corner of every page
   drawBranding(doc);
@@ -449,11 +458,11 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType
     ? [
         { text: 'In continuation to the subject cited above, I submit that the following fertilizer samples were drawn from the input dealer premises in ', bold: false },
         { text: mandal, bold: true },
-        { text: ', ', bold: false },
+        { text: ' Mandal, ', bold: false },
         { text: district, bold: true },
         { text: ' District for quality analysis as per the allotment given by the District Agricultural Officer, ', bold: false },
         { text: district, bold: false },
-        { text: '. The I Portion of the samples has already been forwarded for quality analysis.', bold: false },
+        { text: '. The I Portion of the samples has already been forwarded for quality analysis. ', bold: false },
         { text: 'I am herewith submitting the III Portion of the fertilizer samples, along with the enclosed Form K, for safe custody.', bold: false },
       ]
     : [
@@ -618,8 +627,10 @@ function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;
 }
 
-function drawCopiesSection(cursor: PdfCursor) {
+function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   const { doc } = cursor;
+  
+  const district = officerDetails?.district || officerDetails?.manualDistrict || 'Asifabad';
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
@@ -628,10 +639,10 @@ function drawCopiesSection(cursor: PdfCursor) {
   
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(11);
-  doc.text(`1. The District Agricultural Officer, Asifabad for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
+  doc.text(`1. The District Agricultural Officer, ${district} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
   
-  doc.text(`2. The Asst. Director of Agriculture (R), Asifabad for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
+  doc.text(`2. The Asst. Director of Agriculture (R), ${district} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
 }
 
