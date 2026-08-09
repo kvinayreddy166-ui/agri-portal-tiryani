@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Agriculture emblem">
+  <circle cx="60" cy="60" r="58" fill="#047857"/>
+  <circle cx="60" cy="60" r="48" fill="#ecfdf5"/>
+  <path fill="#047857" d="M60 28c-8 14-22 18-22 34 0 12 10 22 22 22s22-10 22-22c0-16-14-20-22-34z"/>
+  <path fill="#10b981" d="M60 48v44M44 72h32"/>
+</svg>
