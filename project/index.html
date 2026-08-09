@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png?v=agronix-v2" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png?v=agronix-v2" />
+    <link rel="preload" as="image" href="/images/agri-emblem-192.webp" type="image/webp" fetchpriority="high" />
+    <link rel="preload" href="/fonts/atkinson-hyperlegible-next-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/atkinson-hyperlegible-next-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preconnect" href="https://szxtfeiswxugxukztnst.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="//szxtfeiswxugxukztnst.supabase.co" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f766e" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <link rel="canonical" href="https://www.tiryaniagriportal.in/" />
+    <title>AGRONIX</title>
+    <meta name="description" content="Official Agriculture Department Portal for Tiryani Mandal, Kumram Bheem Asifabad District, Telangana. Farmer services, crop advisory, fertilizer calculator, dealer monitoring, statutory forms, and agriculture schemes." />
+    <meta name="keywords" content="Tiryani, AGRONIX, Agriculture Department Tiryani, Kumuram Bheem Asifabad, Telangana Agriculture, Crop Advisory, Weather, Farmer Services, Agriculture Portal, Government Schemes" />
+    <meta name="application-name" content="AGRONIX" />
+    <meta name="apple-mobile-web-app-title" content="AGRONIX" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AGRONIX" />
+    <meta property="og:url" content="https://www.tiryaniagriportal.in/" />
+    <meta property="og:title" content="AGRONIX" />
+    <meta property="og:description" content="Official Agriculture Department Portal for Tiryani Mandal, Kumram Bheem Asifabad District, Telangana. Farmer services, crop advisory, fertilizer calculator, dealer monitoring, statutory forms, and agriculture schemes." />
+    <meta property="og:image" content="https://www.tiryaniagriportal.in/images/agri-emerald-512.webp" />
+    <meta property="og:image:alt" content="AGRONIX emblem" />
+    <meta name="twitter:title" content="AGRONIX" />
+    <meta name="twitter:description" content="Official Agriculture Department Portal for Tiryani Mandal, Kumram Bheem Asifabad District, Telangana." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://www.tiryaniagriportal.in/images/agri-emerald-512.webp" />
+    <script>
+      (function () {
+        var recoveryKey = 'tiryani-startup-recovery-v4';
+        var resetKey = 'tiryani-html-sw-reset-v2';
+        window.__TIRYANI_APP_BOOTED__ = false;
+
+        function safeSessionGet(key) {
+          try { return sessionStorage.getItem(key); } catch (error) { return null; }
+        }
+
+        function safeSessionSet(key, value) {
+          try { sessionStorage.setItem(key, value); } catch (error) {}
+        }
+
+        function clearAppBuildMetadata(resetStartupRecovery) {
+          try { localStorage.removeItem('tiryani-app-build-version'); } catch (error) {}
+          try {
+            sessionStorage.removeItem('tiryani-startup-recovery-v1');
+            sessionStorage.removeItem('tiryani-startup-recovery-v2');
+            sessionStorage.removeItem('tiryani-startup-recovery-v3');
+            if (resetStartupRecovery) {
+              sessionStorage.removeItem(recoveryKey);
+              sessionStorage.removeItem(resetKey);
+              sessionStorage.removeItem('tiryani-pwa-recovery-attempted-at');
+            }
+          } catch (error) {}
+        }
+
+        function syncRescueServiceWorker() {
+          if (!('serviceWorker' in navigator)) return Promise.resolve(false);
+          var hadController = Boolean(navigator.serviceWorker.controller);
+          return navigator.serviceWorker.getRegistrations().then(function (registrations) {
+            return Promise.all(registrations.map(function (registration) {
+              try { registration.active && registration.active.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch (error) {}
+              try { registration.waiting && registration.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (error) {}
+              try { return registration.update(); } catch (error) { return Promise.resolve(); }
+            })).then(function () {
+              var hasRootRegistration = registrations.some(function (registration) {
+                try { return new URL(registration.scope).pathname === '/'; } catch (error) { return false; }
+              });
+              if (hasRootRegistration) return false;
+              return navigator.serviceWorker.register('/service-worker.js', { scope: '/' }).then(function () { return true; });
+            }).then(function (registered) { return hadController || registrations.length > 0 || registered; });
+          }).catch(function () { return hadController; });
+        }
+        function clearCachesOnly() {
+          if (!('caches' in window)) return Promise.resolve();
+          return caches.keys().then(function (keys) {
+            return Promise.all(keys.map(function (key) { return caches.delete(key); }));
+          });
+        }
+
+        function reloadWithBust(reason, forceRoot) {
+          var url = new URL(forceRoot ? '/' : window.location.href, window.location.origin);
+          url.searchParams.set('refresh', String(Date.now()));
+          if (reason) url.searchParams.set('reason', reason);
+          window.location.replace(url.toString());
+        }
+
+        function hardRefresh(reason) {
+          var manualReset = reason === 'manual' || reason === 'cache-reset';
+          return Promise.resolve()
+            .then(function () { clearAppBuildMetadata(manualReset); })
+            .then(syncRescueServiceWorker)
+            .then(clearCachesOnly)
+            .finally(function () { reloadWithBust(reason || 'cache-reset', manualReset); });
+        }
+
+        function showRecoveryOptions() {
+          if (window.__TIRYANI_APP_BOOTED__) return;
+          var loader = document.getElementById('startup-loader');
+          if (!loader) return;
+          loader.innerHTML = '<img src="/images/agronix-logo-original.jpeg" alt="Agronix" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:16px;font-weight:900">New Update Available</div><div style="max-width:380px;text-align:center;font-size:13px;font-weight:600;color:#475569">A new version of Agronix is ready to install.</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px"><button type="button" onclick="window.__TIRYANI_FORCE_REFRESH__ && window.__TIRYANI_FORCE_REFRESH__(\'manual\')" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Update</button><button type="button" onclick="window.location.reload()" style="border:1px solid #a7f3d0;border-radius:12px;background:white;color:#047857;padding:10px 16px;font-weight:800">Later</button></div>';
+        }
+
+        function recoverFromStartupFailure(reason) {
+          if (window.__TIRYANI_APP_BOOTED__) return;
+          var attempts = Number(safeSessionGet(recoveryKey) || 0);
+          if (attempts >= 2) {
+            showRecoveryOptions();
+            return;
+          }
+          safeSessionSet(recoveryKey, String(attempts + 1));
+          hardRefresh(reason || 'startup');
+        }
+
+        function releaseServiceWorkerControl() {
+          syncRescueServiceWorker()
+            .then(clearCachesOnly)
+            .then(function (hadServiceWorker) {
+              if (!hadServiceWorker || safeSessionGet(resetKey) === '1') return;
+              safeSessionSet(resetKey, '1');
+              reloadWithBust('sw-reset', true);
+            })
+            .catch(function () {});
+        }
+
+        releaseServiceWorkerControl();
+        window.__TIRYANI_FORCE_REFRESH__ = hardRefresh;
+        window.setTimeout(function () {
+          if (!window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('timeout');
+        }, 8000);
+
+        window.addEventListener('error', function (event) {
+          var target = event && event.target;
+          var isScriptFailure = target && target.tagName === 'SCRIPT';
+          if (isScriptFailure || !window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('error');
+        }, true);
+
+        window.addEventListener('unhandledrejection', function () {
+          if (!window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('promise');
+        });
+      })();
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "AGRONIX",
+        "alternateName": "AGRONIX",
+        "url": "https://www.tiryaniagriportal.in/",
+        "applicationCategory": "GovernmentApplication",
+        "operatingSystem": "Web",
+        "description": "AGRONIX - Agriculture Intelligence Platform. Fertilizer, dealer, crop, statutory forms, PDF tools, and agriculture office management in Tiryani Mandal, Kumram Bheem Asifabad District, Telangana.",
+        "publisher": {
+          "@type": "GovernmentOrganization",
+          "name": "Department of Agriculture, Telangana"
+        },
+        "areaServed": {
+          "@type": "AdministrativeArea",
+          "name": "Tiryani Mandal, Kumram Bheem Asifabad District, Telangana"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root">
+      <div id="startup-loader" style="display:flex;min-height:100vh;flex-direction:column;gap:16px;align-items:center;justify-content:center;font-family:system-ui,sans-serif;color:#0f172a;background:#eef6f0">
+        <img src="/images/agronix-logo-original.jpeg" alt="Agronix" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" />
+        <div style="font-size:14px;font-weight:700">Loading Agronix...</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

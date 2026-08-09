@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">AGRONIX</string>
+    <string name="title_activity_main">AGRONIX</string>
+    <string name="package_name">in.tiryani.agriportal</string>
+    <string name="custom_url_scheme">in.tiryani.agriportal</string>
+</resources>

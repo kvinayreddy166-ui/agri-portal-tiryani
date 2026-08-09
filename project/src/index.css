@@ -1,0 +1,828 @@
+﻿@import './styles/design-system.css';
+
+@font-face {
+  font-family: 'Noto Sans Telugu';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('/fonts/noto-sans-telugu-telugu-400-normal.woff2') format('woff2');
+  unicode-range: U+0C00-0C7F,U+200C-200D,U+25CC;
+}
+
+@font-face {
+  font-family: 'Noto Sans Telugu';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700 800;
+  src: url('/fonts/noto-sans-telugu-telugu-700-normal.woff2') format('woff2');
+  unicode-range: U+0C00-0C7F,U+200C-200D,U+25CC;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('/fonts/atkinson-hyperlegible-next-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src: url('/fonts/atkinson-hyperlegible-next-latin-800-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('/fonts/atkinson-hyperlegible-next-latin-ext-400-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src: url('/fonts/atkinson-hyperlegible-next-latin-ext-800-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-heading: "Atkinson Hyperlegible Next", "Noto Sans Telugu", "Nirmala UI", "Gautami", "Inter", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible Next", "Noto Sans Telugu", "Nirmala UI", "Gautami", "Inter", system-ui, sans-serif;
+  --agri-primary: #0b7a5c;
+  --agri-secondary: #0f9d58;
+  --agri-blue: #2563eb;
+  --agri-danger: #dc2626;
+  --agri-warning: #f59e0b;
+  --agri-bg: #f4f8f5;
+  --agri-card: #ffffff;
+  --agri-text: #0f172a;
+  --agri-muted: #64748b;
+  --agri-border: rgba(15, 23, 42, 0.08);
+  --agri-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+  --agri-radius: 16px;
+  --agri-radius-mobile: 14px;
+  --agri-focus: 0 0 0 4px rgba(11, 122, 92, 0.14);
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  font-family: var(--font-body);
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 50%, #ecfeff 100%);
+  color: var(--agri-text);
+}
+
+.dark html,
+.dark body,
+.dark #root {
+  background: linear-gradient(135deg, #0f172a 0%, #022c22 50%, #0f172a 100%);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 400;
+  color: var(--agri-text);
+  background: var(--agri-bg);
+  font-synthesis-weight: none;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+}
+
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 800;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-body);
+}
+.dark body {
+  color: #e2e8f0;
+  background: #020617;
+}
+
+.dark .portal-card,
+.dark .app-card,
+.dark .filter-panel {
+  border-color: rgba(148, 163, 184, 0.2);
+  background: #0f172a;
+  color: #e2e8f0;
+  box-shadow: 0 2px 10px rgba(2, 6, 23, 0.35);
+}
+
+.dark .stat-card {
+  border-color: rgba(15, 157, 88, 0.25);
+  background: linear-gradient(135deg, #0f172a 0%, rgba(15, 157, 88, 0.14) 100%);
+  color: #e2e8f0;
+}
+
+.dark .page-title,
+.dark .portal-section-title,
+.dark .section-title,
+.dark .card-title {
+  color: #f8fafc;
+}
+
+.dark .page-subtitle,
+.dark .muted-text {
+  color: #cbd5e1;
+}
+
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+}
+
+main,
+.dashboard-shell,
+.min-h-screen {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@layer components {
+  .table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-scroll table,
+  .overflow-x-auto > table {
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+
+  .table-scroll thead,
+  .overflow-x-auto > table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .table-scroll th,
+  .overflow-x-auto > table th {
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+
+  .table-scroll td,
+  .overflow-x-auto > table td {
+    font-size: 0.8125rem;
+    vertical-align: top;
+  }
+
+  .table-scroll tbody tr:nth-child(even),
+  .overflow-x-auto > table tbody tr:nth-child(even) {
+    background: rgba(244, 248, 245, 0.75);
+  }
+
+  .table-scroll tbody tr:hover,
+  .overflow-x-auto > table tbody tr:hover {
+    background: rgba(15, 157, 88, 0.08);
+  }
+
+  .portal-card {
+    border-radius: var(--agri-radius);
+    border: 1px solid var(--agri-border);
+    background: var(--agri-card);
+    box-shadow: var(--agri-shadow);
+    color: var(--agri-text);
+  }
+
+  .portal-section-title {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--agri-text);
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--agri-text);
+  }
+
+  .page-subtitle {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--agri-muted);
+  }
+
+  .app-card {
+    border-radius: var(--agri-radius);
+    border: 1px solid var(--agri-border);
+    background: var(--agri-card);
+    box-shadow: var(--agri-shadow);
+    padding: 1rem;
+    color: var(--agri-text);
+  }
+
+  .modern-card {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: linear-gradient(135deg, #ffffff 0%, rgba(16, 185, 129, 0.03) 100%);
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .modern-card:hover {
+    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .dark .modern-card {
+    border-color: rgba(16, 185, 129, 0.3);
+    background: linear-gradient(135deg, #0f172a 0%, rgba(16, 185, 129, 0.08) 100%);
+    box-shadow: 0 4px 20px rgba(2, 6, 23, 0.4);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-title {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    color: var(--agri-text);
+  }
+
+  .card-title {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    color: var(--agri-text);
+  }
+
+  .muted-text {
+    color: var(--agri-muted);
+  }
+
+  .stat-card {
+    border-radius: var(--agri-radius);
+    border: 1px solid rgba(15, 157, 88, 0.16);
+    background: linear-gradient(135deg, #ffffff 0%, rgba(15, 157, 88, 0.08) 100%);
+    box-shadow: var(--agri-shadow);
+    padding: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .modern-stat-card {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .modern-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+  }
+
+  .filter-panel {
+    border-radius: var(--agri-radius);
+    border: 1px solid var(--agri-border);
+    background: var(--agri-card);
+    box-shadow: var(--agri-shadow);
+    padding: 1rem;
+  }
+
+  .empty-state {
+    border-radius: var(--agri-radius);
+    border: 1px dashed rgba(100, 116, 139, 0.35);
+    background: rgba(255, 255, 255, 0.72);
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--agri-muted);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .action-button {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .action-button:active {
+    transform: scale(0.985);
+  }
+
+  .modern-action-button {
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+    transition: all 0.2s ease;
+  }
+
+  .modern-action-button:hover {
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    transform: translateY(-1px);
+  }
+
+  .icon-action {
+    display: inline-flex;
+    height: 2.5rem;
+    width: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(11, 122, 92, 0.2);
+    background: #ffffff;
+    color: var(--agri-primary);
+    font-weight: 900;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .icon-action:hover {
+    border-color: rgba(11, 122, 92, 0.42);
+    background: rgba(236, 253, 245, 0.92);
+  }
+
+  .icon-action:active {
+    transform: scale(0.985);
+  }
+
+  .filter-select {
+    min-height: 2.625rem;
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    background: #ffffff;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+    color: #0f172a;
+    outline: none;
+  }
+
+  .filter-select:focus {
+    border-color: var(--agri-primary);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.14);
+  }
+
+  .action-button-primary {
+    border: 1px solid var(--agri-primary);
+    background: var(--agri-primary);
+    color: #ffffff;
+  }
+
+  .action-button-secondary {
+    border: 1px solid rgba(11, 122, 92, 0.25);
+    background: #ffffff;
+    color: var(--agri-primary);
+  }
+
+  .action-button-danger {
+    border: 1px solid var(--agri-danger);
+    background: var(--agri-danger);
+    color: #ffffff;
+  }
+
+  .action-button-warning {
+    border: 1px solid var(--agri-warning);
+    background: var(--agri-warning);
+    color: #111827;
+  }
+}
+
+label {
+  min-width: 0;
+}
+
+label > span,
+.field-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: var(--agri-muted);
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--agri-primary) !important;
+  box-shadow: var(--agri-focus);
+  outline: none;
+}
+
+button {
+  letter-spacing: 0;
+}
+
+@media (max-width: 640px) {
+  .portal-card,
+  .app-card,
+  .filter-panel,
+  .stat-card {
+    border-radius: var(--agri-radius-mobile);
+    padding: 0.75rem;
+  }
+
+  .modern-card,
+  .modern-stat-card {
+    border-radius: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.375rem;
+    line-height: 1.75rem;
+  }
+
+  .portal-section-title,
+  .section-title {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  .table-scroll table,
+  .overflow-x-auto > table {
+    font-size: 0.75rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .section-header > div:last-child {
+    width: 100%;
+  }
+
+  .filter-panel > div {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 425px) {
+  .page-title {
+    font-size: 1.25rem;
+    line-height: 1.625rem;
+  }
+
+  .portal-section-title,
+  .section-title {
+    font-size: 0.9375rem;
+    line-height: 1.375rem;
+  }
+
+  .table-scroll table,
+  .overflow-x-auto > table {
+    font-size: 0.6875rem;
+  }
+
+  .action-button {
+    font-size: 0.8125rem;
+    padding: 0.5625rem 0.75rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .page-title {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
+  .stat-card {
+    padding: 0.625rem;
+  }
+
+  .stat-card p:first-child {
+    font-size: 0.6875rem;
+  }
+
+  .stat-card p:nth-child(2) {
+    font-size: 1.5rem;
+  }
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  color-scheme: dark;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Smooth transitions */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid #059669;
+  outline-offset: 2px;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Modern agricultural theme animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+/* Staggered animation delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+
+/* Toolkit loader animations */
+@keyframes loadingBar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-loading-bar {
+  animation: loadingBar 1.5s ease-in-out infinite;
+}
+
+@keyframes dashboardRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dashboardShellIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dashboardFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes barGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes loginLogoHero {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.86) rotate(-2deg);
+    filter: drop-shadow(0 0 0 rgba(4, 120, 87, 0));
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.08) rotate(1deg);
+    filter: drop-shadow(0 12px 18px rgba(4, 120, 87, 0.22));
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0);
+    filter: drop-shadow(0 8px 14px rgba(4, 120, 87, 0.16));
+  }
+}
+
+@keyframes loginLogoBreathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.025);
+  }
+}
+
+.dashboard-shell {
+  animation: dashboardShellIn 0.35s ease-out both;
+}
+
+.login-logo-hero {
+  animation: loginLogoHero 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both, loginLogoBreathe 4.5s ease-in-out 0.9s infinite;
+  transform-origin: center;
+}
+
+.dashboard-rise {
+  animation: dashboardRise 0.45s ease-out both;
+}
+
+.dashboard-delay-1 {
+  animation-delay: 80ms;
+}
+
+.dashboard-delay-2 {
+  animation-delay: 160ms;
+}
+
+.dashboard-delay-3 {
+  animation-delay: 240ms;
+}
+
+.dashboard-float {
+  animation: dashboardFloat 4s ease-in-out infinite;
+}
+
+.dashboard-bar {
+  transform-origin: left center;
+  animation: barGrow 0.7s ease-out both;
+}
+
+@keyframes cropDoctorImageFloat {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-3px) scale(1.015);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agri-legal-round-card,
+  .agri-input-topic-card,
+  .agri-topic-card,
+  .agri-legal-round-card:active .agri-legal-ripple,
+  .agri-card-field-lines,
+  .agri-card-shine {
+    animation: none !important;
+  }
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    border-color: rgb(16, 185, 129);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    border-color: rgb(5, 150, 105);
+  }
+}
+
+.pulse-border-animation {
+  animation: pulse-border 2s ease-in-out infinite;
+}

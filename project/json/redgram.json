@@ -1,0 +1,1583 @@
+{
+  "slug": "redgram",
+  "crop_profile": {
+    "name_en": "Redgram / Pigeonpea",
+    "name_te": "కంది",
+    "scientific_name": "Cajanus cajan",
+    "description_en": "Deep-rooted pulse crop grown as sole crop, intercrop and border crop in rainfed systems.",
+    "description_te": "వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+    "source_pdf_name": "redgram.pdf",
+    "image": "/images/pulses.jpg"
+  },
+  "soil_requirements": {
+    "description_en": "Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot.",
+    "description_te": "ఈ పంటకు Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot."
+  },
+  "climate_requirements": {
+    "description_en": "Warm semi-arid climate; flowering and pod filling need mild weather and no prolonged moisture stress.",
+    "description_te": "వాతావరణ సూచన: వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట."
+  },
+  "recommended_varieties": [
+    {
+      "id": "redgram-variety-1",
+      "crop": "redgram",
+      "variety": "PRG 176",
+      "duration": "130-140 days",
+      "yield": "6-8 q/acre",
+      "special_features": "Suitable for rabi and short duration planting",
+      "image": "/images/pulses.jpg"
+    },
+    {
+      "id": "redgram-variety-2",
+      "crop": "redgram",
+      "variety": "LRG 41",
+      "duration": "160-180 days",
+      "yield": "5-8 q/acre",
+      "special_features": "Popular variety suited to rainfed areas",
+      "image": "/images/pulses.jpg"
+    },
+    {
+      "id": "redgram-variety-3",
+      "crop": "redgram",
+      "variety": "Asha (ICPL 87119)",
+      "duration": "160-180 days",
+      "yield": "6-9 q/acre",
+      "special_features": "Wilt tolerant and widely adapted",
+      "image": "/images/pulses.jpg"
+    },
+    {
+      "id": "redgram-variety-4",
+      "crop": "redgram",
+      "variety": "WRGE 97",
+      "duration": "150-160 days",
+      "yield": "6-8 q/acre",
+      "special_features": "Suitable to medium soils",
+      "image": "/images/pulses.jpg"
+    },
+    {
+      "id": "redgram-variety-5",
+      "crop": "redgram",
+      "variety": "TS 3R",
+      "duration": "150-165 days",
+      "yield": "6-9 q/acre",
+      "special_features": "Recommended where local seed is available",
+      "image": "/images/pulses.jpg"
+    }
+  ],
+  "crop_production_practices": [
+    {
+      "stage": "Land Preparation",
+      "description_en": "Open furrows for drainage in black soils and avoid compact seedbeds.",
+      "description_te": "నల్లరేగడి భూముల్లో నీరు నిల్వ కాకుండా సాళ్లు ఏర్పాటు చేయాలి."
+    },
+    {
+      "stage": "Sowing",
+      "description_en": "Use line sowing and maintain proper spacing for branching.",
+      "description_te": "కొమ్మలు విస్తరించడానికి సరైన దూరంతో వరుసల్లో విత్తాలి."
+    },
+    {
+      "stage": "Interculture",
+      "description_en": "Hoe at 25-30 and 45-50 DAS to conserve moisture and control weeds.",
+      "description_te": "25-30 మరియు 45-50 రోజుల దశలో కలుపు తీసి తేమ నిల్వ చేయాలి."
+    },
+    {
+      "stage": "Harvest",
+      "description_en": "Cut plants when pods are dry; thresh after sun drying.",
+      "description_te": "కాయలు ఎండినప్పుడు మొక్కలను కోసి ఎండబెట్టి నూర్పిడి చేయాలి."
+    }
+  ],
+  "seed_rate_seed_treatment": "Use 4-6 kg seed/acre. Treat with fungicide, Rhizobium and PSB as recommended.",
+  "sowing_time_spacing_land_preparation": "Kharif sowing with monsoon onset; spacing 90 x 20 cm for long duration and closer for short duration types.",
+  "fertilizer_recommendations": [
+    {
+      "id": "redgram-fertilizer-1",
+      "crop": "redgram",
+      "stage": "Basal",
+      "fertilizer": "SSP or DAP + FYM",
+      "quantity": "Apply starter N and full P",
+      "method": "Place below seed at sowing"
+    },
+    {
+      "id": "redgram-fertilizer-2",
+      "crop": "redgram",
+      "stage": "Biofertilizer",
+      "fertilizer": "Rhizobium + PSB",
+      "quantity": "One packet each per seed lot",
+      "method": "Seed inoculation in shade"
+    },
+    {
+      "id": "redgram-fertilizer-3",
+      "crop": "redgram",
+      "stage": "Sulphur",
+      "fertilizer": "Gypsum or SSP source",
+      "quantity": "Soil-test based",
+      "method": "Basal incorporation"
+    },
+    {
+      "id": "redgram-fertilizer-4",
+      "crop": "redgram",
+      "stage": "Flowering",
+      "fertilizer": "Pulse wonder or 2% DAP",
+      "quantity": "As advisory",
+      "method": "Foliar spray during cool hours"
+    }
+  ],
+  "nutrient_management": "Sulphur deficiency causes uniform yellowing of young leaves; iron chlorosis may occur in calcareous soils.",
+  "irrigation_management": [
+    {
+      "stage": "Establishment",
+      "recommendation": "Protect germination if monsoon break occurs."
+    },
+    {
+      "stage": "Flowering",
+      "recommendation": "One protective irrigation improves pod set in dry spell."
+    },
+    {
+      "stage": "Pod Filling",
+      "recommendation": "Avoid waterlogging; provide light irrigation only if needed."
+    }
+  ],
+  "weed_management": [
+    {
+      "id": "redgram-weed-1",
+      "crop": "redgram",
+      "weed_name": "Congress grass",
+      "scientific_name": "Parthenium hysterophorus",
+      "control_measure": "Remove before flowering and maintain borders",
+      "herbicide": "Pendimethalin 30 EC",
+      "dose": "1.0 L/acre pre-emergence",
+      "image": "/images/pulses.jpg"
+    },
+    {
+      "id": "redgram-weed-2",
+      "crop": "redgram",
+      "weed_name": "Bermuda grass",
+      "scientific_name": "Cynodon dactylon",
+      "control_measure": "Repeated hoeing and rhizome removal",
+      "herbicide": "Quizalofop ethyl",
+      "dose": "Post-emergence for grasses",
+      "image": "/images/pulses.jpg"
+    },
+    {
+      "id": "redgram-weed-3",
+      "crop": "redgram",
+      "weed_name": "Dayflower",
+      "scientific_name": "Commelina benghalensis",
+      "control_measure": "Hand weeding and interculture",
+      "herbicide": "Imazethapyr",
+      "dose": "Use where recommended for pulses",
+      "image": "/images/pulses.jpg"
+    }
+  ],
+  "pest_management": [
+    {
+      "id": "redgram-pest-1",
+      "crop": "redgram",
+      "pest_name": "Gram pod borer",
+      "scientific_name": "Helicoverpa armigera",
+      "symptoms": "Larva feeds with head inside pod; round holes and grain damage.",
+      "management": "Use pheromone traps, bird perches, NPV, sunflower trap row and need-based sprays.",
+      "chemical_control": "Emamectin benzoate 5 SG, Indoxacarb 15.8 SC, Chlorantraniliprole 18.5 SC or Spinosad 45 SC",
+      "image": "https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_insect_pul_red%20gram_clip_image002.jpg",
+      "image_source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_insect_pul_red%20gram.html"
+    },
+    {
+      "id": "redgram-pest-2",
+      "crop": "redgram",
+      "pest_name": "Pod fly",
+      "scientific_name": "Melanagromyza obtusa",
+      "symptoms": "Maggot feeds inside developing seed; shrivelled grain.",
+      "management": "Early sowing, collect damaged pods and avoid staggered flowering.",
+      "chemical_control": "Dimethoate or Thiomethoxam as local advisory",
+      "image": "/images/pulses.jpg",
+      "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
+    }
+  ],
+  "disease_management": [
+    {
+      "id": "redgram-disease-1",
+      "crop": "redgram",
+      "disease_name": "Wilt",
+      "causal_organism": "Fusarium udum",
+      "symptoms": "Sudden wilting, brown vascular discoloration and plant death.",
+      "management": "Use wilt tolerant variety, seed treatment and crop rotation.",
+      "fungicide": "Carbendazim seed treatment; Trichoderma in soil",
+      "image": "/images/pulses.jpg",
+      "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
+    },
+    {
+      "id": "redgram-disease-2",
+      "crop": "redgram",
+      "disease_name": "Sterility mosaic",
+      "causal_organism": "Pigeonpea sterility mosaic virus",
+      "symptoms": "Bushy pale green plants with little or no flowering.",
+      "management": "Use resistant varieties and control eriophyid mite vector.",
+      "fungicide": "Wettable sulphur or Dimethoate as advisory for mite",
+      "image": "/images/pulses.jpg",
+      "image_source_url": "PJTAU crop PDFs supplied by user: F:/pjtsau crops"
+    }
+  ],
+  "deficiency_symptoms": [
+    {
+      "deficiency": "Sulphur deficiency",
+      "nutrient": "Sulphur",
+      "symptoms": "Young leaves become pale and plants remain weak.",
+      "correction": "Apply gypsum or SSP based on soil test.",
+      "image": "/images/pulses.jpg"
+    },
+    {
+      "deficiency": "Iron chlorosis",
+      "nutrient": "Iron",
+      "symptoms": "Young leaves show interveinal chlorosis in calcareous soils.",
+      "correction": "Foliar spray ferrous sulphate with lime neutralization.",
+      "image": "/images/pulses.jpg"
+    }
+  ],
+  "harvesting": "Harvest when 80% pods turn brown and dry. Expected grain yield is 5-8 q/acre in rainfed crop.",
+  "yield_information": [
+    {
+      "variety": "PRG 176",
+      "expected_yield": "6-8 q/acre"
+    },
+    {
+      "variety": "LRG 41",
+      "expected_yield": "5-8 q/acre"
+    },
+    {
+      "variety": "Asha (ICPL 87119)",
+      "expected_yield": "6-9 q/acre"
+    },
+    {
+      "variety": "WRGE 97",
+      "expected_yield": "6-8 q/acre"
+    },
+    {
+      "variety": "TS 3R",
+      "expected_yield": "6-9 q/acre"
+    }
+  ],
+  "advisories": [
+    {
+      "category": "Pre-sowing",
+      "description_en": "Collect soil sample and plan fertilizer from soil-test values.",
+      "description_te": "విత్తే ముందు నేల నమూనా తీసుకుని పరీక్ష ఆధారంగా ఎరువుల ప్రణాళిక చేయాలి."
+    },
+    {
+      "category": "Seed treatment",
+      "description_en": "Use 4-6 kg seed/acre. Treat with fungicide, Rhizobium and PSB as recommended.",
+      "description_te": "విత్తన శుద్ధి తప్పనిసరిగా చేసి కంది పంటను ఆరోగ్యంగా ప్రారంభించాలి."
+    },
+    {
+      "category": "Weather risk",
+      "description_en": "Do not spray pesticides during high wind, rain or peak heat.",
+      "description_te": "గాలి ఎక్కువగా ఉన్నప్పుడు, వర్షం ఉన్నప్పుడు లేదా తీవ్రమైన ఎండలో మందులు పిచికారీ చేయకూడదు."
+    },
+    {
+      "category": "IPM",
+      "description_en": "Use cultural, mechanical and biological measures before chemical control.",
+      "description_te": "రసాయన నియంత్రణకు ముందు సాగు, యాంత్రిక, జీవ నియంత్రణ పద్ధతులు పాటించాలి."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What should I check this week? What is the best production system for Redgram / Pigeonpea?",
+      "answer": "Timely sowing, seed inoculation, interculture, drainage and pod borer monitoring from flowering are essential.",
+      "answer_te": "కంది: పంట వివరాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Crop Profile",
+      "keywords": [
+        "profile",
+        "production",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? Which soil is suitable for Redgram / Pigeonpea?",
+      "answer": "Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot.",
+      "answer_te": "కంది: నేల విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Soil",
+      "keywords": [
+        "soil",
+        "land",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? What climate does Redgram / Pigeonpea need?",
+      "answer": "Warm semi-arid climate; flowering and pod filling need mild weather and no prolonged moisture stress.",
+      "answer_te": "కంది: వాతావరణం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Climate",
+      "keywords": [
+        "climate",
+        "weather",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? What is the seed rate for Redgram / Pigeonpea?",
+      "answer": "Use 4-6 kg seed/acre. Treat with fungicide, Rhizobium and PSB as recommended.",
+      "answer_te": "కంది: విత్తనం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Seed",
+      "keywords": [
+        "seed rate",
+        "seed treatment",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? When and how should Redgram / Pigeonpea be sown?",
+      "answer": "Kharif sowing with monsoon onset; spacing 90 x 20 cm for long duration and closer for short duration types.",
+      "answer_te": "కంది: విత్తడం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Sowing",
+      "keywords": [
+        "sowing",
+        "spacing",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? How should fertilizer be applied in Redgram / Pigeonpea?",
+      "answer": "Basal: SSP or DAP + FYM Apply starter N and full P; Biofertilizer: Rhizobium + PSB One packet each per seed lot; Sulphur: Gypsum or SSP source Soil-test based; Flowering: Pulse wonder or 2% DAP As advisory",
+      "answer_te": "కంది: ఎరువులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Fertilizer",
+      "keywords": [
+        "fertilizer",
+        "nutrients",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? What are critical irrigation stages for Redgram / Pigeonpea?",
+      "answer": "Establishment: Protect germination if monsoon break occurs. Flowering: One protective irrigation improves pod set in dry spell. Pod Filling: Avoid waterlogging; provide light irrigation only if needed.",
+      "answer_te": "కంది: నీటి నిర్వహణ విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Irrigation",
+      "keywords": [
+        "irrigation",
+        "water",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? How are weeds managed in Redgram / Pigeonpea?",
+      "answer": "Congress grass: Remove before flowering and maintain borders; Bermuda grass: Repeated hoeing and rhizome removal; Dayflower: Hand weeding and interculture",
+      "answer_te": "కంది: కలుపు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Weed",
+      "keywords": [
+        "weed",
+        "herbicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? Which major pests attack Redgram / Pigeonpea?",
+      "answer": "Gram pod borer: Larva feeds with head inside pod; round holes and grain damage. Management: Use pheromone traps, bird perches, NPV, sunflower trap row and need-based sprays. Pod fly: Maggot feeds inside developing seed; shrivelled grain. Management: Early sowing, collect damaged pods and avoid staggered flowering.",
+      "answer_te": "కంది: పురుగులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Pest",
+      "keywords": [
+        "pest",
+        "ipm",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? Which diseases are important in Redgram / Pigeonpea?",
+      "answer": "Wilt: Sudden wilting, brown vascular discoloration and plant death. Management: Use wilt tolerant variety, seed treatment and crop rotation. Sterility mosaic: Bushy pale green plants with little or no flowering. Management: Use resistant varieties and control eriophyid mite vector.",
+      "answer_te": "కంది: తెగుళ్లు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Disease",
+      "keywords": [
+        "disease",
+        "fungicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? What nutrient deficiencies are common in Redgram / Pigeonpea?",
+      "answer": "Sulphur deficiency: Young leaves become pale and plants remain weak. Correction: Apply gypsum or SSP based on soil test. Iron chlorosis: Young leaves show interveinal chlorosis in calcareous soils. Correction: Foliar spray ferrous sulphate with lime neutralization.",
+      "answer_te": "కంది: లోప లక్షణాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Deficiency",
+      "keywords": [
+        "deficiency",
+        "nutrient",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? When should Redgram / Pigeonpea be harvested?",
+      "answer": "Harvest when 80% pods turn brown and dry. Expected grain yield is 5-8 q/acre in rainfed crop.",
+      "answer_te": "కంది: కోత విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Harvest",
+      "keywords": [
+        "harvest",
+        "yield",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? What is the best production system for Redgram / Pigeonpea?",
+      "answer": "Timely sowing, seed inoculation, interculture, drainage and pod borer monitoring from flowering are essential.",
+      "answer_te": "కంది: పంట వివరాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Crop Profile",
+      "keywords": [
+        "profile",
+        "production",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? Which soil is suitable for Redgram / Pigeonpea?",
+      "answer": "Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot.",
+      "answer_te": "కంది: నేల విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Soil",
+      "keywords": [
+        "soil",
+        "land",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? What climate does Redgram / Pigeonpea need?",
+      "answer": "Warm semi-arid climate; flowering and pod filling need mild weather and no prolonged moisture stress.",
+      "answer_te": "కంది: వాతావరణం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Climate",
+      "keywords": [
+        "climate",
+        "weather",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? What is the seed rate for Redgram / Pigeonpea?",
+      "answer": "Use 4-6 kg seed/acre. Treat with fungicide, Rhizobium and PSB as recommended.",
+      "answer_te": "కంది: విత్తనం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Seed",
+      "keywords": [
+        "seed rate",
+        "seed treatment",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? When and how should Redgram / Pigeonpea be sown?",
+      "answer": "Kharif sowing with monsoon onset; spacing 90 x 20 cm for long duration and closer for short duration types.",
+      "answer_te": "కంది: విత్తడం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Sowing",
+      "keywords": [
+        "sowing",
+        "spacing",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? How should fertilizer be applied in Redgram / Pigeonpea?",
+      "answer": "Basal: SSP or DAP + FYM Apply starter N and full P; Biofertilizer: Rhizobium + PSB One packet each per seed lot; Sulphur: Gypsum or SSP source Soil-test based; Flowering: Pulse wonder or 2% DAP As advisory",
+      "answer_te": "కంది: ఎరువులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Fertilizer",
+      "keywords": [
+        "fertilizer",
+        "nutrients",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? What are critical irrigation stages for Redgram / Pigeonpea?",
+      "answer": "Establishment: Protect germination if monsoon break occurs. Flowering: One protective irrigation improves pod set in dry spell. Pod Filling: Avoid waterlogging; provide light irrigation only if needed.",
+      "answer_te": "కంది: నీటి నిర్వహణ విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Irrigation",
+      "keywords": [
+        "irrigation",
+        "water",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? How are weeds managed in Redgram / Pigeonpea?",
+      "answer": "Congress grass: Remove before flowering and maintain borders; Bermuda grass: Repeated hoeing and rhizome removal; Dayflower: Hand weeding and interculture",
+      "answer_te": "కంది: కలుపు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Weed",
+      "keywords": [
+        "weed",
+        "herbicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? Which major pests attack Redgram / Pigeonpea?",
+      "answer": "Gram pod borer: Larva feeds with head inside pod; round holes and grain damage. Management: Use pheromone traps, bird perches, NPV, sunflower trap row and need-based sprays. Pod fly: Maggot feeds inside developing seed; shrivelled grain. Management: Early sowing, collect damaged pods and avoid staggered flowering.",
+      "answer_te": "కంది: పురుగులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Pest",
+      "keywords": [
+        "pest",
+        "ipm",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? Which diseases are important in Redgram / Pigeonpea?",
+      "answer": "Wilt: Sudden wilting, brown vascular discoloration and plant death. Management: Use wilt tolerant variety, seed treatment and crop rotation. Sterility mosaic: Bushy pale green plants with little or no flowering. Management: Use resistant varieties and control eriophyid mite vector.",
+      "answer_te": "కంది: తెగుళ్లు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Disease",
+      "keywords": [
+        "disease",
+        "fungicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? What nutrient deficiencies are common in Redgram / Pigeonpea?",
+      "answer": "Sulphur deficiency: Young leaves become pale and plants remain weak. Correction: Apply gypsum or SSP based on soil test. Iron chlorosis: Young leaves show interveinal chlorosis in calcareous soils. Correction: Foliar spray ferrous sulphate with lime neutralization.",
+      "answer_te": "కంది: లోప లక్షణాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Deficiency",
+      "keywords": [
+        "deficiency",
+        "nutrient",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should an Agriculture Officer advise? When should Redgram / Pigeonpea be harvested?",
+      "answer": "Harvest when 80% pods turn brown and dry. Expected grain yield is 5-8 q/acre in rainfed crop.",
+      "answer_te": "కంది: కోత విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Harvest",
+      "keywords": [
+        "harvest",
+        "yield",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? What is the best production system for Redgram / Pigeonpea?",
+      "answer": "Timely sowing, seed inoculation, interculture, drainage and pod borer monitoring from flowering are essential.",
+      "answer_te": "కంది: పంట వివరాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Crop Profile",
+      "keywords": [
+        "profile",
+        "production",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? Which soil is suitable for Redgram / Pigeonpea?",
+      "answer": "Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot.",
+      "answer_te": "కంది: నేల విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Soil",
+      "keywords": [
+        "soil",
+        "land",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? What climate does Redgram / Pigeonpea need?",
+      "answer": "Warm semi-arid climate; flowering and pod filling need mild weather and no prolonged moisture stress.",
+      "answer_te": "కంది: వాతావరణం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Climate",
+      "keywords": [
+        "climate",
+        "weather",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? What is the seed rate for Redgram / Pigeonpea?",
+      "answer": "Use 4-6 kg seed/acre. Treat with fungicide, Rhizobium and PSB as recommended.",
+      "answer_te": "కంది: విత్తనం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Seed",
+      "keywords": [
+        "seed rate",
+        "seed treatment",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? When and how should Redgram / Pigeonpea be sown?",
+      "answer": "Kharif sowing with monsoon onset; spacing 90 x 20 cm for long duration and closer for short duration types.",
+      "answer_te": "కంది: విత్తడం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Sowing",
+      "keywords": [
+        "sowing",
+        "spacing",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? How should fertilizer be applied in Redgram / Pigeonpea?",
+      "answer": "Basal: SSP or DAP + FYM Apply starter N and full P; Biofertilizer: Rhizobium + PSB One packet each per seed lot; Sulphur: Gypsum or SSP source Soil-test based; Flowering: Pulse wonder or 2% DAP As advisory",
+      "answer_te": "కంది: ఎరువులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Fertilizer",
+      "keywords": [
+        "fertilizer",
+        "nutrients",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? What are critical irrigation stages for Redgram / Pigeonpea?",
+      "answer": "Establishment: Protect germination if monsoon break occurs. Flowering: One protective irrigation improves pod set in dry spell. Pod Filling: Avoid waterlogging; provide light irrigation only if needed.",
+      "answer_te": "కంది: నీటి నిర్వహణ విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Irrigation",
+      "keywords": [
+        "irrigation",
+        "water",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? How are weeds managed in Redgram / Pigeonpea?",
+      "answer": "Congress grass: Remove before flowering and maintain borders; Bermuda grass: Repeated hoeing and rhizome removal; Dayflower: Hand weeding and interculture",
+      "answer_te": "కంది: కలుపు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Weed",
+      "keywords": [
+        "weed",
+        "herbicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? Which major pests attack Redgram / Pigeonpea?",
+      "answer": "Gram pod borer: Larva feeds with head inside pod; round holes and grain damage. Management: Use pheromone traps, bird perches, NPV, sunflower trap row and need-based sprays. Pod fly: Maggot feeds inside developing seed; shrivelled grain. Management: Early sowing, collect damaged pods and avoid staggered flowering.",
+      "answer_te": "కంది: పురుగులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Pest",
+      "keywords": [
+        "pest",
+        "ipm",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? Which diseases are important in Redgram / Pigeonpea?",
+      "answer": "Wilt: Sudden wilting, brown vascular discoloration and plant death. Management: Use wilt tolerant variety, seed treatment and crop rotation. Sterility mosaic: Bushy pale green plants with little or no flowering. Management: Use resistant varieties and control eriophyid mite vector.",
+      "answer_te": "కంది: తెగుళ్లు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Disease",
+      "keywords": [
+        "disease",
+        "fungicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? What nutrient deficiencies are common in Redgram / Pigeonpea?",
+      "answer": "Sulphur deficiency: Young leaves become pale and plants remain weak. Correction: Apply gypsum or SSP based on soil test. Iron chlorosis: Young leaves show interveinal chlorosis in calcareous soils. Correction: Foliar spray ferrous sulphate with lime neutralization.",
+      "answer_te": "కంది: లోప లక్షణాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Deficiency",
+      "keywords": [
+        "deficiency",
+        "nutrient",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the farmer-friendly recommendation? When should Redgram / Pigeonpea be harvested?",
+      "answer": "Harvest when 80% pods turn brown and dry. Expected grain yield is 5-8 q/acre in rainfed crop.",
+      "answer_te": "కంది: కోత విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Harvest",
+      "keywords": [
+        "harvest",
+        "yield",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? What is the best production system for Redgram / Pigeonpea?",
+      "answer": "Timely sowing, seed inoculation, interculture, drainage and pod borer monitoring from flowering are essential.",
+      "answer_te": "కంది: పంట వివరాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Crop Profile",
+      "keywords": [
+        "profile",
+        "production",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? Which soil is suitable for Redgram / Pigeonpea?",
+      "answer": "Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot.",
+      "answer_te": "కంది: నేల విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Soil",
+      "keywords": [
+        "soil",
+        "land",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? What climate does Redgram / Pigeonpea need?",
+      "answer": "Warm semi-arid climate; flowering and pod filling need mild weather and no prolonged moisture stress.",
+      "answer_te": "కంది: వాతావరణం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Climate",
+      "keywords": [
+        "climate",
+        "weather",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? What is the seed rate for Redgram / Pigeonpea?",
+      "answer": "Use 4-6 kg seed/acre. Treat with fungicide, Rhizobium and PSB as recommended.",
+      "answer_te": "కంది: విత్తనం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Seed",
+      "keywords": [
+        "seed rate",
+        "seed treatment",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? When and how should Redgram / Pigeonpea be sown?",
+      "answer": "Kharif sowing with monsoon onset; spacing 90 x 20 cm for long duration and closer for short duration types.",
+      "answer_te": "కంది: విత్తడం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Sowing",
+      "keywords": [
+        "sowing",
+        "spacing",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? How should fertilizer be applied in Redgram / Pigeonpea?",
+      "answer": "Basal: SSP or DAP + FYM Apply starter N and full P; Biofertilizer: Rhizobium + PSB One packet each per seed lot; Sulphur: Gypsum or SSP source Soil-test based; Flowering: Pulse wonder or 2% DAP As advisory",
+      "answer_te": "కంది: ఎరువులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Fertilizer",
+      "keywords": [
+        "fertilizer",
+        "nutrients",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? What are critical irrigation stages for Redgram / Pigeonpea?",
+      "answer": "Establishment: Protect germination if monsoon break occurs. Flowering: One protective irrigation improves pod set in dry spell. Pod Filling: Avoid waterlogging; provide light irrigation only if needed.",
+      "answer_te": "కంది: నీటి నిర్వహణ విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Irrigation",
+      "keywords": [
+        "irrigation",
+        "water",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? How are weeds managed in Redgram / Pigeonpea?",
+      "answer": "Congress grass: Remove before flowering and maintain borders; Bermuda grass: Repeated hoeing and rhizome removal; Dayflower: Hand weeding and interculture",
+      "answer_te": "కంది: కలుపు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Weed",
+      "keywords": [
+        "weed",
+        "herbicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? Which major pests attack Redgram / Pigeonpea?",
+      "answer": "Gram pod borer: Larva feeds with head inside pod; round holes and grain damage. Management: Use pheromone traps, bird perches, NPV, sunflower trap row and need-based sprays. Pod fly: Maggot feeds inside developing seed; shrivelled grain. Management: Early sowing, collect damaged pods and avoid staggered flowering.",
+      "answer_te": "కంది: పురుగులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Pest",
+      "keywords": [
+        "pest",
+        "ipm",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? Which diseases are important in Redgram / Pigeonpea?",
+      "answer": "Wilt: Sudden wilting, brown vascular discoloration and plant death. Management: Use wilt tolerant variety, seed treatment and crop rotation. Sterility mosaic: Bushy pale green plants with little or no flowering. Management: Use resistant varieties and control eriophyid mite vector.",
+      "answer_te": "కంది: తెగుళ్లు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Disease",
+      "keywords": [
+        "disease",
+        "fungicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? What nutrient deficiencies are common in Redgram / Pigeonpea?",
+      "answer": "Sulphur deficiency: Young leaves become pale and plants remain weak. Correction: Apply gypsum or SSP based on soil test. Iron chlorosis: Young leaves show interveinal chlorosis in calcareous soils. Correction: Foliar spray ferrous sulphate with lime neutralization.",
+      "answer_te": "కంది: లోప లక్షణాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Deficiency",
+      "keywords": [
+        "deficiency",
+        "nutrient",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What field symptom needs attention? When should Redgram / Pigeonpea be harvested?",
+      "answer": "Harvest when 80% pods turn brown and dry. Expected grain yield is 5-8 q/acre in rainfed crop.",
+      "answer_te": "కంది: కోత విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Harvest",
+      "keywords": [
+        "harvest",
+        "yield",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? What is the best production system for Redgram / Pigeonpea?",
+      "answer": "Timely sowing, seed inoculation, interculture, drainage and pod borer monitoring from flowering are essential.",
+      "answer_te": "కంది: పంట వివరాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Crop Profile",
+      "keywords": [
+        "profile",
+        "production",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? Which soil is suitable for Redgram / Pigeonpea?",
+      "answer": "Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot.",
+      "answer_te": "కంది: నేల విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Soil",
+      "keywords": [
+        "soil",
+        "land",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? What climate does Redgram / Pigeonpea need?",
+      "answer": "Warm semi-arid climate; flowering and pod filling need mild weather and no prolonged moisture stress.",
+      "answer_te": "కంది: వాతావరణం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Climate",
+      "keywords": [
+        "climate",
+        "weather",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? What is the seed rate for Redgram / Pigeonpea?",
+      "answer": "Use 4-6 kg seed/acre. Treat with fungicide, Rhizobium and PSB as recommended.",
+      "answer_te": "కంది: విత్తనం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Seed",
+      "keywords": [
+        "seed rate",
+        "seed treatment",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? When and how should Redgram / Pigeonpea be sown?",
+      "answer": "Kharif sowing with monsoon onset; spacing 90 x 20 cm for long duration and closer for short duration types.",
+      "answer_te": "కంది: విత్తడం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Sowing",
+      "keywords": [
+        "sowing",
+        "spacing",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? How should fertilizer be applied in Redgram / Pigeonpea?",
+      "answer": "Basal: SSP or DAP + FYM Apply starter N and full P; Biofertilizer: Rhizobium + PSB One packet each per seed lot; Sulphur: Gypsum or SSP source Soil-test based; Flowering: Pulse wonder or 2% DAP As advisory",
+      "answer_te": "కంది: ఎరువులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Fertilizer",
+      "keywords": [
+        "fertilizer",
+        "nutrients",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? What are critical irrigation stages for Redgram / Pigeonpea?",
+      "answer": "Establishment: Protect germination if monsoon break occurs. Flowering: One protective irrigation improves pod set in dry spell. Pod Filling: Avoid waterlogging; provide light irrigation only if needed.",
+      "answer_te": "కంది: నీటి నిర్వహణ విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Irrigation",
+      "keywords": [
+        "irrigation",
+        "water",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? How are weeds managed in Redgram / Pigeonpea?",
+      "answer": "Congress grass: Remove before flowering and maintain borders; Bermuda grass: Repeated hoeing and rhizome removal; Dayflower: Hand weeding and interculture",
+      "answer_te": "కంది: కలుపు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Weed",
+      "keywords": [
+        "weed",
+        "herbicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? Which major pests attack Redgram / Pigeonpea?",
+      "answer": "Gram pod borer: Larva feeds with head inside pod; round holes and grain damage. Management: Use pheromone traps, bird perches, NPV, sunflower trap row and need-based sprays. Pod fly: Maggot feeds inside developing seed; shrivelled grain. Management: Early sowing, collect damaged pods and avoid staggered flowering.",
+      "answer_te": "కంది: పురుగులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Pest",
+      "keywords": [
+        "pest",
+        "ipm",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? Which diseases are important in Redgram / Pigeonpea?",
+      "answer": "Wilt: Sudden wilting, brown vascular discoloration and plant death. Management: Use wilt tolerant variety, seed treatment and crop rotation. Sterility mosaic: Bushy pale green plants with little or no flowering. Management: Use resistant varieties and control eriophyid mite vector.",
+      "answer_te": "కంది: తెగుళ్లు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Disease",
+      "keywords": [
+        "disease",
+        "fungicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? What nutrient deficiencies are common in Redgram / Pigeonpea?",
+      "answer": "Sulphur deficiency: Young leaves become pale and plants remain weak. Correction: Apply gypsum or SSP based on soil test. Iron chlorosis: Young leaves show interveinal chlorosis in calcareous soils. Correction: Foliar spray ferrous sulphate with lime neutralization.",
+      "answer_te": "కంది: లోప లక్షణాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Deficiency",
+      "keywords": [
+        "deficiency",
+        "nutrient",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What action should be avoided? When should Redgram / Pigeonpea be harvested?",
+      "answer": "Harvest when 80% pods turn brown and dry. Expected grain yield is 5-8 q/acre in rainfed crop.",
+      "answer_te": "కంది: కోత విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Harvest",
+      "keywords": [
+        "harvest",
+        "yield",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? What is the best production system for Redgram / Pigeonpea?",
+      "answer": "Timely sowing, seed inoculation, interculture, drainage and pod borer monitoring from flowering are essential.",
+      "answer_te": "కంది: పంట వివరాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Crop Profile",
+      "keywords": [
+        "profile",
+        "production",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? Which soil is suitable for Redgram / Pigeonpea?",
+      "answer": "Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot.",
+      "answer_te": "కంది: నేల విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Soil",
+      "keywords": [
+        "soil",
+        "land",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? What climate does Redgram / Pigeonpea need?",
+      "answer": "Warm semi-arid climate; flowering and pod filling need mild weather and no prolonged moisture stress.",
+      "answer_te": "కంది: వాతావరణం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Climate",
+      "keywords": [
+        "climate",
+        "weather",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? What is the seed rate for Redgram / Pigeonpea?",
+      "answer": "Use 4-6 kg seed/acre. Treat with fungicide, Rhizobium and PSB as recommended.",
+      "answer_te": "కంది: విత్తనం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Seed",
+      "keywords": [
+        "seed rate",
+        "seed treatment",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? When and how should Redgram / Pigeonpea be sown?",
+      "answer": "Kharif sowing with monsoon onset; spacing 90 x 20 cm for long duration and closer for short duration types.",
+      "answer_te": "కంది: విత్తడం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Sowing",
+      "keywords": [
+        "sowing",
+        "spacing",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? How should fertilizer be applied in Redgram / Pigeonpea?",
+      "answer": "Basal: SSP or DAP + FYM Apply starter N and full P; Biofertilizer: Rhizobium + PSB One packet each per seed lot; Sulphur: Gypsum or SSP source Soil-test based; Flowering: Pulse wonder or 2% DAP As advisory",
+      "answer_te": "కంది: ఎరువులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Fertilizer",
+      "keywords": [
+        "fertilizer",
+        "nutrients",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? What are critical irrigation stages for Redgram / Pigeonpea?",
+      "answer": "Establishment: Protect germination if monsoon break occurs. Flowering: One protective irrigation improves pod set in dry spell. Pod Filling: Avoid waterlogging; provide light irrigation only if needed.",
+      "answer_te": "కంది: నీటి నిర్వహణ విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Irrigation",
+      "keywords": [
+        "irrigation",
+        "water",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? How are weeds managed in Redgram / Pigeonpea?",
+      "answer": "Congress grass: Remove before flowering and maintain borders; Bermuda grass: Repeated hoeing and rhizome removal; Dayflower: Hand weeding and interculture",
+      "answer_te": "కంది: కలుపు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Weed",
+      "keywords": [
+        "weed",
+        "herbicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? Which major pests attack Redgram / Pigeonpea?",
+      "answer": "Gram pod borer: Larva feeds with head inside pod; round holes and grain damage. Management: Use pheromone traps, bird perches, NPV, sunflower trap row and need-based sprays. Pod fly: Maggot feeds inside developing seed; shrivelled grain. Management: Early sowing, collect damaged pods and avoid staggered flowering.",
+      "answer_te": "కంది: పురుగులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Pest",
+      "keywords": [
+        "pest",
+        "ipm",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? Which diseases are important in Redgram / Pigeonpea?",
+      "answer": "Wilt: Sudden wilting, brown vascular discoloration and plant death. Management: Use wilt tolerant variety, seed treatment and crop rotation. Sterility mosaic: Bushy pale green plants with little or no flowering. Management: Use resistant varieties and control eriophyid mite vector.",
+      "answer_te": "కంది: తెగుళ్లు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Disease",
+      "keywords": [
+        "disease",
+        "fungicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? What nutrient deficiencies are common in Redgram / Pigeonpea?",
+      "answer": "Sulphur deficiency: Young leaves become pale and plants remain weak. Correction: Apply gypsum or SSP based on soil test. Iron chlorosis: Young leaves show interveinal chlorosis in calcareous soils. Correction: Foliar spray ferrous sulphate with lime neutralization.",
+      "answer_te": "కంది: లోప లక్షణాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Deficiency",
+      "keywords": [
+        "deficiency",
+        "nutrient",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the Telugu advisory summary? When should Redgram / Pigeonpea be harvested?",
+      "answer": "Harvest when 80% pods turn brown and dry. Expected grain yield is 5-8 q/acre in rainfed crop.",
+      "answer_te": "కంది: కోత విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Harvest",
+      "keywords": [
+        "harvest",
+        "yield",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? What is the best production system for Redgram / Pigeonpea?",
+      "answer": "Timely sowing, seed inoculation, interculture, drainage and pod borer monitoring from flowering are essential.",
+      "answer_te": "కంది: పంట వివరాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Crop Profile",
+      "keywords": [
+        "profile",
+        "production",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? Which soil is suitable for Redgram / Pigeonpea?",
+      "answer": "Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot.",
+      "answer_te": "కంది: నేల విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Soil",
+      "keywords": [
+        "soil",
+        "land",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? What climate does Redgram / Pigeonpea need?",
+      "answer": "Warm semi-arid climate; flowering and pod filling need mild weather and no prolonged moisture stress.",
+      "answer_te": "కంది: వాతావరణం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Climate",
+      "keywords": [
+        "climate",
+        "weather",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? What is the seed rate for Redgram / Pigeonpea?",
+      "answer": "Use 4-6 kg seed/acre. Treat with fungicide, Rhizobium and PSB as recommended.",
+      "answer_te": "కంది: విత్తనం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Seed",
+      "keywords": [
+        "seed rate",
+        "seed treatment",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? When and how should Redgram / Pigeonpea be sown?",
+      "answer": "Kharif sowing with monsoon onset; spacing 90 x 20 cm for long duration and closer for short duration types.",
+      "answer_te": "కంది: విత్తడం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Sowing",
+      "keywords": [
+        "sowing",
+        "spacing",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? How should fertilizer be applied in Redgram / Pigeonpea?",
+      "answer": "Basal: SSP or DAP + FYM Apply starter N and full P; Biofertilizer: Rhizobium + PSB One packet each per seed lot; Sulphur: Gypsum or SSP source Soil-test based; Flowering: Pulse wonder or 2% DAP As advisory",
+      "answer_te": "కంది: ఎరువులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Fertilizer",
+      "keywords": [
+        "fertilizer",
+        "nutrients",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? What are critical irrigation stages for Redgram / Pigeonpea?",
+      "answer": "Establishment: Protect germination if monsoon break occurs. Flowering: One protective irrigation improves pod set in dry spell. Pod Filling: Avoid waterlogging; provide light irrigation only if needed.",
+      "answer_te": "కంది: నీటి నిర్వహణ విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Irrigation",
+      "keywords": [
+        "irrigation",
+        "water",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? How are weeds managed in Redgram / Pigeonpea?",
+      "answer": "Congress grass: Remove before flowering and maintain borders; Bermuda grass: Repeated hoeing and rhizome removal; Dayflower: Hand weeding and interculture",
+      "answer_te": "కంది: కలుపు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Weed",
+      "keywords": [
+        "weed",
+        "herbicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? Which major pests attack Redgram / Pigeonpea?",
+      "answer": "Gram pod borer: Larva feeds with head inside pod; round holes and grain damage. Management: Use pheromone traps, bird perches, NPV, sunflower trap row and need-based sprays. Pod fly: Maggot feeds inside developing seed; shrivelled grain. Management: Early sowing, collect damaged pods and avoid staggered flowering.",
+      "answer_te": "కంది: పురుగులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Pest",
+      "keywords": [
+        "pest",
+        "ipm",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? Which diseases are important in Redgram / Pigeonpea?",
+      "answer": "Wilt: Sudden wilting, brown vascular discoloration and plant death. Management: Use wilt tolerant variety, seed treatment and crop rotation. Sterility mosaic: Bushy pale green plants with little or no flowering. Management: Use resistant varieties and control eriophyid mite vector.",
+      "answer_te": "కంది: తెగుళ్లు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Disease",
+      "keywords": [
+        "disease",
+        "fungicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? What nutrient deficiencies are common in Redgram / Pigeonpea?",
+      "answer": "Sulphur deficiency: Young leaves become pale and plants remain weak. Correction: Apply gypsum or SSP based on soil test. Iron chlorosis: Young leaves show interveinal chlorosis in calcareous soils. Correction: Foliar spray ferrous sulphate with lime neutralization.",
+      "answer_te": "కంది: లోప లక్షణాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Deficiency",
+      "keywords": [
+        "deficiency",
+        "nutrient",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the chatbot answer? When should Redgram / Pigeonpea be harvested?",
+      "answer": "Harvest when 80% pods turn brown and dry. Expected grain yield is 5-8 q/acre in rainfed crop.",
+      "answer_te": "కంది: కోత విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Harvest",
+      "keywords": [
+        "harvest",
+        "yield",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? What is the best production system for Redgram / Pigeonpea?",
+      "answer": "Timely sowing, seed inoculation, interculture, drainage and pod borer monitoring from flowering are essential.",
+      "answer_te": "కంది: పంట వివరాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Crop Profile",
+      "keywords": [
+        "profile",
+        "production",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? Which soil is suitable for Redgram / Pigeonpea?",
+      "answer": "Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot.",
+      "answer_te": "కంది: నేల విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Soil",
+      "keywords": [
+        "soil",
+        "land",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? What climate does Redgram / Pigeonpea need?",
+      "answer": "Warm semi-arid climate; flowering and pod filling need mild weather and no prolonged moisture stress.",
+      "answer_te": "కంది: వాతావరణం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Climate",
+      "keywords": [
+        "climate",
+        "weather",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? What is the seed rate for Redgram / Pigeonpea?",
+      "answer": "Use 4-6 kg seed/acre. Treat with fungicide, Rhizobium and PSB as recommended.",
+      "answer_te": "కంది: విత్తనం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Seed",
+      "keywords": [
+        "seed rate",
+        "seed treatment",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? When and how should Redgram / Pigeonpea be sown?",
+      "answer": "Kharif sowing with monsoon onset; spacing 90 x 20 cm for long duration and closer for short duration types.",
+      "answer_te": "కంది: విత్తడం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Sowing",
+      "keywords": [
+        "sowing",
+        "spacing",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? How should fertilizer be applied in Redgram / Pigeonpea?",
+      "answer": "Basal: SSP or DAP + FYM Apply starter N and full P; Biofertilizer: Rhizobium + PSB One packet each per seed lot; Sulphur: Gypsum or SSP source Soil-test based; Flowering: Pulse wonder or 2% DAP As advisory",
+      "answer_te": "కంది: ఎరువులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Fertilizer",
+      "keywords": [
+        "fertilizer",
+        "nutrients",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? What are critical irrigation stages for Redgram / Pigeonpea?",
+      "answer": "Establishment: Protect germination if monsoon break occurs. Flowering: One protective irrigation improves pod set in dry spell. Pod Filling: Avoid waterlogging; provide light irrigation only if needed.",
+      "answer_te": "కంది: నీటి నిర్వహణ విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Irrigation",
+      "keywords": [
+        "irrigation",
+        "water",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? How are weeds managed in Redgram / Pigeonpea?",
+      "answer": "Congress grass: Remove before flowering and maintain borders; Bermuda grass: Repeated hoeing and rhizome removal; Dayflower: Hand weeding and interculture",
+      "answer_te": "కంది: కలుపు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Weed",
+      "keywords": [
+        "weed",
+        "herbicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? Which major pests attack Redgram / Pigeonpea?",
+      "answer": "Gram pod borer: Larva feeds with head inside pod; round holes and grain damage. Management: Use pheromone traps, bird perches, NPV, sunflower trap row and need-based sprays. Pod fly: Maggot feeds inside developing seed; shrivelled grain. Management: Early sowing, collect damaged pods and avoid staggered flowering.",
+      "answer_te": "కంది: పురుగులు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Pest",
+      "keywords": [
+        "pest",
+        "ipm",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? Which diseases are important in Redgram / Pigeonpea?",
+      "answer": "Wilt: Sudden wilting, brown vascular discoloration and plant death. Management: Use wilt tolerant variety, seed treatment and crop rotation. Sterility mosaic: Bushy pale green plants with little or no flowering. Management: Use resistant varieties and control eriophyid mite vector.",
+      "answer_te": "కంది: తెగుళ్లు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Disease",
+      "keywords": [
+        "disease",
+        "fungicide",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? What nutrient deficiencies are common in Redgram / Pigeonpea?",
+      "answer": "Sulphur deficiency: Young leaves become pale and plants remain weak. Correction: Apply gypsum or SSP based on soil test. Iron chlorosis: Young leaves show interveinal chlorosis in calcareous soils. Correction: Foliar spray ferrous sulphate with lime neutralization.",
+      "answer_te": "కంది: లోప లక్షణాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Deficiency",
+      "keywords": [
+        "deficiency",
+        "nutrient",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What is the extension note? When should Redgram / Pigeonpea be harvested?",
+      "answer": "Harvest when 80% pods turn brown and dry. Expected grain yield is 5-8 q/acre in rainfed crop.",
+      "answer_te": "కంది: కోత విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Harvest",
+      "keywords": [
+        "harvest",
+        "yield",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? What is the best production system for Redgram / Pigeonpea?",
+      "answer": "Timely sowing, seed inoculation, interculture, drainage and pod borer monitoring from flowering are essential.",
+      "answer_te": "కంది: పంట వివరాలు విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Crop Profile",
+      "keywords": [
+        "profile",
+        "production",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? Which soil is suitable for Redgram / Pigeonpea?",
+      "answer": "Well-drained red sandy loams and medium black soils are suitable. Waterlogging causes wilt and root rot.",
+      "answer_te": "కంది: నేల విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Soil",
+      "keywords": [
+        "soil",
+        "land",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? What climate does Redgram / Pigeonpea need?",
+      "answer": "Warm semi-arid climate; flowering and pod filling need mild weather and no prolonged moisture stress.",
+      "answer_te": "కంది: వాతావరణం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Climate",
+      "keywords": [
+        "climate",
+        "weather",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    },
+    {
+      "question": "What should I check this week? What is the seed rate for Redgram / Pigeonpea?",
+      "answer": "Use 4-6 kg seed/acre. Treat with fungicide, Rhizobium and PSB as recommended.",
+      "answer_te": "కంది: విత్తనం విభాగంలో ఈ సిఫారసును పాటించాలి. వర్షాధార పద్ధతుల్లో ఒంటరి పంటగా, అంతర పంటగా, సరిహద్దు పంటగా సాగు చేసే లోతైన వేర్ల పప్పుధాన్య పంట.",
+      "crop": "redgram",
+      "category": "Seed",
+      "keywords": [
+        "seed rate",
+        "seed treatment",
+        "redgram",
+        "redgram / pigeonpea"
+      ]
+    }
+  ]
+}
