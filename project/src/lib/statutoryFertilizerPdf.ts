@@ -113,11 +113,11 @@ export type FertilizerPdfValues = {
 export const FERTILIZER_K_ADDRESS_OPTIONS = {
   K_ADA: {
     label: 'Form K (ADA)',
-    value: 'Assistant Director of Agriculture\nFertilizer Coding Centre\nSAMETI Complex\nOld Malakpet\nHyderabad -500036',
+    value: 'The Assistant Director of Agriculture,\nFertilizer Coding Centre,\nSAMETI Complex,\nOld Malakpet,\nHyderabad -500036.',
   },
   K_JDA: {
     label: 'Form K (JDA)',
-    value: 'The Designated Authority\nJDA Soil Correlator\nFertilizer Coding Centre\nSAMETI Complex\nOld Malakpet\nHyderabad -500036',
+    value: 'The Designated Authority,\nJDA Soil Correlator,\nFertilizer Coding Centre,\nSAMETI Complex,\nOld Malakpet,\nHyderabad -500036.',
   },
 } as const;
 
@@ -503,12 +503,25 @@ function drawDealerReceipt(cursor: PdfCursor) {
   doc.setFont(PDF_FONT, 'normal');
 }
 
+function formatAddressWithCommas(address: string): string {
+  if (!address || !address.trim()) return address;
+  const lines = address.split('\n').filter(line => line.trim());
+  const formatted = lines.map((line, index) => {
+    if (index === lines.length - 1) {
+      return line.trim() + '.';
+    }
+    return line.trim() + ',';
+  });
+  return formatted.join('\n');
+}
+
 function drawFormK(cursor: PdfCursor, formType: 'K_ADA' | 'K_JDA', values: FertilizerPdfValues) {
   const { doc } = cursor;
   doc.setFont(PDF_FONT, 'normal');
 
   boldText(cursor, 'From:');
-  addressBlock(cursor, values.inspectorNameAddress, PAGE.marginX + 10, 4, true);
+  const formattedFromAddress = formatAddressWithCommas(values.inspectorNameAddress);
+  addressBlock(cursor, formattedFromAddress, PAGE.marginX + 10, 4, true);
   cursor.y += 3;
 
   boldText(cursor, 'To:');
@@ -523,7 +536,7 @@ function drawFormK(cursor: PdfCursor, formType: 'K_ADA' | 'K_JDA', values: Ferti
   cursor.y += 2;
 
   paragraph(cursor, '2) The analysis report may please be forwarded to the undersigned');
-  addressBlock(cursor, values.inspectorNameAddress, PAGE.marginX + 10, 4);
+  addressBlock(cursor, formattedFromAddress, PAGE.marginX + 10, 4);
 
   drawPlaceDateAndInspectorSignature(cursor, values, { showPlaceDate: true });
 }

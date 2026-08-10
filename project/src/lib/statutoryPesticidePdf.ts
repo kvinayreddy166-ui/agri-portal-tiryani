@@ -821,12 +821,20 @@ function inspectorAddress(values: PesticidePdfValues) {
     .map((part) => part.trim())
     .filter(Boolean);
   
-  // Add email in brackets below if present
-  if (values.email) {
-    addressParts.push(`(${values.email})`);
-  }
-  
-  return addressParts.join('\n');
+  const address = addressParts.join('\n');
+  return formatAddressWithCommas(address);
+}
+
+function formatAddressWithCommas(address: string): string {
+  if (!address || !address.trim()) return address;
+  const lines = address.split('\n').filter(line => line.trim());
+  const formatted = lines.map((line, index) => {
+    if (index === lines.length - 1) {
+      return line.trim() + '.';
+    }
+    return line.trim() + ',';
+  });
+  return formatted.join('\n');
 }
 
 function inspectorLine(values: PesticidePdfValues) {

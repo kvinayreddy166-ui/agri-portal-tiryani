@@ -84,7 +84,7 @@ export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
   'Medak': [
     'Alladurg', 'Havelighanpur', 'Medak', 'Nizampet', 'Papannapet', 'Ramayampet', 'Regode', 'Shankarampet(A)', 'Shankarampet(R)', 'Tekmal', 'Chilipched', 'Kowdipalle', 'Kulcharam', 'Narsapur', 'Shivampet', 'Chegunta', 'Manoharabad', 'Masaipet', 'Narsingi', 'Tupran', 'Yeldurthy',
   ],
-  'Medchal-Malkajgiri': [
+  'Medchal–Malkajgiri': [
     'Alwal', 'Bachupally', 'Balanagar', 'Dundigal Gandimaisamma', 'Kukatpally', 'Malkajgiri', 'Quthbullapur', 'Ghatkesar', 'Kapra', 'Keesara', 'Medchal', 'Medipally', 'Muduchintalpalli', 'Shamirpet', 'Uppal',
   ],
   'Mulugu': [

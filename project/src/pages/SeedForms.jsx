@@ -802,7 +802,9 @@ function drawSeedFormVI(doc, form) {
   p.y += 7;
   const districtWithPin = r.districtWithPinCode ? `${r.districtWithPinCode}` : `${r.district}`;
   const mandalWithText = r.mandal ? `${r.mandal} Mandal` : '';
-  const addressLines = [r.dealerName, r.dealerAddress, r.place, mandalWithText, districtWithPin].filter(Boolean);
+  // Skip r.place if it's the same as mandal value (without Mandal suffix) to avoid duplication
+  const shouldIncludePlace = r.place && r.place !== r.mandal;
+  const addressLines = [r.dealerName, r.dealerAddress, ...(shouldIncludePlace ? [r.place] : []), mandalWithText, districtWithPin].filter(Boolean);
   
   // Add punctuation: commas to all lines except last, full stop to last line
   const formattedLines = addressLines.map((line, index) => {
@@ -948,11 +950,24 @@ function title(doc, p, heading, subheading, titleText) {
   doc.setFontSize(PDF_BODY_SIZE);
 }
 
+function formatAddressWithCommas(address) {
+  if (!address || !address.trim()) return address;
+  const lines = address.split('\n').filter(line => line.trim());
+  const formatted = lines.map((line, index) => {
+    if (index === lines.length - 1) {
+      return line.trim() + '.';
+    }
+    return line.trim() + ',';
+  });
+  return formatted.join('\n');
+}
+
 function drawFromTo(doc, p, r) {
   doc.setFont(PDF_FONT, 'bold');
   doc.text('From:', 20, p.y);
   doc.text('To:', 128, p.y);
-  doc.text(doc.splitTextToSize(r.fromAddress || '________________', 78), 20, p.y + 7);
+  const formattedFromAddress = formatAddressWithCommas(r.fromAddress || '________________');
+  doc.text(doc.splitTextToSize(formattedFromAddress, 78), 20, p.y + 7);
   doc.text(doc.splitTextToSize(r.labAddress || '________________', 78), 128, p.y + 7);
   doc.setFont(PDF_FONT, 'normal');
   p.y += 44;
