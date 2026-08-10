@@ -542,21 +542,6 @@ const fertilizerFieldSections: SectionConfig[] = [
       { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER', placeholder: 'Enter License No:' },
     ],
   },
-  ...(showCoveringLetter ? [{
-    title: 'COVERING LETTER DETAILS',
-    isCollapsible: true,
-    subtitle: 'Enter once. Used for all samples in the covering letter.',
-    fields: [
-      { key: 'financialYear', label: 'FINANCIAL YEAR', type: 'text', placeholder: 'Auto-calculated', readOnly: true },
-      { key: 'letterNumber', label: 'LETTER NUMBER', type: 'text', placeholder: 'Enter Letter Number' },
-      { key: 'letterDate', label: 'LETTER DATE', type: 'date' },
-      { key: 'authorityType', label: 'AUTHORITY TYPE', type: 'select', options: [{ label: 'DAO', value: 'DAO' }, { label: 'ADA', value: 'ADA' }] },
-      { key: 'memoNumber', label: 'MEMO NUMBER', type: 'text', placeholder: 'Enter Memo Number', dynamicLabel: true },
-      { key: 'memoDate', label: 'MEMO DATE', type: 'date' },
-      { key: 'division', label: 'DIVISION', type: 'text', placeholder: 'Enter Division Name' },
-      { key: 'officerPhone', label: 'OFFICER PHONE NO.', type: 'text', placeholder: 'Enter Mobile Number' },
-    ],
-  }] : []),
 ];
 
 export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void }) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bug, Download, Eye, RotateCcw, Save, X } from 'lucide-react';
+import { Bug, Download, Eye, FileText, RotateCcw, Save, X } from 'lucide-react';
+import { PesticideCoveringLetterModal } from './PesticideCoveringLetterModal';
 import {
   generateAllPesticideStatutoryPdf,
   generatePesticideStatutoryPdf,
@@ -145,6 +146,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
 ];
 
 export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) {
+  const [showCoveringLetterModal, setShowCoveringLetterModal] = useState(false);
   const [values, setValues] = useState<PesticidePdfValues>(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -565,12 +567,48 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               <PesticidePdfAction label="Docket Sheet" busy={busy} onPreview={() => preview('DOCKET')} onDownload={() => download('DOCKET')} />
               <PesticidePdfAction label="All Forms" busy={busy} onPreview={previewAll} onDownload={downloadAll} primary />
             </div>
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => setShowCoveringLetterModal(true)}
+                className="group relative w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-0.5 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 active:scale-95 active:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-500/50 focus:ring-offset-2 min-h-[44px]"
+              >
+                <FileText className="h-5 w-5" />
+                <span>Generate Official Covering Letter</span>
+              </button>
+            </div>
             <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-bold leading-4 text-red-700">
               Note: Please update sample details and dealer details before generating a new file.
             </p>
           </div>
         </div>
       </section>
+      <PesticideCoveringLetterModal
+        isOpen={showCoveringLetterModal}
+        onClose={() => setShowCoveringLetterModal(false)}
+        officerDetails={{
+          officerName: values.officerName,
+          qualification: values.qualification,
+          manualQualification: values.manualQualification,
+          designation: values.designation,
+          mandal: values.mandal,
+          manualMandal: values.manualMandal,
+          district: values.district,
+          manualDistrict: values.manualDistrict,
+          pinCode: values.pinCode,
+          phone: '',
+        }}
+        coveringLetterDetails={{
+          financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
+          letterNumber: '',
+          letterDate: new Date().toISOString().slice(0, 10),
+          authorityType: 'DAO',
+          memoNumber: '',
+          memoDate: '',
+          division: '',
+          officerPhone: '',
+        }}
+      />
     </div>
     </>
   );

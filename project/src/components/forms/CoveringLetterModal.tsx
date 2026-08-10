@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Eye, FileText, X, Loader2, Trash2 } from 'lucide-react';
+import { Download, Eye, FileText, X, Loader2, Trash2, RotateCcw } from 'lucide-react';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 
@@ -353,24 +353,129 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
               </div>
             )}
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-1 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-red-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">Sample Queue Details</h3>
-                  <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded-full">
-                    {editedQueue.length} samples
-                  </span>
-                </div>
+            <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-black text-purple-700">COVERING LETTER DETAILS</h3>
                 <button
                   type="button"
-                  onClick={handleClearQueue}
-                  disabled={editedQueue.length === 0}
-                  className="inline-flex items-center gap-2 bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600"
+                  onClick={() => {
+                    setMetadata({
+                      year: financialYears[0],
+                      letterNumber: '',
+                      letterDate: new Date().toISOString().slice(0, 10),
+                      authorityType: 'DAO',
+                      daoMemoNumber: '',
+                      daoMemoDate: '',
+                      division: '',
+                      officePhone: '',
+                    });
+                    setMessage('Covering letter details reset successfully.');
+                    setTimeout(() => setMessage(null), 3000);
+                  }}
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-purple-200 text-purple-400 hover:bg-purple-50 hover:text-purple-600"
+                  title="Reset Covering Letter Details"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  Clear Queue
+                  <RotateCcw className="h-3.5 w-3.5" />
                 </button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-600">FINANCIAL YEAR</label>
+                  <input
+                    type="text"
+                    value={metadata.year}
+                    readOnly
+                    className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-600">LETTER NUMBER</label>
+                  <input
+                    type="text"
+                    value={metadata.letterNumber}
+                    onChange={(e) => setMetadata({ ...metadata, letterNumber: e.target.value })}
+                    placeholder="Enter Letter Number"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-600">LETTER DATE</label>
+                  <input
+                    type="date"
+                    value={metadata.letterDate}
+                    onChange={(e) => setMetadata({ ...metadata, letterDate: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-600">AUTHORITY TYPE</label>
+                  <select
+                    value={metadata.authorityType}
+                    onChange={(e) => setMetadata({ ...metadata, authorityType: e.target.value as 'DAO' | 'ADA' })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                  >
+                    <option value="DAO">DAO</option>
+                    <option value="ADA">ADA</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-600">
+                    {metadata.authorityType === 'DAO' ? 'DAO MEMO NO.' : 'ADA MEMO NO.'}
+                  </label>
+                  <input
+                    type="text"
+                    value={metadata.daoMemoNumber}
+                    onChange={(e) => setMetadata({ ...metadata, daoMemoNumber: e.target.value })}
+                    placeholder="Enter Memo Number"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-600">MEMO DATE</label>
+                  <input
+                    type="date"
+                    value={metadata.daoMemoDate}
+                    onChange={(e) => setMetadata({ ...metadata, daoMemoDate: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-600">DIVISION</label>
+                  <input
+                    type="text"
+                    value={metadata.division}
+                    onChange={(e) => setMetadata({ ...metadata, division: e.target.value })}
+                    placeholder="Enter Division Name"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-600">OFFICER PHONE NO.</label>
+                  <input
+                    type="text"
+                    value={metadata.officePhone}
+                    onChange={(e) => setMetadata({ ...metadata, officePhone: e.target.value })}
+                    placeholder="Enter Mobile Number"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl shadow-sm border border-red-200 bg-red-50/50 p-1 sm:p-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-black text-red-700">SAMPLE QUEUE DETAILS</h3>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleClearQueue}
+                    disabled={editedQueue.length === 0}
+                    className="inline-flex items-center gap-2 bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Clear Queue
+                  </button>
+                </div>
               </div>
 
               {editedQueue.length === 0 ? (
@@ -380,7 +485,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sl. No.</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">S.No</th>
                         <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Fertilizer Name</th>
                         <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sample Code</th>
                         <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
