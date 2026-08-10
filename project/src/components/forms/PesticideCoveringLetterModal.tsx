@@ -5,9 +5,8 @@ const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-q
 
 type PesticideCoveringLetterQueueItem = {
   sampleCode: string;
-  insecticideName: string;
-  formulationType: string;
-  quantity: string;
+  tradeName: string;
+  technicalName: string;
   dateOfSampling: string;
 };
 
@@ -150,21 +149,15 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     }
   };
 
-  const handleInsecticideNameChange = (index: number, value: string) => {
+  const handleTradeNameChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
-    updatedQueue[index] = { ...updatedQueue[index], insecticideName: value };
+    updatedQueue[index] = { ...updatedQueue[index], tradeName: value };
     setEditedQueue(updatedQueue);
   };
 
-  const handleFormulationTypeChange = (index: number, value: string) => {
+  const handleTechnicalNameChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
-    updatedQueue[index] = { ...updatedQueue[index], formulationType: value };
-    setEditedQueue(updatedQueue);
-  };
-
-  const handleQuantityChange = (index: number, value: string) => {
-    const updatedQueue = [...editedQueue];
-    updatedQueue[index] = { ...updatedQueue[index], quantity: value };
+    updatedQueue[index] = { ...updatedQueue[index], technicalName: value };
     setEditedQueue(updatedQueue);
   };
 
@@ -454,17 +447,36 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-slate-200">
-                        <th className="px-2 py-2 text-left font-bold text-slate-700">Sample Code</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700">Insecticide Name</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700">Formulation Type</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700">Quantity</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700">Date</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">S.No</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Trade Name</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Technical Name</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Code No. of Sample</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Date of Sampling</th>
                         <th className="px-2 py-2 text-left font-bold text-slate-700">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {editedQueue.map((item, index) => (
                         <tr key={index} className="border-b border-slate-100">
+                          <td className="px-2 py-2 text-center font-bold text-slate-700">{index + 1}</td>
+                          <td className="px-2 py-2">
+                            <input
+                              type="text"
+                              value={item.tradeName}
+                              onChange={(e) => handleTradeNameChange(index, e.target.value)}
+                              className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                              placeholder="Trade Name"
+                            />
+                          </td>
+                          <td className="px-2 py-2">
+                            <input
+                              type="text"
+                              value={item.technicalName}
+                              onChange={(e) => handleTechnicalNameChange(index, e.target.value)}
+                              className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                              placeholder="Technical Name"
+                            />
+                          </td>
                           <td className="px-2 py-2">
                             <input
                               type="text"
@@ -476,33 +488,6 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                             {validationErrors[index] && (
                               <p className="mt-1 text-[10px] text-red-600">{validationErrors[index]}</p>
                             )}
-                          </td>
-                          <td className="px-2 py-2">
-                            <input
-                              type="text"
-                              value={item.insecticideName}
-                              onChange={(e) => handleInsecticideNameChange(index, e.target.value)}
-                              className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                              placeholder="Insecticide Name"
-                            />
-                          </td>
-                          <td className="px-2 py-2">
-                            <input
-                              type="text"
-                              value={item.formulationType}
-                              onChange={(e) => handleFormulationTypeChange(index, e.target.value)}
-                              className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                              placeholder="Formulation Type"
-                            />
-                          </td>
-                          <td className="px-2 py-2">
-                            <input
-                              type="text"
-                              value={item.quantity}
-                              onChange={(e) => handleQuantityChange(index, e.target.value)}
-                              className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                              placeholder="Quantity"
-                            />
                           </td>
                           <td className="px-2 py-2">
                             <input

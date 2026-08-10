@@ -36,6 +36,7 @@ type SavedPesticideDraft = {
 
 const STORAGE_KEY = 'tiryani-pesticide-forms-draft';
 const DRAFTS_KEY = 'tiryani-pesticide-forms-named-drafts';
+const COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
 
 
 const packingOptions = [
@@ -160,7 +161,9 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedPesticideDraft[]>(() => loadDrafts());
   const [busy, setBusy] = useState(false);
-  const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded } = useToast();
+  const [showDownloadAllDialog, setShowDownloadAllDialog] = useState(false);
+  const [addToCoveringLetterChecked, setAddToCoveringLetterChecked] = useState(true);
+  const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue } = useToast();
   const sections = useMemo(() => fieldSections, []);
 
   const resetDealerDetails = () => {
@@ -410,6 +413,64 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const downloadAll = async () => {
+    setShowDownloadAllDialog(true);
+  };
+
+  const handleDownloadAllConfirm = async () => {
+    setShowDownloadAllDialog(false);
+    
+    if (addToCoveringLetterChecked) {
+      try {
+        const queue = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
+        
+        const existingIndex = queue.findIndex(item => item.sampleCode === values.sampleSerialNumber.trim());
+        const sampleCode = values.sampleSerialNumber.trim();
+        
+        if (sampleCode) {
+          if (existingIndex === -1) {
+            // New sample - add to queue
+            const newItem = {
+              sampleCode: sampleCode,
+              tradeName: values.tradeName || '',
+              technicalName: values.technicalName || '',
+              dateOfSampling: values.sampleDrawnDate.trim(),
+            };
+            queue.push(newItem);
+            window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+            window.dispatchEvent(new Event('local-storage-update'));
+            showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 5000);
+          } else {
+            // Check if sample details have changed
+            const existingItem = queue[existingIndex];
+            const newItem = {
+              sampleCode: sampleCode,
+              tradeName: values.tradeName || '',
+              technicalName: values.technicalName || '',
+              dateOfSampling: values.sampleDrawnDate.trim(),
+            };
+            
+            const hasChanged = 
+              existingItem.tradeName !== newItem.tradeName ||
+              existingItem.technicalName !== newItem.technicalName ||
+              existingItem.dateOfSampling !== newItem.dateOfSampling;
+            
+            if (hasChanged) {
+              // Update existing sample
+              queue[existingIndex] = newItem;
+              window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+              window.dispatchEvent(new Event('local-storage-update'));
+              showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 5000);
+            } else {
+              // Sample already exists and unchanged
+              showQueue('Sample already in Covering Letter', `Sample ${sampleCode} already in Sample Queue`, 5000);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error adding to covering letter queue:', error);
+      }
+    }
+    
     await completeDownloadAll();
   };
 
@@ -581,6 +642,41 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               Note: Please update sample details and dealer details before generating a new file.
             </p>
           </div>
+
+          {showDownloadAllDialog && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+              <div className="w-full max-w-md rounded-xl border border-emerald-200 bg-white p-6 shadow-2xl">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Download All Forms</h3>
+                
+                <label className="flex items-start gap-3 mb-6 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={addToCoveringLetterChecked}
+                    onChange={(e) => setAddToCoveringLetterChecked(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span className="text-sm text-gray-700">Add sample details to Covering Letter</span>
+                </label>
+                
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDownloadAllConfirm}
+                    className="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 font-bold"
+                  >
+                    Download
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDownloadAllDialog(false)}
+                    className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 font-bold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
       <PesticideCoveringLetterModal

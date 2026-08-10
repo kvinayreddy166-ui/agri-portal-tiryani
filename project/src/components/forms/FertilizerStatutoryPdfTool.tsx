@@ -1578,6 +1578,19 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
             division: values.division,
             officerPhone: values.officerPhone,
           }}
+          onMetadataChange={(metadata) => {
+            setValues(prev => ({
+              ...prev,
+              financialYear: metadata.year,
+              letterNumber: metadata.letterNumber,
+              letterDate: metadata.letterDate,
+              authorityType: metadata.authorityType,
+              memoNumber: metadata.daoMemoNumber,
+              memoDate: metadata.daoMemoDate,
+              division: metadata.division,
+              officerPhone: metadata.officePhone,
+            }));
+          }}
           dealerDetails={{
             dealerName: values.dealerName || '',
             dealerAddress: values.dealerAddress || '',

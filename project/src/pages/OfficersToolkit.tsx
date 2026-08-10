@@ -25,7 +25,7 @@ interface OfficersToolkitProps {
 const toolkitItems: ToolkitItem[] = [
   {
     title: 'Statutory Forms',
-    description: 'Prepare and download field forms.',
+    description: 'Generate PDFs & view statutory form files.',
     path: '/officer-toolkit/statutory-forms',
     icon: FileStack,
     category: 'internal',
@@ -189,7 +189,7 @@ const externalPortals: ToolkitItem[] = [
 function translateToolkit(label?: string) {
   const labels: Record<string, string> = {
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
-    'Prepare and download field forms.': 'క్షేత్ర ఫారాలను సిద్ధం చేసి డౌన్‌లోడ్ చేయండి.',
+    'Generate PDFs & view statutory form files.': 'PDFలను జనరేట్ చేయి & చట్టబద్ధ ఫారమ్ ఫైళ్లను వీక్షించండి.',
     'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
     'Crop, seed, fertilizer and pesticide calculations.': 'పంట, విత్తనం, ఎరువు మరియు పురుగుమందుల లెక్కలు.',
     'Crop Doctor': 'పంట డాక్టర్',

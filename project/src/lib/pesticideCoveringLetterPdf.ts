@@ -3,9 +3,8 @@ import { autoTable } from 'jspdf-autotable';
 
 type PesticideCoveringLetterQueueItem = {
   sampleCode: string;
-  insecticideName: string;
-  formulationType: string;
-  quantity: string;
+  tradeName: string;
+  technicalName: string;
   dateOfSampling: string;
 };
 
@@ -385,16 +384,15 @@ function drawSampleTable(cursor: PdfCursor, queue: PesticideCoveringLetterQueueI
   
   const tableData = queue.map((item, index) => [
     (index + 1).toString(),
+    item.tradeName,
+    item.technicalName,
     item.sampleCode,
-    item.insecticideName,
-    item.formulationType,
-    item.quantity,
     formatDate(item.dateOfSampling),
   ]);
   
   autoTable(doc, {
     startY: cursor.y,
-    head: [['S.No', 'Sample Code', 'Insecticide Name', 'Formulation Type', 'Quantity', 'Date of Sampling']],
+    head: [['S.No', 'Trade Name', 'Technical Name', 'Code No. of Sample', 'Date of Sampling']],
     body: tableData,
     theme: 'grid',
     headStyles: {

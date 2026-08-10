@@ -14,8 +14,7 @@ import { PopupHintWrapper } from '../components/PopupHint';
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
 const LAST_GENERATED_KEY = 'tiryani-seed-forms-last-generated';
-const DUPLICATE_WARNING_MESSAGE =
-  'You are generating a file with the same previous sample/dealer details. Please verify whether new sample details or dealer details are required before downloading.';
+const COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 const PDF_FONT = 'times';
 const PDF_BODY_SIZE = 12.5;
 const PDF_TITLE_SIZE = 16;
@@ -105,6 +104,8 @@ const initialSeedForm = {
 export function SeedForms() {
   const [showInstructionModal, setShowInstructionModal] = useState(true);
   const [showCoveringLetterModal, setShowCoveringLetterModal] = useState(false);
+  const [showDownloadAllDialog, setShowDownloadAllDialog] = useState(false);
+  const [addToCoveringLetterChecked, setAddToCoveringLetterChecked] = useState(true);
   const [form, setForm] = useState(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -122,11 +123,9 @@ export function SeedForms() {
   const [message, setMessage] = useState('');
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
-  const [duplicateAction, setDuplicateAction] = useState(null);
-  const [highlightDetails, setHighlightDetails] = useState(false);
   const sampleDetailsRef = useRef(null);
   const dealerDetailsRef = useRef(null);
-  const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded } = useToast();
+  const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue } = useToast();
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
@@ -289,12 +288,89 @@ export function SeedForms() {
     }
   };
 
+  const completeGenerate = async (kind) => {
+    const doc = await buildValidatedPdf(kind);
+    if (!doc) return;
+    try {
+      downloadSeedDoc(doc, seedFileName(kind, form));
+      rememberSeedGeneratedData(form);
+      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form));
+    } catch (error) {
+      console.error('Download failed, opening in new tab:', error);
+      const targetWindow = openBlankSeedPdfTab();
+      openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
+      rememberSeedGeneratedData(form);
+      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).');
+    }
+  };
+
   const generate = async (kind) => {
-    if (isDuplicateSeedGeneration(form)) {
-      setDuplicateAction({ type: 'download', kind });
+    if (kind === 'ALL') {
+      setShowDownloadAllDialog(true);
       return;
     }
     await completeGenerate(kind);
+  };
+
+  const handleDownloadAllConfirm = async () => {
+    setShowDownloadAllDialog(false);
+    
+    if (addToCoveringLetterChecked) {
+      try {
+        const queue = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
+        
+        const existingIndex = queue.findIndex(item => item.sampleCode === form.codeNo.trim());
+        const sampleCode = form.codeNo.trim();
+        
+        if (sampleCode) {
+          if (existingIndex === -1) {
+            // New sample - add to queue
+            const newItem = {
+              sampleCode: sampleCode,
+              seedName: form.crop || '',
+              variety: form.variety || '',
+              quantity: form.quantityDrawn || '',
+              dateOfSampling: form.collectionDate.trim(),
+            };
+            queue.push(newItem);
+            window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+            window.dispatchEvent(new Event('local-storage-update'));
+            showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 5000);
+          } else {
+            // Check if sample details have changed
+            const existingItem = queue[existingIndex];
+            const newItem = {
+              sampleCode: sampleCode,
+              seedName: form.crop || '',
+              variety: form.variety || '',
+              quantity: form.quantityDrawn || '',
+              dateOfSampling: form.collectionDate.trim(),
+            };
+            
+            const hasChanged = 
+              existingItem.seedName !== newItem.seedName ||
+              existingItem.variety !== newItem.variety ||
+              existingItem.quantity !== newItem.quantity ||
+              existingItem.dateOfSampling !== newItem.dateOfSampling;
+            
+            if (hasChanged) {
+              // Update existing sample
+              queue[existingIndex] = newItem;
+              window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+              window.dispatchEvent(new Event('local-storage-update'));
+              showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 5000);
+            } else {
+              // Sample already exists and unchanged
+              showQueue('Sample already in Covering Letter', `Sample ${sampleCode} already in Sample Queue`, 5000);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error adding to covering letter queue:', error);
+      }
+    }
+    
+    await completeGenerate('ALL');
   };
 
   const completePreview = async (kind) => {
@@ -311,25 +387,6 @@ export function SeedForms() {
 
   const preview = async (kind) => {
     await completePreview(kind);
-  };
-
-  const reviewDuplicateDetails = () => {
-    setDuplicateAction(null);
-    setHighlightDetails(true);
-    sampleDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    window.setTimeout(() => {
-      dealerDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 450);
-    window.setTimeout(() => setHighlightDetails(false), 3500);
-  };
-
-  const proceedWithDuplicateAction = async () => {
-    const action = duplicateAction;
-    setDuplicateAction(null);
-    if (!action) return;
-    if (action.type === 'download') {
-      await completeGenerate(action.kind);
-    }
   };
 
   const resetSampleDetails = () => {
@@ -375,26 +432,26 @@ export function SeedForms() {
   return (
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      <section className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm">
+      
       <div className="mb-2 flex justify-end gap-1">
-          <button
-            type="button"
-            onClick={saveDraft}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-800 bg-emerald-800 px-2.5 py-2 text-xs font-black text-white shadow-md hover:bg-emerald-900 hover:border-emerald-900"
-            title="Save draft"
-          >
-            <Save className="h-4 w-4" />
-            <span>Save Draft</span>
-          </button>
-          <button
-            type="button"
-            onClick={resetDraft}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-600 bg-slate-600 px-2.5 py-2 text-xs font-black text-white shadow-md hover:bg-slate-700 hover:border-slate-700"
-            title="Reset draft"
-          >
-            <RotateCcw className="h-4 w-4" />
-            <span>Reset</span>
-          </button>
+        <button
+          type="button"
+          onClick={saveDraft}
+          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-800 bg-emerald-800 px-2.5 py-2 text-xs font-black text-white shadow-md hover:bg-emerald-900 hover:border-emerald-900"
+          title="Save draft"
+        >
+          <Save className="h-4 w-4" />
+          <span>Save Draft</span>
+        </button>
+        <button
+          type="button"
+          onClick={resetDraft}
+          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-600 bg-slate-600 px-2.5 py-2 text-xs font-black text-white shadow-md hover:bg-slate-700 hover:border-slate-700"
+          title="Reset draft"
+        >
+          <RotateCcw className="h-4 w-4" />
+          <span>Reset</span>
+        </button>
       </div>
 
       <div className="mb-2 rounded-xl border border-orange-200/50 bg-gradient-to-br from-orange-50/80 to-rose-50/80 p-3 shadow-sm backdrop-blur-sm">
@@ -462,7 +519,7 @@ export function SeedForms() {
           <PreviewCard title="Information Slip Logic" lines={resolved.crop === 'Cotton' ? ['Cotton selected: two slips will be generated.', '1. Germination, Purity & Moisture Test', '2. BT Protein Test'] : [`One slip: ${resolved.testRequired}`]} />
         </Card>
 
-        <div ref={sampleDetailsRef} className={highlightDetails ? 'rounded-xl border-4 border-red-500' : ''}>
+        <div ref={sampleDetailsRef}>
         <Card title="SAMPLE DETAILS" color="amber" onReset={resetSampleDetails}>
           <div className="grid gap-2 sm:grid-cols-2">
             <Input label="Serial No. of sample" value={form.serialNo} onChange={(value) => setField('serialNo', value)} />
@@ -486,7 +543,7 @@ export function SeedForms() {
         </Card>
         </div>
 
-        <div ref={dealerDetailsRef} className={highlightDetails ? 'rounded-xl border-4 border-red-500' : ''}>
+        <div ref={dealerDetailsRef}>
         <Card title="DEALER DETAILS" color="maroon" onReset={resetDealerDetails}>
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
           <label>
@@ -533,9 +590,41 @@ export function SeedForms() {
         </p>
       </div>
 
-      {duplicateAction && (
-        <DuplicateDownloadModal onReview={reviewDuplicateDetails} onContinue={proceedWithDuplicateAction} onClose={() => setDuplicateAction(null)} />
+      {showDownloadAllDialog && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl border border-emerald-200 bg-white p-6 shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Download All Forms</h3>
+            
+            <label className="flex items-start gap-3 mb-6 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={addToCoveringLetterChecked}
+                onChange={(e) => setAddToCoveringLetterChecked(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <span className="text-sm text-gray-700">Add sample details to Covering Letter</span>
+            </label>
+            
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleDownloadAllConfirm}
+                className="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 font-bold"
+              >
+                Download
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDownloadAllDialog(false)}
+                className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 font-bold"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
+
       <SeedInstructionModal
         isOpen={showInstructionModal}
         onClose={() => setShowInstructionModal(false)}
@@ -566,7 +655,6 @@ export function SeedForms() {
           officerPhone: '',
         }}
       />
-    </section>
     </>
   );
 }

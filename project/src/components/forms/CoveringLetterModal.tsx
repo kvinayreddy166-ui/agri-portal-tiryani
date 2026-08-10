@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Download, Eye, FileText, X, Loader2, Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
@@ -57,6 +57,7 @@ type CoveringLetterModalProps = {
   officerDetails?: OfficerDetails;
   coveringLetterDetails?: CoveringLetterDetails;
   dealerDetails?: DealerDetails;
+  onMetadataChange?: (metadata: CoveringLetterMetadata) => void;
 };
 
 const currentYear = new Date().getFullYear();
@@ -66,7 +67,7 @@ const financialYears = [
   `${currentYear + 1}-${(currentYear + 2).toString().slice(-2)}`,
 ];
 
-export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, dealerDetails }: CoveringLetterModalProps) {
+export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, dealerDetails, onMetadataChange }: CoveringLetterModalProps) {
   const [queue, setQueue] = useState<CoveringLetterQueueItem[]>([]);
   const [editedQueue, setEditedQueue] = useState<CoveringLetterQueueItem[]>([]);
   const [metadata, setMetadata] = useState<CoveringLetterMetadata>({
@@ -88,6 +89,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   const [isMobile, setIsMobile] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isCoveringLetterDetailsCollapsed, setIsCoveringLetterDetailsCollapsed] = useState(true);
+  const lastPropagatedMetadata = useRef<CoveringLetterMetadata | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -107,6 +109,26 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       }
     }
   }, [isOpen, coveringLetterDetails]);
+
+  // Propagate metadata changes to parent component (only when values actually change)
+  useEffect(() => {
+    if (onMetadataChange && isOpen) {
+      const hasChanged = !lastPropagatedMetadata.current ||
+        lastPropagatedMetadata.current.year !== metadata.year ||
+        lastPropagatedMetadata.current.letterNumber !== metadata.letterNumber ||
+        lastPropagatedMetadata.current.letterDate !== metadata.letterDate ||
+        lastPropagatedMetadata.current.authorityType !== metadata.authorityType ||
+        lastPropagatedMetadata.current.daoMemoNumber !== metadata.daoMemoNumber ||
+        lastPropagatedMetadata.current.daoMemoDate !== metadata.daoMemoDate ||
+        lastPropagatedMetadata.current.division !== metadata.division ||
+        lastPropagatedMetadata.current.officePhone !== metadata.officePhone;
+      
+      if (hasChanged) {
+        lastPropagatedMetadata.current = metadata;
+        onMetadataChange(metadata);
+      }
+    }
+  }, [metadata, onMetadataChange, isOpen]);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -201,6 +223,11 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   };
 
   const handlePreview = async () => {
+    if (editedQueue.length === 0) {
+      setMessage('Please add samples to the queue before previewing.');
+      return;
+    }
+
     if (!validateSampleCodes()) {
       setMessage('Please fix validation errors before previewing.');
       return;
@@ -215,7 +242,13 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     setIsGenerating(true);
     try {
       const { generateCoveringLetterPdf } = await import('../../lib/coveringLetterPdf');
+      console.log('Generating covering letter with:', { editedQueue, metadata, officerDetails, letterType });
       const doc = await generateCoveringLetterPdf(editedQueue, metadata, officerDetails, letterType);
+      
+      if (!doc) {
+        setMessage('Failed to generate Covering Letter. Please try again.');
+        return;
+      }
       
       const blob = doc.output('blob');
       
@@ -240,6 +273,11 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   };
 
   const handleDownload = async () => {
+    if (editedQueue.length === 0) {
+      setMessage('Please add samples to the queue before downloading.');
+      return;
+    }
+
     if (!validateSampleCodes()) {
       setMessage('Please fix validation errors before downloading.');
       return;
@@ -248,7 +286,13 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     setIsGenerating(true);
     try {
       const { generateCoveringLetterPdf } = await import('../../lib/coveringLetterPdf');
+      console.log('Generating covering letter with:', { editedQueue, metadata, officerDetails, letterType });
       const doc = await generateCoveringLetterPdf(editedQueue, metadata, officerDetails, letterType);
+      
+      if (!doc) {
+        setMessage('Failed to generate Covering Letter. Please try again.');
+        return;
+      }
       
       // Calculate letter number for filename using same logic as PDF generation
       const letterNumber = letterType === 'quality-analysis' 

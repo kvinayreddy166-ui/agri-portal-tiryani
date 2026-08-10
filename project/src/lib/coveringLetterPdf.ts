@@ -114,7 +114,7 @@ export async function generateCoveringLetterPdf(
   // Move entire address block upward by 4 units
   cursor.y -= 4;
   
-  drawFromToSections(cursor, officerDetails, letterType);
+  drawFromToSections(cursor, officerDetails, updatedMetadata, letterType);
   
   // Move To section and all subsequent content upward by 6 units
   cursor.y -= 6;
@@ -143,8 +143,8 @@ export async function generateCoveringLetterPdf(
   drawBody(cursor, officerDetails, letterType);
   cursor.y += PARAGRAPH_SPACING;
   
-  // Move sample table heading upward by 3 units for Portion 1 (Quality Analysis)
-  if (letterType === 'quality-analysis') {
+  // Move sample table heading upward by 3 units for Portion 1 (Quality Analysis) and Portion III (Safe Custody)
+  if (letterType === 'quality-analysis' || letterType === 'safe-custody') {
     cursor.y -= 3;
   }
   
@@ -275,7 +275,7 @@ async function drawGovernmentHeader(cursor: PdfCursor) {
   doc.setFont(PDF_FONT, 'normal');
 }
 
-function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType: LetterType = 'quality-analysis') {
+function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, metadata?: CoveringLetterMetadata, letterType: LetterType = 'quality-analysis') {
   const { doc } = cursor;
   
   const leftColumnX = PAGE.marginLeft;
@@ -322,7 +322,7 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, 
     currentY += LINE_HEIGHT;
   }
   
-  const phone = officerDetails?.phone || '';
+  const phone = officerDetails?.phone || metadata?.officePhone || '';
   if (phone) {
     doc.setFont(PDF_FONT, 'bold');
     doc.text(`Cell : ${phone}.`, leftColumnX, currentY);
@@ -543,7 +543,7 @@ function drawSampleTable(cursor: PdfCursor, queue: CoveringLetterQueueItem[]) {
       font: PDF_FONT,
       fontSize: FONT_SIZES.tableData,
       cellPadding: 1.5,
-      lineWidth: 0.5,
+      lineWidth: 0.3,
       lineColor: [0, 0, 0],
       valign: 'middle',
       overflow: 'linebreak',
