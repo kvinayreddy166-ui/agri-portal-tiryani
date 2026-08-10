@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Eye, FileText, X, Loader2, Trash2, RotateCcw } from 'lucide-react';
+import { Download, Eye, FileText, X, Loader2, Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 
@@ -87,6 +87,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   const [letterType, setLetterType] = useState<'quality-analysis' | 'safe-custody'>('quality-analysis');
   const [isMobile, setIsMobile] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
+  const [isCoveringLetterDetailsCollapsed, setIsCoveringLetterDetailsCollapsed] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
@@ -355,7 +356,20 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
             <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-3 sm:p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-black text-purple-700">COVERING LETTER DETAILS</h3>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsCoveringLetterDetailsCollapsed(!isCoveringLetterDetailsCollapsed)}
+                    className="flex items-center justify-center rounded-lg text-purple-600 hover:bg-purple-100 transition-colors"
+                  >
+                    {isCoveringLetterDetailsCollapsed ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronUp className="h-4 w-4" />
+                    )}
+                  </button>
+                  <h3 className="text-sm font-black text-purple-700">COVERING LETTER DETAILS</h3>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -378,7 +392,8 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   <RotateCcw className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+              {!isCoveringLetterDetailsCollapsed && (
+                <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">FINANCIAL YEAR</label>
                   <input
@@ -460,6 +475,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   />
                 </div>
               </div>
+              )}
             </div>
 
             <div className="rounded-xl shadow-sm border border-red-200 bg-red-50/50 p-2 sm:p-6">
