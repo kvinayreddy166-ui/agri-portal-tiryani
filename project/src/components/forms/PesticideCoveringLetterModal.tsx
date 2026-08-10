@@ -313,14 +313,14 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
         </header>
 
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-3 sm:p-6">
             {message && (
-              <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-800">
+              <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 sm:px-4 sm:py-2 text-sm font-bold text-amber-800">
                 {message}
               </div>
             )}
 
-            <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-4 shadow-sm">
+            <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-3 sm:p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-black text-purple-700">COVERING LETTER DETAILS</h3>
                 <button
@@ -429,7 +429,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
               </div>
             </div>
 
-            <div className="rounded-xl shadow-sm border border-amber-200 bg-amber-50/50 p-1 sm:p-6">
+            <div className="rounded-xl shadow-sm border border-amber-200 bg-amber-50/50 p-2 sm:p-6">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-black text-amber-700">SAMPLE QUEUE DETAILS</h3>
                 <div className="flex gap-2">

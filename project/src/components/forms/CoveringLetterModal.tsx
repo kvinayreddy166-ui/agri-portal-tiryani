@@ -342,9 +342,9 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
             </button>
           </header>
 
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-6">
             {message && (
-              <div className={`mb-4 rounded-lg border px-4 py-3 text-sm font-bold ${
+              <div className={`mb-4 rounded-lg border px-3 py-2 sm:px-4 sm:py-3 text-sm font-bold ${
                 message.includes('success') || message.includes('downloaded')
                   ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                   : 'border-red-200 bg-red-50 text-red-700'
@@ -353,7 +353,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
               </div>
             )}
 
-            <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-4 shadow-sm">
+            <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-3 sm:p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-black text-purple-700">COVERING LETTER DETAILS</h3>
                 <button
@@ -462,7 +462,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
               </div>
             </div>
 
-            <div className="rounded-xl shadow-sm border border-red-200 bg-red-50/50 p-1 sm:p-6">
+            <div className="rounded-xl shadow-sm border border-red-200 bg-red-50/50 p-2 sm:p-6">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-black text-red-700">SAMPLE QUEUE DETAILS</h3>
                 <div className="flex gap-2">
