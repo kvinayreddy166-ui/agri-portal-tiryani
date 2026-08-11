@@ -289,6 +289,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     
     isSavingDraft.current = true;
     try {
+      // Pesticide form does not have covering letter fields in its state - no exclusion needed
       const nextDrafts = upsertDraft(savedDrafts, { name, values, updatedAt: String(Date.now()) });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
@@ -310,6 +311,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     // Use case-insensitive comparison for loading
     const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
+    // Pesticide form does not have covering letter fields in its state - no preservation needed
     setValues({ ...initialPesticidePdfValues, ...draft.values });
     setPreviewError(null);
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
@@ -328,8 +330,8 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     setSavedDrafts(nextDrafts);
     // Clear auto-save storage to prevent the deleted draft from reappearing
     window.localStorage.removeItem(STORAGE_KEY);
-    // Clear officerName after deletion to reflect the change in UI
-    setValues((prev) => ({ ...prev, officerName: '' }));
+    // Reset ALL draft-owned state to initial values (excluding covering letter details)
+    setValues(initialPesticidePdfValues);
     showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.');
   };
 

@@ -866,7 +866,9 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     
     isSavingDraft.current = true;
     try {
-      const nextDrafts = upsertFertilizerDraft(savedDrafts, { name, values, updatedAt: String(Date.now()) });
+      // Exclude covering letter fields from draft - they are independently persisted
+      const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftValues } = values;
+      const nextDrafts = upsertFertilizerDraft(savedDrafts, { name, values: draftValues, updatedAt: String(Date.now()) });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
       showSaved('Draft Saved Successfully', `Draft saved as ${name}`);
@@ -887,7 +889,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     // Use case-insensitive comparison for loading
     const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
-    setValues(normalizeFertilizerValues({ ...initialFertilizerPdfValues, ...draft.values }));
+    // Preserve current covering letter details - they are independently persisted
+    const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone } = values;
+    setValues(normalizeFertilizerValues({ 
+      ...initialFertilizerPdfValues, 
+      ...draft.values,
+      // Restore covering letter details
+      financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone 
+    }));
     setPreviewError(null);
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
   };
@@ -905,8 +914,8 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setSavedDrafts(nextDrafts);
     // Clear auto-save storage to prevent the deleted draft from reappearing
     window.localStorage.removeItem(STORAGE_KEY);
-    // Clear officerName after deletion to reflect the change in UI
-    setValues((prev) => ({ ...prev, officerName: '' }));
+    // Reset ALL draft-owned state to initial values (excluding covering letter details)
+    setValues(initialFertilizerPdfValues);
     showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.');
   };
 

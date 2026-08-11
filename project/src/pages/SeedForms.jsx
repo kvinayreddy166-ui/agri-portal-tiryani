@@ -214,6 +214,7 @@ export function SeedForms() {
     
     isSavingDraft.current = true;
     try {
+      // Seed form does not have covering letter fields in its state - no exclusion needed
       const nextDrafts = upsertSeedDraft(savedDrafts, { name, form, updatedAt: Date.now() });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
@@ -234,6 +235,7 @@ export function SeedForms() {
     // Use case-insensitive comparison for loading
     const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
+    // Seed form does not have covering letter fields in its state - no preservation needed
     setForm({ ...initialSeedForm, ...draft.form });
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
   };
@@ -251,8 +253,8 @@ export function SeedForms() {
     setSavedDrafts(nextDrafts);
     // Clear auto-save storage to prevent the deleted draft from reappearing
     window.localStorage.removeItem(STORAGE_KEY);
-    // Clear officerName after deletion to reflect the change in UI
-    setForm((prev) => ({ ...prev, officerName: '' }));
+    // Reset ALL draft-owned state to initial values (excluding covering letter details)
+    setForm(initialSeedForm);
     showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.');
   };
 
