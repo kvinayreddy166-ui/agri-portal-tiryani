@@ -4,12 +4,27 @@ export const APP_BUILD_TIMESTAMP =
 export const APP_VERSION =
   (import.meta.env.VITE_APP_VERSION as string | undefined) || APP_BUILD_TIMESTAMP;
 
-export const APP_BUILD_LABEL = APP_BUILD_TIMESTAMP === 'dev'
-  ? 'dev'
-  : new Date(APP_BUILD_TIMESTAMP).toLocaleString('en-IN', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
+export const APP_BUILD_LABEL = (() => {
+  // Use the cached installed version if available, otherwise use current build
+  const cached = getCachedAppVersion();
+  if (cached && cached !== APP_VERSION) {
+    // A new version is available but not yet installed - show the installed version
+    const cachedTimestamp = cached.split('-').pop();
+    if (cachedTimestamp && cachedTimestamp !== 'dev') {
+      return new Date(cachedTimestamp).toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      });
+    }
+  }
+  // No cached version or same version - show current build
+  return APP_BUILD_TIMESTAMP === 'dev'
+    ? 'dev'
+    : new Date(APP_BUILD_TIMESTAMP).toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      });
+})();
 
 const BUILD_VERSION_KEY = 'tiryani-app-build-version';
 const UPDATE_DISMISSED_KEY = 'tiryani-update-dismissed-timestamp';
@@ -68,7 +83,7 @@ export async function clearAppCacheAndReload() {
     const registrations = await navigator.serviceWorker?.getRegistrations?.();
     await Promise.all((registrations || []).map(async (registration) => {
       try { registration.active?.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch {}
-      try { await registration.update(); } catch {}
+      // Do NOT call registration.update() - this prevents auto-updates
     }));
     if (!registrations?.some((registration) => new URL(registration.scope).pathname === '/')) {
       await navigator.serviceWorker?.register('/service-worker.js', { scope: '/' });

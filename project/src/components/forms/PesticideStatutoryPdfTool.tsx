@@ -107,7 +107,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
     fields: [
       { key: 'tradeName', label: 'TRADE NAME', placeholder: 'Brand Name Eg: Coragen' },
       { key: 'technicalName', label: 'TECHNICAL NAME', placeholder: 'Eg: Chlorantraniliprole' },
-      { key: 'activeIngredient', label: 'ACTIVE INGREDIENT %', placeholder: 'Eg: 18.5% only, Dont enter Formulation type' },
+      { key: 'activeIngredient', label: 'ACTIVE INGREDIENT', placeholder: 'Eg: 18.5% only, Dont enter Formulation type' },
       { key: 'formulationType', label: 'FORMULATION TYPE', type: 'select', options: formulationTypeOptions },
       { key: 'manualFormulationType', label: 'ENTER FORMULATION TYPE', placeholder: 'Enter formulation type' },
       { key: 'batchNumber', label: 'BATCH NUMBER', placeholder: 'Enter Batch No as Per Label' },
@@ -289,8 +289,9 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     
     isSavingDraft.current = true;
     try {
-      // Pesticide form does not have covering letter fields in its state - no exclusion needed
-      const nextDrafts = upsertDraft(savedDrafts, { name, values, updatedAt: String(Date.now()) });
+      // Exclude covering letter fields from draft - they are independently persisted
+      const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftValues } = values;
+      const nextDrafts = upsertDraft(savedDrafts, { name, values: draftValues, updatedAt: String(Date.now()) });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
       showSaved('Draft Saved Successfully', `Draft saved as ${name}`);
@@ -311,8 +312,14 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     // Use case-insensitive comparison for loading
     const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
-    // Pesticide form does not have covering letter fields in its state - no preservation needed
-    setValues({ ...initialPesticidePdfValues, ...draft.values });
+    // Preserve current covering letter details - they are independently persisted
+    const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone } = values;
+    setValues({ 
+      ...initialPesticidePdfValues, 
+      ...draft.values,
+      // Restore covering letter details
+      financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone 
+    });
     setPreviewError(null);
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
   };

@@ -304,8 +304,11 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
           <div className={`mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="rounded-3xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-emerald-800/50 dark:bg-slate-900/80">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="rounded-3xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-emerald-800/50 dark:bg-slate-900/80 relative">
+              <div className="absolute top-6 right-6">
+                <LanguageToggle language={language} onClick={toggleLanguage} />
+              </div>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-4">
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
                     <ShieldCheck className="h-8 w-8" />
@@ -319,8 +322,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                     </p>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <LanguageToggle language={language} onClick={toggleLanguage} />
+                <div className="flex shrink-0">
                   <BackButton onClick={() => navigate('/login')}>
                     Back
                   </BackButton>

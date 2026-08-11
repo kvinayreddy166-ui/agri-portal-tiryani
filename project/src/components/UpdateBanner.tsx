@@ -50,6 +50,12 @@ export function UpdateBanner() {
   const handleUpdate = async () => {
     setIsUpdating(true);
     try {
+      // Set the global flag to indicate this is a user-initiated update
+      // This ensures controllerchange will only reload when user explicitly updates
+      try {
+        (window as any).__USER_INITIATED_UPDATE__ = true;
+      } catch {}
+
       // Show loading overlay to prevent flickering
       const overlay = document.createElement('div');
       overlay.id = 'update-loading-overlay';
@@ -75,11 +81,15 @@ export function UpdateBanner() {
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
       }
-      // The controllerchange event will trigger reload
+      // The controllerchange event will trigger reload (only because we set the flag)
       // Don't reload immediately - wait for service worker activation
     } catch (error) {
       console.error('Update failed:', error);
       setIsUpdating(false);
+      // Reset the flag on error
+      try {
+        (window as any).__USER_INITIATED_UPDATE__ = false;
+      } catch {}
       // Remove overlay on error
       const overlay = document.getElementById('update-loading-overlay');
       if (overlay) overlay.remove();

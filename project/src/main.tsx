@@ -57,7 +57,7 @@ if ('serviceWorker' in navigator) {
         await Promise.all(appRegistrations.map(async (registration) => {
           try { registration.active?.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch {}
           try { registration.active?.postMessage({ type: 'PRECACHE_OFFLINE' }); } catch {}
-          try { await registration.update(); } catch {}
+          // Do NOT automatically call registration.update() - this prevents auto-updates
         }));
 
         if (!appRegistrations.some((registration) => new URL(registration.scope).pathname === '/')) {
@@ -104,11 +104,17 @@ if ('serviceWorker' in navigator) {
     void installRescueServiceWorker();
   });
 
-  // Listen for service worker controller change - reload after new SW activates
+  // Flag to track if the update was user-initiated
+  // Expose globally so UpdateBanner can set it when user taps UPDATE
+  (window as any).__USER_INITIATED_UPDATE__ = false;
+
+  // Listen for service worker controller change - reload only if user-initiated
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     window.dispatchEvent(new CustomEvent('serviceWorkerUpdate'));
-    // Reload to apply the new version
-    window.location.reload();
+    // Only reload if the update was initiated by the user
+    if ((window as any).__USER_INITIATED_UPDATE__) {
+      window.location.reload();
+    }
   });
 
   // Listen for SW_READY messages from service worker
@@ -119,6 +125,11 @@ if ('serviceWorker' in navigator) {
       }));
     }
   });
+
+  // After successful update (reload), persist the new version
+  // This ensures the timestamp displays the installed version
+  const { rememberCurrentAppVersion } = await import('./lib/appVersion');
+  rememberCurrentAppVersion();
 
   // Check for waiting service worker (new version available)
   const checkForWaitingServiceWorker = async () => {

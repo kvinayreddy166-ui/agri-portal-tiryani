@@ -99,6 +99,15 @@ const initialSeedForm = {
   pinCode: '',
   placeManuallyEdited: false,
   collectionPlaceManuallyEdited: false,
+  // Covering Letter Details
+  financialYear: '',
+  letterNumber: '',
+  letterDate: '',
+  authorityType: 'DAO',
+  memoNumber: '',
+  memoDate: '',
+  division: '',
+  officerPhone: '',
 };
 
 export function SeedForms() {
@@ -214,8 +223,9 @@ export function SeedForms() {
     
     isSavingDraft.current = true;
     try {
-      // Seed form does not have covering letter fields in its state - no exclusion needed
-      const nextDrafts = upsertSeedDraft(savedDrafts, { name, form, updatedAt: Date.now() });
+      // Exclude covering letter fields from draft - they are independently persisted
+      const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftForm } = form;
+      const nextDrafts = upsertSeedDraft(savedDrafts, { name, form: draftForm, updatedAt: Date.now() });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
       showSaved('Draft Saved Successfully', `Draft saved as ${name}`);
@@ -235,8 +245,14 @@ export function SeedForms() {
     // Use case-insensitive comparison for loading
     const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
-    // Seed form does not have covering letter fields in its state - no preservation needed
-    setForm({ ...initialSeedForm, ...draft.form });
+    // Preserve current covering letter details - they are independently persisted
+    const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone } = form;
+    setForm({ 
+      ...initialSeedForm, 
+      ...draft.form,
+      // Restore covering letter details
+      financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone 
+    });
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
   };
 

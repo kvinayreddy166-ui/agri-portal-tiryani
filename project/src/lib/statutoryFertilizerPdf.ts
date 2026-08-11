@@ -440,7 +440,7 @@ function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
   paragraph(cursor, '(3) Details of markings on the bags from where sample has been taken');
   if (values.markings.trim()) paragraph(cursor, values.markings, PAGE.marginX + 6, cursor.contentWidth - 6, 5, true);
   field(cursor, 'a) Type and Grade of Fertilizer', resolveFertilizerTypeGrade(values), 85, PAGE.marginX + 6, fieldOptions);
-  field(cursor, 'b) Name of Dealer/Manufacturer/Importer', values.dealerManufacturerImporterName, 85, PAGE.marginX + 6, fieldOptions);
+  field(cursor, 'b) Name of Dealer/Manufacturer/Importer', resolveDealerManufacturerImporterName(values), 85, PAGE.marginX + 6, fieldOptions);
   field(cursor, 'c) Batch No. and Date of Manufacture/Import', values.batchDetails, 85, PAGE.marginX + 6, fieldOptions);
   field(cursor, 'd) Composition of Fertilizer', formatComposition(values), 85, PAGE.marginX + 6, fieldOptions);
 
@@ -775,6 +775,13 @@ export function resolveFertilizerTypeGrade(values: FertilizerPdfValues): string 
     }
     return values.fertilizerTypeGrade;
   }
+}
+
+export function resolveDealerManufacturerImporterName(values: FertilizerPdfValues): string {
+  if (values.dealerManufacturerImporterName === 'Other') {
+    return values.manualDealerManufacturerImporterName;
+  }
+  return values.dealerManufacturerImporterName;
 }
 
 function formatComposition(values: FertilizerPdfValues) {

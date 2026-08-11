@@ -62,6 +62,15 @@ export type PesticidePdfValues = {
   pincode: string;
   email: string;
   sampleSerialNumber: string;
+  // Covering Letter Details
+  financialYear: string;
+  letterNumber: string;
+  letterDate: string;
+  authorityType: 'DAO' | 'ADA';
+  memoNumber: string;
+  memoDate: string;
+  division: string;
+  officerPhone: string;
 };
 
 export const initialPesticidePdfValues: PesticidePdfValues = {
@@ -124,6 +133,15 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   pincode: '',
   email: '',
   sampleSerialNumber: '',
+  // Covering Letter Details
+  financialYear: '',
+  letterNumber: '',
+  letterDate: new Date().toISOString().slice(0, 10),
+  authorityType: 'DAO',
+  memoNumber: '',
+  memoDate: '',
+  division: '',
+  officerPhone: '',
 };
 
 export const pesticideFormTitles: Record<PesticideStatutoryFormType, string> = {
@@ -776,9 +794,10 @@ function normalizePesticideValues(values: PesticidePdfValues): PesticidePdfValue
       normalized.sampleDrawnYear = normalized.sampleDrawnYear || String(date.getFullYear()).slice(-2);
     }
   }
-  // Ensure activeIngredient has % symbol if missing
-  if (normalized.activeIngredient && !normalized.activeIngredient.includes('%')) {
-    normalized.activeIngredient = normalized.activeIngredient + '%';
+  // Format activeIngredient for PDF display - add % if missing after trimming
+  if (normalized.activeIngredient) {
+    const cleaned = normalized.activeIngredient.trim();
+    normalized.activeIngredient = cleaned.endsWith('%') ? cleaned : `${cleaned}%`;
   }
   // Ensure new fields have default values for backward compatibility
   // (already handled by spreading initialPesticidePdfValues which includes defaults)

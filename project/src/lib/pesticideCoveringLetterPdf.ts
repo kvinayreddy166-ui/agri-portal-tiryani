@@ -384,13 +384,23 @@ function drawSampleTableHeading(cursor: PdfCursor) {
 function drawSampleTable(cursor: PdfCursor, queue: PesticideCoveringLetterQueueItem[]) {
   const { doc } = cursor;
   
-  const tableData = queue.map((item, index) => [
-    (index + 1).toString(),
-    item.tradeName,
-    `${item.technicalName}${item.activeIngredient ? ` ${item.activeIngredient}` : ''}${item.formulationType ? ` ${item.formulationType}` : ''}`,
-    item.sampleCode,
-    formatDate(item.dateOfSampling),
-  ]);
+  const tableData = queue.map((item, index) => {
+    // Format activeIngredient for PDF display - add % if missing after trimming
+    const formattedActiveIngredient = item.activeIngredient 
+      ? (() => {
+          const cleaned = item.activeIngredient.trim();
+          return cleaned.endsWith('%') ? cleaned : `${cleaned}%`;
+        })()
+      : '';
+    
+    return [
+      (index + 1).toString(),
+      item.tradeName,
+      `${item.technicalName}${formattedActiveIngredient ? ` ${formattedActiveIngredient}` : ''}${item.formulationType ? ` ${item.formulationType}` : ''}`,
+      item.sampleCode,
+      formatDate(item.dateOfSampling),
+    ];
+  });
   
   autoTable(doc, {
     startY: cursor.y,

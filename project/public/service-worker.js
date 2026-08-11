@@ -18,8 +18,8 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => cache.addAll(STATIC_ASSETS))
-      .then(() => self.skipWaiting())
   );
+  // Do NOT call skipWaiting() here - let the new SW wait for user approval
 });
 
 self.addEventListener('activate', (event) => {
@@ -27,14 +27,11 @@ self.addEventListener('activate', (event) => {
     Promise.all([
       clearOldCaches(),
       clearRuntimeCaches(),
-      self.clients.claim(),
     ])
-      .then(() => {
-        // Immediately activate new service worker
-        return self.skipWaiting();
-      })
       .then(() => notifyClients({ type: 'SW_READY', version: RESCUE_SW_VERSION }))
   );
+  // Do NOT call clients.claim() or skipWaiting() here
+  // This allows the new SW to wait for user approval via UPDATE button
 });
 
 self.addEventListener('message', (event) => {

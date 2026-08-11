@@ -4,11 +4,12 @@ import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
 import { OfflineScreen } from './components/ui/OfflineScreen';
-import { APP_BUILD_LABEL, clearAppCacheAndReload, dismissUpdateBanner, hasNewAppVersion, rememberCurrentAppVersion } from './lib/appVersion';
+import { APP_BUILD_LABEL, clearAppCacheAndReload } from './lib/appVersion';
 import { isRecoverableChunkError } from './lib/pwaRecovery';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { SEO, OrganizationSchema } from './components/seo/SEO';
+import { UpdateBanner } from './components/UpdateBanner';
 
 const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.Login })));
 const Layout = lazy(() => import('./components/Layout').then((m) => ({ default: m.Layout })));
@@ -444,56 +445,6 @@ function PublicReadOnlyShell({
       <main className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
         <SafeSuspense fallback={<PageLoader />}>{children}</SafeSuspense>
       </main>
-    </div>
-  );
-}
-
-function AppUpdateBanner() {
-  const [visible, setVisible] = useState(() => hasNewAppVersion());
-  const [isOnlineTransition, setIsOnlineTransition] = useState(false);
-
-  useEffect(() => {
-    if (!hasNewAppVersion()) rememberCurrentAppVersion();
-  }, []);
-
-  useEffect(() => {
-    const show = () => {
-      // Don't show banner during online/offline transition
-      if (!isOnlineTransition) setVisible(true);
-    };
-    window.addEventListener('tiryani:update-available', show);
-    return () => window.removeEventListener('tiryani:update-available', show);
-  }, [isOnlineTransition]);
-
-  // Handle online/offline transitions
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnlineTransition(true);
-      // Clear transition flag after 5 seconds
-      setTimeout(() => setIsOnlineTransition(false), 5000);
-    };
-
-    window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
-  }, []);
-
-  // Show on all pages when update is available
-  if (!visible) return null;
-
-  return (
-    <div className="fixed bottom-4 left-4 z-[10000] max-w-sm rounded-2xl border border-emerald-200 bg-white p-4 text-sm shadow-2xl dark:border-emerald-900 dark:bg-slate-950">
-      <div className="mb-3">
-        <p className="font-black text-slate-950 dark:text-white">New update available</p>
-        <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Reload to use the latest deployed version.</p>
-      </div>
-      <div className="flex gap-2">
-        <button type="button" onClick={() => { dismissUpdateBanner(); setVisible(false); }} className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200">
-          Later
-        </button>
-        <button type="button" onClick={() => { rememberCurrentAppVersion(); setTimeout(() => window.location.reload(), 100); }} className="flex-1 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white hover:bg-emerald-800">
-          Update
-        </button>
-      </div>
     </div>
   );
 }
@@ -981,7 +932,7 @@ function App() {
               <SEO />
               <OrganizationSchema />
               <OfflineScreen />
-              <AppUpdateBanner />
+              <UpdateBanner />
               <AppContent />
               <AppVersionBadge />
             </LanguageScope>
