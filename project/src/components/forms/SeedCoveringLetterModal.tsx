@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Download, Eye, FileText, X, Loader2, Trash2, RotateCcw } from 'lucide-react';
 
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
+const SEED_COVERING_LETTER_DETAILS_KEY = 'tiryani-seed-covering-letter-details';
 
 type SeedCoveringLetterQueueItem = {
   sampleCode: string;
@@ -80,9 +81,26 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   const [isMobile, setIsMobile] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
 
+  // Auto-save Covering Letter Details to localStorage
+  useEffect(() => {
+    window.localStorage.setItem(SEED_COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
+  }, [metadata]);
+
+  // Load Covering Letter Details from localStorage when modal opens (if not provided via props)
   useEffect(() => {
     if (isOpen) {
       loadQueue();
+      // Try to load from localStorage first
+      const savedDetails = window.localStorage.getItem(SEED_COVERING_LETTER_DETAILS_KEY);
+      if (savedDetails && !coveringLetterDetails) {
+        try {
+          const parsedDetails = JSON.parse(savedDetails);
+          setMetadata(parsedDetails);
+        } catch (error) {
+          console.error('Error loading saved Covering Letter Details:', error);
+        }
+      }
+      // Update metadata from covering letter details when modal opens (if provided via props)
       if (coveringLetterDetails) {
         setMetadata({
           year: coveringLetterDetails.financialYear,
@@ -547,12 +565,12 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
         <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 sm:px-6 sm:py-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <div className="flex flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handlePreview}
                 disabled={editedQueue.length === 0 || isGenerating}
-                className="inline-flex items-center justify-center gap-2 border border-emerald-200 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white w-full sm:w-auto min-w-0"
+                className="inline-flex items-center justify-center gap-2 border border-emerald-200 bg-white px-3 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white flex-1 sm:w-auto min-w-0"
               >
                 {isGenerating ? (
                   <>
@@ -570,7 +588,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                 type="button"
                 onClick={handleDownload}
                 disabled={editedQueue.length === 0 || isGenerating}
-                className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 w-full sm:w-auto min-w-0"
+                className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 flex-1 sm:w-auto min-w-0"
               >
                 {isGenerating ? (
                   <>

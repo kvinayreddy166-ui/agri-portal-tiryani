@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Download, Eye, FileText, X, Loader2, Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
+const COVERING_LETTER_DETAILS_KEY = 'tiryani-covering-letter-details';
 
 type CoveringLetterQueueItem = {
   sampleCode: string;
@@ -88,13 +89,28 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   const [letterType, setLetterType] = useState<'quality-analysis' | 'safe-custody'>('quality-analysis');
   const [isMobile, setIsMobile] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
-  const [isCoveringLetterDetailsCollapsed, setIsCoveringLetterDetailsCollapsed] = useState(true);
   const lastPropagatedMetadata = useRef<CoveringLetterMetadata | null>(null);
 
+  // Auto-save Covering Letter Details to localStorage
+  useEffect(() => {
+    window.localStorage.setItem(COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
+  }, [metadata]);
+
+  // Load Covering Letter Details from localStorage when modal opens (if not provided via props)
   useEffect(() => {
     if (isOpen) {
       loadQueue();
-      // Update metadata from covering letter details when modal opens
+      // Try to load from localStorage first
+      const savedDetails = window.localStorage.getItem(COVERING_LETTER_DETAILS_KEY);
+      if (savedDetails && !coveringLetterDetails) {
+        try {
+          const parsedDetails = JSON.parse(savedDetails);
+          setMetadata(parsedDetails);
+        } catch (error) {
+          console.error('Error loading saved Covering Letter Details:', error);
+        }
+      }
+      // Update metadata from covering letter details when modal opens (if provided via props)
       if (coveringLetterDetails) {
         setMetadata({
           year: coveringLetterDetails.financialYear,
@@ -400,20 +416,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
             <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-3 sm:p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsCoveringLetterDetailsCollapsed(!isCoveringLetterDetailsCollapsed)}
-                    className="flex items-center justify-center rounded-lg text-purple-600 hover:bg-purple-100 transition-colors"
-                  >
-                    {isCoveringLetterDetailsCollapsed ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronUp className="h-4 w-4" />
-                    )}
-                  </button>
-                  <h3 className="text-sm font-black text-purple-700">COVERING LETTER DETAILS</h3>
-                </div>
+                <h3 className="text-sm font-black text-purple-700">COVERING LETTER DETAILS</h3>
                 <button
                   type="button"
                   onClick={() => {
@@ -436,8 +439,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   <RotateCcw className="h-3.5 w-3.5" />
                 </button>
               </div>
-              {!isCoveringLetterDetailsCollapsed && (
-                <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">FINANCIAL YEAR</label>
                   <input
@@ -519,7 +521,6 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   />
                 </div>
               </div>
-              )}
             </div>
 
             <div className="rounded-xl shadow-sm border border-red-200 bg-red-50/50 p-2 sm:p-6">
@@ -623,12 +624,12 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                 <option value="safe-custody">Safe Custody (III Portion)</option>
               </select>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <div className="flex flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handlePreview}
                 disabled={editedQueue.length === 0 || isGenerating}
-                className="inline-flex items-center justify-center gap-2 border border-emerald-200 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white w-full sm:w-auto min-w-0"
+                className="inline-flex items-center justify-center gap-2 border border-emerald-200 bg-white px-3 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white flex-1 sm:w-auto min-w-0"
               >
                 {isGenerating ? (
                   <>
@@ -646,7 +647,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                 type="button"
                 onClick={handleDownload}
                 disabled={!isValid || editedQueue.length === 0 || isGenerating}
-                className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 w-full sm:w-auto min-w-0"
+                className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 flex-1 sm:w-auto min-w-0"
               >
                 {isGenerating ? (
                   <>
