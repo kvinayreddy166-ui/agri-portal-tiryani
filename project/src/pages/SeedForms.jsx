@@ -325,11 +325,13 @@ export function SeedForms() {
         if (sampleCode) {
           if (existingIndex === -1) {
             // New sample - add to queue
+            const quantityValue = cropQuantityMapping[form.crop] || form.quantityDrawn || '';
+            const numericQuantity = quantityValue.match(/^\d+/)?.[0] || quantityValue;
             const newItem = {
               sampleCode: sampleCode,
               seedName: form.crop || '',
               variety: form.variety || '',
-              quantity: form.quantityDrawn || '',
+              quantity: numericQuantity,
               dateOfSampling: form.collectionDate.trim(),
             };
             queue.push(newItem);
@@ -339,11 +341,13 @@ export function SeedForms() {
           } else {
             // Check if sample details have changed
             const existingItem = queue[existingIndex];
+            const quantityValue = cropQuantityMapping[form.crop] || form.quantityDrawn || '';
+            const numericQuantity = quantityValue.match(/^\d+/)?.[0] || quantityValue;
             const newItem = {
               sampleCode: sampleCode,
               seedName: form.crop || '',
               variety: form.variety || '',
-              quantity: form.quantityDrawn || '',
+              quantity: numericQuantity,
               dateOfSampling: form.collectionDate.trim(),
             };
             

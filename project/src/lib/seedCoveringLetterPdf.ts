@@ -382,16 +382,16 @@ function drawSampleTable(cursor: PdfCursor, queue: SeedCoveringLetterQueueItem[]
   
   const tableData = queue.map((item, index) => [
     (index + 1).toString(),
-    item.sampleCode,
     item.seedName,
     item.variety,
+    item.sampleCode,
     item.quantity,
     formatDate(item.dateOfSampling),
   ]);
   
   autoTable(doc, {
     startY: cursor.y,
-    head: [['S.No', 'Sample Code', 'Seed Name', 'Variety', 'Quantity', 'Date of Sampling']],
+    head: [['S.No', 'Crop', 'Variety', 'Code No. of Sample', 'Quantity(gms)', 'Sampling Date']],
     body: tableData,
     theme: 'grid',
     headStyles: {

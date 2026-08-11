@@ -465,17 +465,37 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-slate-200">
-                        <th className="px-2 py-2 text-left font-bold text-slate-700">Sample Code</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700">Seed Name</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">S.No</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Crop</th>
                         <th className="px-2 py-2 text-left font-bold text-slate-700">Variety</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700">Quantity</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700">Date</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Code No. of Sample</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Quantity(gms)</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Sampling Date</th>
                         <th className="px-2 py-2 text-left font-bold text-slate-700">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {editedQueue.map((item, index) => (
                         <tr key={index} className="border-b border-slate-100">
+                          <td className="px-2 py-2 text-center font-bold text-slate-700">{index + 1}</td>
+                          <td className="px-2 py-2">
+                            <input
+                              type="text"
+                              value={item.seedName}
+                              onChange={(e) => handleSeedNameChange(index, e.target.value)}
+                              className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                              placeholder="Crop"
+                            />
+                          </td>
+                          <td className="px-2 py-2">
+                            <input
+                              type="text"
+                              value={item.variety}
+                              onChange={(e) => handleVarietyChange(index, e.target.value)}
+                              className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                              placeholder="Variety"
+                            />
+                          </td>
                           <td className="px-2 py-2">
                             <input
                               type="text"
@@ -487,24 +507,6 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                             {validationErrors[index] && (
                               <p className="mt-1 text-[10px] text-red-600">{validationErrors[index]}</p>
                             )}
-                          </td>
-                          <td className="px-2 py-2">
-                            <input
-                              type="text"
-                              value={item.seedName}
-                              onChange={(e) => handleSeedNameChange(index, e.target.value)}
-                              className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                              placeholder="Seed Name"
-                            />
-                          </td>
-                          <td className="px-2 py-2">
-                            <input
-                              type="text"
-                              value={item.variety}
-                              onChange={(e) => handleVarietyChange(index, e.target.value)}
-                              className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                              placeholder="Variety"
-                            />
                           </td>
                           <td className="px-2 py-2">
                             <input
@@ -538,42 +540,51 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   </table>
                 </div>
               )}
-
-              <div className="mt-4 flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleSaveQueue}
-                  disabled={editedQueue.length === 0}
-                  className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Save Queue
-                </button>
-              </div>
             </div>
           </div>
         </div>
 
-        <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-4 py-4 sm:px-6">
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handlePreview}
-              disabled={isGenerating || isPreviewing || editedQueue.length === 0}
-              className="inline-flex items-center gap-2 bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPreviewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-              Preview
-            </button>
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={isGenerating || editedQueue.length === 0}
-              className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              Download
-            </button>
-          </div>
+        <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 sm:px-6 sm:py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={handlePreview}
+                disabled={editedQueue.length === 0 || isGenerating}
+                className="inline-flex items-center justify-center gap-2 border border-emerald-200 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white w-full sm:w-auto min-w-0"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4" />
+                    Preview
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={editedQueue.length === 0 || isGenerating}
+                className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 w-full sm:w-auto min-w-0"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Downloading...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    Download
+                  </>
+                )}
+              </button>
+            </div>
         </footer>
       </div>
 

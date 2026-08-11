@@ -7,6 +7,8 @@ type PesticideCoveringLetterQueueItem = {
   sampleCode: string;
   tradeName: string;
   technicalName: string;
+  activeIngredient: string;
+  formulationType: string;
   dateOfSampling: string;
 };
 
@@ -77,7 +79,6 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [isPreviewing, setIsPreviewing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -188,18 +189,6 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     setTimeout(() => setMessage(null), 3000);
   };
 
-  const handleSaveQueue = () => {
-    if (!validateSampleCodes()) {
-      setMessage('Please fix validation errors before saving.');
-      setTimeout(() => setMessage(null), 3000);
-      return;
-    }
-    
-    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(editedQueue));
-    setMessage('Queue saved successfully.');
-    setTimeout(() => setMessage(null), 3000);
-  };
-
   const handlePreview = async () => {
     if (!validateSampleCodes()) {
       setMessage('Please fix validation errors before previewing.');
@@ -214,7 +203,6 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     }
     
     setIsGenerating(true);
-    setIsPreviewing(true);
     
     try {
       const { generatePesticideCoveringLetterPdf } = await import('../../lib/pesticideCoveringLetterPdf');
@@ -237,7 +225,6 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
       setMessage('Error generating preview. Please try again.');
     } finally {
       setIsGenerating(false);
-      setIsPreviewing(false);
     }
     
     setTimeout(() => setMessage(null), 3000);
@@ -471,7 +458,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                           <td className="px-2 py-2">
                             <input
                               type="text"
-                              value={item.technicalName}
+                              value={`${item.technicalName}${item.activeIngredient ? ` ${item.activeIngredient}` : ''}${item.formulationType ? ` ${item.formulationType}` : ''}`}
                               onChange={(e) => handleTechnicalNameChange(index, e.target.value)}
                               className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
                               placeholder="Technical Name"
@@ -512,42 +499,51 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                   </table>
                 </div>
               )}
-
-              <div className="mt-4 flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleSaveQueue}
-                  disabled={editedQueue.length === 0}
-                  className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Save Queue
-                </button>
-              </div>
             </div>
           </div>
         </div>
 
-        <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-4 py-4 sm:px-6">
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handlePreview}
-              disabled={isGenerating || isPreviewing || editedQueue.length === 0}
-              className="inline-flex items-center gap-2 bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPreviewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-              Preview
-            </button>
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={isGenerating || editedQueue.length === 0}
-              className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              Download
-            </button>
-          </div>
+        <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 sm:px-6 sm:py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={handlePreview}
+                disabled={editedQueue.length === 0 || isGenerating}
+                className="inline-flex items-center justify-center gap-2 border border-emerald-200 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white w-full sm:w-auto min-w-0"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4" />
+                    Preview
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={editedQueue.length === 0 || isGenerating}
+                className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 w-full sm:w-auto min-w-0"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Downloading...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    Download
+                  </>
+                )}
+              </button>
+            </div>
         </footer>
       </div>
 

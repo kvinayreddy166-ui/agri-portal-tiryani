@@ -5,6 +5,8 @@ type PesticideCoveringLetterQueueItem = {
   sampleCode: string;
   tradeName: string;
   technicalName: string;
+  activeIngredient: string;
+  formulationType: string;
   dateOfSampling: string;
 };
 
@@ -385,7 +387,7 @@ function drawSampleTable(cursor: PdfCursor, queue: PesticideCoveringLetterQueueI
   const tableData = queue.map((item, index) => [
     (index + 1).toString(),
     item.tradeName,
-    item.technicalName,
+    `${item.technicalName}${item.activeIngredient ? ` ${item.activeIngredient}` : ''}${item.formulationType ? ` ${item.formulationType}` : ''}`,
     item.sampleCode,
     formatDate(item.dateOfSampling),
   ]);

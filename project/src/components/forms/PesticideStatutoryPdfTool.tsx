@@ -433,6 +433,8 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               sampleCode: sampleCode,
               tradeName: values.tradeName || '',
               technicalName: values.technicalName || '',
+              activeIngredient: values.activeIngredient || '',
+              formulationType: values.formulationType === 'Others' ? values.manualFormulationType : values.formulationType || '',
               dateOfSampling: values.sampleDrawnDate.trim(),
             };
             queue.push(newItem);
@@ -446,12 +448,16 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               sampleCode: sampleCode,
               tradeName: values.tradeName || '',
               technicalName: values.technicalName || '',
+              activeIngredient: values.activeIngredient || '',
+              formulationType: values.formulationType === 'Others' ? values.manualFormulationType : values.formulationType || '',
               dateOfSampling: values.sampleDrawnDate.trim(),
             };
             
             const hasChanged = 
               existingItem.tradeName !== newItem.tradeName ||
               existingItem.technicalName !== newItem.technicalName ||
+              existingItem.activeIngredient !== newItem.activeIngredient ||
+              existingItem.formulationType !== newItem.formulationType ||
               existingItem.dateOfSampling !== newItem.dateOfSampling;
             
             if (hasChanged) {
