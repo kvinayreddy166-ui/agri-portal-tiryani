@@ -52,6 +52,7 @@ type SeedCoveringLetterModalProps = {
   onClose: () => void;
   officerDetails?: OfficerDetails;
   coveringLetterDetails?: SeedCoveringLetterDetails;
+  onMetadataChange?: (metadata: SeedCoveringLetterMetadata) => void;
 };
 
 const currentYear = new Date().getFullYear();
@@ -61,7 +62,7 @@ const financialYears = [
   `${currentYear + 1}-${(currentYear + 2).toString().slice(-2)}`,
 ];
 
-export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails }: SeedCoveringLetterModalProps) {
+export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, onMetadataChange }: SeedCoveringLetterModalProps) {
   const [editedQueue, setEditedQueue] = useState<SeedCoveringLetterQueueItem[]>([]);
   const [metadata, setMetadata] = useState<SeedCoveringLetterMetadata>({
     year: coveringLetterDetails?.financialYear || financialYears[0],
@@ -81,37 +82,29 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   const [isMobile, setIsMobile] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
 
-  // Auto-save Covering Letter Details to localStorage
+  // Auto-save Covering Letter Details to localStorage and sync with parent
   useEffect(() => {
     window.localStorage.setItem(SEED_COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
-  }, [metadata]);
+    if (onMetadataChange) {
+      onMetadataChange(metadata);
+    }
+  }, [metadata, onMetadataChange]);
 
   // Load Covering Letter Details from localStorage when modal opens (if not provided via props)
   useEffect(() => {
     if (isOpen) {
       loadQueue();
-      // Try to load from localStorage first
-      const savedDetails = window.localStorage.getItem(SEED_COVERING_LETTER_DETAILS_KEY);
-      if (savedDetails && !coveringLetterDetails) {
-        try {
-          const parsedDetails = JSON.parse(savedDetails);
-          setMetadata(parsedDetails);
-        } catch (error) {
-          console.error('Error loading saved Covering Letter Details:', error);
+      // Only load from localStorage if parent didn't provide coveringLetterDetails
+      if (!coveringLetterDetails) {
+        const savedDetails = window.localStorage.getItem(SEED_COVERING_LETTER_DETAILS_KEY);
+        if (savedDetails) {
+          try {
+            const parsedDetails = JSON.parse(savedDetails);
+            setMetadata(parsedDetails);
+          } catch (error) {
+            console.error('Error loading saved Covering Letter Details:', error);
+          }
         }
-      }
-      // Update metadata from covering letter details when modal opens (if provided via props)
-      if (coveringLetterDetails) {
-        setMetadata({
-          year: coveringLetterDetails.financialYear,
-          letterNumber: coveringLetterDetails.letterNumber,
-          letterDate: coveringLetterDetails.letterDate,
-          authorityType: coveringLetterDetails.authorityType,
-          daoMemoNumber: coveringLetterDetails.memoNumber,
-          daoMemoDate: coveringLetterDetails.memoDate,
-          division: coveringLetterDetails.division,
-          officePhone: coveringLetterDetails.officerPhone,
-        });
       }
     }
   }, [isOpen, coveringLetterDetails]);

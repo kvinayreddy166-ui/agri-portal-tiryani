@@ -56,6 +56,10 @@ const FONT_SIZES = {
 
 const LINE_HEIGHT = 4.5;
 const PARAGRAPH_SPACING = 3;
+const FIRST_LINE_INDENT = 10;
+const LINE_HEIGHTS = {
+  body: 1.15,
+};
 
 type PdfCursor = {
   doc: JsPdfInstance;
@@ -220,6 +224,7 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails) 
   const rightColumnX = PAGE.marginLeft + (PAGE.contentWidth * 0.52) + 13;
   const startY = cursor.y;
   
+  // From section - left column
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
   doc.text('From:', leftColumnX, startY);
@@ -245,36 +250,44 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails) 
   
   const mandal = officerDetails?.mandal || officerDetails?.manualMandal || '';
   if (mandal) {
-    doc.setFont(PDF_FONT, 'normal');
+    doc.setFont(PDF_FONT, 'bold');
     doc.text(`${mandal} Mandal,`, leftColumnX, currentY);
     currentY += LINE_HEIGHT;
   }
   
   const district = officerDetails?.district || officerDetails?.manualDistrict || '';
   const pinCode = officerDetails?.pinCode || '';
-  const districtWithPin = pinCode ? `${district} -${pinCode}.` : `${district}.`;
+  if (district) {
+    doc.setFont(PDF_FONT, 'bold');
+    const districtPin = pinCode ? `${district} -${pinCode},` : `${district},`;
+    doc.text(districtPin, leftColumnX, currentY);
+    currentY += LINE_HEIGHT;
+  }
   
-  doc.setFont(PDF_FONT, 'normal');
-  doc.text(districtWithPin, leftColumnX, currentY);
+  const phone = officerDetails?.phone || '';
+  if (phone) {
+    doc.setFont(PDF_FONT, 'bold');
+    doc.text(`Cell : ${phone}.`, leftColumnX, currentY);
+    currentY += LINE_HEIGHT;
+  }
   
+  // To section - right column (left-aligned)
   doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(FONT_SIZES.body);
   doc.text('To:', rightColumnX, startY);
   
   currentY = startY + LINE_HEIGHT;
+  const toAddress = [
+    'The Assistant Director of Agriculture,',
+    'Seed Testing Laboratory,',
+    'Rajendranagar,',
+    'Hyderabad - 500030.',
+  ];
   
   doc.setFont(PDF_FONT, 'bold');
-  doc.text('The Asst. Director of Agriculture,', rightColumnX, currentY);
-  currentY += LINE_HEIGHT;
-  
-  doc.setFont(PDF_FONT, 'normal');
-  doc.text('Seed Testing Laboratory,', rightColumnX, currentY);
-  currentY += LINE_HEIGHT;
-  
-  doc.text('Rajendranagar,', rightColumnX, currentY);
-  currentY += LINE_HEIGHT;
-  
-  doc.text('Hyderabad - 500030.', rightColumnX, currentY);
+  toAddress.forEach(line => {
+    doc.text(line, rightColumnX, currentY);
+    currentY += LINE_HEIGHT;
+  });
   
   cursor.y = currentY + LINE_HEIGHT;
 }
@@ -282,23 +295,34 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails) 
 function drawLetterDetails(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata) {
   const { doc } = cursor;
   
-  doc.setFont(PDF_FONT, 'normal');
+  // Add spacing before letter number
+  cursor.y += 4;
+  
+  doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
   
-  const leftColumnX = PAGE.marginLeft;
-  const rightColumnX = PAGE.marginLeft + (PAGE.contentWidth * 0.52) + 13;
+  const letterNumber = metadata.letterNumber || '_________';
+  const dateText = formatDate(metadata.letterDate) || '_________';
   
-  doc.text(`Letter No: ${metadata.letterNumber || '_________'}`, leftColumnX, cursor.y);
-  doc.text(`Date: ${formatDate(metadata.letterDate) || '_________'}`, rightColumnX, cursor.y);
-  cursor.y += LINE_HEIGHT;
+  const letterText = `Lr. No. ${letterNumber}    Dt. ${dateText}`;
+  doc.text(letterText, PAGE.width / 2, cursor.y, { align: 'center' });
+  
+  // Add underline
+  const textWidth = doc.getTextWidth(letterText);
+  const textX = (PAGE.width - textWidth) / 2;
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(0, 0, 0);
+  doc.line(textX, cursor.y + 1, textX + textWidth, cursor.y + 1);
+  
+  cursor.y += LINE_HEIGHT + 8;
 }
 
 function drawSalutation(cursor: PdfCursor) {
   const { doc } = cursor;
   
-  doc.setFont(PDF_FONT, 'bold');
+  doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(FONT_SIZES.body);
-  doc.text('Sir,', PAGE.marginLeft, cursor.y);
+  doc.text('Sir/Madam,', PAGE.marginLeft, cursor.y);
 }
 
 function drawSubject(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata) {
@@ -344,10 +368,10 @@ function drawReference(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata, 
 function drawSeparator(cursor: PdfCursor) {
   const { doc } = cursor;
   
-  doc.setDrawColor(0);
-  doc.setLineWidth(0.3);
-  doc.line(PAGE.marginLeft, cursor.y, PAGE.width - PAGE.marginRight, cursor.y);
-  cursor.y += 4;
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(FONT_SIZES.body);
+  doc.text('******', PAGE.width / 2, cursor.y, { align: 'center' });
+  cursor.y += LINE_HEIGHT + 2;
 }
 
 function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails) {
@@ -355,77 +379,115 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(FONT_SIZES.body);
+  doc.setLineHeightFactor(LINE_HEIGHTS.body);
   
-  const mandal = officerDetails?.mandal || officerDetails?.manualMandal || '';
-  const district = officerDetails?.district || officerDetails?.manualDistrict || '';
+  const mandal = officerDetails?.mandal || officerDetails?.manualMandal || '{{Mandal}}';
+  const district = officerDetails?.district || officerDetails?.manualDistrict || '{{District}}';
   
-  const bodyText = `In continuation to the subject cited above, I am herewith submitting the seed samples drawn from the input dealer premises in ${mandal} Mandal, ${district} District for analysis as per the Seeds Act, 1966. The samples have been drawn in accordance with the prescribed procedure and are being sent to the Seed Testing Laboratory for quality analysis.`;
+  // Text segments with different font styles
+  const segments = [
+    { text: 'In continuation to the subject cited above, I am herewith submitting the seed samples drawn from the input dealer premises in ', bold: false },
+    { text: mandal, bold: true },
+    { text: ' Mandal, ', bold: false },
+    { text: district, bold: true },
+    { text: ' District for analysis as per the Seeds Act, 1966. The samples have been drawn in accordance with the prescribed procedure and are being sent to the Seed Testing Laboratory for quality analysis.', bold: false }
+  ];
   
-  const splitBody = doc.splitTextToSize(bodyText, PAGE.contentWidth);
-  doc.text(splitBody, PAGE.marginLeft + FIRST_LINE_INDENT, cursor.y);
+  let xPos = PAGE.marginLeft + FIRST_LINE_INDENT;
+  let yPos = cursor.y;
+  const maxWidth = PAGE.contentWidth;
   
-  cursor.y += (splitBody.length * LINE_HEIGHT) + PARAGRAPH_SPACING;
+  segments.forEach(segment => {
+    doc.setFont(PDF_FONT, segment.bold ? 'bold' : 'normal');
+    const words = segment.text.split(' ');
+    
+    words.forEach((word, wordIndex) => {
+      const textToDraw = wordIndex === words.length - 1 ? word : word + ' ';
+      const textWidth = doc.getTextWidth(textToDraw);
+      
+      if (xPos + textWidth > PAGE.marginLeft + maxWidth) {
+        xPos = PAGE.marginLeft;
+        yPos += LINE_HEIGHT;
+      }
+      
+      doc.text(textToDraw, xPos, yPos);
+      xPos += textWidth;
+    });
+  });
+  
+  cursor.y = yPos + LINE_HEIGHT + PARAGRAPH_SPACING;
 }
-
-const FIRST_LINE_INDENT = 10;
 
 function drawSampleTableHeading(cursor: PdfCursor) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
-  doc.text('Particulars of Seed Samples:', PAGE.marginLeft, cursor.y);
+  doc.text('The details of the samples drawn are as follows :', PAGE.marginLeft, cursor.y);
 }
 
 function drawSampleTable(cursor: PdfCursor, queue: SeedCoveringLetterQueueItem[]) {
   const { doc } = cursor;
   
   const tableData = queue.map((item, index) => [
-    (index + 1).toString(),
-    item.seedName,
-    item.variety,
-    item.sampleCode,
-    item.quantity,
-    formatDate(item.dateOfSampling),
+    String(index + 1),
+    item.seedName || '-',
+    item.variety || '-',
+    item.sampleCode || '-',
+    item.quantity || '-',
+    formatDate(item.dateOfSampling) || '-'
   ]);
-  
+
+  const columnWidths = [
+    PAGE.contentWidth * 0.05,  // Sl. No. - 5%
+    PAGE.contentWidth * 0.25,  // Crop - 25%
+    PAGE.contentWidth * 0.25,  // Variety - 25%
+    PAGE.contentWidth * 0.19,  // Sample Code - 19%
+    PAGE.contentWidth * 0.12,  // Quantity - 12%
+    PAGE.contentWidth * 0.14,  // Sampling Date - 14%
+  ];
+
   autoTable(doc, {
     startY: cursor.y,
-    head: [['S.No', 'Crop', 'Variety', 'Code No. of Sample', 'Quantity(gms)', 'Sampling Date']],
+    head: [['S.No', 'Crop', 'Variety', 'Code No. of Sample', 'Quantity (gms)', 'Sampling Date']],
     body: tableData,
     theme: 'grid',
-    headStyles: {
-      fillColor: [255, 255, 255],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold',
-      fontSize: 12,
-      halign: 'center',
-      valign: 'middle',
+    margin: {
+      left: PAGE.marginLeft,
+      right: PAGE.marginRight,
+    },
+    styles: {
+      font: PDF_FONT,
+      fontSize: FONT_SIZES.tableData,
+      cellPadding: 1.5,
       lineWidth: 0.3,
       lineColor: [0, 0, 0],
+      valign: 'middle',
+      overflow: 'linebreak',
+    },
+    headStyles: {
+      fontStyle: 'bold',
+      fontSize: FONT_SIZES.body,
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
+      halign: 'center',
+      valign: 'middle',
     },
     bodyStyles: {
-      fillColor: [255, 255, 255],
-      textColor: [0, 0, 0],
-      fontStyle: 'normal',
-      fontSize: 11,
       halign: 'center',
-      valign: 'middle',
-      lineWidth: 0.3,
-      lineColor: [0, 0, 0],
+      textColor: [0, 0, 0],
     },
     columnStyles: {
-      0: { cellWidth: 15 },
-      1: { cellWidth: 30 },
-      2: { cellWidth: 35 },
-      3: { cellWidth: 35 },
-      4: { cellWidth: 25 },
-      5: { cellWidth: 35 },
+      0: { cellWidth: columnWidths[0], halign: 'center' },
+      1: { cellWidth: columnWidths[1], halign: 'left' },
+      2: { cellWidth: columnWidths[2], halign: 'left' },
+      3: { cellWidth: columnWidths[3], halign: 'center' },
+      4: { cellWidth: columnWidths[4], halign: 'center' },
+      5: { cellWidth: columnWidths[5], halign: 'center' },
     },
-    margin: { left: PAGE.marginLeft, right: PAGE.marginRight },
-    styles: {
-      cellPadding: 2,
-    },
+    pageBreak: 'auto',
+    rowPageBreak: 'avoid',
+    horizontalPageBreak: false,
   });
 }
 
@@ -434,12 +496,18 @@ function drawClosing(cursor: PdfCursor) {
   
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(FONT_SIZES.body);
+  doc.setLineHeightFactor(LINE_HEIGHTS.body);
   
-  const closingText = 'I request you to kindly arrange for the analysis of the above seed samples and communicate the results at the earliest.';
+  const closingText = 'Hence, I request the kind authority to arrange for quality analysis and communicate the results to the above address at an early date.';
   const splitClosing = doc.splitTextToSize(closingText, PAGE.contentWidth);
-  doc.text(splitClosing, PAGE.marginLeft + FIRST_LINE_INDENT, cursor.y);
-  
+  doc.text(splitClosing, PAGE.marginLeft, cursor.y);
   cursor.y += (splitClosing.length * LINE_HEIGHT) + PARAGRAPH_SPACING;
+  
+  doc.text('Thanking you.', PAGE.width / 2, cursor.y, { align: 'center' });
+  cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;
+  
+  doc.text('Form "P" is kept with the sample.', PAGE.marginLeft, cursor.y);
+  cursor.y += LINE_HEIGHT + 1.5;
 }
 
 function drawEnclosures(cursor: PdfCursor, sampleCount: number) {
@@ -453,23 +521,25 @@ function drawEnclosures(cursor: PdfCursor, sampleCount: number) {
 function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   const { doc } = cursor;
   
+  // Leave -5mm blank space for signature
   cursor.y -= 5;
+  
+  const signatureX = PAGE.width - PAGE.marginRight;
   
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(FONT_SIZES.body);
-  doc.text('Yours faithfully,', PAGE.marginLeft, cursor.y);
+  doc.text('Yours faithfully,', signatureX, cursor.y, { align: 'right' });
   cursor.y += LINE_HEIGHT;
   
-  cursor.y += 5;
+  cursor.y += LINE_HEIGHT + 5; // Extra space
   
   const designation = officerDetails?.designation || 'Seed Inspector';
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(designation, PAGE.marginLeft, cursor.y);
+  doc.text(designation, signatureX, cursor.y, { align: 'right' });
   cursor.y += LINE_HEIGHT;
   
-  doc.setFont(PDF_FONT, 'normal');
-  doc.text('Seed Inspector', PAGE.marginLeft, cursor.y);
-  cursor.y += LINE_HEIGHT;
+  doc.text('& Seed Inspector', signatureX, cursor.y, { align: 'right' });
+  cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;
 }
 
 function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, metadata?: SeedCoveringLetterMetadata) {
@@ -493,23 +563,31 @@ function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, m
 }
 
 function drawBranding(doc: JsPdfInstance) {
-  const totalPages = (doc as any).internal.getNumberOfPages();
+  // Save current state
+  const currentFont = doc.getFont();
+  const currentFontSize = doc.getFontSize();
   
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    doc.setFont(PDF_FONT, 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.text('AGRONIX', PAGE.width - PAGE.marginRight, PAGE.height - 5, { align: 'right' });
-    doc.setTextColor(0, 0, 0);
-  }
+  // Set branding styling
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(128);
+  
+  // Position in bottom-right corner (10 units from edges)
+  const brandingX = PAGE.width - 10;
+  const brandingY = PAGE.height - 10;
+  
+  // Draw AGRONIX wordmark
+  doc.text('AGRONIX', brandingX, brandingY, { align: 'right' });
+  
+  // Restore original state
+  doc.setFont(currentFont.fontName, currentFont.fontStyle);
+  doc.setFontSize(currentFontSize);
+  doc.setTextColor(0);
 }
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}.${month}.${year}`;
+  const date = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateStr;
+  return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }

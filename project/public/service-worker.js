@@ -139,11 +139,13 @@ async function fetchOrRecoverMissingBuildAsset(request) {
   try {
     const response = await fetch(new Request(request, { cache: 'no-store' }));
     if (response.ok || response.type === 'opaque') return response;
-    if (response.status !== 404 && response.status !== 410) return response;
+    if (response.status === 404 || response.status === 410) {
+      return missingAssetRecoveryResponse(request);
+    }
+    return response;
   } catch (error) {
     return missingAssetRecoveryResponse(request);
   }
-  return missingAssetRecoveryResponse(request);
 }
 
 function missingAssetRecoveryResponse(request) {

@@ -156,6 +156,32 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       return initialPesticidePdfValues;
     }
   });
+  const [coveringLetterDetails, setCoveringLetterDetails] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
+      return saved ? JSON.parse(saved) : {
+        financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
+        letterNumber: '',
+        letterDate: new Date().toISOString().slice(0, 10),
+        authorityType: 'DAO',
+        memoNumber: '',
+        memoDate: '',
+        division: '',
+        officerPhone: '',
+      };
+    } catch {
+      return {
+        financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
+        letterNumber: '',
+        letterDate: new Date().toISOString().slice(0, 10),
+        authorityType: 'DAO',
+        memoNumber: '',
+        memoDate: '',
+        division: '',
+        officerPhone: '',
+      };
+    }
+  });
   const [message, setMessage] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const isSavingDraft = useRef(false);
@@ -704,18 +730,21 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
           manualMandal: values.manualMandal,
           district: values.district,
           manualDistrict: values.manualDistrict,
-          pinCode: values.pinCode,
+          pinCode: values.pincode,
           phone: '',
         }}
-        coveringLetterDetails={{
-          financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
-          letterNumber: '',
-          letterDate: new Date().toISOString().slice(0, 10),
-          authorityType: 'DAO',
-          memoNumber: '',
-          memoDate: '',
-          division: '',
-          officerPhone: '',
+        coveringLetterDetails={coveringLetterDetails}
+        onMetadataChange={(metadata) => {
+          setCoveringLetterDetails({
+            financialYear: metadata.year,
+            letterNumber: metadata.letterNumber,
+            letterDate: metadata.letterDate,
+            authorityType: metadata.authorityType,
+            memoNumber: metadata.daoMemoNumber,
+            memoDate: metadata.daoMemoDate,
+            division: metadata.division,
+            officerPhone: metadata.officePhone,
+          });
         }}
       />
     </div>

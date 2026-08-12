@@ -129,6 +129,32 @@ export function SeedForms() {
       return initialSeedForm;
     }
   });
+  const [coveringLetterDetails, setCoveringLetterDetails] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem('tiryani-seed-covering-letter-details');
+      return saved ? JSON.parse(saved) : {
+        financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
+        letterNumber: '',
+        letterDate: new Date().toISOString().slice(0, 10),
+        authorityType: 'DAO',
+        memoNumber: '',
+        memoDate: '',
+        division: '',
+        officerPhone: '',
+      };
+    } catch {
+      return {
+        financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
+        letterNumber: '',
+        letterDate: new Date().toISOString().slice(0, 10),
+        authorityType: 'DAO',
+        memoNumber: '',
+        memoDate: '',
+        division: '',
+        officerPhone: '',
+      };
+    }
+  });
   const [message, setMessage] = useState('');
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
@@ -666,15 +692,18 @@ export function SeedForms() {
           pinCode: form.pinCode,
           phone: '',
         }}
-        coveringLetterDetails={{
-          financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
-          letterNumber: '',
-          letterDate: new Date().toISOString().slice(0, 10),
-          authorityType: 'DAO',
-          memoNumber: '',
-          memoDate: '',
-          division: '',
-          officerPhone: '',
+        coveringLetterDetails={coveringLetterDetails}
+        onMetadataChange={(metadata) => {
+          setCoveringLetterDetails({
+            financialYear: metadata.year,
+            letterNumber: metadata.letterNumber,
+            letterDate: metadata.letterDate,
+            authorityType: metadata.authorityType,
+            memoNumber: metadata.daoMemoNumber,
+            memoDate: metadata.daoMemoDate,
+            division: metadata.division,
+            officerPhone: metadata.officePhone,
+          });
         }}
       />
     </>

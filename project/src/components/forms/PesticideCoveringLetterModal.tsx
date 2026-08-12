@@ -53,6 +53,7 @@ type PesticideCoveringLetterModalProps = {
   onClose: () => void;
   officerDetails?: OfficerDetails;
   coveringLetterDetails?: PesticideCoveringLetterDetails;
+  onMetadataChange?: (metadata: PesticideCoveringLetterMetadata) => void;
 };
 
 const currentYear = new Date().getFullYear();
@@ -62,7 +63,7 @@ const financialYears = [
   `${currentYear + 1}-${(currentYear + 2).toString().slice(-2)}`,
 ];
 
-export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails }: PesticideCoveringLetterModalProps) {
+export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, onMetadataChange }: PesticideCoveringLetterModalProps) {
   const [editedQueue, setEditedQueue] = useState<PesticideCoveringLetterQueueItem[]>([]);
   const [metadata, setMetadata] = useState<PesticideCoveringLetterMetadata>({
     year: coveringLetterDetails?.financialYear || financialYears[0],
@@ -81,37 +82,29 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Auto-save Covering Letter Details to localStorage
+  // Auto-save Covering Letter Details to localStorage and sync with parent
   useEffect(() => {
     window.localStorage.setItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
-  }, [metadata]);
+    if (onMetadataChange) {
+      onMetadataChange(metadata);
+    }
+  }, [metadata, onMetadataChange]);
 
   // Load Covering Letter Details from localStorage when modal opens (if not provided via props)
   useEffect(() => {
     if (isOpen) {
       loadQueue();
-      // Try to load from localStorage first
-      const savedDetails = window.localStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
-      if (savedDetails && !coveringLetterDetails) {
-        try {
-          const parsedDetails = JSON.parse(savedDetails);
-          setMetadata(parsedDetails);
-        } catch (error) {
-          console.error('Error loading saved Covering Letter Details:', error);
+      // Only load from localStorage if parent didn't provide coveringLetterDetails
+      if (!coveringLetterDetails) {
+        const savedDetails = window.localStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
+        if (savedDetails) {
+          try {
+            const parsedDetails = JSON.parse(savedDetails);
+            setMetadata(parsedDetails);
+          } catch (error) {
+            console.error('Error loading saved Covering Letter Details:', error);
+          }
         }
-      }
-      // Update metadata from covering letter details when modal opens (if provided via props)
-      if (coveringLetterDetails) {
-        setMetadata({
-          year: coveringLetterDetails.financialYear,
-          letterNumber: coveringLetterDetails.letterNumber,
-          letterDate: coveringLetterDetails.letterDate,
-          authorityType: coveringLetterDetails.authorityType,
-          daoMemoNumber: coveringLetterDetails.memoNumber,
-          daoMemoDate: coveringLetterDetails.memoDate,
-          division: coveringLetterDetails.division,
-          officePhone: coveringLetterDetails.officerPhone,
-        });
       }
     }
   }, [isOpen, coveringLetterDetails]);
