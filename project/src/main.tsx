@@ -128,8 +128,15 @@ if ('serviceWorker' in navigator) {
 
   // After successful update (reload), persist the new version
   // This ensures the timestamp displays the installed version
-  const { rememberCurrentAppVersion } = await import('./lib/appVersion');
-  rememberCurrentAppVersion();
+  const initializeAppVersion = async () => {
+    try {
+      const { rememberCurrentAppVersion } = await import('./lib/appVersion');
+      rememberCurrentAppVersion();
+    } catch (error) {
+      if (import.meta.env.DEV) console.warn('Failed to initialize app version:', error);
+    }
+  };
+  void initializeAppVersion();
 
   // Check for waiting service worker (new version available)
   const checkForWaitingServiceWorker = async () => {
