@@ -7,25 +7,26 @@ export function UpdateBanner() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const handleUpdateAvailable = (event: CustomEvent) => {
-      const newVersion = event.detail?.version;
-      
-      // Check if this is a different version than what we've already shown
-      const lastShownVersion = localStorage.getItem('last-shown-update-version');
-      if (lastShownVersion === newVersion) {
-        return; // Don't show banner for same version
-      }
-      
+    const handleUpdateAvailable = () => {
       // Check if banner was dismissed in current session
       try {
         if (sessionStorage.getItem('update-banner-dismissed')) {
           return;
         }
       } catch {}
+
+      // Check if we've already processed this update
+      try {
+        const currentBuildVersion = (import.meta.env.VITE_APP_VERSION as string) || (import.meta.env.VITE_APP_BUILD_TIMESTAMP as string) || 'unknown';
+        const lastProcessedUpdate = localStorage.getItem('tiryani-last-processed-update');
+        if (lastProcessedUpdate === currentBuildVersion) {
+          return; // Already showed and processed this update
+        }
+      } catch {}
       
       setShowBanner(true);
-      // Trigger slide-in animation
-      setTimeout(() => setIsVisible(true), 50);
+      // Trigger slide-in animation immediately
+      requestAnimationFrame(() => setIsVisible(true));
     };
 
     const handleControllerChange = () => {
@@ -35,6 +36,9 @@ export function UpdateBanner() {
       // Clear the dismissed flag after successful update
       try {
         sessionStorage.removeItem('update-banner-dismissed');
+        // Mark this version as processed to prevent repeated prompts
+        const currentBuildVersion = (import.meta.env.VITE_APP_VERSION as string) || (import.meta.env.VITE_APP_BUILD_TIMESTAMP as string) || 'unknown';
+        localStorage.setItem('tiryani-last-processed-update', currentBuildVersion);
       } catch {}
     };
 
@@ -71,12 +75,6 @@ export function UpdateBanner() {
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.getRegistration();
         if (registration?.waiting) {
-          // Store the version before updating
-          const version = registration.waiting.scriptURL;
-          try {
-            localStorage.setItem('last-shown-update-version', version);
-          } catch {}
-          
           // Tell the waiting service worker to skip waiting and become active
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         }

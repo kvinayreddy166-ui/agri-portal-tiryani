@@ -117,51 +117,60 @@ if ('serviceWorker' in navigator) {
     }
   });
 
-  // Listen for SW_READY messages from service worker
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    if (event.data?.type === 'SW_READY') {
-      window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
-        detail: { version: event.data.version } 
-      }));
-    }
-  });
-
   // After successful update (reload), persist the new version
   // This ensures the timestamp displays the installed version
+  // ONLY call this if this is a fresh load after a user-initiated update
   const initializeAppVersion = async () => {
     try {
-      const { rememberCurrentAppVersion } = await import('./lib/appVersion');
-      rememberCurrentAppVersion();
+      // Check if this reload was triggered by a user-initiated update
+      const wasUserInitiatedUpdate = (window as any).__USER_INITIATED_UPDATE__;
+      if (wasUserInitiatedUpdate) {
+        const { rememberCurrentAppVersion } = await import('./lib/appVersion');
+        rememberCurrentAppVersion();
+        // Reset the flag after recording the version
+        (window as any).__USER_INITIATED_UPDATE__ = false;
+      }
     } catch (error) {
       if (import.meta.env.DEV) console.warn('Failed to initialize app version:', error);
     }
   };
   void initializeAppVersion();
 
-  // Check for waiting service worker (new version available)
-  const checkForWaitingServiceWorker = async () => {
+  // Set up proper service worker update detection using updatefound event
+  const setupUpdateDetection = async () => {
     try {
       const registration = await navigator.serviceWorker.getRegistration();
-      if (registration?.waiting) {
+      if (!registration) return;
+
+      // Check if there's already a waiting worker on page load
+      if (registration.waiting) {
         window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
           detail: { version: 'waiting' } 
         }));
       }
+
+      // Listen for new service worker installation
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
+
+        newWorker.addEventListener('statechange', () => {
+          // When the new worker is installed and there's an existing controller,
+          // it means a new version is available but not yet activated
+          if (
+            newWorker.state === 'installed' &&
+            navigator.serviceWorker.controller
+          ) {
+            // UPDATE AVAILABLE ONLY - do NOT change installed version
+            window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
+              detail: { version: 'waiting' } 
+            }));
+          }
+        });
+      });
     } catch (error) {
-      if (import.meta.env.DEV) console.warn('Service worker check failed:', error);
+      if (import.meta.env.DEV) console.warn('Service worker update detection setup failed:', error);
     }
   };
-
-  // Check immediately on load
-  void checkForWaitingServiceWorker();
-
-  // Periodically check for updates (every 5 minutes)
-  const updateCheckInterval = setInterval(() => {
-    void checkForWaitingServiceWorker();
-  }, 5 * 60 * 1000);
-
-  // Cleanup interval on page unload
-  window.addEventListener('beforeunload', () => {
-    clearInterval(updateCheckInterval);
-  });
+  void setupUpdateDetection();
 }

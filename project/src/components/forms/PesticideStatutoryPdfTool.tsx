@@ -249,10 +249,8 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
         next.manualFormulationType = '';
       }
       if (key === 'activeIngredient') {
-        // Auto-add % if not already present
-        if (value && !value.includes('%')) {
-          next.activeIngredient = value + '%';
-        }
+        // Do not auto-add % - let user enter it naturally
+        // PDF normalization will handle adding % if missing
       }
       if (key === 'manufacturedBy') {
         // Auto-populate DISTRIBUTOR NAME and MARKETED BY with MANUFACTURED BY value
@@ -432,8 +430,8 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       try {
         const queue = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
         
-        const existingIndex = queue.findIndex(item => item.sampleCode === values.sampleSerialNumber.trim());
-        const sampleCode = values.sampleSerialNumber.trim();
+        const existingIndex = queue.findIndex((item: any) => item.sampleCode === values.cdaCode.trim());
+        const sampleCode = values.cdaCode.trim();
         
         if (sampleCode) {
           if (existingIndex === -1) {
