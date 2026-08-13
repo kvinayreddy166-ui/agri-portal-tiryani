@@ -555,7 +555,7 @@ function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, m
   
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(11);
-  doc.text(`1. The District Agricultural Officer, ${district} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
+  doc.text(`1. The District Agriculture Officer, ${district} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
   
   doc.text(`2. The Asst. Director of Agriculture (R), ${division} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);

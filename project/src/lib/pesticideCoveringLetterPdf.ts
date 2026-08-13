@@ -394,7 +394,7 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails) {
     { text: mandal, bold: true },
     { text: ' Mandal, ', bold: false },
     { text: district, bold: true },
-    { text: ' District for quality analysis as per the allotment given by the District Agricultural Officer, ', bold: false },
+    { text: ' District for quality analysis as per the allotment given by the District Agriculture Officer, ', bold: false },
     { text: district, bold: false },
   ];
   
@@ -579,8 +579,8 @@ function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, m
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(11);
   
-  // Draw "The District Agricultural Officer," in normal font
-  const prefixText = '1. The District Agricultural Officer, ';
+  // Draw "The District Agriculture Officer," in normal font
+  const prefixText = '1. The District Agriculture Officer, ';
   doc.text(prefixText, PAGE.marginLeft + 5, cursor.y);
   const prefixWidth = doc.getTextWidth(prefixText);
   

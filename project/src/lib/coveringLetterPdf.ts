@@ -460,7 +460,7 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType
         { text: mandal, bold: true },
         { text: ' Mandal, ', bold: false },
         { text: district, bold: true },
-        { text: ' District for quality analysis as per the allotment given by the District Agricultural Officer, ', bold: false },
+        { text: ' District for quality analysis as per the allotment given by the District Agriculture Officer, ', bold: false },
         { text: district, bold: false },
         { text: '. The I Portion of the samples has already been forwarded for quality analysis. ', bold: false },
         { text: 'I am herewith submitting the III Portion of the fertilizer samples, along with the enclosed Form K, for safe custody.', bold: false },
@@ -470,7 +470,7 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType
         { text: mandal, bold: true },
         { text: ' Mandal, ', bold: false },
         { text: district, bold: true },
-        { text: ' District for quality analysis as per the allotment given by the District Agricultural Officer, ', bold: false },
+        { text: ' District for quality analysis as per the allotment given by the District Agriculture Officer, ', bold: false },
         { text: district, bold: false },
         { text: ' District.', bold: false }
       ];
@@ -562,7 +562,7 @@ function drawSampleTable(cursor: PdfCursor, queue: CoveringLetterQueueItem[]) {
     },
     columnStyles: {
       0: { cellWidth: columnWidths[0], halign: 'center' },
-      1: { cellWidth: columnWidths[1], halign: 'left' },
+      1: { cellWidth: columnWidths[1], halign: 'center' },
       2: { cellWidth: columnWidths[2], halign: 'center' },
       3: { cellWidth: columnWidths[3], halign: 'center' },
       4: { cellWidth: columnWidths[4], halign: 'center' },
@@ -640,7 +640,7 @@ function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, m
   
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(11);
-  doc.text(`1. The District Agricultural Officer, ${district} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
+  doc.text(`1. The District Agriculture Officer, ${district} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
   
   doc.text(`2. The Asst. Director of Agriculture (R), ${division} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
