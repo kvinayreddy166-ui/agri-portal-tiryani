@@ -204,7 +204,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       authorizationLicenseNumber: '',
       licenseDate: '',
     }));
-    showReset('Dealer Details Reset', 'Dealer details have been reset successfully.', 5000);
+    showReset('Dealer Details Reset', 'Dealer details have been reset successfully.', 4000);
   };
 
   const resetProductDetails = () => {
@@ -229,7 +229,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       otherInformation: '',
       dispatchDate: '',
     }));
-    showReset('Product Details Reset', 'Product details have been reset successfully.', 5000);
+    showReset('Product Details Reset', 'Product details have been reset successfully.', 4000);
   };
 
   const resetManufacturerDetails = () => {
@@ -242,7 +242,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       manufactureDate: '',
       expiryDate: '',
     }));
-    showReset('Manufacturer Details Reset', 'Manufacturer details have been reset successfully.', 5000);
+    showReset('Manufacturer Details Reset', 'Manufacturer details have been reset successfully.', 4000);
   };
 
   useEffect(() => {
@@ -340,7 +340,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     const name = values.officerName.trim();
     
     if (!name) {
-      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.', 5000);
+      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.', 4000);
       return;
     }
     
@@ -351,7 +351,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       const nextDrafts = upsertDraft(savedDrafts, { name, values: draftValues, updatedAt: String(Date.now()) });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
-      showSaved('Draft Saved Successfully', `Draft saved as ${name}`, 5000);
+      showSaved('Draft Saved Successfully', `Draft saved as ${name}`, 4000);
     } finally {
       isSavingDraft.current = false;
     }
@@ -362,7 +362,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     setValues(initialPesticidePdfValues);
     window.localStorage.removeItem(STORAGE_KEY);
     setPreviewError(null);
-    showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.', 5000);
+    showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.', 4000);
   };
 
   const loadDraft = (name: string) => {
@@ -400,13 +400,13 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     
     setValues(loadedValues);
     setPreviewError(null);
-    showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.', 5000);
+    showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.', 4000);
   };
 
   const deleteDraft = () => {
     const name = values.officerName.trim();
     if (!name) {
-      showInfo('No Draft Found', 'There is no saved draft to delete.', 5000);
+      showInfo('No Draft Found', 'There is no saved draft to delete.', 4000);
       return;
     }
     if (!window.confirm(`Delete saved draft "${name}"?`)) return;
@@ -418,7 +418,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     window.localStorage.removeItem(STORAGE_KEY);
     // Reset ALL draft-owned state to initial values (excluding covering letter details)
     setValues(initialPesticidePdfValues);
-    showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 5000);
+    showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 4000);
   };
 
   const completePreview = async (formType: PesticideStatutoryFormType) => {
@@ -428,7 +428,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     try {
       const doc = await generatePesticideStatutoryPdf(formType, values);
       openDocInTab(doc, getPesticidePdfFileName(formType, values), targetWindow);
-      showInfo('Preview Opened', 'PDF preview opened in a new tab.', 5000);
+      showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
     } catch (error) {
       console.error('Unable to preview pesticide PDF:', error);
       targetWindow?.close();
@@ -449,7 +449,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       const doc = await generatePesticideStatutoryPdf(formType, values);
       const fileName = getPesticidePdfFileName(formType, values);
       downloadDoc(doc, fileName);
-      showSuccess('PDF Downloaded Successfully', fileName, 5000);
+      showSuccess('PDF Downloaded Successfully', fileName, 4000);
     } catch (error) {
       console.error('Unable to download pesticide PDF:', error);
       setPreviewError('PDF could not download. Please try again.');
@@ -469,7 +469,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     try {
       const doc = await generateAllPesticideStatutoryPdf(values);
       openDocInTab(doc, getAllPesticidePdfFileName(values), targetWindow);
-      showInfo('All Forms Previewed', 'All pesticide forms preview opened in a new tab.', 5000);
+      showInfo('All Forms Previewed', 'All pesticide forms preview opened in a new tab.', 4000);
     } catch (error) {
       console.error('Unable to preview all pesticide PDFs:', error);
       targetWindow?.close();
@@ -490,7 +490,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       const doc = await generateAllPesticideStatutoryPdf(values);
       const fileName = getAllPesticidePdfFileName(values);
       downloadDoc(doc, fileName);
-      showSuccess('All Forms PDF Downloaded Successfully', fileName, 5000);
+      showSuccess('All Forms PDF Downloaded Successfully', fileName, 4000);
     } catch (error) {
       console.error('Unable to download all pesticide PDFs:', error);
       setPreviewError('All forms PDF could not download. Please try again.');
@@ -527,7 +527,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             queue.push(newItem);
             window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
             window.dispatchEvent(new Event('local-storage-update'));
-            showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 5000);
+            showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 4000);
           } else {
             // Check if sample details have changed
             const existingItem = queue[existingIndex];
@@ -552,10 +552,10 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               queue[existingIndex] = newItem;
               window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
               window.dispatchEvent(new Event('local-storage-update'));
-              showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 5000);
+              showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 4000);
             } else {
               // Sample already exists and unchanged
-              showQueue('Sample already in Covering Letter', `Sample ${sampleCode} already in Sample Queue`, 5000);
+              showQueue('Sample already in Covering Letter', `Sample ${sampleCode} already in Sample Queue`, 4000);
             }
           }
         }

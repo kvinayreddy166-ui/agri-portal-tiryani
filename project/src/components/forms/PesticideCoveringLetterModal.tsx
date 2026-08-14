@@ -65,6 +65,7 @@ const financialYears = [
 
 export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, onMetadataChange }: PesticideCoveringLetterModalProps) {
   const [editedQueue, setEditedQueue] = useState<PesticideCoveringLetterQueueItem[]>([]);
+  const [editingTechnicalNames, setEditingTechnicalNames] = useState<Record<number, string>>({});
   const [metadata, setMetadata] = useState<PesticideCoveringLetterMetadata>({
     year: coveringLetterDetails?.financialYear || financialYears[0],
     letterNumber: coveringLetterDetails?.letterNumber || '',
@@ -182,93 +183,42 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   };
 
   const handleTechnicalNameChange = (index: number, value: string) => {
+    setEditingTechnicalNames(prev => ({ ...prev, [index]: value }));
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = parseTechnicalNameInput(value, updatedQueue[index]);
     setEditedQueue(updatedQueue);
     window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
-  const isCombinationProduct = (technicalName: string, activeIngredient = ''): boolean => {
-    return technicalName.includes('+') || technicalName.includes('&') || activeIngredient.includes('+') || activeIngredient.includes('&');
+  const handleTechnicalNameFocus = (index: number, item: PesticideCoveringLetterQueueItem) => {
+    setEditingTechnicalNames(prev => ({ ...prev, [index]: getTechnicalNameDisplay(item) }));
   };
 
-  const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-  const splitCombinationParts = (value: string): string[] => (
-    value
-      .split(/\s*[+&]\s*/)
-      .map(part => part.trim())
-      .filter(Boolean)
-  );
-
-  const stripIngredientName = (value: string, ingredientName: string): string => {
-    const trimmedValue = value.trim();
-    const trimmedName = ingredientName.trim();
-    if (!trimmedName) return trimmedValue;
-
-    return trimmedValue
-      .replace(new RegExp(`^${escapeRegExp(trimmedName)}\\s*`, 'i'), '')
-      .trim();
+  const handleTechnicalNameBlur = (index: number) => {
+    setEditingTechnicalNames(prev => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
   };
 
-  const stripTrailingFormulationType = (value: string, formulationType: string): string => {
-    const trimmedValue = value.trim();
-    const trimmedFormulation = formulationType.trim();
-    if (!trimmedFormulation) return trimmedValue;
-
-    return trimmedValue
-      .replace(new RegExp(`\\s*${escapeRegExp(trimmedFormulation)}$`, 'i'), '')
-      .trim();
-  };
-
-  const getDisplayIngredientName = (value: string, formulationType: string): string => (
-    stripTrailingFormulationType(value, formulationType)
-      .replace(/\s*\d+(?:\.\d+)?\s*%/g, '')
-      .trim()
-  );
-
-  const getCombinationConcentrations = (item: PesticideCoveringLetterQueueItem, ingredientNames: string[]): string[] => {
-    const activeIngredient = item.activeIngredient.trim();
-    if (!activeIngredient) return [];
-
-    const splitParts = splitCombinationParts(activeIngredient);
-    if (splitParts.length > 1) {
-      return splitParts.map((part, index) => stripTrailingFormulationType(stripIngredientName(part, ingredientNames[index] || ''), item.formulationType));
-    }
-
-    const percentageMatches = activeIngredient.match(/\d+(?:\.\d+)?\s*%/g);
-    if (percentageMatches && percentageMatches.length > 1) {
-      return percentageMatches.map(match => match.trim());
-    }
-
-    return [stripTrailingFormulationType(stripIngredientName(activeIngredient, ingredientNames[0] || ''), item.formulationType)];
-  };
-
-  const getCombinationTechnicalNameDisplay = (item: PesticideCoveringLetterQueueItem): string => {
-    const ingredientNames = splitCombinationParts(item.technicalName).map(part => getDisplayIngredientName(part, item.formulationType)).filter(Boolean);
-    const concentrations = getCombinationConcentrations(item, ingredientNames);
-
-    const activeIngredientDisplay = ingredientNames
-      .map((name, index) => `${name}${concentrations[index] ? ` ${concentrations[index]}` : ''}`.trim())
-      .filter(Boolean)
-      .join(' + ');
-
-    const fallbackDisplay = item.activeIngredient.trim() || item.technicalName.trim();
-    const displayValue = activeIngredientDisplay || fallbackDisplay;
-
-    return `${displayValue}${item.formulationType ? ` ${item.formulationType}` : ''}`.trim();
+  const isCombinationProduct = (technicalName: string): boolean => {
+    return technicalName.includes('+');
   };
 
   const getTechnicalNameDisplay = (item: PesticideCoveringLetterQueueItem): string => {
-    if (isCombinationProduct(item.technicalName, item.activeIngredient)) {
-      return getCombinationTechnicalNameDisplay(item);
+    if (isCombinationProduct(item.technicalName)) {
+      // For combination products: display "Active Ingredient + Formulation Type"
+      const parts = item.activeIngredient.split('+').map(p => p.trim()).filter(Boolean);
+      const activeIngredientDisplay = parts.join(' + ');
+      return `${activeIngredientDisplay}${item.formulationType ? ` ${item.formulationType}` : ''}`;
     }
     // For single products: display existing combined format
     return `${item.technicalName}${item.activeIngredient ? ` ${item.activeIngredient}` : ''}${item.formulationType ? ` ${item.formulationType}` : ''}`;
   };
 
   const parseTechnicalNameInput = (value: string, currentItem: PesticideCoveringLetterQueueItem): PesticideCoveringLetterQueueItem => {
-    if (isCombinationProduct(currentItem.technicalName, currentItem.activeIngredient)) {
+    if (isCombinationProduct(currentItem.technicalName)) {
       // For combination products, parse the input back to activeIngredient and formulationType
       // Format: "Ingredient1 % + Ingredient2 % Formulation"
       const match = value.match(/^(.+?)\s+([A-Z]+)$/);
@@ -300,6 +250,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   };
 
   const handleDeleteSample = (index: number) => {
+    setEditingTechnicalNames({});
     const updatedQueue = editedQueue.filter((_, i) => i !== index);
     setEditedQueue(updatedQueue);
     
@@ -328,6 +279,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
 
   const handleClearQueue = () => {
     setEditedQueue([]);
+    setEditingTechnicalNames({});
     setValidationErrors({});
     window.localStorage.removeItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY);
     showMessage('Queue cleared successfully.');
@@ -600,7 +552,9 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                           <td className="px-2 py-2">
                             <input
                               type="text"
-                              value={getTechnicalNameDisplay(item)}
+                              value={editingTechnicalNames[index] ?? getTechnicalNameDisplay(item)}
+                              onFocus={() => handleTechnicalNameFocus(index, item)}
+                              onBlur={() => handleTechnicalNameBlur(index)}
                               onChange={(e) => handleTechnicalNameChange(index, e.target.value)}
                               className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
                               placeholder="Technical Name"

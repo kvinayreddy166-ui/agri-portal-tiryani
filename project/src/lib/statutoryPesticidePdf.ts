@@ -1044,7 +1044,7 @@ function normalizePesticideValues(values: PesticidePdfValues): PesticidePdfValue
   return normalized;
 }
 
-function pesticideNameWithoutTrade(values: PesticidePdfValues) {
+export function pesticideNameWithoutTrade(values: PesticidePdfValues) {
   // Check if this is a combination product based on active ingredient field
   const isCombo = isCombinationProductFromActiveIngredient(values.activeIngredient);
   

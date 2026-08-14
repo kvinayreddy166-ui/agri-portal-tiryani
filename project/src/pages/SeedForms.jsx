@@ -243,7 +243,7 @@ export function SeedForms() {
     const name = form.officerName.trim();
     
     if (!name) {
-      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.', 5000);
+      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.', 4000);
       return;
     }
     
@@ -254,7 +254,7 @@ export function SeedForms() {
       const nextDrafts = upsertSeedDraft(savedDrafts, { name, form: draftForm, updatedAt: Date.now() });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
-      showSaved('Draft Saved Successfully', `Draft saved as ${name}`, 5000);
+      showSaved('Draft Saved Successfully', `Draft saved as ${name}`, 4000);
     } finally {
       isSavingDraft.current = false;
     }
@@ -279,13 +279,13 @@ export function SeedForms() {
       // Restore covering letter details
       financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone 
     });
-    showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.', 5000);
+    showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.', 4000);
   };
 
   const deleteDraft = () => {
     const name = form.officerName.trim();
     if (!name) {
-      showInfo('No Draft Found', 'There is no saved draft to delete.', 5000);
+      showInfo('No Draft Found', 'There is no saved draft to delete.', 4000);
       return;
     }
     if (!confirm(`Delete saved draft "${name}"?`)) return;
@@ -297,7 +297,7 @@ export function SeedForms() {
     window.localStorage.removeItem(STORAGE_KEY);
     // Reset ALL draft-owned state to initial values (excluding covering letter details)
     setForm(initialSeedForm);
-    showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 5000);
+    showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 4000);
   };
 
   const buildValidatedPdf = async (kind) => {
@@ -311,7 +311,7 @@ export function SeedForms() {
       return await buildSeedPdf(kind, form);
     } catch (error) {
       console.error('Seed PDF generation failed:', error);
-      showInfo('PDF Generation Failed', 'Please check the entered details and try again.', 5000);
+      showInfo('PDF Generation Failed', 'Please check the entered details and try again.', 4000);
       return null;
     }
   };
@@ -322,13 +322,13 @@ export function SeedForms() {
     try {
       downloadSeedDoc(doc, seedFileName(kind, form));
       rememberSeedGeneratedData(form);
-      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form), 5000);
+      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form), 4000);
     } catch (error) {
       console.error('Download failed, opening in new tab:', error);
       const targetWindow = openBlankSeedPdfTab();
       openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
       rememberSeedGeneratedData(form);
-      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).', 5000);
+      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).', 4000);
     }
   };
 
@@ -338,13 +338,13 @@ export function SeedForms() {
     try {
       downloadSeedDoc(doc, seedFileName(kind, form));
       rememberSeedGeneratedData(form);
-      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form), 5000);
+      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form), 4000);
     } catch (error) {
       console.error('Download failed, opening in new tab:', error);
       const targetWindow = openBlankSeedPdfTab();
       openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
       rememberSeedGeneratedData(form);
-      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).', 5000);
+      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).', 4000);
     }
   };
 
@@ -381,7 +381,7 @@ export function SeedForms() {
             queue.push(newItem);
             window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
             window.dispatchEvent(new Event('local-storage-update'));
-            showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 5000);
+            showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 4000);
           } else {
             // Check if sample details have changed
             const existingItem = queue[existingIndex];
@@ -406,10 +406,10 @@ export function SeedForms() {
               queue[existingIndex] = newItem;
               window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
               window.dispatchEvent(new Event('local-storage-update'));
-              showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 5000);
+              showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 4000);
             } else {
               // Sample already exists and unchanged
-              showQueue('Sample already in Covering Letter', `Sample ${sampleCode} already in Sample Queue`, 5000);
+              showQueue('Sample already in Covering Letter', `Sample ${sampleCode} already in Sample Queue`, 4000);
             }
           }
         }
@@ -430,7 +430,7 @@ export function SeedForms() {
     }
     openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
     rememberSeedGeneratedData(form);
-    showInfo('Preview Opened', 'PDF preview opened in a new tab.', 5000);
+    showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
   };
 
   const preview = async (kind) => {

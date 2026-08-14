@@ -1,5 +1,6 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
+import { pesticideNameWithoutTrade } from './statutoryPesticidePdf';
 
 type PesticideCoveringLetterQueueItem = {
   sampleCode: string;
@@ -435,18 +436,10 @@ function drawSampleTable(cursor: PdfCursor, queue: PesticideCoveringLetterQueueI
   const { doc } = cursor;
   
   const tableData = queue.map((item, index) => {
-    // Format activeIngredient for PDF display - add % if missing after trimming
-    const formattedActiveIngredient = item.activeIngredient 
-      ? (() => {
-          const cleaned = item.activeIngredient.trim();
-          return cleaned.endsWith('%') ? cleaned : `${cleaned}%`;
-        })()
-      : '';
-    
     return [
       String(index + 1),
       item.tradeName || '-',
-      `${item.technicalName}${formattedActiveIngredient ? ` ${formattedActiveIngredient}` : ''}${item.formulationType ? ` ${item.formulationType}` : ''}`,
+      pesticideNameWithoutTrade(item),
       item.sampleCode || '-',
       formatDate(item.dateOfSampling) || '-'
     ];
