@@ -153,6 +153,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], sampleCode: value };
     setEditedQueue(updatedQueue);
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
     
     if (validationErrors[index]) {
       const newErrors = { ...validationErrors };
@@ -165,18 +166,21 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], tradeName: value };
     setEditedQueue(updatedQueue);
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleTechnicalNameChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], technicalName: value };
     setEditedQueue(updatedQueue);
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleDateChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], dateOfSampling: value };
     setEditedQueue(updatedQueue);
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleDeleteSample = (index: number) => {
@@ -190,6 +194,20 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
       delete newErrors[index];
       setValidationErrors(newErrors);
     }
+  };
+
+  const handleAddManually = () => {
+    const newItem: PesticideCoveringLetterQueueItem = {
+      sampleCode: '',
+      tradeName: '',
+      technicalName: '',
+      activeIngredient: '',
+      formulationType: '',
+      dateOfSampling: new Date().toISOString().slice(0, 10),
+    };
+    const updatedQueue = [...editedQueue, newItem];
+    setEditedQueue(updatedQueue);
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleClearQueue = () => {
@@ -422,8 +440,15 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
 
             <div className="rounded-xl shadow-sm border border-amber-200 bg-amber-50/50 p-2 sm:p-6">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-black text-amber-700">SAMPLE QUEUE DETAILS</h3>
+                <h3 className="text-sm font-black text-amber-700">SAMPLE QUEUE</h3>
                 <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAddManually}
+                    className="inline-flex items-center gap-2 bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 rounded-lg"
+                  >
+                    <span className="text-xs">+</span> Add
+                  </button>
                   <button
                     type="button"
                     onClick={handleClearQueue}

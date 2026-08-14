@@ -193,6 +193,8 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], sampleCode: value };
     setEditedQueue(updatedQueue);
+    setQueue(updatedQueue);
+    window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
     
     // Clear validation error for this field
     if (validationErrors[index]) {
@@ -206,12 +208,24 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], fertilizerName: value };
     setEditedQueue(updatedQueue);
+    setQueue(updatedQueue);
+    window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleQuantityChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], quantity: value };
     setEditedQueue(updatedQueue);
+    setQueue(updatedQueue);
+    window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+  };
+
+  const handleDateChange = (index: number, value: string) => {
+    const updatedQueue = [...editedQueue];
+    updatedQueue[index] = { ...updatedQueue[index], dateOfSampling: value };
+    setEditedQueue(updatedQueue);
+    setQueue(updatedQueue);
+    window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleDeleteSample = (index: number) => {
@@ -228,6 +242,19 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       delete newErrors[index];
       setValidationErrors(newErrors);
     }
+  };
+
+  const handleAddManually = () => {
+    const newItem: CoveringLetterQueueItem = {
+      sampleCode: '',
+      fertilizerName: '',
+      quantity: '',
+      dateOfSampling: new Date().toISOString().slice(0, 10),
+    };
+    const updatedQueue = [...editedQueue, newItem];
+    setEditedQueue(updatedQueue);
+    setQueue(updatedQueue);
+    window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleClearQueue = () => {
@@ -525,8 +552,15 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
             <div className="rounded-xl shadow-sm border border-red-200 bg-red-50/50 p-2 sm:p-6">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-black text-red-700">SAMPLE QUEUE DETAILS</h3>
+                <h3 className="text-sm font-black text-red-700">SAMPLE QUEUE</h3>
                 <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAddManually}
+                    className="inline-flex items-center gap-2 bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 rounded-lg"
+                  >
+                    <span className="text-xs">+</span> Add
+                  </button>
                   <button
                     type="button"
                     onClick={handleClearQueue}
@@ -592,7 +626,14 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                               placeholder="Enter Quantity"
                             />
                           </td>
-                          <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-700">{item.dateOfSampling || '-'}</td>
+                          <td className="px-2 py-2 whitespace-nowrap text-xs">
+                            <input
+                              type="date"
+                              value={item.dateOfSampling}
+                              onChange={(e) => handleDateChange(index, e.target.value)}
+                              className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            />
+                          </td>
                           <td className="px-2 py-2 whitespace-nowrap text-xs">
                             <button
                               type="button"

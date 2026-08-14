@@ -153,6 +153,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], sampleCode: value };
     setEditedQueue(updatedQueue);
+    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
     
     if (validationErrors[index]) {
       const newErrors = { ...validationErrors };
@@ -165,24 +166,28 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], seedName: value };
     setEditedQueue(updatedQueue);
+    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleVarietyChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], variety: value };
     setEditedQueue(updatedQueue);
+    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleQuantityChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], quantity: value };
     setEditedQueue(updatedQueue);
+    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleDateChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], dateOfSampling: value };
     setEditedQueue(updatedQueue);
+    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleDeleteSample = (index: number) => {
@@ -214,7 +219,9 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
       quantity: '',
       dateOfSampling: new Date().toISOString().slice(0, 10),
     };
-    setEditedQueue([...editedQueue, newSample]);
+    const updatedQueue = [...editedQueue, newSample];
+    setEditedQueue(updatedQueue);
+    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleSaveQueue = () => {
@@ -453,8 +460,15 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
 
             <div className="rounded-xl shadow-sm border border-emerald-200 bg-emerald-50/50 p-2 sm:p-6">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-black text-emerald-700">SAMPLE QUEUE DETAILS</h3>
+                <h3 className="text-sm font-black text-emerald-700">SAMPLE QUEUE</h3>
                 <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAddSample}
+                    className="inline-flex items-center gap-2 bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 rounded-lg"
+                  >
+                    <span className="text-xs">+</span> Add
+                  </button>
                   <button
                     type="button"
                     onClick={handleClearQueue}

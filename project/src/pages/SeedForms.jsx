@@ -243,7 +243,7 @@ export function SeedForms() {
     const name = form.officerName.trim();
     
     if (!name) {
-      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.');
+      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.', 5000);
       return;
     }
     
@@ -254,7 +254,7 @@ export function SeedForms() {
       const nextDrafts = upsertSeedDraft(savedDrafts, { name, form: draftForm, updatedAt: Date.now() });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
-      showSaved('Draft Saved Successfully', `Draft saved as ${name}`);
+      showSaved('Draft Saved Successfully', `Draft saved as ${name}`, 5000);
     } finally {
       isSavingDraft.current = false;
     }
@@ -279,13 +279,13 @@ export function SeedForms() {
       // Restore covering letter details
       financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone 
     });
-    showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.');
+    showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.', 5000);
   };
 
   const deleteDraft = () => {
     const name = form.officerName.trim();
     if (!name) {
-      showInfo('No Draft Found', 'There is no saved draft to delete.');
+      showInfo('No Draft Found', 'There is no saved draft to delete.', 5000);
       return;
     }
     if (!confirm(`Delete saved draft "${name}"?`)) return;
@@ -297,7 +297,7 @@ export function SeedForms() {
     window.localStorage.removeItem(STORAGE_KEY);
     // Reset ALL draft-owned state to initial values (excluding covering letter details)
     setForm(initialSeedForm);
-    showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.');
+    showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 5000);
   };
 
   const buildValidatedPdf = async (kind) => {
@@ -311,7 +311,7 @@ export function SeedForms() {
       return await buildSeedPdf(kind, form);
     } catch (error) {
       console.error('Seed PDF generation failed:', error);
-      showInfo('PDF Generation Failed', 'Please check the entered details and try again.');
+      showInfo('PDF Generation Failed', 'Please check the entered details and try again.', 5000);
       return null;
     }
   };
@@ -322,13 +322,13 @@ export function SeedForms() {
     try {
       downloadSeedDoc(doc, seedFileName(kind, form));
       rememberSeedGeneratedData(form);
-      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form));
+      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form), 5000);
     } catch (error) {
       console.error('Download failed, opening in new tab:', error);
       const targetWindow = openBlankSeedPdfTab();
       openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
       rememberSeedGeneratedData(form);
-      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).');
+      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).', 5000);
     }
   };
 
@@ -338,13 +338,13 @@ export function SeedForms() {
     try {
       downloadSeedDoc(doc, seedFileName(kind, form));
       rememberSeedGeneratedData(form);
-      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form));
+      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form), 5000);
     } catch (error) {
       console.error('Download failed, opening in new tab:', error);
       const targetWindow = openBlankSeedPdfTab();
       openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
       rememberSeedGeneratedData(form);
-      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).');
+      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).', 5000);
     }
   };
 
@@ -430,7 +430,7 @@ export function SeedForms() {
     }
     openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
     rememberSeedGeneratedData(form);
-    showInfo('Preview Opened', 'PDF preview opened in a new tab.');
+    showInfo('Preview Opened', 'PDF preview opened in a new tab.', 5000);
   };
 
   const preview = async (kind) => {

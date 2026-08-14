@@ -2,6 +2,11 @@ import type { jsPDF as JsPdfInstance } from 'jspdf';
 
 export type PesticideStatutoryFormType = 'VC' | 'VD' | 'VE' | 'DOCKET';
 
+export type ActiveIngredient = {
+  name: string;
+  concentration: string;
+};
+
 export type PesticidePdfValues = {
   officerName: string;
   designation: string;
@@ -24,7 +29,8 @@ export type PesticidePdfValues = {
   insecticideCommonName: string;
   technicalName: string;
   tradeName: string;
-  activeIngredient: string;
+  activeIngredient: string; // Legacy field for backward compatibility
+  activeIngredients: ActiveIngredient[]; // New structured field
   formulationType: string;
   manualFormulationType: string;
   manufacturedBy: string;
@@ -96,6 +102,7 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   technicalName: '',
   tradeName: '',
   activeIngredient: '',
+  activeIngredients: [],
   formulationType: '',
   manualFormulationType: '',
   manufacturedBy: '',
@@ -143,6 +150,108 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   division: '',
   officerPhone: '',
 };
+
+// Helper functions for backward compatibility and combination detection
+
+export function isCombinationProduct(technicalName: string): boolean {
+  if (!technicalName) return false;
+  return technicalName.includes('+') || technicalName.includes('&');
+}
+
+export function extractIngredientNames(technicalName: string): string[] {
+  if (!technicalName) return [];
+  
+  // Split by + or &
+  const parts = technicalName.split(/[+&]/);
+  
+  // Extract names, removing concentrations and trimming
+  return parts.map(part => {
+    // Remove concentration patterns like "40.1%" or "40.1"
+    const name = part.replace(/\d+(\.\d+)?%?/g, '').trim();
+    return name;
+  }).filter(name => name.length > 0);
+}
+
+export function sanitizeTechnicalName(technicalName: string): string {
+  if (!technicalName) return '';
+  
+  // Remove concentration patterns from technical name
+  // This removes patterns like "40.1%" or "40.1" that might be embedded
+  const sanitized = technicalName.replace(/\s+\d+(\.\d+)?%?/g, '').trim();
+  
+  // Normalize & to +
+  const normalized = sanitized.replace(/&/g, '+');
+  
+  // Clean up spacing around +
+  return normalized.replace(/\s*\+\s*/g, ' + ');
+}
+
+export function normalizeActiveIngredients(values: PesticidePdfValues): PesticidePdfValues {
+  const normalized = { ...values };
+  
+  // If activeIngredients array is empty but activeIngredient has data, migrate it
+  if (!normalized.activeIngredients || normalized.activeIngredients.length === 0) {
+    if (normalized.activeIngredient && normalized.activeIngredient.trim()) {
+      // Try to parse legacy format: "18.5%" or "Chlorantraniliprole 18.5%"
+      const legacyValue = normalized.activeIngredient.trim();
+      
+      // Check if it's just a percentage (e.g., "18.5%")
+      if (/^\d+(\.\d+)?%?$/.test(legacyValue)) {
+        // When it's just a percentage, don't include technical name in activeIngredients
+        // to avoid duplication in PDF output (technicalName is already displayed separately)
+        normalized.activeIngredients = [{
+          name: '',
+          concentration: legacyValue.replace('%', '')
+        }];
+      } else {
+        // It might be "Name 18.5%" format, try to extract
+        const match = legacyValue.match(/^(.+?)\s+(\d+(\.\d+)?%?)$/);
+        if (match) {
+          normalized.activeIngredients = [{
+            name: match[1].trim(),
+            concentration: match[2].replace('%', '')
+          }];
+        } else {
+          // Fallback: use as concentration without technical name to avoid duplication
+          normalized.activeIngredients = [{
+            name: '',
+            concentration: legacyValue.replace('%', '')
+          }];
+        }
+      }
+    }
+  }
+  
+  // Ensure activeIngredients is always an array
+  if (!normalized.activeIngredients) {
+    normalized.activeIngredients = [];
+  }
+  
+  return normalized;
+}
+
+export function formatActiveIngredientsForDisplay(activeIngredients: ActiveIngredient[], legacyActiveIngredient: string): string {
+  // If we have structured active ingredients, use them
+  if (activeIngredients && activeIngredients.length > 0) {
+    return activeIngredients
+      .map(ai => {
+        const concentration = ai.concentration?.trim() || '';
+        const normalizedConc = concentration.endsWith('%') ? concentration : `${concentration}%`;
+        return ai.name && ai.name.trim() 
+          ? `${ai.name.trim()} ${normalizedConc}`
+          : normalizedConc;
+      })
+      .join(' + ');
+  }
+  
+  // Fallback to legacy field
+  if (legacyActiveIngredient) {
+    const cleaned = legacyActiveIngredient.trim();
+    return cleaned.endsWith('%') ? cleaned : `${cleaned}%`;
+  }
+  
+  return '';
+}
 
 export const pesticideFormTitles: Record<PesticideStatutoryFormType, string> = {
   VC: 'FORM V(C)',
@@ -459,11 +568,17 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   // Name of the Chemical with sub-items
   subItemField(cursor, '3. Name of the Chemical', [
     ['a) Trade Name', values.tradeName],
-    ['b) Technical Name', values.technicalName || values.insecticideCommonName],
+    ['b) Technical Name', sanitizeTechnicalName(values.technicalName) || values.insecticideCommonName],
   ], 82);
   
+  const normalizedValues = normalizeActiveIngredients(values);
+  const formattedActiveIngredient = formatActiveIngredientsForDisplay(
+    normalizedValues.activeIngredients,
+    normalizedValues.activeIngredient
+  );
+  
   fieldList(cursor, [
-    ['4. Guaranteed of % ai', values.activeIngredient],
+    ['4. Guaranteed of % ai', formattedActiveIngredient],
     ['5. Qty. of sample drawn for analysis', sampleQuantityAnalysis],
     ['6. Name of the dealer from whom the sample drawn', dealerWithMandal],
     ['7. Name of the Distributor', values.distributorName],
@@ -785,7 +900,7 @@ function split(cursor: PdfCursor, value: string, width: number) {
 }
 
 function normalizePesticideValues(values: PesticidePdfValues): PesticidePdfValues {
-  const normalized = { ...initialPesticidePdfValues, ...values };
+  let normalized = { ...initialPesticidePdfValues, ...values };
   if (!normalized.sampleDrawnDay || !normalized.sampleDrawnMonth || !normalized.sampleDrawnYear) {
     const date = new Date(`${normalized.sampleDrawnDate}T00:00:00`);
     if (!Number.isNaN(date.getTime())) {
@@ -794,19 +909,20 @@ function normalizePesticideValues(values: PesticidePdfValues): PesticidePdfValue
       normalized.sampleDrawnYear = normalized.sampleDrawnYear || String(date.getFullYear()).slice(-2);
     }
   }
-  // Format activeIngredient for PDF display - add % if missing after trimming
-  if (normalized.activeIngredient) {
-    const cleaned = normalized.activeIngredient.trim();
-    normalized.activeIngredient = cleaned.endsWith('%') ? cleaned : `${cleaned}%`;
-  }
+  // Normalize active ingredients for backward compatibility
+  normalized = normalizeActiveIngredients(normalized);
   // Ensure new fields have default values for backward compatibility
   // (already handled by spreading initialPesticidePdfValues which includes defaults)
   return normalized;
 }
 
 function pesticideNameWithoutTrade(values: PesticidePdfValues) {
-  const technicalName = values.technicalName?.trim() || '';
-  const activeIngredient = values.activeIngredient?.trim() || '';
+  const technicalName = sanitizeTechnicalName(values.technicalName?.trim() || '');
+  const normalizedValues = normalizeActiveIngredients(values);
+  const activeIngredient = formatActiveIngredientsForDisplay(
+    normalizedValues.activeIngredients,
+    normalizedValues.activeIngredient
+  );
   const formulationType = values.formulationType === 'Others' 
     ? values.manualFormulationType?.trim() || ''
     : values.formulationType?.trim() || '';
