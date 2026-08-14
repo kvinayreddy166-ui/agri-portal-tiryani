@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 export type ToastType = 'success' | 'info' | 'reset' | 'saved' | 'deleted' | 'loaded' | 'queue';
 
@@ -51,6 +51,11 @@ const toastConfig: Record<ToastType, { icon: string; bgColor: string; borderColo
 export function Toast({ type, title, subtitle, duration = 5000, onClose }: ToastProps) {
   const [progress, setProgress] = useState(100);
   const [isVisible, setIsVisible] = useState(false);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     // Trigger slide-in animation
@@ -65,7 +70,7 @@ export function Toast({ type, title, subtitle, duration = 5000, onClose }: Toast
         if (newProgress <= 0) {
           clearInterval(progressTimer);
           setIsVisible(false);
-          setTimeout(onClose, 300); // Wait for fade-out animation
+          setTimeout(() => onCloseRef.current(), 300); // Wait for fade-out animation
           return 0;
         }
         return newProgress;
@@ -73,7 +78,7 @@ export function Toast({ type, title, subtitle, duration = 5000, onClose }: Toast
     }, interval);
 
     return () => clearInterval(progressTimer);
-  }, [duration, onClose]);
+  }, [duration]);
 
   const config = toastConfig[type];
 
@@ -106,7 +111,7 @@ export function Toast({ type, title, subtitle, duration = 5000, onClose }: Toast
           <button
             onClick={() => {
               setIsVisible(false);
-              setTimeout(onClose, 300);
+              setTimeout(() => onCloseRef.current(), 300);
             }}
             className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
             aria-label="Close"
@@ -148,43 +153,57 @@ export function ToastContainer({ toasts, removeToast }: ToastContainerProps) {
 // Hook for managing toasts
 export function useToast() {
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; subtitle?: string; duration?: number }>>([]);
+  const timersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
-  const showToast = (type: ToastType, title: string, subtitle?: string, duration?: number) => {
-    const id = Date.now().toString();
-    setToasts((prev) => [...prev, { id, type, title, subtitle, duration }]);
-  };
-
-  const removeToast = (id: string) => {
+  const removeToast = useCallback((id: string) => {
+    const timer = timersRef.current[id];
+    if (timer) {
+      clearTimeout(timer);
+      delete timersRef.current[id];
+    }
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
+  }, []);
 
-  const showSuccess = (title: string, subtitle?: string, duration?: number) => {
+  const showToast = useCallback((type: ToastType, title: string, subtitle?: string, duration = 5000) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setToasts((prev) => [...prev, { id, type, title, subtitle, duration }]);
+    timersRef.current[id] = setTimeout(() => removeToast(id), duration + 300);
+  }, [removeToast]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(timersRef.current).forEach((timer) => clearTimeout(timer));
+      timersRef.current = {};
+    };
+  }, []);
+
+  const showSuccess = useCallback((title: string, subtitle?: string, duration?: number) => {
     showToast('success', title, subtitle, duration);
-  };
+  }, [showToast]);
 
-  const showInfo = (title: string, subtitle?: string, duration?: number) => {
+  const showInfo = useCallback((title: string, subtitle?: string, duration?: number) => {
     showToast('info', title, subtitle, duration);
-  };
+  }, [showToast]);
 
-  const showReset = (title: string, subtitle?: string, duration?: number) => {
+  const showReset = useCallback((title: string, subtitle?: string, duration?: number) => {
     showToast('reset', title, subtitle, duration);
-  };
+  }, [showToast]);
 
-  const showSaved = (title: string, subtitle?: string, duration?: number) => {
+  const showSaved = useCallback((title: string, subtitle?: string, duration?: number) => {
     showToast('saved', title, subtitle, duration);
-  };
+  }, [showToast]);
 
-  const showDeleted = (title: string, subtitle?: string, duration?: number) => {
+  const showDeleted = useCallback((title: string, subtitle?: string, duration?: number) => {
     showToast('deleted', title, subtitle, duration);
-  };
+  }, [showToast]);
 
-  const showLoaded = (title: string, subtitle?: string, duration?: number) => {
+  const showLoaded = useCallback((title: string, subtitle?: string, duration?: number) => {
     showToast('loaded', title, subtitle, duration);
-  };
+  }, [showToast]);
 
-  const showQueue = (title: string, subtitle?: string, duration?: number) => {
+  const showQueue = useCallback((title: string, subtitle?: string, duration?: number) => {
     showToast('queue', title, subtitle, duration);
-  };
+  }, [showToast]);
 
   return { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue };
 }
