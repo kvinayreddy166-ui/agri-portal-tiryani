@@ -545,7 +545,7 @@ function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
 function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, metadata?: SeedCoveringLetterMetadata) {
   const { doc } = cursor;
   
-  const district = officerDetails?.district || officerDetails?.manualDistrict || 'Asifabad';
+  const district = officerDetails?.district || officerDetails?.manualDistrict || '';
   const division = metadata?.division || district;
   
   doc.setFont(PDF_FONT, 'bold');
@@ -591,3 +591,4 @@ function formatDate(dateStr: string): string {
   if (Number.isNaN(date.getTime())) return dateStr;
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
+
