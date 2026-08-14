@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Download, Eye, FileText, X, Loader2, Trash2, RotateCcw } from 'lucide-react';
 
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
@@ -81,6 +81,18 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showMessage = (msg: string, duration: number = 3000) => {
+    if (messageTimeoutRef.current) {
+      clearTimeout(messageTimeoutRef.current);
+    }
+    setMessage(msg);
+    messageTimeoutRef.current = setTimeout(() => {
+      setMessage(null);
+      messageTimeoutRef.current = null;
+    }, duration);
+  };
 
   // Auto-save Covering Letter Details to localStorage and sync with parent
   useEffect(() => {
@@ -171,9 +183,49 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
 
   const handleTechnicalNameChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
-    updatedQueue[index] = { ...updatedQueue[index], technicalName: value };
+    updatedQueue[index] = parseTechnicalNameInput(value, updatedQueue[index]);
     setEditedQueue(updatedQueue);
     window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+  };
+
+  const isCombinationProduct = (technicalName: string): boolean => {
+    return technicalName.includes('+');
+  };
+
+  const getTechnicalNameDisplay = (item: PesticideCoveringLetterQueueItem): string => {
+    if (isCombinationProduct(item.technicalName)) {
+      // For combination products: display "Active Ingredient + Formulation Type"
+      const parts = item.activeIngredient.split('+').map(p => p.trim()).filter(Boolean);
+      const activeIngredientDisplay = parts.join(' + ');
+      return `${activeIngredientDisplay}${item.formulationType ? ` ${item.formulationType}` : ''}`;
+    }
+    // For single products: display existing combined format
+    return `${item.technicalName}${item.activeIngredient ? ` ${item.activeIngredient}` : ''}${item.formulationType ? ` ${item.formulationType}` : ''}`;
+  };
+
+  const parseTechnicalNameInput = (value: string, currentItem: PesticideCoveringLetterQueueItem): PesticideCoveringLetterQueueItem => {
+    if (isCombinationProduct(currentItem.technicalName)) {
+      // For combination products, parse the input back to activeIngredient and formulationType
+      // Format: "Ingredient1 % + Ingredient2 % Formulation"
+      const match = value.match(/^(.+?)\s+([A-Z]+)$/);
+      if (match) {
+        return {
+          ...currentItem,
+          activeIngredient: match[1],
+          formulationType: match[2]
+        };
+      }
+      return {
+        ...currentItem,
+        activeIngredient: value,
+        formulationType: ''
+      };
+    }
+    // For single products, keep existing behavior - update technicalName field
+    return {
+      ...currentItem,
+      technicalName: value
+    };
   };
 
   const handleDateChange = (index: number, value: string) => {
@@ -214,20 +266,17 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     setEditedQueue([]);
     setValidationErrors({});
     window.localStorage.removeItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY);
-    setMessage('Queue cleared successfully.');
-    setTimeout(() => setMessage(null), 3000);
+    showMessage('Queue cleared successfully.');
   };
 
   const handlePreview = async () => {
     if (!validateSampleCodes()) {
-      setMessage('Please fix validation errors before previewing.');
-      setTimeout(() => setMessage(null), 3000);
+      showMessage('Please fix validation errors before previewing.');
       return;
     }
     
     if (editedQueue.length === 0) {
-      setMessage('Please add at least one sample to the queue.');
-      setTimeout(() => setMessage(null), 3000);
+      showMessage('Please add at least one sample to the queue.');
       return;
     }
     
@@ -248,27 +297,23 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
         setShowPreviewDialog(true);
       }
       
-      setMessage('Preview generated successfully.');
+      showMessage('Preview generated successfully.');
     } catch (error) {
       console.error('Error generating preview:', error);
-      setMessage('Error generating preview. Please try again.');
+      showMessage('Error generating preview. Please try again.');
     } finally {
       setIsGenerating(false);
     }
-    
-    setTimeout(() => setMessage(null), 3000);
   };
 
   const handleDownload = async () => {
     if (!validateSampleCodes()) {
-      setMessage('Please fix validation errors before downloading.');
-      setTimeout(() => setMessage(null), 3000);
+      showMessage('Please fix validation errors before downloading.');
       return;
     }
     
     if (editedQueue.length === 0) {
-      setMessage('Please add at least one sample to the queue.');
-      setTimeout(() => setMessage(null), 3000);
+      showMessage('Please add at least one sample to the queue.');
       return;
     }
     
@@ -281,15 +326,13 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
       const fileName = `Pesticide_Covering_Letter_${metadata.letterNumber || 'Draft'}.pdf`;
       doc.save(fileName);
       
-      setMessage('Covering letter downloaded successfully.');
+      showMessage('Covering letter downloaded successfully.');
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      setMessage('Error downloading PDF. Please try again.');
+      showMessage('Error downloading PDF. Please try again.');
     } finally {
       setIsGenerating(false);
     }
-    
-    setTimeout(() => setMessage(null), 3000);
   };
 
   const closePreviewDialog = () => {
@@ -345,8 +388,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                       division: '',
                       officePhone: '',
                     });
-                    setMessage('Covering letter details reset successfully.');
-                    setTimeout(() => setMessage(null), 3000);
+                    showMessage('Covering letter details reset successfully.');
                   }}
                   className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-purple-200 text-purple-400 hover:bg-purple-50 hover:text-purple-600"
                   title="Reset Covering Letter Details"
@@ -494,7 +536,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                           <td className="px-2 py-2">
                             <input
                               type="text"
-                              value={`${item.technicalName}${item.activeIngredient ? ` ${item.activeIngredient}` : ''}${item.formulationType ? ` ${item.formulationType}` : ''}`}
+                              value={getTechnicalNameDisplay(item)}
                               onChange={(e) => handleTechnicalNameChange(index, e.target.value)}
                               className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
                               placeholder="Technical Name"
