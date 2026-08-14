@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Download, Eye, FileText, X, Loader2, Trash2, RotateCcw } from 'lucide-react';
+import { isCombinationProductFromActiveIngredient } from '../../lib/statutoryPesticidePdf';
 
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
 const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';
@@ -212,6 +213,9 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
       const parts = item.activeIngredient.split('+').map(p => p.trim()).filter(Boolean);
       const activeIngredientDisplay = parts.join(' + ');
       return `${activeIngredientDisplay}${item.formulationType ? ` ${item.formulationType}` : ''}`;
+    }
+    if (isCombinationProductFromActiveIngredient(item.activeIngredient)) {
+      return item.technicalName;
     }
     // For single products: display existing combined format
     return `${item.technicalName}${item.activeIngredient ? ` ${item.activeIngredient}` : ''}${item.formulationType ? ` ${item.formulationType}` : ''}`;
@@ -669,3 +673,4 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     </div>
   );
 }
+

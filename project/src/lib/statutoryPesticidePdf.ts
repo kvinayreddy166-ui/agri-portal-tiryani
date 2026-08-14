@@ -1046,7 +1046,10 @@ function normalizePesticideValues(values: PesticidePdfValues): PesticidePdfValue
 
 export function pesticideNameWithoutTrade(values: PesticidePdfValues) {
   // Check if this is a combination product based on active ingredient field
-  const isCombo = isCombinationProductFromActiveIngredient(values.activeIngredient);
+  const activeIngredientIsCombo = isCombinationProductFromActiveIngredient(values.activeIngredient);
+  const technicalNameIsCombo = isCombinationProduct(values.technicalName);
+  const staleCombinationIngredient = activeIngredientIsCombo && !technicalNameIsCombo;
+  const isCombo = activeIngredientIsCombo && technicalNameIsCombo;
   
   if (isCombo) {
     // For combination products, build the display from the active ingredient field
@@ -1073,8 +1076,8 @@ export function pesticideNameWithoutTrade(values: PesticidePdfValues) {
   
   // For single ingredient products, use the original behavior but ensure % is present
   const technical = values.technicalName || values.insecticideCommonName;
-  let active = values.activeIngredient || '';
-  const formulation = values.formulationType === 'Others' ? values.manualFormulationType : values.formulationType;
+  let active = staleCombinationIngredient ? '' : values.activeIngredient || '';
+  const formulation = staleCombinationIngredient ? '' : values.formulationType === 'Others' ? values.manualFormulationType : values.formulationType;
   const formulationDisplay = formulation ? ` ${formulation}` : '';
   
   // Ensure % is present for single ingredient
@@ -1213,3 +1216,4 @@ function formatDate(value: string) {
 function sanitizeFilePart(value: string) {
   return value.trim().replace(/[^a-z0-9_-]+/gi, '_').slice(0, 40);
 }
+
