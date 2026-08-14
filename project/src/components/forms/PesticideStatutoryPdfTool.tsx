@@ -9,6 +9,9 @@ import {
   initialPesticidePdfValues,
   PesticidePdfValues,
   PesticideStatutoryFormType,
+  isCombinationProduct,
+  extractIngredientNames,
+  ActiveIngredient,
 } from '../../lib/statutoryPesticidePdf';
 import { PopupHintWrapper } from '../PopupHint';
 import { ToastContainer, useToast } from '../ui/Toast';
@@ -37,6 +40,7 @@ type SavedPesticideDraft = {
 const STORAGE_KEY = 'tiryani-pesticide-forms-draft';
 const DRAFTS_KEY = 'tiryani-pesticide-forms-named-drafts';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
+const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';
 
 
 const packingOptions = [
@@ -99,7 +103,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
       { key: 'pincode', label: 'PIN CODE' },
       { key: 'sampleDrawnDate', label: 'Date', type: 'date' },
-      { key: 'email', label: 'EMAIL ID' },
+      { key: 'officerEmail', label: 'EMAIL ID' },
     ],
   },
   {
@@ -209,6 +213,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       tradeName: '',
       technicalName: '',
       activeIngredient: '',
+      activeIngredients: [],
       formulationType: '',
       manualFormulationType: '',
       batchNumber: '',
@@ -274,9 +279,37 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       if (key === 'formulationType') {
         next.manualFormulationType = '';
       }
+      if (key === 'technicalName') {
+        // Auto-detect combination and update activeIngredients array
+        const isCombo = isCombinationProduct(value);
+        const ingredientNames = extractIngredientNames(value);
+        
+        if (isCombo && ingredientNames.length > 0) {
+          // Create active ingredient entries for each detected ingredient
+          // Preserve existing concentrations if the number of ingredients matches
+          const existingConcentrations = current.activeIngredients || [];
+          const newActiveIngredients: ActiveIngredient[] = ingredientNames.map((name, index) => ({
+            name: name.trim(),
+            concentration: existingConcentrations[index]?.concentration || ''
+          }));
+          next.activeIngredients = newActiveIngredients;
+        } else {
+          // Single ingredient - reset to single entry
+          const existingConcentration = current.activeIngredients?.[0]?.concentration || '';
+          next.activeIngredients = [{
+            name: '',
+            concentration: existingConcentration
+          }];
+        }
+      }
       if (key === 'activeIngredient') {
-        // Do not auto-add % - let user enter it naturally
-        // PDF normalization will handle adding % if missing
+        // Update the legacy field for backward compatibility
+        // Also update the first active ingredient concentration
+        if (next.activeIngredients && next.activeIngredients.length > 0) {
+          next.activeIngredients[0].concentration = value;
+        } else {
+          next.activeIngredients = [{ name: '', concentration: value }];
+        }
       }
       if (key === 'manufacturedBy') {
         // Auto-populate DISTRIBUTOR NAME and MARKETED BY with MANUFACTURED BY value
@@ -314,7 +347,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     isSavingDraft.current = true;
     try {
       // Exclude covering letter fields from draft - they are independently persisted
-      const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftValues } = values;
+      const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftValues } = values as any;
       const nextDrafts = upsertDraft(savedDrafts, { name, values: draftValues, updatedAt: String(Date.now()) });
       window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
@@ -338,12 +371,34 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     if (!draft) return;
     // Preserve current covering letter details - they are independently persisted
     const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone } = values;
-    setValues({ 
+    const loadedValues = { 
       ...initialPesticidePdfValues, 
       ...draft.values,
       // Restore covering letter details
       financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone 
-    });
+    };
+    
+    // Reconstruct activeIngredients array based on technical name for combination products
+    const isCombo = isCombinationProduct(loadedValues.technicalName);
+    if (isCombo) {
+      const ingredientNames = extractIngredientNames(loadedValues.technicalName);
+      if (ingredientNames.length > 0) {
+        // Preserve existing concentrations if available
+        const existingConcentrations = loadedValues.activeIngredients || [];
+        loadedValues.activeIngredients = ingredientNames.map((name, index) => ({
+          name: name.trim(),
+          concentration: existingConcentrations[index]?.concentration || ''
+        }));
+      }
+    } else if (!loadedValues.activeIngredients || loadedValues.activeIngredients.length === 0) {
+      // Ensure single ingredient has at least one entry
+      loadedValues.activeIngredients = [{
+        name: '',
+        concentration: loadedValues.activeIngredient || ''
+      }];
+    }
+    
+    setValues(loadedValues);
     setPreviewError(null);
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.', 5000);
   };
@@ -394,7 +449,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       const doc = await generatePesticideStatutoryPdf(formType, values);
       const fileName = getPesticidePdfFileName(formType, values);
       downloadDoc(doc, fileName);
-      rememberGeneratedData(values);
       showSuccess('PDF Downloaded Successfully', fileName, 5000);
     } catch (error) {
       console.error('Unable to download pesticide PDF:', error);
@@ -636,11 +690,87 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                       if (field.key === 'mandal' && values.district && values.district !== 'Others') {
                         fieldOptions = getMandalsForDistrict(values.district).map(m => ({ label: m, value: m }));
                       }
+                      
+                      // Special handling for active ingredient field to show dynamic inputs
+                      if (field.key === 'activeIngredient') {
+                        const isCombo = isCombinationProduct(values.technicalName);
+                        const ingredientNames = extractIngredientNames(values.technicalName);
+                        
+                        if (isCombo && ingredientNames.length > 0) {
+                          // Show multiple concentration inputs for combination products
+                          return (
+                            <div key={field.key} className="block">
+                              <span className="mb-1 flex items-center justify-between gap-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                                <span>{field.label}</span>
+                                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Combination Product</span>
+                              </span>
+                              <div className="space-y-2">
+                                {values.activeIngredients?.map((ai, index) => (
+                                  <div key={index} className="flex items-center gap-2">
+                                    <span className="min-w-[120px] text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                      {ai.name || `Ingredient ${index + 1}`}
+                                    </span>
+                                    <input
+                                      type="text"
+                                      value={ai.concentration}
+                                      onChange={(e) => {
+                                        const newActiveIngredients = [...(values.activeIngredients || [])];
+                                        newActiveIngredients[index] = { ...newActiveIngredients[index], concentration: e.target.value };
+                                        // Also update the legacy activeIngredient field with the full combination string
+                                        const combinationString = newActiveIngredients
+                                          .map(item => {
+                                            const name = item.name?.trim() || '';
+                                            const conc = item.concentration?.trim() || '';
+                                            return name && conc ? `${name} ${conc}` : (name || conc);
+                                          })
+                                          .filter(part => part && part.trim() !== '')
+                                          .join(' ');
+                                        setValues(prev => ({ 
+                                          ...prev, 
+                                          activeIngredients: newActiveIngredients,
+                                          activeIngredient: combinationString 
+                                        }));
+                                      }}
+                                      className="min-h-11 flex-1 rounded-lg border border-amber-200 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-100 dark:border-amber-900 dark:bg-slate-950 dark:text-white dark:focus:ring-amber-900/40"
+                                      placeholder="Concentration"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                        
+                        // For single ingredient products, use the first concentration from activeIngredients array
+                        const singleConcentration = values.activeIngredients?.[0]?.concentration || values.activeIngredient || '';
+                        return (
+                          <PdfInput
+                            key={field.key}
+                            field={field}
+                            value={singleConcentration}
+                            onChange={(value) => setField(field.key, value)}
+                            options={fieldOptions}
+                            values={values}
+                          />
+                        );
+                      }
+                      
+                      // Skip activeIngredients array field - it's handled internally
+                      if (field.key === 'activeIngredients') {
+                        return null;
+                      }
+                      
+                      // Ensure we only pass string values to PdfInput
+                      const fieldValue = values[field.key];
+                      if (typeof fieldValue !== 'string') {
+                        return null;
+                      }
+                      
                       return (
                         <PdfInput
                           key={field.key}
                           field={field}
-                          value={values[field.key]}
+                          value={fieldValue}
                           onChange={(value) => setField(field.key, value)}
                           options={fieldOptions}
                           values={values}

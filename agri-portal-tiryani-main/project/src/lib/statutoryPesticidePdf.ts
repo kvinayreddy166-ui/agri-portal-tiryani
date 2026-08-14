@@ -444,8 +444,17 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ['b) Technical Name', values.technicalName || values.insecticideCommonName],
   ], 82);
   
+  // Add formulation type to Guaranteed of % ai
+  const formulationType = values.formulationType === 'Others' 
+    ? values.manualFormulationType?.trim() || ''
+    : values.formulationType?.trim() || '';
+  const activeIngredient = values.activeIngredient?.trim() || '';
+  const guaranteedWithFormulation = formulationType && activeIngredient 
+    ? `${activeIngredient} ${formulationType}` 
+    : activeIngredient;
+  
   fieldList(cursor, [
-    ['4. Guaranteed of % ai', values.activeIngredient],
+    ['4. Guaranteed of % ai', guaranteedWithFormulation],
     ['5. Qty. of sample drawn for analysis', sampleQuantityAnalysis],
     ['6. Name of the dealer from whom the sample drawn', dealerWithMandal],
     ['7. Name of the Distributor', values.distributorName],
@@ -812,6 +821,11 @@ function inspectorAddress(values: PesticidePdfValues) {
     ? `${resolvedDistrict} -${values.pincode}`
     : resolvedDistrict || '';
   
+  // Format email in brackets (e.g., "(email@example.com)")
+  const emailInBrackets = values.officerEmail && values.officerEmail.trim() 
+    ? `(${values.officerEmail.trim()})` 
+    : '';
+  
   const addressParts = [
     officerNameWithQualification,
     values.designation,
@@ -821,12 +835,30 @@ function inspectorAddress(values: PesticidePdfValues) {
     .map((part) => part.trim())
     .filter(Boolean);
   
-  // Add email in brackets below if present
-  if (values.email) {
-    addressParts.push(`(${values.email})`);
+  // Add email separately to avoid it being filtered out
+  let address = addressParts.join('\n');
+  if (emailInBrackets) {
+    address += '\n' + emailInBrackets;
   }
   
-  return addressParts.join('\n');
+  return formatAddressWithCommas(address);
+}
+
+function formatAddressWithCommas(address: string): string {
+  if (!address || !address.trim()) return address;
+  const lines = address.split('\n').filter(line => line.trim());
+  const formatted = lines.map((line, index) => {
+    const trimmedLine = line.trim();
+    // Don't add punctuation to lines that are already in brackets (like email addresses)
+    if (trimmedLine.startsWith('(') && trimmedLine.endsWith(')')) {
+      return trimmedLine;
+    }
+    if (index === lines.length - 1) {
+      return trimmedLine + '.';
+    }
+    return trimmedLine + ',';
+  });
+  return formatted.join('\n');
 }
 
 function inspectorLine(values: PesticidePdfValues) {

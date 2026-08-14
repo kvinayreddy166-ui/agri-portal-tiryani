@@ -158,16 +158,81 @@ export function isCombinationProduct(technicalName: string): boolean {
   return technicalName.includes('+') || technicalName.includes('&');
 }
 
+export function isCombinationProductFromActiveIngredient(activeIngredient: string): boolean {
+  if (!activeIngredient) return false;
+  // Check if active ingredient contains multiple name+concentration patterns
+  // Pattern: "Name 18.5% Name 22%" or "18.5% 22%" or "Name 18.5% + Name 22%"
+  const trimmed = activeIngredient.trim();
+  
+  // Check for explicit + or & separators
+  if (trimmed.includes('+') || trimmed.includes('&')) {
+    return true;
+  }
+  
+  // Check for multiple concentration values
+  const parts = trimmed.split(/\s+/);
+  let concentrationCount = 0;
+  parts.forEach(part => {
+    if (/^\d+(\.\d+)?%?$/.test(part)) {
+      concentrationCount++;
+    }
+  });
+  
+  return concentrationCount > 1;
+}
+
+export function parseCombinationActiveIngredient(activeIngredient: string): Array<{name: string, concentration: string}> {
+  if (!activeIngredient) return [];
+  
+  const result: Array<{name: string, concentration: string}> = [];
+  const parts = activeIngredient.trim().split(/\s+/);
+  
+  let currentName = '';
+  let currentConcentration = '';
+  
+  parts.forEach(part => {
+    // Check if this is a concentration value
+    if (/^\d+(\.\d+)?%?$/.test(part)) {
+      currentConcentration = part;
+      if (currentName || currentConcentration) {
+        result.push({
+          name: currentName,
+          concentration: currentConcentration
+        });
+        currentName = '';
+        currentConcentration = '';
+      }
+    } else {
+      // This is a name part
+      if (currentName) {
+        currentName += ' ' + part;
+      } else {
+        currentName = part;
+      }
+    }
+  });
+  
+  // Handle trailing name without concentration
+  if (currentName) {
+    result.push({
+      name: currentName,
+      concentration: ''
+    });
+  }
+  
+  return result;
+}
+
 export function extractIngredientNames(technicalName: string): string[] {
   if (!technicalName) return [];
   
-  // Split by + or &
-  const parts = technicalName.split(/[+&]/);
+  // Split by + or & (case-insensitive, whitespace-tolerant)
+  const parts = technicalName.split(/\s*[+&]\s*/i);
   
   // Extract names, removing concentrations and trimming
   return parts.map(part => {
-    // Remove concentration patterns like "40.1%" or "40.1"
-    const name = part.replace(/\d+(\.\d+)?%?/g, '').trim();
+    // Remove concentration patterns like "40.1%" or "40.1" and formulation types
+    const name = part.replace(/\s+\d+(\.\d+)?%?/g, '').replace(/\s+(AE|BB|BR|CS|D|DC|DP|DS|EC|ES|EW|FS|FU|G|GL|GR|LS|ME|OD|P|PA|RB|SC|SE|SG|SL|SP|TB|TC|TK|ULV|VP|WDG|WG|WP|WS)$/i, '').trim();
     return name;
   }).filter(name => name.length > 0);
 }
@@ -179,8 +244,11 @@ export function sanitizeTechnicalName(technicalName: string): string {
   // This removes patterns like "40.1%" or "40.1" that might be embedded
   const sanitized = technicalName.replace(/\s+\d+(\.\d+)?%?/g, '').trim();
   
+  // Remove formulation types if present
+  const withoutFormulation = sanitized.replace(/\s+(AE|BB|BR|CS|D|DC|DP|DS|EC|ES|EW|FS|FU|G|GL|GR|LS|ME|OD|P|PA|RB|SC|SE|SG|SL|SP|TB|TC|TK|ULV|VP|WDG|WG|WP|WS)$/i, '').trim();
+  
   // Normalize & to +
-  const normalized = sanitized.replace(/&/g, '+');
+  const normalized = withoutFormulation.replace(/&/g, '+');
   
   // Clean up spacing around +
   return normalized.replace(/\s*\+\s*/g, ' + ');
@@ -188,6 +256,29 @@ export function sanitizeTechnicalName(technicalName: string): string {
 
 export function normalizeActiveIngredients(values: PesticidePdfValues): PesticidePdfValues {
   const normalized = { ...values };
+  
+  // Check if current technicalName indicates a combination product
+  const isCombo = isCombinationProduct(normalized.technicalName);
+  const ingredientNames = extractIngredientNames(normalized.technicalName);
+  
+  // If technicalName changed from combination to single, reset activeIngredients
+  if (!isCombo && normalized.activeIngredients && normalized.activeIngredients.length > 1) {
+    // Reset to single entry, preserve first concentration if available
+    const existingConcentration = normalized.activeIngredients[0]?.concentration || normalized.activeIngredient || '';
+    normalized.activeIngredients = [{
+      name: '',
+      concentration: existingConcentration
+    }];
+  }
+  
+  // If technicalName changed from single to combination, update activeIngredients
+  if (isCombo && ingredientNames.length > 0) {
+    const existingConcentrations = normalized.activeIngredients || [];
+    normalized.activeIngredients = ingredientNames.map((name, index) => ({
+      name: name.trim(),
+      concentration: existingConcentrations[index]?.concentration || ''
+    }));
+  }
   
   // If activeIngredients array is empty but activeIngredient has data, migrate it
   if (!normalized.activeIngredients || normalized.activeIngredients.length === 0) {
@@ -204,19 +295,45 @@ export function normalizeActiveIngredients(values: PesticidePdfValues): Pesticid
           concentration: legacyValue.replace('%', '')
         }];
       } else {
-        // It might be "Name 18.5%" format, try to extract
-        const match = legacyValue.match(/^(.+?)\s+(\d+(\.\d+)?%?)$/);
-        if (match) {
-          normalized.activeIngredients = [{
-            name: match[1].trim(),
-            concentration: match[2].replace('%', '')
-          }];
+        // Check for combination format: "40.1 + 3.9" or "Name 40.1% + Name 3.9%"
+        if (legacyValue.includes('+') || legacyValue.includes('&')) {
+          const parts = legacyValue.split(/\s*[+&]\s*/i);
+          normalized.activeIngredients = parts.map(part => {
+            const match = part.match(/^(.+?)\s+(\d+(\.\d+)?%?)$/);
+            if (match) {
+              return {
+                name: match[1].trim(),
+                concentration: match[2].replace('%', '')
+              };
+            }
+            // If just a number, use as concentration without name
+            if (/^\d+(\.\d+)?%?$/.test(part.trim())) {
+              return {
+                name: '',
+                concentration: part.trim().replace('%', '')
+              };
+            }
+            // Fallback: treat as name with empty concentration
+            return {
+              name: part.trim(),
+              concentration: ''
+            };
+          });
         } else {
-          // Fallback: use as concentration without technical name to avoid duplication
-          normalized.activeIngredients = [{
-            name: '',
-            concentration: legacyValue.replace('%', '')
-          }];
+          // It might be "Name 18.5%" format, try to extract
+          const match = legacyValue.match(/^(.+?)\s+(\d+(\.\d+)?%?)$/);
+          if (match) {
+            normalized.activeIngredients = [{
+              name: match[1].trim(),
+              concentration: match[2].replace('%', '')
+            }];
+          } else {
+            // Fallback: use as concentration without technical name to avoid duplication
+            normalized.activeIngredients = [{
+              name: '',
+              concentration: legacyValue.replace('%', '')
+            }];
+          }
         }
       }
     }
@@ -236,11 +353,14 @@ export function formatActiveIngredientsForDisplay(activeIngredients: ActiveIngre
     return activeIngredients
       .map(ai => {
         const concentration = ai.concentration?.trim() || '';
-        const normalizedConc = concentration.endsWith('%') ? concentration : `${concentration}%`;
+        // Only add % if not already present and not empty
+        const normalizedConc = concentration && !concentration.endsWith('%') ? `${concentration}%` : concentration;
+        // Only include name if it's not empty
         return ai.name && ai.name.trim() 
           ? `${ai.name.trim()} ${normalizedConc}`
           : normalizedConc;
       })
+      .filter(part => part && part.trim() !== '')
       .join(' + ');
   }
   
@@ -577,8 +697,16 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     normalizedValues.activeIngredient
   );
   
+  // Add formulation type to Guaranteed of % ai
+  const formulationType = values.formulationType === 'Others' 
+    ? values.manualFormulationType?.trim() || ''
+    : values.formulationType?.trim() || '';
+  const guaranteedWithFormulation = formulationType 
+    ? `${formattedActiveIngredient} ${formulationType}` 
+    : formattedActiveIngredient;
+  
   fieldList(cursor, [
-    ['4. Guaranteed of % ai', formattedActiveIngredient],
+    ['4. Guaranteed of % ai', guaranteedWithFormulation],
     ['5. Qty. of sample drawn for analysis', sampleQuantityAnalysis],
     ['6. Name of the dealer from whom the sample drawn', dealerWithMandal],
     ['7. Name of the Distributor', values.distributorName],
@@ -917,21 +1045,45 @@ function normalizePesticideValues(values: PesticidePdfValues): PesticidePdfValue
 }
 
 function pesticideNameWithoutTrade(values: PesticidePdfValues) {
-  const technicalName = sanitizeTechnicalName(values.technicalName?.trim() || '');
-  const normalizedValues = normalizeActiveIngredients(values);
-  const activeIngredient = formatActiveIngredientsForDisplay(
-    normalizedValues.activeIngredients,
-    normalizedValues.activeIngredient
-  );
-  const formulationType = values.formulationType === 'Others' 
-    ? values.manualFormulationType?.trim() || ''
-    : values.formulationType?.trim() || '';
+  // Check if this is a combination product based on active ingredient field
+  const isCombo = isCombinationProductFromActiveIngredient(values.activeIngredient);
   
-  return [
-    technicalName,
-    activeIngredient,
-    formulationType,
-  ].filter((part) => part && part.trim() !== '').join(' ');
+  if (isCombo) {
+    // For combination products, build the display from the active ingredient field
+    // which contains the name+concentration pairs (e.g., "Fipronil 18.5% Acephate 22%")
+    const parsed = parseCombinationActiveIngredient(values.activeIngredient);
+    const formulationType = values.formulationType === 'Others' 
+      ? values.manualFormulationType?.trim() || ''
+      : values.formulationType?.trim() || '';
+    
+    // Build the combination display: "Fipronil 18.5% + Acephate 22% GR"
+    const parts = parsed.map(item => {
+      const name = item.name?.trim() || '';
+      const conc = item.concentration?.trim() || '';
+      // Add % if missing
+      const normalizedConc = conc && !conc.endsWith('%') ? `${conc}%` : conc;
+      return name && normalizedConc ? `${name} ${normalizedConc}` : (name || normalizedConc);
+    }).filter(part => part && part.trim() !== '');
+    
+    const combinationDisplay = parts.join(' + ');
+    const formulationDisplay = formulationType ? ` ${formulationType}` : '';
+    
+    return `${combinationDisplay}${formulationDisplay}`.trim();
+  }
+  
+  // For single ingredient products, use the original behavior but ensure % is present
+  const technical = values.technicalName || values.insecticideCommonName;
+  let active = values.activeIngredient || '';
+  const formulation = values.formulationType === 'Others' ? values.manualFormulationType : values.formulationType;
+  const formulationDisplay = formulation ? ` ${formulation}` : '';
+  
+  // Ensure % is present for single ingredient
+  if (active && !active.includes('%')) {
+    active = `${active}%`;
+  }
+  
+  const activeDisplay = active ? ` ${active}` : '';
+  return `${technical}${activeDisplay}${formulationDisplay}`.trim();
 }
 
 function inspectorAddress(values: PesticidePdfValues) {
@@ -947,6 +1099,11 @@ function inspectorAddress(values: PesticidePdfValues) {
     ? `${resolvedDistrict} -${values.pincode}`
     : resolvedDistrict || '';
   
+  // Format email in brackets (e.g., "(email@example.com)")
+  const emailInBrackets = values.officerEmail && values.officerEmail.trim() 
+    ? `(${values.officerEmail.trim()})` 
+    : '';
+  
   const addressParts = [
     officerNameWithQualification,
     values.designation,
@@ -956,7 +1113,12 @@ function inspectorAddress(values: PesticidePdfValues) {
     .map((part) => part.trim())
     .filter(Boolean);
   
-  const address = addressParts.join('\n');
+  // Add email separately to avoid it being filtered out
+  let address = addressParts.join('\n');
+  if (emailInBrackets) {
+    address += '\n' + emailInBrackets;
+  }
+  
   return formatAddressWithCommas(address);
 }
 
@@ -964,10 +1126,15 @@ function formatAddressWithCommas(address: string): string {
   if (!address || !address.trim()) return address;
   const lines = address.split('\n').filter(line => line.trim());
   const formatted = lines.map((line, index) => {
-    if (index === lines.length - 1) {
-      return line.trim() + '.';
+    const trimmedLine = line.trim();
+    // Don't add punctuation to lines that are already in brackets (like email addresses)
+    if (trimmedLine.startsWith('(') && trimmedLine.endsWith(')')) {
+      return trimmedLine;
     }
-    return line.trim() + ',';
+    if (index === lines.length - 1) {
+      return trimmedLine + '.';
+    }
+    return trimmedLine + ',';
   });
   return formatted.join('\n');
 }

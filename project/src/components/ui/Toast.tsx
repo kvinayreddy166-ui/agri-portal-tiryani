@@ -61,13 +61,14 @@ export function Toast({ type, title, subtitle, duration = 5000, onClose }: Toast
     
     const progressTimer = setInterval(() => {
       setProgress((prev) => {
-        if (prev <= step) {
+        const newProgress = prev - step;
+        if (newProgress <= 0) {
           clearInterval(progressTimer);
           setIsVisible(false);
           setTimeout(onClose, 300); // Wait for fade-out animation
           return 0;
         }
-        return prev - step;
+        return newProgress;
       });
     }, interval);
 
