@@ -72,6 +72,7 @@ function incrementSerialNumber(letterNumber: string): string {
   if (!letterNumber) return letterNumber;
   
   // Pattern 1: Serial at the beginning (e.g., "001/MAO/TRN/FRT-QC/2026-27")
+  // Must be checked first to avoid matching as middle pattern
   const startMatch = letterNumber.match(/^(\d+)(\/.*)$/);
   if (startMatch) {
     const serial = startMatch[1];
@@ -92,7 +93,8 @@ function incrementSerialNumber(letterNumber: string): string {
   }
   
   // Pattern 3: Serial in middle (e.g., "MAO/TRN/FRT-QC/01/2026-27")
-  const middleMatch = letterNumber.match(/^(.*)\/(\d+)\/(.*)$/);
+  // Only match if prefix doesn't start with digits (to avoid conflict with Pattern 1)
+  const middleMatch = letterNumber.match(/^([^\d]+)\/(\d+)\/(.*)$/);
   if (middleMatch) {
     const prefix = middleMatch[1];
     const serial = middleMatch[2];

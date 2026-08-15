@@ -76,26 +76,8 @@ export async function generateCoveringLetterPdf(
 ) {
   const { jsPDF } = await import('jspdf');
   
-  // Auto-increment letter number based on letter type
-  const letterNumber = letterType === 'quality-analysis' 
-    ? metadata.letterNumber 
-    : (() => {
-        // Parse the serial number at the beginning (before first slash)
-        const match = metadata.letterNumber.match(/^(\d+)/);
-        if (!match) return metadata.letterNumber;
-        
-        const serial = parseInt(match[1], 10);
-        const incrementedSerial = serial + 1;
-        
-        // Preserve original width of serial number (e.g., 01 → 02, 09 → 10)
-        const originalWidth = match[1].length;
-        const paddedSerial = incrementedSerial.toString().padStart(originalWidth, '0');
-        
-        // Replace the serial number in the original string
-        return metadata.letterNumber.replace(/^\d+/, paddedSerial);
-      })();
-  
-  const updatedMetadata = { ...metadata, letterNumber };
+  // Use metadata as-is - increment is handled by the modal component
+  const updatedMetadata = metadata;
   
   const doc = createDocument(jsPDF, 'Covering Letter - Fertilizer Samples');
   

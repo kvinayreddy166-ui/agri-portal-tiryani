@@ -526,9 +526,10 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   const drawDate = splitDrawnDate(values);
   
   // Build one continuous paragraph with bold values
-  const paraText = `I have this ${drawDate.day} day of month ${drawDate.month} year 20${drawDate.year} taken sample from the premises of M/s ${values.dealerName || '____________________'} (Sale/stock/distribution License number ${values.authorizationLicenseNumber || '________'} dated ${formatDate(values.licenseDate) || '________'}) situated at ${dealerLocation(values) || '...........................................................'}, a sample of the insecticide specified below for the purposes of test or analysis:`;
+  const mandal = values.mandal || values.manualMandal || '';
+  const paraText = `I have this ${drawDate.day} day of month ${drawDate.month} year 20${drawDate.year} taken sample from the premises of M/s ${values.dealerName || '____________________'} (Sale/stock/distribution License number ${values.authorizationLicenseNumber || '________'} dated ${formatDate(values.licenseDate) || '________'}) situated at ${dealerLocation(values) || '...........................................................'}${mandal ? `, ${mandal}` : ''}, a sample of the insecticide specified below for the purposes of test or analysis:`;
   
-  // Bold values: day, month, year, dealer name, authorization/license number, license date, dealer address
+  // Bold values: day, month, year, dealer name, authorization/license number, license date, dealer address, mandal
   const boldValues = [
     drawDate.day,
     drawDate.month,
@@ -536,7 +537,8 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
     values.dealerName,
     values.authorizationLicenseNumber,
     formatDate(values.licenseDate),
-    dealerLocation(values)
+    dealerLocation(values),
+    mandal
   ].filter(Boolean);
   
   // Only adjust cursor position upward if address has actual content to prevent overlap when empty
@@ -1184,7 +1186,13 @@ function buildDealerAddress(values: PesticidePdfValues) {
 
 function dealerLocation(values: PesticidePdfValues) {
   const addressWithoutNewlines = values.dealerAddress.replace(/\n/g, ', ');
-  return [addressWithoutNewlines, values.premisesLocation].map((part) => part.trim()).filter(Boolean).join(', ');
+  const cleanedParts = [addressWithoutNewlines, values.premisesLocation]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => part.replace(/^,+|,+$/g, '').trim()); // Remove leading/trailing commas
+  const joined = cleanedParts.join(', ');
+  // Remove multiple consecutive commas and ensure single space after comma
+  return joined.replace(/,+/g, ',').replace(/,\s*,/g, ',').replace(/,\s+/g, ', ');
 }
 
 function splitDrawnDate(values: PesticidePdfValues) {
