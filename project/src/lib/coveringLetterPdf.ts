@@ -421,7 +421,7 @@ function drawReference(cursor: PdfCursor, metadata: CoveringLetterMetadata, offi
   cursor.y += LINE_HEIGHT;
   
   doc.setFont(PDF_FONT, 'normal');
-  const ref1 = '1. C&DA, TS, Hyd Memo No. e-937125, COMAG-FERT/FQC/3/2026-FERT, Dt. 26.06.2026.';
+  const ref1 = '1. C&DA, TS, Hyd Memo No. e-937125, COMAG-FERT/FQC/3/2026-FERT, Dt. 22.06.2026.';
   doc.text(ref1, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
   

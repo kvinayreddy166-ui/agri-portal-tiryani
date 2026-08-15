@@ -243,7 +243,7 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails) 
     currentY += LINE_HEIGHT;
   }
   
-  const designation = officerDetails?.designation || 'Seed Inspector';
+  const designation = officerDetails?.designation || 'Mandal Agricultural Officer';
   doc.setFont(PDF_FONT, 'bold');
   doc.text(`${designation},`, leftColumnX, currentY);
   currentY += LINE_HEIGHT;
@@ -506,7 +506,7 @@ function drawClosing(cursor: PdfCursor) {
   doc.text('Thanking you.', PAGE.width / 2, cursor.y, { align: 'center' });
   cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;
   
-  doc.text('Form "P" is kept with the sample.', PAGE.marginLeft, cursor.y);
+  doc.text('Information Slip is kept with the sample.', PAGE.marginLeft, cursor.y);
   cursor.y += LINE_HEIGHT + 1.5;
 }
 
@@ -515,7 +515,7 @@ function drawEnclosures(cursor: PdfCursor, sampleCount: number) {
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
-  doc.text(`Enclosures: Seed Samples (${sampleCount})`, PAGE.marginLeft, cursor.y);
+  doc.text(`Enclosures: Form V (${sampleCount})`, PAGE.marginLeft, cursor.y);
 }
 
 function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
@@ -533,9 +533,8 @@ function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   
   cursor.y += LINE_HEIGHT + 5; // Extra space
   
-  const designation = officerDetails?.designation || 'Seed Inspector';
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(designation, signatureX, cursor.y, { align: 'right' });
+  doc.text('Mandal Agricultural Officer', signatureX, cursor.y, { align: 'right' });
   cursor.y += LINE_HEIGHT;
   
   doc.text('& Seed Inspector', signatureX, cursor.y, { align: 'right' });

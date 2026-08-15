@@ -68,6 +68,44 @@ const financialYears = [
   `${currentYear + 1}-${(currentYear + 2).toString().slice(-2)}`,
 ];
 
+function incrementSerialNumber(letterNumber: string): string {
+  if (!letterNumber) return letterNumber;
+  
+  // Pattern 1: Serial at the beginning (e.g., "001/MAO/TRN/FRT-QC/2026-27")
+  const startMatch = letterNumber.match(/^(\d+)(\/.*)$/);
+  if (startMatch) {
+    const serial = startMatch[1];
+    const rest = startMatch[2];
+    const serialNum = parseInt(serial, 10);
+    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
+    return `${incremented}${rest}`;
+  }
+  
+  // Pattern 2: Serial at the end (e.g., "MAO/TRN/FRT-QC/2026-27/01")
+  const endMatch = letterNumber.match(/^(.*)\/(\d+)$/);
+  if (endMatch) {
+    const prefix = endMatch[1];
+    const serial = endMatch[2];
+    const serialNum = parseInt(serial, 10);
+    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
+    return `${prefix}/${incremented}`;
+  }
+  
+  // Pattern 3: Serial in middle (e.g., "MAO/TRN/FRT-QC/01/2026-27")
+  const middleMatch = letterNumber.match(/^(.*)\/(\d+)\/(.*)$/);
+  if (middleMatch) {
+    const prefix = middleMatch[1];
+    const serial = middleMatch[2];
+    const suffix = middleMatch[3];
+    const serialNum = parseInt(serial, 10);
+    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
+    return `${prefix}/${incremented}/${suffix}`;
+  }
+  
+  // No pattern matched, return original
+  return letterNumber;
+}
+
 export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, dealerDetails, onMetadataChange }: CoveringLetterModalProps) {
   const [queue, setQueue] = useState<CoveringLetterQueueItem[]>([]);
   const [editedQueue, setEditedQueue] = useState<CoveringLetterQueueItem[]>([]);
@@ -285,8 +323,14 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     setIsGenerating(true);
     try {
       const { generateCoveringLetterPdf } = await import('../../lib/coveringLetterPdf');
-      console.log('Generating covering letter with:', { editedQueue, metadata, officerDetails, letterType });
-      const doc = await generateCoveringLetterPdf(editedQueue, metadata, officerDetails, letterType);
+      
+      // For Portion III, use incremented serial number
+      const metadataForPdf = letterType === 'safe-custody' 
+        ? { ...metadata, letterNumber: incrementSerialNumber(metadata.letterNumber) }
+        : metadata;
+      
+      console.log('Generating covering letter with:', { editedQueue, metadata: metadataForPdf, officerDetails, letterType });
+      const doc = await generateCoveringLetterPdf(editedQueue, metadataForPdf, officerDetails, letterType);
       
       if (!doc) {
         setMessage('Failed to generate Covering Letter. Please try again.');
@@ -329,28 +373,22 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     setIsGenerating(true);
     try {
       const { generateCoveringLetterPdf } = await import('../../lib/coveringLetterPdf');
-      console.log('Generating covering letter with:', { editedQueue, metadata, officerDetails, letterType });
-      const doc = await generateCoveringLetterPdf(editedQueue, metadata, officerDetails, letterType);
+      
+      // For Portion III, use incremented serial number
+      const metadataForPdf = letterType === 'safe-custody' 
+        ? { ...metadata, letterNumber: incrementSerialNumber(metadata.letterNumber) }
+        : metadata;
+      
+      console.log('Generating covering letter with:', { editedQueue, metadata: metadataForPdf, officerDetails, letterType });
+      const doc = await generateCoveringLetterPdf(editedQueue, metadataForPdf, officerDetails, letterType);
       
       if (!doc) {
         setMessage('Failed to generate Covering Letter. Please try again.');
         return;
       }
       
-      // Calculate letter number for filename using same logic as PDF generation
-      const letterNumber = letterType === 'quality-analysis' 
-        ? metadata.letterNumber 
-        : (() => {
-            const match = metadata.letterNumber.match(/^(\d+)/);
-            if (!match) return metadata.letterNumber;
-            
-            const serial = parseInt(match[1], 10);
-            const incrementedSerial = serial + 1;
-            const originalWidth = match[1].length;
-            const paddedSerial = incrementedSerial.toString().padStart(originalWidth, '0');
-            
-            return metadata.letterNumber.replace(/^\d+/, paddedSerial);
-          })();
+      // Use the same letter number for filename as used in PDF
+      const letterNumber = metadataForPdf.letterNumber;
       
       const fileName = letterType === 'safe-custody'
         ? `Covering_Letter_Safe_Custody_${letterNumber || 'draft'}.pdf`
@@ -485,6 +523,11 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                     placeholder="Enter Letter Number"
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                   />
+                  {letterType === 'safe-custody' && metadata.letterNumber && (
+                    <p className="mt-1 text-[10px] text-emerald-600 font-medium">
+                      Portion III will use: {incrementSerialNumber(metadata.letterNumber)}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">LETTER DATE</label>
