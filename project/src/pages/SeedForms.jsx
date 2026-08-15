@@ -80,6 +80,7 @@ const initialSeedForm = {
   seedClassOther: '',
   packingDate: '',
   sourceOfSupply: '',
+  producedPackedBy: '',
   testRequired: 'Germination, Purity & Moisture Test',
   testRequiredOther: '',
   remarks: '',
@@ -99,6 +100,7 @@ const initialSeedForm = {
   pinCode: '',
   placeManuallyEdited: false,
   collectionPlaceManuallyEdited: false,
+  sourceOfSupplyManuallyEdited: false,
   // Covering Letter Details
   financialYear: '',
   letterNumber: '',
@@ -124,6 +126,7 @@ export function SeedForms() {
         ...loaded,
         placeManuallyEdited: loaded.placeManuallyEdited ?? false,
         collectionPlaceManuallyEdited: loaded.collectionPlaceManuallyEdited ?? false,
+        sourceOfSupplyManuallyEdited: loaded.sourceOfSupplyManuallyEdited ?? false,
       };
     } catch {
       return initialSeedForm;
@@ -160,6 +163,7 @@ export function SeedForms() {
   const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
   const sampleDetailsRef = useRef(null);
   const dealerDetailsRef = useRef(null);
+  const previousProducedPackedByRef = useRef('');
   const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue } = useToast();
 
   useEffect(() => {
@@ -228,10 +232,25 @@ export function SeedForms() {
         // Sync collectionDate with date
         return { ...current, date: value, collectionDate: value };
       }
+      if (key === 'sourceOfSupply') {
+        // Mark as manually edited when user changes it
+        return { ...current, sourceOfSupply: value, sourceOfSupplyManuallyEdited: true };
+      }
       return { ...current, [key]: value };
     });
     setMessage('');
   };
+
+  // Auto-fill Source of supply from Produced & Packed by when Cotton is selected
+  useEffect(() => {
+    if (isCottonCrop && form.producedPackedBy && !form.sourceOfSupplyManuallyEdited) {
+      // Only auto-fill if producedPackedBy actually changed
+      if (previousProducedPackedByRef.current !== form.producedPackedBy) {
+        setField('sourceOfSupply', form.producedPackedBy);
+        previousProducedPackedByRef.current = form.producedPackedBy;
+      }
+    }
+  }, [form.producedPackedBy, isCottonCrop, setField, form.sourceOfSupplyManuallyEdited]);
 
   const saveDraft = () => {
     // Prevent race conditions from rapid clicks
@@ -456,10 +475,12 @@ export function SeedForms() {
       seedClassOther: '',
       packingDate: '',
       sourceOfSupply: '',
+      producedPackedBy: '',
       testRequired: 'Germination, Purity & Moisture Test',
       testRequiredOther: '',
       placeManuallyEdited: false,
       collectionPlaceManuallyEdited: false,
+      sourceOfSupplyManuallyEdited: false,
       remarks: '',
     }));
     setMessage('Sample details reset successfully.');
@@ -585,7 +606,8 @@ export function SeedForms() {
             <SelectWithOther label="Class / Origin of seed" valueKey="seedClass" otherKey="seedClassOther" form={form} setField={setField} options={classOptions} />
             <Input label="Date of packing" type="date" value={form.packingDate} onChange={(value) => setField('packingDate', value)} />
           </div>
-          <Input label="Source of supply" value={form.sourceOfSupply} onChange={(value) => setField('sourceOfSupply', value)} placeholder="Enter Distributor Details" />
+          {isCottonCrop && <Input label="Produced & Packed by" value={form.producedPackedBy} onChange={(value) => setField('producedPackedBy', value)} placeholder="Enter Producer Details" />}
+          <Input label="Source of supply" value={form.sourceOfSupply} onChange={(value) => setField('sourceOfSupply', value)} placeholder="Enter Distributor/ Marketer Details" />
           <SelectWithOther label="Kind of test required" valueKey="testRequired" otherKey="testRequiredOther" form={form} setField={setField} options={testOptions} />
           <Input label="Remarks" value={form.remarks} onChange={(value) => setField('remarks', value)} textarea />
         </Card>
@@ -616,6 +638,7 @@ export function SeedForms() {
           <p className="text-[10px] font-black uppercase tracking-widest text-green-700">PDF Generation</p>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          {isCottonCrop && <PdfAction label="Form I" onPreview={() => preview('I')} onDownload={() => generate('I')} />}
           {isCottonCrop && <PdfAction label="Form II" onPreview={() => preview('II')} onDownload={() => generate('II')} />}
           <PdfAction label="Form V" onPreview={() => preview('V')} onDownload={() => generate('V')} />
           <PdfAction label="Form VI Notice" onPreview={() => preview('VI')} onDownload={() => generate('VI')} />
@@ -897,6 +920,8 @@ async function buildSeedPdf(kind, form) {
 
   if (kind === 'ALL') {
     if (isCottonSeedForm(form)) {
+      drawSeedFormI(doc, form);
+      doc.addPage();
       drawSeedFormII(doc, form);
       doc.addPage();
     }
@@ -909,6 +934,7 @@ async function buildSeedPdf(kind, form) {
     return doc;
   }
 
+  if (kind === 'I') drawSeedFormI(doc, form);
   if (kind === 'II') drawSeedFormII(doc, form);
   if (kind === 'V') drawSeedFormV(doc, form);
   if (kind === 'VI') drawSeedFormVI(doc, form);
@@ -1014,6 +1040,101 @@ function drawSeedFormVI(doc, form) {
 
   doc.text(`Date : ${fmtDate(r.date) || '____ / ____ / ______'}`, 20, p.y);
   signatureRight(doc, Math.min(p.y + 16, 246), ['Seed Inspector/', 'Mandal Agriculture Officer']);
+}
+
+function drawSeedFormI(doc, form) {
+  const r = resolveSeedValues(form);
+  const p = page(doc);
+  
+  // Title
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(PDF_TITLE_SIZE);
+  doc.text('APPENDIX - A', 105, p.y, { align: 'center' });
+  p.y += 8;
+  doc.text('FORM I', 105, p.y, { align: 'center' });
+  p.y += 8;
+  doc.setFontSize(PDF_SUBTITLE_SIZE);
+  doc.text('NOTICE OF INTENTION TO HAVE SAMPLE ANALYSED', 105, p.y, { align: 'center' });
+  const subtitleWidth = doc.getTextWidth('NOTICE OF INTENTION TO HAVE SAMPLE ANALYSED');
+  doc.line(105 - subtitleWidth / 2, p.y + 2, 105 + subtitleWidth / 2, p.y + 2);
+  p.y += 10;
+  doc.setFontSize(PDF_BODY_SIZE);
+  doc.setFont(PDF_FONT, 'italic');
+  doc.text('(See Rule 7)', 105, p.y, { align: 'center' });
+  doc.setFont(PDF_FONT, 'normal');
+  p.y += 12;
+  
+  // To section
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('To:', 20, p.y);
+  p.y += 7;
+  const districtWithPin = r.districtWithPinCode ? `${r.districtWithPinCode}` : `${r.district}`;
+  const mandalWithText = r.mandal ? `${r.mandal} Mandal` : '';
+  const shouldIncludePlace = r.place && r.place !== r.mandal;
+  const addressLines = [r.dealerName, r.dealerAddress, ...(shouldIncludePlace ? [r.place] : []), mandalWithText, districtWithPin].filter(Boolean);
+  const formattedLines = addressLines.map((line, index) => {
+    if (index === addressLines.length - 1) {
+      return line.endsWith('.') || line.endsWith(',') ? line : `${line}.`;
+    } else {
+      return line.endsWith(',') || line.endsWith('.') ? line : `${line},`;
+    }
+  });
+  const dealerAddress = formattedLines.join('\n');
+  doc.text(doc.splitTextToSize(dealerAddress || '.......................................................', 170), 20, p.y);
+  p.y += Math.max(6, doc.splitTextToSize(dealerAddress || '', 170).length * 6 + 2);
+  
+  // Body text as single paragraph
+  richPara(doc, p, [
+    { text: 'Take notice that it is intended to have analyzed the sample of ' },
+    { text: 'Hybrid Bt. Cotton Seed', bold: true },
+    { text: ' ' },
+    { text: 'Produced & Packed by: ' },
+    { text: r.producedPackedBy || '_____________________________________________', bold: true },
+    { text: ' and Marketed by: ' },
+    { text: r.sourceOfSupply || '_____________________________________________.', bold: true },
+  ]);
+  p.y += 6;
+  
+  // Fields
+  details(doc, p, [
+    ['1. Kind / Variety', r.variety],
+    ['2. Lot No.', r.lotNo],
+    ['3. BT Protein', r.crop === 'Cotton' ? 'Cry1Ac & Cry2Ab Genes' : ''],
+  ]);
+  
+  // Which has been taken today
+  doc.setFont(PDF_FONT, 'normal');
+  p.y += 4;
+  richPara(doc, p, [
+    { text: 'Which has been taken today, ' },
+    { text: fmtDate(r.collectionDate) || '____________________________', bold: true },
+  ]);
+  p.y += 2;
+  
+  // From section
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('From:', 20, p.y);
+  p.y += 7;
+  const formattedFromAddress = formatAddressWithCommas(r.fromAddress || '________________');
+  doc.text(doc.splitTextToSize(formattedFromAddress, 170), 20, p.y);
+  p.y += Math.max(10, doc.splitTextToSize(formattedFromAddress || '', 170).length * 6 + 8);
+  
+  // Place
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Place:', 20, p.y);
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(r.place || '____________________________', 35, p.y);
+  p.y += 10;
+  
+  // Date
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Date:', 20, p.y);
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(fmtDate(r.date) || '____________________________', 35, p.y);
+  p.y += 16;
+  
+  // Signature
+  signatureRight(doc, p.y, ['Seed Inspector &', 'Mandal Agriculture Officer']);
 }
 
 function drawSeedFormVIII(doc, form) {
