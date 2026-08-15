@@ -163,7 +163,6 @@ export function SeedForms() {
   const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
   const sampleDetailsRef = useRef(null);
   const dealerDetailsRef = useRef(null);
-  const previousProducedPackedByRef = useRef('');
   const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue } = useToast();
 
   useEffect(() => {
@@ -236,21 +235,19 @@ export function SeedForms() {
         // Mark as manually edited when user changes it
         return { ...current, sourceOfSupply: value, sourceOfSupplyManuallyEdited: true };
       }
+      if (key === 'producedPackedBy') {
+        // Auto-fill sourceOfSupply when producedPackedBy changes (if not manually edited)
+        const shouldAutoFill = isCottonCrop && value && !current.sourceOfSupplyManuallyEdited;
+        return { 
+          ...current, 
+          producedPackedBy: value,
+          sourceOfSupply: shouldAutoFill ? value : current.sourceOfSupply
+        };
+      }
       return { ...current, [key]: value };
     });
     setMessage('');
   };
-
-  // Auto-fill Source of supply from Produced & Packed by when Cotton is selected
-  useEffect(() => {
-    if (isCottonCrop && form.producedPackedBy && !form.sourceOfSupplyManuallyEdited) {
-      // Only auto-fill if producedPackedBy actually changed
-      if (previousProducedPackedByRef.current !== form.producedPackedBy) {
-        setField('sourceOfSupply', form.producedPackedBy);
-        previousProducedPackedByRef.current = form.producedPackedBy;
-      }
-    }
-  }, [form.producedPackedBy, isCottonCrop, setField, form.sourceOfSupplyManuallyEdited]);
 
   const saveDraft = () => {
     // Prevent race conditions from rapid clicks
@@ -1106,7 +1103,7 @@ function drawSeedFormI(doc, form) {
   doc.setFont(PDF_FONT, 'normal');
   p.y += 4;
   richPara(doc, p, [
-    { text: 'Which has been taken today, ' },
+    { text: 'Which has been taken today on, ' },
     { text: fmtDate(r.collectionDate) || '____________________________', bold: true },
   ]);
   p.y += 2;
@@ -1124,14 +1121,14 @@ function drawSeedFormI(doc, form) {
   doc.text('Place:', 20, p.y);
   doc.setFont(PDF_FONT, 'normal');
   doc.text(r.place || '____________________________', 35, p.y);
-  p.y += 10;
+  p.y += 6;
   
   // Date
   doc.setFont(PDF_FONT, 'bold');
   doc.text('Date:', 20, p.y);
   doc.setFont(PDF_FONT, 'normal');
   doc.text(fmtDate(r.date) || '____________________________', 35, p.y);
-  p.y += 16;
+  p.y += 6;
   
   // Signature
   signatureRight(doc, p.y, ['Seed Inspector &', 'Mandal Agriculture Officer']);
