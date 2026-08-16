@@ -270,7 +270,7 @@ const PARA_LINE_HEIGHT = 6.1;
 const FORM_J_SIGNATURE_GAP = 0;
 const FORM_J_INSPECTOR_SIGNATURE_GAP = 19;
 const FORM_J_PRE_RECEIPT_SIGNATURE_LIFT = 14;
-const FORM_J_RECEIPT_DOWN_SHIFT = 78;
+const FORM_J_RECEIPT_DOWN_SHIFT = 86;
 const FORM_J_SIGNATURE_BOTTOM_CLEARANCE = 19;
 const SIGNATURE_RIGHT_X = PAGE.width - PAGE.marginX - 8;
 
@@ -868,7 +868,7 @@ function formatComposition(values: FertilizerPdfValues) {
         const item = waterSolubleLabelMap[nutrient];
         // Skip nutrients with 0% values for water soluble fertilizers
         if (item && item.value && item.value !== '0%' && item.value !== '0') {
-          parts.push(`${item.label}: ${item.value}`);
+          parts.push(`${item.label}: ${formatPercent(item.value)}`);
         }
       }
     }
@@ -936,7 +936,7 @@ function formatComposition(values: FertilizerPdfValues) {
       if (checkedNutrients.includes(nutrient)) {
         const item = microLabelMap[nutrient];
         if (item && item.value) {
-          parts.push(`${item.label}: ${item.value}`);
+          parts.push(`${item.label}: ${formatPercent(item.value)}`);
         }
       }
     }
@@ -971,7 +971,7 @@ function formatComposition(values: FertilizerPdfValues) {
   for (const flag of displayFlags) {
     const item = labelMap[flag];
     if (item && item.value) {
-      parts.push(`${item.label}: ${item.value}`);
+      parts.push(`${item.label}: ${formatPercent(item.value)}`);
     }
   }
 
@@ -998,9 +998,9 @@ async function drawWatermark(doc: JsPdfInstance) {
       reader.onload = () => {
         const dataUrl = reader.result as string;
         
-        // Large watermark size to show complete emblem (increased by 30%)
-        const watermarkWidth = 130;
-        const watermarkHeight = 86.67; // Maintain aspect ratio (3:2)
+        // Large watermark size to show complete emblem (increased by 50% total)
+        const watermarkWidth = 156;
+        const watermarkHeight = 104; // Maintain aspect ratio (3:2)
         
         // Center the watermark on the page with proper margins
         const watermarkX = (210 - watermarkWidth) / 2;

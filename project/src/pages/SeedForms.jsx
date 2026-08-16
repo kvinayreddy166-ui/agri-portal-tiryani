@@ -1388,9 +1388,9 @@ async function drawWatermark(doc) {
       reader.onload = () => {
         const dataUrl = reader.result;
         
-        // Large watermark size to show complete emblem (increased by 30%)
-        const watermarkWidth = 130;
-        const watermarkHeight = 86.67; // Maintain aspect ratio (3:2)
+        // Large watermark size to show complete emblem (increased by 50% total)
+        const watermarkWidth = 156;
+        const watermarkHeight = 104; // Maintain aspect ratio (3:2)
         
         // Center the watermark on the page with proper margins
         const watermarkX = (210 - watermarkWidth) / 2;
