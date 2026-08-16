@@ -225,7 +225,7 @@ async function drawWatermark(doc: JsPdfInstance) {
         
         // Try to set opacity using GState if available
         try {
-          const gState = (doc as any).GState({ opacity: 0.18 });
+          const gState = (doc as any).GState({ opacity: 0.14 });
           doc.setGState(gState);
         } catch (e) {
           // GState not supported, continue without opacity

@@ -915,17 +915,24 @@ async function buildSeedPdf(kind, form) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   doc.setProperties({ title: `Seed Form ${kind}`, creator: 'AGRONIX' });
 
+  // Add watermark to initial page
+  await drawWatermark(doc);
+
   if (kind === 'ALL') {
     if (isCottonSeedForm(form)) {
       drawSeedFormI(doc, form);
       doc.addPage();
+      await drawWatermark(doc);
       drawSeedFormII(doc, form);
       doc.addPage();
+      await drawWatermark(doc);
     }
     drawSeedFormV(doc, form);
     doc.addPage();
+    await drawWatermark(doc);
     drawSeedFormVI(doc, form);
     doc.addPage();
+    await drawWatermark(doc);
     drawSeedFormVIII(doc, form);
     drawInfoSlips(doc, form, true);
     return doc;
@@ -1370,6 +1377,51 @@ function cottonSlipQuantity(crop, test) {
   if (test === 'BT Protein Test') return '25 grams * 3';
   if (test === 'Purity, Moisture & Germination Test') return '250 grams * 3';
   return '';
+}
+
+async function drawWatermark(doc) {
+  try {
+    const response = await fetch('/images/telangana-govt_emblem.webp');
+    const blob = await response.blob();
+    const reader = new FileReader();
+    await new Promise((resolve, reject) => {
+      reader.onload = () => {
+        const dataUrl = reader.result;
+        
+        // Large watermark size to show complete emblem (increased by 30%)
+        const watermarkWidth = 130;
+        const watermarkHeight = 86.67; // Maintain aspect ratio (3:2)
+        
+        // Center the watermark on the page with proper margins
+        const watermarkX = (210 - watermarkWidth) / 2;
+        const watermarkY = (297 - watermarkHeight) / 2;
+        
+        // Try to set opacity using GState if available
+        try {
+          const gState = doc.GState({ opacity: 0.14 });
+          doc.setGState(gState);
+        } catch (e) {
+          // GState not supported, continue without opacity
+        }
+        
+        // Draw watermark
+        doc.addImage(dataUrl, 'WEBP', watermarkX, watermarkY, watermarkWidth, watermarkHeight);
+        
+        // Reset opacity if GState was used
+        try {
+          doc.setGState(doc.GState({ opacity: 1.0 }));
+        } catch (e) {
+          // GState not supported, ignore
+        }
+        
+        resolve(null);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error loading watermark image:', error);
+  }
 }
 
 function openBlankSeedPdfTab() {

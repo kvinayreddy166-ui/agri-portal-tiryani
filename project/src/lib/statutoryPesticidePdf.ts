@@ -395,6 +395,7 @@ type PdfCursor = {
 export async function generatePesticideStatutoryPdf(formType: PesticideStatutoryFormType, values: PesticidePdfValues) {
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, `${pesticideFormTitles[formType]} - Pesticide Sampling`);
+  await drawWatermark(doc);
   drawPesticideForm(doc, formType, normalizePesticideValues(values));
   return doc;
 }
@@ -403,12 +404,16 @@ export async function generateAllPesticideStatutoryPdf(values: PesticidePdfValue
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, 'Form VC VD VE Docket - Pesticide Sampling');
   const normalized = normalizePesticideValues(values);
+  await drawWatermark(doc);
   drawPesticideForm(doc, 'VD', normalized);
   doc.addPage();
+  await drawWatermark(doc);
   drawPesticideForm(doc, 'VE', normalized);
   doc.addPage();
+  await drawWatermark(doc);
   drawPesticideForm(doc, 'VC', normalized);
   doc.addPage();
+  await drawWatermark(doc);
   drawPesticideForm(doc, 'DOCKET', normalized);
   return doc;
 }
@@ -1223,5 +1228,50 @@ function formatDate(value: string) {
 
 function sanitizeFilePart(value: string) {
   return value.trim().replace(/[^a-z0-9_-]+/gi, '_').slice(0, 40);
+}
+
+async function drawWatermark(doc: JsPdfInstance) {
+  try {
+    const response = await fetch('/images/telangana-govt_emblem.webp');
+    const blob = await response.blob();
+    const reader = new FileReader();
+    await new Promise((resolve, reject) => {
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        
+        // Large watermark size to show complete emblem (increased by 30%)
+        const watermarkWidth = 130;
+        const watermarkHeight = 86.67; // Maintain aspect ratio (3:2)
+        
+        // Center the watermark on the page with proper margins
+        const watermarkX = (210 - watermarkWidth) / 2;
+        const watermarkY = (297 - watermarkHeight) / 2;
+        
+        // Try to set opacity using GState if available
+        try {
+          const gState = (doc as any).GState({ opacity: 0.14 });
+          doc.setGState(gState);
+        } catch (e) {
+          // GState not supported, continue without opacity
+        }
+        
+        // Draw watermark
+        doc.addImage(dataUrl, 'WEBP', watermarkX, watermarkY, watermarkWidth, watermarkHeight);
+        
+        // Reset opacity if GState was used
+        try {
+          doc.setGState((doc as any).GState({ opacity: 1.0 }));
+        } catch (e) {
+          // GState not supported, ignore
+        }
+        
+        resolve(null);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error loading watermark image:', error);
+  }
 }
 

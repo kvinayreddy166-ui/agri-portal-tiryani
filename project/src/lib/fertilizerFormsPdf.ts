@@ -65,6 +65,7 @@ export async function generateFertilizerFormPdf(
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, `${form.formNo} - ${form.title}`);
   
+  await drawWatermark(doc);
   drawFormHeader(doc, form);
   drawFormContent(doc, form, values);
   
@@ -292,6 +293,51 @@ function formatDate(value: string) {
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+async function drawWatermark(doc: JsPdfInstance) {
+  try {
+    const response = await fetch('/images/telangana-govt_emblem.webp');
+    const blob = await response.blob();
+    const reader = new FileReader();
+    await new Promise((resolve, reject) => {
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        
+        // Large watermark size to show complete emblem (increased by 30%)
+        const watermarkWidth = 130;
+        const watermarkHeight = 86.67; // Maintain aspect ratio (3:2)
+        
+        // Center the watermark on the page with proper margins
+        const watermarkX = (PAGE.width - watermarkWidth) / 2;
+        const watermarkY = (PAGE.height - watermarkHeight) / 2;
+        
+        // Try to set opacity using GState if available
+        try {
+          const gState = (doc as any).GState({ opacity: 0.14 });
+          doc.setGState(gState);
+        } catch (e) {
+          // GState not supported, continue without opacity
+        }
+        
+        // Draw watermark
+        doc.addImage(dataUrl, 'WEBP', watermarkX, watermarkY, watermarkWidth, watermarkHeight);
+        
+        // Reset opacity if GState was used
+        try {
+          doc.setGState((doc as any).GState({ opacity: 1.0 }));
+        } catch (e) {
+          // GState not supported, ignore
+        }
+        
+        resolve(null);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error loading watermark image:', error);
+  }
 }
 
 export function getFertilizerFormPdfFileName(form: FertilizerFormEntry, values: FertilizerFormPdfValues) {
