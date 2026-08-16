@@ -934,7 +934,7 @@ async function buildSeedPdf(kind, form) {
     doc.addPage();
     await drawWatermark(doc);
     drawSeedFormVIII(doc, form);
-    drawInfoSlips(doc, form, true);
+    await drawInfoSlips(doc, form, true);
     return doc;
   }
 
@@ -943,7 +943,7 @@ async function buildSeedPdf(kind, form) {
   if (kind === 'V') drawSeedFormV(doc, form);
   if (kind === 'VI') drawSeedFormVI(doc, form);
   if (kind === 'VIII') drawSeedFormVIII(doc, form);
-  if (kind === 'SLIP') drawInfoSlips(doc, form, false);
+  if (kind === 'SLIP') await drawInfoSlips(doc, form, false);
   return doc;
 }
 
@@ -1185,11 +1185,14 @@ function drawSeedFormVIII(doc, form) {
   doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 28, signatureY + 32);
 }
 
-function drawInfoSlips(doc, form, addPageBefore) {
+async function drawInfoSlips(doc, form, addPageBefore) {
   const r = resolveSeedValues(form);
   const tests = r.crop === 'Cotton' ? ['Purity, Moisture & Germination Test', 'BT Protein Test'] : [r.testRequired];
-  tests.forEach((test, index) => {
-    if (addPageBefore || index > 0) doc.addPage();
+  for (const [index, test] of tests.entries()) {
+    if (addPageBefore || index > 0) {
+      doc.addPage();
+    }
+    await drawWatermark(doc);
     drawInformationSlip(doc, {
       ...form,
       testRequired: test,
@@ -1197,7 +1200,7 @@ function drawInfoSlips(doc, form, addPageBefore) {
       quantityDrawn: cottonSlipQuantity(r.crop, test) || form.quantityDrawn,
       quantityInLot: form.quantityInLot,
     });
-  });
+  }
 }
 
 function drawInformationSlip(doc, form) {
