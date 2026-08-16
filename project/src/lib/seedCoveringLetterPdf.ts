@@ -76,6 +76,9 @@ export async function generateSeedCoveringLetterPdf(
   
   const doc = createDocument(jsPDF, 'Covering Letter - Seed Samples');
   
+  // Add watermark to the page
+  await drawWatermark(doc);
+  
   const cursor = {
     doc,
     y: PAGE.marginTop - 6,
@@ -128,6 +131,8 @@ export async function generateSeedCoveringLetterPdf(
     doc.setFontSize(10);
     doc.text('(Cont\'d....)', PAGE.width - PAGE.marginRight, PAGE.height - PAGE.marginBottom - 2, { align: 'right' });
     doc.addPage();
+    // Add watermark to new page
+    await drawWatermark(doc);
     cursor.y = 35;
   }
   
@@ -166,12 +171,57 @@ function createDocument(
   return doc;
 }
 
+async function drawWatermark(doc: JsPdfInstance) {
+  try {
+    const response = await fetch('/images/telangana-govt_emblem.webp');
+    const blob = await response.blob();
+    const reader = new FileReader();
+    await new Promise((resolve, reject) => {
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        
+        // Large watermark size to show complete emblem (increased by 30%)
+        const watermarkWidth = 130;
+        const watermarkHeight = 86.67; // Maintain aspect ratio (3:2)
+        
+        // Center the watermark on the page with proper margins
+        const watermarkX = (PAGE.width - watermarkWidth) / 2;
+        const watermarkY = (PAGE.height - watermarkHeight) / 2;
+        
+        // Try to set opacity using GState if available
+        try {
+          const gState = (doc as any).GState({ opacity: 0.18 });
+          doc.setGState(gState);
+        } catch (e) {
+          // GState not supported, continue without opacity
+        }
+        
+        // Draw watermark
+        doc.addImage(dataUrl, 'WEBP', watermarkX, watermarkY, watermarkWidth, watermarkHeight);
+        
+        // Reset opacity if GState was used
+        try {
+          doc.setGState((doc as any).GState({ opacity: 1.0 }));
+        } catch (e) {
+          // GState not supported, ignore
+        }
+        
+        resolve(null);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error loading watermark image:', error);
+  }
+}
+
 async function drawGovernmentHeader(cursor: PdfCursor) {
   const { doc } = cursor;
   
   const emblemWidth = 23.96;
   const emblemHeight = 15.97;
-  const horizontalGap = 3;
+  const horizontalGap = 1;
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.governmentHeading);
@@ -208,10 +258,14 @@ async function drawGovernmentHeader(cursor: PdfCursor) {
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.governmentHeading);
   doc.text('GOVERNMENT OF TELANGANA', textStartX, cursor.y);
+  
+  // Calculate offset to align "D" of "DEPARTMENT" with "O" of "GOVERNMENT"
+  const alignmentOffset = govTextWidth - deptTextWidth - 3; // Move left by one letter gap
+  
   cursor.y += LINE_HEIGHT;
   
   doc.setFontSize(FONT_SIZES.departmentHeading);
-  doc.text('DEPARTMENT OF AGRICULTURE', textStartX, cursor.y);
+  doc.text('DEPARTMENT OF AGRICULTURE', textStartX + alignmentOffset, cursor.y);
   cursor.y += LINE_HEIGHT + 2;
   
   doc.setFont(PDF_FONT, 'normal');
@@ -464,11 +518,12 @@ function drawSampleTable(cursor: PdfCursor, queue: SeedCoveringLetterQueueItem[]
       lineColor: [0, 0, 0],
       valign: 'middle',
       overflow: 'linebreak',
+      fillColor: null, // Transparent background to show watermark
     },
     headStyles: {
       fontStyle: 'bold',
       fontSize: FONT_SIZES.body,
-      fillColor: [255, 255, 255],
+      fillColor: null, // Transparent background to show watermark
       textColor: [0, 0, 0],
       halign: 'center',
       valign: 'middle',
@@ -476,6 +531,7 @@ function drawSampleTable(cursor: PdfCursor, queue: SeedCoveringLetterQueueItem[]
     bodyStyles: {
       halign: 'center',
       textColor: [0, 0, 0],
+      fillColor: null, // Transparent background to show watermark
     },
     columnStyles: {
       0: { cellWidth: columnWidths[0], halign: 'center' },

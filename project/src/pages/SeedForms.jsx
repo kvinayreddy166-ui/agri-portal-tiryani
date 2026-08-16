@@ -43,7 +43,7 @@ const cropQuantityMapping = {
   'Greengram': '1000 Grams * 3',
 };
 const classOptions = ['Breeder Seed', 'Foundation Seed', 'Certified Seed', 'Truthfully Labelled Seed', 'Hybrid Seed', 'Other'];
-const testOptions = ['Germination, Purity & Moisture Test', 'BT Protein Test', 'Genetic Purity Test', 'Seed Health Test', 'Complete Analysis', 'Other'];
+const testOptions = ['Purity, Moisture & Germination Test', 'BT Protein Test', 'Genetic Purity Test', 'Seed Health Test', 'Complete Analysis', 'Other'];
 const labOptions = [
   {
     id: 'seed-testing',
@@ -81,7 +81,7 @@ const initialSeedForm = {
   packingDate: '',
   sourceOfSupply: '',
   producedPackedBy: '',
-  testRequired: 'Germination, Purity & Moisture Test',
+  testRequired: 'Purity, Moisture & Germination Test',
   testRequiredOther: '',
   remarks: '',
   dealerName: '',
@@ -473,7 +473,7 @@ export function SeedForms() {
       packingDate: '',
       sourceOfSupply: '',
       producedPackedBy: '',
-      testRequired: 'Germination, Purity & Moisture Test',
+      testRequired: 'Purity, Moisture & Germination Test',
       testRequiredOther: '',
       placeManuallyEdited: false,
       collectionPlaceManuallyEdited: false,
@@ -582,7 +582,7 @@ export function SeedForms() {
           ) : (
             <p className="whitespace-pre-line rounded-lg bg-slate-50 p-2 text-xs font-semibold text-slate-600">{resolved.labAddress}</p>
           )}
-          <PreviewCard title="Information Slip Logic" lines={resolved.crop === 'Cotton' ? ['Cotton selected: two slips will be generated.', '1. Germination, Purity & Moisture Test', '2. BT Protein Test'] : [`One slip: ${resolved.testRequired}`]} />
+          <PreviewCard title="Information Slip Logic" lines={resolved.crop === 'Cotton' ? ['Cotton selected: two slips will be generated.', '1. Purity, Moisture & Germination Test', '2. BT Protein Test'] : [`One slip: ${resolved.testRequired}`]} />
         </Card>
 
         <div ref={sampleDetailsRef}>
@@ -1180,7 +1180,7 @@ function drawSeedFormVIII(doc, form) {
 
 function drawInfoSlips(doc, form, addPageBefore) {
   const r = resolveSeedValues(form);
-  const tests = r.crop === 'Cotton' ? ['Germination, Purity & Moisture Test', 'BT Protein Test'] : [r.testRequired];
+  const tests = r.crop === 'Cotton' ? ['Purity, Moisture & Germination Test', 'BT Protein Test'] : [r.testRequired];
   tests.forEach((test, index) => {
     if (addPageBefore || index > 0) doc.addPage();
     drawInformationSlip(doc, {
@@ -1368,7 +1368,7 @@ function blank(value) {
 function cottonSlipQuantity(crop, test) {
   if (crop !== 'Cotton') return '';
   if (test === 'BT Protein Test') return '25 grams * 3';
-  if (test === 'Germination, Purity & Moisture Test') return '250 grams * 3';
+  if (test === 'Purity, Moisture & Germination Test') return '250 grams * 3';
   return '';
 }
 
