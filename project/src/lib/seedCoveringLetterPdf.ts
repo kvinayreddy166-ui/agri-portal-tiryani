@@ -141,7 +141,7 @@ export async function generateSeedCoveringLetterPdf(
   drawEnclosures(cursor, queue.length);
   cursor.y += PARAGRAPH_SPACING;
   
-  drawSignature(cursor, officerDetails);
+  drawSignature(cursor);
   cursor.y += PARAGRAPH_SPACING;
   
   drawCopiesSection(cursor, officerDetails, metadata);
@@ -387,7 +387,7 @@ function drawSubject(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata) {
   doc.text('Sub:', PAGE.marginLeft, cursor.y);
   
   doc.setFont(PDF_FONT, 'normal');
-  const subject = `FCO, 1985 – Quality Control – ${metadata.year || '2026-27'} – Submission of Seed Samples for Analysis – Request – Reg.`;
+  const subject = `Seed Act 1966 – Seed (Control) Order 1983 – Quality Control – 2026-27– Submission of Seed samples drawn - Request for Quality analysis – Reg.`;
   const subjectX = PAGE.marginLeft + doc.getTextWidth('Sub: ');
   const availableWidth = PAGE.contentWidth - doc.getTextWidth('Sub: ');
   
@@ -406,7 +406,7 @@ function drawReference(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata, 
   cursor.y += LINE_HEIGHT;
   
   doc.setFont(PDF_FONT, 'normal');
-  const ref1 = '1. C&DA, TS, Hyd Memo No. e-937125, COMAG-FERT/FQC/3/2026-FERT, Dt. 26.06.2026.';
+  const ref1 = '1. C&DA, TS, Hyd Memo No. COMAG-SRC/SAMP/1/2026-SRC, Dt: 22.04.2026.';
   doc.text(ref1, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
   
@@ -444,7 +444,11 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails) {
     { text: mandal, bold: true },
     { text: ' Mandal, ', bold: false },
     { text: district, bold: true },
-    { text: ' District for analysis as per the Seeds Act, 1966. The samples have been drawn in accordance with the prescribed procedure and are being sent to the Seed Testing Laboratory for quality analysis.', bold: false }
+    { text: ' District for Quality analysis (', bold: false },
+    { text: 'Purity, Moisture & Germination', bold: true },
+    { text: ') as per the allotment given by the District Agriculture Officer, ', bold: false },
+    { text: district, bold: false },
+    { text: '.', bold: false }
   ];
   
   let xPos = PAGE.marginLeft + FIRST_LINE_INDENT;
@@ -488,7 +492,7 @@ function drawSampleTable(cursor: PdfCursor, queue: SeedCoveringLetterQueueItem[]
     item.seedName || '-',
     item.variety || '-',
     item.sampleCode || '-',
-    item.quantity || '-',
+    item.quantity?.match(/\d+/)?.[0] || item.quantity || '-',
     formatDate(item.dateOfSampling) || '-'
   ]);
 
@@ -518,12 +522,12 @@ function drawSampleTable(cursor: PdfCursor, queue: SeedCoveringLetterQueueItem[]
       lineColor: [0, 0, 0],
       valign: 'middle',
       overflow: 'linebreak',
-      fillColor: null, // Transparent background to show watermark
+      fillColor: false, // Transparent background to show watermark
     },
     headStyles: {
       fontStyle: 'bold',
       fontSize: FONT_SIZES.body,
-      fillColor: null, // Transparent background to show watermark
+      fillColor: false, // Transparent background to show watermark
       textColor: [0, 0, 0],
       halign: 'center',
       valign: 'middle',
@@ -531,12 +535,12 @@ function drawSampleTable(cursor: PdfCursor, queue: SeedCoveringLetterQueueItem[]
     bodyStyles: {
       halign: 'center',
       textColor: [0, 0, 0],
-      fillColor: null, // Transparent background to show watermark
+      fillColor: false, // Transparent background to show watermark
     },
     columnStyles: {
       0: { cellWidth: columnWidths[0], halign: 'center' },
-      1: { cellWidth: columnWidths[1], halign: 'left' },
-      2: { cellWidth: columnWidths[2], halign: 'left' },
+      1: { cellWidth: columnWidths[1], halign: 'center' },
+      2: { cellWidth: columnWidths[2], halign: 'center' },
       3: { cellWidth: columnWidths[3], halign: 'center' },
       4: { cellWidth: columnWidths[4], halign: 'center' },
       5: { cellWidth: columnWidths[5], halign: 'center' },
@@ -574,7 +578,7 @@ function drawEnclosures(cursor: PdfCursor, sampleCount: number) {
   doc.text(`Enclosures: Form V (${sampleCount})`, PAGE.marginLeft, cursor.y);
 }
 
-function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
+function drawSignature(cursor: PdfCursor) {
   const { doc } = cursor;
   
   // Leave -5mm blank space for signature
