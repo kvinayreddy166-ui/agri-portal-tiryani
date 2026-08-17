@@ -302,14 +302,14 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails) 
   doc.text(`${designation},`, leftColumnX, currentY);
   currentY += LINE_HEIGHT;
   
-  const mandal = officerDetails?.mandal || officerDetails?.manualMandal || '';
+  const mandal = officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal || '';
   if (mandal) {
     doc.setFont(PDF_FONT, 'bold');
     doc.text(`${mandal} Mandal,`, leftColumnX, currentY);
     currentY += LINE_HEIGHT;
   }
   
-  const district = officerDetails?.district || officerDetails?.manualDistrict || '';
+  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict || '';
   const pinCode = officerDetails?.pinCode || '';
   if (district) {
     doc.setFont(PDF_FONT, 'bold');
@@ -410,7 +410,7 @@ function drawReference(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata, 
   doc.text(ref1, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
   
-  const district = officerDetails?.district || officerDetails?.manualDistrict || '';
+  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict || '';
   const ref2Text = `2. DAO ${district} Memo No. ${metadata.daoMemoNumber || '_________'}, Dt. ${formatDate(metadata.daoMemoDate) || '_________'}.`;
   
   doc.setFont(PDF_FONT, 'normal');
@@ -435,8 +435,8 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   doc.setFontSize(FONT_SIZES.body);
   doc.setLineHeightFactor(LINE_HEIGHTS.body);
   
-  const mandal = officerDetails?.mandal || officerDetails?.manualMandal || '{{Mandal}}';
-  const district = officerDetails?.district || officerDetails?.manualDistrict || '{{District}}';
+  const mandal = officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal || '{{Mandal}}';
+  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict || '{{District}}';
   
   // Text segments with different font styles
   const segments = [
@@ -604,7 +604,7 @@ function drawSignature(cursor: PdfCursor) {
 function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, metadata?: SeedCoveringLetterMetadata) {
   const { doc } = cursor;
   
-  const district = officerDetails?.district || officerDetails?.manualDistrict || '';
+  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict || '';
   const division = metadata?.division || district;
   
   doc.setFont(PDF_FONT, 'bold');

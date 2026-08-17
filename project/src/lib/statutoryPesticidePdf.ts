@@ -531,7 +531,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   const drawDate = splitDrawnDate(values);
   
   // Build one continuous paragraph with bold values
-  const mandal = values.mandal || values.manualMandal || '';
+  const mandal = values.mandal === 'Others' ? values.manualMandal : values.mandal || values.manualMandal || '';
   const paraText = `I have this ${drawDate.day} day of month ${drawDate.month} year 20${drawDate.year} taken sample from the premises of M/s ${values.dealerName || '____________________'} (Sale/stock/distribution License number ${values.authorizationLicenseNumber || '________'} dated ${formatDate(values.licenseDate) || '________'}) situated at ${dealerLocation(values) || '...........................................................'}${mandal ? `, ${mandal}` : ''}, a sample of the insecticide specified below for the purposes of test or analysis:`;
   
   // Bold values: day, month, year, dealer name, authorization/license number, license date, dealer address, mandal

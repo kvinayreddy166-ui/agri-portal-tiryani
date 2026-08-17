@@ -73,7 +73,7 @@ export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
     'Asifabad', 'Jainoor', 'Kerameri', 'Lingapur', 'Rebbena', 'Sirpur(U)', 'Tiryani', 'Wankidi', 'Bejjur', 'Chintalamanepally', 'Dahegaon', 'Kagaznagar', 'Kouthala', 'Penchikalpet', 'Sirpur(T)',
   ],
   'Mahabubabad': [
-    'Bayyaram', 'Dornakal', 'Ganagavaram', 'Garla', 'Gudur', 'Kesamudram', 'Kothaguda', 'Kuravi', 'Mahabubabad', 'Seerole', 'Inugurthy', 'Chinnagudur', 'Danthalapalle', 'Maripeda', 'Narsimhulapet', 'Nellikudur', 'Peddavangara', 'Thorrur',
+    'Bayyaram', 'Dornakal', 'Gangaram', 'Garla', 'Gudur', 'Kesamudram', 'Kothaguda', 'Kuravi', 'Mahabubabad', 'Seerole', 'Inugurthy', 'Chinnagudur', 'Danthalapalle', 'Maripeda', 'Narsimhulapet', 'Nellikudur', 'Peddavangara', 'Thorrur',
   ],
   'Mahabubnagar': [
     'Addakal', 'Balanagar', 'Bhoothpur', 'Chinna Chinthakunta', 'Devarkadara', 'Gandeed', 'Hanwada', 'Jadcherla', 'Koilkonda', 'Mahabubnagar(Rural)', 'Mahabubnagar(Urban)', 'Midjil', 'Mohammadabad', 'Musapet', 'Nawabpet', 'Rajapur',

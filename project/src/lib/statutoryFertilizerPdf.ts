@@ -422,8 +422,8 @@ function drawHeader(cursor: PdfCursor, formType: FertilizerStatutoryFormType, va
 }
 
 function buildFormJDealerAddress(values: FertilizerPdfValues): string {
-  const resolvedDistrict = values.district === 'Other' ? values.manualDistrict : values.district;
-  const resolvedMandal = values.mandal === 'Other' ? values.manualMandal : values.mandal;
+  const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
+  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
   
   const addressParts = [values.dealerName, values.dealerAddress]
     .map((part) => part.trim())
