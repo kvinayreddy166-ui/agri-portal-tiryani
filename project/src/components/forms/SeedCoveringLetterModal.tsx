@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Eye, FileText, X, Loader2, Trash2, RotateCcw } from 'lucide-react';
+import { Download, Eye, FileText, Loader2, Plus, RotateCcw, Trash2, X } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 const SEED_COVERING_LETTER_DETAILS_KEY = 'tiryani-seed-covering-letter-details';
@@ -63,6 +64,25 @@ const financialYears = [
 ];
 
 export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, onMetadataChange }: SeedCoveringLetterModalProps) {
+  const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem('tiryani-watermark-enabled');
+      return stored === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'tiryani-watermark-enabled') {
+        setWatermarkEnabled(e.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const [editedQueue, setEditedQueue] = useState<SeedCoveringLetterQueueItem[]>([]);
   const [metadata, setMetadata] = useState<SeedCoveringLetterMetadata>({
     year: coveringLetterDetails?.financialYear || financialYears[0],
@@ -88,7 +108,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     if (onMetadataChange) {
       onMetadataChange(metadata);
     }
-  }, [metadata, onMetadataChange]);
+  }, [metadata]);
 
   // Load Covering Letter Details from localStorage when modal opens (if not provided via props)
   useEffect(() => {
@@ -254,7 +274,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     
     try {
       const { generateSeedCoveringLetterPdf } = await import('../../lib/seedCoveringLetterPdf');
-      const doc = await generateSeedCoveringLetterPdf(editedQueue, metadata, officerDetails);
+      const doc = await generateSeedCoveringLetterPdf(editedQueue, metadata, officerDetails, watermarkEnabled);
       
       if (isMobile) {
         const pdfBlob = doc.output('blob');
@@ -296,7 +316,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     
     try {
       const { generateSeedCoveringLetterPdf } = await import('../../lib/seedCoveringLetterPdf');
-      const doc = await generateSeedCoveringLetterPdf(editedQueue, metadata, officerDetails);
+      const doc = await generateSeedCoveringLetterPdf(editedQueue, metadata, officerDetails, watermarkEnabled);
       
       const fileName = `Seed_Covering_Letter_${metadata.letterNumber || 'Draft'}.pdf`;
       doc.save(fileName);
@@ -490,13 +510,13 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-slate-200">
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-12">S.No</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-32">Crop</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-40">Variety</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-28">Code No. of Sample</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-20">Quantity(gms)</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-24">Sampling Date</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-16">Actions</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-12 sm:w-12">S.No</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-40 sm:w-32">Crop</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-48 sm:w-40">Variety</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-28 sm:w-28">Code No. of Sample</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-20 sm:w-20">Quantity(gms)</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-24 sm:w-24">Sampling Date</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-16 sm:w-16">Actions</th>
                       </tr>
                     </thead>
                     <tbody>

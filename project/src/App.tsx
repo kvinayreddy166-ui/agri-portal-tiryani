@@ -15,8 +15,6 @@ const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.
 const Layout = lazy(() => import('./components/Layout').then((m) => ({ default: m.Layout })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const DealerManagement = lazy(() => import('./pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));
-const CropPage = lazy(() => import('./pages/CropPage').then((m) => ({ default: m.CropPage })));
-const CropManagement = lazy(() => import('./pages/CropManagement').then((m) => ({ default: m.CropManagement })));
 const FormsDownloads = lazy(() => import('./pages/FormsDownloads').then((m) => ({ default: m.FormsDownloads })));
 const ExcelUploads = lazy(() => import('./pages/ExcelUploads').then((m) => ({ default: m.ExcelUploads })));
 const Analytics = lazy(() => import('./pages/Analytics').then((m) => ({ default: m.Analytics })));
@@ -36,13 +34,11 @@ const FarmCalculators = lazy(() => import('./pages/FarmCalculators').then((m) =>
 const CropProtectionTool = lazy(() => import('./pages/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
 const PesticideCalculator = lazy(() => import('./pages/PesticideCalculator').then((m) => ({ default: m.PesticideCalculator })));
 const PlantPopulationCalculator = lazy(() => import('./pages/PlantPopulationCalculator').then((m) => ({ default: m.PlantPopulationCalculator })));
-const SeedRateCalculator = lazy(() => import('./pages/SeedRateCalculator').then((m) => ({ default: m.SeedRateCalculator }))); 
+const SeedRateCalculator = lazy(() => import('./pages/SeedRateCalculator').then((m) => ({ default: m.SeedRateCalculator })));
 const AgriLegalReadyReckoner = lazy(() => import('./components/AgriLegalReadyReckoner').then((m) => ({ default: m.AgriLegalReadyReckoner })));
 const StockAnalytics = lazy(() => import('./pages/StockAnalytics'));
 const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
-const CropAdminDashboard = lazy(() =>
-  import('./pages/admin/CropAdminDashboard.jsx').then((m) => ({ default: m.CropAdminDashboard }))
-);
+
 function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
   const [slow, setSlow] = useState(false);
 
@@ -245,13 +241,6 @@ const PAGE_PATHS: Record<string, string> = {
   'dealer-portal': '/dealer-portal',
   dealers: '/dealers',
   'farmer-database': '/farmer-database',
-  crops: '/crops',
-  'crop-admin': '/crop-admin',
-  'crop-cotton': '/crop-cotton',
-  'crop-paddy': '/crop-paddy',
-  'crop-maize': '/crop-maize',
-  'crop-pulses': '/crop-pulses',
-  'crop-oilseeds': '/crop-oilseeds',
   forms: '/forms',
   'gos-circulars': '/gos-circulars',
   quality: '/quality',
@@ -331,7 +320,6 @@ function getPageBackFallback(page: string, isDealerUser: boolean) {
   if (page === 'fertilizer-calculator' || page === 'pesticide-calculator' || page === 'plant-population-calculator' || page === 'seed-rate-calculator') return '/officer-toolkit/farm-calculators';
   if (page === 'legal-ready-reckoner') return '/officer-toolkit';
   if (page === 'officer-toolkit') return '/dashboard';
-  if (page.startsWith('crop-')) return '/crops';
   if (page.startsWith('quality-')) return '/quality';
   if (page.startsWith('subsidy-')) return '/subsidy';
   return isDealerUser ? '/dealer-portal' : '/dashboard';
@@ -500,13 +488,6 @@ function AppContent() {
         'dealer-portal',
         'dealers',
         'farmer-database',
-        'crops',
-        'crop-admin',
-        'crop-cotton',
-        'crop-paddy',
-        'crop-maize',
-        'crop-pulses',
-        'crop-oilseeds',
         'forms',
         'gos-circulars',
         'quality',

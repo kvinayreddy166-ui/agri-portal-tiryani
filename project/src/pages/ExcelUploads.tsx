@@ -481,7 +481,7 @@ export function ExcelUploads() {
                         </button>
                       </div>
                     ) : (
-                      <p className="truncate font-bold text-slate-900 dark:text-white">{upload.file_name}</p>
+                      <p className="truncate text-slate-900 dark:text-white">{upload.file_name}</p>
                     )}
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       {t('Uploaded by', 'అప్లోడ్')}: {upload.created_by} ·{' '}

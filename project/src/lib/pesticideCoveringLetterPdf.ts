@@ -1,6 +1,7 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
 import { pesticideNameWithoutTrade } from './statutoryPesticidePdf';
+import { addGovernmentEmblemWatermark } from './pdfWatermark';
 
 type PesticideCoveringLetterQueueItem = {
   sampleCode: string;
@@ -72,15 +73,15 @@ type PdfCursor = {
 export async function generatePesticideCoveringLetterPdf(
   queue: PesticideCoveringLetterQueueItem[],
   metadata: PesticideCoveringLetterMetadata,
-  officerDetails?: OfficerDetails
+  officerDetails?: OfficerDetails,
+  watermarkEnabled: boolean = false
 ) {
   const { jsPDF } = await import('jspdf');
-  
+
   const doc = createDocument(jsPDF, 'Covering Letter - Pesticide Samples');
-  
-  // Add watermark to the page
+
   await drawWatermark(doc);
-  
+
   const cursor = {
     doc,
     y: PAGE.marginTop - 6,
@@ -133,7 +134,6 @@ export async function generatePesticideCoveringLetterPdf(
     doc.setFontSize(10);
     doc.text('(Cont\'d....)', PAGE.width - PAGE.marginRight, PAGE.height - PAGE.marginBottom - 2, { align: 'right' });
     doc.addPage();
-    // Add watermark to new page
     await drawWatermark(doc);
     cursor.y = 35;
   }
@@ -360,8 +360,8 @@ function drawLetterDetails(cursor: PdfCursor, metadata: PesticideCoveringLetterM
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
   
-  const letterNumber = metadata.letterNumber || '_________';
-  const dateText = formatDate(metadata.letterDate) || '_________';
+  const letterNumber = displayValue(metadata.letterNumber);
+  const dateText = displayValue(formatDate(metadata.letterDate));
   
   const letterText = `Lr. No. ${letterNumber}    Dt. ${dateText}`;
   doc.text(letterText, PAGE.width / 2, cursor.y, { align: 'center' });
@@ -415,8 +415,8 @@ function drawReference(cursor: PdfCursor, metadata: PesticideCoveringLetterMetad
   doc.text(ref1, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
   
-  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict || '';
-  const ref2Text = `2. DAO ${district} Memo No. ${metadata.daoMemoNumber || '_________'}, Dt. ${formatDate(metadata.daoMemoDate) || '_________'}.`;
+  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict;
+  const ref2Text = `2. DAO ${displayValue(district)} Memo No. ${displayValue(metadata.daoMemoNumber)}, Dt. ${displayValue(formatDate(metadata.daoMemoDate))}.`;
   
   doc.setFont(PDF_FONT, 'normal');
   doc.text(ref2Text, PAGE.marginLeft + 5, cursor.y);
@@ -440,8 +440,8 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   doc.setFontSize(FONT_SIZES.body);
   doc.setLineHeightFactor(LINE_HEIGHTS.body);
   
-  const mandal = officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal || '{{Mandal}}';
-  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict || '{{District}}';
+  const mandal = displayValue(officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal);
+  const district = displayValue(officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict);
   
   // Text segments with different font styles
   const segments = [
@@ -617,8 +617,8 @@ function drawSignature(cursor: PdfCursor, _officerDetails?: OfficerDetails) {
 function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, metadata?: PesticideCoveringLetterMetadata) {
   const { doc } = cursor;
   
-  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict || '';
-  const division = metadata?.division || district;
+  const district = displayValue(officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict);
+  const division = displayValue(metadata?.division);
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
@@ -673,5 +673,9 @@ function formatDate(dateStr: string): string {
   const date = new Date(`${dateStr}T00:00:00`);
   if (Number.isNaN(date.getTime())) return dateStr;
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function displayValue(value?: string | null): string {
+  return value?.trim() ? value : '.............................';
 }
 

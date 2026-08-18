@@ -350,7 +350,7 @@ export function FileDirectory() {
                   <div className="flex min-w-0 flex-1 items-center gap-2">
                     <FileTypeIcon fileName={file.title} fileType={file.fileType} fileUrl={file.fileUrl} size="sm" />
                     <div className="min-w-0">
-                      <p className="truncate font-bold text-slate-900 dark:text-white">{file.title}</p>
+                      <p className="truncate text-slate-900 dark:text-white">{file.title}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         {file.folder}
                         {file.subfolder ? ` / ${file.subfolder}` : ''} ·{' '}

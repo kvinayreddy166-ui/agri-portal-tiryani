@@ -609,7 +609,7 @@ export function Login() {
                       <td className="px-2.5 py-2 align-middle">
                         <div className="flex w-full min-w-0 items-center gap-2 text-left">
                           <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                          <span className="block min-w-0 truncate text-sm font-bold text-slate-950 sm:text-base">{form.label || form.title}</span>
+                          <span className="block min-w-0 truncate text-sm text-slate-950 sm:text-base">{form.label || form.title}</span>
                         </div>
                       </td>
                       <td className="px-2.5 py-2 align-middle">
@@ -726,7 +726,7 @@ export function Login() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-[10px] font-black uppercase tracking-widest text-green-600/80">Seed sampling</p>
-                        <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 sm:text-lg">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
+                        <h2 className="max-w-full whitespace-normal text-base leading-tight text-slate-900 sm:text-lg">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
                       </div>
                     </div>
                     <button

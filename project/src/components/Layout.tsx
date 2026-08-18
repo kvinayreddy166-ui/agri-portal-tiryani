@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useState, ReactNode, useEffect } from 'react';
 import {
-  ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, BrainCircuit, FileStack,
+  ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, FileText,
 } from 'lucide-react';
@@ -23,11 +23,6 @@ const adminMenuItems = [
   { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck },
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
   { id: 'farmer-database', label: 'Farmer Database', icon: Database },
-  {
-    id: 'crops',
-    label: 'Crop Intelligence',
-    icon: BrainCircuit,
-  },
   { id: 'officer-toolkit', label: 'Officer Toolkit', icon: FileStack },
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
   { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
@@ -303,7 +298,7 @@ function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: str
   const sections = [
     { title: t('Overview', 'అవలోకనం'), ids: ['dashboard', 'stock-analytics', 'analytics'] },
     { title: t('Field Operations', 'ఫీల్డ్ ఆపరేషన్స్'), ids: ['dealers', 'farmer-database', 'subsidy', 'farm-mechanization', 'quality'] },
-    { title: t('Knowledge', 'జ్ఞానం'), ids: ['crops', 'officer-toolkit', 'gos-circulars'] },
+    { title: t('Knowledge', 'జ్ఞానం'), ids: ['officer-toolkit', 'gos-circulars'] },
     { title: t('Records', 'రికార్డులు'), ids: ['file-directory', 'excel', 'settings'] },
   ];
 
@@ -329,14 +324,6 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
   const toolkit = { label: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), page: 'officer-toolkit' };
   const farmCalculators = { label: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), page: 'farm-calculators' };
 
-  if (page.startsWith('crop-')) {
-    const title = page === 'crop-admin' ? t('Crop Admin', 'పంట అడ్మిన్') : cropTitle(page);
-    return {
-      title,
-      breadcrumbs: [dashboard, { label: t('Crop Intelligence', 'పంట ఇంటెలిజెన్స్'), page: 'crops' }],
-    };
-  }
-
   if (page.startsWith('quality-')) {
     const title = qualityTitle(page);
     return {
@@ -359,7 +346,6 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'dealer-portal': { title: t('Stock Analytics', 'స్టాక్ విశ్లేషణలు'), breadcrumbs: [dashboard] },
     dealers: { title: t('Dealers Directory', 'డీలర్ల డైరెక్టరీ'), breadcrumbs: [dashboard] },
     'farmer-database': { title: t('Farmer Database', 'రైతుల డేటాబేస్'), breadcrumbs: [dashboard] },
-    crops: { title: t('Crop Intelligence', 'పంట ఇంటెలిజెన్స్'), breadcrumbs: [dashboard] },
     'officer-toolkit': { title: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), breadcrumbs: [dashboard] },
     forms: { title: t('Statutory Forms', 'చట్టబద్ధ ఫారాలు'), breadcrumbs: [dashboard, toolkit] },
     'acreage-calculator': { title: t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit] },
@@ -422,8 +408,6 @@ function translateMenu(label: string) {
     'Dealers Directory': 'డీలర్ల డైరెక్టరీ',
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
     'Farmer Database': 'రైతుల డేటాబేస్',
-    'Crop Intelligence': 'పంట ఇంటెలిజెన్స్',
-    'Crop Admin': 'పంట అడ్మిన్',
     'Officer Toolkit': 'ఆఫీసర్ టూల్‌కిట్',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
     'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
@@ -446,11 +430,6 @@ function translateMenu(label: string) {
     Fertilizers: 'ఎరువులు',
     Analytics: 'విశ్లేషణలు',
     Settings: 'సెట్టింగులు',
-    Cotton: 'పత్తి',
-    Paddy: 'వరి',
-    Maize: 'మొక్కజొన్న',
-    Pulses: 'పప్పుధాన్యాలు',
-    Oilseeds: 'నూనె గింజలు',
   };
   return labels[label] ?? label;
 }

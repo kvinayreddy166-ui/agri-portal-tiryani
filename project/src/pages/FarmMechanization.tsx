@@ -195,7 +195,7 @@ export function FarmMechanization() {
                   <div className="flex min-w-0 items-center gap-2">
                     <FileTypeIcon fileName={document.file_name || document.title} fileUrl={document.file_url} size="sm" />
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-black text-gray-950">{document.title}</p>
+                      <p className="truncate text-sm text-gray-950">{document.title}</p>
                       <p className="truncate text-xs text-gray-500">{document.file_name}</p>
                     </div>
                   </div>

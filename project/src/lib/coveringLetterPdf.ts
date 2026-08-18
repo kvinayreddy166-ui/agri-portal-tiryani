@@ -1,5 +1,6 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
+import { addGovernmentEmblemWatermark } from './pdfWatermark';
 
 type CoveringLetterQueueItem = {
   sampleCode: string;
@@ -72,18 +73,18 @@ export async function generateCoveringLetterPdf(
   queue: CoveringLetterQueueItem[],
   metadata: CoveringLetterMetadata,
   officerDetails?: OfficerDetails,
-  letterType: LetterType = 'quality-analysis'
+  letterType: LetterType = 'quality-analysis',
+  watermarkEnabled: boolean = false
 ) {
   const { jsPDF } = await import('jspdf');
-  
+
   // Use metadata as-is - increment is handled by the modal component
   const updatedMetadata = metadata;
-  
+
   const doc = createDocument(jsPDF, 'Covering Letter - Fertilizer Samples');
-  
-  // Add watermark to the page
+
   await drawWatermark(doc);
-  
+
   // Set bottom margin based on letter type
   const currentMarginBottom = letterType === 'safe-custody' ? 1 : 1; // 1 unit for both letters
   
@@ -154,7 +155,6 @@ export async function generateCoveringLetterPdf(
     doc.setFontSize(10);
     doc.text('(Cont\'d....)', PAGE.width - PAGE.marginRight, PAGE.height - currentMarginBottom - 2, { align: 'right' });
     doc.addPage();
-    // Add watermark to new page
     await drawWatermark(doc);
     cursor.y = 35; // 3.5 cm upper margin for second page
   }
@@ -404,8 +404,8 @@ function drawLetterDetails(cursor: PdfCursor, metadata: CoveringLetterMetadata) 
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
   
-  const letterNumber = metadata.letterNumber || '_________';
-  const dateText = formatDate(metadata.letterDate) || '_________';
+  const letterNumber = displayValue(metadata.letterNumber);
+  const dateText = displayValue(formatDate(metadata.letterDate));
   
   const letterText = `Lr. No. ${letterNumber}    Dt. ${dateText}`;
   doc.text(letterText, PAGE.width / 2, cursor.y, { align: 'center' });
@@ -461,8 +461,8 @@ function drawReference(cursor: PdfCursor, metadata: CoveringLetterMetadata, offi
   doc.text(ref1, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
   
-  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict || '';
-  const ref2Text = `2. DAO ${district} Memo No. ${metadata.daoMemoNumber || '_________'}, Dt. ${formatDate(metadata.daoMemoDate) || '_________'}.`;
+  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict;
+  const ref2Text = `2. DAO ${displayValue(district)} Memo No. ${displayValue(metadata.daoMemoNumber)}, Dt. ${displayValue(formatDate(metadata.daoMemoDate))}.`;
   
   doc.setFont(PDF_FONT, 'normal');
   doc.text(ref2Text, PAGE.marginLeft + 5, cursor.y);
@@ -486,8 +486,8 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType
   doc.setFontSize(FONT_SIZES.body);
   doc.setLineHeightFactor(LINE_HEIGHTS.body);
   
-  const mandal = officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal || '{{Mandal}}';
-  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict || '{{District}}';
+  const mandal = displayValue(officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal);
+  const district = displayValue(officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict);
   
   // Text segments with different font styles
   const segments = letterType === 'safe-custody'
@@ -668,8 +668,8 @@ function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
 function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, metadata?: CoveringLetterMetadata) {
   const { doc } = cursor;
   
-  const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict || '';
-  const division = metadata?.division || district;
+  const district = displayValue(officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict);
+  const division = displayValue(metadata?.division);
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
@@ -713,5 +713,9 @@ function formatDate(dateStr: string): string {
   const date = new Date(`${dateStr}T00:00:00`);
   if (Number.isNaN(date.getTime())) return dateStr;
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function displayValue(value?: string | null): string {
+  return value?.trim() ? value : '.............................';
 }
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Download, Eye, FileText, X, Loader2, Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, Eye, FileText, Loader2, Plus, RotateCcw, Trash2, X } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 const COVERING_LETTER_DETAILS_KEY = 'tiryani-covering-letter-details';
@@ -109,6 +110,25 @@ function incrementSerialNumber(letterNumber: string): string {
 }
 
 export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, dealerDetails, onMetadataChange }: CoveringLetterModalProps) {
+  const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem('tiryani-watermark-enabled');
+      return stored === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'tiryani-watermark-enabled') {
+        setWatermarkEnabled(e.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const [queue, setQueue] = useState<CoveringLetterQueueItem[]>([]);
   const [editedQueue, setEditedQueue] = useState<CoveringLetterQueueItem[]>([]);
   const [metadata, setMetadata] = useState<CoveringLetterMetadata>({
@@ -332,7 +352,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
         : metadata;
       
       console.log('Generating covering letter with:', { editedQueue, metadata: metadataForPdf, officerDetails, letterType });
-      const doc = await generateCoveringLetterPdf(editedQueue, metadataForPdf, officerDetails, letterType);
+      const doc = await generateCoveringLetterPdf(editedQueue, metadataForPdf, officerDetails, letterType, watermarkEnabled);
       
       if (!doc) {
         setMessage('Failed to generate Covering Letter. Please try again.');
@@ -382,7 +402,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
         : metadata;
       
       console.log('Generating covering letter with:', { editedQueue, metadata: metadataForPdf, officerDetails, letterType });
-      const doc = await generateCoveringLetterPdf(editedQueue, metadataForPdf, officerDetails, letterType);
+      const doc = await generateCoveringLetterPdf(editedQueue, metadataForPdf, officerDetails, letterType, watermarkEnabled);
       
       if (!doc) {
         setMessage('Failed to generate Covering Letter. Please try again.');

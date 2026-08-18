@@ -1,5 +1,6 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import type { FertilizerFormEntry } from '../data/fertilizerForms';
+import { addGovernmentEmblemWatermark } from './pdfWatermark';
 
 export type FertilizerFormPdfValues = {
   officerName: string;
@@ -60,12 +61,15 @@ type PdfCursor = {
 
 export async function generateFertilizerFormPdf(
   form: FertilizerFormEntry,
-  values: FertilizerFormPdfValues
+  values: FertilizerFormPdfValues,
+  watermarkEnabled: boolean = false
 ) {
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, `${form.formNo} - ${form.title}`);
   
-  await drawWatermark(doc);
+  if (watermarkEnabled) {
+    await drawWatermark(doc);
+  }
   drawFormHeader(doc, form);
   drawFormContent(doc, form, values);
   

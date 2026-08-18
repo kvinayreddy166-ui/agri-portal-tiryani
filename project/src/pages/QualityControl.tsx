@@ -326,7 +326,7 @@ export function QualityControl({ category }: QualityControlProps) {
                       />
                     )}
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-black text-gray-950">{sample.dealer_name}</p>
+                      <p className="truncate text-sm text-gray-950">{sample.dealer_name}</p>
                       <p className="truncate text-xs text-gray-500">License: {sample.license_number}</p>
                     </div>
                   </div>

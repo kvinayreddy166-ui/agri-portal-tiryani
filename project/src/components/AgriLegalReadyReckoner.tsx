@@ -1546,7 +1546,7 @@ function FertilizerFormsPanel({
                 <div className="flex min-w-0 items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.formNo} - {form.category}</p>
-                    <h3 className="mt-1 text-sm font-black leading-5 text-slate-950 dark:text-white">{form.title}</h3>
+                    <h3 className="mt-1 text-sm leading-5 text-slate-950 dark:text-white">{form.title}</h3>
                   </div>
                   <span className="max-w-[7rem] shrink-0 rounded-lg bg-amber-100 px-2 py-1 text-center text-[10px] font-black leading-3 text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:ring-amber-900">{form.clause || 'PDF'}</span>
                 </div>

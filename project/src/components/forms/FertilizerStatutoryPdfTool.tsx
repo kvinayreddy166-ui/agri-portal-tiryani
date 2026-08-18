@@ -115,6 +115,7 @@ const fertilizerTypeGradeOptions = [
   { label: 'Ammonium Phosphate Sulphate (18-9-0)', value: 'Ammonium Phosphate Sulphate (18-9-0)' },
   { label: 'Ammonium Phosphate Sulphate (20-20-0-13)', value: 'Ammonium Phosphate Sulphate (20-20-0-13)' },
   { label: 'Ammonium Phosphate Sulphate Nitrate (20-20-0)', value: 'Ammonium Phosphate Sulphate Nitrate (20-20-0)' },
+  { label: 'Ammonium Sulphate (20.5:00:00:23)', value: 'Ammonium Sulphate (20.5:00:00:23)' },
   { label: 'Ammonium Sulphate (20.5% N, 23% S)', value: 'Ammonium Sulphate (20.5% N, 23% S)' },
   { label: 'Ammonium Sulphate (20.6% N, 23% S)', value: 'Ammonium Sulphate (20.6% N, 23% S)' },
   { label: 'Calcium Ammonium Nitrate (25% N)', value: 'Calcium Ammonium Nitrate (25% N)' },
@@ -307,7 +308,9 @@ const compositionFields: FieldConfig[] = [
   { key: 'compositionP_T', label: 'P(T) %', displayFlag: 'P_T' },
   { key: 'compositionP_WS', label: 'P(WS) %', displayFlag: 'P_WS' },
   { key: 'compositionP_available', label: 'P(available) %', displayFlag: 'P_available' },
+  { key: 'compositionP_available_as_P2O5', label: 'P(Available as P2O5) %', displayFlag: 'P_available_as_P2O5' },
   { key: 'compositionP_CS', label: 'P(CS) %', displayFlag: 'P_CS' },
+  { key: 'compositionP2O5', label: 'P2O5 %', displayFlag: 'P2O5' },
   { key: 'compositionP2O5_T', label: 'P2O5(T) %', displayFlag: 'P2O5_T' },
   { key: 'compositionP2O5_WS', label: 'P2O5(WS) %', displayFlag: 'P2O5_WS' },
   { key: 'compositionP2O5_CS', label: 'P2O5(CS) %', displayFlag: 'P2O5_CS' },
@@ -409,6 +412,41 @@ function reorderMicroNutrientCheckboxesToTop(fields: FieldConfig[]): FieldConfig
   return checkboxField ? [checkboxField, ...otherFields] : fields;
 }
 
+function reorderCompositionFieldsBySelectionOrder(fields: FieldConfig[], compositionDisplayFlags: string): FieldConfig[] {
+  const selectedFlags = compositionDisplayFlags.split(',').map(f => f.trim()).filter(Boolean);
+  
+  if (selectedFlags.length === 0) {
+    return fields;
+  }
+
+  const fieldMap = new Map(fields.map(f => [f.key as string, f]));
+  const orderedFields: FieldConfig[] = [];
+  const remainingFields: FieldConfig[] = [];
+
+  // Add checkbox field first
+  const checkboxField = fieldMap.get('compositionDisplayFlags');
+  if (checkboxField) {
+    orderedFields.push(checkboxField);
+  }
+
+  // Add composition fields in user's selection order
+  for (const flag of selectedFlags) {
+    const field = compositionFields.find(f => f.displayFlag === flag);
+    if (field) {
+      orderedFields.push(field);
+    }
+  }
+
+  // Add any remaining fields (non-composition or unselected composition fields)
+  for (const field of fields) {
+    if (!orderedFields.includes(field)) {
+      remainingFields.push(field);
+    }
+  }
+
+  return [...orderedFields, ...remainingFields];
+}
+
 const microNutrientCheckboxOptions = [
   { key: 'Zn', label: 'Zn' },
   { key: 'Cu', label: 'Cu' },
@@ -470,6 +508,7 @@ const compositionDisplayOptions = [
   { key: 'P_WS', label: 'P(WS)', group: 'P' },
   { key: 'P_available', label: 'P(available)', group: 'P' },
   { key: 'P_CS', label: 'P(CS)', group: 'P' },
+  { key: 'P2O5', label: 'P2O5', group: 'P2O5' },
   { key: 'P2O5_T', label: 'P2O5(T)', group: 'P2O5' },
   { key: 'P2O5_WS', label: 'P2O5(WS)', group: 'P2O5' },
   { key: 'P2O5_CS', label: 'P2O5(CS)', group: 'P2O5' },
@@ -545,6 +584,25 @@ const fertilizerFieldSections: SectionConfig[] = [
 ];
 
 export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void }) {
+  const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem('tiryani-watermark-enabled');
+      return stored === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'tiryani-watermark-enabled') {
+        setWatermarkEnabled(e.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   console.log('FertilizerStatutoryPdfTool mounted, showCoveringLetter:', import.meta.env.DEV);
   const [error, setError] = useState<string | null>(null);
   const [formType, setFormType] = useState<FertilizerStatutoryFormType>('J');
@@ -561,8 +619,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       console.log('Loading initial values');
       const saved = window.localStorage.getItem(STORAGE_KEY);
       const loaded = saved ? { ...initialFertilizerPdfValues, ...JSON.parse(saved) } : initialFertilizerPdfValues;
-      // Always ensure default compositionDisplayFlags for new form
-      loaded.compositionDisplayFlags = 'N,P_T,P_CS,K';
+      // Only reset compositionDisplayFlags to empty for new forms (no saved data)
+      if (!saved) {
+        loaded.compositionDisplayFlags = '';
+      }
       return normalizeFertilizerValues(loaded);
     } catch (error) {
       console.error('Error loading saved values:', error);
@@ -727,6 +787,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         next.compositionP_T = '';
         next.compositionP_WS = '';
         next.compositionP_available = '';
+        next.compositionP_available_as_P2O5 = '';
         next.compositionP_CS = '';
         next.compositionP2O5_T = '';
         next.compositionP2O5_WS = '';
@@ -925,7 +986,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setBusyAction('preview');
     setPreviewError(null);
     try {
-      const doc = await generateFertilizerStatutoryPdf(type, values);
+      const doc = await generateFertilizerStatutoryPdf(type, values, watermarkEnabled);
       openFertilizerDocInTab(doc, getFertilizerPdfFileName(type, values), targetWindow);
       setFormType(type);
       showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
@@ -948,7 +1009,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setBusyAction('preview');
     setPreviewError(null);
     try {
-      const doc = await generateAllFertilizerStatutoryPdf(values);
+      const doc = await generateAllFertilizerStatutoryPdf(values, watermarkEnabled);
       openFertilizerDocInTab(doc, getAllFertilizerPdfFileName(values), targetWindow);
       showInfo('Preview Opened', 'All forms preview opened in a new tab.', 4000);
     } catch (error) {
@@ -969,7 +1030,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setBusyAction('download');
     setPreviewError(null);
     try {
-      const doc = await generateFertilizerStatutoryPdf(type, values);
+      const doc = await generateFertilizerStatutoryPdf(type, values, watermarkEnabled);
       const fileName = getFertilizerPdfFileName(type, values);
       downloadFertilizerDoc(doc, fileName);
       setFormType(type);
@@ -991,7 +1052,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     setBusyAction('downloadAll');
     setPreviewError(null);
     try {
-      const doc = await generateAllFertilizerStatutoryPdf(values);
+      const doc = await generateAllFertilizerStatutoryPdf(values, watermarkEnabled);
       const fileName = getAllFertilizerPdfFileName(values);
       downloadFertilizerDoc(doc, fileName);
       showSuccess('All Forms PDF Downloaded Successfully', fileName, 4000);
@@ -1117,7 +1178,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const resetComposition = () => {
     setValues(prev => ({
       ...prev,
-      compositionDisplayFlags: 'N,P_T,P_CS,K',
+      compositionDisplayFlags: '',
       composition: '',
       compositionN: '',
       compositionN_T: '',
@@ -1125,7 +1186,9 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       compositionP_T: '',
       compositionP_WS: '',
       compositionP_available: '',
+      compositionP_available_as_P2O5: '',
       compositionP_CS: '',
+      compositionP2O5: '',
       compositionP2O5_T: '',
       compositionP2O5_WS: '',
       compositionP2O5_CS: '',
@@ -1307,10 +1370,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                     isCollapsed={collapsedSections.has(section.title)}
                     onToggle={() => toggleSection(section.title)}
                   >
-                    {(section.title === 'COMPOSITION' && values.fertilizerCategory === 'Micro Nutrient Fertilizers'
-                      ? (values.microNutrientTypeGrade && values.microNutrientTypeGrade !== 'Other'
-                        ? reorderMicroNutrientFields(section.fields, values.microNutrientTypeGrade)
-                        : reorderMicroNutrientCheckboxesToTop(section.fields))
+                    {(section.title === 'COMPOSITION'
+                      ? (values.fertilizerCategory === 'Micro Nutrient Fertilizers'
+                          ? (values.microNutrientTypeGrade && values.microNutrientTypeGrade !== 'Other'
+                              ? reorderMicroNutrientFields(section.fields, values.microNutrientTypeGrade)
+                              : reorderMicroNutrientCheckboxesToTop(section.fields))
+                          : (values.fertilizerCategory === 'Macro Nutrient Fertilizers'
+                              ? reorderCompositionFieldsBySelectionOrder(section.fields, values.compositionDisplayFlags)
+                              : section.fields))
                       : section.fields
                     ).map((field: FieldConfig) => {
                       // Hide place of collection field unless designation is ADA
@@ -1425,6 +1492,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                           compositionP_T: 'P_T',
                           compositionP_WS: 'P_WS',
                           compositionP_available: 'P_available',
+                          compositionP_available_as_P2O5: 'P_available_as_P2O5',
                           compositionP_CS: 'P_CS',
                           compositionP2O5_T: 'P2O5_T',
                           compositionP2O5_WS: 'P2O5_WS',
@@ -1681,7 +1749,7 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   
   // Ensure compositionDisplayFlags has default value if missing
   if (!normalized.compositionDisplayFlags) {
-    normalized.compositionDisplayFlags = 'N,P_WS,P_CS,K';
+    normalized.compositionDisplayFlags = '';
   }
   // Ensure new fields have default values for backward compatibility
   if (!normalized.qualification) {
@@ -2051,10 +2119,38 @@ function PdfInput({
     ? [...options, { label: 'Others', value: 'Others' }]
     : (options || field.options || []);
 
+  // Check if composition field should be disabled based on checkbox state
+  const isCompositionFieldDisabled = field.displayFlag && (() => {
+    // Determine which checkbox string to check
+    let checkboxString = '';
+    if (values.fertilizerCategory === 'Micro Nutrient Fertilizers') {
+      checkboxString = values.microNutrientCheckboxes;
+    } else if (values.fertilizerCategory === 'Water Soluble Fertilizers') {
+      checkboxString = values.waterSolubleCheckboxes;
+    } else {
+      checkboxString = values.compositionDisplayFlags;
+    }
+    
+    const selectedFlags = checkboxString.split(',').map(f => f.trim());
+    return !selectedFlags.includes(field.displayFlag);
+  })();
+
   const inputElement = field.type === 'textarea' ? (
-    <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} placeholder={field.placeholder} className={commonClass} />
+    <textarea 
+      value={value} 
+      onChange={(event) => onChange(event.target.value)} 
+      rows={2} 
+      placeholder={field.placeholder} 
+      className={commonClass}
+      disabled={isCompositionFieldDisabled}
+    />
   ) : field.type === 'select' ? (
-    <select value={value} onChange={(event) => onChange(event.target.value)} className={commonClass}>
+    <select 
+      value={value} 
+      onChange={(event) => onChange(event.target.value)} 
+      className={commonClass}
+      disabled={isCompositionFieldDisabled}
+    >
       <option value="">Select...</option>
       {selectOptions.map((option) => (
         <option key={option.value} value={option.value}>
@@ -2069,6 +2165,7 @@ function PdfInput({
       onChange={(event) => onChange(event.target.value)}
       placeholder={field.placeholder}
       className={commonClass}
+      disabled={isCompositionFieldDisabled}
     />
   );
 

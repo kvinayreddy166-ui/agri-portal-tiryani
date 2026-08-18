@@ -32,7 +32,7 @@ export function DocumentCard({
       <article className="portal-card group flex items-center gap-3 p-3 transition hover:-translate-y-0.5 hover:shadow-md">
         <FileTypeIcon fileName={title} fileType={fileType} fileUrl={fileUrl} size="md" />
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-sm font-black text-slate-950 dark:text-white">{title}</h3>
+          <h3 className="truncate text-sm text-slate-950 dark:text-white">{title}</h3>
           {meta && <p className="truncate text-xs text-slate-500 dark:text-slate-400">{meta}</p>}
           {description && (
             <p className="mt-0.5 line-clamp-1 text-xs text-slate-600 dark:text-slate-400">{description}</p>

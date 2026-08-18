@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Download, Eye, FileText, X, Loader2, Trash2, RotateCcw } from 'lucide-react';
+import { Download, Eye, FileText, Loader2, Plus, RotateCcw, Trash2, X } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 import { isCombinationProductFromActiveIngredient } from '../../lib/statutoryPesticidePdf';
 
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
@@ -65,6 +66,25 @@ const financialYears = [
 ];
 
 export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, onMetadataChange }: PesticideCoveringLetterModalProps) {
+  const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem('tiryani-watermark-enabled');
+      return stored === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'tiryani-watermark-enabled') {
+        setWatermarkEnabled(e.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const [editedQueue, setEditedQueue] = useState<PesticideCoveringLetterQueueItem[]>([]);
   const [editingTechnicalNames, setEditingTechnicalNames] = useState<Record<number, string>>({});
   const [metadata, setMetadata] = useState<PesticideCoveringLetterMetadata>({
@@ -102,7 +122,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     if (onMetadataChange) {
       onMetadataChange(metadata);
     }
-  }, [metadata, onMetadataChange]);
+  }, [metadata]);
 
   // Load Covering Letter Details from localStorage when modal opens (if not provided via props)
   useEffect(() => {
@@ -304,7 +324,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     
     try {
       const { generatePesticideCoveringLetterPdf } = await import('../../lib/pesticideCoveringLetterPdf');
-      const doc = await generatePesticideCoveringLetterPdf(editedQueue, metadata, officerDetails);
+      const doc = await generatePesticideCoveringLetterPdf(editedQueue, metadata, officerDetails, watermarkEnabled);
       
       if (isMobile) {
         const pdfBlob = doc.output('blob');
@@ -341,7 +361,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     
     try {
       const { generatePesticideCoveringLetterPdf } = await import('../../lib/pesticideCoveringLetterPdf');
-      const doc = await generatePesticideCoveringLetterPdf(editedQueue, metadata, officerDetails);
+      const doc = await generatePesticideCoveringLetterPdf(editedQueue, metadata, officerDetails, watermarkEnabled);
       
       const fileName = `Pesticide_Covering_Letter_${metadata.letterNumber || 'Draft'}.pdf`;
       doc.save(fileName);

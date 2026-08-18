@@ -151,6 +151,25 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
 ];
 
 export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) {
+  const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem('tiryani-watermark-enabled');
+      return stored === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'tiryani-watermark-enabled') {
+        setWatermarkEnabled(e.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const [showCoveringLetterModal, setShowCoveringLetterModal] = useState(false);
   const [values, setValues] = useState<PesticidePdfValues>(() => {
     try {
@@ -426,7 +445,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     const targetWindow = openBlankPdfTab();
     setBusy(true);
     try {
-      const doc = await generatePesticideStatutoryPdf(formType, values);
+      const doc = await generatePesticideStatutoryPdf(formType, values, watermarkEnabled);
       openDocInTab(doc, getPesticidePdfFileName(formType, values), targetWindow);
       showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
     } catch (error) {
@@ -446,7 +465,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     // Validation removed - users can download PDFs even with empty fields
     setBusy(true);
     try {
-      const doc = await generatePesticideStatutoryPdf(formType, values);
+      const doc = await generatePesticideStatutoryPdf(formType, values, watermarkEnabled);
       const fileName = getPesticidePdfFileName(formType, values);
       downloadDoc(doc, fileName);
       showSuccess('PDF Downloaded Successfully', fileName, 4000);
@@ -467,7 +486,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     const targetWindow = openBlankPdfTab();
     setBusy(true);
     try {
-      const doc = await generateAllPesticideStatutoryPdf(values);
+      const doc = await generateAllPesticideStatutoryPdf(values, watermarkEnabled);
       openDocInTab(doc, getAllPesticidePdfFileName(values), targetWindow);
       showInfo('All Forms Previewed', 'All pesticide forms preview opened in a new tab.', 4000);
     } catch (error) {
@@ -487,7 +506,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     // Validation removed - users can download PDFs even with empty fields
     setBusy(true);
     try {
-      const doc = await generateAllPesticideStatutoryPdf(values);
+      const doc = await generateAllPesticideStatutoryPdf(values, watermarkEnabled);
       const fileName = getAllPesticidePdfFileName(values);
       downloadDoc(doc, fileName);
       showSuccess('All Forms PDF Downloaded Successfully', fileName, 4000);

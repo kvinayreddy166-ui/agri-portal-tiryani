@@ -1,4 +1,5 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
+import { addGovernmentEmblemWatermark } from './pdfWatermark';
 
 export type FertilizerStatutoryFormType = 'J' | 'K_ADA' | 'K_JDA' | 'P';
 
@@ -31,7 +32,9 @@ export type FertilizerPdfValues = {
   compositionP_T: string;
   compositionP_WS: string;
   compositionP_available: string;
+  compositionP_available_as_P2O5: string;
   compositionP_CS: string;
+  compositionP2O5: string;
   compositionP2O5_T: string;
   compositionP2O5_WS: string;
   compositionP2O5_CS: string;
@@ -150,7 +153,9 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   compositionP_T: '',
   compositionP_WS: '',
   compositionP_available: '',
+  compositionP_available_as_P2O5: '',
   compositionP_CS: '',
+  compositionP2O5: '',
   compositionP2O5_T: '',
   compositionP2O5_WS: '',
   compositionP2O5_CS: '',
@@ -210,7 +215,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   officerName: '',
   designation: '',
   officeAddress: '',
-  compositionDisplayFlags: 'N,P_WS,P_CS,K',
+  compositionDisplayFlags: '',
   qualification: '',
   manualQualification: '',
   district: '',
@@ -282,13 +287,14 @@ type PdfCursor = {
 
 export async function generateFertilizerStatutoryPdf(
   formType: FertilizerStatutoryFormType,
-  values: FertilizerPdfValues
+  values: FertilizerPdfValues,
+  watermarkEnabled: boolean = false
 ) {
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, `${fertilizerFormTitles[formType]} - Fertilizer Sampling`);
-  
+
   await drawWatermark(doc);
-  
+
   if (formType === 'P') {
     drawForm(doc, 'P', values);
     doc.addPage();
@@ -297,11 +303,11 @@ export async function generateFertilizerStatutoryPdf(
   } else {
     drawForm(doc, formType, values);
   }
-  
+
   return doc;
 }
 
-export async function generateAllFertilizerStatutoryPdf(values: FertilizerPdfValues) {
+export async function generateAllFertilizerStatutoryPdf(values: FertilizerPdfValues, watermarkEnabled: boolean = false) {
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, 'FORM J K P - Fertilizer Sampling');
 
@@ -324,14 +330,15 @@ export async function generateAllFertilizerStatutoryPdf(values: FertilizerPdfVal
 
 export async function createFertilizerPdfBlobUrl(
   formType: FertilizerStatutoryFormType,
-  values: FertilizerPdfValues
+  values: FertilizerPdfValues,
+  watermarkEnabled: boolean = false
 ) {
-  const doc = await generateFertilizerStatutoryPdf(formType, values);
+  const doc = await generateFertilizerStatutoryPdf(formType, values, watermarkEnabled);
   return URL.createObjectURL(doc.output('blob'));
 }
 
-export async function createAllFertilizerPdfBlobUrl(values: FertilizerPdfValues) {
-  const doc = await generateAllFertilizerStatutoryPdf(values);
+export async function createAllFertilizerPdfBlobUrl(values: FertilizerPdfValues, watermarkEnabled: boolean = false) {
+  const doc = await generateAllFertilizerStatutoryPdf(values, watermarkEnabled);
   return URL.createObjectURL(doc.output('blob'));
 }
 
@@ -831,45 +838,13 @@ function formatComposition(values: FertilizerPdfValues) {
       'Cd': { label: 'Cd', value: values.compositionCd },
     };
 
-    // Order nutrients based on composition map order for selected fertilizer
-    const nutrientOrder: string[] = [];
-    if (values.waterSolubleTypeGrade && values.waterSolubleTypeGrade !== 'Other') {
-      const compositionOrderMap: Record<string, string[]> = {
-        'Calcium Nitrate (N 15.5%, Ca 18.8%)': ['N', 'P_WS', 'K', 'Ca'],
-        'Mono Ammonium Phosphate (12:61:0)': ['N', 'P_WS', 'K'],
-        'Mono Potassium Phosphate (0:52:34)': ['N', 'P_WS', 'K'],
-        'NPK 12:30:15': ['N', 'P_WS', 'K'],
-        'NPK 12:32:14': ['N', 'P_WS', 'K'],
-        'NPK 13:5:26': ['N', 'P_WS', 'K'],
-        'NPK 13:40:13': ['N', 'P_WS', 'K'],
-        'NPK 18:18:18': ['N', 'P_WS', 'K'],
-        'NPK 19:19:19': ['N', 'P_WS', 'K'],
-        'NPK 20:20:20': ['N', 'P_WS', 'K'],
-        'NPK 6:12:36': ['N', 'P_WS', 'K'],
-        'NPK 7.6:23.5:7.6:3.5 (Zn)': ['N', 'P_WS', 'K', 'Zn'],
-        'Potassium Magnesium Sulphate (K2O 22%, MgO 18%, S 20%)': ['N', 'P_WS', 'K2O', 'MgO', 'S'],
-        'Potassium Nitrate (13:0:45)': ['N', 'P_WS', 'K'],
-        'Urea Phosphate (17:44:0)': ['N', 'P_WS', 'K'],
-        'Urea Phosphate with SOP (18:18:18)': ['N', 'P_WS', 'K'],
-      };
-      nutrientOrder.push(...(compositionOrderMap[values.waterSolubleTypeGrade] || []));
-    }
-    
-    // Add any checked nutrients not in the predefined order
-    for (const nutrient of checkedNutrients) {
-      if (!nutrientOrder.includes(nutrient)) {
-        nutrientOrder.push(nutrient);
-      }
-    }
-
+    // Use user selection order (checkedNutrients are in the order they were selected)
     const parts: string[] = [];
-    for (const nutrient of nutrientOrder) {
-      if (checkedNutrients.includes(nutrient)) {
-        const item = waterSolubleLabelMap[nutrient];
-        // Skip nutrients with 0% values for water soluble fertilizers
-        if (item && item.value && item.value !== '0%' && item.value !== '0') {
-          parts.push(`${item.label}: ${formatPercent(item.value)}`);
-        }
+    for (const nutrient of checkedNutrients) {
+      const item = waterSolubleLabelMap[nutrient];
+      // Skip nutrients with 0% values for water soluble fertilizers
+      if (item && item.value && item.value !== '0%' && item.value !== '0') {
+        parts.push(`${item.label}: ${formatPercent(item.value)}`);
       }
     }
 
@@ -900,44 +875,12 @@ function formatComposition(values: FertilizerPdfValues) {
       'Co': { label: 'Co', value: values.microCo },
     };
 
-    // Order nutrients based on composition map order for selected fertilizer
-    const nutrientOrder: string[] = [];
-    if (values.microNutrientTypeGrade && values.microNutrientTypeGrade !== 'Other') {
-      // Import the composition map from the form component
-      // For now, use a default order based on common fertilizer compositions
-      const compositionOrderMap: Record<string, string[]> = {
-        'Borax (Sodium Tetraborate) (B 10.5%)': ['B'],
-        'Boric Acid (B 17%)': ['B'],
-        'Di-Sodium Octa Borate Tetrahydrate (B 20%)': ['B'],
-        'Di-Sodium Tetra Borate Pentahydrate (B 14.5%)': ['B'],
-        'Di-Sodium Tetra Borate Pentahydrate (B 15%)': ['B'],
-        'Zinc Sulphate Heptahydrate (Zn 21%, S 10%)': ['Zn', 'S'],
-        'Zinc Sulphate Monohydrate (Zn 33%, S 15%)': ['Zn', 'S'],
-        'Magnesium Sulphate (Mg 9.5%, S 12%)': ['Mg', 'S'],
-        'Ferrous Sulphate (Fe 19%, S 10.5%)': ['Fe', 'S'],
-        'Copper Sulphate (Cu 24%, S 12%)': ['Cu', 'S'],
-        'Manganese Sulphate (Mn 30.5%, S 17%)': ['Mn', 'S'],
-        'Ammonium Molybdate (Mo 52%)': ['Mo'],
-        'Chelated Zinc as Zn-EDTA (Zn 12%)': ['Zn_EDTA'],
-        'Chelated Iron as Fe-EDTA (Fe 12%)': ['Fe_EDTA'],
-      };
-      nutrientOrder.push(...(compositionOrderMap[values.microNutrientTypeGrade] || []));
-    }
-    
-    // Add any checked nutrients not in the predefined order
-    for (const nutrient of checkedNutrients) {
-      if (!nutrientOrder.includes(nutrient)) {
-        nutrientOrder.push(nutrient);
-      }
-    }
-
+    // Use user selection order (checkedNutrients are in the order they were selected)
     const parts: string[] = [];
-    for (const nutrient of nutrientOrder) {
-      if (checkedNutrients.includes(nutrient)) {
-        const item = microLabelMap[nutrient];
-        if (item && item.value) {
-          parts.push(`${item.label}: ${formatPercent(item.value)}`);
-        }
+    for (const nutrient of checkedNutrients) {
+      const item = microLabelMap[nutrient];
+      if (item && item.value) {
+        parts.push(`${item.label}: ${formatPercent(item.value)}`);
       }
     }
 
@@ -951,22 +894,41 @@ function formatComposition(values: FertilizerPdfValues) {
   const labelMap: Record<string, { label: string; value: string }> = {
     'N': { label: 'N', value: values.compositionN },
     'N_T': { label: 'N(T)', value: values.compositionN_T },
+    'N_NO3': { label: 'N(NO3)', value: values.compositionN_NO3 },
+    'N_NH4': { label: 'N(NH4)', value: values.compositionN_NH4 },
+    'N_Urea': { label: 'N(Urea)', value: values.compositionN_Urea },
+    'P': { label: 'P', value: values.compositionP },
     'P_T': { label: 'P(T)', value: values.compositionP_T },
     'P_WS': { label: 'P(WS)', value: values.compositionP_WS },
     'P_available': { label: 'P(available)', value: values.compositionP_available },
-    'Zn': { label: 'Zn', value: values.compositionZn },
+    'P_available_as_P2O5': { label: 'P(Available as P2O5)', value: values.compositionP_available_as_P2O5 },
     'P_CS': { label: 'P(CS)', value: values.compositionP_CS },
+    'P2O5': { label: 'P2O5', value: values.compositionP2O5 },
     'P2O5_T': { label: 'P2O5(T)', value: values.compositionP2O5_T },
     'P2O5_WS': { label: 'P2O5(WS)', value: values.compositionP2O5_WS },
     'P2O5_CS': { label: 'P2O5(CS)', value: values.compositionP2O5_CS },
     'K': { label: 'K', value: values.compositionK },
     'K_T': { label: 'K(T)', value: values.compositionK_T },
+    'K_WS': { label: 'K(WS)', value: values.compositionK_WS },
+    'K_CS': { label: 'K(CS)', value: values.compositionK_CS },
     'K2O': { label: 'K2O', value: values.compositionK2O },
     'K2O_T': { label: 'K2O(T)', value: values.compositionK2O_T },
     'S': { label: 'S', value: values.compositionS },
     'Ca': { label: 'Ca', value: values.compositionCa },
+    'Mg': { label: 'Mg', value: values.compositionMg },
+    'MgO': { label: 'MgO', value: values.compositionMgO },
+    'Zn': { label: 'Zn', value: values.compositionZn },
+    'Fe': { label: 'Fe', value: values.compositionFe },
+    'Mn': { label: 'Mn', value: values.compositionMn },
+    'B': { label: 'B', value: values.compositionB },
+    'Cu': { label: 'Cu', value: values.compositionCu },
+    'Zn_EDTA': { label: 'Zn-EDTA', value: values.compositionZn_EDTA },
+    'Fe_EDTA': { label: 'Fe-EDTA', value: values.compositionFe_EDTA },
+    'Mo': { label: 'Mo', value: values.compositionMo },
+    'Cd': { label: 'Cd', value: values.compositionCd },
   };
 
+  // Use user selection order (displayFlags are in the order they were selected)
   const parts: string[] = [];
   for (const flag of displayFlags) {
     const item = labelMap[flag];

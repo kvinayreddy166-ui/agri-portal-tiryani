@@ -247,7 +247,7 @@ export function GosCirculars() {
                 key={doc.id}
                 className="group flex min-w-0 items-center gap-2 px-2 py-1.5 transition hover:bg-gray-50 dark:hover:bg-slate-800/50"
               >
-                <div className="min-w-0 flex-1 truncate text-sm font-black text-gray-950 dark:text-white">
+                <div className="min-w-0 flex-1 truncate text-sm text-gray-950 dark:text-white">
                   {doc.title}
                   {doc.issued_date && (
                     <span className="ml-2 text-xs font-semibold text-gray-500 dark:text-slate-400">
