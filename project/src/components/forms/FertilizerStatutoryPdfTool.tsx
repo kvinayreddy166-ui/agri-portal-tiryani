@@ -429,11 +429,15 @@ function reorderCompositionFieldsBySelectionOrder(fields: FieldConfig[], composi
     orderedFields.push(checkboxField);
   }
 
-  // Add composition fields in user's selection order (from the passed fields, not the global compositionFields)
+  // Add composition fields in user's selection order using global compositionFields as source
   for (const flag of selectedFlags) {
-    const field = fields.find(f => f.displayFlag === flag);
-    if (field) {
-      orderedFields.push(field);
+    const fieldFromGlobal = compositionFields.find(f => f.displayFlag === flag);
+    if (fieldFromGlobal) {
+      // Get the actual field from the passed fields array (to preserve any modifications)
+      const fieldFromPassed = fieldMap.get(fieldFromGlobal.key as string);
+      if (fieldFromPassed) {
+        orderedFields.push(fieldFromPassed);
+      }
     }
   }
 
@@ -443,13 +447,6 @@ function reorderCompositionFieldsBySelectionOrder(fields: FieldConfig[], composi
       remainingFields.push(field);
     }
   }
-
-  // Debug logging
-  console.log('Reorder composition fields:', {
-    selectedFlags,
-    orderedFieldKeys: orderedFields.map(f => f.key),
-    remainingFieldKeys: remainingFields.map(f => f.key)
-  });
 
   return [...orderedFields, ...remainingFields];
 }
