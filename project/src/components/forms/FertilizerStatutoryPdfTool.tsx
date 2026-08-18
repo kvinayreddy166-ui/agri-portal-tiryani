@@ -429,9 +429,9 @@ function reorderCompositionFieldsBySelectionOrder(fields: FieldConfig[], composi
     orderedFields.push(checkboxField);
   }
 
-  // Add composition fields in user's selection order
+  // Add composition fields in user's selection order (from the passed fields, not the global compositionFields)
   for (const flag of selectedFlags) {
-    const field = compositionFields.find(f => f.displayFlag === flag);
+    const field = fields.find(f => f.displayFlag === flag);
     if (field) {
       orderedFields.push(field);
     }
