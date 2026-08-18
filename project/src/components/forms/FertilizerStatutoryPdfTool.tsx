@@ -437,12 +437,19 @@ function reorderCompositionFieldsBySelectionOrder(fields: FieldConfig[], composi
     }
   }
 
-  // Add any remaining fields (non-composition or unselected composition fields)
+  // Add any remaining fields (non-composition or unselected composition fields) in their original order
   for (const field of fields) {
     if (!orderedFields.includes(field)) {
       remainingFields.push(field);
     }
   }
+
+  // Debug logging
+  console.log('Reorder composition fields:', {
+    selectedFlags,
+    orderedFieldKeys: orderedFields.map(f => f.key),
+    remainingFieldKeys: remainingFields.map(f => f.key)
+  });
 
   return [...orderedFields, ...remainingFields];
 }
