@@ -255,8 +255,8 @@ async function drawGovernmentHeader(cursor: PdfCursor) {
   const { doc } = cursor;
   
   // Add Telangana Government emblem to the left of the header text
-  const emblemWidth = 23.96; // Increased width by another 10% (21.78 * 1.1)
-  const emblemHeight = 15.97; // Increased height by another 10% (14.52 * 1.1)
+  const emblemWidth = 26.36;
+  const emblemHeight = 17.57;
   const horizontalGap = 1; // Reduced gap to move logo closer to text
   
   // Calculate text width for centering

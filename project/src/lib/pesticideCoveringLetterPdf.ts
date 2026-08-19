@@ -221,8 +221,8 @@ async function drawWatermark(doc: JsPdfInstance) {
 async function drawGovernmentHeader(cursor: PdfCursor) {
   const { doc } = cursor;
   
-  const emblemWidth = 23.96;
-  const emblemHeight = 15.97;
+  const emblemWidth = 26.36;
+  const emblemHeight = 17.57;
   const horizontalGap = 1;
   
   doc.setFont(PDF_FONT, 'bold');
