@@ -371,7 +371,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
 
             <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-3 sm:p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-black text-purple-700">COVERING LETTER DETAILS</h3>
+                <h3 className="text-sm font-black text-purple-700">LETTER DETAILS</h3>
                 <button
                   type="button"
                   onClick={() => {
@@ -511,8 +511,8 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                     <thead>
                       <tr className="border-b border-slate-200">
                         <th className="px-2 py-2 text-left font-bold text-slate-700 w-12 sm:w-12">S.No</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-40 sm:w-32">Crop</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-48 sm:w-40">Variety</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-56 sm:w-48">Crop</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-64 sm:w-56">Variety</th>
                         <th className="px-2 py-2 text-left font-bold text-slate-700 w-28 sm:w-28">Code No. of Sample</th>
                         <th className="px-2 py-2 text-left font-bold text-slate-700 w-20 sm:w-20">Quantity(gms)</th>
                         <th className="px-2 py-2 text-left font-bold text-slate-700 w-24 sm:w-24">Sampling Date</th>

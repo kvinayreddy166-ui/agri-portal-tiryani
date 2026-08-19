@@ -414,7 +414,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
 
             <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-3 sm:p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-black text-purple-700">COVERING LETTER DETAILS</h3>
+                <h3 className="text-sm font-black text-purple-700">LETTER DETAILS</h3>
                 <button
                   type="button"
                   onClick={() => {

@@ -102,7 +102,7 @@ export type FertilizerPdfValues = {
   manualDistrict: string;
   manualMandal: string;
   pinCode: string;
-  // Covering Letter Details
+  // LETTER DETAILS
   financialYear: string;
   letterNumber: string;
   letterDate: string;
@@ -223,7 +223,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   manualDistrict: '',
   manualMandal: '',
   pinCode: '',
-  // Covering Letter Details
+  // LETTER DETAILS
   financialYear: calculateFinancialYear(),
   letterNumber: '',
   letterDate: new Date().toISOString().slice(0, 10),
