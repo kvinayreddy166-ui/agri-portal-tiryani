@@ -507,7 +507,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
+                  <table className="w-full text-xs table-fixed">
                     <thead>
                       <tr className="border-b border-slate-200">
                         <th className="px-2 py-2 text-left font-bold text-slate-700 w-12">S.No</th>
