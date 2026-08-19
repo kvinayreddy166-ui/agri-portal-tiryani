@@ -511,8 +511,8 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                     <thead>
                       <tr className="border-b border-slate-200">
                         <th className="px-2 py-2 text-left font-bold text-slate-700 w-12">S.No</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-56">Crop</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-64">Variety</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-20">Crop</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-20">Variety</th>
                         <th className="px-2 py-2 text-left font-bold text-slate-700 w-28">Code No. of Sample</th>
                         <th className="px-2 py-2 text-left font-bold text-slate-700 w-20">Quantity(gms)</th>
                         <th className="px-2 py-2 text-left font-bold text-slate-700 w-24">Sampling Date</th>
