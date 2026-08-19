@@ -510,13 +510,13 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-slate-200">
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-12 sm:w-12">S.No</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-56 sm:w-48">Crop</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-64 sm:w-56">Variety</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-28 sm:w-28">Code No. of Sample</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-20 sm:w-20">Quantity(gms)</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-24 sm:w-24">Sampling Date</th>
-                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-16 sm:w-16">Actions</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-12">S.No</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-56">Crop</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-64">Variety</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-28">Code No. of Sample</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-20">Quantity(gms)</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-24">Sampling Date</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700 w-16">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
