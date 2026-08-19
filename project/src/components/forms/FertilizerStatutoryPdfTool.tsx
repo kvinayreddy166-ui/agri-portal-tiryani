@@ -511,6 +511,7 @@ const compositionDisplayOptions = [
   { key: 'P_T', label: 'P(T)', group: 'P' },
   { key: 'P_WS', label: 'P(WS)', group: 'P' },
   { key: 'P_available', label: 'P(available)', group: 'P' },
+  { key: 'P_available_as_P2O5', label: 'P(Available as P2O5)', group: 'P' },
   { key: 'P_CS', label: 'P(CS)', group: 'P' },
   { key: 'P2O5', label: 'P2O5', group: 'P2O5' },
   { key: 'P2O5_T', label: 'P2O5(T)', group: 'P2O5' },

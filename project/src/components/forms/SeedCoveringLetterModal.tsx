@@ -342,20 +342,20 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
       <div className="flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-green-100/50 bg-gradient-to-r from-green-50 via-white to-emerald-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-500/10">
-              <FileText className="h-5 w-5 text-green-600" />
+        <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-white px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg">
+              <FileText className="h-5 w-5" />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-green-700">Seed Sampling</p>
-              <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 sm:text-lg">Covering Letter</h2>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Covering Letter Generation</h2>
+              <p className="text-sm text-gray-600">Review and edit sample details before generating</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
           >
             <X className="h-4 w-4" />
           </button>

@@ -182,43 +182,91 @@ export function isCombinationProductFromActiveIngredient(activeIngredient: strin
   return concentrationCount > 1;
 }
 
+export function normalizeConcentration(concentration: string): string {
+  if (!concentration) return '';
+  
+  // Normalize concentration by removing spaces around % and between % and units
+  // Examples:
+  // "20 % w/w" → "20% w/w"
+  // "20% w/w" → "20% w/w"
+  // "20 %w/w" → "20% w/w"
+  // "20%w/w" → "20% w/w"
+  // "20 % W/W" → "20% W/W"
+  // "20% W/W" → "20% W/W"
+  // "20 w/w" → "20% w/w" (add missing %)
+  
+  let normalized = concentration.trim();
+  
+  // Step 1: Remove spaces around %: "20 %" → "20%", "% w/w" → "%w/w"
+  normalized = normalized.replace(/\s*%\s*/g, '%');
+  
+  // Step 2: Add space between % and units if missing: "20%w/w" → "20% w/w"
+  normalized = normalized.replace(/%(w\/w|w\/v|v\/v)/gi, '% $1');
+  
+  // Step 3: Add % before units if it's missing (e.g., "20 w/w" → "20% w/w")
+  // This must come after step 2 to avoid double-adding %
+  normalized = normalized.replace(/(\d+(?:\.\d+)?)\s+(w\/w|w\/v|v\/v)/gi, '$1% $2');
+  
+  return normalized;
+}
+
+export function normalizeActiveIngredientString(activeIngredient: string): string {
+  if (!activeIngredient) return '';
+  
+  // Normalize the entire active ingredient string to handle spaces around % and units
+  // This ensures that "Acephate 18 % w/w Imidacloprid 20 % w/v" becomes "Acephate 18% w/w Imidacloprid 20% w/v"
+  let normalized = activeIngredient.trim();
+  
+  // Step 1: Remove spaces around %: "20 %" → "20%", "% w/w" → "%w/w"
+  normalized = normalized.replace(/\s*%\s*/g, '%');
+  
+  // Step 2: Add space between % and units if missing: "20%w/w" → "20% w/w"
+  normalized = normalized.replace(/%(w\/w|w\/v|v\/v)/gi, '% $1');
+  
+  // Step 3: Add % before units if it's missing (e.g., "20 w/w" → "20% w/w")
+  // This must come after step 2 to avoid double-adding %
+  normalized = normalized.replace(/(\d+(?:\.\d+)?)\s+(w\/w|w\/v|v\/v)/gi, '$1% $2');
+  
+  return normalized;
+}
+
 export function parseCombinationActiveIngredient(activeIngredient: string): Array<{name: string, concentration: string}> {
   if (!activeIngredient) return [];
   
   const result: Array<{name: string, concentration: string}> = [];
-  const parts = activeIngredient.trim().split(/\s+/);
   
-  let currentName = '';
-  let currentConcentration = '';
+  // Pattern to match: "Name concentration" where concentration can be "18%", "18% w/w", "18% w/v", "18% v/v", "18 w/w", "18", etc.
+  // Split by looking for name followed by concentration pattern
+  // Concentration pattern: number (with optional decimal) + optional % + optional space + optional unit (w/w, w/v, v/v, etc.)
+  // This preserves the order as entered: % before units if entered that way
+  const concentrationPattern = /(\d+(?:\.\d+)?(?:%?\s*(?:w\/w|w\/v|v\/v)?))/gi;
   
-  parts.forEach(part => {
-    // Check if this is a concentration value
-    if (/^\d+(\.\d+)?%?$/.test(part)) {
-      currentConcentration = part;
-      if (currentName || currentConcentration) {
-        result.push({
-          name: currentName,
-          concentration: currentConcentration
-        });
-        currentName = '';
-        currentConcentration = '';
-      }
-    } else {
-      // This is a name part
-      if (currentName) {
-        currentName += ' ' + part;
-      } else {
-        currentName = part;
-      }
+  let lastIndex = 0;
+  let match;
+  
+  while ((match = concentrationPattern.exec(activeIngredient)) !== null) {
+    const concentration = match[1];
+    const name = activeIngredient.substring(lastIndex, match.index).trim();
+    
+    if (name || concentration) {
+      result.push({
+        name: name,
+        concentration: concentration.trim()
+      });
     }
-  });
+    
+    lastIndex = concentrationPattern.lastIndex;
+  }
   
-  // Handle trailing name without concentration
-  if (currentName) {
-    result.push({
-      name: currentName,
-      concentration: ''
-    });
+  // Handle any remaining text after the last concentration
+  if (lastIndex < activeIngredient.length) {
+    const remaining = activeIngredient.substring(lastIndex).trim();
+    if (remaining) {
+      result.push({
+        name: remaining,
+        concentration: ''
+      });
+    }
   }
   
   return result;
@@ -278,6 +326,14 @@ export function normalizeActiveIngredients(values: PesticidePdfValues): Pesticid
     normalized.activeIngredients = ingredientNames.map((name, index) => ({
       name: name.trim(),
       concentration: existingConcentrations[index]?.concentration || ''
+    }));
+  }
+  
+  // Normalize concentration values in activeIngredients array to handle spaces around % and units
+  if (normalized.activeIngredients && normalized.activeIngredients.length > 0) {
+    normalized.activeIngredients = normalized.activeIngredients.map(ingredient => ({
+      ...ingredient,
+      concentration: normalizeConcentration(ingredient.concentration || '')
     }));
   }
   
@@ -1062,7 +1118,9 @@ export function pesticideNameWithoutTrade(values: PesticidePdfValues) {
   if (isCombo) {
     // For combination products, build the display from the active ingredient field
     // which contains the name+concentration pairs (e.g., "Fipronil 18.5% Acephate 22%")
-    const parsed = parseCombinationActiveIngredient(values.activeIngredient);
+    // Normalize the entire active ingredient string before parsing to handle spaces around % and units
+    const normalizedActiveIngredient = normalizeActiveIngredientString(values.activeIngredient);
+    const parsed = parseCombinationActiveIngredient(normalizedActiveIngredient);
     const formulationType = values.formulationType === 'Others' 
       ? values.manualFormulationType?.trim() || ''
       : values.formulationType?.trim() || '';
@@ -1071,9 +1129,23 @@ export function pesticideNameWithoutTrade(values: PesticidePdfValues) {
     const parts = parsed.map(item => {
       const name = item.name?.trim() || '';
       const conc = item.concentration?.trim() || '';
-      // Add % if missing
-      const normalizedConc = conc && !conc.endsWith('%') ? `${conc}%` : conc;
-      return name && normalizedConc ? `${name} ${normalizedConc}` : (name || normalizedConc);
+      // Add % if missing, inserting it before w/w or w/v if present
+      let finalConc = conc;
+      if (conc && !conc.includes('%')) {
+        // Check if it has w/w or w/v at the end
+        const unitMatch = conc.match(/(w\/w|w\/v|v\/v)$/i);
+        if (unitMatch) {
+          // Insert % before the unit
+          const unit = unitMatch[1];
+          const baseConc = conc.substring(0, conc.length - unit.length).trim();
+          finalConc = `${baseConc}% ${unit}`;
+        } else {
+          // No unit, just add % at the end
+          finalConc = `${conc}%`;
+        }
+      }
+      const part = name && finalConc ? `${name} ${finalConc}` : (name || finalConc);
+      return part;
     }).filter(part => part && part.trim() !== '');
     
     const combinationDisplay = parts.join(' + ');
