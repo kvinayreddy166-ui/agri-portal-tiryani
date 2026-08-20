@@ -726,9 +726,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         const isADA = next.designation === 'Asst. Director of Agriculture';
         const locationLabel = isADA ? 'Division' : 'Mandal';
         const districtWithPinCode = next.pinCode ? `${resolvedDistrict} -${next.pinCode}` : resolvedDistrict;
-        const inspectorAddress = [officerNameWithQualification, next.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
+        const inspectorAddress = [officerNameWithQualification, 'Mandal Agriculture Officer / Fertilizer Inspector', resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
+        const fromAddress = [officerNameWithQualification, 'Mandal Agriculture Officer', resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
         next.inspectorNameAddress = inspectorAddress;
-        next.fromAddress = inspectorAddress;
+        next.fromAddress = fromAddress;
         next.forwardReportAddress = inspectorAddress;
       }
       if (key === 'district') {
@@ -1747,9 +1748,10 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
   const isADA = normalized.designation === 'Asst. Director of Agriculture';
   const locationLabel = isADA ? 'Division' : 'Mandal';
   const districtWithPinCode = normalized.pinCode ? `${resolvedDistrict} -${normalized.pinCode}` : resolvedDistrict;
-  const inspectorAddress = [officerNameWithQualification, normalized.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
+  const inspectorAddress = [officerNameWithQualification, 'Mandal Agriculture Officer / Fertilizer Inspector', resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
+  const fromAddress = [officerNameWithQualification, 'Mandal Agriculture Officer', resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
   normalized.inspectorNameAddress = inspectorAddress;
-  normalized.fromAddress = inspectorAddress;
+  normalized.fromAddress = fromAddress;
   normalized.forwardReportAddress = inspectorAddress;
   
   // Ensure compositionDisplayFlags has default value if missing

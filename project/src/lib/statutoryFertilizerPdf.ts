@@ -535,7 +535,7 @@ function drawFormK(cursor: PdfCursor, formType: 'K_ADA' | 'K_JDA', values: Ferti
   doc.setFont(PDF_FONT, 'normal');
 
   boldText(cursor, 'From:');
-  const formattedFromAddress = formatAddressWithCommas(values.inspectorNameAddress);
+  const formattedFromAddress = formatAddressWithCommas(values.fromAddress);
   addressBlock(cursor, formattedFromAddress, PAGE.marginX + 10, 4, true);
   cursor.y += 3;
 
@@ -551,7 +551,8 @@ function drawFormK(cursor: PdfCursor, formType: 'K_ADA' | 'K_JDA', values: Ferti
   cursor.y += 2;
 
   paragraph(cursor, '2) The analysis report may please be forwarded to the undersigned');
-  addressBlock(cursor, formattedFromAddress, PAGE.marginX + 10, 4);
+  const formattedForwardAddress = formatAddressWithCommas(values.inspectorNameAddress);
+  addressBlock(cursor, formattedForwardAddress, PAGE.marginX + 10, 4);
 
   drawPlaceDateAndInspectorSignature(cursor, values, { showPlaceDate: true });
 }

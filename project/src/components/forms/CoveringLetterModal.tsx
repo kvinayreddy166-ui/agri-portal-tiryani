@@ -72,8 +72,19 @@ const financialYears = [
 function incrementSerialNumber(letterNumber: string): string {
   if (!letterNumber) return letterNumber;
   
+  // Pattern 0: Alphanumeric serial at the beginning (e.g., "C1/MAO/TRN/FRT-QC/2026-27/01" to "C2/...")
+  const alphaStartMatch = letterNumber.match(/^([A-Za-z])(\d+)(\/.*)$/);
+  if (alphaStartMatch) {
+    const letter = alphaStartMatch[1];
+    const serial = alphaStartMatch[2];
+    const rest = alphaStartMatch[3];
+    const serialNum = parseInt(serial, 10);
+    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
+    return `${letter}${incremented}${rest}`;
+  }
+  
   // Pattern 1: Serial at the beginning (e.g., "001/MAO/TRN/FRT-QC/2026-27")
-  // Must be checked first to avoid matching as middle pattern
+  // Must be checked after alphanumeric pattern to avoid conflict
   const startMatch = letterNumber.match(/^(\d+)(\/.*)$/);
   if (startMatch) {
     const serial = startMatch[1];

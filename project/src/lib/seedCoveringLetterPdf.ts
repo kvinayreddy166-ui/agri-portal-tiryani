@@ -8,6 +8,7 @@ type SeedCoveringLetterQueueItem = {
   variety: string;
   quantity: string;
   dateOfSampling: string;
+  isCotton?: boolean;
 };
 
 type SeedCoveringLetterMetadata = {
@@ -110,7 +111,7 @@ export async function generateSeedCoveringLetterPdf(
   
   drawSeparator(cursor);
   
-  drawBody(cursor, officerDetails);
+  drawBody(cursor, officerDetails, queue);
   cursor.y += PARAGRAPH_SPACING;
   
   cursor.y -= 3;
@@ -138,7 +139,7 @@ export async function generateSeedCoveringLetterPdf(
   
   cursor.y -= 3;
   
-  drawEnclosures(cursor, queue.length);
+  drawEnclosures(cursor, queue.length, queue);
   cursor.y += PARAGRAPH_SPACING;
   
   drawSignature(cursor);
@@ -387,7 +388,7 @@ function drawSubject(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata) {
   doc.text('Sub:', PAGE.marginLeft, cursor.y);
   
   doc.setFont(PDF_FONT, 'normal');
-  const subject = `Seed Act 1966 – Seed (Control) Order 1983 – Quality Control – 2026-27– Submission of Seed samples drawn - Request for Quality analysis – Reg.`;
+  const subject = `Seed Act 1966 – Seed (Control) Order 1983 – EP Act – 1986 –Quality Control – 2026-27– Submission of Seed samples drawn - Request for Quality analysis – Reg.`;
   const subjectX = PAGE.marginLeft + doc.getTextWidth('Sub: ');
   const availableWidth = PAGE.contentWidth - doc.getTextWidth('Sub: ');
   
@@ -428,7 +429,7 @@ function drawSeparator(cursor: PdfCursor) {
   cursor.y += LINE_HEIGHT + 2;
 }
 
-function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails) {
+function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, queue?: SeedCoveringLetterQueueItem[]) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'normal');
@@ -438,14 +439,19 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   const mandal = displayValue(officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal);
   const district = displayValue(officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict);
   
+  // Check if this is a cotton covering letter (all samples are cotton)
+  const isCottonLetter = queue && queue.length > 0 && queue.every(item => item.isCotton);
+  
   // Text segments with different font styles
+  const testParameter = isCottonLetter ? 'BT Protein Quantification' : 'Purity, Moisture & Germination';
+  
   const segments = [
     { text: 'In continuation to the subject cited above, I am herewith submitting the seed samples drawn from the input dealer premises in ', bold: false },
     { text: mandal, bold: true },
     { text: ' Mandal, ', bold: false },
     { text: district, bold: true },
     { text: ' District for Quality analysis (', bold: false },
-    { text: 'Purity, Moisture & Germination', bold: true },
+    { text: testParameter, bold: true },
     { text: ') as per the allotment given by the District Agriculture Officer, ', bold: false },
     { text: district, bold: false },
     { text: '.', bold: false }
@@ -487,12 +493,15 @@ function drawSampleTableHeading(cursor: PdfCursor) {
 function drawSampleTable(cursor: PdfCursor, queue: SeedCoveringLetterQueueItem[]) {
   const { doc } = cursor;
   
+  // Check if this is a cotton covering letter
+  const isCottonLetter = queue.length > 0 && queue.every(item => item.isCotton);
+  
   const tableData = queue.map((item, index) => [
     String(index + 1),
     item.seedName || '-',
     item.variety || '-',
     item.sampleCode || '-',
-    item.quantity?.match(/\d+/)?.[0] || item.quantity || '-',
+    isCottonLetter ? '25' : (item.quantity?.match(/\d+/)?.[0] || item.quantity || '-'),
     formatDate(item.dateOfSampling) || '-'
   ]);
 
@@ -570,12 +579,21 @@ function drawClosing(cursor: PdfCursor) {
   cursor.y += LINE_HEIGHT + 1.5;
 }
 
-function drawEnclosures(cursor: PdfCursor, sampleCount: number) {
+function drawEnclosures(cursor: PdfCursor, sampleCount: number, queue?: SeedCoveringLetterQueueItem[]) {
   const { doc } = cursor;
+  
+  // Check if this is a cotton covering letter
+  const isCottonLetter = queue && queue.length > 0 && queue.every(item => item.isCotton);
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
-  doc.text(`Enclosures: Form V (${sampleCount})`, PAGE.marginLeft, cursor.y);
+  
+  if (isCottonLetter) {
+    // For cotton, use Form II with sample count
+    doc.text(`Enclosures: Form II (${sampleCount})`, PAGE.marginLeft, cursor.y);
+  } else {
+    doc.text(`Enclosures: Form V (${sampleCount})`, PAGE.marginLeft, cursor.y);
+  }
 }
 
 function drawSignature(cursor: PdfCursor) {

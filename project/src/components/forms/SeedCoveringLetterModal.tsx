@@ -5,12 +5,63 @@ import { useLanguage } from '../../context/LanguageContext';
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 const SEED_COVERING_LETTER_DETAILS_KEY = 'tiryani-seed-covering-letter-details';
 
+function incrementSerialNumber(letterNumber: string): string {
+  if (!letterNumber) return letterNumber;
+  
+  // Pattern 0: Alphanumeric serial at the beginning (e.g., "C1/MAO/TRN/FRT-QC/2026-27/01" to "C2/...")
+  const alphaStartMatch = letterNumber.match(/^([A-Za-z])(\d+)(\/.*)$/);
+  if (alphaStartMatch) {
+    const letter = alphaStartMatch[1];
+    const serial = alphaStartMatch[2];
+    const rest = alphaStartMatch[3];
+    const serialNum = parseInt(serial, 10);
+    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
+    return `${letter}${incremented}${rest}`;
+  }
+  
+  // Pattern 1: Serial at the beginning (e.g., "001/MAO/TRN/FRT-QC/2026-27")
+  // Must be checked after alphanumeric pattern to avoid conflict
+  const startMatch = letterNumber.match(/^(\d+)(\/.*)$/);
+  if (startMatch) {
+    const serial = startMatch[1];
+    const rest = startMatch[2];
+    const serialNum = parseInt(serial, 10);
+    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
+    return `${incremented}${rest}`;
+  }
+  
+  // Pattern 2: Serial at the end (e.g., "MAO/TRN/FRT-QC/2026-27/01")
+  const endMatch = letterNumber.match(/^(.*)\/(\d+)$/);
+  if (endMatch) {
+    const prefix = endMatch[1];
+    const serial = endMatch[2];
+    const serialNum = parseInt(serial, 10);
+    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
+    return `${prefix}/${incremented}`;
+  }
+  
+  // Pattern 3: Serial in middle (e.g., "MAO/TRN/FRT-QC/01/2026-27")
+  // Only match if prefix doesn't start with digits (to avoid conflict with Pattern 1)
+  const middleMatch = letterNumber.match(/^([^\d]+)\/(\d+)\/(.*)$/);
+  if (middleMatch) {
+    const prefix = middleMatch[1];
+    const serial = middleMatch[2];
+    const suffix = middleMatch[3];
+    const serialNum = parseInt(serial, 10);
+    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
+    return `${prefix}/${incremented}/${suffix}`;
+  }
+  
+  return letterNumber;
+}
+
 type SeedCoveringLetterQueueItem = {
   sampleCode: string;
   seedName: string;
   variety: string;
   quantity: string;
   dateOfSampling: string;
+  isCotton?: boolean;
 };
 
 type SeedCoveringLetterMetadata = {
@@ -99,6 +150,8 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+  const [cottonPdfData, setCottonPdfData] = useState<string | null>(null);
+  const [letterType, setLetterType] = useState<'PMG' | 'BT Protein'>('PMG');
   const [isMobile, setIsMobile] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
 
@@ -184,7 +237,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
 
   const handleSeedNameChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
-    updatedQueue[index] = { ...updatedQueue[index], seedName: value };
+    updatedQueue[index] = { ...updatedQueue[index], seedName: value, isCotton: value.toLowerCase().includes('cotton') };
     setEditedQueue(updatedQueue);
     window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
@@ -238,6 +291,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
       variety: '',
       quantity: '',
       dateOfSampling: new Date().toISOString().slice(0, 10),
+      isCotton: false,
     };
     const updatedQueue = [...editedQueue, newSample];
     setEditedQueue(updatedQueue);
@@ -274,7 +328,32 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     
     try {
       const { generateSeedCoveringLetterPdf } = await import('../../lib/seedCoveringLetterPdf');
-      const doc = await generateSeedCoveringLetterPdf(editedQueue, metadata, officerDetails, watermarkEnabled);
+      
+      // Filter queue based on letter type
+      const filteredQueue = letterType === 'BT Protein' 
+        ? editedQueue.filter(item => item.isCotton)
+        : editedQueue;
+      
+      if (filteredQueue.length === 0) {
+        setMessage('No cotton samples found for BT Protein letter type.');
+        setIsGenerating(false);
+        setIsPreviewing(false);
+        setTimeout(() => setMessage(null), 3000);
+        return;
+      }
+      
+      // For BT Protein, use incremented serial number
+      const metadataForPdf = letterType === 'BT Protein' 
+        ? { ...metadata, letterNumber: incrementSerialNumber(metadata.letterNumber) }
+        : metadata;
+      
+      // Use selected letter type to determine isCotton flag
+      const queueWithLetterType = filteredQueue.map(item => ({
+        ...item,
+        isCotton: letterType === 'BT Protein'
+      }));
+      
+      const doc = await generateSeedCoveringLetterPdf(queueWithLetterType, metadataForPdf, officerDetails, watermarkEnabled);
       
       if (isMobile) {
         const pdfBlob = doc.output('blob');
@@ -287,7 +366,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
         setShowPreviewDialog(true);
       }
       
-      setMessage('Preview generated successfully.');
+      setMessage(`Preview generated successfully for ${letterType}.`);
     } catch (error) {
       console.error('Error generating preview:', error);
       setMessage('Error generating preview. Please try again.');
@@ -316,12 +395,38 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     
     try {
       const { generateSeedCoveringLetterPdf } = await import('../../lib/seedCoveringLetterPdf');
-      const doc = await generateSeedCoveringLetterPdf(editedQueue, metadata, officerDetails, watermarkEnabled);
       
-      const fileName = `Seed_Covering_Letter_${metadata.letterNumber || 'Draft'}.pdf`;
+      // Filter queue based on letter type
+      const filteredQueue = letterType === 'BT Protein' 
+        ? editedQueue.filter(item => item.isCotton)
+        : editedQueue;
+      
+      if (filteredQueue.length === 0) {
+        setMessage('No cotton samples found for BT Protein letter type.');
+        setIsGenerating(false);
+        setTimeout(() => setMessage(null), 3000);
+        return;
+      }
+      
+      // For BT Protein, use incremented serial number
+      const metadataForPdf = letterType === 'BT Protein' 
+        ? { ...metadata, letterNumber: incrementSerialNumber(metadata.letterNumber) }
+        : metadata;
+      
+      // Use selected letter type to determine isCotton flag
+      const queueWithLetterType = filteredQueue.map(item => ({
+        ...item,
+        isCotton: letterType === 'BT Protein'
+      }));
+      
+      const doc = await generateSeedCoveringLetterPdf(queueWithLetterType, metadataForPdf, officerDetails, watermarkEnabled);
+      
+      const fileName = letterType === 'BT Protein' 
+        ? `Seed_Covering_Letter_BT_${metadataForPdf.letterNumber || 'Draft'}.pdf`
+        : `Seed_Covering_Letter_PMG_${metadata.letterNumber || 'Draft'}.pdf`;
       doc.save(fileName);
       
-      setMessage('Covering letter downloaded successfully.');
+      setMessage(`Covering letter downloaded successfully for ${letterType}.`);
     } catch (error) {
       console.error('Error downloading PDF:', error);
       setMessage('Error downloading PDF. Please try again.');
@@ -413,6 +518,11 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                     placeholder="Enter Letter Number"
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                   />
+                  {letterType === 'BT Protein' && metadata.letterNumber && (
+                    <p className="mt-1 text-[10px] text-emerald-600 font-medium">
+                      BT Protein will use: {incrementSerialNumber(metadata.letterNumber)}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">LETTER DATE</label>
@@ -591,6 +701,19 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
 
         <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 sm:px-6 sm:py-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              {editedQueue.some(item => item.isCotton) && (
+                <>
+                  <label className="text-sm font-bold text-gray-700 shrink-0">Letter Type:</label>
+                  <select
+                    value={letterType}
+                    onChange={(e) => setLetterType(e.target.value as 'PMG' | 'BT Protein')}
+                    className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-w-0"
+                  >
+                    <option value="PMG">Purity, Moisture & Germination (PMG)</option>
+                    <option value="BT Protein">BT Protein</option>
+                  </select>
+                </>
+              )}
             </div>
             <div className="flex flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <button

@@ -393,6 +393,7 @@ export function SeedForms() {
               variety: form.variety || '',
               quantity: numericQuantity,
               dateOfSampling: form.collectionDate.trim(),
+              isCotton: (form.crop || '').toLowerCase().includes('cotton'),
             };
             queue.push(newItem);
             window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
@@ -409,6 +410,7 @@ export function SeedForms() {
               variety: form.variety || '',
               quantity: numericQuantity,
               dateOfSampling: form.collectionDate.trim(),
+              isCotton: (form.crop || '').toLowerCase().includes('cotton'),
             };
             
             const hasChanged = 
