@@ -104,7 +104,7 @@ export async function generateSeedCoveringLetterPdf(
   drawSalutation(cursor);
   cursor.y += 8;
   
-  drawSubject(cursor, metadata);
+  drawSubject(cursor, metadata, queue);
   cursor.y += PARAGRAPH_SPACING;
   
   drawReference(cursor, metadata, officerDetails);
@@ -380,7 +380,7 @@ function drawSalutation(cursor: PdfCursor) {
   doc.text('Sir/Madam,', PAGE.marginLeft, cursor.y);
 }
 
-function drawSubject(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata) {
+function drawSubject(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata, queue?: SeedCoveringLetterQueueItem[]) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
@@ -388,7 +388,15 @@ function drawSubject(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata) {
   doc.text('Sub:', PAGE.marginLeft, cursor.y);
   
   doc.setFont(PDF_FONT, 'normal');
-  const subject = `Seed Act 1966 – Seed (Control) Order 1983 – EP Act – 1986 –Quality Control – 2026-27– Submission of Seed samples drawn - Request for Quality analysis – Reg.`;
+  
+  // Check if this is a BT Protein covering letter (all samples are cotton)
+  const isBtProteinLetter = queue && queue.length > 0 && queue.every(item => item.isCotton);
+  
+  // Use different subject based on letter type
+  const subject = isBtProteinLetter
+    ? `Seed Act 1966 – Seed (Control) Order 1983 – EP Act – 1986 –Quality Control – 2026-27– Submission of Seed samples drawn - Request for Quality analysis – Reg.`
+    : `Seed Act 1966 – Seed (Control) Order 1983 – Quality Control – 2026-27– Submission of Seed samples drawn - Request for Quality analysis – Reg.`;
+  
   const subjectX = PAGE.marginLeft + doc.getTextWidth('Sub: ');
   const availableWidth = PAGE.contentWidth - doc.getTextWidth('Sub: ');
   
