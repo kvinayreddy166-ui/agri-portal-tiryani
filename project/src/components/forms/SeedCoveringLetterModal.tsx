@@ -628,8 +628,8 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                     <thead className="bg-slate-50">
                       <tr>
                         <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider w-12">S.No</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider w-24">Crop</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider w-28">Variety</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Crop Name</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Variety</th>
                         <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Code No. of Sample</th>
                         <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
                         <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sampling Date</th>
@@ -646,7 +646,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                               value={item.seedName}
                               onChange={(e) => handleSeedNameChange(index, e.target.value)}
                               className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                              placeholder="Crop"
+                              placeholder="Crop Name"
                             />
                           </td>
                           <td className="px-2 py-2">

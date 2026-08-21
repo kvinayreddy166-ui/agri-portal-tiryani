@@ -516,9 +516,9 @@ function drawSampleTable(cursor: PdfCursor, queue: SeedCoveringLetterQueueItem[]
 
   const columnWidths = [
     PAGE.contentWidth * 0.05,  // Sl. No. - 5%
-    PAGE.contentWidth * 0.25,  // Crop - 25%
-    PAGE.contentWidth * 0.25,  // Variety - 25%
-    PAGE.contentWidth * 0.19,  // Sample Code - 19%
+    PAGE.contentWidth * 0.20,  // Crop - 20%
+    PAGE.contentWidth * 0.28,  // Variety - 28%
+    PAGE.contentWidth * 0.21,  // Sample Code - 21%
     PAGE.contentWidth * 0.12,  // Quantity - 12%
     PAGE.contentWidth * 0.14,  // Sampling Date - 14%
   ];
