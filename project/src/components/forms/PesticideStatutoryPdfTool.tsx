@@ -209,6 +209,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const [previewError, setPreviewError] = useState<string | null>(null);
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedPesticideDraft[]>(() => loadDrafts());
+  const [selectedDraftName, setSelectedDraftName] = useState('');
   const [busy, setBusy] = useState(false);
   const [showDownloadAllDialog, setShowDownloadAllDialog] = useState(false);
   const [addToCoveringLetterChecked, setAddToCoveringLetterChecked] = useState(true);
@@ -223,6 +224,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       authorizationLicenseNumber: '',
       licenseDate: '',
     }));
+    setSelectedDraftName('');
     showReset('Dealer Details Reset', 'Dealer details have been reset successfully.', 4000);
   };
 
@@ -248,6 +250,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       otherInformation: '',
       dispatchDate: '',
     }));
+    setSelectedDraftName('');
     showReset('Product Details Reset', 'Product details have been reset successfully.', 4000);
   };
 
@@ -261,6 +264,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       manufactureDate: '',
       expiryDate: '',
     }));
+    setSelectedDraftName('');
     showReset('Manufacturer Details Reset', 'Manufacturer details have been reset successfully.', 4000);
   };
 
@@ -380,6 +384,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     if (!window.confirm('Reset pesticide form draft?')) return;
     setValues(initialPesticidePdfValues);
     window.localStorage.removeItem(STORAGE_KEY);
+    setSelectedDraftName('');
     setPreviewError(null);
     showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.', 4000);
   };
@@ -418,6 +423,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     }
     
     setValues(loadedValues);
+    setSelectedDraftName(draft.name);
     setPreviewError(null);
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.', 4000);
   };
@@ -437,6 +443,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     window.localStorage.removeItem(STORAGE_KEY);
     // Reset ALL draft-owned state to initial values (excluding covering letter details)
     setValues(initialPesticidePdfValues);
+    setSelectedDraftName('');
     showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 4000);
   };
 
@@ -646,17 +653,17 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             </div>
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
               <select
-                value={values.officerName}
+                value={selectedDraftName}
                 onChange={(event) => loadDraft(event.target.value)}
                 className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition-all ${
-                  values.officerName
+                  selectedDraftName
                     ? 'border-red-400 bg-red-50 text-red-700 focus:border-red-500 focus:bg-red-100 focus:ring-2 focus:ring-red-100/50'
                     : 'border-red-200 bg-white/90 text-slate-900 focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-100/50'
                 }`}
-                title={values.officerName || 'Load saved draft...'}
+                title={selectedDraftName || 'Load saved draft...'}
               >
                 <option value="">Load saved draft...</option>
-                {savedDrafts.map((draft) => <option key={draft.name} value={draft.name} className={values.officerName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-red-50 text-red-700 font-bold' : ''}>{draft.name}</option>)}
+                {savedDrafts.map((draft) => <option key={draft.name} value={draft.name} className={selectedDraftName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-red-50 text-red-700 font-bold' : ''}>{draft.name}</option>)}
               </select>
               <button type="button" onClick={deleteDraft} className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition-all backdrop-blur-sm">Delete</button>
             </div>

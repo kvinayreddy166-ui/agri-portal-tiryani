@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, Scale, type LucideIcon } from 'lucide-react';
+import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, Scale, Calendar, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';

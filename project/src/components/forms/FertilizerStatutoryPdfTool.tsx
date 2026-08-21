@@ -641,10 +641,11 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     try {
       return loadFertilizerDrafts();
     } catch (error) {
-      console.error('Error loading drafts:', error);
+      console.error('Error loading fertilizer drafts:', error);
       return [];
     }
   });
+  const [selectedDraftName, setSelectedDraftName] = useState('');
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | 'downloadAll' | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(showCoveringLetter ? ['COVERING LETTER DETAILS'] : []));
   const allFields = useMemo(() => fertilizerFieldSections, []);
@@ -948,6 +949,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     if (!window.confirm('Reset fertilizer form draft?')) return;
     setValues(initialFertilizerPdfValues);
     window.localStorage.removeItem(STORAGE_KEY);
+    setSelectedDraftName('');
     setPreviewError(null);
     showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.', 4000);
   };
@@ -964,6 +966,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       // Restore covering letter details
       financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone 
     }));
+    setSelectedDraftName(draft.name);
     setPreviewError(null);
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.', 4000);
   };
@@ -983,6 +986,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     window.localStorage.removeItem(STORAGE_KEY);
     // Reset ALL draft-owned state to initial values (excluding covering letter details)
     setValues(initialFertilizerPdfValues);
+    setSelectedDraftName('');
     showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 4000);
   };
 
@@ -1153,6 +1157,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       physicalCondition: '',
       bagSource: '',
     }));
+    setSelectedDraftName('');
     setMessage('Sample details reset successfully.');
   };
 
@@ -1163,6 +1168,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       dealerAddress: '',
       authorizationNumber: '',
     }));
+    setSelectedDraftName('');
     setMessage('Dealer details reset successfully.');
   };
 
@@ -1178,6 +1184,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       division: '',
       officerPhone: '',
     }));
+    setSelectedDraftName('');
     setMessage('Covering letter details reset successfully.');
   };
 
@@ -1234,6 +1241,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       microNutrientCheckboxes: '',
       waterSolubleCheckboxes: '',
     }));
+    setSelectedDraftName('');
     setMessage('Composition details reset successfully.');
   };
 
@@ -1297,18 +1305,18 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               </div>
               <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
                 <select
-                  value={values.officerName}
+                  value={selectedDraftName}
                   onChange={(event) => loadDraft(event.target.value)}
                   className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition-all ${
-                    values.officerName
+                    selectedDraftName
                       ? 'border-violet-400 bg-violet-50 text-violet-700 focus:border-violet-500 focus:bg-violet-100 focus:ring-2 focus:ring-violet-100/50'
                       : 'border-violet-200 bg-white/90 text-slate-900 focus:border-violet-500 focus:bg-white focus:ring-2 focus:ring-violet-100/50'
                   }`}
-                  title={values.officerName || 'Load saved draft...'}
+                  title={selectedDraftName || 'Load saved draft...'}
                 >
                   <option value="">Load saved draft...</option>
                   {savedDrafts.map((draft) => (
-                    <option key={draft.name} value={draft.name} className={values.officerName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-violet-50 text-violet-700 font-bold' : ''}>
+                    <option key={draft.name} value={draft.name} className={selectedDraftName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-violet-50 text-violet-700 font-bold' : ''}>
                       {draft.name}
                     </option>
                   ))}

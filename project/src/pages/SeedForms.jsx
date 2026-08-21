@@ -161,6 +161,7 @@ export function SeedForms() {
   const [message, setMessage] = useState('');
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
+  const [selectedDraftName, setSelectedDraftName] = useState('');
   const sampleDetailsRef = useRef(null);
   const dealerDetailsRef = useRef(null);
   const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue } = useToast();
@@ -280,6 +281,7 @@ export function SeedForms() {
     if (!confirm('Reset seed form draft?')) return;
     setForm(initialSeedForm);
     window.localStorage.removeItem(STORAGE_KEY);
+    setSelectedDraftName('');
     setMessage('Draft reset successfully.');
   };
 
@@ -295,6 +297,7 @@ export function SeedForms() {
       // Restore covering letter details
       financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone 
     });
+    setSelectedDraftName(draft.name);
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.', 4000);
   };
 
@@ -313,6 +316,7 @@ export function SeedForms() {
     window.localStorage.removeItem(STORAGE_KEY);
     // Reset ALL draft-owned state to initial values (excluding covering letter details)
     setForm(initialSeedForm);
+    setSelectedDraftName('');
     showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 4000);
   };
 
@@ -482,6 +486,7 @@ export function SeedForms() {
       sourceOfSupplyManuallyEdited: false,
       remarks: '',
     }));
+    setSelectedDraftName('');
     setMessage('Sample details reset successfully.');
   };
 
@@ -494,6 +499,7 @@ export function SeedForms() {
       costDemanded: 'No',
       costPaid: 'Not Applicable',
     }));
+    setSelectedDraftName('');
     setMessage('Dealer details reset successfully.');
   };
 
@@ -503,6 +509,7 @@ export function SeedForms() {
       labId: '',
       customLabAddress: '',
     }));
+    setSelectedDraftName('');
     setMessage('Laboratory details reset successfully.');
   };
 
@@ -540,18 +547,18 @@ export function SeedForms() {
         </div>
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <select
-            value={form.officerName}
+            value={selectedDraftName}
             onChange={(event) => loadDraft(event.target.value)}
             className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition-all ${
-              form.officerName
+              selectedDraftName
                 ? 'border-orange-400 bg-orange-50 text-orange-700 focus:border-orange-500 focus:bg-orange-100 focus:ring-2 focus:ring-orange-100/50'
                 : 'border-orange-200 bg-white/90 text-slate-900 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-100/50'
             }`}
-            title={form.officerName || 'Load saved draft...'}
+            title={selectedDraftName || 'Load saved draft...'}
           >
             <option value="">Load saved draft...</option>
             {savedDrafts.map((draft) => (
-              <option key={draft.name} value={draft.name} className={form.officerName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-orange-50 text-orange-700 font-bold' : ''}>
+              <option key={draft.name} value={draft.name} className={selectedDraftName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-orange-50 text-orange-700 font-bold' : ''}>
                 {draft.name}
               </option>
             ))}
