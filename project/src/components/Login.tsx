@@ -781,7 +781,7 @@ export function Login() {
             </div>
 
             <div className="absolute top-6 left-6 animate-slide-up delay-100">
-              <WhatsAppFab />
+              <WhatsAppFab whatsappLink="https://wa.me/918308487046" />
             </div>
             <div className="absolute top-6 right-6 flex items-center gap-2 animate-slide-up delay-100">
               <LanguageToggle language={language} onClick={toggleLanguage} className="shrink-0" />

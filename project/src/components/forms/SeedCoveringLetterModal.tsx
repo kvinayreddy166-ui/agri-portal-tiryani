@@ -73,6 +73,7 @@ type SeedCoveringLetterMetadata = {
   daoMemoDate: string;
   division: string;
   officePhone: string;
+  toAddress: string;
 };
 
 type OfficerDetails = {
@@ -144,6 +145,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     daoMemoDate: coveringLetterDetails?.memoDate || '',
     division: coveringLetterDetails?.division || '',
     officePhone: coveringLetterDetails?.officerPhone || '',
+    toAddress: 'The Assistant Director of Agriculture,\nSeed Testing Laboratory,\nRajendranagar,\nHyderabad - 500030.',
   });
   const [message, setMessage] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<number, string>>({});
@@ -347,13 +349,16 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
         ? { ...metadata, letterNumber: incrementSerialNumber(metadata.letterNumber) }
         : metadata;
       
+      // Update officerDetails with phone from metadata
+      const officerDetailsWithPhone = officerDetails ? { ...officerDetails, phone: metadata.officePhone } : officerDetails;
+      
       // Use selected letter type to determine isCotton flag
       const queueWithLetterType = filteredQueue.map(item => ({
         ...item,
         isCotton: letterType === 'BT Protein'
       }));
       
-      const doc = await generateSeedCoveringLetterPdf(queueWithLetterType, metadataForPdf, officerDetails, watermarkEnabled);
+      const doc = await generateSeedCoveringLetterPdf(queueWithLetterType, metadataForPdf, officerDetailsWithPhone, watermarkEnabled);
       
       if (isMobile) {
         const pdfBlob = doc.output('blob');
@@ -413,13 +418,16 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
         ? { ...metadata, letterNumber: incrementSerialNumber(metadata.letterNumber) }
         : metadata;
       
+      // Update officerDetails with phone from metadata
+      const officerDetailsWithPhone = officerDetails ? { ...officerDetails, phone: metadata.officePhone } : officerDetails;
+      
       // Use selected letter type to determine isCotton flag
       const queueWithLetterType = filteredQueue.map(item => ({
         ...item,
         isCotton: letterType === 'BT Protein'
       }));
       
-      const doc = await generateSeedCoveringLetterPdf(queueWithLetterType, metadataForPdf, officerDetails, watermarkEnabled);
+      const doc = await generateSeedCoveringLetterPdf(queueWithLetterType, metadataForPdf, officerDetailsWithPhone, watermarkEnabled);
       
       const fileName = letterType === 'BT Protein' 
         ? `Seed_Covering_Letter_BT_${metadataForPdf.letterNumber || 'Draft'}.pdf`
@@ -584,6 +592,17 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                     placeholder="Enter Mobile Number"
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                   />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-600">TO ADDRESS</label>
+                  <select
+                    value={metadata.toAddress}
+                    onChange={(e) => setMetadata({ ...metadata, toAddress: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                  >
+                    <option value="The Assistant Director of Agriculture,\nSeed Testing Laboratory,\nRajendranagar,\nHyderabad - 500030.">Seed Testing Laboratory, Rajendranagar</option>
+                    <option value="The Govt. Analyst/ADA,\nDNA Finger Printing Lab,\nOld Malakpet,\nHyderabad - 500036.">DNA Finger Printing Lab, Old Malakpet</option>
+                  </select>
                 </div>
               </div>
             </div>

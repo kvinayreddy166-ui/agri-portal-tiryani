@@ -20,6 +20,7 @@ type SeedCoveringLetterMetadata = {
   daoMemoDate: string;
   division: string;
   officePhone: string;
+  toAddress: string;
 };
 
 type OfficerDetails = {
@@ -92,7 +93,7 @@ export async function generateSeedCoveringLetterPdf(
   
   cursor.y -= 4;
   
-  drawFromToSections(cursor, officerDetails);
+  drawFromToSections(cursor, officerDetails, metadata);
   
   cursor.y -= 6;
   
@@ -272,7 +273,7 @@ async function drawGovernmentHeader(cursor: PdfCursor) {
   doc.setFont(PDF_FONT, 'normal');
 }
 
-function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails) {
+function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, metadata?: SeedCoveringLetterMetadata) {
   const { doc } = cursor;
   
   const leftColumnX = PAGE.marginLeft;
@@ -331,12 +332,18 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails) 
   doc.text('To:', rightColumnX, startY);
   
   currentY = startY + LINE_HEIGHT;
-  const toAddress = [
+  
+  // Use dynamic toAddress from metadata, fallback to default
+  const defaultToAddress = [
     'The Assistant Director of Agriculture,',
     'Seed Testing Laboratory,',
     'Rajendranagar,',
     'Hyderabad - 500030.',
   ];
+  
+  const toAddress = metadata?.toAddress 
+    ? metadata.toAddress.split('\n')
+    : defaultToAddress;
   
   doc.setFont(PDF_FONT, 'bold');
   toAddress.forEach(line => {
