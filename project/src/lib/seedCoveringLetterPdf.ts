@@ -333,10 +333,10 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, 
   
   currentY = startY + LINE_HEIGHT;
   const toAddress = laboratoryAddress ? laboratoryAddress.split('\n') : [
-    'The Assistant Director of Agriculture,',
-    'Seed Testing Laboratory,',
-    'Rajendranagar,',
-    'Hyderabad - 500030.',
+    '...................................................',
+    '...................................................',
+    '...................................................',
+    '...................................................',
   ];
   
   doc.setFont(PDF_FONT, 'bold');

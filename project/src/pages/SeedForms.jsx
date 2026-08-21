@@ -89,7 +89,7 @@ const initialSeedForm = {
   premisesLocation: '',
   costDemanded: 'No',
   costPaid: 'Not Applicable',
-  labId: 'seed-testing',
+  labId: '',
   customLabAddress: '',
   qualification: '',
   manualQualification: '',
@@ -497,6 +497,15 @@ export function SeedForms() {
     setMessage('Dealer details reset successfully.');
   };
 
+  const resetLaboratoryDetails = () => {
+    setForm(prev => ({
+      ...prev,
+      labId: '',
+      customLabAddress: '',
+    }));
+    setMessage('Laboratory details reset successfully.');
+  };
+
   return (
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
@@ -577,7 +586,7 @@ export function SeedForms() {
           <Input label="Date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
         </Card>
 
-        <Card title="LABORATORY DETAILS" color="blue">
+        <Card title="LABORATORY DETAILS" color="blue" onReset={resetLaboratoryDetails}>
           <Select label="To Address / Laboratory" value={form.labId} onChange={(value) => setField('labId', value)} options={labOptions.map((item) => ({ label: item.label, value: item.id }))} />
           {form.labId === 'other' ? (
             <Input label="Custom laboratory address" value={form.customLabAddress} onChange={(value) => setField('customLabAddress', value)} textarea />
@@ -896,7 +905,7 @@ function resolveSeedValues(form) {
     nature: form.nature === 'Other' ? form.natureOther : form.nature,
     seedClass: form.seedClass === 'Other' ? form.seedClassOther : form.seedClass,
     testRequired: form.testRequired === 'Other' ? form.testRequiredOther : form.testRequired,
-    labAddress: form.labId === 'other' ? form.customLabAddress : lab.value,
+    labAddress: form.labId === 'other' ? form.customLabAddress : (form.labId === '' ? '' : lab.value),
     fromAddress: [officerNameWithQualification, form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n'),
     senderAddress: [form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n'),
     district: resolvedDistrict,
