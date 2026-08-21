@@ -614,7 +614,7 @@ export function SeedForms() {
             <SelectWithOther label="Class / Origin of seed" valueKey="seedClass" otherKey="seedClassOther" form={form} setField={setField} options={classOptions} />
             <Input label="Date of packing" type="date" value={form.packingDate} onChange={(value) => setField('packingDate', value)} />
           </div>
-          {isCottonCrop && <Input label="Produced & Packed by" value={form.producedPackedBy} onChange={(value) => setField('producedPackedBy', value)} placeholder="Enter Producer Details" />}
+          {isCottonCrop && <Input label="Produced & Packed by" value={form.producedPackedBy} onChange={(value) => setField('producedPackedBy', value)} placeholder="Enter Producer Details" textarea />}
           <Input label="Source of supply" value={form.sourceOfSupply} onChange={(value) => setField('sourceOfSupply', value)} placeholder="Enter Distributor/ Marketer Details" textarea />
           <SelectWithOther label="Kind of test required" valueKey="testRequired" otherKey="testRequiredOther" form={form} setField={setField} options={testOptions} />
           <Input label="Remarks" value={form.remarks} onChange={(value) => setField('remarks', value)} textarea />
