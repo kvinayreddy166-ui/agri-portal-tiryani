@@ -715,6 +715,7 @@ export function SeedForms() {
           phone: '',
         }}
         coveringLetterDetails={coveringLetterDetails}
+        laboratoryAddress={resolved.labAddress}
         onMetadataChange={(metadata) => {
           setCoveringLetterDetails({
             financialYear: metadata.year,
