@@ -700,7 +700,7 @@ function subItemField(cursor: PdfCursor, mainLabel: string, subItems: Array<[str
   subItems.forEach(([, subValue]) => {
     const availableValueWidth = PAGE.width - valueX - PAGE.marginX;
     const valueLines = split(cursor, subValue || '', availableValueWidth);
-    totalHeight += Math.max(valueLines.length, 1) * LINE_HEIGHT + 1; // Reduced spacing between sub-items
+    totalHeight += Math.max(valueLines.length, 1) * LINE_HEIGHT + 0.5; // Reduced spacing between sub-items
   });
   totalHeight += 2; // Final spacing
   
@@ -724,7 +724,7 @@ function subItemField(cursor: PdfCursor, mainLabel: string, subItems: Array<[str
     const valueLines = split(cursor, subValue || '', availableValueWidth);
     cursor.doc.text(valueLines, valueX, cursor.y);
     
-    cursor.y += Math.max(valueLines.length, 1) * LINE_HEIGHT + 1; // Reduced spacing between sub-items
+    cursor.y += Math.max(valueLines.length, 1) * LINE_HEIGHT + 0.5; // Reduced spacing between sub-items
   });
   
   cursor.y += 2;
@@ -751,9 +751,10 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   // Format dealer name with mandal
   const dealerWithMandal = resolvedMandal ? `${values.dealerName}, ${resolvedMandal}` : values.dealerName;
   
+  cursor.y -= 6;
   centeredTitle(cursor, 'DOCKET SHEET');
-  // Move content up by 2pt (approximately 0.7mm) starting from Point 1
-  cursor.y -= 0.7;
+  // Move content up by 5pt (approximately 1.76mm) starting from Point 1
+  cursor.y -= 5;
   fieldList(cursor, [
     ['1. Name of the District', resolvedDistrict],
   ], 82);
