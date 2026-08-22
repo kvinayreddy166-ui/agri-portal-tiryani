@@ -694,6 +694,20 @@ function subItemField(cursor: PdfCursor, mainLabel: string, subItems: Array<[str
   const colonX = x + labelWidth + 1;
   const valueX = colonX + 4;
   
+  // Calculate total height needed for the entire subItemField
+  // Main label + spacing + each sub-item
+  let totalHeight = LINE_HEIGHT + 2; // Main label + spacing
+  subItems.forEach(([, subValue]) => {
+    const availableValueWidth = PAGE.width - valueX - PAGE.marginX;
+    const valueLines = split(cursor, subValue || '', availableValueWidth);
+    totalHeight += Math.max(valueLines.length, 1) * LINE_HEIGHT + 1; // Reduced spacing between sub-items
+  });
+  totalHeight += 2; // Final spacing
+  
+  // Ensure the entire subItemField fits on the current page
+  // If not, move to the next page to prevent splitting
+  ensure(cursor, totalHeight);
+  
   // Render main label
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.doc.text(mainLabel, x, cursor.y);
@@ -704,14 +718,13 @@ function subItemField(cursor: PdfCursor, mainLabel: string, subItems: Array<[str
     const subLabelX = x + indent;
     const availableValueWidth = PAGE.width - valueX - PAGE.marginX;
     
-    ensure(cursor, LINE_HEIGHT + 2);
     cursor.doc.text(subLabel, subLabelX, cursor.y);
     cursor.doc.text(':', colonX, cursor.y);
     
     const valueLines = split(cursor, subValue || '', availableValueWidth);
     cursor.doc.text(valueLines, valueX, cursor.y);
     
-    cursor.y += Math.max(valueLines.length, 1) * LINE_HEIGHT + 2;
+    cursor.y += Math.max(valueLines.length, 1) * LINE_HEIGHT + 1; // Reduced spacing between sub-items
   });
   
   cursor.y += 2;
@@ -739,6 +752,8 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   const dealerWithMandal = resolvedMandal ? `${values.dealerName}, ${resolvedMandal}` : values.dealerName;
   
   centeredTitle(cursor, 'DOCKET SHEET');
+  // Move content up by 2pt (approximately 0.7mm) starting from Point 1
+  cursor.y -= 0.7;
   fieldList(cursor, [
     ['1. Name of the District', resolvedDistrict],
   ], 82);
@@ -769,7 +784,8 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ? `${formattedActiveIngredient} ${formulationType}` 
     : formattedActiveIngredient;
   
-  fieldList(cursor, [
+  // Build the field list for items 4-20
+  const mainFields: Array<[string, string, string?]> = [
     ['4. Guaranteed of % ai', guaranteedWithFormulation],
     ['5. Qty. of sample drawn for analysis', sampleQuantityAnalysis],
     ['6. Name of the dealer from whom the sample drawn', dealerWithMandal],
@@ -787,7 +803,28 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ['18. C.A. Seal Particulars', values.cdaCode],
     ['19. Name of the P.T.L.to which sent For analysis', 'Pesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad -500036'],
     ['20. Date of Dispatch', formatDate(values.dispatchDate)],
-  ], 82);
+  ];
+  
+  // Calculate space needed for signature section (10mm spacing + signature line)
+  const signatureSpaceNeeded = 10 + LINE_HEIGHT * 2;
+  
+  // Check if we're near the end of the page before rendering the last few fields
+  // If we have less than 40mm remaining, move to next page to prevent awkward pagination
+  if (cursor.y > PAGE.bottom - 40) {
+    cursor.doc.addPage();
+    cursor.y = PAGE.top;
+  }
+  
+  // Render the main fields
+  fieldList(cursor, mainFields, 82);
+  
+  // Ensure signature section fits on the current page
+  // If not, move to the next page
+  if (cursor.y + signatureSpaceNeeded > PAGE.bottom) {
+    cursor.doc.addPage();
+    cursor.y = PAGE.top;
+  }
+  
   cursor.y += 10;
   signatureLine(cursor, '', 'Signature of Insecticide Inspector');
 }
@@ -826,12 +863,20 @@ function centeredTitle(cursor: PdfCursor, title: string, subtitle = '') {
 }
 
 function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, labelWidth = 74, xOffset = 0) {
-  rows.forEach(([label, value, note]) => fieldRow(cursor, label, value, note, labelWidth, xOffset));
+  rows.forEach(([label, value, note]) => {
+    // Check if we're near the end of the page before rendering each field
+    // If we have less than 25mm remaining, move to next page to prevent awkward pagination
+    // This ensures that if an item doesn't fit, it moves to the next page with proper spacing
+    if (cursor.y > PAGE.bottom - 25) {
+      cursor.doc.addPage();
+      cursor.y = PAGE.top;
+    }
+    fieldRow(cursor, label, value, note || '', labelWidth, xOffset);
+  });
 }
 
 function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', labelWidth = 74, xOffset = 0) {
   const x = PAGE.marginX + xOffset;
-  const y = cursor.y;
   const valueX = x + labelWidth + 5;
   const available = PAGE.width - valueX - PAGE.marginX;
   const valueLines = split(cursor, value || '', available);
@@ -864,7 +909,12 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
   
   const rows = Math.max(labelLines.length, valueLines.length, 1);
   const totalHeight = rows * LINE_HEIGHT + noteHeight + 0.5;
+  
+  // Page-break handling: ensure the entire row fits on the current page
+  // If not, move to the next page to prevent splitting
   ensure(cursor, totalHeight);
+  
+  const y = cursor.y;
   
   // Render serial number separately if exists
   if (serialNumber) {
