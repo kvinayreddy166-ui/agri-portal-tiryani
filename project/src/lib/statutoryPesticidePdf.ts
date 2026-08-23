@@ -846,8 +846,8 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ['20. Date of Dispatch', formatDate(values.dispatchDate)],
   ];
   
-  // Calculate space needed for signature section (5mm spacing + signature line)
-  const signatureSpaceNeeded = 5 + LINE_HEIGHT;
+  // Calculate space needed for signature section (3mm spacing + signature line)
+  const signatureSpaceNeeded = 3 + LINE_HEIGHT;
   
   // Check if we're near the end of the page before rendering the last few fields
   // If we have less than 40mm remaining, move to next page to prevent awkward pagination
