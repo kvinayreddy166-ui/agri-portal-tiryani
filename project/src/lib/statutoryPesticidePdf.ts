@@ -868,7 +868,6 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   
   cursor.y += 5;
   signatureLine(cursor, '', 'Signature of Insecticide Inspector');
-  cursor.y += 2;
 }
 
 function centeredTitle(cursor: PdfCursor, title: string, subtitle = '') {
@@ -1221,21 +1220,25 @@ export function pesticideNameWithoutTrade(values: PesticidePdfValues) {
     const parts = parsed.map(item => {
       const name = item.name?.trim() || '';
       const conc = item.concentration?.trim() || '';
-      // Add % if missing, inserting it before w/w or w/v if present
+      // Fix single active ingredient formatting
+      // Ensure % appears immediately after numeric value, before w/w
       let finalConc = conc;
-      if (conc && !conc.includes('%')) {
-        // Check if it has w/w or w/v at the end
-        const unitMatch = conc.match(/(w\/w|w\/v|v\/v)$/i);
-        if (unitMatch) {
-          // Insert % before the unit
-          const unit = unitMatch[1];
-          const baseConc = conc.substring(0, conc.length - unit.length).trim();
-          finalConc = `${baseConc}% ${unit}`;
-        } else {
-          // No unit, just add % at the end
-          finalConc = `${conc}%`;
+      
+      // Remove % that appears after w/w or at the end incorrectly
+      finalConc = finalConc.replace(/(w\/w|w\/v|s\/p|g\/g|e\/c)%/gi, '$1');
+      finalConc = finalConc.replace(/%$/g, '');
+      
+      // Add % after numeric value if not present
+      const match = finalConc.match(/^(\d+(?:\.\d+)?)(\s*(?:w\/w|w\/v|s\/p|g\/g|e\/c)?)?$/i);
+      if (match) {
+        const numeric = match[1];
+        const rest = match[2] || '';
+        // Check if numeric already has % after it
+        if (!finalConc.match(new RegExp(`^${numeric}%`))) {
+          finalConc = `${numeric}%${rest}`;
         }
       }
+      
       const part = name && finalConc ? `${name} ${finalConc}` : (name || finalConc);
       return part;
     }).filter(part => part && part.trim() !== '');
@@ -1252,9 +1255,23 @@ export function pesticideNameWithoutTrade(values: PesticidePdfValues) {
   const formulation = staleCombinationIngredient ? '' : values.formulationType === 'Others' ? values.manualFormulationType : values.formulationType;
   const formulationDisplay = formulation ? ` ${formulation}` : '';
   
-  // Ensure % is present for single ingredient
-  if (active && !active.includes('%')) {
-    active = `${active}%`;
+  // Fix single active ingredient formatting
+  // Ensure % appears immediately after numeric value, before w/w
+  if (active) {
+    // Remove % that appears after w/w or at the end incorrectly
+    active = active.replace(/(w\/w|w\/v|s\/p|g\/g|e\/c)%/gi, '$1');
+    active = active.replace(/%$/g, '');
+    
+    // Add % after numeric value if not present
+    const match = active.match(/^(\d+(?:\.\d+)?)(\s*(?:w\/w|w\/v|s\/p|g\/g|e\/c)?)?$/i);
+    if (match) {
+      const numeric = match[1];
+      const rest = match[2] || '';
+      // Check if numeric already has % after it
+      if (!active.match(new RegExp(`^${numeric}%`))) {
+        active = `${numeric}%${rest}`;
+      }
+    }
   }
   
   const activeDisplay = active ? ` ${active}` : '';
