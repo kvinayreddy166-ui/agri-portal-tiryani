@@ -846,8 +846,8 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ['20. Date of Dispatch', formatDate(values.dispatchDate)],
   ];
   
-  // Calculate space needed for signature section (10mm spacing + signature line)
-  const signatureSpaceNeeded = 10 + LINE_HEIGHT * 2;
+  // Calculate space needed for signature section (5mm spacing + signature line)
+  const signatureSpaceNeeded = 5 + LINE_HEIGHT;
   
   // Check if we're near the end of the page before rendering the last few fields
   // If we have less than 40mm remaining, move to next page to prevent awkward pagination
@@ -949,7 +949,7 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
   }
   
   const rows = Math.max(labelLines.length, valueLines.length, 1);
-  const totalHeight = rows * LINE_HEIGHT + noteHeight + 0.2;
+  const totalHeight = rows * LINE_HEIGHT + noteHeight;
   
   // Page-break handling: ensure the entire row fits on the current page
   // If not, move to the next page to prevent splitting
