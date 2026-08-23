@@ -410,8 +410,8 @@ export function formatActiveIngredientsForDisplay(activeIngredients: ActiveIngre
     return activeIngredients
       .map(ai => {
         const concentration = ai.concentration?.trim() || '';
-        // Remove duplicate % symbols (e.g., "18% w/w%" -> "18% w/w")
-        const cleanedConc = concentration.replace(/%([^%]*)%$/g, '%$1');
+        // Remove % after formulation types (e.g., "w/w%" -> "w/w", "w/v%" -> "w/v")
+        const cleanedConc = concentration.replace(/(w\/w|w\/v|s\/p|g\/g|e\/c)%/gi, '$1');
         // Only add % if not already present and not empty
         const normalizedConc = cleanedConc && !cleanedConc.endsWith('%') ? `${cleanedConc}%` : cleanedConc;
         // Only include name if it's not empty
