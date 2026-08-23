@@ -410,8 +410,10 @@ export function formatActiveIngredientsForDisplay(activeIngredients: ActiveIngre
     return activeIngredients
       .map(ai => {
         const concentration = ai.concentration?.trim() || '';
+        // Remove duplicate % symbols (e.g., "18% w/w%" -> "18% w/w")
+        const cleanedConc = concentration.replace(/%([^%]*)%$/g, '%$1');
         // Only add % if not already present and not empty
-        const normalizedConc = concentration && !concentration.endsWith('%') ? `${concentration}%` : concentration;
+        const normalizedConc = cleanedConc && !cleanedConc.endsWith('%') ? `${cleanedConc}%` : cleanedConc;
         // Only include name if it's not empty
         return ai.name && ai.name.trim() 
           ? `${ai.name.trim()} ${normalizedConc}`
@@ -647,14 +649,8 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
     ['1. Common name of the insecticide', pesticideNameWithoutTrade(values), '(Mention complete details like nominal content, formulation type, etc.)'],
     ['2. Trade name, if any', values.tradeName],
     ['3. Manufactured by', values.manufacturedBy],
-  ], 82);
-  cursor.y += 2;
-  fieldList(cursor, [
     ['4. Registration number', values.registrationNumber],
     ['5. Marketed by', values.marketedBy],
-  ], 82);
-  cursor.y += 2;
-  fieldList(cursor, [
     ['6. Manufacturing License No.', values.manufacturingLicenseNumber],
     ['7. Batch number', values.batchNumber],
     ['8. Date of manufacture', formatDate(values.manufactureDate)],
@@ -787,8 +783,10 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   const formulationType = values.formulationType === 'Others' 
     ? values.manualFormulationType?.trim() || ''
     : values.formulationType?.trim() || '';
-  const guaranteedWithFormulation = formulationType 
-    ? `${formattedActiveIngredient} ${formulationType}` 
+  // Remove trailing % from formulation type to avoid duplicate (e.g., w/w% -> w/w)
+  const formulationTypeCleaned = formulationType?.replace(/%$/, '') || '';
+  const guaranteedWithFormulation = formulationTypeCleaned 
+    ? `${formattedActiveIngredient} ${formulationTypeCleaned}` 
     : formattedActiveIngredient;
   
   // Build the field list for items 4-20
@@ -832,9 +830,9 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     cursor.y = PAGE.top;
   }
   
-  cursor.y += 10;
+  cursor.y += 5;
   signatureLine(cursor, '', 'Signature of Insecticide Inspector');
-  cursor.y += 3;
+  cursor.y += 2;
 }
 
 function centeredTitle(cursor: PdfCursor, title: string, subtitle = '') {
