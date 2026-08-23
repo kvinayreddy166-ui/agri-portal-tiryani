@@ -647,8 +647,14 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
     ['1. Common name of the insecticide', pesticideNameWithoutTrade(values), '(Mention complete details like nominal content, formulation type, etc.)'],
     ['2. Trade name, if any', values.tradeName],
     ['3. Manufactured by', values.manufacturedBy],
+  ], 82);
+  cursor.y += 2;
+  fieldList(cursor, [
     ['4. Registration number', values.registrationNumber],
     ['5. Marketed by', values.marketedBy],
+  ], 82);
+  cursor.y += 2;
+  fieldList(cursor, [
     ['6. Manufacturing License No.', values.manufacturingLicenseNumber],
     ['7. Batch number', values.batchNumber],
     ['8. Date of manufacture', formatDate(values.manufactureDate)],
@@ -828,7 +834,7 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   
   cursor.y += 10;
   signatureLine(cursor, '', 'Signature of Insecticide Inspector');
-  cursor.y += 6;
+  cursor.y += 3;
 }
 
 function centeredTitle(cursor: PdfCursor, title: string, subtitle = '') {
