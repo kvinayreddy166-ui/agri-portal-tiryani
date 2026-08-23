@@ -669,7 +669,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   const witness1Width = cursor.doc.getTextWidth(witness1Label);
   drawBlank(cursor.doc, PAGE.marginX + witness1Width + 3, cursor.y, 80);
   cursor.y += LINE_HEIGHT + 2;
-  cursor.y += 7;
+  cursor.y += 3;
   const witness2Label = '2. Signature of witness:';
   cursor.doc.text(witness2Label, PAGE.marginX, cursor.y);
   const witness2Width = cursor.doc.getTextWidth(witness2Label);
@@ -828,6 +828,7 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   
   cursor.y += 10;
   signatureLine(cursor, '', 'Signature of Insecticide Inspector');
+  cursor.y += 6;
 }
 
 function centeredTitle(cursor: PdfCursor, title: string, subtitle = '') {
@@ -909,7 +910,7 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
   }
   
   const rows = Math.max(labelLines.length, valueLines.length, 1);
-  const totalHeight = rows * LINE_HEIGHT + noteHeight + 0.5;
+  const totalHeight = rows * LINE_HEIGHT + noteHeight + 0.2;
   
   // Page-break handling: ensure the entire row fits on the current page
   // If not, move to the next page to prevent splitting
