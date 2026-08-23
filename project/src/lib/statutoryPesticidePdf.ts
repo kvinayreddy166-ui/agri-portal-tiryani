@@ -410,14 +410,30 @@ export function formatActiveIngredientsForDisplay(activeIngredients: ActiveIngre
     return activeIngredients
       .map(ai => {
         const concentration = ai.concentration?.trim() || '';
-        // Remove % after formulation types (e.g., "w/w%" -> "w/w", "w/v%" -> "w/v")
-        const cleanedConc = concentration.replace(/(w\/w|w\/v|s\/p|g\/g|e\/c)%/gi, '$1');
-        // Only add % if not already present and not empty
-        const normalizedConc = cleanedConc && !cleanedConc.endsWith('%') ? `${cleanedConc}%` : cleanedConc;
+        // Fix single active ingredient formatting
+        // Ensure % appears immediately after numeric value, before w/w
+        let cleanedConc = concentration;
+        
+        // Remove % that appears after w/w or at the end incorrectly
+        cleanedConc = cleanedConc.replace(/(w\/w|w\/v|s\/p|g\/g|e\/c)%/gi, '$1');
+        cleanedConc = cleanedConc.replace(/%$/g, '');
+        
+        // Add % after numeric value if not present
+        // Match pattern: number followed by optional space and w/w
+        const match = cleanedConc.match(/^(\d+(?:\.\d+)?)(\s*(?:w\/w|w\/v|s\/p|g\/g|e\/c)?)?$/i);
+        if (match) {
+          const numeric = match[1];
+          const rest = match[2] || '';
+          // Check if numeric already has % after it
+          if (!cleanedConc.match(new RegExp(`^${numeric}%`))) {
+            cleanedConc = `${numeric}%${rest}`;
+          }
+        }
+        
         // Only include name if it's not empty
         return ai.name && ai.name.trim() 
-          ? `${ai.name.trim()} ${normalizedConc}`
-          : normalizedConc;
+          ? `${ai.name.trim()} ${cleanedConc}`
+          : cleanedConc;
       })
       .filter(part => part && part.trim() !== '')
       .join(' + ');
@@ -426,7 +442,27 @@ export function formatActiveIngredientsForDisplay(activeIngredients: ActiveIngre
   // Fallback to legacy field
   if (legacyActiveIngredient) {
     const cleaned = legacyActiveIngredient.trim();
-    return cleaned.endsWith('%') ? cleaned : `${cleaned}%`;
+    // Fix single active ingredient formatting
+    // Ensure % appears immediately after numeric value, before w/w
+    let cleanedConc = cleaned;
+    
+    // Remove % that appears after w/w or at the end incorrectly
+    cleanedConc = cleanedConc.replace(/(w\/w|w\/v|s\/p|g\/g|e\/c)%/gi, '$1');
+    cleanedConc = cleanedConc.replace(/%$/g, '');
+    
+    // Add % after numeric value if not present
+    // Match pattern: number followed by optional space and w/w
+    const match = cleanedConc.match(/^(\d+(?:\.\d+)?)(\s*(?:w\/w|w\/v|s\/p|g\/g|e\/c)?)?$/i);
+    if (match) {
+      const numeric = match[1];
+      const rest = match[2] || '';
+      // Check if numeric already has % after it
+      if (!cleanedConc.match(new RegExp(`^${numeric}%`))) {
+        cleanedConc = `${numeric}%${rest}`;
+      }
+    }
+    
+    return cleanedConc;
   }
   
   return '';
