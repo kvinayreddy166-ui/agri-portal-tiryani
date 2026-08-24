@@ -750,7 +750,7 @@ function subItemField(cursor: PdfCursor, mainLabel: string, subItems: Array<[str
   subItems.forEach(([, subValue]) => {
     const availableValueWidth = PAGE.width - valueX - PAGE.marginX;
     const valueLines = split(cursor, subValue || '', availableValueWidth);
-    totalHeight += Math.max(valueLines.length, 1) * LINE_HEIGHT + 0.5; // Reduced spacing between sub-items
+    totalHeight += Math.max(valueLines.length, 1) * LINE_HEIGHT + 0.2; // Reduced spacing between sub-items
   });
   totalHeight += 2; // Final spacing
   
@@ -774,7 +774,7 @@ function subItemField(cursor: PdfCursor, mainLabel: string, subItems: Array<[str
     const valueLines = split(cursor, subValue || '', availableValueWidth);
     cursor.doc.text(valueLines, valueX, cursor.y);
     
-    cursor.y += Math.max(valueLines.length, 1) * LINE_HEIGHT + 0.5; // Reduced spacing between sub-items
+    cursor.y += Math.max(valueLines.length, 1) * LINE_HEIGHT + 0.2; // Reduced spacing between sub-items
   });
   
   cursor.y += 2;
@@ -854,15 +854,12 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ['16. Code No. of A.O./A.D.A./D.D.A.', values.sampleSerialNumber],
     ['17. Q.C.I. Seal Particulars', qciSealValue],
     ['18. C.A. Seal Particulars', values.cdaCode],
-    ['19. Name of the P.T.L.to which sent For analysis', 'Pesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,\nHyderabad -500036'],
+    ['19. Name of the P.T.L.to which sent For analysis', 'Pesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,Hyd-500036.'],
     ['20. Date of Dispatch', formatDate(values.dispatchDate)],
   ];
   
   // Use J Form spacing (lineHeight: 5.25, gap: 0.85) for compact multiline rows
   const compactFieldOptions = { lineHeight: 5.25, gap: 0.85 };
-  
-  // Calculate space needed for signature section (5mm spacing + signature line)
-  const signatureSpaceNeeded = 5 + LINE_HEIGHT;
   
   // Check if we're near the end of the page before rendering the last few fields
   // If we have less than 40mm remaining, move to next page to prevent awkward pagination
@@ -885,13 +882,6 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   
   // Render fields 15-20: default spacing
   fieldList(cursor, mainFields.slice(11), 82);
-  
-  // Ensure signature section fits on the current page
-  // If not, move to the next page
-  if (cursor.y + signatureSpaceNeeded > PAGE.bottom) {
-    cursor.doc.addPage();
-    cursor.y = PAGE.top;
-  }
   
   cursor.y += 5;
   signatureLine(cursor, '', 'Signature of Insecticide Inspector');
