@@ -681,13 +681,25 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   // Move point 1 up by 3 units
   cursor.y -= 3;
   
+  // Use J Form spacing (lineHeight: 5.25, gap: 0.85) for compact multiline rows
+  const compactFieldOptions = { lineHeight: 5.25, gap: 0.85 };
+  
+  // Points 1-2: use compact J Form spacing for multiline content
   fieldList(cursor, [
     ['1. Common name of the insecticide', pesticideNameWithoutTrade(values), '(Mention complete details like nominal content, formulation type, etc.)'],
     ['2. Trade name, if any', values.tradeName],
+  ], 82, 0, compactFieldOptions);
+  
+  // Points 3-6: use compact J Form spacing to fix excessive gaps
+  fieldList(cursor, [
     ['3. Manufactured by', values.manufacturedBy],
     ['4. Registration number', values.registrationNumber],
     ['5. Marketed by', values.marketedBy],
     ['6. Manufacturing License No.', values.manufacturingLicenseNumber],
+  ], 82, 0, compactFieldOptions);
+  
+  // Points 7-14: use default spacing
+  fieldList(cursor, [
     ['7. Batch number', values.batchNumber],
     ['8. Date of manufacture', formatDate(values.manufactureDate)],
     ['9. Date of expiry', formatDate(values.expiryDate)],
@@ -846,8 +858,11 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ['20. Date of Dispatch', formatDate(values.dispatchDate)],
   ];
   
-  // Calculate space needed for signature section (3mm spacing + signature line)
-  const signatureSpaceNeeded = 3 + LINE_HEIGHT;
+  // Use J Form spacing (lineHeight: 5.25, gap: 0.85) for compact multiline rows
+  const compactFieldOptions = { lineHeight: 5.25, gap: 0.85 };
+  
+  // Calculate space needed for signature section (5mm spacing + signature line)
+  const signatureSpaceNeeded = 5 + LINE_HEIGHT;
   
   // Check if we're near the end of the page before rendering the last few fields
   // If we have less than 40mm remaining, move to next page to prevent awkward pagination
@@ -856,8 +871,20 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     cursor.y = PAGE.top;
   }
   
-  // Render the main fields
-  fieldList(cursor, mainFields, 82);
+  // Render fields 4-6: default spacing
+  fieldList(cursor, mainFields.slice(0, 3), 82);
+  
+  // Render fields 7-9: compact J Form spacing for multiline addresses
+  fieldList(cursor, mainFields.slice(3, 6), 82, 0, compactFieldOptions);
+  
+  // Render fields 10-12: default spacing
+  fieldList(cursor, mainFields.slice(6, 9), 82);
+  
+  // Render fields 13-14: compact J Form spacing for multiline content
+  fieldList(cursor, mainFields.slice(9, 11), 82, 0, compactFieldOptions);
+  
+  // Render fields 15-20: default spacing
+  fieldList(cursor, mainFields.slice(11), 82);
   
   // Ensure signature section fits on the current page
   // If not, move to the next page
@@ -903,7 +930,7 @@ function centeredTitle(cursor: PdfCursor, title: string, subtitle = '') {
   cursor.doc.setFontSize(BODY_SIZE);
 }
 
-function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, labelWidth = 74, xOffset = 0) {
+function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, labelWidth = 74, xOffset = 0, options: { lineHeight?: number; gap?: number } = {}) {
   rows.forEach(([label, value, note]) => {
     // Check if we're near the end of the page before rendering each field
     // If we have less than 25mm remaining, move to next page to prevent awkward pagination
@@ -912,15 +939,19 @@ function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, la
       cursor.doc.addPage();
       cursor.y = PAGE.top;
     }
-    fieldRow(cursor, label, value, note || '', labelWidth, xOffset);
+    fieldRow(cursor, label, value, note || '', labelWidth, xOffset, options);
   });
 }
 
-function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', labelWidth = 74, xOffset = 0) {
+function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', labelWidth = 74, xOffset = 0, options: { lineHeight?: number; gap?: number } = {}) {
   const x = PAGE.marginX + xOffset;
   const valueX = x + labelWidth + 5;
   const available = PAGE.width - valueX - PAGE.marginX;
   const valueLines = split(cursor, value || '', available);
+  
+  // Use custom lineHeight/gap if provided, otherwise use defaults
+  const rowLineHeight = options.lineHeight ?? LINE_HEIGHT;
+  const rowGap = options.gap ?? 0.2;
   
   // Handle hanging indent for multi-line labels (both numbered and sub-point labels)
   const labelMatch = label.match(/^(\d+\.\s+|\([a-z]\)\s*)(.*)$/);
@@ -949,7 +980,7 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
   }
   
   const rows = Math.max(labelLines.length, valueLines.length, 1);
-  const totalHeight = rows * LINE_HEIGHT + noteHeight;
+  const totalHeight = rows * rowLineHeight + noteHeight + rowGap;
   
   // Page-break handling: ensure the entire row fits on the current page
   // If not, move to the next page to prevent splitting

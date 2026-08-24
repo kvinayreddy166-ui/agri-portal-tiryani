@@ -501,8 +501,8 @@ function drawSampleTable(cursor: PdfCursor, queue: PesticideCoveringLetterQueueI
 
   const columnWidths = [
     PAGE.contentWidth * 0.07,  // Sl. No. - 7%
-    PAGE.contentWidth * 0.25,  // Trade Name - 25%
-    PAGE.contentWidth * 0.36,  // Technical Name - 36%
+    PAGE.contentWidth * 0.23,  // Trade Name - 23%
+    PAGE.contentWidth * 0.38,  // Technical Name - 38%
     PAGE.contentWidth * 0.18,  // Sample Code - 18%
     PAGE.contentWidth * 0.14,  // Sampling Date - 14%
   ];

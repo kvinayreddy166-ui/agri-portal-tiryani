@@ -352,7 +352,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
   signatureLine(cursor, `Place: ${resolvedMandal || '________________'}`, 'Insecticide Inspector Seal');
   cursor.y += 2;
-  cursor.y += 6;
+  cursor.y += 2;
   const witness1Label = '1. Signature of witness:';
   cursor.doc.text(witness1Label, PAGE.marginX, cursor.y);
   const witness1Width = cursor.doc.getTextWidth(witness1Label);
