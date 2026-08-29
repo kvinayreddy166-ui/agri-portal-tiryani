@@ -337,7 +337,7 @@ export function LicenseApplicationGenerator() {
                     License Application & Form Generator
                   </h1>
                   <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                    Fertilizer • Seed • Insecticide
+                    Fertilizer • Seed • Pesticide
                   </p>
                 </div>
               </div>
@@ -362,7 +362,7 @@ export function LicenseApplicationGenerator() {
             {[
               { type: 'fertilizer' as LicenseType, label: 'Fertilizer', gradient: 'from-emerald-500 to-green-600', bgGradient: 'from-emerald-50 to-green-50', border: 'emerald', checkColor: 'emerald' },
               { type: 'seed' as LicenseType, label: 'Seed', gradient: 'from-amber-500 to-orange-600', bgGradient: 'from-amber-50 to-orange-50', border: 'amber', checkColor: 'amber' },
-              { type: 'insecticide' as LicenseType, label: 'Insecticide / Pesticide', gradient: 'from-red-500 to-rose-600', bgGradient: 'from-red-50 to-rose-50', border: 'red', checkColor: 'red' },
+              { type: 'insecticide' as LicenseType, label: 'Pesticide', gradient: 'from-red-500 to-rose-600', bgGradient: 'from-red-50 to-rose-50', border: 'red', checkColor: 'red' },
             ].map((item) => (
               <button
                 key={item.type}
@@ -505,8 +505,8 @@ export function LicenseApplicationGenerator() {
               </h2>
             </div>
             <div className="rounded-2xl border border-violet-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-violet-800/50 dark:bg-slate-900/80">
-              <div className="mb-4 flex justify-between items-start">
-                <div className="flex-1">
+              <div className="mb-4 grid gap-4 sm:grid-cols-2">
+                <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">DDO CODE</label>
                   <input
                     type="text"
@@ -516,9 +516,9 @@ export function LicenseApplicationGenerator() {
                     className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                   />
                 </div>
-                <div className="ml-4 text-right">
-                  <div className="text-xs font-bold text-green-600 dark:text-green-400 mb-1">Challan Code</div>
-                  <div className="text-sm font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-3 py-2 rounded-lg border border-violet-200/50 dark:border-violet-800/50">
+                <div>
+                  <label className="block text-sm font-bold text-green-600 dark:text-green-400 mb-2">Challan Code</label>
+                  <div className="text-sm font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-4 py-3 rounded-xl border border-violet-200/50 dark:border-violet-800/50">
                     {getChallanCode()}
                   </div>
                 </div>

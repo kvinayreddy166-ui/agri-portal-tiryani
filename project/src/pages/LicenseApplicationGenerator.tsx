@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { FileText, ChevronRight, CheckCircle, FileText as FileIcon } from 'lucide-react';
+import { FileText, ChevronRight, FileText as FileIcon } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 
 // District to Division mapping
@@ -358,29 +358,17 @@ export function LicenseApplicationGenerator() {
               Select License Type
             </h2>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { type: 'fertilizer' as LicenseType, label: 'Fertilizer', gradient: 'from-emerald-500 to-green-600', bgGradient: 'from-emerald-50 to-green-50', border: 'emerald', checkColor: 'emerald' },
-              { type: 'seed' as LicenseType, label: 'Seed', gradient: 'from-amber-500 to-orange-600', bgGradient: 'from-amber-50 to-orange-50', border: 'amber', checkColor: 'amber' },
-              { type: 'insecticide' as LicenseType, label: 'Insecticide / Pesticide', gradient: 'from-red-500 to-rose-600', bgGradient: 'from-red-50 to-rose-50', border: 'red', checkColor: 'red' },
-            ].map((item) => (
-              <button
-                key={item.type}
-                onClick={() => handleLicenseTypeChange(item.type)}
-                className={`relative overflow-hidden rounded-2xl border p-6 text-left transition-all duration-300 hover:scale-105 ${
-                  licenseType === item.type
-                    ? `border-${item.border}-500 bg-gradient-to-br ${item.bgGradient} shadow-xl dark:border-${item.border}-400 dark:from-${item.border}-950/30 dark:to-${item.border}-950/30`
-                    : `border-${item.border}-200/50 bg-white/80 backdrop-blur-sm hover:border-${item.border}-400 hover:shadow-lg dark:border-${item.border}-800/50 dark:bg-slate-900/80`
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-base font-bold text-slate-900 dark:text-white">{item.label}</span>
-                  {licenseType === item.type && (
-                    <CheckCircle className={`h-5 w-5 text-${item.checkColor}-600 dark:text-${item.checkColor}-400`} />
-                  )}
-                </div>
-              </button>
-            ))}
+          <div className="w-full max-w-md">
+            <select
+              value={licenseType}
+              onChange={(e) => handleLicenseTypeChange(e.target.value as LicenseType)}
+              className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+            >
+              <option value="">License Type</option>
+              <option value="fertilizer">Fertilizer</option>
+              <option value="seed">Seed</option>
+              <option value="insecticide">Insecticide / Pesticide</option>
+            </select>
           </div>
         </div>
 

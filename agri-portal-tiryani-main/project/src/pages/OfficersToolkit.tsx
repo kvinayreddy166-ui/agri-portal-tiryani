@@ -25,7 +25,7 @@ interface OfficersToolkitProps {
 const toolkitItems: ToolkitItem[] = [
   {
     title: 'License Application & Form Generator',
-    description: 'Fertilizer • Seed • Insecticide',
+    description: 'Fertilizer • Seed • Pesticide',
     path: '/officer-toolkit/license-application-generator',
     icon: FileText,
     category: 'internal',
@@ -198,7 +198,7 @@ const externalPortals: ToolkitItem[] = [
 function translateToolkit(label?: string) {
   const labels: Record<string, string> = {
     'License Application & Form Generator': 'లైసెన్స్ అప్లికేషన్ & ఫారమ్ జనరేటర్',
-    'Fertilizer • Seed • Insecticide': 'ఎరువులు • విత్తనాలు • పురుగుమందులు',
+    'Fertilizer • Seed • Pesticide': 'ఎరువులు • విత్తనాలు • పురుగుమందులు',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
     'Prepare and download field forms.': 'క్షేత్ర ఫారాలను సిద్ధం చేసి డౌన్‌లోడ్ చేయండి.',
     'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
