@@ -31,6 +31,7 @@ const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const FertilizerCalculator = lazy(() => import('./features/fertilizerCalculator/FertilizerCalculatorCore').then((m) => ({ default: m.FertilizerCalculatorCore })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
+const LicenseApplicationGenerator = lazy(() => import('./pages/LicenseApplicationGenerator').then((m) => ({ default: m.LicenseApplicationGenerator })));
 const FarmCalculators = lazy(() => import('./pages/FarmCalculators').then((m) => ({ default: m.FarmCalculators })));
 const CropProtectionTool = lazy(() => import('./pages/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
 const PesticideCalculator = lazy(() => import('./pages/PesticideCalculator').then((m) => ({ default: m.PesticideCalculator })));
@@ -225,6 +226,7 @@ const PUBLIC_VIEW_PAGES = new Set(['dealers']);
 const PUBLIC_AUTH_ROUTES = new Set([
   '/login',
   '/officer-toolkit',
+  '/officer-toolkit/license-application-generator',
   '/officer-toolkit/statutory-forms',
   '/officer-toolkit/acreage-calculator',
   '/officer-toolkit/farm-calculators',
@@ -264,6 +266,7 @@ const PAGE_PATHS: Record<string, string> = {
   'subsidy-nfsm': '/subsidy-nfsm',
   'subsidy-state-seed': '/subsidy-state-seed',
   'officer-toolkit': '/officer-toolkit',
+  'license-application-generator': '/officer-toolkit/license-application-generator',
   'acreage-calculator': '/acreage-calculator',
   'farm-calculators': '/officer-toolkit/farm-calculators',
   'fertilizer-calculator': '/officer-toolkit/fertilizer-calculator',
@@ -292,6 +295,9 @@ function getHistoryIndex() {
 }
 
 function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
+  if (pathname === '/officer-toolkit/license-application-generator') {
+    return '/officer-toolkit';
+  }
   if (pathname === '/officer-toolkit/legal-ready-reckoner') {
     return '/officer-toolkit';
   }
@@ -326,6 +332,7 @@ function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
 
 function getPageBackFallback(page: string, isDealerUser: boolean) {
   if (page === 'forms' || page === 'acreage-calculator' || page === 'crop-protection') return '/officer-toolkit';
+  if (page === 'license-application-generator') return '/officer-toolkit';
   if (page === 'farm-calculators') return '/officer-toolkit';
   if (page === 'fertilizer-calculator' || page === 'pesticide-calculator' || page === 'plant-population-calculator' || page === 'seed-rate-calculator') return '/officer-toolkit/farm-calculators';
   if (page === 'legal-ready-reckoner') return '/officer-toolkit';
@@ -569,6 +576,7 @@ function AppContent() {
         'subsidy-nfsm',
         'subsidy-state-seed',
         'officer-toolkit',
+        'license-application-generator',
         'farm-calculators',
         'acreage-calculator',
         'fertilizer-calculator',
@@ -590,6 +598,9 @@ function AppContent() {
       
       // Handle nested routes for officer toolkit
       let page = routePage !== 'dashboard' ? routePage : legacyPage || routePage || hashPage;
+      if (page === 'officer-toolkit/license-application-generator') {
+        page = 'license-application-generator';
+      }
       if (page === 'officer-toolkit/farm-calculators') {
         page = 'farm-calculators';
       }
@@ -730,6 +741,7 @@ function AppContent() {
     if (loading || user) return;
     if (
       location.pathname.startsWith('/officer-toolkit/') &&
+      location.pathname !== '/officer-toolkit/license-application-generator' &&
       location.pathname !== '/officer-toolkit/statutory-forms' &&
       location.pathname !== '/officer-toolkit/acreage-calculator' &&
     location.pathname !== '/officer-toolkit/farm-calculators' &&
@@ -767,6 +779,14 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <OfficersToolkit isAdmin={false} isTestUser={false} />
+      </SafeSuspense>
+    );
+  }
+
+  if (!user && currentPage === 'license-application-generator') {
+    return (
+      <SafeSuspense fallback={<GlobalAppLoader />}>
+        <LicenseApplicationGenerator />
       </SafeSuspense>
     );
   }

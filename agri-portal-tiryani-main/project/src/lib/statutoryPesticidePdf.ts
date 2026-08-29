@@ -347,7 +347,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
     ['12. Stock after sampling', stockAfter, '(Mention units)'],
     ['13. Folio/page number of stock register', values.stockRegisterFolio],
     ['14. Any other relevant information', values.otherInformation],
-  ], 82);
+  ], 82, 0, true); // Use tightSpacing for Form VC
   cursor.y += 3;
   const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
   signatureLine(cursor, `Place: ${resolvedMandal || '________________'}`, 'Insecticide Inspector Seal');
@@ -509,11 +509,11 @@ function centeredTitle(cursor: PdfCursor, title: string, subtitle = '') {
   cursor.doc.setFontSize(BODY_SIZE);
 }
 
-function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, labelWidth = 74, xOffset = 0) {
-  rows.forEach(([label, value, note]) => fieldRow(cursor, label, value, note, labelWidth, xOffset));
+function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, labelWidth = 74, xOffset = 0, tightSpacing = false) {
+  rows.forEach(([label, value, note]) => fieldRow(cursor, label, value, note, labelWidth, xOffset, tightSpacing));
 }
 
-function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', labelWidth = 74, xOffset = 0) {
+function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', labelWidth = 74, xOffset = 0, tightSpacing = false) {
   const x = PAGE.marginX + xOffset;
   const y = cursor.y;
   const valueX = x + labelWidth + 5;
@@ -537,17 +537,23 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
   
   // Calculate note lines separately with font 10
   let noteLines: string[] = [];
-  let noteHeight = 0;
   if (note) {
     const originalFontSize = cursor.doc.getFontSize();
     cursor.doc.setFontSize(10);
     noteLines = split(cursor, note, availableLabelWidth);
-    noteHeight = noteLines.length * 4.5; // Tighter spacing for helper text
     cursor.doc.setFontSize(originalFontSize);
   }
   
-  const rows = Math.max(labelLines.length, valueLines.length, 1);
-  const totalHeight = rows * LINE_HEIGHT + noteHeight + 0.5;
+  // Use exact line height calculation for tight spacing (Form VC)
+  const lineHeightFactor = cursor.doc.getLineHeightFactor();
+  const fontSize = cursor.doc.getFontSize();
+  // LINE_HEIGHT = BODY_SIZE * 1.25 * 0.4 = 6.2
+  // For Form VC with lineHeightFactor 0.9: fontSize * lineHeightFactor * 0.25
+  const exactLineHeight = fontSize * lineHeightFactor * 0.25;
+  const effectiveLineHeight = tightSpacing ? exactLineHeight : LINE_HEIGHT;
+  const valueHeight = valueLines.length * effectiveLineHeight;
+  const labelHeight = labelLines.length * effectiveLineHeight;
+  const totalHeight = Math.max(valueHeight, labelHeight);
   ensure(cursor, totalHeight);
   
   // Render serial number separately if exists
@@ -564,7 +570,7 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
   if (noteLines.length > 0) {
     const originalFontSize = cursor.doc.getFontSize();
     cursor.doc.setFontSize(10);
-    cursor.doc.text(noteLines, labelStartX, y + labelLines.length * 4.5);
+    cursor.doc.text(noteLines, labelStartX, y + labelLines.length * effectiveLineHeight);
     cursor.doc.setFontSize(originalFontSize);
   }
   

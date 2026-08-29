@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, Scale, type LucideIcon } from 'lucide-react';
+import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, Scale, FileText, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
@@ -23,6 +23,15 @@ interface OfficersToolkitProps {
 }
 
 const toolkitItems: ToolkitItem[] = [
+  {
+    title: 'License Application & Form Generator',
+    description: 'Fertilizer • Seed • Insecticide',
+    path: '/officer-toolkit/license-application-generator',
+    icon: FileText,
+    category: 'internal',
+    gradient: 'from-violet-500 to-purple-600',
+    bgGradient: 'from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30',
+  },
   {
     title: 'Statutory Forms',
     description: 'Prepare and download field forms.',
@@ -188,6 +197,8 @@ const externalPortals: ToolkitItem[] = [
 
 function translateToolkit(label?: string) {
   const labels: Record<string, string> = {
+    'License Application & Form Generator': 'లైసెన్స్ అప్లికేషన్ & ఫారమ్ జనరేటర్',
+    'Fertilizer • Seed • Insecticide': 'ఎరువులు • విత్తనాలు • పురుగుమందులు',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
     'Prepare and download field forms.': 'క్షేత్ర ఫారాలను సిద్ధం చేసి డౌన్‌లోడ్ చేయండి.',
     'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
