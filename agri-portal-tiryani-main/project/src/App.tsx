@@ -862,7 +862,12 @@ function AppContent() {
     location.pathname !== '/officer-toolkit/acreage-calculator' &&
     location.pathname !== '/officer-toolkit/farm-calculators' &&
     location.pathname !== '/officer-toolkit/fertilizer-calculator' &&
-    location.pathname !== '/officer-toolkit/crop-protection'
+    location.pathname !== '/officer-toolkit/crop-protection' &&
+    location.pathname !== '/officer-toolkit/pesticide-calculator' &&
+    location.pathname !== '/officer-toolkit/plant-population-calculator' &&
+    location.pathname !== '/officer-toolkit/seed-rate-calculator' &&
+    location.pathname !== '/officer-toolkit/legal-ready-reckoner' &&
+    location.pathname !== '/officer-toolkit/license-application-generator'
   ) {
     return <PageLoader hideLogo={hideCalculatorLogo} />;
   }
@@ -939,6 +944,8 @@ function AppContent() {
         );
       case 'officer-toolkit':
         return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} />;
+      case 'license-application-generator':
+        return <LicenseApplicationGenerator />;
       case 'farm-calculators':
         return <FarmCalculators />;
       case 'acreage-calculator':
