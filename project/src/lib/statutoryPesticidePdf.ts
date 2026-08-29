@@ -713,7 +713,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
   signatureLine(cursor, `Place: ${resolvedMandal || '________________'}`, 'Insecticide Inspector Seal');
   cursor.y += 2;
-  cursor.y += 6;
+  cursor.y += 3;
   const witness1Label = '1. Signature of witness:';
   cursor.doc.text(witness1Label, PAGE.marginX, cursor.y);
   const witness1Width = cursor.doc.getTextWidth(witness1Label);
@@ -724,12 +724,12 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.doc.text(witness2Label, PAGE.marginX, cursor.y);
   const witness2Width = cursor.doc.getTextWidth(witness2Label);
   drawBlank(cursor.doc, PAGE.marginX + witness2Width + 3, cursor.y, 80);
-  cursor.y += 8;
+  cursor.y += 5;
   cursor.doc.setFont(PDF_FONT, 'bold');
   cursor.doc.text('(Received one sealed portion of sample along with a copy of this Form.)', PAGE.marginX, cursor.y);
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.y += LINE_HEIGHT + 2;
-  cursor.y += 6;
+  cursor.y += 3;
   cursor.doc.setFont(PDF_FONT, 'bold');
   cursor.doc.text('Signature of the person from whom the sample is taken', PAGE.width / 2 + 23, cursor.y, { align: 'center' });
   cursor.y += 3.1;
