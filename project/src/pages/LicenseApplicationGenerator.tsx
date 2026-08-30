@@ -354,7 +354,7 @@ export function LicenseApplicationGenerator() {
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-2xl font-black text-slate-900 dark:text-white">
-                    License Application & Form Generator
+                    License Services
                   </h1>
                   <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
                     Fertilizer • Seed • Pesticide

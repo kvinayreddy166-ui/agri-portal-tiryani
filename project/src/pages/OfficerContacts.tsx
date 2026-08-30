@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { Phone, Search, User, Building2, MapPin, Filter } from 'lucide-react';
+import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 import { supabase } from '../lib/supabase';
 
@@ -103,16 +103,37 @@ export function OfficerContacts() {
   const loadContacts = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('officer_contacts')
-        .select('*')
-        .eq('officer_type', activeTab)
-        .eq('active', true);
+      const batchSize = 1000;
+      let allContacts: OfficerContact[] = [];
+      let from = 0;
+      let hasMore = true;
 
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      setContacts(data || []);
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('officer_contacts')
+          .select('*')
+          .eq('officer_type', activeTab)
+          .eq('active', true)
+          .range(from, from + batchSize - 1);
+
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          allContacts = [...allContacts, ...data];
+          from += batchSize;
+          hasMore = data.length === batchSize;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      // Deduplicate by ID to remove duplicates
+      const uniqueContacts = Array.from(
+        new Map(allContacts.map(contact => [contact.id, contact])).values()
+      );
+
+      console.log(`Loaded ${uniqueContacts.length} unique ${activeTab} contacts`);
+      setContacts(uniqueContacts);
     } catch (error) {
       console.error('Error loading contacts:', error);
       setContacts([]);
@@ -142,13 +163,13 @@ export function OfficerContacts() {
 
   const filteredContacts = getFilteredContacts();
   const uniqueDistricts = Array.from(new Set(contacts.map(c => c.district))).sort();
-  const uniqueDivisions = selectedDistrict ? Array.from(new Set(contacts.filter(c => c.district === selectedDistrict).map(c => c.division).filter(Boolean))).sort() : [];
+  const uniqueDivisions = selectedDistrict ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase()).map(c => c.division).filter(Boolean))).sort() : [];
   const uniqueMandals = selectedDivision 
-    ? Array.from(new Set(contacts.filter(c => c.district === selectedDistrict && c.division === selectedDivision).map(c => c.mandal).filter(Boolean))).sort() 
+    ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase() && c.division?.toLowerCase() === selectedDivision.toLowerCase()).map(c => c.mandal).filter(Boolean))).sort() 
     : selectedDistrict 
-      ? Array.from(new Set(contacts.filter(c => c.district === selectedDistrict).map(c => c.mandal).filter(Boolean))).sort() 
+      ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase()).map(c => c.mandal).filter(Boolean))).sort() 
       : [];
-  const uniqueClusters = selectedMandal ? Array.from(new Set(contacts.filter(c => c.mandal === selectedMandal).map(c => c.cluster).filter(Boolean))).sort() : [];
+  const uniqueClusters = selectedMandal ? Array.from(new Set(contacts.filter(c => c.mandal?.toLowerCase() === selectedMandal.toLowerCase()).map(c => c.cluster).filter(Boolean))).sort() : [];
 
   const resetFilters = () => {
     setSearchQuery('');
@@ -160,6 +181,20 @@ export function OfficerContacts() {
 
   const handleCall = (phone: string) => {
     window.location.href = `tel:${phone}`;
+  };
+
+  const handleWhatsApp = (phone: string) => {
+    // Validate 10-digit Indian mobile number
+    const cleanedPhone = phone.replace(/\D/g, '');
+    if (cleanedPhone.length === 10) {
+      const whatsappUrl = `https://wa.me/91${cleanedPhone}`;
+      window.open(whatsappUrl, '_blank');
+    }
+  };
+
+  const isValidIndianMobile = (phone: string): boolean => {
+    const cleanedPhone = phone.replace(/\D/g, '');
+    return cleanedPhone.length === 10;
   };
 
   const renderContactCard = (contact: OfficerContact) => {
@@ -210,18 +245,29 @@ export function OfficerContacts() {
               )}
             </div>
 
-            <div className="mt-3 flex items-center justify-between">
+            <div className="mt-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400">
                 <Phone className="h-4 w-4" />
                 <span>{contact.phone}</span>
               </div>
-              <button
-                onClick={() => handleCall(contact.phone)}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
-              >
-                <Phone className="h-4 w-4" />
-                <span>Call</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {isValidIndianMobile(contact.phone) && (
+                  <button
+                    onClick={() => handleWhatsApp(contact.phone)}
+                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-600 px-3 py-2 text-sm font-bold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+                    title="WhatsApp"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </button>
+                )}
+                <button
+                  onClick={() => handleCall(contact.phone)}
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-3 py-2 text-sm font-bold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+                  title="Call"
+                >
+                  <Phone className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

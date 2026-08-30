@@ -33,7 +33,7 @@ const toolkitItems: ToolkitItem[] = [
     bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
   },
   {
-    title: 'License Application & Form Generator',
+    title: 'License Services',
     description: 'Fertilizer • Seed • Pesticide',
     path: '/officer-toolkit/license-application-generator',
     icon: FileText,
@@ -206,7 +206,7 @@ const externalPortals: ToolkitItem[] = [
 
 function translateToolkit(label?: string) {
   const labels: Record<string, string> = {
-    'License Application & Form Generator': 'లైసెన్స్ అప్లికేషన్ & ఫారమ్ జనరేటర్',
+    'License Services': 'లైసెన్స్ సేవలు',
     'Fertilizer • Seed • Pesticide': 'ఎరువులు • విత్తనాలు • పురుగుమందులు',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
     'Prepare and download field forms.': 'క్షేత్ర ఫారాలను సిద్ధం చేసి డౌన్‌లోడ్ చేయండి.',
