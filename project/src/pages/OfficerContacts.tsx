@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
@@ -18,8 +18,6 @@ interface OfficerContact {
   mandal: string | null;
   cluster: string | null;
   phone: string;
-  email: string | null;
-  active: boolean;
 }
 
 interface TabConfig {
@@ -83,7 +81,9 @@ export function OfficerContacts() {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<OfficerType>('AEO');
   const [contacts, setContacts] = useState<OfficerContact[]>([]);
+  const [allContacts, setAllContacts] = useState<Record<OfficerType, OfficerContact[]>>({} as Record<OfficerType, OfficerContact[]>);
   const [loading, setLoading] = useState(false);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -96,11 +96,47 @@ export function OfficerContacts() {
     setMounted(true);
   }, []);
 
+  // Load all contacts once on mount
   useEffect(() => {
-    loadContacts();
-  }, [activeTab]);
+    loadAllContacts();
+  }, []);
 
-  const loadContacts = async () => {
+  // Filter contacts by active tab from cached data
+  useEffect(() => {
+    if (allContacts[activeTab]) {
+      setContacts(allContacts[activeTab]);
+    } else if (initialLoadDone) {
+      // If initial load is done but this tab has no data, load it
+      loadContactsForTab(activeTab);
+    }
+  }, [activeTab, allContacts, initialLoadDone]);
+
+  const loadAllContacts = async () => {
+    // Check cache first
+    const cachedData = localStorage.getItem('officer_contacts_cache');
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        const cacheAge = Date.now() - parsed.timestamp;
+        // Use cache if less than 1 hour old
+        if (cacheAge < 3600000) {
+          setAllContacts(parsed.data);
+          setContacts(parsed.data[activeTab] || []);
+          setInitialLoadDone(true);
+          // Refresh in background
+          refreshAllContacts();
+          return;
+        }
+      } catch (e) {
+        console.error('Cache parse error:', e);
+      }
+    }
+
+    // No valid cache, load fresh
+    await refreshAllContacts();
+  };
+
+  const refreshAllContacts = async () => {
     setLoading(true);
     try {
       const batchSize = 1000;
@@ -111,8 +147,7 @@ export function OfficerContacts() {
       while (hasMore) {
         const { data, error } = await supabase
           .from('officer_contacts')
-          .select('*')
-          .eq('officer_type', activeTab)
+          .select('id, officer_type, name, district, division, mandal, cluster, phone')
           .eq('active', true)
           .range(from, from + batchSize - 1);
 
@@ -127,12 +162,71 @@ export function OfficerContacts() {
         }
       }
 
-      // Deduplicate by ID to remove duplicates
+      // Deduplicate by ID
       const uniqueContacts = Array.from(
         new Map(allContacts.map(contact => [contact.id, contact])).values()
       );
 
-      console.log(`Loaded ${uniqueContacts.length} unique ${activeTab} contacts`);
+      // Group by officer_type
+      const groupedContacts = uniqueContacts.reduce((acc, contact) => {
+        if (!acc[contact.officer_type]) {
+          acc[contact.officer_type] = [];
+        }
+        acc[contact.officer_type].push(contact);
+        return acc;
+      }, {} as Record<OfficerType, OfficerContact[]>);
+
+      setAllContacts(groupedContacts);
+      setContacts(groupedContacts[activeTab] || []);
+      setInitialLoadDone(true);
+
+      // Cache the results
+      localStorage.setItem('officer_contacts_cache', JSON.stringify({
+        data: groupedContacts,
+        timestamp: Date.now()
+      }));
+
+      console.log(`Loaded ${uniqueContacts.length} total contacts`);
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      setContacts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadContactsForTab = async (tab: OfficerType) => {
+    setLoading(true);
+    try {
+      const batchSize = 1000;
+      let tabContacts: OfficerContact[] = [];
+      let from = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('officer_contacts')
+          .select('id, officer_type, name, district, division, mandal, cluster, phone')
+          .eq('officer_type', tab)
+          .eq('active', true)
+          .range(from, from + batchSize - 1);
+
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          tabContacts = [...tabContacts, ...data];
+          from += batchSize;
+          hasMore = data.length === batchSize;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      const uniqueContacts = Array.from(
+        new Map(tabContacts.map(contact => [contact.id, contact])).values()
+      );
+
+      setAllContacts(prev => ({ ...prev, [tab]: uniqueContacts }));
       setContacts(uniqueContacts);
     } catch (error) {
       console.error('Error loading contacts:', error);
@@ -142,7 +236,7 @@ export function OfficerContacts() {
     }
   };
 
-  const getFilteredContacts = () => {
+  const filteredContacts = useMemo(() => {
     return contacts.filter(contact => {
       const matchesSearch = searchQuery === '' || 
         contact.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -159,45 +253,58 @@ export function OfficerContacts() {
 
       return matchesSearch && matchesDistrict && matchesDivision && matchesMandal && matchesCluster;
     });
-  };
+  }, [contacts, searchQuery, selectedDistrict, selectedDivision, selectedMandal, selectedCluster]);
 
-  const filteredContacts = getFilteredContacts();
-  const uniqueDistricts = Array.from(new Set(contacts.map(c => c.district))).sort();
-  const uniqueDivisions = selectedDistrict ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase()).map(c => c.division).filter(Boolean))).sort() : [];
-  const uniqueMandals = selectedDivision 
-    ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase() && c.division?.toLowerCase() === selectedDivision.toLowerCase()).map(c => c.mandal).filter(Boolean))).sort() 
-    : selectedDistrict 
-      ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase()).map(c => c.mandal).filter(Boolean))).sort() 
-      : [];
-  const uniqueClusters = selectedMandal ? Array.from(new Set(contacts.filter(c => c.mandal?.toLowerCase() === selectedMandal.toLowerCase()).map(c => c.cluster).filter(Boolean))).sort() : [];
+  const uniqueDistricts = useMemo(() => 
+    Array.from(new Set(contacts.map(c => c.district))).sort(),
+    [contacts]
+  );
 
-  const resetFilters = () => {
+  const uniqueDivisions = useMemo(() => 
+    selectedDistrict ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase()).map(c => c.division).filter(Boolean))).sort() : [],
+    [contacts, selectedDistrict]
+  );
+
+  const uniqueMandals = useMemo(() => 
+    selectedDivision 
+      ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase() && c.division?.toLowerCase() === selectedDivision.toLowerCase()).map(c => c.mandal).filter(Boolean))).sort() 
+      : selectedDistrict 
+        ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase()).map(c => c.mandal).filter(Boolean))).sort() 
+        : [],
+    [contacts, selectedDistrict, selectedDivision]
+  );
+
+  const uniqueClusters = useMemo(() => 
+    selectedMandal ? Array.from(new Set(contacts.filter(c => c.mandal?.toLowerCase() === selectedMandal.toLowerCase()).map(c => c.cluster).filter(Boolean))).sort() : [],
+    [contacts, selectedMandal]
+  );
+
+  const resetFilters = useCallback(() => {
     setSearchQuery('');
     setSelectedDistrict('');
     setSelectedDivision('');
     setSelectedMandal('');
     setSelectedCluster('');
-  };
+  }, []);
 
-  const handleCall = (phone: string) => {
+  const handleCall = useCallback((phone: string) => {
     window.location.href = `tel:${phone}`;
-  };
+  }, []);
 
-  const handleWhatsApp = (phone: string) => {
-    // Validate 10-digit Indian mobile number
+  const handleWhatsApp = useCallback((phone: string) => {
     const cleanedPhone = phone.replace(/\D/g, '');
     if (cleanedPhone.length === 10) {
       const whatsappUrl = `https://wa.me/91${cleanedPhone}`;
       window.open(whatsappUrl, '_blank');
     }
-  };
+  }, []);
 
-  const isValidIndianMobile = (phone: string): boolean => {
+  const isValidIndianMobile = useCallback((phone: string): boolean => {
     const cleanedPhone = phone.replace(/\D/g, '');
     return cleanedPhone.length === 10;
-  };
+  }, []);
 
-  const renderContactCard = (contact: OfficerContact) => {
+  const renderContactCard = useCallback((contact: OfficerContact) => {
     const TabIcon = TABS.find(tab => tab.id === activeTab)?.icon || User;
     
     return (
@@ -273,9 +380,9 @@ export function OfficerContacts() {
         </div>
       </div>
     );
-  };
+  }, [activeTab, handleCall, handleWhatsApp, isValidIndianMobile]);
 
-  const renderFilters = () => {
+  const renderFilters = useCallback(() => {
     const showDivision = activeTab === 'MAO' || activeTab === 'ADA';
     const showMandal = activeTab === 'AEO' || activeTab === 'MAO';
     const showCluster = activeTab === 'AEO';
@@ -386,7 +493,7 @@ export function OfficerContacts() {
         )}
       </div>
     );
-  };
+  }, [activeTab, searchQuery, selectedDistrict, selectedDivision, selectedMandal, selectedCluster, uniqueDistricts, uniqueDivisions, uniqueMandals, uniqueClusters, resetFilters]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
