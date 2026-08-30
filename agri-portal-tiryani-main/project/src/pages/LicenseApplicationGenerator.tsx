@@ -148,6 +148,7 @@ export function LicenseApplicationGenerator() {
   const [applicationType, setApplicationType] = useState<ApplicationType | ''>('');
   const [dealerType, setDealerType] = useState<DealerType | ''>('');
   const [areaType, setAreaType] = useState<AreaType | ''>('');
+  const [numberOfProducts, setNumberOfProducts] = useState<string>('');
   const [district, setDistrict] = useState<string>('');
   const [division, setDivision] = useState<string>('');
   const [ddoCode, setDdoCode] = useState<string>('');
@@ -164,6 +165,7 @@ export function LicenseApplicationGenerator() {
     setApplicationType('');
     setDealerType('');
     setAreaType('');
+    setNumberOfProducts('');
     setDistrict('');
     setDivision('');
     setDdoCode('');
@@ -209,11 +211,12 @@ export function LicenseApplicationGenerator() {
   const showInsecticideAmendmentType = licenseType === 'insecticide' && applicationType === 'amendment';
   const showDealerType = licenseType === 'fertilizer';
   const showAreaType = licenseType === 'insecticide';
+  const showNumberOfProducts = licenseType === 'insecticide' && areaType !== '' && applicationType === 'pc_inclusion';
   const showDivision = licenseType === 'fertilizer' && dealerType === 'retailer';
   const showChallanDetails = applicationType !== '' && district !== '' && 
     (showDivision ? division !== '' : true) &&
     (licenseType === 'fertilizer' ? dealerType !== '' : true) && 
-    (licenseType === 'insecticide' ? areaType !== '' : true);
+    (licenseType === 'insecticide' && applicationType === 'pc_inclusion' ? areaType !== '' && numberOfProducts !== '' : true);
   const showDocuments = false; // Amendment types hidden for now
 
   const getAmount = () => {
@@ -221,13 +224,25 @@ export function LicenseApplicationGenerator() {
     
     if (licenseType === 'seed') {
       if (applicationType === 'fresh') return 1000;
-      if (applicationType === 'renewal') return 1000;
+      if (applicationType === 'renewal') return 500;
       if (applicationType === 'renewal_grace_period') return 1000;
       if (applicationType === 'amendment') return 500;
     }
     
     if (licenseType === 'insecticide') {
       const isMunicipal = areaType === 'municipal';
+      const productCount = numberOfProducts === '15+' ? 15 : parseInt(numberOfProducts) || 0;
+      
+      // Rural areas: 100 per product, 15+ = 1500
+      // Municipal areas: 500 per product, 15+ = 7500
+      const baseRate = isMunicipal ? 500 : 100;
+      const thresholdAmount = isMunicipal ? 7500 : 1500;
+      
+      if (productCount >= 15) {
+        return thresholdAmount;
+      }
+      
+      const calculatedAmount = productCount * baseRate;
       
       if (applicationType === 'fresh') return isMunicipal ? 7500 : 1500;
       if (applicationType === 'renewal') return isMunicipal ? 7500 : 1500;
@@ -235,12 +250,12 @@ export function LicenseApplicationGenerator() {
         if (insecticideAmendmentType === 'inclusion_of_insecticides') return isMunicipal ? 7500 : 1500;
         return isMunicipal ? 7500 : 1500;
       }
-      if (applicationType === 'pc_inclusion') return isMunicipal ? 7500 : 1500;
+      if (applicationType === 'pc_inclusion') return calculatedAmount;
     }
     
     if (licenseType === 'fertilizer') {
       if (applicationType === 'fresh') return isFertilizerWholesaler ? 4500 : 2500;
-      if (applicationType === 'renewal') return 2500;
+      if (applicationType === 'renewal') return isFertilizerWholesaler ? 4500 : 2500;
       if (applicationType === 'renewal_grace_period') return isFertilizerWholesaler ? 5500 : 3500;
       if (applicationType === 'amendment') return isFertilizerWholesaler ? 1000 : 500;
       if (applicationType === 'duplicate') return 500;
@@ -292,6 +307,11 @@ export function LicenseApplicationGenerator() {
 
   const handleAreaTypeChange = (type: AreaType) => {
     setAreaType(type);
+    setNumberOfProducts(''); // Reset number of products when area type changes
+  };
+
+  const handleNumberOfProductsChange = (value: string) => {
+    setNumberOfProducts(value);
   };
 
   const handleDistrictChange = (value: string) => {
@@ -407,8 +427,6 @@ export function LicenseApplicationGenerator() {
                 </select>
               </div>
             )}
-
-            {/* Area Type Selection */}
             {showAreaType && (
               <div>
                 <div className="mb-2">
@@ -428,6 +446,28 @@ export function LicenseApplicationGenerator() {
               </div>
             )}
 
+            {/* Number of Products Selection */}
+            {showNumberOfProducts && (
+              <div>
+                <div className="mb-2">
+                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                    Number of Products
+                  </h3>
+                </div>
+                <select
+                  value={numberOfProducts}
+                  onChange={(e) => handleNumberOfProductsChange(e.target.value)}
+                  className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                >
+                  <option value="">Number of Products</option>
+                  {[...Array(14)].map((_, i) => (
+                    <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
+                  ))}
+                  <option value="15+">15 or more</option>
+                </select>
+              </div>
+            )}
+
             {/* Application Type Selection */}
             {licenseType && (
               <div>
@@ -443,7 +483,7 @@ export function LicenseApplicationGenerator() {
                 >
                   <option value="">Application Type</option>
                   <option value="fresh">Fresh</option>
-                  {licenseType !== 'insecticide' && <option value="renewal">Renewal</option>}
+                  {licenseType !== 'insecticide' && <option value="renewal">Renewal within Expiry</option>}
                   {licenseType !== 'insecticide' && <option value="renewal_grace_period">Renewal within Grace Period</option>}
                   <option value="amendment">Amendment</option>
                   {licenseType === 'fertilizer' && <option value="duplicate">Duplicate Copy</option>}
@@ -505,7 +545,7 @@ export function LicenseApplicationGenerator() {
               </h2>
             </div>
             <div className="rounded-2xl border border-violet-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-violet-800/50 dark:bg-slate-900/80">
-              <div className="mb-4 grid gap-4 sm:grid-cols-2">
+              <div className="mb-4 grid gap-4">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">DDO CODE</label>
                   <input
