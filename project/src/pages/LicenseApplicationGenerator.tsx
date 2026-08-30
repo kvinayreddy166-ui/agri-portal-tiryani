@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { FileText, ChevronRight, FileText as FileIcon } from 'lucide-react';
+import { FileText, ChevronRight, CheckCircle, FileText as FileIcon } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 
 // District to Division mapping
@@ -148,6 +148,7 @@ export function LicenseApplicationGenerator() {
   const [applicationType, setApplicationType] = useState<ApplicationType | ''>('');
   const [dealerType, setDealerType] = useState<DealerType | ''>('');
   const [areaType, setAreaType] = useState<AreaType | ''>('');
+  const [numberOfProducts, setNumberOfProducts] = useState<string>('');
   const [district, setDistrict] = useState<string>('');
   const [division, setDivision] = useState<string>('');
   const [ddoCode, setDdoCode] = useState<string>('');
@@ -164,6 +165,7 @@ export function LicenseApplicationGenerator() {
     setApplicationType('');
     setDealerType('');
     setAreaType('');
+    setNumberOfProducts('');
     setDistrict('');
     setDivision('');
     setDdoCode('');
@@ -209,11 +211,12 @@ export function LicenseApplicationGenerator() {
   const showInsecticideAmendmentType = licenseType === 'insecticide' && applicationType === 'amendment';
   const showDealerType = licenseType === 'fertilizer';
   const showAreaType = licenseType === 'insecticide';
+  const showNumberOfProducts = licenseType === 'insecticide' && areaType !== '' && applicationType === 'pc_inclusion';
   const showDivision = licenseType === 'fertilizer' && dealerType === 'retailer';
   const showChallanDetails = applicationType !== '' && district !== '' && 
     (showDivision ? division !== '' : true) &&
     (licenseType === 'fertilizer' ? dealerType !== '' : true) && 
-    (licenseType === 'insecticide' ? areaType !== '' : true);
+    (licenseType === 'insecticide' && applicationType === 'pc_inclusion' ? areaType !== '' && numberOfProducts !== '' : true);
   const showDocuments = false; // Amendment types hidden for now
 
   const getAmount = () => {
@@ -221,13 +224,25 @@ export function LicenseApplicationGenerator() {
     
     if (licenseType === 'seed') {
       if (applicationType === 'fresh') return 1000;
-      if (applicationType === 'renewal') return 1000;
+      if (applicationType === 'renewal') return 500;
       if (applicationType === 'renewal_grace_period') return 1000;
       if (applicationType === 'amendment') return 500;
     }
     
     if (licenseType === 'insecticide') {
       const isMunicipal = areaType === 'municipal';
+      const productCount = numberOfProducts === '15+' ? 15 : parseInt(numberOfProducts) || 0;
+      
+      // Rural areas: 100 per product, 15+ = 1500
+      // Municipal areas: 500 per product, 15+ = 7500
+      const baseRate = isMunicipal ? 500 : 100;
+      const thresholdAmount = isMunicipal ? 7500 : 1500;
+      
+      if (productCount >= 15) {
+        return thresholdAmount;
+      }
+      
+      const calculatedAmount = productCount * baseRate;
       
       if (applicationType === 'fresh') return isMunicipal ? 7500 : 1500;
       if (applicationType === 'renewal') return isMunicipal ? 7500 : 1500;
@@ -235,12 +250,12 @@ export function LicenseApplicationGenerator() {
         if (insecticideAmendmentType === 'inclusion_of_insecticides') return isMunicipal ? 7500 : 1500;
         return isMunicipal ? 7500 : 1500;
       }
-      if (applicationType === 'pc_inclusion') return isMunicipal ? 7500 : 1500;
+      if (applicationType === 'pc_inclusion') return calculatedAmount;
     }
     
     if (licenseType === 'fertilizer') {
       if (applicationType === 'fresh') return isFertilizerWholesaler ? 4500 : 2500;
-      if (applicationType === 'renewal') return 2500;
+      if (applicationType === 'renewal') return isFertilizerWholesaler ? 4500 : 2500;
       if (applicationType === 'renewal_grace_period') return isFertilizerWholesaler ? 5500 : 3500;
       if (applicationType === 'amendment') return isFertilizerWholesaler ? 1000 : 500;
       if (applicationType === 'duplicate') return 500;
@@ -292,6 +307,11 @@ export function LicenseApplicationGenerator() {
 
   const handleAreaTypeChange = (type: AreaType) => {
     setAreaType(type);
+    setNumberOfProducts(''); // Reset number of products when area type changes
+  };
+
+  const handleNumberOfProductsChange = (value: string) => {
+    setNumberOfProducts(value);
   };
 
   const handleDistrictChange = (value: string) => {
@@ -337,7 +357,7 @@ export function LicenseApplicationGenerator() {
                     License Application & Form Generator
                   </h1>
                   <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                    Fertilizer • Seed • Insecticide
+                    Fertilizer • Seed • Pesticide
                   </p>
                 </div>
               </div>
@@ -358,17 +378,29 @@ export function LicenseApplicationGenerator() {
               Select License Type
             </h2>
           </div>
-          <div className="w-full max-w-md">
-            <select
-              value={licenseType}
-              onChange={(e) => handleLicenseTypeChange(e.target.value as LicenseType)}
-              className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-            >
-              <option value="">License Type</option>
-              <option value="fertilizer">Fertilizer</option>
-              <option value="seed">Seed</option>
-              <option value="insecticide">Insecticide / Pesticide</option>
-            </select>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              { type: 'fertilizer' as LicenseType, label: 'Fertilizer', gradient: 'from-emerald-500 to-green-600', bgGradient: 'from-emerald-50 to-green-50', border: 'emerald', checkColor: 'emerald' },
+              { type: 'seed' as LicenseType, label: 'Seed', gradient: 'from-amber-500 to-orange-600', bgGradient: 'from-amber-50 to-orange-50', border: 'amber', checkColor: 'amber' },
+              { type: 'insecticide' as LicenseType, label: 'Pesticide', gradient: 'from-red-500 to-rose-600', bgGradient: 'from-red-50 to-rose-50', border: 'red', checkColor: 'red' },
+            ].map((item) => (
+              <button
+                key={item.type}
+                onClick={() => handleLicenseTypeChange(item.type)}
+                className={`relative overflow-hidden rounded-2xl border p-6 text-left transition-all duration-300 hover:scale-105 ${
+                  licenseType === item.type
+                    ? `border-${item.border}-500 bg-gradient-to-br ${item.bgGradient} shadow-xl dark:border-${item.border}-400 dark:from-${item.border}-950/30 dark:to-${item.border}-950/30`
+                    : `border-${item.border}-200/50 bg-white/80 backdrop-blur-sm hover:border-${item.border}-400 hover:shadow-lg dark:border-${item.border}-800/50 dark:bg-slate-900/80`
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-base font-bold text-slate-900 dark:text-white">{item.label}</span>
+                  {licenseType === item.type && (
+                    <CheckCircle className={`h-5 w-5 text-${item.checkColor}-600 dark:text-${item.checkColor}-400`} />
+                  )}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -395,8 +427,6 @@ export function LicenseApplicationGenerator() {
                 </select>
               </div>
             )}
-
-            {/* Area Type Selection */}
             {showAreaType && (
               <div>
                 <div className="mb-2">
@@ -416,6 +446,28 @@ export function LicenseApplicationGenerator() {
               </div>
             )}
 
+            {/* Number of Products Selection */}
+            {showNumberOfProducts && (
+              <div>
+                <div className="mb-2">
+                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                    Number of Products
+                  </h3>
+                </div>
+                <select
+                  value={numberOfProducts}
+                  onChange={(e) => handleNumberOfProductsChange(e.target.value)}
+                  className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                >
+                  <option value="">Number of Products</option>
+                  {[...Array(14)].map((_, i) => (
+                    <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
+                  ))}
+                  <option value="15+">15 or more</option>
+                </select>
+              </div>
+            )}
+
             {/* Application Type Selection */}
             {licenseType && (
               <div>
@@ -431,7 +483,7 @@ export function LicenseApplicationGenerator() {
                 >
                   <option value="">Application Type</option>
                   <option value="fresh">Fresh</option>
-                  {licenseType !== 'insecticide' && <option value="renewal">Renewal</option>}
+                  {licenseType !== 'insecticide' && <option value="renewal">Renewal within Expiry</option>}
                   {licenseType !== 'insecticide' && <option value="renewal_grace_period">Renewal within Grace Period</option>}
                   <option value="amendment">Amendment</option>
                   {licenseType === 'fertilizer' && <option value="duplicate">Duplicate Copy</option>}
@@ -493,8 +545,8 @@ export function LicenseApplicationGenerator() {
               </h2>
             </div>
             <div className="rounded-2xl border border-violet-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-violet-800/50 dark:bg-slate-900/80">
-              <div className="mb-4 flex justify-between items-start">
-                <div className="flex-1">
+              <div className="mb-4 grid gap-4">
+                <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">DDO CODE</label>
                   <input
                     type="text"
@@ -504,9 +556,9 @@ export function LicenseApplicationGenerator() {
                     className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                   />
                 </div>
-                <div className="ml-4 text-right">
-                  <div className="text-xs font-bold text-green-600 dark:text-green-400 mb-1">Challan Code</div>
-                  <div className="text-sm font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-3 py-2 rounded-lg border border-violet-200/50 dark:border-violet-800/50">
+                <div>
+                  <label className="block text-sm font-bold text-green-600 dark:text-green-400 mb-2">Challan Code</label>
+                  <div className="text-sm font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-4 py-3 rounded-xl border border-violet-200/50 dark:border-violet-800/50">
                     {getChallanCode()}
                   </div>
                 </div>

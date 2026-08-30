@@ -25,7 +25,7 @@ interface OfficersToolkitProps {
 const toolkitItems: ToolkitItem[] = [
   {
     title: 'License Application & Form Generator',
-    description: 'Fertilizer • Seed • Insecticide',
+    description: 'Fertilizer • Seed • Pesticide',
     path: '/officer-toolkit/license-application-generator',
     icon: FileText,
     category: 'internal',
@@ -34,7 +34,7 @@ const toolkitItems: ToolkitItem[] = [
   },
   {
     title: 'Statutory Forms',
-    description: 'Generate PDFs & view statutory form files.',
+    description: 'Prepare and download field forms.',
     path: '/officer-toolkit/statutory-forms',
     icon: FileStack,
     category: 'internal',
@@ -198,9 +198,9 @@ const externalPortals: ToolkitItem[] = [
 function translateToolkit(label?: string) {
   const labels: Record<string, string> = {
     'License Application & Form Generator': 'లైసెన్స్ అప్లికేషన్ & ఫారమ్ జనరేటర్',
-    'Fertilizer • Seed • Insecticide': 'ఎరువులు • విత్తనాలు • పురుగుమందులు',
+    'Fertilizer • Seed • Pesticide': 'ఎరువులు • విత్తనాలు • పురుగుమందులు',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
-    'Generate PDFs & view statutory form files.': 'PDFలను జనరేట్ చేయి & చట్టబద్ధ ఫారమ్ ఫైళ్లను వీక్షించండి.',
+    'Prepare and download field forms.': 'క్షేత్ర ఫారాలను సిద్ధం చేసి డౌన్‌లోడ్ చేయండి.',
     'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
     'Crop, seed, fertilizer and pesticide calculations.': 'పంట, విత్తనం, ఎరువు మరియు పురుగుమందుల లెక్కలు.',
     'Crop Doctor': 'పంట డాక్టర్',
@@ -315,11 +315,8 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
           <div className={`mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="rounded-3xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-emerald-800/50 dark:bg-slate-900/80 relative">
-              <div className="absolute top-6 right-6">
-                <LanguageToggle language={language} onClick={toggleLanguage} />
-              </div>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="rounded-3xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-emerald-800/50 dark:bg-slate-900/80">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
                     <ShieldCheck className="h-8 w-8" />
@@ -333,7 +330,8 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                     </p>
                   </div>
                 </div>
-                <div className="flex shrink-0">
+                <div className="flex shrink-0 items-center gap-2">
+                  <LanguageToggle language={language} onClick={toggleLanguage} />
                   <BackButton onClick={() => navigate('/login')}>
                     Back
                   </BackButton>
