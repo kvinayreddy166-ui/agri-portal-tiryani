@@ -247,8 +247,8 @@ export function LicenseApplicationGenerator() {
       if (applicationType === 'fresh') return isMunicipal ? 7500 : 1500;
       if (applicationType === 'renewal') return isMunicipal ? 7500 : 1500;
       if (applicationType === 'amendment') {
-        if (insecticideAmendmentType === 'inclusion_of_insecticides') return isMunicipal ? 7500 : 1500;
-        return isMunicipal ? 7500 : 1500;
+        if (insecticideAmendmentType === 'inclusion_of_insecticides') return 1500;
+        return 1500;
       }
       if (applicationType === 'pc_inclusion') return calculatedAmount;
     }
@@ -378,29 +378,17 @@ export function LicenseApplicationGenerator() {
               Select License Type
             </h2>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { type: 'fertilizer' as LicenseType, label: 'Fertilizer', gradient: 'from-emerald-500 to-green-600', bgGradient: 'from-emerald-50 to-green-50', border: 'emerald', checkColor: 'emerald' },
-              { type: 'seed' as LicenseType, label: 'Seed', gradient: 'from-amber-500 to-orange-600', bgGradient: 'from-amber-50 to-orange-50', border: 'amber', checkColor: 'amber' },
-              { type: 'insecticide' as LicenseType, label: 'Pesticide', gradient: 'from-red-500 to-rose-600', bgGradient: 'from-red-50 to-rose-50', border: 'red', checkColor: 'red' },
-            ].map((item) => (
-              <button
-                key={item.type}
-                onClick={() => handleLicenseTypeChange(item.type)}
-                className={`relative overflow-hidden rounded-2xl border p-6 text-left transition-all duration-300 hover:scale-105 ${
-                  licenseType === item.type
-                    ? `border-${item.border}-500 bg-gradient-to-br ${item.bgGradient} shadow-xl dark:border-${item.border}-400 dark:from-${item.border}-950/30 dark:to-${item.border}-950/30`
-                    : `border-${item.border}-200/50 bg-white/80 backdrop-blur-sm hover:border-${item.border}-400 hover:shadow-lg dark:border-${item.border}-800/50 dark:bg-slate-900/80`
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-base font-bold text-slate-900 dark:text-white">{item.label}</span>
-                  {licenseType === item.type && (
-                    <CheckCircle className={`h-5 w-5 text-${item.checkColor}-600 dark:text-${item.checkColor}-400`} />
-                  )}
-                </div>
-              </button>
-            ))}
+          <div className="w-full max-w-md">
+            <select
+              value={licenseType}
+              onChange={(e) => handleLicenseTypeChange(e.target.value as LicenseType)}
+              className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+            >
+              <option value="">Select...</option>
+              <option value="fertilizer">Fertilizer</option>
+              <option value="seed">Seed</option>
+              <option value="insecticide">Pesticide</option>
+            </select>
           </div>
         </div>
 
@@ -421,7 +409,7 @@ export function LicenseApplicationGenerator() {
                   onChange={(e) => handleDealerTypeChange(e.target.value as DealerType)}
                   className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
-                  <option value="">Dealer Type</option>
+                  <option value="">Select...</option>
                   <option value="wholesaler">Wholesaler</option>
                   <option value="retailer">Retailer</option>
                 </select>
@@ -439,31 +427,9 @@ export function LicenseApplicationGenerator() {
                   onChange={(e) => handleAreaTypeChange(e.target.value as AreaType)}
                   className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
-                  <option value="">Area Type</option>
-                  <option value="municipal">Municipal Areas</option>
+                  <option value="">Select...</option>
+                  <option value="municipal">Urban Areas</option>
                   <option value="rural">Rural Areas</option>
-                </select>
-              </div>
-            )}
-
-            {/* Number of Products Selection */}
-            {showNumberOfProducts && (
-              <div>
-                <div className="mb-2">
-                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
-                    Number of Products
-                  </h3>
-                </div>
-                <select
-                  value={numberOfProducts}
-                  onChange={(e) => handleNumberOfProductsChange(e.target.value)}
-                  className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-                >
-                  <option value="">Number of Products</option>
-                  {[...Array(14)].map((_, i) => (
-                    <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
-                  ))}
-                  <option value="15+">15 or more</option>
                 </select>
               </div>
             )}
@@ -481,13 +447,35 @@ export function LicenseApplicationGenerator() {
                   onChange={(e) => handleApplicationTypeChange(e.target.value as ApplicationType)}
                   className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
-                  <option value="">Application Type</option>
+                  <option value="">Select...</option>
                   <option value="fresh">Fresh</option>
                   {licenseType !== 'insecticide' && <option value="renewal">Renewal within Expiry</option>}
                   {licenseType !== 'insecticide' && <option value="renewal_grace_period">Renewal within Grace Period</option>}
                   <option value="amendment">Amendment</option>
                   {licenseType === 'fertilizer' && <option value="duplicate">Duplicate Copy</option>}
                   {licenseType === 'insecticide' && <option value="pc_inclusion">PC Inclusion</option>}
+                </select>
+              </div>
+            )}
+
+            {/* Number of Products Selection */}
+            {showNumberOfProducts && (
+              <div>
+                <div className="mb-2">
+                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                    Number of Products
+                  </h3>
+                </div>
+                <select
+                  value={numberOfProducts}
+                  onChange={(e) => handleNumberOfProductsChange(e.target.value)}
+                  className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                >
+                  <option value="">Select...</option>
+                  {[...Array(14)].map((_, i) => (
+                    <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
+                  ))}
+                  <option value="15+">15 or more</option>
                 </select>
               </div>
             )}
@@ -505,7 +493,7 @@ export function LicenseApplicationGenerator() {
                   onChange={(e) => handleDistrictChange(e.target.value)}
                   className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
-                  <option value="">District</option>
+                  <option value="">Select...</option>
                   {TELANGANA_DISTRICTS.map((districtName) => (
                     <option key={districtName} value={districtName}>{districtName}</option>
                   ))}
@@ -526,7 +514,7 @@ export function LicenseApplicationGenerator() {
                   onChange={(e) => handleDivisionChange(e.target.value)}
                   className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
-                  <option value="">Division</option>
+                  <option value="">Select...</option>
                   {getDivisionsForDistrict(district).map((divisionName) => (
                     <option key={divisionName} value={divisionName}>{divisionName}</option>
                   ))}
@@ -547,6 +535,12 @@ export function LicenseApplicationGenerator() {
             <div className="rounded-2xl border border-violet-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-violet-800/50 dark:bg-slate-900/80">
               <div className="mb-4 grid gap-4">
                 <div>
+                  <label className="block text-sm font-bold text-green-600 dark:text-green-400 mb-2">Challan Code</label>
+                  <div className="text-sm font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-4 py-3 rounded-xl border border-violet-200/50 dark:border-violet-800/50">
+                    {getChallanCode()}
+                  </div>
+                </div>
+                <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">DDO CODE</label>
                   <input
                     type="text"
@@ -555,12 +549,6 @@ export function LicenseApplicationGenerator() {
                     placeholder="Enter DDO Code"
                     className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-green-600 dark:text-green-400 mb-2">Challan Code</label>
-                  <div className="text-sm font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-4 py-3 rounded-xl border border-violet-200/50 dark:border-violet-800/50">
-                    {getChallanCode()}
-                  </div>
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">

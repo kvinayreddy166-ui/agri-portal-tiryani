@@ -39,6 +39,8 @@ const SeedRateCalculator = lazy(() => import('./pages/SeedRateCalculator').then(
 const AgriLegalReadyReckoner = lazy(() => import('./components/AgriLegalReadyReckoner').then((m) => ({ default: m.AgriLegalReadyReckoner })));
 const StockAnalytics = lazy(() => import('./pages/StockAnalytics'));
 const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
+const OfficerContacts = lazy(() => import('./pages/OfficerContacts').then((m) => ({ default: m.OfficerContacts })));
+const OfficerContactsAdmin = lazy(() => import('./pages/admin/OfficerContactsAdmin').then((m) => ({ default: m.OfficerContactsAdmin })));
 
 function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
   const [slow, setSlow] = useState(false);
@@ -233,6 +235,7 @@ const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/plant-population-calculator',
   '/officer-toolkit/seed-rate-calculator',
   '/officer-toolkit/legal-ready-reckoner',
+  '/officer-toolkit/officer-contacts',
 ]);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
@@ -265,6 +268,8 @@ const PAGE_PATHS: Record<string, string> = {
   'plant-population-calculator': '/officer-toolkit/plant-population-calculator',
   'seed-rate-calculator': '/officer-toolkit/seed-rate-calculator',
   'legal-ready-reckoner': '/officer-toolkit/legal-ready-reckoner',
+  'officer-contacts': '/officer-toolkit/officer-contacts',
+  'officer-contacts-admin': '/admin/officer-contacts',
   analytics: '/analytics',
   settings: '/settings',
 };
@@ -517,6 +522,8 @@ function AppContent() {
         'plant-population-calculator',
         'seed-rate-calculator',
         'legal-ready-reckoner',
+        'officer-contacts',
+        'officer-contacts-admin',
         'analytics',
         'settings',
       ]),
@@ -559,6 +566,9 @@ function AppContent() {
       }
       if (page === 'officer-toolkit/legal-ready-reckoner') {
         page = 'legal-ready-reckoner';
+      }
+      if (page === 'officer-toolkit/officer-contacts') {
+        page = 'officer-contacts';
       }
       
       return validPages.has(page) ? page : 'dashboard';
@@ -682,7 +692,8 @@ function AppContent() {
       location.pathname !== '/officer-toolkit/pesticide-calculator' &&
       location.pathname !== '/officer-toolkit/plant-population-calculator' &&
       location.pathname !== '/officer-toolkit/seed-rate-calculator' &&
-      location.pathname !== '/officer-toolkit/legal-ready-reckoner'
+      location.pathname !== '/officer-toolkit/legal-ready-reckoner' &&
+      location.pathname !== '/officer-toolkit/officer-contacts'
     ) {
       navigate('/officer-toolkit', { replace: true });
     }
@@ -787,6 +798,14 @@ function AppContent() {
     );
   }
 
+  if (!user && currentPage === 'officer-contacts') {
+    return (
+      <SafeSuspense fallback={<GlobalAppLoader />}>
+        <OfficerContacts />
+      </SafeSuspense>
+    );
+  }
+
   if (
     !user &&
     location.pathname.startsWith('/officer-toolkit/') &&
@@ -795,7 +814,8 @@ function AppContent() {
     location.pathname !== '/officer-toolkit/acreage-calculator' &&
     location.pathname !== '/officer-toolkit/farm-calculators' &&
     location.pathname !== '/officer-toolkit/fertilizer-calculator' &&
-    location.pathname !== '/officer-toolkit/crop-protection'
+    location.pathname !== '/officer-toolkit/crop-protection' &&
+    location.pathname !== '/officer-toolkit/officer-contacts'
   ) {
     return <PageLoader hideLogo={hideCalculatorLogo} />;
   }
@@ -890,6 +910,16 @@ function AppContent() {
         return <SeedRateCalculator />;
       case 'legal-ready-reckoner':
         return <AgriLegalReadyReckoner />;
+      case 'officer-contacts':
+        return <OfficerContacts />;
+      case 'officer-contacts-admin':
+        return isAdminUser ? (
+          <SafeSuspense fallback={<PageLoader />}>
+            <OfficerContactsAdmin />
+          </SafeSuspense>
+        ) : (
+          <Dashboard />
+        );
       case 'analytics':
         return <Analytics />;
       case 'settings':

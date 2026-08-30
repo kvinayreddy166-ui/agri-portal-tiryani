@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, Scale, FileText, type LucideIcon } from 'lucide-react';
+import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, Scale, FileText, Phone, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
@@ -23,6 +23,15 @@ interface OfficersToolkitProps {
 }
 
 const toolkitItems: ToolkitItem[] = [
+  {
+    title: 'Officer Contacts',
+    description: 'AEO • MAO • ADA • DAO',
+    path: '/officer-toolkit/officer-contacts',
+    icon: Phone,
+    category: 'internal',
+    gradient: 'from-emerald-500 to-teal-600',
+    bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
+  },
   {
     title: 'License Application & Form Generator',
     description: 'Fertilizer • Seed • Pesticide',
