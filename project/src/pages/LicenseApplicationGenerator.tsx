@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { FileText, ChevronRight, CheckCircle, FileText as FileIcon } from 'lucide-react';
+import { FileText, ChevronRight, CheckCircle, FileText as FileIcon, ExternalLink } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 
 // District to Division mapping
@@ -527,10 +527,19 @@ export function LicenseApplicationGenerator() {
         {/* Challan Details Section */}
         {showChallanDetails && (
           <div className={`mb-8 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                 Challan Details
               </h2>
+              <a
+                href="https://ifmis.telangana.gov.in/manual_challan_entry"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:from-violet-700 hover:to-purple-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 dark:from-violet-500 dark:to-purple-500 dark:hover:from-violet-600 dark:hover:to-purple-600"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span>Challan Entry</span>
+              </a>
             </div>
             <div className="rounded-2xl border border-violet-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-violet-800/50 dark:bg-slate-900/80">
               <div className="mb-4 grid gap-4">

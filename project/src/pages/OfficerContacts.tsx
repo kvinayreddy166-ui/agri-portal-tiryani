@@ -143,7 +143,11 @@ export function OfficerContacts() {
   const filteredContacts = getFilteredContacts();
   const uniqueDistricts = Array.from(new Set(contacts.map(c => c.district))).sort();
   const uniqueDivisions = selectedDistrict ? Array.from(new Set(contacts.filter(c => c.district === selectedDistrict).map(c => c.division).filter(Boolean))).sort() : [];
-  const uniqueMandals = selectedDistrict ? Array.from(new Set(contacts.filter(c => c.district === selectedDistrict).map(c => c.mandal).filter(Boolean))).sort() : [];
+  const uniqueMandals = selectedDivision 
+    ? Array.from(new Set(contacts.filter(c => c.district === selectedDistrict && c.division === selectedDivision).map(c => c.mandal).filter(Boolean))).sort() 
+    : selectedDistrict 
+      ? Array.from(new Set(contacts.filter(c => c.district === selectedDistrict).map(c => c.mandal).filter(Boolean))).sort() 
+      : [];
   const uniqueClusters = selectedMandal ? Array.from(new Set(contacts.filter(c => c.mandal === selectedMandal).map(c => c.cluster).filter(Boolean))).sort() : [];
 
   const resetFilters = () => {
@@ -270,7 +274,11 @@ export function OfficerContacts() {
             <div>
               <select
                 value={selectedDivision}
-                onChange={(e) => setSelectedDivision(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDivision(e.target.value);
+                  setSelectedMandal('');
+                  setSelectedCluster('');
+                }}
                 disabled={!selectedDistrict}
                 className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
@@ -291,7 +299,7 @@ export function OfficerContacts() {
                   setSelectedMandal(e.target.value);
                   setSelectedCluster('');
                 }}
-                disabled={!selectedDistrict}
+                disabled={showDivision ? !selectedDivision : !selectedDistrict}
                 className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
                 <option value="">Select Mandal</option>
