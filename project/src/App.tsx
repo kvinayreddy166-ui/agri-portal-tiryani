@@ -579,7 +579,7 @@ function AppContent() {
       }
       
       const result = validPages.has(page) ? page : 'dashboard';
-      console.log('getPageFromLocation:', { pathname: location.pathname, page, result, validPages: Array.from(validPages) });
+      console.log('getPageFromLocation:', `pathname="${location.pathname}"`, `page="${page}"`, `result="${result}"`, `validPages.has(page)=${validPages.has(page)}`);
       return result;
     } catch (error) {
       console.error('Error getting page from location:', error);
