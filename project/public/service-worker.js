@@ -1,7 +1,7 @@
-const RESCUE_SW_VERSION = 'agronix-rescue-sw-v12';
+const RESCUE_SW_VERSION = 'agronix-rescue-sw-v13';
 const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
-const STATIC_CACHE_NAME = 'agronix-static-v12';
-const RUNTIME_CACHE_NAME = 'agronix-runtime-v12';
+const STATIC_CACHE_NAME = 'agronix-static-v13';
+const RUNTIME_CACHE_NAME = 'agronix-runtime-v13';
 
 // Get recovery URL that preserves current path for public routes
 function getRecoveryUrl(request) {
