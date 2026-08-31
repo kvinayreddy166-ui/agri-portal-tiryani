@@ -62,7 +62,11 @@ export async function recoverFromStaleAssets() {
       // Startup recovery state is best-effort only.
     }
 
-    const url = new URL('/', window.location.origin);
+    // Preserve the current path for public routes
+    const currentPath = window.location.pathname;
+    const isPublicRoute = currentPath.startsWith('/officer-toolkit/') || currentPath === '/officer-toolkit';
+    
+    const url = new URL(isPublicRoute ? currentPath : '/', window.location.origin);
     url.searchParams.set('refresh', String(Date.now()));
     url.searchParams.set('reason', 'stale-assets');
     window.location.replace(url.toString());

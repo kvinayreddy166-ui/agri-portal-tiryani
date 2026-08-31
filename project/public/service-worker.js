@@ -3,6 +3,18 @@ const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
 const STATIC_CACHE_NAME = 'agronix-static-v12';
 const RUNTIME_CACHE_NAME = 'agronix-runtime-v12';
 
+// Get recovery URL that preserves current path for public routes
+function getRecoveryUrl(request) {
+  const url = new URL(request.url);
+  const currentPath = url.pathname;
+  const isPublicRoute = currentPath.startsWith('/officer-toolkit/') || currentPath === '/officer-toolkit';
+  
+  const recoveryUrl = new URL(isPublicRoute ? currentPath : '/', url.origin);
+  recoveryUrl.searchParams.set('refresh', String(Date.now()));
+  recoveryUrl.searchParams.set('reason', 'sw-missing-asset');
+  return recoveryUrl.toString();
+}
+
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
@@ -159,8 +171,9 @@ function missingAssetRecoveryResponse(request) {
     });
   }
 
+  const recoveryUrl = getRecoveryUrl(request);
   return new Response(
-    "try{location.replace('" + RECOVERY_URL + "&ts='+Date.now())}catch(e){location.href='" + RECOVERY_URL + "'}; export {};",
+    "try{location.replace('" + recoveryUrl + "&ts='+Date.now())}catch(e){location.href='" + recoveryUrl + "'}; export {};",
     {
       status: 200,
       headers: {
