@@ -674,29 +674,16 @@ function AppContent() {
       currentPage === 'dashboard' ||
       PUBLIC_VIEW_PAGES.has(currentPage) ||
       location.pathname === '/officer-toolkit' ||
-      PUBLIC_AUTH_ROUTES.has(location.pathname)
+      PUBLIC_AUTH_ROUTES.has(location.pathname) ||
+      location.pathname.startsWith('/officer-toolkit/')
     ) return;
     navigateToPage('dashboard', { replace: true });
   }, [currentPage, loading, location.pathname, navigateToPage, user]);
 
   useEffect(() => {
     if (loading || user) return;
-    if (
-      location.pathname.startsWith('/officer-toolkit/') &&
-      location.pathname !== '/officer-toolkit/statutory-forms' &&
-      location.pathname !== '/officer-toolkit/license-application-generator' &&
-      location.pathname !== '/officer-toolkit/acreage-calculator' &&
-      location.pathname !== '/officer-toolkit/farm-calculators' &&
-      location.pathname !== '/officer-toolkit/fertilizer-calculator' &&
-      location.pathname !== '/officer-toolkit/crop-protection' &&
-      location.pathname !== '/officer-toolkit/pesticide-calculator' &&
-      location.pathname !== '/officer-toolkit/plant-population-calculator' &&
-      location.pathname !== '/officer-toolkit/seed-rate-calculator' &&
-      location.pathname !== '/officer-toolkit/legal-ready-reckoner' &&
-      location.pathname !== '/officer-toolkit/officer-contacts'
-    ) {
-      navigate('/officer-toolkit', { replace: true });
-    }
+    // This effect is no longer needed since PUBLIC_AUTH_ROUTES handles all officer-toolkit routes
+    // Keeping it empty to prevent any unintended redirects
   }, [loading, location.pathname, navigate, user]);
 
   const shellReady = isHydrated && (authChecked || currentPathIsPublic || forceAppShell) && (appReady || currentPathIsPublic || forceAppShell);
