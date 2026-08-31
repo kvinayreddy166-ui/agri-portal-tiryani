@@ -218,6 +218,10 @@ export function LicenseApplicationGenerator() {
     (licenseType === 'fertilizer' ? dealerType !== '' : true) && 
     (licenseType === 'insecticide' && applicationType === 'pc_inclusion' ? areaType !== '' && numberOfProducts !== '' : true);
   const showDocuments = false; // Amendment types hidden for now
+  
+  // Check if DDO code is available for the selected district/division
+  const hasDdoCode = (division && district && DIVISION_DDO_CODES[district]?.[division]) || 
+                     (district && DISTRICT_DDO_CODES[district]);
 
   const getAmount = () => {
     const isFertilizerWholesaler = licenseType === 'fertilizer' && dealerType === 'wholesaler';
@@ -546,16 +550,18 @@ export function LicenseApplicationGenerator() {
             </div>
             <div className="rounded-2xl border border-violet-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-violet-800/50 dark:bg-slate-900/80">
               <div className="mb-4 grid gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">DDO CODE</label>
-                  <input
-                    type="text"
-                    value={ddoCode}
-                    onChange={(e) => setDdoCode(e.target.value)}
-                    placeholder="Enter DDO Code"
-                    className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-                  />
-                </div>
+                {hasDdoCode && (
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">DDO CODE</label>
+                    <input
+                      type="text"
+                      value={ddoCode}
+                      onChange={(e) => setDdoCode(e.target.value)}
+                      placeholder="Enter DDO Code"
+                      className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-bold text-green-600 dark:text-green-400 mb-2">Challan Code</label>
                   <div className="text-sm font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-4 py-3 rounded-xl border border-violet-200/50 dark:border-violet-800/50">
