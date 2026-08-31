@@ -5,24 +5,30 @@ export function UpdateBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const updateInProgressRef = React.useRef(false);
 
   useEffect(() => {
     const handleUpdateAvailable = (event: CustomEvent) => {
       const newVersion = event.detail?.version;
       
+      if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Update available event:', newVersion);
+      
       // Check if this is a different version than what we've already shown
       const lastShownVersion = localStorage.getItem('last-shown-update-version');
       if (lastShownVersion === newVersion) {
+        if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Same version, not showing banner');
         return; // Don't show banner for same version
       }
       
       // Check if banner was dismissed in current session
       try {
         if (sessionStorage.getItem('update-banner-dismissed')) {
+          if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Banner dismissed in session, not showing');
           return;
         }
       } catch {}
       
+      if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Showing update banner');
       setShowBanner(true);
       // Trigger slide-in animation
       setTimeout(() => setIsVisible(true), 50);
@@ -30,6 +36,7 @@ export function UpdateBanner() {
 
     const handleControllerChange = () => {
       // Service worker controller changed, update is being applied
+      if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Controller changed, hiding banner');
       setShowBanner(false);
       setIsVisible(false);
       // Clear the dismissed flag after successful update
@@ -48,7 +55,17 @@ export function UpdateBanner() {
   }, []);
 
   const handleUpdate = async () => {
+    // Prevent multiple simultaneous update attempts
+    if (updateInProgressRef.current) {
+      if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Update already in progress, ignoring click');
+      return;
+    }
+    
+    updateInProgressRef.current = true;
     setIsUpdating(true);
+    
+    if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Update button clicked');
+    
     try {
       // Show loading overlay to prevent flickering
       const overlay = document.createElement('div');
@@ -71,15 +88,23 @@ export function UpdateBanner() {
             localStorage.setItem('last-shown-update-version', version);
           } catch {}
           
+          if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Sending SKIP_WAITING message to service worker');
           // Tell the waiting service worker to skip waiting and become active
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        } else {
+          if (import.meta.env.DEV) console.warn('[PWA UpdateBanner] No waiting service worker found');
+          // No waiting worker - might need to trigger an update check
+          if (registration) {
+            await registration.update();
+          }
         }
       }
       // The controllerchange event will trigger reload
       // Don't reload immediately - wait for service worker activation
     } catch (error) {
-      console.error('Update failed:', error);
+      console.error('[PWA UpdateBanner] Update failed:', error);
       setIsUpdating(false);
+      updateInProgressRef.current = false;
       // Remove overlay on error
       const overlay = document.getElementById('update-loading-overlay');
       if (overlay) overlay.remove();

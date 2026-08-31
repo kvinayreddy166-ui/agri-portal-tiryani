@@ -18,8 +18,8 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => cache.addAll(STATIC_ASSETS))
-      .then(() => self.skipWaiting())
   );
+  // Do NOT call skipWaiting() here - wait for explicit user action
 });
 
 self.addEventListener('activate', (event) => {
@@ -30,10 +30,10 @@ self.addEventListener('activate', (event) => {
       self.clients.claim(),
     ])
       .then(() => {
-        // Immediately activate new service worker
-        return self.skipWaiting();
+        // Do NOT call skipWaiting() here - wait for explicit user action
+        // Only notify clients that SW is ready
+        return notifyClients({ type: 'SW_READY', version: RESCUE_SW_VERSION });
       })
-      .then(() => notifyClients({ type: 'SW_READY', version: RESCUE_SW_VERSION }))
   );
 });
 

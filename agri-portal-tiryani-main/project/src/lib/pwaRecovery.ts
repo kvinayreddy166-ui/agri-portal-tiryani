@@ -47,7 +47,7 @@ export async function recoverFromStaleAssets() {
     const registrations = await navigator.serviceWorker?.getRegistrations?.();
     await Promise.all((registrations || []).map(async (registration) => {
       try { registration.active?.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch {}
-      try { await registration.update(); } catch {}
+      // Do NOT call registration.update() automatically - let user control updates
     }));
     if (!registrations?.some((registration) => new URL(registration.scope).pathname === '/')) {
       await navigator.serviceWorker?.register('/service-worker.js', { scope: '/' });

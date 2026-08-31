@@ -57,7 +57,7 @@ if ('serviceWorker' in navigator) {
         await Promise.all(appRegistrations.map(async (registration) => {
           try { registration.active?.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch {}
           try { registration.active?.postMessage({ type: 'PRECACHE_OFFLINE' }); } catch {}
-          try { await registration.update(); } catch {}
+          // Do NOT call registration.update() automatically - let user control updates
         }));
 
         if (!appRegistrations.some((registration) => new URL(registration.scope).pathname === '/')) {
@@ -105,8 +105,18 @@ if ('serviceWorker' in navigator) {
   });
 
   // Listen for service worker controller change - reload after new SW activates
+  let hasReloaded = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    // Guard against multiple reloads
+    if (hasReloaded) {
+      if (import.meta.env.DEV) console.log('[PWA] Controller change detected, but already reloaded - skipping');
+      return;
+    }
+    hasReloaded = true;
+    
     window.dispatchEvent(new CustomEvent('serviceWorkerUpdate'));
+    
+    if (import.meta.env.DEV) console.log('[PWA] Controller changed, reloading to apply new version');
     // Reload to apply the new version
     window.location.reload();
   });
@@ -114,6 +124,7 @@ if ('serviceWorker' in navigator) {
   // Listen for SW_READY messages from service worker
   navigator.serviceWorker.addEventListener('message', (event) => {
     if (event.data?.type === 'SW_READY') {
+      if (import.meta.env.DEV) console.log('[PWA] SW_READY message received:', event.data.version);
       window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
         detail: { version: event.data.version } 
       }));
@@ -125,20 +136,23 @@ if ('serviceWorker' in navigator) {
     try {
       const registration = await navigator.serviceWorker.getRegistration();
       if (registration?.waiting) {
+        if (import.meta.env.DEV) console.log('[PWA] Waiting service worker detected, showing update banner');
         window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
           detail: { version: 'waiting' } 
         }));
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.warn('Service worker check failed:', error);
+      if (import.meta.env.DEV) console.warn('[PWA] Service worker check failed:', error);
     }
   };
 
   // Check immediately on load
+  if (import.meta.env.DEV) console.log('[PWA] Initial check for waiting service worker');
   void checkForWaitingServiceWorker();
 
-  // Periodically check for updates (every 5 minutes)
+  // Periodically check for updates (every 5 minutes) - detection only, no activation
   const updateCheckInterval = setInterval(() => {
+    if (import.meta.env.DEV) console.log('[PWA] Periodic check for waiting service worker');
     void checkForWaitingServiceWorker();
   }, 5 * 60 * 1000);
 

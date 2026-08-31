@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { FileText, ChevronRight, CheckCircle, FileText as FileIcon } from 'lucide-react';
+import { FileText, CheckCircle } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 
 // District to Division mapping
@@ -196,13 +196,19 @@ export function LicenseApplicationGenerator() {
         const districtDdoCode = DISTRICT_DDO_CODES[district];
         if (districtDdoCode) {
           setDdoCode(districtDdoCode);
+        } else {
+          setDdoCode(''); // Clear if no code found
         }
       }
     } else if (district) {
       const districtDdoCode = DISTRICT_DDO_CODES[district];
       if (districtDdoCode) {
         setDdoCode(districtDdoCode);
+      } else {
+        setDdoCode(''); // Clear if no code found
       }
+    } else {
+      setDdoCode(''); // Clear when district is cleared
     }
   }, [district, division]);
 

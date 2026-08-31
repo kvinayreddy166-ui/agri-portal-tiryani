@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle } from 'lucide-react';
+import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle, Loader2 } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 import { supabase } from '../lib/supabase';
 
@@ -20,6 +20,23 @@ interface OfficerContact {
   phone: string;
 }
 
+interface CacheEntry {
+  contacts: OfficerContact[];
+  totalCount: number;
+  timestamp: number;
+}
+
+interface DropdownOptions {
+  districts: string[];
+  divisions: string[];
+  mandals: string[];
+  clusters: string[];
+}
+
+const PAGE_SIZE = 50;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const SEARCH_DEBOUNCE_MS = 300;
+
 interface TabConfig {
   id: OfficerType;
   label: string;
@@ -33,6 +50,10 @@ const TABS: TabConfig[] = [
   { id: 'ADA', label: 'ADA', icon: Building2, teluguLabel: 'ఏడీఏ' },
   { id: 'DAO', label: 'DAO', icon: Building2, teluguLabel: 'డీఏఓ' },
 ];
+
+// In-memory cache
+const contactsCache = new Map<string, CacheEntry>();
+const dropdownCache = new Map<string, DropdownOptions>();
 
 // District to Division mapping (from LicenseApplicationGenerator)
 const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
@@ -75,14 +96,35 @@ function getDivisionsForDistrict(district: string): string[] {
   return DISTRICT_DIVISION_MAPPING[district] || [];
 }
 
+// Generate cache key
+function getCacheKey(
+  officerType: OfficerType,
+  search: string,
+  district: string,
+  division: string,
+  mandal: string,
+  cluster: string,
+  page: number
+): string {
+  return `${officerType}|${search}|${district}|${division}|${mandal}|${cluster}|${page}`;
+}
+
+// Generate dropdown cache key
+function getDropdownCacheKey(officerType: OfficerType, district: string, division: string): string {
+  return `${officerType}|${district}|${division}`;
+}
+
 export function OfficerContacts() {
   const navigate = useNavigate();
   const { t, language, toggleLanguage } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<OfficerType>('AEO');
   const [contacts, setContacts] = useState<OfficerContact[]>([]);
-  const [allContacts, setAllContacts] = useState<Record<OfficerType, OfficerContact[]>>({} as Record<OfficerType, OfficerContact[]>);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   // Filters
@@ -92,192 +134,286 @@ export function OfficerContacts() {
   const [selectedMandal, setSelectedMandal] = useState('');
   const [selectedCluster, setSelectedCluster] = useState('');
 
+  // Dropdown options
+  const [dropdownOptions, setDropdownOptions] = useState<DropdownOptions>({
+    districts: [],
+    divisions: [],
+    mandals: [],
+    clusters: []
+  });
+
+  // Refs for request cancellation and debouncing
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Load all contacts once on mount
+  // Load initial data when component mounts
   useEffect(() => {
-    loadAllContacts();
+    loadInitialData();
   }, []);
 
-  // Filter contacts by active tab from cached data
+  // Load data when tab changes
   useEffect(() => {
-    if (allContacts[activeTab]) {
-      setContacts(allContacts[activeTab]);
-    } else if (initialLoadDone) {
-      // If initial load is done but this tab has no data, load it
-      loadContactsForTab(activeTab);
+    if (initialLoadDone) {
+      resetAndLoadData();
     }
-  }, [activeTab, allContacts, initialLoadDone]);
+  }, [activeTab]);
 
-  const loadAllContacts = async () => {
-    // Check cache first
-    const cachedData = localStorage.getItem('officer_contacts_cache');
-    if (cachedData) {
-      try {
-        const parsed = JSON.parse(cachedData);
-        const cacheAge = Date.now() - parsed.timestamp;
-        // Use cache if less than 1 hour old
-        if (cacheAge < 3600000) {
-          setAllContacts(parsed.data);
-          setContacts(parsed.data[activeTab] || []);
-          setInitialLoadDone(true);
-          // Refresh in background
-          refreshAllContacts();
-          return;
-        }
-      } catch (e) {
-        console.error('Cache parse error:', e);
+  // Load dropdown options when district/division changes
+  useEffect(() => {
+    if (initialLoadDone) {
+      loadDropdownOptions();
+    }
+  }, [activeTab, selectedDistrict, selectedDivision]);
+
+  // Debounced search
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      if (initialLoadDone) {
+        resetAndLoadData();
       }
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Load data when filters change (except search which is debounced)
+  useEffect(() => {
+    if (initialLoadDone) {
+      resetAndLoadData();
     }
+  }, [selectedDistrict, selectedDivision, selectedMandal, selectedCluster]);
 
-    // No valid cache, load fresh
-    await refreshAllContacts();
-  };
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
-  const refreshAllContacts = async () => {
+  const loadInitialData = async () => {
     setLoading(true);
     try {
-      const batchSize = 1000;
-      let allContacts: OfficerContact[] = [];
-      let from = 0;
-      let hasMore = true;
-
-      while (hasMore) {
-        const { data, error } = await supabase
-          .from('officer_contacts')
-          .select('id, officer_type, name, district, division, mandal, cluster, phone')
-          .eq('active', true)
-          .range(from, from + batchSize - 1);
-
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          allContacts = [...allContacts, ...data];
-          from += batchSize;
-          hasMore = data.length === batchSize;
-        } else {
-          hasMore = false;
-        }
-      }
-
-      // Deduplicate by ID
-      const uniqueContacts = Array.from(
-        new Map(allContacts.map(contact => [contact.id, contact])).values()
-      );
-
-      // Group by officer_type
-      const groupedContacts = uniqueContacts.reduce((acc, contact) => {
-        if (!acc[contact.officer_type]) {
-          acc[contact.officer_type] = [];
-        }
-        acc[contact.officer_type].push(contact);
-        return acc;
-      }, {} as Record<OfficerType, OfficerContact[]>);
-
-      setAllContacts(groupedContacts);
-      setContacts(groupedContacts[activeTab] || []);
+      await Promise.all([
+        loadContacts(1),
+        loadDropdownOptions()
+      ]);
       setInitialLoadDone(true);
-
-      // Cache the results
-      localStorage.setItem('officer_contacts_cache', JSON.stringify({
-        data: groupedContacts,
-        timestamp: Date.now()
-      }));
-
-      console.log(`Loaded ${uniqueContacts.length} total contacts`);
     } catch (error) {
-      console.error('Error loading contacts:', error);
-      setContacts([]);
+      console.error('Error loading initial data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadContactsForTab = async (tab: OfficerType) => {
-    setLoading(true);
+  const resetAndLoadData = () => {
+    setPage(1);
+    setContacts([]);
+    setHasMore(true);
+    loadContacts(1);
+  };
+
+  const loadContacts = async (pageNum: number, append = false) => {
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
+    const cacheKey = getCacheKey(
+      activeTab,
+      searchQuery,
+      selectedDistrict,
+      selectedDivision,
+      selectedMandal,
+      selectedCluster,
+      pageNum
+    );
+
+    // Check cache
+    const cached = contactsCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      if (append) {
+        setContacts(prev => [...prev, ...cached.contacts]);
+      } else {
+        setContacts(cached.contacts);
+      }
+      setTotalCount(cached.totalCount);
+      setHasMore(cached.contacts.length === PAGE_SIZE);
+      return;
+    }
+
+    if (!append) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
-      const batchSize = 1000;
-      let tabContacts: OfficerContact[] = [];
-      let from = 0;
-      let hasMore = true;
+      const from = (pageNum - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
 
-      while (hasMore) {
-        const { data, error } = await supabase
+      // Build query
+      let query = supabase
+        .from('officer_contacts')
+        .select('id, officer_type, name, district, division, mandal, cluster, phone', { count: 'exact', head: false })
+        .eq('officer_type', activeTab)
+        .eq('active', true)
+        .range(from, to);
+
+      // Apply filters
+      if (searchQuery) {
+        query = query.or(`name.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%,district.ilike.%${searchQuery}%,mandal.ilike.%${searchQuery}%,cluster.ilike.%${searchQuery}%`);
+      }
+      if (selectedDistrict) {
+        query = query.eq('district', selectedDistrict);
+      }
+      if (selectedDivision) {
+        query = query.eq('division', selectedDivision);
+      }
+      if (selectedMandal) {
+        query = query.eq('mandal', selectedMandal);
+      }
+      if (selectedCluster) {
+        query = query.eq('cluster', selectedCluster);
+      }
+
+      const { data, error, count } = await query;
+
+      if (signal.aborted) return;
+
+      if (error) throw error;
+
+      const contacts = data || [];
+      const totalCount = count || 0;
+
+      // Cache the result
+      contactsCache.set(cacheKey, {
+        contacts,
+        totalCount,
+        timestamp: Date.now()
+      });
+
+      if (append) {
+        setContacts(prev => [...prev, ...contacts]);
+      } else {
+        setContacts(contacts);
+      }
+      setTotalCount(totalCount);
+      setHasMore(contacts.length === PAGE_SIZE);
+    } catch (error) {
+      if (!signal.aborted) {
+        console.error('Error loading contacts:', error);
+      }
+    } finally {
+      if (!append) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
+    }
+  };
+
+  const loadDropdownOptions = async () => {
+    const cacheKey = getDropdownCacheKey(activeTab, selectedDistrict, selectedDivision);
+    
+    // Check cache
+    const cached = dropdownCache.get(cacheKey);
+    if (cached) {
+      setDropdownOptions(cached);
+      return;
+    }
+
+    try {
+      // Load districts for the officer type
+      const { data: districtsData } = await supabase
+        .from('officer_contacts')
+        .select('district')
+        .eq('officer_type', activeTab)
+        .eq('active', true);
+
+      const districts = Array.from(new Set(districtsData?.map(d => d.district) || [])).sort();
+
+      let divisions: string[] = [];
+      let mandals: string[] = [];
+      let clusters: string[] = [];
+
+      // Load divisions if district is selected
+      if (selectedDistrict) {
+        const { data: divisionsData } = await supabase
           .from('officer_contacts')
-          .select('id, officer_type, name, district, division, mandal, cluster, phone')
-          .eq('officer_type', tab)
+          .select('division')
+          .eq('officer_type', activeTab)
+          .eq('district', selectedDistrict)
           .eq('active', true)
-          .range(from, from + batchSize - 1);
+          .not('division', 'is', null);
 
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          tabContacts = [...tabContacts, ...data];
-          from += batchSize;
-          hasMore = data.length === batchSize;
-        } else {
-          hasMore = false;
+        divisions = Array.from(new Set(divisionsData?.map(d => d.division) || [])).sort();
+
+        // Load mandals based on district and division
+        let mandalQuery = supabase
+          .from('officer_contacts')
+          .select('mandal')
+          .eq('officer_type', activeTab)
+          .eq('district', selectedDistrict)
+          .eq('active', true)
+          .not('mandal', 'is', null);
+
+        if (selectedDivision) {
+          mandalQuery = mandalQuery.eq('division', selectedDivision);
+        }
+
+        const { data: mandalsData } = await mandalQuery;
+        mandals = Array.from(new Set(mandalsData?.map(d => d.mandal) || [])).sort();
+
+        // Load clusters if mandal is selected
+        if (selectedMandal) {
+          const { data: clustersData } = await supabase
+            .from('officer_contacts')
+            .select('cluster')
+            .eq('officer_type', activeTab)
+            .eq('mandal', selectedMandal)
+            .eq('active', true)
+            .not('cluster', 'is', null);
+
+          clusters = Array.from(new Set(clustersData?.map(d => d.cluster) || [])).sort();
         }
       }
 
-      const uniqueContacts = Array.from(
-        new Map(tabContacts.map(contact => [contact.id, contact])).values()
-      );
-
-      setAllContacts(prev => ({ ...prev, [tab]: uniqueContacts }));
-      setContacts(uniqueContacts);
+      const options: DropdownOptions = { districts, divisions, mandals, clusters };
+      setDropdownOptions(options);
+      dropdownCache.set(cacheKey, options);
     } catch (error) {
-      console.error('Error loading contacts:', error);
-      setContacts([]);
-    } finally {
-      setLoading(false);
+      console.error('Error loading dropdown options:', error);
     }
   };
 
-  const filteredContacts = useMemo(() => {
-    return contacts.filter(contact => {
-      const matchesSearch = searchQuery === '' || 
-        contact.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contact.phone.includes(searchQuery) ||
-        contact.district.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contact.division?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contact.mandal?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contact.cluster?.toLowerCase().includes(searchQuery.toLowerCase());
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      loadContacts(nextPage, true);
+    }
+  };
 
-      const matchesDistrict = selectedDistrict === '' || contact.district.toLowerCase() === selectedDistrict.toLowerCase();
-      const matchesDivision = selectedDivision === '' || contact.division?.toLowerCase() === selectedDivision.toLowerCase();
-      const matchesMandal = selectedMandal === '' || contact.mandal?.toLowerCase() === selectedMandal.toLowerCase();
-      const matchesCluster = selectedCluster === '' || contact.cluster?.toLowerCase() === selectedCluster.toLowerCase();
-
-      return matchesSearch && matchesDistrict && matchesDivision && matchesMandal && matchesCluster;
-    });
-  }, [contacts, searchQuery, selectedDistrict, selectedDivision, selectedMandal, selectedCluster]);
-
-  const uniqueDistricts = useMemo(() => 
-    Array.from(new Set(contacts.map(c => c.district))).sort(),
-    [contacts]
-  );
-
-  const uniqueDivisions = useMemo(() => 
-    selectedDistrict ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase()).map(c => c.division).filter(Boolean))).sort() : [],
-    [contacts, selectedDistrict]
-  );
-
-  const uniqueMandals = useMemo(() => 
-    selectedDivision 
-      ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase() && c.division?.toLowerCase() === selectedDivision.toLowerCase()).map(c => c.mandal).filter(Boolean))).sort() 
-      : selectedDistrict 
-        ? Array.from(new Set(contacts.filter(c => c.district.toLowerCase() === selectedDistrict.toLowerCase()).map(c => c.mandal).filter(Boolean))).sort() 
-        : [],
-    [contacts, selectedDistrict, selectedDivision]
-  );
-
-  const uniqueClusters = useMemo(() => 
-    selectedMandal ? Array.from(new Set(contacts.filter(c => c.mandal?.toLowerCase() === selectedMandal.toLowerCase()).map(c => c.cluster).filter(Boolean))).sort() : [],
-    [contacts, selectedMandal]
-  );
 
   const resetFilters = useCallback(() => {
     setSearchQuery('');
@@ -285,6 +421,9 @@ export function OfficerContacts() {
     setSelectedDivision('');
     setSelectedMandal('');
     setSelectedCluster('');
+    setPage(1);
+    setContacts([]);
+    setHasMore(true);
   }, []);
 
   const handleCall = useCallback((phone: string) => {
@@ -416,7 +555,7 @@ export function OfficerContacts() {
               className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
             >
               <option value="">Select District</option>
-              {uniqueDistricts.map(district => (
+              {dropdownOptions.districts.map(district => (
                 <option key={district} value={district}>{district}</option>
               ))}
             </select>
@@ -436,7 +575,7 @@ export function OfficerContacts() {
                 className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
                 <option value="">Select Division</option>
-                {uniqueDivisions.map(division => (
+                {dropdownOptions.divisions.map(division => (
                   <option key={division} value={division}>{division}</option>
                 ))}
               </select>
@@ -456,7 +595,7 @@ export function OfficerContacts() {
                 className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
                 <option value="">Select Mandal</option>
-                {uniqueMandals.map(mandal => (
+                {dropdownOptions.mandals.map(mandal => (
                   <option key={mandal} value={mandal}>{mandal}</option>
                 ))}
               </select>
@@ -473,7 +612,7 @@ export function OfficerContacts() {
                 className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
                 <option value="">Select Cluster</option>
-                {uniqueClusters.map(cluster => (
+                {dropdownOptions.clusters.map(cluster => (
                   <option key={cluster} value={cluster}>{cluster}</option>
                 ))}
               </select>
@@ -493,7 +632,7 @@ export function OfficerContacts() {
         )}
       </div>
     );
-  }, [activeTab, searchQuery, selectedDistrict, selectedDivision, selectedMandal, selectedCluster, uniqueDistricts, uniqueDivisions, uniqueMandals, uniqueClusters, resetFilters]);
+  }, [activeTab, searchQuery, selectedDistrict, selectedDivision, selectedMandal, selectedCluster, dropdownOptions, resetFilters]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
@@ -564,19 +703,27 @@ export function OfficerContacts() {
         {/* Results Count */}
         <div className={`mb-4 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
-            {loading ? 'Loading...' : `Showing ${filteredContacts.length} ${activeTab} contact${filteredContacts.length !== 1 ? 's' : ''}`}
+            {loading ? 'Loading...' : `Showing ${totalCount} ${activeTab} contact${totalCount !== 1 ? 's' : ''}`}
           </p>
         </div>
 
         {/* Contact Cards */}
         <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          {loading ? (
-            <div className="col-span-full py-12 text-center">
-              <div className="text-lg font-semibold text-slate-600 dark:text-slate-300">
-                Loading contacts...
+          {loading && contacts.length === 0 ? (
+            // Skeleton loaders for initial load
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-5 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 animate-pulse rounded-xl bg-emerald-200 dark:bg-emerald-800" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                    <div className="h-3 w-1/2 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                    <div className="h-3 w-1/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                  </div>
+                </div>
               </div>
-            </div>
-          ) : filteredContacts.length === 0 ? (
+            ))
+          ) : contacts.length === 0 ? (
             <div className="col-span-full py-12 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
                 <Search className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
@@ -589,7 +736,27 @@ export function OfficerContacts() {
               </p>
             </div>
           ) : (
-            filteredContacts.map(renderContactCard)
+            <>
+              {contacts.map(renderContactCard)}
+              {hasMore && (
+                <div className="col-span-full py-4 text-center">
+                  <button
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-200/50 bg-white/80 px-6 py-3 text-base font-semibold text-emerald-600 transition-all hover:border-emerald-500 hover:bg-emerald-50 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                  >
+                    {loadingMore ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Loading more...</span>
+                      </>
+                    ) : (
+                      <span>Load More</span>
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
