@@ -454,7 +454,7 @@ export function LicenseApplicationGenerator() {
                 <select
                   value={dealerType}
                   onChange={(e) => handleDealerTypeChange(e.target.value as DealerType)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   <option value="wholesaler">Wholesaler</option>
@@ -472,7 +472,7 @@ export function LicenseApplicationGenerator() {
                 <select
                   value={areaType}
                   onChange={(e) => handleAreaTypeChange(e.target.value as AreaType)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   <option value="municipal">Urban Areas</option>
@@ -492,7 +492,7 @@ export function LicenseApplicationGenerator() {
                 <select
                   value={applicationType}
                   onChange={(e) => handleApplicationTypeChange(e.target.value as ApplicationType)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   <option value="fresh">Fresh</option>
@@ -516,7 +516,7 @@ export function LicenseApplicationGenerator() {
                 <select
                   value={numberOfProducts}
                   onChange={(e) => handleNumberOfProductsChange(e.target.value)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   {[...Array(14)].map((_, i) => (
@@ -538,7 +538,7 @@ export function LicenseApplicationGenerator() {
                 <select
                   value={district}
                   onChange={(e) => handleDistrictChange(e.target.value)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   {TELANGANA_DISTRICTS.map((districtName) => (
@@ -559,7 +559,7 @@ export function LicenseApplicationGenerator() {
                 <select
                   value={division}
                   onChange={(e) => handleDivisionChange(e.target.value)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   {getDivisionsForDistrict(district).map((divisionName) => (

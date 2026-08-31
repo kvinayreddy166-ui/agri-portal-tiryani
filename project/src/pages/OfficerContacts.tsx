@@ -110,8 +110,8 @@ function getCacheKey(
 }
 
 // Generate dropdown cache key
-function getDropdownCacheKey(officerType: OfficerType, district: string, division: string): string {
-  return `${officerType}|${district}|${division}`;
+function getDropdownCacheKey(officerType: OfficerType, district: string, division: string, mandal: string): string {
+  return `${officerType}|${district}|${division}|${mandal}`;
 }
 
 export function OfficerContacts() {
@@ -162,12 +162,12 @@ export function OfficerContacts() {
     }
   }, [activeTab]);
 
-  // Load dropdown options when district/division changes
+  // Load dropdown options when district/division/mandal changes
   useEffect(() => {
     if (initialLoadDone) {
       loadDropdownOptions();
     }
-  }, [activeTab, selectedDistrict, selectedDivision]);
+  }, [activeTab, selectedDistrict, selectedDivision, selectedMandal]);
 
   // Debounced search
   useEffect(() => {
@@ -333,7 +333,7 @@ export function OfficerContacts() {
   };
 
   const loadDropdownOptions = async () => {
-    const cacheKey = getDropdownCacheKey(activeTab, selectedDistrict, selectedDivision);
+    const cacheKey = getDropdownCacheKey(activeTab, selectedDistrict, selectedDivision, selectedMandal);
     
     // Check cache
     const cached = dropdownCache.get(cacheKey);
