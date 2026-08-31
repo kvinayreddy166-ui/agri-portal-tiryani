@@ -290,6 +290,10 @@ function getHistoryIndex() {
 }
 
 function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
+  // Don't redirect public officer-toolkit routes
+  if (pathname.startsWith('/officer-toolkit/')) {
+    return null;
+  }
   if (pathname === '/officer-toolkit/legal-ready-reckoner') {
     return '/officer-toolkit';
   }
@@ -463,7 +467,7 @@ function AppContent() {
   const navigationType = useNavigationType();
   const [isHydrated, setIsHydrated] = useState(false);
   const [forceAppShell, setForceAppShell] = useState(false);
-  const currentPathIsPublic = PUBLIC_AUTH_ROUTES.has(location.pathname) || location.pathname === '/' || location.pathname === '/login';
+  const currentPathIsPublic = PUBLIC_AUTH_ROUTES.has(location.pathname) || location.pathname.startsWith('/officer-toolkit/') || location.pathname === '/' || location.pathname === '/login';
   const hideCalculatorLogo =
     location.pathname === '/officer-toolkit/fertilizer-calculator' ||
     location.pathname === '/officer-toolkit/acreage-calculator' ||
@@ -793,19 +797,8 @@ function AppContent() {
     );
   }
 
-  if (
-    !user &&
-    location.pathname.startsWith('/officer-toolkit/') &&
-    location.pathname !== '/officer-toolkit/statutory-forms' &&
-    location.pathname !== '/officer-toolkit/license-application-generator' &&
-    location.pathname !== '/officer-toolkit/acreage-calculator' &&
-    location.pathname !== '/officer-toolkit/farm-calculators' &&
-    location.pathname !== '/officer-toolkit/fertilizer-calculator' &&
-    location.pathname !== '/officer-toolkit/crop-protection' &&
-    location.pathname !== '/officer-toolkit/officer-contacts'
-  ) {
-    return <PageLoader hideLogo={hideCalculatorLogo} />;
-  }
+  // Removed fallback loader for unknown officer-toolkit routes
+  // All officer-toolkit routes should be handled by PUBLIC_AUTH_ROUTES
 
   if (!user) {
     return (
