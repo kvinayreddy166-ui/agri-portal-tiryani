@@ -392,6 +392,9 @@ function useInitialBackFallback(
   useEffect(() => {
     if (loading) return;
 
+    // Skip history manipulation for public officer-toolkit routes
+    if (location.pathname.startsWith('/officer-toolkit/')) return;
+
     const currentUrl = getRouteUrl(location);
     const fallbackPath = getRouteBackFallback(location.pathname, isAuthenticated);
     if (!fallbackPath || fallbackPath === currentUrl || guardedUrlRef.current === currentUrl) return;
@@ -575,7 +578,9 @@ function AppContent() {
         page = 'officer-contacts';
       }
       
-      return validPages.has(page) ? page : 'dashboard';
+      const result = validPages.has(page) ? page : 'dashboard';
+      console.log('getPageFromLocation:', { pathname: location.pathname, page, result, validPages: Array.from(validPages) });
+      return result;
     } catch (error) {
       console.error('Error getting page from location:', error);
       return 'dashboard';
