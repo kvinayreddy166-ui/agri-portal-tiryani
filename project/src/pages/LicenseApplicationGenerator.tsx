@@ -45,12 +45,42 @@ const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
 
 // DDO Code mapping for Districts and Divisions
 const DISTRICT_DDO_CODES: Record<string, string> = {
+  'Adilabad': '01010102001',
+  'Bhadradri Kothagudem': '09010102006',
+  'Jagtial': '06010102005',
+  'Jangaon': '19010102017',
+  'Jayashankar Bhupalpally': '08010102001',
+  'Jogulamba Gadwal': '26010102003',
+  'Kamareddy': '15010102003',
+  'Karimnagar': '13010102001',
+  'Kumrambheem Asifabad': '02010102003',
+  'Mahabubabad': '10010102001',
   'Mahabubnagar': '22010102001',
+  'Mancherial': '3010102004',
+  'Medak': '17010102002',
+  'Medchal-Malkajgiri': '21010102003',
+  'Mulugu': '35010102002',
+  'Nagarkurnool': '28010102003',
+  'Narayanpet': '34010102001',
+  'Nirmal': '04010102002',
+  'Peddapalli': '07010102002',
+  'Rajanna Sircilla': '14010102003',
+  'Ranga Reddy': '23010102004',
+  'Siddipet': '18010102003',
+  'Suryapet': '30010102002',
+  'Vikarabad': '24010102005',
+  'Wanaparthy': '27010102003',
+  'Warangal': '11010102001',
+  'Yadadri Bhuvanagiri': '20010102004',
 };
 
 const DIVISION_DDO_CODES: Record<string, Record<string, string>> = {
   'Mahabubnagar': {
     'Mahabubnagar Rural': '22010102002',
+  },
+  'Kumrambheem Asifabad': {
+    'Asifabad': '02010102001',
+    'Kagaznagar': '02020102001',
   },
 };
 
