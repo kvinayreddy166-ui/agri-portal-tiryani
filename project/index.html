@@ -87,7 +87,10 @@
         }
 
         function reloadWithBust(reason, forceRoot) {
-          var url = new URL(forceRoot ? '/' : window.location.href, window.location.origin);
+          var currentPath = window.location.pathname;
+          var isPublicRoute = currentPath.startsWith('/officer-toolkit/') || currentPath === '/officer-toolkit';
+          var targetPath = (forceRoot && !isPublicRoute) ? '/' : window.location.href;
+          var url = new URL(targetPath, window.location.origin);
           url.searchParams.set('refresh', String(Date.now()));
           if (reason) url.searchParams.set('reason', reason);
           window.location.replace(url.toString());
