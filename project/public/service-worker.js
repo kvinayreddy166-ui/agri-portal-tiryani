@@ -39,11 +39,14 @@ self.addEventListener('activate', (event) => {
     Promise.all([
       clearOldCaches(),
       clearRuntimeCaches(),
+      self.clients.claim(),
     ])
+      .then(() => {
+        // Do NOT call skipWaiting() here - wait for explicit user action
+        // Only notify clients that SW is ready
+        return notifyClients({ type: 'SW_READY', version: RESCUE_SW_VERSION });
+      })
   );
-  // Do NOT call clients.claim() or skipWaiting() here
-  // This allows the new SW to wait for user approval via UPDATE button
-  // Do NOT send SW_READY message - update detection is handled by updatefound event
 });
 
 self.addEventListener('message', (event) => {

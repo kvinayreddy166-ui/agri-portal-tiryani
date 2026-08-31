@@ -104,73 +104,60 @@ if ('serviceWorker' in navigator) {
     void installRescueServiceWorker();
   });
 
-  // Flag to track if the update was user-initiated
-  // Expose globally so UpdateBanner can set it when user taps UPDATE
-  (window as any).__USER_INITIATED_UPDATE__ = false;
-
-  // Listen for service worker controller change - reload only if user-initiated
+  // Listen for service worker controller change - reload after new SW activates
+  let hasReloaded = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    // Guard against multiple reloads
+    if (hasReloaded) {
+      if (import.meta.env.DEV) console.log('[PWA] Controller change detected, but already reloaded - skipping');
+      return;
+    }
+    hasReloaded = true;
+    
     window.dispatchEvent(new CustomEvent('serviceWorkerUpdate'));
-    // Only reload if the update was initiated by the user
-    if ((window as any).__USER_INITIATED_UPDATE__) {
-      window.location.reload();
+    
+    if (import.meta.env.DEV) console.log('[PWA] Controller changed, reloading to apply new version');
+    // Reload to apply the new version
+    window.location.reload();
+  });
+
+  // Listen for SW_READY messages from service worker
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data?.type === 'SW_READY') {
+      if (import.meta.env.DEV) console.log('[PWA] SW_READY message received:', event.data.version);
+      window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
+        detail: { version: event.data.version } 
+      }));
     }
   });
 
-  // After successful update (reload), persist the new version
-  // This ensures the timestamp displays the installed version
-  // ONLY call this if this is a fresh load after a user-initiated update
-  const initializeAppVersion = async () => {
-    try {
-      // Check if this reload was triggered by a user-initiated update
-      const wasUserInitiatedUpdate = (window as any).__USER_INITIATED_UPDATE__;
-      if (wasUserInitiatedUpdate) {
-        const { rememberCurrentAppVersion } = await import('./lib/appVersion');
-        rememberCurrentAppVersion();
-        // Reset the flag after recording the version
-        (window as any).__USER_INITIATED_UPDATE__ = false;
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.warn('Failed to initialize app version:', error);
-    }
-  };
-  void initializeAppVersion();
-
-  // Set up proper service worker update detection using updatefound event
-  const setupUpdateDetection = async () => {
+  // Check for waiting service worker (new version available)
+  const checkForWaitingServiceWorker = async () => {
     try {
       const registration = await navigator.serviceWorker.getRegistration();
-      if (!registration) return;
-
-      // Check if there's already a waiting worker on page load
-      if (registration.waiting) {
+      if (registration?.waiting) {
+        if (import.meta.env.DEV) console.log('[PWA] Waiting service worker detected, showing update banner');
         window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
           detail: { version: 'waiting' } 
         }));
       }
-
-      // Listen for new service worker installation
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (!newWorker) return;
-
-        newWorker.addEventListener('statechange', () => {
-          // When the new worker is installed and there's an existing controller,
-          // it means a new version is available but not yet activated
-          if (
-            newWorker.state === 'installed' &&
-            navigator.serviceWorker.controller
-          ) {
-            // UPDATE AVAILABLE ONLY - do NOT change installed version
-            window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
-              detail: { version: 'waiting' } 
-            }));
-          }
-        });
-      });
     } catch (error) {
-      if (import.meta.env.DEV) console.warn('Service worker update detection setup failed:', error);
+      if (import.meta.env.DEV) console.warn('[PWA] Service worker check failed:', error);
     }
   };
-  void setupUpdateDetection();
+
+  // Check immediately on load
+  if (import.meta.env.DEV) console.log('[PWA] Initial check for waiting service worker');
+  void checkForWaitingServiceWorker();
+
+  // Periodically check for updates (every 5 minutes) - detection only, no activation
+  const updateCheckInterval = setInterval(() => {
+    if (import.meta.env.DEV) console.log('[PWA] Periodic check for waiting service worker');
+    void checkForWaitingServiceWorker();
+  }, 5 * 60 * 1000);
+
+  // Cleanup interval on page unload
+  window.addEventListener('beforeunload', () => {
+    clearInterval(updateCheckInterval);
+  });
 }

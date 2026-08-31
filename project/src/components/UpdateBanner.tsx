@@ -5,6 +5,7 @@ export function UpdateBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const updateInProgressRef = React.useRef(false);
 
   useEffect(() => {
     const handleUpdateAvailable = () => {
@@ -52,14 +53,18 @@ export function UpdateBanner() {
   }, []);
 
   const handleUpdate = async () => {
+    // Prevent multiple simultaneous update attempts
+    if (updateInProgressRef.current) {
+      if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Update already in progress, ignoring click');
+      return;
+    }
+    
+    updateInProgressRef.current = true;
     setIsUpdating(true);
+    
+    if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Update button clicked');
+    
     try {
-      // Set the global flag to indicate this is a user-initiated update
-      // This ensures controllerchange will only reload when user explicitly updates
-      try {
-        (window as any).__USER_INITIATED_UPDATE__ = true;
-      } catch {}
-
       // Show loading overlay to prevent flickering
       const overlay = document.createElement('div');
       overlay.id = 'update-loading-overlay';
@@ -75,19 +80,23 @@ export function UpdateBanner() {
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.getRegistration();
         if (registration?.waiting) {
+          if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Sending SKIP_WAITING message to service worker');
           // Tell the waiting service worker to skip waiting and become active
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        } else {
+          if (import.meta.env.DEV) console.warn('[PWA UpdateBanner] No waiting service worker found');
+          // No waiting worker - might need to trigger an update check
+          if (registration) {
+            await registration.update();
+          }
         }
       }
-      // The controllerchange event will trigger reload (only because we set the flag)
+      // The controllerchange event will trigger reload
       // Don't reload immediately - wait for service worker activation
     } catch (error) {
-      console.error('Update failed:', error);
+      console.error('[PWA UpdateBanner] Update failed:', error);
       setIsUpdating(false);
-      // Reset the flag on error
-      try {
-        (window as any).__USER_INITIATED_UPDATE__ = false;
-      } catch {}
+      updateInProgressRef.current = false;
       // Remove overlay on error
       const overlay = document.getElementById('update-loading-overlay');
       if (overlay) overlay.remove();

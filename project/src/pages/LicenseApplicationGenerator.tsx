@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { FileText, ChevronRight, CheckCircle, FileText as FileIcon, ExternalLink } from 'lucide-react';
+import { FileText, ChevronRight, CheckCircle, FileText as FileIcon, ExternalLink, Copy } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 
 // District to Division mapping
@@ -53,6 +53,7 @@ const DISTRICT_DDO_CODES: Record<string, string> = {
   'Jogulamba Gadwal': '26010102003',
   'Kamareddy': '15010102003',
   'Karimnagar': '13010102001',
+  'Khammam': '31010102002',
   'Kumrambheem Asifabad': '02010102003',
   'Mahabubabad': '10010102001',
   'Mahabubnagar': '22010102001',
@@ -66,6 +67,7 @@ const DISTRICT_DDO_CODES: Record<string, string> = {
   'Peddapalli': '07010102002',
   'Rajanna Sircilla': '14010102003',
   'Ranga Reddy': '23010102004',
+  'Sangareddy': '16010102002',
   'Siddipet': '18010102003',
   'Suryapet': '30010102002',
   'Vikarabad': '24010102005',
@@ -78,9 +80,18 @@ const DIVISION_DDO_CODES: Record<string, Record<string, string>> = {
   'Mahabubnagar': {
     'Mahabubnagar Rural': '22010102002',
   },
+  'Jayashankar Bhupalpally': {
+    'Mahadevpur': '08030102001',
+    'Bhupalpally': '08010102020',
+  },
   'Kumrambheem Asifabad': {
     'Asifabad': '02010102001',
     'Kagaznagar': '02020102001',
+    'Sirpur U': '02010102002',
+  },
+  'Mancherial': {
+    'Mancherial': '03010102001',
+    'Chennur': '03030102001',
   },
 };
 
@@ -223,14 +234,22 @@ export function LicenseApplicationGenerator() {
       if (divisionDdoCode) {
         setDdoCode(divisionDdoCode);
       } else {
-        // Don't fall back to district DDO code if division is selected but has no specific code
-        setDdoCode('');
+        const districtDdoCode = DISTRICT_DDO_CODES[district];
+        if (districtDdoCode) {
+          setDdoCode(districtDdoCode);
+        } else {
+          setDdoCode(''); // Clear if no code found
+        }
       }
     } else if (district) {
       const districtDdoCode = DISTRICT_DDO_CODES[district];
       if (districtDdoCode) {
         setDdoCode(districtDdoCode);
+      } else {
+        setDdoCode(''); // Clear if no code found
       }
+    } else {
+      setDdoCode(''); // Clear when district is cleared
     }
   }, [district, division]);
 
@@ -579,13 +598,24 @@ export function LicenseApplicationGenerator() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">DDO CODE</label>
-                  <input
-                    type="text"
-                    value={ddoCode}
-                    onChange={(e) => setDdoCode(e.target.value)}
-                    placeholder="Enter DDO Code"
-                    className="w-full rounded-lg border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={ddoCode}
+                      readOnly
+                      placeholder="DDO Code"
+                      className="flex-1 rounded-lg border border-violet-200/50 bg-violet-50/50 dark:bg-violet-950/30 px-3 py-2 text-sm font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:text-white dark:focus:ring-violet-900/30"
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(ddoCode);
+                      }}
+                      className="flex items-center justify-center rounded-lg border border-violet-200/50 bg-violet-100/50 dark:bg-violet-900/30 px-3 py-2 text-violet-600 dark:text-violet-400 hover:bg-violet-200/50 dark:hover:bg-violet-800/50 transition-all"
+                      title="Copy DDO Code"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
