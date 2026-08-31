@@ -386,14 +386,20 @@ export function OfficerContacts() {
 
         // Load clusters if mandal is selected
         if (selectedMandal) {
-          const { data: clustersData } = await supabase
+          let clusterQuery = supabase
             .from('officer_contacts')
             .select('cluster')
             .eq('officer_type', activeTab)
+            .eq('district', selectedDistrict)
             .eq('mandal', selectedMandal)
             .eq('active', true)
             .not('cluster', 'is', null);
 
+          if (selectedDivision) {
+            clusterQuery = clusterQuery.eq('division', selectedDivision);
+          }
+
+          const { data: clustersData } = await clusterQuery;
           clusters = Array.from(new Set(clustersData?.map(d => d.cluster) || [])).sort();
         }
       }

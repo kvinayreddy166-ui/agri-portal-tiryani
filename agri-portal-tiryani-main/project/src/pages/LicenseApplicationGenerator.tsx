@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { FileText, CheckCircle } from 'lucide-react';
+import { FileText, CheckCircle, Copy } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 
 // District to Division mapping
@@ -46,11 +46,24 @@ const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
 // DDO Code mapping for Districts and Divisions
 const DISTRICT_DDO_CODES: Record<string, string> = {
   'Mahabubnagar': '22010102001',
+  'Sangareddy': '16010102002',
+  'Khammam': '31010102002',
 };
 
 const DIVISION_DDO_CODES: Record<string, Record<string, string>> = {
   'Mahabubnagar': {
     'Mahabubnagar Rural': '22010102002',
+  },
+  'Jayashankar Bhupalpally': {
+    'Mahadevpur': '08030102001',
+    'Bhupalpally': '08010102020',
+  },
+  'Kumrambheem Asifabad': {
+    'Sirpur U': '02010102002',
+  },
+  'Mancherial': {
+    'Mancherial': '03010102001',
+    'Chennur': '03030102001',
   },
 };
 
@@ -559,13 +572,24 @@ export function LicenseApplicationGenerator() {
                 {hasDdoCode && (
                   <div>
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">DDO CODE</label>
-                    <input
-                      type="text"
-                      value={ddoCode}
-                      onChange={(e) => setDdoCode(e.target.value)}
-                      placeholder="Enter DDO Code"
-                      className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={ddoCode}
+                        readOnly
+                        placeholder="DDO Code"
+                        className="flex-1 rounded-xl border border-violet-200/50 bg-violet-50/50 dark:bg-violet-950/30 px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:text-white dark:focus:ring-violet-900/30"
+                      />
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(ddoCode);
+                        }}
+                        className="flex items-center justify-center rounded-xl border border-violet-200/50 bg-violet-100/50 dark:bg-violet-900/30 px-4 py-3 text-violet-600 dark:text-violet-400 hover:bg-violet-200/50 dark:hover:bg-violet-800/50 transition-all"
+                        title="Copy DDO Code"
+                      >
+                        <Copy className="h-5 w-5" />
+                      </button>
+                    </div>
                   </div>
                 )}
                 <div>
