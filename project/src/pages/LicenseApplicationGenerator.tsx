@@ -223,10 +223,8 @@ export function LicenseApplicationGenerator() {
       if (divisionDdoCode) {
         setDdoCode(divisionDdoCode);
       } else {
-        const districtDdoCode = DISTRICT_DDO_CODES[district];
-        if (districtDdoCode) {
-          setDdoCode(districtDdoCode);
-        }
+        // Don't fall back to district DDO code if division is selected but has no specific code
+        setDdoCode('');
       }
     } else if (district) {
       const districtDdoCode = DISTRICT_DDO_CODES[district];
@@ -402,9 +400,9 @@ export function LicenseApplicationGenerator() {
         </div>
 
         {/* License Type Selection */}
-        <div className={`mb-8 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+        <div className={`mb-4 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="mb-2">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
               Select License Type
             </h2>
           </div>
@@ -412,7 +410,7 @@ export function LicenseApplicationGenerator() {
             <select
               value={licenseType}
               onChange={(e) => handleLicenseTypeChange(e.target.value as LicenseType)}
-              className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+              className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
             >
               <option value="">Select...</option>
               <option value="fertilizer">Fertilizer</option>
@@ -424,20 +422,20 @@ export function LicenseApplicationGenerator() {
 
         {/* Selection Fields Container */}
         {(showDealerType || showAreaType || showDivision || licenseType) && (
-          <div className={`mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className={`mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             
             {/* Dealer Type Selection */}
             {showDealerType && (
               <div>
-                <div className="mb-2">
-                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                <div className="mb-1">
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Dealer Type
                   </h3>
                 </div>
                 <select
                   value={dealerType}
                   onChange={(e) => handleDealerTypeChange(e.target.value as DealerType)}
-                  className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   <option value="wholesaler">Wholesaler</option>
@@ -447,15 +445,15 @@ export function LicenseApplicationGenerator() {
             )}
             {showAreaType && (
               <div>
-                <div className="mb-2">
-                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                <div className="mb-1">
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Area Type
                   </h3>
                 </div>
                 <select
                   value={areaType}
                   onChange={(e) => handleAreaTypeChange(e.target.value as AreaType)}
-                  className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   <option value="municipal">Urban Areas</option>
@@ -467,15 +465,15 @@ export function LicenseApplicationGenerator() {
             {/* Application Type Selection */}
             {licenseType && (
               <div>
-                <div className="mb-2">
-                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                <div className="mb-1">
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Application Type
                   </h3>
                 </div>
                 <select
                   value={applicationType}
                   onChange={(e) => handleApplicationTypeChange(e.target.value as ApplicationType)}
-                  className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   <option value="fresh">Fresh</option>
@@ -491,15 +489,15 @@ export function LicenseApplicationGenerator() {
             {/* Number of Products Selection */}
             {showNumberOfProducts && (
               <div>
-                <div className="mb-2">
-                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                <div className="mb-1">
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Number of Products
                   </h3>
                 </div>
                 <select
                   value={numberOfProducts}
                   onChange={(e) => handleNumberOfProductsChange(e.target.value)}
-                  className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   {[...Array(14)].map((_, i) => (
@@ -513,15 +511,15 @@ export function LicenseApplicationGenerator() {
             {/* District Selection */}
             {licenseType && (
               <div>
-                <div className="mb-2">
-                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                <div className="mb-1">
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     District
                   </h3>
                 </div>
                 <select
                   value={district}
                   onChange={(e) => handleDistrictChange(e.target.value)}
-                  className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   {TELANGANA_DISTRICTS.map((districtName) => (
@@ -534,15 +532,15 @@ export function LicenseApplicationGenerator() {
             {/* Division Selection */}
             {showDivision && (
               <div>
-                <div className="mb-2">
-                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                <div className="mb-1">
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Division
                   </h3>
                 </div>
                 <select
                   value={division}
                   onChange={(e) => handleDivisionChange(e.target.value)}
-                  className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
                   {getDivisionsForDistrict(district).map((divisionName) => (
@@ -556,37 +554,37 @@ export function LicenseApplicationGenerator() {
 
         {/* Challan Details Section */}
         {showChallanDetails && (
-          <div className={`mb-8 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+          <div className={`mb-4 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
                 Challan Details
               </h2>
               <a
                 href="https://ifmis.telangana.gov.in/manual_challan_entry"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:from-violet-700 hover:to-purple-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 dark:from-violet-500 dark:to-purple-500 dark:hover:from-violet-600 dark:hover:to-purple-600"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 px-3 py-1 text-xs font-bold text-white shadow-lg transition-all duration-300 hover:from-violet-700 hover:to-purple-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 dark:from-violet-500 dark:to-purple-500 dark:hover:from-violet-600 dark:hover:to-purple-600"
               >
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="h-3 w-3" />
                 <span>Challan Entry</span>
               </a>
             </div>
-            <div className="rounded-2xl border border-violet-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-violet-800/50 dark:bg-slate-900/80">
-              <div className="mb-4 grid gap-4">
+            <div className="rounded-xl border border-violet-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-xl dark:border-violet-800/50 dark:bg-slate-900/80">
+              <div className="mb-3 grid gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-green-600 dark:text-green-400 mb-2">Challan Code</label>
-                  <div className="text-sm font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-4 py-3 rounded-xl border border-violet-200/50 dark:border-violet-800/50">
+                  <label className="block text-xs font-bold text-green-600 dark:text-green-400 mb-1">Challan Code</label>
+                  <div className="text-xs font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-3 py-2 rounded-lg border border-violet-200/50 dark:border-violet-800/50">
                     {getChallanCode()}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">DDO CODE</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">DDO CODE</label>
                   <input
                     type="text"
                     value={ddoCode}
                     onChange={(e) => setDdoCode(e.target.value)}
                     placeholder="Enter DDO Code"
-                    className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                    className="w-full rounded-lg border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                   />
                 </div>
               </div>
