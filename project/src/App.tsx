@@ -41,6 +41,7 @@ const StockAnalytics = lazy(() => import('./pages/StockAnalytics'));
 const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const OfficerContacts = lazy(() => import('./pages/OfficerContacts').then((m) => ({ default: m.OfficerContacts })));
 const OfficerContactsAdmin = lazy(() => import('./pages/admin/OfficerContactsAdmin').then((m) => ({ default: m.OfficerContactsAdmin })));
+const TourDiary = lazy(() => import('./pages/TourDiary').then((m) => ({ default: m.TourDiary })));
 
 function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
   const [slow, setSlow] = useState(false);
@@ -236,6 +237,7 @@ const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/seed-rate-calculator',
   '/officer-toolkit/legal-ready-reckoner',
   '/officer-toolkit/officer-contacts',
+  '/officer-toolkit/tour-diary',
 ]);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
@@ -270,6 +272,7 @@ const PAGE_PATHS: Record<string, string> = {
   'legal-ready-reckoner': '/officer-toolkit/legal-ready-reckoner',
   'officer-contacts': '/officer-toolkit/officer-contacts',
   'officer-contacts-admin': '/admin/officer-contacts',
+  'tour-diary': '/officer-toolkit/tour-diary',
   analytics: '/analytics',
   settings: '/settings',
 };
@@ -531,6 +534,7 @@ function AppContent() {
         'legal-ready-reckoner',
         'officer-contacts',
         'officer-contacts-admin',
+        'tour-diary',
         'analytics',
         'settings',
       ]),
@@ -577,7 +581,10 @@ function AppContent() {
       if (page === 'officer-toolkit/officer-contacts') {
         page = 'officer-contacts';
       }
-      
+      if (page === 'officer-toolkit/tour-diary') {
+        page = 'tour-diary';
+      }
+
       const result = validPages.has(page) ? page : 'dashboard';
       console.log('getPageFromLocation:', `pathname="${location.pathname}"`, `page="${page}"`, `result="${result}"`, `validPages.has(page)=${validPages.has(page)}`);
       return result;
@@ -802,6 +809,14 @@ function AppContent() {
     );
   }
 
+  if (!user && currentPage === 'tour-diary') {
+    return (
+      <SafeSuspense fallback={<GlobalAppLoader />}>
+        <TourDiary />
+      </SafeSuspense>
+    );
+  }
+
   // Removed fallback loader for unknown officer-toolkit routes
   // All officer-toolkit routes should be handled by PUBLIC_AUTH_ROUTES
 
@@ -905,6 +920,8 @@ function AppContent() {
         ) : (
           <Dashboard />
         );
+      case 'tour-diary':
+        return <TourDiary />;
       case 'analytics':
         return <Analytics />;
       case 'settings':

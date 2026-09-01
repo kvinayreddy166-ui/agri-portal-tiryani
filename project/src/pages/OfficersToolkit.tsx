@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, Scale, FileText, Phone, type LucideIcon } from 'lucide-react';
+import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, Scale, FileText, Phone, Calendar, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
@@ -23,6 +23,15 @@ interface OfficersToolkitProps {
 }
 
 const toolkitItems: ToolkitItem[] = [
+  {
+    title: 'Tour Diary',
+    description: 'Monthly tour diary with journey tracking.',
+    path: '/officer-toolkit/tour-diary',
+    icon: Calendar,
+    category: 'internal',
+    gradient: 'from-cyan-500 to-blue-600',
+    bgGradient: 'from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30',
+  },
   {
     title: 'Officer Contacts',
     description: 'AEO • MAO • ADA • DAO',
@@ -206,6 +215,8 @@ const externalPortals: ToolkitItem[] = [
 
 function translateToolkit(label?: string) {
   const labels: Record<string, string> = {
+    'Tour Diary': 'పర్యటన డైరీ',
+    'Monthly tour diary with journey tracking.': 'ప్రయాణ ట్రాకింగ్‌తో నెలవారీ పర్యటన డైరీ.',
     'License Services': 'లైసెన్స్ సేవలు',
     'Fertilizer • Seed • Pesticide': 'ఎరువులు • విత్తనాలు • పురుగుమందులు',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',

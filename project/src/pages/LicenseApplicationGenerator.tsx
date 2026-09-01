@@ -24,7 +24,7 @@ const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
   'Mahabubnagar': ['Devarkadara', 'Jadcherla', 'Mahabubnagar Rural'],
   'Mancherial': ['Bellampalle', 'Bheemini', 'Chennur', 'Mancherial'],
   'Medak': ['Kowdipalle', 'Medak', 'Narsapur', 'Ramayampet'],
-  'Medchal-Malkajgiri': ['Malkajgiri', 'Medchal'],
+  'Medchal–Malkajgiri': ['Malkajgiri', 'Medchal'],
   'Mulugu': ['Eturnagaram', 'Mulugu'],
   'Nagarkurnool': ['Achampet', 'Kalwakurthy', 'Kollapur', 'Nagarkurnool'],
   'Nalgonda': ['Anumula', 'Devarakonda', 'Miryalaguda', 'Munugode', 'Nakrekal', 'Nalgonda'],
@@ -33,7 +33,7 @@ const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
   'Nizamabad': ['Armoor', 'Balkonda', 'Bheemgal', 'Bodhan', 'Indalwai', 'Nizamabad Rural', 'Nizamabad South', 'Rudrur'],
   'Peddapalli': ['Manthani', 'Peddapalle', 'Ramagundam'],
   'Rajanna Sircilla': ['Sircilla', 'Vemulawada'],
-  'Rangareddy': ['Amangal', 'Chevella', 'Ibrahimpatnam', 'Maheshwaram', 'Rajendranagar', 'Shadnagar'],
+  'Ranga Reddy': ['Amangal', 'Chevella', 'Ibrahimpatnam', 'Maheshwaram', 'Rajendranagar', 'Shadnagar'],
   'Sangareddy': ['Andole', 'Narayankhed', 'Patancheru', 'Raikode', 'Sangareddy', 'Zahirabad'],
   'Siddipet': ['Cheriyal', 'Dubbak', 'Gajwel', 'Husnabad', 'Mulug', 'Siddipet'],
   'Suryapet': ['Huzurnagar', 'Kodad', 'Suryapet', 'Thungathurthy'],
@@ -59,7 +59,7 @@ const DISTRICT_DDO_CODES: Record<string, string> = {
   'Mahabubnagar': '22010102001',
   'Mancherial': '3010102004',
   'Medak': '17010102002',
-  'Medchal-Malkajgiri': '21010102003',
+  'Medchal–Malkajgiri': '21010102003',
   'Mulugu': '35010102002',
   'Nagarkurnool': '28010102003',
   'Narayanpet': '34010102001',
@@ -337,6 +337,11 @@ export function LicenseApplicationGenerator() {
     return '0401008000081000000NVN - Other Receipts';
   };
 
+  const getChallanCodeOnly = () => {
+    const fullCode = getChallanCode();
+    return fullCode.split(' - ')[0];
+  };
+
   const handleLicenseTypeChange = (type: LicenseType) => {
     setLicenseType(type);
   };
@@ -541,7 +546,9 @@ export function LicenseApplicationGenerator() {
                   className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
-                  {TELANGANA_DISTRICTS.map((districtName) => (
+                  {TELANGANA_DISTRICTS.filter((districtName) => 
+                    DISTRICT_DDO_CODES[districtName] || DIVISION_DDO_CODES[districtName]
+                  ).map((districtName) => (
                     <option key={districtName} value={districtName}>{districtName}</option>
                   ))}
                 </select>
@@ -562,7 +569,9 @@ export function LicenseApplicationGenerator() {
                   className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
-                  {getDivisionsForDistrict(district).map((divisionName) => (
+                  {getDivisionsForDistrict(district).filter((divisionName) => 
+                    DIVISION_DDO_CODES[district]?.[divisionName]
+                  ).map((divisionName) => (
                     <option key={divisionName} value={divisionName}>{divisionName}</option>
                   ))}
                 </select>
@@ -592,8 +601,19 @@ export function LicenseApplicationGenerator() {
               <div className="mb-3 grid gap-3">
                 <div>
                   <label className="block text-xs font-bold text-green-600 dark:text-green-400 mb-1">Challan Code</label>
-                  <div className="text-xs font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-3 py-2 rounded-lg border border-violet-200/50 dark:border-violet-800/50">
-                    {getChallanCode()}
+                  <div className="flex gap-2">
+                    <div className="text-xs font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-3 py-2 rounded-lg border border-violet-200/50 dark:border-violet-800/50 flex-1">
+                      {getChallanCode()}
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(getChallanCodeOnly());
+                      }}
+                      className="flex items-center justify-center rounded-lg border border-violet-200/50 bg-violet-100/50 dark:bg-violet-900/30 px-3 py-2 text-violet-600 dark:text-violet-400 hover:bg-violet-200/50 dark:hover:bg-violet-800/50 transition-all"
+                      title="Copy Challan Code"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
                 <div>
