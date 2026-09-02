@@ -101,8 +101,8 @@ function getDivisionsForDistrict(district: string): string[] {
 
 type LicenseType = 'fertilizer' | 'seed' | 'insecticide';
 type ApplicationType = 'fresh' | 'renewal' | 'renewal_grace_period' | 'amendment' | 'duplicate' | 'pc_inclusion';
-type DealerType = 'wholesaler' | 'retailer';
-type AreaType = 'municipal' | 'rural';
+type DealerType = 'wholesaler' | 'retailer' | 'coop_societies' | 'manufacturing_license';
+type AreaType = 'municipal' | 'rural' | 'manufacturing_license';
 
 type FertilizerAmendmentType =
   | 'change_of_address'
@@ -258,26 +258,42 @@ export function LicenseApplicationGenerator() {
   const showInsecticideAmendmentType = licenseType === 'insecticide' && applicationType === 'amendment';
   const showDealerType = licenseType === 'fertilizer';
   const showAreaType = licenseType === 'insecticide';
-  const showNumberOfProducts = licenseType === 'insecticide' && areaType !== '' && applicationType === 'pc_inclusion';
+  const showNumberOfProducts = licenseType === 'insecticide' && areaType !== '' && 
+    (applicationType === 'pc_inclusion' || areaType === 'manufacturing_license');
   const showDivision = licenseType === 'fertilizer' && dealerType === 'retailer';
   const showChallanDetails = applicationType !== '' && district !== '' && 
     (showDivision ? division !== '' : true) &&
     (licenseType === 'fertilizer' ? dealerType !== '' : true) && 
-    (licenseType === 'insecticide' && applicationType === 'pc_inclusion' ? areaType !== '' && numberOfProducts !== '' : true);
+    (licenseType === 'insecticide' && (applicationType === 'pc_inclusion' || areaType === 'manufacturing_license') ? areaType !== '' && numberOfProducts !== '' : true);
   const showDocuments = false; // Amendment types hidden for now
 
   const getAmount = () => {
     const isFertilizerWholesaler = licenseType === 'fertilizer' && dealerType === 'wholesaler';
+    const isFertilizerCoopSocieties = licenseType === 'fertilizer' && dealerType === 'coop_societies';
+    const isFertilizerManufacturingLicense = licenseType === 'fertilizer' && dealerType === 'manufacturing_license';
     
     if (licenseType === 'seed') {
       if (applicationType === 'fresh') return 1000;
       if (applicationType === 'renewal') return 500;
       if (applicationType === 'renewal_grace_period') return 1000;
-      if (applicationType === 'amendment') return 500;
+      if (applicationType === 'amendment') return 50;
+      if (applicationType === 'duplicate') return 50;
     }
     
     if (licenseType === 'insecticide') {
       const isMunicipal = areaType === 'municipal';
+      const isManufacturingLicense = areaType === 'manufacturing_license';
+      
+      // Manufacturing License fee structure
+      if (isManufacturingLicense) {
+        const productCount = numberOfProducts === '10+' ? 10 : parseInt(numberOfProducts) || 0;
+        const calculatedAmount = Math.min(productCount * 2000, 20000); // ₹2,000 per product, max ₹20,000
+        
+        if (applicationType === 'fresh') return calculatedAmount;
+        if (applicationType === 'pc_inclusion') return calculatedAmount;
+      }
+      
+      // Existing Urban/Rural fee structure
       const productCount = numberOfProducts === '15+' ? 15 : parseInt(numberOfProducts) || 0;
       
       // Rural areas: 100 per product, 15+ = 1500
@@ -298,14 +314,34 @@ export function LicenseApplicationGenerator() {
         return 1500;
       }
       if (applicationType === 'pc_inclusion') return calculatedAmount;
+      if (applicationType === 'duplicate') return 100;
     }
     
     if (licenseType === 'fertilizer') {
+      // Coop. Societies fee structure
+      if (isFertilizerCoopSocieties) {
+        if (applicationType === 'fresh') return 500;
+        if (applicationType === 'renewal') return 500;
+        if (applicationType === 'renewal_grace_period') return 1500;
+        if (applicationType === 'amendment') return 500;
+        if (applicationType === 'duplicate') return 250;
+      }
+      
+      // Manufacturing License fee structure
+      if (isFertilizerManufacturingLicense) {
+        if (applicationType === 'fresh') return 5000;
+        if (applicationType === 'renewal') return 5000;
+        if (applicationType === 'renewal_grace_period') return 6000;
+        if (applicationType === 'amendment') return 1000;
+        if (applicationType === 'duplicate') return 500;
+      }
+      
+      // Existing Wholesaler and Retailer fee structure
       if (applicationType === 'fresh') return isFertilizerWholesaler ? 4500 : 2500;
       if (applicationType === 'renewal') return isFertilizerWholesaler ? 4500 : 2500;
       if (applicationType === 'renewal_grace_period') return isFertilizerWholesaler ? 5500 : 3500;
       if (applicationType === 'amendment') return isFertilizerWholesaler ? 1000 : 500;
-      if (applicationType === 'duplicate') return 500;
+      if (applicationType === 'duplicate') return isFertilizerWholesaler ? 500 : 250;
     }
     
     return 0;
@@ -464,6 +500,8 @@ export function LicenseApplicationGenerator() {
                   <option value="">Select...</option>
                   <option value="wholesaler">Wholesaler</option>
                   <option value="retailer">Retailer</option>
+                  <option value="coop_societies">Coop. Societies</option>
+                  <option value="manufacturing_license">Manufacturing License</option>
                 </select>
               </div>
             )}
@@ -482,6 +520,7 @@ export function LicenseApplicationGenerator() {
                   <option value="">Select...</option>
                   <option value="municipal">Urban Areas</option>
                   <option value="rural">Rural Areas</option>
+                  <option value="manufacturing_license">Manufacturing License</option>
                 </select>
               </div>
             )}
@@ -501,11 +540,11 @@ export function LicenseApplicationGenerator() {
                 >
                   <option value="">Select...</option>
                   <option value="fresh">Fresh</option>
-                  {licenseType !== 'insecticide' && <option value="renewal">Renewal within Expiry</option>}
-                  {licenseType !== 'insecticide' && <option value="renewal_grace_period">Renewal within Grace Period</option>}
-                  <option value="amendment">Amendment</option>
-                  {licenseType === 'fertilizer' && <option value="duplicate">Duplicate Copy</option>}
-                  {licenseType === 'insecticide' && <option value="pc_inclusion">PC Inclusion</option>}
+                  {licenseType !== 'insecticide' && areaType !== 'manufacturing_license' && <option value="renewal">Renewal within Expiry</option>}
+                  {licenseType !== 'insecticide' && areaType !== 'manufacturing_license' && <option value="renewal_grace_period">Renewal within Grace Period</option>}
+                  {areaType !== 'manufacturing_license' && <option value="amendment">Amendment</option>}
+                  {(licenseType === 'fertilizer' || licenseType === 'seed') && areaType !== 'manufacturing_license' && <option value="duplicate">Duplicate Copy</option>}
+                  {licenseType === 'insecticide' && <option value="pc_inclusion">{areaType === 'manufacturing_license' ? 'Additional Entries' : 'PC Inclusion'}</option>}
                 </select>
               </div>
             )}
@@ -524,10 +563,21 @@ export function LicenseApplicationGenerator() {
                   className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
                 >
                   <option value="">Select...</option>
-                  {[...Array(14)].map((_, i) => (
-                    <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
-                  ))}
-                  <option value="15+">15 or more</option>
+                  {areaType === 'manufacturing_license' ? (
+                    <>
+                      {[...Array(9)].map((_, i) => (
+                        <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
+                      ))}
+                      <option value="10+">10 or more</option>
+                    </>
+                  ) : (
+                    <>
+                      {[...Array(14)].map((_, i) => (
+                        <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
+                      ))}
+                      <option value="15+">15 or more</option>
+                    </>
+                  )}
                 </select>
               </div>
             )}

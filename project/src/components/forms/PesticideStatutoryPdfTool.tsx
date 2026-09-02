@@ -126,6 +126,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'stockPosition', label: 'STOCK POSITION OF BATCH', type: 'textarea', placeholder: 'Eg: 50 x (120 GMS) / 50 x (120 Ml)' },
       { key: 'otherInformation', label: 'ANY OTHER RELEVANT INFORMATION', type: 'textarea' },
       { key: 'dispatchDate', label: 'Date of Dispatch', type: 'date' },
+      { key: 'ptlNameMode', label: 'Name of the P.T.L.', type: 'select', options: [{ label: 'Default', value: 'default' }, { label: 'Empty', value: 'empty' }] },
     ],
   },
   {

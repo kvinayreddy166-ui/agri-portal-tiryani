@@ -65,6 +65,7 @@ export type PesticidePdfValues = {
   manualDistrict: string;
   manualMandal: string;
   ptlName: string;
+  ptlNameMode: 'default' | 'empty';
   dispatchDate: string;
   pincode: string;
   email: string;
@@ -137,6 +138,7 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   manualDistrict: '',
   manualMandal: '',
   ptlName: '',
+  ptlNameMode: 'default',
   dispatchDate: '',
   pincode: '',
   email: '',
@@ -854,7 +856,7 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     ['16. Code No. of A.O./A.D.A./D.D.A.', values.sampleSerialNumber],
     ['17. Q.C.I. Seal Particulars', qciSealValue],
     ['18. C.A. Seal Particulars', values.cdaCode],
-    ['19. Name of the P.T.L.to which sent For analysis', 'Pesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,Hyd-500036.'],
+    ['19. Name of the P.T.L.to which sent For analysis', values.ptlNameMode === 'default' ? 'Pesticide Testing Laboratory & Coding Centre,\nSAMETI Complex, Old Malakpet,Hyd-500036.' : ''],
     ['20. Date of Dispatch', formatDate(values.dispatchDate)],
   ];
   
