@@ -32,7 +32,6 @@ export const TELANGANA_DISTRICTS = [
   'Wanaparthy',
   'Warangal',
   'Yadadri Bhuvanagiri',
-  'Others',
 ] as const;
 
 export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
@@ -153,9 +152,51 @@ export const DESIGNATION_OPTIONS = [
 
 export const SEED_DESIGNATION_OPTIONS = [
   { label: 'Mandal Agriculture Officer', value: 'Mandal Agriculture Officer' },
+  { label: 'District Agriculture Officer', value: 'District Agriculture Officer' },
   { label: 'Asst. Director of Agriculture', value: 'Asst. Director of Agriculture' },
-  { label: 'Seed Inspector', value: 'Seed Inspector' },
+  { label: 'Others', value: 'Others' },
 ];
+
+// District to Division mapping
+export const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
+  'Adilabad': ['Adilabad Rural', 'Boath', 'Ichoda', 'Tamsi', 'Utnoor'],
+  'Bhadradri Kothagudem': ['Aswaraopeta', 'Bhadrachalam', 'Kothagudem', 'Manuguru', 'Yellandu'],
+  'Hanamkonda': ['Hanamkonda', 'Parkal'],
+  'Jagtial': ['Dharmapuri', 'Jagtial', 'Korutla'],
+  'Jangaon': ['Ghanpur Station', 'Jangaon', 'Palakurthi'],
+  'Jayashankar Bhupalpally': ['Bhupalpally', 'Mahadevpur'],
+  'Jogulamba Gadwal': ['Alampur', 'Gadwal', 'Ieeja'],
+  'Kamareddy': ['Banswada', 'Bichkunda', 'Kamareddy', 'Yellareddy'],
+  'Karimnagar': ['Choppadandi', 'Huzurabad', 'Karimnagar', 'Manakondur'],
+  'Khammam': ['Khammam Urban', 'Kusumanchi', 'Madhira', 'Sathupalle', 'Wyra'],
+  'Kumrambheem Asifabad': ['Asifabad', 'Kagaznagar', 'Penchikalpet', 'Sirpur U'],
+  'Hyderabad': [],
+  'Mahabubabad': ['Mahabubabad', 'Maripeda'],
+  'Mahabubnagar': ['Devarkadara', 'Jadcherla', 'Mahabubnagar Rural'],
+  'Mancherial': ['Bellampalle', 'Bheemini', 'Chennur', 'Mancherial'],
+  'Medak': ['Kowdipalle', 'Medak', 'Narsapur', 'Ramayampet'],
+  'Medchal–Malkajgiri': ['Malkajgiri', 'Medchal'],
+  'Mulugu': ['Eturnagaram', 'Mulugu'],
+  'Nagarkurnool': ['Achampet', 'Kalwakurthy', 'Kollapur', 'Nagarkurnool'],
+  'Nalgonda': ['Anumula', 'Devarakonda', 'Miryalaguda', 'Munugode', 'Nakrekal', 'Nalgonda'],
+  'Narayanpet': ['Kosgi', 'Makthal', 'Narayanpet'],
+  'Nirmal': ['Bhainsa', 'Khanapur', 'Mudhole', 'Nirmal'],
+  'Nizamabad': ['Armoor', 'Balkonda', 'Bheemgal', 'Bodhan', 'Indalwai', 'Nizamabad Rural', 'Nizamabad South', 'Rudrur'],
+  'Peddapalli': ['Manthani', 'Peddapalle', 'Ramagundam'],
+  'Rajanna Sircilla': ['Sircilla', 'Vemulawada'],
+  'Ranga Reddy': ['Amangal', 'Chevella', 'Ibrahimpatnam', 'Maheshwaram', 'Rajendranagar', 'Shadnagar'],
+  'Sangareddy': ['Andole', 'Narayankhed', 'Patancheru', 'Raikode', 'Sangareddy', 'Zahirabad'],
+  'Siddipet': ['Cheriyal', 'Dubbak', 'Gajwel', 'Husnabad', 'Mulug', 'Siddipet'],
+  'Suryapet': ['Huzurnagar', 'Kodad', 'Suryapet', 'Thungathurthy'],
+  'Vikarabad': ['Kodangal', 'Pargi', 'Tandur', 'Vikarabad'],
+  'Wanaparthy': ['Kothakota', 'Pangal', 'Wanaparthy'],
+  'Warangal': ['Narsampet', 'Wardhannapet'],
+  'Yadadri Bhuvanagiri': ['Alair', 'Bhongir', 'Yadagirigutta'],
+};
+
+export function getDivisionsForDistrict(district: string): string[] {
+  return DISTRICT_DIVISION_MAPPING[district] || [];
+}
 
 export function getMandalsForDistrict(district: string): string[] {
   return TELANGANA_DISTRICT_MANDAL_MAPPING[district] || [];

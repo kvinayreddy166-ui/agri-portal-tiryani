@@ -4,11 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, Car, AlertCircle, CheckCircle, RefreshCw, Eye } from 'lucide-react';
+import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, Car, AlertCircle, CheckCircle, RefreshCw, Eye, NotebookPen } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS } from '../data/telanganaDistrictMandalData';
+import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../data/telanganaDistrictMandalData';
 
 // Types
 interface TourDiary {
@@ -31,9 +31,13 @@ interface TourDiaryDraft {
   id: string;
   officerName: string;
   designation: string;
-  mandal: string;
-  division: string;
+  customDesignation?: string;
   district: string;
+  customDistrict?: string;
+  mandal: string;
+  customMandal?: string;
+  division: string;
+  customDivision?: string;
   month: number;
   year: number;
   journeys: TourJourney[];
@@ -114,6 +118,11 @@ function getDayName(year: number, month: number, day: number): string {
 function isSunday(year: number, month: number, day: number): boolean {
   const date = new Date(year, month - 1, day);
   return date.getDay() === 0;
+}
+
+function isTuesday(year: number, month: number, day: number): boolean {
+  const date = new Date(year, month - 1, day);
+  return date.getDay() === 2;
 }
 
 function formatDate(year: number, month: number, day: number): string {
@@ -197,6 +206,7 @@ export function TourDiary() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [tourDiary, setTourDiary] = useState<TourDiary | null>(null);
+  const [showDiaryForm, setShowDiaryForm] = useState(false);
   const [journeys, setJourneys] = useState<TourJourney[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [officerInfo, setOfficerInfo] = useState<OfficerInfo | null>(null);
@@ -208,9 +218,13 @@ export function TourDiary() {
   // Officer details state
   const [officerName, setOfficerName] = useState('');
   const [designation, setDesignation] = useState('');
+  const [customDesignation, setCustomDesignation] = useState('');
   const [district, setDistrict] = useState('');
+  const [customDistrict, setCustomDistrict] = useState('');
   const [mandal, setMandal] = useState('');
+  const [customMandal, setCustomMandal] = useState('');
   const [division, setDivision] = useState('');
+  const [customDivision, setCustomDivision] = useState('');
   
   // Preview state
   const [showPreview, setShowPreview] = useState(false);
@@ -384,9 +398,13 @@ export function TourDiary() {
         id: draftId,
         officerName,
         designation,
-        mandal,
-        division,
+        customDesignation,
         district,
+        customDistrict,
+        mandal,
+        customMandal,
+        division,
+        customDivision,
         month: currentMonth,
         year: currentYear,
         journeys,
@@ -458,9 +476,13 @@ export function TourDiary() {
     try {
       setOfficerName(draft.officerName);
       setDesignation(draft.designation);
-      setMandal(draft.mandal);
-      setDivision(draft.division);
+      setCustomDesignation(draft.customDesignation || '');
       setDistrict(draft.district);
+      setCustomDistrict(draft.customDistrict || '');
+      setMandal(draft.mandal);
+      setCustomMandal(draft.customMandal || '');
+      setDivision(draft.division);
+      setCustomDivision(draft.customDivision || '');
       setCurrentYear(draft.year);
       setCurrentMonth(draft.month);
       
@@ -642,10 +664,21 @@ export function TourDiary() {
     const closingMeter = meterReadings.length > 0 ? Math.max(...meterReadings) : 0;
     const openingMeter = journeys.length > 0 ? Math.min(...journeys.map(j => j.meter_from)) : 0;
 
+    // Count unique villages visited (split by space or comma)
+    const villagesSet = new Set<string>();
+    journeys.forEach(journey => {
+      if (journey.to_place) {
+        // Split by comma or space and trim
+        const villages = journey.to_place.split(/[, ]+/).map(v => v.trim()).filter(v => v.length > 0);
+        villages.forEach(v => villagesSet.add(v));
+      }
+    });
+
     return {
       totalDistance,
       tourDays,
       totalJourneys: journeys.length,
+      villagesVisited: villagesSet.size,
       sundays: sundays.length,
       governmentHolidays: governmentHolidays.length,
       optionalHolidays: optionalHolidays.length,
@@ -830,6 +863,9 @@ export function TourDiary() {
   function generateTourDiaryData() {
     const tableData = [];
     
+    console.log('Generating table data for:', currentMonth, currentYear);
+    console.log('Journeys count:', journeys.length);
+    
     for (let day = 1; day <= getDaysInMonth(currentYear, currentMonth); day++) {
       const date = formatDate(currentYear, currentMonth, day);
       const holiday = getHolidayForDate(date);
@@ -840,6 +876,8 @@ export function TourDiary() {
           tableData.push([date, '-', '-', '-', '-', '-', '-', '-', '-', 'SUNDAY']);
         } else if (holiday) {
           tableData.push([date, '-', '-', '-', '-', '-', '-', '-', '-', holiday.holiday_name.toUpperCase()]);
+        } else if (isTuesday(currentYear, currentMonth, day)) {
+          tableData.push([date, '-', '-', '-', '-', '-', '-', '-', '-', 'Rythunestham VC']);
         } else {
           tableData.push([date, '-', '-', '-', '-', '-', '-', '-', '-', '-']);
         }
@@ -864,6 +902,7 @@ export function TourDiary() {
       }
     }
     
+    console.log('Generated table data rows:', tableData.length);
     return tableData;
   }
 
@@ -877,70 +916,118 @@ export function TourDiary() {
       const summary = calculateMonthlySummary();
       const tableData = customTableData || generateTourDiaryData();
 
+      console.log('Table data type:', typeof tableData);
+      console.log('Table data value:', tableData);
+      console.log('Is array:', Array.isArray(tableData));
+
+      // Validate table data before passing to autoTable
+      if (!Array.isArray(tableData)) {
+        throw new Error('Invalid table data: must be an array');
+      }
+
+      // If table is empty, generate empty rows for the month
+      if (tableData.length === 0) {
+        console.warn('Table data is empty, generating empty rows');
+        const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = formatDate(currentYear, currentMonth, day);
+          tableData.push([date, '-', '-', '-', '-', '-', '-', '-', '-', '-']);
+        }
+      }
+
+      // Ensure all rows are arrays
+      const validatedTableData = tableData.map(row => {
+        if (!Array.isArray(row)) {
+          console.error('Invalid row data:', row);
+          return Array(10).fill('-'); // Fallback to empty row
+        }
+        return row;
+      });
+
+      // Add total distance row at the end
+      const totalRow = Array(10).fill('');
+      totalRow[8] = `${summary.totalDistance.toFixed(0)} km`;
+      validatedTableData.push(totalRow);
+
+      // Log table data for debugging
+      console.log('Table data length:', validatedTableData.length);
+      console.log('First row:', validatedTableData[0]);
+
       // Header - TOUR DIARY OF format
-      doc.setFontSize(8);
+      doc.setFontSize(10);
       const monthYear = `${MONTHS[currentMonth - 1]} ${currentYear}`;
       
       let xPos = 14;
       const yPos = 12;
       
       // Tour Diary of (regular)
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal');
       doc.text('Tour Diary of ', xPos, yPos);
       xPos += doc.getTextWidth('Tour Diary of ');
       
-      // Officer name (bold)
-      doc.setFont('helvetica', 'bold');
+      // Officer name (bold) - use black color
+      doc.setFont('times', 'bold');
+      doc.setTextColor(0, 0, 0); // Black
       doc.text(`${officerName || officerInfo?.name || ''}`, xPos, yPos);
       xPos += doc.getTextWidth(`${officerName || officerInfo?.name || ''}`);
       
       // , (regular)
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal');
       doc.text(', ', xPos, yPos);
       xPos += doc.getTextWidth(', ');
       
-      // Designation (bold)
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${designation || officerInfo?.designation || ''}`, xPos, yPos);
-      xPos += doc.getTextWidth(`${designation || officerInfo?.designation || ''}`);
+      // Designation (bold) - use custom designation if "Others" is selected
+      doc.setFont('times', 'bold');
+      doc.setTextColor(0, 0, 0); // Black
+      const displayDesignation = designation === 'Others' ? customDesignation : designation;
+      doc.text(`${displayDesignation || officerInfo?.designation || ''}`, xPos, yPos);
+      xPos += doc.getTextWidth(`${displayDesignation || officerInfo?.designation || ''}`);
       
       // , Mandal: (regular)
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal');
       doc.text(', Mandal: ', xPos, yPos);
       xPos += doc.getTextWidth(', Mandal: ');
       
-      // Mandal (bold)
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${mandal || officerInfo?.mandal || ''}`, xPos, yPos);
-      xPos += doc.getTextWidth(`${mandal || officerInfo?.mandal || ''}`);
+      // Mandal (bold) - use custom mandal if "Others" is selected
+      doc.setFont('times', 'bold');
+      doc.setTextColor(0, 0, 0); // Black
+      const displayMandal = mandal === 'Others' ? customMandal : mandal;
+      doc.text(`${displayMandal || officerInfo?.mandal || ''}`, xPos, yPos);
+      xPos += doc.getTextWidth(`${displayMandal || officerInfo?.mandal || ''}`);
       
       // , Division: (regular)
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal');
       doc.text(', Division: ', xPos, yPos);
       xPos += doc.getTextWidth(', Division: ');
       
-      // Division (bold)
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${division || officerInfo?.division || ''}`, xPos, yPos);
-      xPos += doc.getTextWidth(`${division || officerInfo?.division || ''}`);
+      // Division (bold) - use custom division if "Others" is selected
+      doc.setFont('times', 'bold');
+      doc.setTextColor(0, 0, 0); // Black
+      const displayDivision = division === 'Others' ? customDivision : division;
+      doc.text(`${displayDivision || officerInfo?.division || ''}`, xPos, yPos);
+      xPos += doc.getTextWidth(`${displayDivision || officerInfo?.division || ''}`);
       
       // , Dist: (regular)
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal');
       doc.text(', Dist: ', xPos, yPos);
       xPos += doc.getTextWidth(', Dist: ');
       
-      // District (bold)
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${district || officerInfo?.district || ''}`, xPos, yPos);
-      xPos += doc.getTextWidth(`${district || officerInfo?.district || ''}`);
+      // District (bold) - use custom district if "Others" is selected
+      doc.setFont('times', 'bold');
+      doc.setTextColor(0, 0, 0); // Black
+      const displayDistrict = district === 'Others' ? customDistrict : district;
+      doc.text(`${displayDistrict || officerInfo?.district || ''}`, xPos, yPos);
+      xPos += doc.getTextWidth(`${displayDistrict || officerInfo?.district || ''}`);
       
       // For the Month of (regular)
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal');
+      doc.setTextColor(0, 0, 0); // Black
       doc.text(' for the Month of ', xPos, yPos);
       xPos += doc.getTextWidth(' for the Month of ');
       
       // Month Year (bold)
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('times', 'bold');
+      doc.setTextColor(0, 0, 0); // Black
       doc.text(monthYear, xPos, yPos);
 
       // Generate table with merged header cells - compact for one page
@@ -948,51 +1035,87 @@ export function TourDiary() {
         startY: 18,
         margin: { left: 14, right: 89 },
         head: [
-          ['Date', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE TRAVELLED (KM)', 'PURPOSE OF VISIT'],
-          ['', 'FROM', 'TO', 'FROM', 'TO', '', 'From', 'To', '', '']
+          ['Date', 'Visiting Place', 'Visiting Place', 'Visiting Time', 'Visiting Time', 'Mode of Journey', 'Meter Reading', 'Meter Reading', 'Distance (Km)', 'Purpose of Visit'],
+          ['', 'From', 'To', 'From', 'To', '', 'From', 'To', '', '']
         ],
-        body: tableData,
-        styles: { fontSize: 6, cellPadding: 1, lineWidth: 0.1, lineColor: [0, 0, 0] },
-        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2, lineColor: [0, 0, 0], fontSize: 6 },
+        body: validatedTableData,
+        styles: { fontSize: 7, cellPadding: 1, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0] },
+        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2, lineColor: [0, 0, 0], fontSize: 7, font: 'times', halign: 'center' },
         alternateRowStyles: { fillColor: [255, 255, 255] },
         tableLineColor: [0, 0, 0],
         tableLineWidth: 0.1,
+        didParseCell: (data) => {
+          // Make the last row (total distance) bold
+          if (data.row.index === data.table.body.length - 1) {
+            data.cell.styles.fontStyle = 'bold';
+          }
+          
+          // Merge header cells for parent columns
+          if (data.section === 'head') {
+            // Column 0: Date - keep as is (single cell)
+            
+            // Columns 1-2: Visiting Place (merge row 0)
+            if (data.row.index === 0 && data.column.index === 1) {
+              data.cell.colSpan = 2;
+            }
+            if (data.row.index === 0 && data.column.index === 2) {
+              data.cell.colSpan = 0; // Hide this cell
+            }
+            
+            // Columns 3-4: Visiting Time (merge row 0)
+            if (data.row.index === 0 && data.column.index === 3) {
+              data.cell.colSpan = 2;
+            }
+            if (data.row.index === 0 && data.column.index === 4) {
+              data.cell.colSpan = 0; // Hide this cell
+            }
+            
+            // Column 5: Mode of Journey - keep as is (single cell)
+            
+            // Columns 6-7: Meter Reading (merge row 0)
+            if (data.row.index === 0 && data.column.index === 6) {
+              data.cell.colSpan = 2;
+            }
+            if (data.row.index === 0 && data.column.index === 7) {
+              data.cell.colSpan = 0; // Hide this cell
+            }
+            
+            // Columns 8-9: Distance and Purpose - keep as is (single cells)
+          }
+        },
         columnStyles: {
-          0: { cellWidth: 14 },
-          1: { cellWidth: 26 },
-          2: { cellWidth: 26 },
-          3: { cellWidth: 15 },
-          4: { cellWidth: 15 },
-          5: { cellWidth: 17 },
-          6: { cellWidth: 15 },
-          7: { cellWidth: 13 },
-          8: { cellWidth: 18 },
-          9: { cellWidth: 35 }
+          0: { cellWidth: 18 },
+          1: { cellWidth: 32 },
+          2: { cellWidth: 34 },
+          3: { cellWidth: 18 },
+          4: { cellWidth: 18 },
+          5: { cellWidth: 22 },
+          6: { cellWidth: 18 },
+          7: { cellWidth: 18 },
+          8: { cellWidth: 24 },
+          9: { cellWidth: 44 }
         }
       });
 
       // Abstract section - Compact layout
-      const finalY = (doc as any).lastAutoTable.finalY + 5;
+      const finalY = (doc as any).lastAutoTable.finalY;
       doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Total Distance: ${summary.totalDistance.toFixed(0)}`, 14, finalY);
       
       // ABSTRACT section - 2 column compact layout
-      const abstractY = finalY + 6;
-      doc.setFont('helvetica', 'bold');
+      const abstractY = finalY + 3;
+      doc.setFont('times', 'bold');
       doc.text('ABSTRACT', 14, abstractY);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${officerName || officerInfo?.name || ''} | ${designation || officerInfo?.designation || ''} | ${mandal || officerInfo?.mandal || ''}`, 250, abstractY, { align: 'right' });
-      doc.text(`Total No of Working Days: ${summary.tourDays}`, 14, abstractY + 5);
-      doc.text(`Total No of Days on Tour: ${summary.tourDays}`, 14, abstractY + 9);
-      doc.text(`Total No of Holidays availed: ${summary.sundays + summary.governmentHolidays}`, 14, abstractY + 13);
-      doc.text(`No of Villages Visited: ${summary.totalJourneys}`, 14, abstractY + 17);
-      doc.text(`Leaves availed: 0`, 14, abstractY + 21);
+      doc.setFont('times', 'normal');
+      doc.text(`Total No of Working Days: ${summary.tourDays}`, 14, abstractY + 4);
+      doc.text(`Total No of Days on Tour: ${summary.tourDays}`, 14, abstractY + 7);
+      doc.text(`Total No of Holidays availed: ${summary.sundays + summary.governmentHolidays}`, 14, abstractY + 10);
+      doc.text(`No of Villages Visited: ${summary.villagesVisited}`, 14, abstractY + 13);
+      doc.text(`Leaves availed: 0`, 14, abstractY + 16);
 
       doc.save(`Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      alert(`Failed to generate PDF. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -1009,7 +1132,7 @@ export function TourDiary() {
       const diaryData = [
         [`TOUR DIARY OF ${officerName || officerInfo?.name || ''}, ${designation || officerInfo?.designation || ''}, MANDAL: ${mandal || officerInfo?.mandal || ''}, DIVISION: ${division || officerInfo?.division || ''}, DIST: ${district || officerInfo?.district || ''} FOR THE MONTH OF ${monthYear}`],
         [''],
-        ['Date', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE TRAVELLED (KM)', 'PURPOSE OF VISIT'],
+        ['Date', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE (KM)', 'PURPOSE OF VISIT'],
         ['', 'FROM', 'TO', 'FROM', 'TO', '', 'From', 'To', '', '']
       ];
 
@@ -1028,16 +1151,8 @@ export function TourDiary() {
       diaryData.push(['', 'Total No of Working Days', String(summary.tourDays)]);
       diaryData.push(['', 'Total No of Days on Tour', String(summary.tourDays)]);
       diaryData.push(['', 'Total No of Holidays availed', String(summary.sundays + summary.governmentHolidays)]);
-      diaryData.push(['', 'No of Villages Visited', String(summary.totalJourneys)]);
+      diaryData.push(['', 'No of Villages Visited', String(summary.villagesVisited)]);
       diaryData.push(['', 'Leaves availed', '0']);
-
-      // Add signature section
-      diaryData.push(['']);
-      diaryData.push(['']);
-      diaryData.push(['']);
-      diaryData.push(['', '', '', '', '', '', '', '', '', officerName || officerInfo?.name || '']);
-      diaryData.push(['', '', '', '', '', '', '', '', '', designation || officerInfo?.designation || '']);
-      diaryData.push(['', '', '', '', '', '', '', '', '', mandal || officerInfo?.mandal || '']);
 
       const diarySheet = XLSX.utils.aoa_to_sheet(diaryData);
 
@@ -1081,16 +1196,18 @@ export function TourDiary() {
       <div className="sticky top-0 z-40 border-b border-emerald-200/50 bg-white/80 backdrop-blur-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <BackButton onClick={() => navigate('/officer-toolkit')}>Back</BackButton>
-              <div>
-                <h1 className="text-lg font-black text-slate-900 dark:text-white">Tour Diary</h1>
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                  {officerInfo?.name} - {officerInfo?.designation}
+            <div className="flex-1">
+              <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
+                <h1 className="flex items-center gap-2 text-xl font-black text-white">
+                  <NotebookPen className="h-6 w-6" aria-label="Tour Diary" />
+                  Tour Diary
+                </h1>
+                <p className="text-sm font-semibold text-white/90">
+                  Monthly Tour Diary with Journey Tracking
                 </p>
               </div>
             </div>
-            <LanguageToggle language="en" onClick={() => {}} />
+            <BackButton onClick={() => navigate('/officer-toolkit')}>Back</BackButton>
           </div>
         </div>
       </div>
@@ -1114,7 +1231,10 @@ export function TourDiary() {
               <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Designation</label>
               <select
                 value={designation}
-                onChange={(e) => setDesignation(e.target.value)}
+                onChange={(e) => {
+                  setDesignation(e.target.value);
+                  setCustomDesignation('');
+                }}
                 className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
               >
                 <option value="">Select designation</option>
@@ -1122,6 +1242,15 @@ export function TourDiary() {
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
+              {designation === 'Others' && (
+                <input
+                  type="text"
+                  value={customDesignation}
+                  onChange={(e) => setCustomDesignation(e.target.value)}
+                  className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
+                  placeholder="Enter designation"
+                />
+              )}
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">District</label>
@@ -1130,6 +1259,8 @@ export function TourDiary() {
                 onChange={(e) => {
                   setDistrict(e.target.value);
                   setMandal('');
+                  setDivision('');
+                  setCustomDistrict('');
                 }}
                 className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
               >
@@ -1137,40 +1268,95 @@ export function TourDiary() {
                 {TELANGANA_DISTRICTS.map((d) => (
                   <option key={d} value={d}>{d}</option>
                 ))}
+                <option value="Others">Others</option>
               </select>
+              {district === 'Others' && (
+                <input
+                  type="text"
+                  value={customDistrict}
+                  onChange={(e) => setCustomDistrict(e.target.value)}
+                  className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
+                  placeholder="Enter district name"
+                />
+              )}
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Division</label>
-              <input
-                type="text"
-                value={division}
-                onChange={(e) => setDivision(e.target.value)}
-                className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
-                placeholder="Enter division"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Mandal</label>
-              <select
-                value={mandal}
-                onChange={(e) => setMandal(e.target.value)}
-                disabled={!district}
-                className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white disabled:opacity-50"
-              >
-                <option value="">Select mandal</option>
-                {district && getMandalsForDistrict(district).map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
-            </div>
+            {designation !== 'District Agriculture Officer' && (
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Division</label>
+                <select
+                  value={division}
+                  onChange={(e) => {
+                    setDivision(e.target.value);
+                    setCustomDivision('');
+                  }}
+                  disabled={!district}
+                  className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white disabled:opacity-50"
+                >
+                  <option value="">Select division</option>
+                  {district && district !== 'Others' && getDivisionsForDistrict(district).map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                  <option value="Others">Others</option>
+                </select>
+                {division === 'Others' && (
+                  <input
+                    type="text"
+                    value={customDivision}
+                    onChange={(e) => setCustomDivision(e.target.value)}
+                    className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
+                    placeholder="Enter division name"
+                  />
+                )}
+              </div>
+            )}
+            {designation === 'Mandal Agriculture Officer' || designation === 'Others' || designation === '' ? (
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Mandal</label>
+                <select
+                  value={mandal}
+                  onChange={(e) => {
+                    setMandal(e.target.value);
+                    setCustomMandal('');
+                  }}
+                  disabled={!district}
+                  className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white disabled:opacity-50"
+                >
+                  <option value="">Select mandal</option>
+                  {district && district !== 'Others' && getMandalsForDistrict(district).map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                  <option value="Others">Others</option>
+                </select>
+                {mandal === 'Others' && (
+                  <input
+                    type="text"
+                    value={customMandal}
+                    onChange={(e) => setCustomMandal(e.target.value)}
+                    className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
+                    placeholder="Enter mandal name"
+                  />
+                )}
+              </div>
+            ) : null}
           </div>
-          {lastSaved && (
-            <div className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              Draft saved: {lastSaved.toLocaleString()}
-            </div>
-          )}
         </div>
 
+        {/* New Tour Diary Button */}
+        {!showDiaryForm && (
+          <div className={`mb-6 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <button
+              onClick={() => setShowDiaryForm(true)}
+              className="flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-sm font-bold text-white hover:bg-indigo-700 shadow-lg transition-all duration-300 hover:shadow-xl"
+            >
+              <Plus className="h-5 w-5" />
+              New Tour Diary
+            </button>
+          </div>
+        )}
+
+        {/* Tour Diary Creation Form - Only shown when button is clicked */}
+        {showDiaryForm && (
+          <>
         {/* Month/Year Selection */}
         <div className={`mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -1210,13 +1396,6 @@ export function TourDiary() {
             </div>
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => setShowNewDiaryModal(true)}
-                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700"
-              >
-                <Plus className="h-4 w-4" />
-                New Tour Diary
-              </button>
-              <button
                 onClick={saveDraftToLocal}
                 disabled={isSavingDraft}
                 className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1248,7 +1427,7 @@ export function TourDiary() {
                 Preview
               </button>
               <button
-                onClick={generatePDF}
+                onClick={() => generatePDF()}
                 disabled={isGeneratingPDF}
                 className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -1368,41 +1547,37 @@ export function TourDiary() {
                         className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-950/30"
                       >
                         <div className="mb-2 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Car className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                            <span className="text-xs font-semibold text-slate-900 dark:text-white">
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">
+                              {journey.from_place} → {journey.to_place}
+                            </p>
+                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
                               {formatTime(journey.time_from)} - {formatTime(journey.time_to)}
-                            </span>
+                            </p>
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex gap-1">
                             <button
                               onClick={() => editJourney(journey)}
-                              className="rounded p-1 text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800"
+                              className="rounded-lg bg-blue-100 p-1.5 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800"
                             >
                               <Edit className="h-3 w-3" />
                             </button>
                             <button
-                              onClick={() => deleteJourney(journey)}
-                              className="rounded p-1 text-red-500 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/40"
+                              onClick={() => deleteJourney(journey.id)}
+                              className="rounded-lg bg-red-100 p-1.5 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
                             >
                               <Trash2 className="h-3 w-3" />
                             </button>
-                            {idx < dayJourneys.length - 1 && (
-                              <button
-                                onClick={() => openJourneyForm(date, journey)}
-                                className="ml-2 rounded px-2 py-1 text-[10px] font-bold text-emerald-600 hover:bg-emerald-200 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
-                              >
-                                Continue
-                              </button>
-                            )}
                           </div>
                         </div>
-                        <p className="text-xs font-semibold text-slate-900 dark:text-white">
-                          {journey.from_place} → {journey.to_place}
+                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          {journey.mode === 'Others' ? journey.custom_mode_of_journey : journey.mode} | {journey.purpose === 'Others' ? journey.custom_purpose : journey.purpose}
                         </p>
-                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                          {journey.distance_km.toFixed(1)} KM • {journey.purpose}
-                        </p>
+                        {journey.remarks && (
+                          <p className="mt-1 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                            Remarks: {journey.remarks}
+                          </p>
+                        )}
                         <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
                           Meter: {journey.meter_from.toFixed(1)} → {journey.meter_to.toFixed(1)}
                         </p>
@@ -1414,7 +1589,8 @@ export function TourDiary() {
             );
           })}
         </div>
-      </div>
+          </>
+        )}
 
       {/* Journey Form Modal */}
       {showJourneyForm && (
@@ -1620,7 +1796,7 @@ export function TourDiary() {
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" colSpan={2}>VISITING TIME</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>MODE OF JOURNEY</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" colSpan={2}>METER READING</th>
-                      <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>DISTANCE TRAVELLED</th>
+                      <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>DISTANCE (Km)</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>PURPOSE OF VISIT</th>
                     </tr>
                     <tr className="border-b border-gray-900">
@@ -1665,14 +1841,8 @@ export function TourDiary() {
                 <p>Total No of Working Days: {summary.tourDays}</p>
                 <p>Total No of Days on Tour: {summary.tourDays}</p>
                 <p>Total No of Holidays availed: {summary.sundays + summary.governmentHolidays}</p>
-                <p>No of Villages Visited: {summary.totalJourneys}</p>
+                <p>No of Villages Visited: {summary.villagesVisited}</p>
                 <p>Leaves availed: 0</p>
-              </div>
-
-              <div className="mt-6 text-right text-xs text-gray-900">
-                <p>{officerName || officerInfo?.name || ''}</p>
-                <p>{designation || officerInfo?.designation || ''}</p>
-                <p>{mandal || officerInfo?.mandal || ''}</p>
               </div>
             </div>
 
@@ -1686,7 +1856,11 @@ export function TourDiary() {
               <button
                 onClick={() => {
                   setShowPreview(false);
-                  generatePDF();
+                  if (editablePreviewData.length > 0) {
+                    generatePDF(editablePreviewData);
+                  } else {
+                    generatePDF();
+                  }
                 }}
                 className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
               >
@@ -1782,6 +1956,7 @@ export function TourDiary() {
         </div>
       )}
 
+      </div>
     </div>
   );
 }

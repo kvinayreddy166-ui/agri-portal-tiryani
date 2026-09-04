@@ -260,7 +260,7 @@ export function LicenseApplicationGenerator() {
   const showAreaType = licenseType === 'insecticide';
   const showNumberOfProducts = licenseType === 'insecticide' && areaType !== '' && 
     (applicationType === 'pc_inclusion' || areaType === 'manufacturing_license');
-  const showDivision = licenseType === 'fertilizer' && dealerType === 'retailer';
+  const showDivision = licenseType === 'fertilizer' && (dealerType === 'retailer' || dealerType === 'coop_societies');
   const showChallanDetails = applicationType !== '' && district !== '' && 
     (showDivision ? division !== '' : true) &&
     (licenseType === 'fertilizer' ? dealerType !== '' : true) && 
