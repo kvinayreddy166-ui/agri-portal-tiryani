@@ -93,6 +93,7 @@ const MONTHS = [
 const DRAFT_STORAGE_KEY = 'tourDiaryDrafts';
 const RECOVERY_STORAGE_KEY = 'tourDiaryRecovery';
 const DRAFT_VERSION = 1;
+const TOUR_DIARY_COLUMN_COUNT = 10;
 
 const JOURNEY_MODES = [
   'Car', 'Government Vehicle', 'Hired Vehicle', 'Bus', 'Others'
@@ -103,6 +104,65 @@ const PURPOSES = [
   'Pest & Disease Surveillance', 'Farmer Field Visit', 'Input Dealer Shop Inspection',
   'License Verification', 'Sample Collection', 'Meeting', 'NMNF Awareness Programme',
   'Government Programme', 'Review Meeting', 'Office Work', 'Orientation Programme', 'Others'
+];
+
+// 2026 Holidays Data
+const HOLIDAYS_2026: Omit<Holiday, 'id'>[] = [
+  // General Holidays
+  { year: 2026, date: '14-01-2026', holiday_name: 'Bhogi', holiday_type: 'GENERAL' },
+  { year: 2026, date: '15-01-2026', holiday_name: 'Sankranti / Pongal', holiday_type: 'GENERAL' },
+  { year: 2026, date: '26-01-2026', holiday_name: 'Republic Day', holiday_type: 'GENERAL' },
+  { year: 2026, date: '15-02-2026', holiday_name: 'Maha Shivaratri', holiday_type: 'GENERAL' },
+  { year: 2026, date: '03-03-2026', holiday_name: 'Holi', holiday_type: 'GENERAL' },
+  { year: 2026, date: '19-03-2026', holiday_name: 'Ugadi', holiday_type: 'GENERAL' },
+  { year: 2026, date: '21-03-2026', holiday_name: 'Eid-ul-Fitr (Ramzan)', holiday_type: 'GENERAL' },
+  { year: 2026, date: '22-03-2026', holiday_name: 'Following Day of Ramzan', holiday_type: 'GENERAL' },
+  { year: 2026, date: '27-03-2026', holiday_name: 'Sri Rama Navami', holiday_type: 'GENERAL' },
+  { year: 2026, date: '03-04-2026', holiday_name: 'Good Friday', holiday_type: 'GENERAL' },
+  { year: 2026, date: '05-04-2026', holiday_name: "Babu Jagjivan Ram's Birthday", holiday_type: 'GENERAL' },
+  { year: 2026, date: '14-04-2026', holiday_name: "Dr. B.R. Ambedkar's Birthday", holiday_type: 'GENERAL' },
+  { year: 2026, date: '27-05-2026', holiday_name: 'Eid-ul-Azha (Bakrid)', holiday_type: 'GENERAL' },
+  { year: 2026, date: '26-06-2026', holiday_name: 'Shahadat Imam Hussain (R.A.) / 10th Moharram', holiday_type: 'GENERAL' },
+  { year: 2026, date: '10-08-2026', holiday_name: 'Bonalu', holiday_type: 'GENERAL' },
+  { year: 2026, date: '15-08-2026', holiday_name: 'Independence Day', holiday_type: 'GENERAL' },
+  { year: 2026, date: '26-08-2026', holiday_name: 'Eid Milad-un-Nabi', holiday_type: 'GENERAL' },
+  { year: 2026, date: '04-09-2026', holiday_name: 'Sri Krishna Ashtami', holiday_type: 'GENERAL' },
+  { year: 2026, date: '14-09-2026', holiday_name: 'Vinayaka Chavithi', holiday_type: 'GENERAL' },
+  { year: 2026, date: '02-10-2026', holiday_name: 'Mahatma Gandhi Jayanthi', holiday_type: 'GENERAL' },
+  { year: 2026, date: '18-10-2026', holiday_name: 'Saddula Bathukamma', holiday_type: 'GENERAL' },
+  { year: 2026, date: '20-10-2026', holiday_name: 'Vijaya Dasami / Dussehra', holiday_type: 'GENERAL' },
+  { year: 2026, date: '21-10-2026', holiday_name: 'Following Day of Vijaya Dasami', holiday_type: 'GENERAL' },
+  { year: 2026, date: '08-11-2026', holiday_name: 'Deepavali', holiday_type: 'GENERAL' },
+  { year: 2026, date: '24-11-2026', holiday_name: 'Karthika Purnima / Guru Nanak\'s Jayanthi', holiday_type: 'GENERAL' },
+  { year: 2026, date: '25-12-2026', holiday_name: 'Christmas', holiday_type: 'GENERAL' },
+  { year: 2026, date: '26-12-2026', holiday_name: 'Following Day of Christmas / Boxing Day', holiday_type: 'GENERAL' },
+  // Optional Holidays
+  { year: 2026, date: '01-01-2026', holiday_name: 'New Year Day', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '03-01-2026', holiday_name: 'Birthday of Hazrath Ali (R.A.)', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '16-01-2026', holiday_name: 'Kanumu', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '17-01-2026', holiday_name: 'Shab-e-Meraj', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '23-01-2026', holiday_name: 'Sri Panchami', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '04-02-2026', holiday_name: 'Shab-e-Barat', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '10-03-2026', holiday_name: 'Shahadat Hzt Ali (R.A.)', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '13-03-2026', holiday_name: 'Jumaatul Wada', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '17-03-2026', holiday_name: 'Shab-e-Qader', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '31-03-2026', holiday_name: 'Mahaveer Jayanthi', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '14-04-2026', holiday_name: 'Tamil New Year\'s Day', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '20-04-2026', holiday_name: 'Basava Jayanthi', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '01-05-2026', holiday_name: 'Buddha Purnima', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '04-06-2026', holiday_name: 'Eid-e-Ghadeer', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '25-06-2026', holiday_name: '9th Moharram', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '16-07-2026', holiday_name: 'Ratha Yathra', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '04-08-2026', holiday_name: 'Arbayeen', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '15-08-2026', holiday_name: 'Parsi New Year\'s Day', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '21-08-2026', holiday_name: 'Varalakshmi Vratham', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '28-08-2026', holiday_name: 'Sravana Purnima / Rakhi Purnima', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '23-09-2026', holiday_name: 'Yazdahum Shareef', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '19-10-2026', holiday_name: 'Maharnavami', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '26-10-2026', holiday_name: 'Birthday of Hzt. Syed Mohammed Juvanpuri Mahdi Ma\'ud (A.S.)', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '08-11-2026', holiday_name: 'Naraka Chaturdhi', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '24-12-2026', holiday_name: 'Christmas Eve', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '26-12-2026', holiday_name: 'Birthday of Hazrath Ali', holiday_type: 'OPTIONAL' }
 ];
 
 // Helper Functions
@@ -125,6 +185,14 @@ function isTuesday(year: number, month: number, day: number): boolean {
   return date.getDay() === 2;
 }
 
+function isSecondSaturday(year: number, month: number, day: number): boolean {
+  const date = new Date(year, month - 1, day);
+  if (date.getDay() !== 6) return false; // Not a Saturday
+  
+  // Check if it's the second Saturday (day 8-14)
+  return day >= 8 && day <= 14;
+}
+
 function formatDate(year: number, month: number, day: number): string {
   return `${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}-${year}`;
 }
@@ -135,6 +203,14 @@ function formatTime(time: string): string {
   const ampm = hour >= 12 ? 'PM' : 'AM';
   const hour12 = hour % 12 || 12;
   return `${hour12}:${minutes} ${ampm}`;
+}
+
+function formatOptionalTime(time?: string | null): string {
+  return time ? formatTime(time) : '';
+}
+
+function formatOptionalNumber(value?: number | null): string {
+  return value === null || value === undefined || Number.isNaN(value) ? '' : value.toFixed(0);
 }
 
 // Draft Helper Functions
@@ -606,24 +682,13 @@ export function TourDiary() {
 
   // Load holidays for current year
   async function loadHolidays() {
-    try {
-      const { data, error } = await supabase
-        .from('holiday_calendar')
-        .select('*')
-        .eq('year', currentYear)
-        .eq('active', true)
-        .order('date', { ascending: true });
-
-      if (error) {
-        console.error('Error loading holidays:', error);
-        setHolidays([]);
-        return;
-      }
-      setHolidays(data || []);
-    } catch (error) {
-      console.error('Error loading holidays:', error);
-      setHolidays([]);
-    }
+    // Always use static holidays
+    const staticHolidays = HOLIDAYS_2026.map((h, index) => ({
+      ...h,
+      id: `static-${index}`
+    }));
+    console.log('Loading static holidays:', staticHolidays.length);
+    setHolidays(staticHolidays);
   }
 
   // Get holiday for a specific date
@@ -641,6 +706,7 @@ export function TourDiary() {
     const totalDistance = journeys.reduce((sum, j) => sum + j.distance_km, 0);
     const tourDays = new Set(journeys.map(j => j.journey_date)).size;
     const sundays = [];
+    const secondSaturdays = [];
     const governmentHolidays = [];
     const optionalHolidays = [];
 
@@ -648,6 +714,9 @@ export function TourDiary() {
       const date = formatDate(currentYear, currentMonth, day);
       if (isSunday(currentYear, currentMonth, day)) {
         sundays.push(date);
+      }
+      if (isSecondSaturday(currentYear, currentMonth, day)) {
+        secondSaturdays.push(date);
       }
       const holiday = getHolidayForDate(date);
       if (holiday) {
@@ -680,6 +749,7 @@ export function TourDiary() {
       totalJourneys: journeys.length,
       villagesVisited: villagesSet.size,
       sundays: sundays.length,
+      secondSaturdays: secondSaturdays.length,
       governmentHolidays: governmentHolidays.length,
       optionalHolidays: optionalHolidays.length,
       openingMeter,
@@ -873,13 +943,13 @@ export function TourDiary() {
 
       if (dayJourneys.length === 0) {
         if (isSunday(currentYear, currentMonth, day)) {
-          tableData.push([date, '-', '-', '-', '-', '-', '-', '-', '-', 'SUNDAY']);
+          tableData.push([date, '', '', '', '', '', '', '', '', 'SUNDAY']);
         } else if (holiday) {
-          tableData.push([date, '-', '-', '-', '-', '-', '-', '-', '-', holiday.holiday_name.toUpperCase()]);
+          tableData.push([date, '', '', '', '', '', '', '', '', holiday.holiday_name.toUpperCase()]);
         } else if (isTuesday(currentYear, currentMonth, day)) {
-          tableData.push([date, '-', '-', '-', '-', '-', '-', '-', '-', 'Rythunestham VC']);
+          tableData.push([date, '', '', '', '', '', '', '', '', 'Rythunestham VC']);
         } else {
-          tableData.push([date, '-', '-', '-', '-', '-', '-', '-', '-', '-']);
+          tableData.push([date, '', '', '', '', '', '', '', '', '']);
         }
       } else {
         dayJourneys.forEach(journey => {
@@ -888,15 +958,15 @@ export function TourDiary() {
           
           tableData.push([
             date,
-            journey.from_place,
-            journey.to_place,
-            formatTime(journey.time_from),
-            formatTime(journey.time_to),
-            displayMode,
-            journey.meter_from.toFixed(0),
-            journey.meter_to.toFixed(0),
-            journey.distance_km.toFixed(0),
-            displayPurpose
+            journey.from_place || '',
+            journey.to_place || '',
+            formatOptionalTime(journey.time_from),
+            formatOptionalTime(journey.time_to),
+            displayMode || '',
+            formatOptionalNumber(journey.meter_from),
+            formatOptionalNumber(journey.meter_to),
+            formatOptionalNumber(journey.distance_km),
+            displayPurpose || ''
           ]);
         });
       }
@@ -904,6 +974,35 @@ export function TourDiary() {
     
     console.log('Generated table data rows:', tableData.length);
     return tableData;
+  }
+
+  function getHeaderDesignation() {
+    return designation === 'Others' ? customDesignation : (designation || officerInfo?.designation || '');
+  }
+
+  function getHeaderMandal() {
+    return mandal === 'Others' ? customMandal : (mandal || officerInfo?.mandal || '');
+  }
+
+  function getHeaderDivision() {
+    return division === 'Others' ? customDivision : (division || officerInfo?.division || '');
+  }
+
+  function getHeaderDistrict() {
+    return district === 'Others' ? customDistrict : (district || officerInfo?.district || '');
+  }
+
+  function normalizeHeaderDesignation(value: string) {
+    return value.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  function shouldShowHeaderMandal() {
+    const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
+    return normalizedDesignation !== 'district agriculture officer' && normalizedDesignation !== 'asst director of agriculture' && normalizedDesignation !== 'assistant director of agriculture';
+  }
+
+  function shouldShowHeaderDivision() {
+    return normalizeHeaderDesignation(getHeaderDesignation()) !== 'district agriculture officer';
   }
 
   // Generate PDF - Match reference Excel format, fit on one page
@@ -931,7 +1030,7 @@ export function TourDiary() {
         const daysInMonth = getDaysInMonth(currentYear, currentMonth);
         for (let day = 1; day <= daysInMonth; day++) {
           const date = formatDate(currentYear, currentMonth, day);
-          tableData.push([date, '-', '-', '-', '-', '-', '-', '-', '-', '-']);
+          tableData.push([date, '', '', '', '', '', '', '', '', '']);
         }
       }
 
@@ -939,13 +1038,13 @@ export function TourDiary() {
       const validatedTableData = tableData.map(row => {
         if (!Array.isArray(row)) {
           console.error('Invalid row data:', row);
-          return Array(10).fill('-'); // Fallback to empty row
+          return Array(TOUR_DIARY_COLUMN_COUNT).fill(''); // Fallback to empty row
         }
-        return row;
+        return Array.from({ length: TOUR_DIARY_COLUMN_COUNT }, (_, index) => row[index] ?? '');
       });
 
       // Add total distance row at the end
-      const totalRow = Array(10).fill('');
+      const totalRow = Array(TOUR_DIARY_COLUMN_COUNT).fill('');
       totalRow[8] = `${summary.totalDistance.toFixed(0)} km`;
       validatedTableData.push(totalRow);
 
@@ -955,85 +1054,43 @@ export function TourDiary() {
 
       // Header - TOUR DIARY OF format
       doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0); // Black
       const monthYear = `${MONTHS[currentMonth - 1]} ${currentYear}`;
+      const displayDesignation = getHeaderDesignation();
+      const displayMandal = getHeaderMandal();
+      const displayDivision = getHeaderDivision();
+      const displayDistrict = getHeaderDistrict();
       
       let xPos = 14;
       const yPos = 12;
+      const addHeaderText = (text: string, bold = false) => {
+        doc.setFont('times', bold ? 'bold' : 'normal');
+        doc.text(text, xPos, yPos);
+        xPos += doc.getTextWidth(text);
+      };
       
-      // Tour Diary of (regular)
-      doc.setFont('times', 'normal');
-      doc.text('Tour Diary of ', xPos, yPos);
-      xPos += doc.getTextWidth('Tour Diary of ');
-      
-      // Officer name (bold) - use black color
-      doc.setFont('times', 'bold');
-      doc.setTextColor(0, 0, 0); // Black
-      doc.text(`${officerName || officerInfo?.name || ''}`, xPos, yPos);
-      xPos += doc.getTextWidth(`${officerName || officerInfo?.name || ''}`);
-      
-      // , (regular)
-      doc.setFont('times', 'normal');
-      doc.text(', ', xPos, yPos);
-      xPos += doc.getTextWidth(', ');
-      
-      // Designation (bold) - use custom designation if "Others" is selected
-      doc.setFont('times', 'bold');
-      doc.setTextColor(0, 0, 0); // Black
-      const displayDesignation = designation === 'Others' ? customDesignation : designation;
-      doc.text(`${displayDesignation || officerInfo?.designation || ''}`, xPos, yPos);
-      xPos += doc.getTextWidth(`${displayDesignation || officerInfo?.designation || ''}`);
-      
-      // , Mandal: (regular)
-      doc.setFont('times', 'normal');
-      doc.text(', Mandal: ', xPos, yPos);
-      xPos += doc.getTextWidth(', Mandal: ');
-      
-      // Mandal (bold) - use custom mandal if "Others" is selected
-      doc.setFont('times', 'bold');
-      doc.setTextColor(0, 0, 0); // Black
-      const displayMandal = mandal === 'Others' ? customMandal : mandal;
-      doc.text(`${displayMandal || officerInfo?.mandal || ''}`, xPos, yPos);
-      xPos += doc.getTextWidth(`${displayMandal || officerInfo?.mandal || ''}`);
-      
-      // , Division: (regular)
-      doc.setFont('times', 'normal');
-      doc.text(', Division: ', xPos, yPos);
-      xPos += doc.getTextWidth(', Division: ');
-      
-      // Division (bold) - use custom division if "Others" is selected
-      doc.setFont('times', 'bold');
-      doc.setTextColor(0, 0, 0); // Black
-      const displayDivision = division === 'Others' ? customDivision : division;
-      doc.text(`${displayDivision || officerInfo?.division || ''}`, xPos, yPos);
-      xPos += doc.getTextWidth(`${displayDivision || officerInfo?.division || ''}`);
-      
-      // , Dist: (regular)
-      doc.setFont('times', 'normal');
-      doc.text(', Dist: ', xPos, yPos);
-      xPos += doc.getTextWidth(', Dist: ');
-      
-      // District (bold) - use custom district if "Others" is selected
-      doc.setFont('times', 'bold');
-      doc.setTextColor(0, 0, 0); // Black
-      const displayDistrict = district === 'Others' ? customDistrict : district;
-      doc.text(`${displayDistrict || officerInfo?.district || ''}`, xPos, yPos);
-      xPos += doc.getTextWidth(`${displayDistrict || officerInfo?.district || ''}`);
-      
-      // For the Month of (regular)
-      doc.setFont('times', 'normal');
-      doc.setTextColor(0, 0, 0); // Black
-      doc.text(' for the Month of ', xPos, yPos);
-      xPos += doc.getTextWidth(' for the Month of ');
-      
-      // Month Year (bold)
-      doc.setFont('times', 'bold');
-      doc.setTextColor(0, 0, 0); // Black
-      doc.text(monthYear, xPos, yPos);
+      addHeaderText('Tour Diary of ');
+      addHeaderText(officerName || officerInfo?.name || '', true);
+      addHeaderText(', ');
+      addHeaderText(displayDesignation, true);
+      if (shouldShowHeaderMandal()) {
+        addHeaderText(', Mandal: ');
+        addHeaderText(displayMandal, true);
+      }
+      if (shouldShowHeaderDivision()) {
+        addHeaderText(', Division: ');
+        addHeaderText(displayDivision, true);
+      }
+      addHeaderText(', Dist: ');
+      addHeaderText(displayDistrict, true);
+      addHeaderText(' for the Month of ');
+      addHeaderText(monthYear, true);
 
       // Generate table with merged header cells - compact for one page
       autoTable(doc, {
-        startY: 18,
-        margin: { left: 14, right: 89 },
+        startY: 16,
+        margin: { left: 14, right: 14 },
+        tableWidth: 'wrap',
         head: [
           ['Date', 'Visiting Place', 'Visiting Place', 'Visiting Time', 'Visiting Time', 'Mode of Journey', 'Meter Reading', 'Meter Reading', 'Distance (Km)', 'Purpose of Visit'],
           ['', 'From', 'To', 'From', 'To', '', 'From', 'To', '', '']
@@ -1108,7 +1165,7 @@ export function TourDiary() {
       doc.setFont('times', 'normal');
       doc.text(`Total No of Working Days: ${summary.tourDays}`, 14, abstractY + 4);
       doc.text(`Total No of Days on Tour: ${summary.tourDays}`, 14, abstractY + 7);
-      doc.text(`Total No of Holidays availed: ${summary.sundays + summary.governmentHolidays}`, 14, abstractY + 10);
+      doc.text(`Total No of Holidays availed: ${summary.sundays + summary.secondSaturdays + summary.governmentHolidays}`, 14, abstractY + 10);
       doc.text(`No of Villages Visited: ${summary.villagesVisited}`, 14, abstractY + 13);
       doc.text(`Leaves availed: 0`, 14, abstractY + 16);
 
@@ -1150,7 +1207,7 @@ export function TourDiary() {
       diaryData.push(['', 'ABSTRACT']);
       diaryData.push(['', 'Total No of Working Days', String(summary.tourDays)]);
       diaryData.push(['', 'Total No of Days on Tour', String(summary.tourDays)]);
-      diaryData.push(['', 'Total No of Holidays availed', String(summary.sundays + summary.governmentHolidays)]);
+      diaryData.push(['', 'Total No of Holidays availed', String(summary.sundays + summary.secondSaturdays + summary.governmentHolidays)]);
       diaryData.push(['', 'No of Villages Visited', String(summary.villagesVisited)]);
       diaryData.push(['', 'Leaves availed', '0']);
 
@@ -1178,6 +1235,11 @@ export function TourDiary() {
       console.error('Error generating Excel:', error);
       alert('Failed to generate Excel. Please try again later.');
     }
+  }
+
+  function openEditablePreview() {
+    setEditablePreviewData(generateTourDiaryData().map(row => [...row]));
+    setShowPreview(true);
   }
 
   const summary = calculateMonthlySummary();
@@ -1420,7 +1482,7 @@ export function TourDiary() {
                 Load Draft
               </button>
               <button
-                onClick={() => setShowPreview(true)}
+                onClick={openEditablePreview}
                 className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-bold text-white hover:bg-purple-700"
               >
                 <Eye className="h-4 w-4" />
@@ -1477,8 +1539,16 @@ export function TourDiary() {
               <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.sundays}</p>
             </div>
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">2nd Saturdays</p>
+              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.secondSaturdays}</p>
+            </div>
+            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Govt Holidays</p>
               <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.governmentHolidays}</p>
+            </div>
+            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Optional Holidays</p>
+              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.optionalHolidays}</p>
             </div>
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Closing Meter</p>
@@ -1506,6 +1576,7 @@ export function TourDiary() {
             const holiday = getHolidayForDate(date);
             const dayJourneys = getJourneysForDate(date);
             const isSundayDay = isSunday(currentYear, currentMonth, day);
+            const isSecondSaturdayDay = isSecondSaturday(currentYear, currentMonth, day);
 
             return (
               <div
@@ -1520,6 +1591,11 @@ export function TourDiary() {
                     {isSundayDay && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-black uppercase text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
                         🔵 WEEKLY HOLIDAY
+                      </span>
+                    )}
+                    {isSecondSaturdayDay && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-1 text-[10px] font-black uppercase text-orange-800 dark:bg-orange-900/40 dark:text-orange-200">
+                        🟠 2ND SATURDAY
                       </span>
                     )}
                     {holiday && (
@@ -1779,11 +1855,12 @@ export function TourDiary() {
                 <div>
                   <p>Month: {MONTHS[currentMonth - 1]} {currentYear}</p>
                   <p>Name: {officerName || officerInfo?.name || ''}</p>
-                  <p>Designation: {designation || officerInfo?.designation || ''}</p>
+                  <p>Designation: {getHeaderDesignation()}</p>
                 </div>
                 <div>
-                  <p>Mandal: {mandal || officerInfo?.mandal || ''}</p>
-                  <p>District: {district || officerInfo?.district || ''}</p>
+                  {shouldShowHeaderMandal() && <p>Mandal: {getHeaderMandal()}</p>}
+                  {shouldShowHeaderDivision() && <p>Division: {getHeaderDivision()}</p>}
+                  <p>District: {getHeaderDistrict()}</p>
                 </div>
               </div>
 
@@ -1809,7 +1886,7 @@ export function TourDiary() {
                     </tr>
                   </thead>
                   <tbody>
-                    {generateTourDiaryData().map((row, rowIndex) => (
+                    {(editablePreviewData.length > 0 ? editablePreviewData : generateTourDiaryData()).map((row, rowIndex) => (
                       <tr key={rowIndex} className="border-b border-gray-300">
                         {row.map((cell: any, cellIndex: number) => (
                           <td key={cellIndex} className="border border-gray-900 px-2 py-1">
@@ -1840,7 +1917,7 @@ export function TourDiary() {
                 <p className="font-bold">ABSTRACT</p>
                 <p>Total No of Working Days: {summary.tourDays}</p>
                 <p>Total No of Days on Tour: {summary.tourDays}</p>
-                <p>Total No of Holidays availed: {summary.sundays + summary.governmentHolidays}</p>
+                <p>Total No of Holidays availed: {summary.sundays + summary.secondSaturdays + summary.governmentHolidays}</p>
                 <p>No of Villages Visited: {summary.villagesVisited}</p>
                 <p>Leaves availed: 0</p>
               </div>
