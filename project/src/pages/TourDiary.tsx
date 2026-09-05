@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, Car, AlertCircle, CheckCircle, RefreshCw, Eye, NotebookPen } from 'lucide-react';
+import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, Car, AlertCircle, CheckCircle, RefreshCw, Eye, NotebookPen, MoreVertical } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -41,6 +41,7 @@ interface TourDiaryDraft {
   month: number;
   year: number;
   journeys: TourJourney[];
+  dateStatusOverrides?: Record<string, DateStatusOverride>;
   openingMeter: number;
   closingMeter: number | null;
   totalKm: number;
@@ -67,12 +68,29 @@ interface TourJourney {
   remarks: string | null;
 }
 
+type HolidayType = 'GENERAL' | 'OPTIONAL';
+type DateStatusOverrideType = 'WORKING' | HolidayType;
+type LeaveType = 'NONE' | 'NORMAL_LEAVE' | 'OPTIONAL_HOLIDAY';
+type SpecialDateStatusType = 'holiday' | 'sunday' | 'secondSaturday' | 'optionalHoliday' | 'leave';
+
 interface Holiday {
   id: string;
   year: number;
-  date: string;
+  date: string; // DD-MM-YYYY
   holiday_name: string;
-  holiday_type: string;
+  holiday_type: HolidayType;
+}
+
+interface DateStatusOverride {
+  status: DateStatusOverrideType;
+  holiday_name: string;
+  holiday_type: HolidayType;
+  leave_type?: LeaveType;
+}
+
+interface SpecialDateStatus {
+  type: SpecialDateStatusType;
+  label: string;
 }
 
 interface OfficerInfo {
@@ -109,6 +127,7 @@ const PURPOSES = [
 // 2026 Holidays Data
 const HOLIDAYS_2026: Omit<Holiday, 'id'>[] = [
   // General Holidays
+  { year: 2026, date: '01-01-2026', holiday_name: 'New Year Day', holiday_type: 'GENERAL' },
   { year: 2026, date: '14-01-2026', holiday_name: 'Bhogi', holiday_type: 'GENERAL' },
   { year: 2026, date: '15-01-2026', holiday_name: 'Sankranti / Pongal', holiday_type: 'GENERAL' },
   { year: 2026, date: '26-01-2026', holiday_name: 'Republic Day', holiday_type: 'GENERAL' },
@@ -133,7 +152,7 @@ const HOLIDAYS_2026: Omit<Holiday, 'id'>[] = [
   { year: 2026, date: '20-10-2026', holiday_name: 'Vijaya Dasami / Dussehra', holiday_type: 'GENERAL' },
   { year: 2026, date: '21-10-2026', holiday_name: 'Following Day of Vijaya Dasami', holiday_type: 'GENERAL' },
   { year: 2026, date: '08-11-2026', holiday_name: 'Deepavali', holiday_type: 'GENERAL' },
-  { year: 2026, date: '24-11-2026', holiday_name: 'Karthika Purnima / Guru Nanak\'s Jayanthi', holiday_type: 'GENERAL' },
+  { year: 2026, date: '24-11-2026', holiday_name: "Karthika Purnima / Guru Nanak's Jayanthi", holiday_type: 'GENERAL' },
   { year: 2026, date: '25-12-2026', holiday_name: 'Christmas', holiday_type: 'GENERAL' },
   { year: 2026, date: '26-12-2026', holiday_name: 'Following Day of Christmas / Boxing Day', holiday_type: 'GENERAL' },
   // Optional Holidays
@@ -147,23 +166,27 @@ const HOLIDAYS_2026: Omit<Holiday, 'id'>[] = [
   { year: 2026, date: '13-03-2026', holiday_name: 'Jumaatul Wada', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '17-03-2026', holiday_name: 'Shab-e-Qader', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '31-03-2026', holiday_name: 'Mahaveer Jayanthi', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '14-04-2026', holiday_name: 'Tamil New Year\'s Day', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '14-04-2026', holiday_name: "Tamil New Year's Day", holiday_type: 'OPTIONAL' },
   { year: 2026, date: '20-04-2026', holiday_name: 'Basava Jayanthi', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '01-05-2026', holiday_name: 'Buddha Purnima', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '04-06-2026', holiday_name: 'Eid-e-Ghadeer', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '25-06-2026', holiday_name: '9th Moharram', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '16-07-2026', holiday_name: 'Ratha Yathra', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '04-08-2026', holiday_name: 'Arbayeen', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '15-08-2026', holiday_name: 'Parsi New Year\'s Day', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '15-08-2026', holiday_name: "Parsi New Year's Day", holiday_type: 'OPTIONAL' },
   { year: 2026, date: '21-08-2026', holiday_name: 'Varalakshmi Vratham', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '28-08-2026', holiday_name: 'Sravana Purnima / Rakhi Purnima', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '23-09-2026', holiday_name: 'Yazdahum Shareef', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '19-10-2026', holiday_name: 'Maharnavami', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '26-10-2026', holiday_name: 'Birthday of Hzt. Syed Mohammed Juvanpuri Mahdi Ma\'ud (A.S.)', holiday_type: 'OPTIONAL' },
+  { year: 2026, date: '26-10-2026', holiday_name: "Birthday of Hzt. Syed Mohammed Juvanpuri Mahdi Ma'ud (A.S.)", holiday_type: 'OPTIONAL' },
   { year: 2026, date: '08-11-2026', holiday_name: 'Naraka Chaturdhi', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '24-12-2026', holiday_name: 'Christmas Eve', holiday_type: 'OPTIONAL' },
   { year: 2026, date: '26-12-2026', holiday_name: 'Birthday of Hazrath Ali', holiday_type: 'OPTIONAL' }
 ];
+
+const holidayCalendars: Record<number, Omit<Holiday, 'id'>[]> = {
+  2026: HOLIDAYS_2026
+};
 
 // Helper Functions
 function getDaysInMonth(year: number, month: number): number {
@@ -195,6 +218,28 @@ function isSecondSaturday(year: number, month: number, day: number): boolean {
 
 function formatDate(year: number, month: number, day: number): string {
   return `${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}-${year}`;
+}
+
+function formatHolidayDate(year: number, month: number, day: number): string {
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function displayDateToHolidayDate(date: string): string {
+  const [day, month, year] = date.split('-');
+  return `${year}-${month}-${day}`;
+}
+
+function getHolidayTypeLabel(type: HolidayType): string {
+  return type === 'GENERAL' ? 'General Holiday' : 'Optional Holiday';
+}
+
+function groupHolidaysByDate(calendar: Holiday[]): Map<string, Holiday[]> {
+  const holidaysByDate = new Map<string, Holiday[]>();
+  calendar.forEach((holiday) => {
+    const existing = holidaysByDate.get(holiday.date) || [];
+    holidaysByDate.set(holiday.date, [...existing, holiday]);
+  });
+  return holidaysByDate;
 }
 
 function formatTime(time: string): string {
@@ -285,6 +330,7 @@ export function TourDiary() {
   const [showDiaryForm, setShowDiaryForm] = useState(false);
   const [journeys, setJourneys] = useState<TourJourney[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [dateStatusOverrides, setDateStatusOverrides] = useState<Record<string, DateStatusOverride>>({});
   const [officerInfo, setOfficerInfo] = useState<OfficerInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [showJourneyForm, setShowJourneyForm] = useState(false);
@@ -317,8 +363,14 @@ export function TourDiary() {
   const [lastSavedState, setLastSavedState] = useState<string>('');
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
   const [recoveryDraft, setRecoveryDraft] = useState<TourDiaryDraft | null>(null);
+  const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [showOptionalHolidayConfirm, setShowOptionalHolidayConfirm] = useState(false);
+  const [pendingLeaveDate, setPendingLeaveDate] = useState<string | null>(null);
   
   // Form state
+  const holidaysByDate = useMemo(() => groupHolidaysByDate(holidays), [holidays]);
+
   const [formData, setFormData] = useState({
     journey_date: '',
     from_place: '',
@@ -365,6 +417,11 @@ export function TourDiary() {
 
   // Load data when month/year changes
   useEffect(() => {
+    console.log('useEffect triggered - mounted:', mounted, 'user:', !!user);
+    // Load holidays regardless of user (static data)
+    if (mounted) {
+      loadHolidays();
+    }
     if (mounted && user) {
       loadAllData();
     } else if (mounted && !user) {
@@ -381,13 +438,14 @@ export function TourDiary() {
       district,
       mandal,
       division,
-      journeys
+      journeys,
+      dateStatusOverrides
     });
     
     if (lastSavedState && currentState !== lastSavedState) {
       setHasUnsavedChanges(true);
     }
-  }, [officerName, designation, district, mandal, division, journeys, lastSavedState]);
+  }, [officerName, designation, district, mandal, division, journeys, dateStatusOverrides, lastSavedState]);
 
   // Auto-save recovery state with debouncing
   useEffect(() => {
@@ -404,6 +462,7 @@ export function TourDiary() {
           month: currentMonth,
           year: currentYear,
           journeys,
+          dateStatusOverrides,
           openingMeter: tourDiary?.opening_meter || 0,
           closingMeter: tourDiary?.closing_meter || null,
           totalKm: tourDiary?.total_km || 0,
@@ -415,7 +474,7 @@ export function TourDiary() {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [hasUnsavedChanges, officerName, designation, district, mandal, division, journeys, currentMonth, currentYear, tourDiary]);
+  }, [hasUnsavedChanges, officerName, designation, district, mandal, division, journeys, dateStatusOverrides, currentMonth, currentYear, tourDiary]);
 
   // Before unload protection
   useEffect(() => {
@@ -484,6 +543,7 @@ export function TourDiary() {
         month: currentMonth,
         year: currentYear,
         journeys,
+        dateStatusOverrides,
         openingMeter: tourDiary?.opening_meter || 0,
         closingMeter: tourDiary?.closing_meter || null,
         totalKm: tourDiary?.total_km || 0,
@@ -505,7 +565,8 @@ export function TourDiary() {
             district,
             mandal,
             division,
-            journeys
+            journeys,
+            dateStatusOverrides
           }));
           setHasUnsavedChanges(false);
           alert('✓ Draft updated successfully');
@@ -526,7 +587,8 @@ export function TourDiary() {
           district,
           mandal,
           division,
-          journeys
+          journeys,
+          dateStatusOverrides
         }));
         setHasUnsavedChanges(false);
         alert(`✓ ${MONTHS[currentMonth - 1]} ${currentYear} draft saved successfully`);
@@ -570,6 +632,7 @@ export function TourDiary() {
       }));
       
       setJourneys(backwardCompatibleJourneys);
+      setDateStatusOverrides(draft.dateStatusOverrides || {});
 
       if (tourDiary) {
         setTourDiary({
@@ -586,7 +649,8 @@ export function TourDiary() {
         district: draft.district,
         mandal: draft.mandal,
         division: draft.division,
-        journeys: draft.journeys
+        journeys: draft.journeys,
+        dateStatusOverrides: draft.dateStatusOverrides || {}
       }));
       setHasUnsavedChanges(false);
       setShowLoadDraftModal(false);
@@ -665,6 +729,7 @@ export function TourDiary() {
       setCurrentYear(year);
       setCurrentMonth(month);
       setJourneys([]);
+      setDateStatusOverrides({});
       setTourDiary(null);
       setLastSavedState('');
       setHasUnsavedChanges(false);
@@ -682,18 +747,189 @@ export function TourDiary() {
 
   // Load holidays for current year
   async function loadHolidays() {
-    // Always use static holidays
     const staticHolidays = HOLIDAYS_2026.map((h, index) => ({
       ...h,
       id: `static-${index}`
     }));
-    console.log('Loading static holidays:', staticHolidays.length);
     setHolidays(staticHolidays);
   }
 
-  // Get holiday for a specific date
-  function getHolidayForDate(date: string): Holiday | null {
-    return holidays.find(h => h.date === date) || null;
+  function getDefaultHolidaysForDate(date: string): Holiday[] {
+    // Date is in DD-MM-YYYY format, holidays are stored with date in DD-MM-YYYY format
+    const result = holidaysByDate.get(date) || [];
+    if (result.length > 0) {
+      console.log(`Found holidays for ${date}:`, result);
+    }
+    return result;
+  }
+
+  function getDisplayedHolidaysForDate(date: string): Holiday[] {
+    const override = dateStatusOverrides[date];
+    if (!override) return getDefaultHolidaysForDate(date);
+    if (override.status === 'WORKING') return [];
+
+    return [{
+      id: `override-${date}`,
+      year: currentYear,
+      date: displayDateToHolidayDate(date),
+      holiday_name: override.holiday_name || getHolidayTypeLabel(override.holiday_type),
+      holiday_type: override.holiday_type
+    }];
+  }
+
+  function getDateStatusLabels(date: string, day: number): string[] {
+    const labels = [];
+    if (isSunday(currentYear, currentMonth, day)) labels.push('SUNDAY');
+    getDisplayedHolidaysForDate(date).forEach((holiday) => {
+      labels.push(`${holiday.holiday_name.toUpperCase()} - ${getHolidayTypeLabel(holiday.holiday_type).toUpperCase()}`);
+    });
+    return labels;
+  }
+
+  function getSpecialDateStatus(date: string, day: number): SpecialDateStatus | null {
+    const displayedHolidays = getDisplayedHolidaysForDate(date);
+    const leaveType = getDateLeaveType(date);
+
+    if (leaveType === 'NORMAL_LEAVE') {
+      return { type: 'leave', label: 'Leave' };
+    }
+
+    if (leaveType === 'OPTIONAL_HOLIDAY') {
+      const optionalHoliday = displayedHolidays.find(h => h.holiday_type === 'OPTIONAL');
+      return {
+        type: 'optionalHoliday',
+        label: `Optional Holiday – ${optionalHoliday?.holiday_name || 'Optional Holiday'}`
+      };
+    }
+
+    const generalHoliday = displayedHolidays.find(h => h.holiday_type === 'GENERAL');
+    if (generalHoliday) {
+      return { type: 'holiday', label: `Holiday – ${generalHoliday.holiday_name}` };
+    }
+
+    if (isSunday(currentYear, currentMonth, day)) {
+      return { type: 'sunday', label: 'Sunday' };
+    }
+
+    if (isSecondSaturday(currentYear, currentMonth, day)) {
+      return { type: 'secondSaturday', label: '2nd Saturday' };
+    }
+
+    return null;
+  }
+
+
+  function getSpecialDateStatusForRow(row: any[]): SpecialDateStatus | null {
+    const date = typeof row?.[0] === 'string' ? row[0] : '';
+    const match = /^(\d{2})-(\d{2})-(\d{4})$/.exec(date);
+    if (!match) return null;
+
+    return getSpecialDateStatus(date, parseInt(match[1], 10));
+  }
+
+  function updateDateStatusOverride(date: string, status: 'DEFAULT' | DateStatusOverrideType) {
+    setDateStatusOverrides((previous) => {
+      const next = { ...previous };
+      if (status === 'DEFAULT') {
+        delete next[date];
+        return next;
+      }
+
+      const defaultHoliday = getDefaultHolidaysForDate(date).find(h => h.holiday_type === status) || getDefaultHolidaysForDate(date)[0];
+      const holidayType: HolidayType = status === 'OPTIONAL' ? 'OPTIONAL' : 'GENERAL';
+      next[date] = {
+        status,
+        holiday_type: holidayType,
+        holiday_name: status === 'WORKING' ? '' : (defaultHoliday?.holiday_name || getHolidayTypeLabel(holidayType))
+      };
+      return next;
+    });
+  }
+
+  function updateDateStatusOverrideName(date: string, holidayName: string) {
+    setDateStatusOverrides((previous) => {
+      const existing = previous[date];
+      if (!existing || existing.status === 'WORKING') return previous;
+      return {
+        ...previous,
+        [date]: {
+          ...existing,
+          holiday_name: holidayName
+        }
+      };
+    });
+  }
+
+  // Leave and Optional Holiday Actions
+  function availLeave(date: string) {
+    const dayJourneys = getJourneysForDate(date);
+    if (dayJourneys.length > 0) {
+      if (!confirm('This date already contains tour details.\n\nAvailing leave will disable the tour entry for this date.\n\nDo you want to continue?')) {
+        return;
+      }
+    }
+    
+    setDateStatusOverrides((previous) => ({
+      ...previous,
+      [date]: {
+        status: 'WORKING',
+        holiday_name: '',
+        holiday_type: 'GENERAL',
+        leave_type: 'NORMAL_LEAVE'
+      }
+    }));
+    setActionMenuOpen(null);
+  }
+
+  function cancelLeave(date: string) {
+    setDateStatusOverrides((previous) => {
+      const next = { ...previous };
+      if (next[date]?.leave_type === 'NORMAL_LEAVE') {
+        delete next[date];
+      }
+      return next;
+    });
+    setActionMenuOpen(null);
+  }
+
+  function availOptionalHoliday(date: string) {
+    const holiday = getDisplayedHolidaysForDate(date).find(h => h.holiday_type === 'OPTIONAL');
+    if (!holiday) return;
+    
+    setDateStatusOverrides((previous) => ({
+      ...previous,
+      [date]: {
+        status: 'OPTIONAL',
+        holiday_name: holiday.holiday_name,
+        holiday_type: 'OPTIONAL',
+        leave_type: 'OPTIONAL_HOLIDAY'
+      }
+    }));
+    setActionMenuOpen(null);
+  }
+
+  function cancelOptionalHoliday(date: string) {
+    setDateStatusOverrides((previous) => {
+      const next = { ...previous };
+      if (next[date]?.leave_type === 'OPTIONAL_HOLIDAY') {
+        delete next[date];
+      }
+      return next;
+    });
+    setActionMenuOpen(null);
+  }
+
+  function getDateLeaveType(date: string): LeaveType {
+    return dateStatusOverrides[date]?.leave_type || 'NONE';
+  }
+
+  function isTourEntryDisabled(date: string): boolean {
+    const leaveType = getDateLeaveType(date);
+    const isSundayDay = isSunday(currentYear, currentMonth, parseInt(date.split('-')[0]));
+    const isSecondSaturdayDay = isSecondSaturday(currentYear, currentMonth, parseInt(date.split('-')[0]));
+    const holiday = getDisplayedHolidaysForDate(date).find(h => h.holiday_type === 'GENERAL');
+    
+    return leaveType !== 'NONE' || isSundayDay || isSecondSaturdayDay || !!holiday;
   }
 
   // Get journeys for a specific date
@@ -709,6 +945,8 @@ export function TourDiary() {
     const secondSaturdays = [];
     const governmentHolidays = [];
     const optionalHolidays = [];
+    let optionalHolidaysAvailed = 0;
+    let leavesAvailed = 0;
 
     for (let day = 1; day <= getDaysInMonth(currentYear, currentMonth); day++) {
       const date = formatDate(currentYear, currentMonth, day);
@@ -718,13 +956,20 @@ export function TourDiary() {
       if (isSecondSaturday(currentYear, currentMonth, day)) {
         secondSaturdays.push(date);
       }
-      const holiday = getHolidayForDate(date);
-      if (holiday) {
-        if (holiday.holiday_type === 'GENERAL') {
-          governmentHolidays.push(date);
-        } else if (holiday.holiday_type === 'OPTIONAL') {
-          optionalHolidays.push(date);
-        }
+      const displayedHolidays = getDisplayedHolidaysForDate(date);
+      if (displayedHolidays.some(holiday => holiday.holiday_type === 'GENERAL')) {
+        governmentHolidays.push(date);
+      }
+      if (displayedHolidays.some(holiday => holiday.holiday_type === 'OPTIONAL')) {
+        optionalHolidays.push(date);
+      }
+      
+      // Count leaves and optional holidays availed
+      const leaveType = getDateLeaveType(date);
+      if (leaveType === 'NORMAL_LEAVE') {
+        leavesAvailed++;
+      } else if (leaveType === 'OPTIONAL_HOLIDAY') {
+        optionalHolidaysAvailed++;
       }
     }
 
@@ -746,12 +991,13 @@ export function TourDiary() {
     return {
       totalDistance,
       tourDays,
-      totalJourneys: journeys.length,
       villagesVisited: villagesSet.size,
       sundays: sundays.length,
       secondSaturdays: secondSaturdays.length,
       governmentHolidays: governmentHolidays.length,
       optionalHolidays: optionalHolidays.length,
+      optionalHolidaysAvailed,
+      leavesAvailed,
       openingMeter,
       closingMeter,
       isReconciled: Math.abs((closingMeter - openingMeter) - totalDistance) < 0.1
@@ -766,9 +1012,18 @@ export function TourDiary() {
     const previousJourney = continueFrom || getJourneysForDate(date).slice(-1)[0];
     const lastJourney = journeys.slice(-1)[0];
 
+    // Determine default from_place based on designation
+    const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
+    let defaultFromPlace = mandal || officerInfo?.mandal || '';
+    if (normalizedDesignation === 'asst director of agriculture' || normalizedDesignation === 'assistant director of agriculture') {
+      defaultFromPlace = division || officerInfo?.division || '';
+    } else if (normalizedDesignation === 'district agriculture officer') {
+      defaultFromPlace = district || officerInfo?.district || '';
+    }
+
     setFormData({
       journey_date: date,
-      from_place: continueFrom?.to_place || previousJourney?.to_place || mandal || officerInfo?.mandal || '',
+      from_place: continueFrom?.to_place || previousJourney?.to_place || defaultFromPlace,
       to_place: '',
       time_from: '09:00',
       time_to: '17:30',
@@ -938,15 +1193,13 @@ export function TourDiary() {
     
     for (let day = 1; day <= getDaysInMonth(currentYear, currentMonth); day++) {
       const date = formatDate(currentYear, currentMonth, day);
-      const holiday = getHolidayForDate(date);
+      const specialDateStatus = getSpecialDateStatus(date, day);
       const dayJourneys = getJourneysForDate(date);
 
-      if (dayJourneys.length === 0) {
-        if (isSunday(currentYear, currentMonth, day)) {
-          tableData.push([date, '', '', '', '', '', '', '', '', 'SUNDAY']);
-        } else if (holiday) {
-          tableData.push([date, '', '', '', '', '', '', '', '', holiday.holiday_name.toUpperCase()]);
-        } else if (isTuesday(currentYear, currentMonth, day)) {
+      if (specialDateStatus) {
+        tableData.push([date, '', '', '', '', '', '', '', '', specialDateStatus.label]);
+      } else if (dayJourneys.length === 0) {
+        if (isTuesday(currentYear, currentMonth, day)) {
           tableData.push([date, '', '', '', '', '', '', '', '', 'Rythunestham VC']);
         } else {
           tableData.push([date, '', '', '', '', '', '', '', '', '']);
@@ -1047,6 +1300,7 @@ export function TourDiary() {
       const totalRow = Array(TOUR_DIARY_COLUMN_COUNT).fill('');
       totalRow[8] = `${summary.totalDistance.toFixed(0)} km`;
       validatedTableData.push(totalRow);
+      const specialPdfRowStatuses = validatedTableData.map(row => getSpecialDateStatusForRow(row));
 
       // Log table data for debugging
       console.log('Table data length:', validatedTableData.length);
@@ -1055,7 +1309,7 @@ export function TourDiary() {
       // Header - TOUR DIARY OF format
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0); // Black
-      const monthYear = `${MONTHS[currentMonth - 1]} ${currentYear}`;
+      const monthYear = `${MONTHS[currentMonth - 1]}-${currentYear}`;
       const displayDesignation = getHeaderDesignation();
       const displayMandal = getHeaderMandal();
       const displayDivision = getHeaderDivision();
@@ -1074,7 +1328,7 @@ export function TourDiary() {
       addHeaderText(', ');
       addHeaderText(displayDesignation, true);
       if (shouldShowHeaderMandal()) {
-        addHeaderText(', Mandal: ');
+        addHeaderText(', ');
         addHeaderText(displayMandal, true);
       }
       if (shouldShowHeaderDivision()) {
@@ -1085,6 +1339,7 @@ export function TourDiary() {
       addHeaderText(displayDistrict, true);
       addHeaderText(' for the Month of ');
       addHeaderText(monthYear, true);
+      addHeaderText('.');
 
       // Generate table with merged header cells - compact for one page
       autoTable(doc, {
@@ -1102,6 +1357,27 @@ export function TourDiary() {
         tableLineColor: [0, 0, 0],
         tableLineWidth: 0.1,
         didParseCell: (data) => {
+          if (data.section === 'body') {
+            const specialDateStatus = specialPdfRowStatuses[data.row.index];
+            if (specialDateStatus) {
+              if (data.column.index === 0) {
+                data.cell.styles.fontStyle = 'normal';
+                data.cell.styles.halign = 'left';
+                data.cell.styles.valign = 'middle';
+              } else if (data.column.index === 1) {
+                data.cell.text = [specialDateStatus.label];
+                data.cell.colSpan = TOUR_DIARY_COLUMN_COUNT - 1;
+                data.cell.styles.fontStyle = 'bold';
+                data.cell.styles.halign = 'center';
+                data.cell.styles.valign = 'middle';
+                data.cell.styles.overflow = 'hidden';
+              } else {
+                data.cell.colSpan = 0;
+              }
+              return;
+            }
+          }
+
           // Make the last row (total distance) bold
           if (data.row.index === data.table.body.length - 1) {
             data.cell.styles.fontStyle = 'bold';
@@ -1169,6 +1445,22 @@ export function TourDiary() {
       doc.text(`No of Villages Visited: ${summary.villagesVisited}`, 14, abstractY + 13);
       doc.text(`Leaves availed: 0`, 14, abstractY + 16);
 
+      // Signature section - conditional based on officer designation
+      const signatureY = abstractY + 12;
+      const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
+      
+      doc.setFont('times', 'bold');
+      doc.setFontSize(8);
+      
+      if (normalizedDesignation === 'mandal agriculture officer') {
+        // Show both signatures for Mandal Agriculture Officer
+        doc.text('Mandal Agriculture Officer', 69, signatureY);
+        doc.text('Asst.Director of Agriculture', 175, signatureY);
+      } else {
+        // Show only Asst.Director of Agriculture signature for other designations
+        doc.text('Asst.Director of Agriculture', 175, signatureY);
+      }
+
       doc.save(`Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -1185,9 +1477,9 @@ export function TourDiary() {
       const workbook = XLSX.utils.book_new();
 
       // Sheet 1: Monthly Tour Diary - Match reference format with merged headers
-      const monthYear = `${MONTHS[currentMonth - 1]} ${currentYear}`;
+      const monthYear = `${MONTHS[currentMonth - 1]}-${currentYear}`;
       const diaryData = [
-        [`TOUR DIARY OF ${officerName || officerInfo?.name || ''}, ${designation || officerInfo?.designation || ''}, MANDAL: ${mandal || officerInfo?.mandal || ''}, DIVISION: ${division || officerInfo?.division || ''}, DIST: ${district || officerInfo?.district || ''} FOR THE MONTH OF ${monthYear}`],
+        [`Tour Diary of ${officerName || officerInfo?.name || ''}, ${getHeaderDesignation()}, ${getHeaderMandal()}, Division: ${getHeaderDivision()}, Dist: ${getHeaderDistrict()} for the Month of ${monthYear}.`],
         [''],
         ['Date', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE (KM)', 'PURPOSE OF VISIT'],
         ['', 'FROM', 'TO', 'FROM', 'TO', '', 'From', 'To', '', '']
@@ -1527,10 +1819,6 @@ export function TourDiary() {
               <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.tourDays}</p>
             </div>
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Total Journeys</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.totalJourneys}</p>
-            </div>
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Total Distance</p>
               <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.totalDistance.toFixed(1)} KM</p>
             </div>
@@ -1549,6 +1837,14 @@ export function TourDiary() {
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Optional Holidays</p>
               <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.optionalHolidays}</p>
+            </div>
+            <div className="rounded-lg bg-purple-50 p-3 dark:bg-purple-950/30">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Optional Holidays Availed</p>
+              <p className="text-lg font-black text-purple-700 dark:text-purple-400">{summary.optionalHolidaysAvailed}</p>
+            </div>
+            <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-950/30">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No. of Leaves Availed</p>
+              <p className="text-lg font-black text-gray-700 dark:text-gray-400">{summary.leavesAvailed}</p>
             </div>
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Closing Meter</p>
@@ -1573,7 +1869,8 @@ export function TourDiary() {
           {Array.from({ length: getDaysInMonth(currentYear, currentMonth) }, (_, i) => i + 1).map(day => {
             const date = formatDate(currentYear, currentMonth, day);
             const dayName = getDayName(currentYear, currentMonth, day);
-            const holiday = getHolidayForDate(date);
+            const displayedHolidays = getDisplayedHolidaysForDate(date);
+            const dateOverride = dateStatusOverrides[date];
             const dayJourneys = getJourneysForDate(date);
             const isSundayDay = isSunday(currentYear, currentMonth, day);
             const isSecondSaturdayDay = isSecondSaturday(currentYear, currentMonth, day);
@@ -1598,20 +1895,91 @@ export function TourDiary() {
                         🟠 2ND SATURDAY
                       </span>
                     )}
-                    {holiday && (
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-black uppercase ${holiday.holiday_type === 'GENERAL' ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200' : 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200'}`}>
-                        {holiday.holiday_type === 'GENERAL' ? '🔴' : '🟣'} {holiday.holiday_type} HOLIDAY - {holiday.holiday_name}
+                    {displayedHolidays.map((holiday) => (
+                      <span key={`${holiday.id}-${holiday.holiday_type}`} className={`mr-1 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-black uppercase ${holiday.holiday_type === 'GENERAL' ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200' : 'border border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200'}`}>
+                        {holiday.holiday_name} - {getHolidayTypeLabel(holiday.holiday_type)}
+                        {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && holiday.holiday_type === 'OPTIONAL' && (
+                          <span className="ml-1 text-[9px]">✓ Availed</span>
+                        )}
+                      </span>
+                    ))}
+                    {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-black uppercase text-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
+                        ✓ Leave Availed
                       </span>
                     )}
                   </div>
-                  <button
-                    onClick={() => openJourneyForm(date)}
-                    className="flex items-center gap-1 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
-                  >
-                    <Plus className="h-3 w-3" />
-                    Add Journey
-                  </button>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {/* Three-dot action menu */}
+                    <div className="relative">
+                      <button
+                        onClick={() => setActionMenuOpen(actionMenuOpen === date ? null : date)}
+                        className="flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-emerald-900"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                      {actionMenuOpen === date && (
+                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
+                          <div className="py-1">
+                            {getDateLeaveType(date) === 'NONE' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && (
+                              <button
+                                onClick={() => availLeave(date)}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                              >
+                                Avail Leave
+                              </button>
+                            )}
+                            {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
+                              <button
+                                onClick={() => cancelLeave(date)}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                              >
+                                Cancel Leave
+                              </button>
+                            )}
+                            {displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'NONE' && (
+                              <button
+                                onClick={() => availOptionalHoliday(date)}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                              >
+                                Avail Optional Holiday
+                              </button>
+                            )}
+                            {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && (
+                              <button
+                                onClick={() => cancelOptionalHoliday(date)}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                              >
+                                Cancel Optional Holiday
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {!isTourEntryDisabled(date) && (
+                      <button
+                        onClick={() => openJourneyForm(date)}
+                        className="flex items-center gap-1 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
+                      >
+                        <Plus className="h-3 w-3" />
+                        Add Journey
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {dateOverride && dateOverride.status !== 'WORKING' && (
+                  <div className="mb-3 max-w-md">
+                    <label className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Holiday Name</label>
+                    <input
+                      type="text"
+                      value={dateOverride.holiday_name}
+                      onChange={(e) => updateDateStatusOverrideName(date, e.target.value)}
+                      className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
+                    />
+                  </div>
+                )}
 
                 {dayJourneys.length === 0 ? (
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">No journey recorded</p>
@@ -1848,7 +2216,9 @@ export function TourDiary() {
 
             <div className="mb-4 rounded border border-gray-300 bg-white p-4">
               <div className="mb-4 text-center">
-                <p className="text-base font-bold text-gray-900">TOUR DIARY</p>
+                <p className="text-base font-bold text-gray-900">
+                  Tour Diary of {officerName || officerInfo?.name || ''}, {getHeaderDesignation()}, {getHeaderMandal()}, Division: {getHeaderDivision()}, Dist: {getHeaderDistrict()} for the Month of {MONTHS[currentMonth - 1]}-{currentYear}.
+                </p>
               </div>
 
               <div className="mb-4 grid grid-cols-2 gap-4 text-xs text-gray-900">
@@ -1886,25 +2256,50 @@ export function TourDiary() {
                     </tr>
                   </thead>
                   <tbody>
-                    {(editablePreviewData.length > 0 ? editablePreviewData : generateTourDiaryData()).map((row, rowIndex) => (
-                      <tr key={rowIndex} className="border-b border-gray-300">
-                        {row.map((cell: any, cellIndex: number) => (
-                          <td key={cellIndex} className="border border-gray-900 px-2 py-1">
-                            <input
-                              type="text"
-                              defaultValue={cell}
-                              className="w-full bg-transparent text-xs outline-none focus:bg-blue-50"
-                              onChange={(e) => {
-                                const newData = [...editablePreviewData];
-                                if (!newData[rowIndex]) newData[rowIndex] = [...row];
-                                newData[rowIndex][cellIndex] = e.target.value;
-                                setEditablePreviewData(newData);
-                              }}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
+                    {(editablePreviewData.length > 0 ? editablePreviewData : generateTourDiaryData()).map((row, rowIndex) => {
+                      const specialDateStatus = getSpecialDateStatusForRow(row);
+
+                      return (
+                        <tr key={rowIndex} className="border-b border-gray-300">
+                          {specialDateStatus ? (
+                            <>
+                              <td className="border border-gray-900 px-2 py-1 align-middle">
+                                <input
+                                  type="text"
+                                  readOnly
+                                  value={row[0] || ''}
+                                  className="w-full bg-transparent text-xs outline-none"
+                                />
+                              </td>
+                              <td colSpan={TOUR_DIARY_COLUMN_COUNT - 1} className="border border-gray-900 px-2 py-1 text-center align-middle">
+                                <input
+                                  type="text"
+                                  readOnly
+                                  value={specialDateStatus.label}
+                                  className="w-full bg-transparent text-center text-xs font-bold outline-none"
+                                />
+                              </td>
+                            </>
+                          ) : (
+                            row.map((cell: any, cellIndex: number) => (
+                              <td key={cellIndex} className="border border-gray-900 px-2 py-1">
+                                <input
+                                  type="text"
+                                  defaultValue={cell}
+                                  className="w-full bg-transparent text-xs outline-none focus:bg-blue-50"
+                                  onChange={(e) => {
+                                    const newData = [...editablePreviewData];
+                                    if (!newData[rowIndex]) newData[rowIndex] = [...row];
+                                    newData[rowIndex][cellIndex] = e.target.value;
+                                    setEditablePreviewData(newData);
+                                  }}
+                                />
+                              </td>
+                            ))
+                          )}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1920,6 +2315,27 @@ export function TourDiary() {
                 <p>Total No of Holidays availed: {summary.sundays + summary.secondSaturdays + summary.governmentHolidays}</p>
                 <p>No of Villages Visited: {summary.villagesVisited}</p>
                 <p>Leaves availed: 0</p>
+              </div>
+
+              {/* Signature section - conditional based on officer designation */}
+              <div className="mt-2 flex flex-col pl-12">
+                {(() => {
+                  const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
+                  if (normalizedDesignation === 'mandal agriculture officer') {
+                    return (
+                      <div className="flex justify-between text-xs font-bold text-gray-900">
+                        <span>Mandal Agriculture Officer</span>
+                        <span>Asst.Director of Agriculture</span>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div className="flex justify-end text-xs font-bold text-gray-900">
+                        <span>Asst.Director of Agriculture</span>
+                      </div>
+                    );
+                  }
+                })()}
               </div>
             </div>
 
