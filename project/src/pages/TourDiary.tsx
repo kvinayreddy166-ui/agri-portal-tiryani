@@ -10,6 +10,7 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../data/telanganaDistrictMandalData';
 import { saveDiaryPdf, hasDiaryPdf, getAllDiaryPdfs, deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, formatFileSize, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
+import { saveDiary, getAllSavedDiaries, getSavedDiary, deleteSavedDiary, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, getDraft as getDraftFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, DraftRecord } from '../lib/diaryStorage';
 
 // Types
 interface TourDiary {
@@ -71,7 +72,7 @@ interface TourJourney {
 
 type HolidayType = 'GENERAL' | 'OPTIONAL';
 type DateStatusOverrideType = 'WORKING' | HolidayType;
-type LeaveType = 'NONE' | 'NORMAL_LEAVE' | 'OPTIONAL_HOLIDAY';
+type LeaveType = 'NONE' | 'NORMAL_LEAVE' | 'OPTIONAL_HOLIDAY' | 'OPTIONAL_HOLIDAY_LEAVE';
 type SpecialDateStatusType = 'holiday' | 'sunday' | 'secondSaturday' | 'optionalHoliday' | 'leave';
 
 interface Holiday {
@@ -364,12 +365,15 @@ export function TourDiary() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [showOptionalHolidayConfirm, setShowOptionalHolidayConfirm] = useState(false);
   const [pendingLeaveDate, setPendingLeaveDate] = useState<string | null>(null);
+  const [remarksDialogOpen, setRemarksDialogOpen] = useState<string | null>(null);
+  const [dateRemarks, setDateRemarks] = useState<Record<string, string>>({});
   
   // Landing page state
   const [showLandingPage, setShowLandingPage] = useState(true);
-  const [showDraftPicker, setShowDraftPicker] = useState(false);
   const [draftMenuOpen, setDraftMenuOpen] = useState<string | null>(null);
+  const [showDraftPicker, setShowDraftPicker] = useState(false);
   const [allDrafts, setAllDrafts] = useState<TourDiaryDraft[]>([]);
+  const [savedDiaries, setSavedDiaries] = useState<SavedDiaryRecord[]>([]);
   const [completedDiaries, setCompletedDiaries] = useState<TourDiary[]>([]);
   const [storedPdfs, setStoredPdfs] = useState<DiaryPdfMetadata[]>([]);
   const [pdfMenuOpen, setPdfMenuOpen] = useState<string | null>(null);
@@ -410,30 +414,38 @@ export function TourDiary() {
     }
   }, [currentYear, currentMonth, user]);
 
-  // Load all drafts from localStorage
-  const loadAllDrafts = useCallback(() => {
-    const draftMap = new Map<string, TourDiaryDraft>();
-    getDrafts().forEach((draft) => draftMap.set(draft.id, draft));
-
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(`${DRAFT_STORAGE_KEY}_`)) {
-        try {
-          const draft = JSON.parse(localStorage.getItem(key) || '{}');
-          if (draft.version === DRAFT_VERSION) {
-            draftMap.set(draft.id, draft);
-          }
-        } catch (e) {
-          console.error('Error parsing draft:', e);
-        }
-      }
+  // Load all drafts from IndexedDB
+  const loadAllDrafts = useCallback(async () => {
+    try {
+      const indexedDbDrafts = await getAllDraftsFromIndexedDB();
+      // Convert DraftRecord to TourDiaryDraft format
+      const tourDrafts: TourDiaryDraft[] = indexedDbDrafts.map(draft => ({
+        version: DRAFT_VERSION,
+        id: draft.id,
+        officerName: draft.officer_name || '',
+        designation: draft.designation || '',
+        district: draft.district || '',
+        mandal: draft.mandal || '',
+        year: draft.year,
+        month: draft.month,
+        openingMeter: draft.opening_meter,
+        journeys: draft.journeys,
+        dateStatusOverrides: draft.dateStatusOverrides || {},
+        dateRemarks: draft.dateRemarks || {},
+        updatedAt: draft.updatedAt
+      }));
+      setAllDrafts(tourDrafts);
+      return tourDrafts;
+    } catch (error) {
+      console.error('Error loading drafts from IndexedDB:', error);
+      return [];
     }
-
-    const drafts = Array.from(draftMap.values());
-    drafts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    setAllDrafts(drafts);
-    return drafts;
   }, []);
+
+  // Get the latest draft only for Continue Draft card
+  const getLatestDraft = useCallback((): TourDiaryDraft | null => {
+    return allDrafts.length > 0 ? allDrafts[0] : null;
+  }, [allDrafts]);
 
   // Load completed diaries from Supabase
   const loadCompletedDiaries = useCallback(async () => {
@@ -453,6 +465,16 @@ export function TourDiary() {
     }
   }, [user]);
 
+  // Load saved diaries from IndexedDB
+  const loadSavedDiaries = useCallback(async () => {
+    try {
+      const diaries = await getAllSavedDiaries();
+      setSavedDiaries(diaries);
+    } catch (error) {
+      console.error('Error loading saved diaries:', error);
+    }
+  }, []);
+
   // Load stored PDFs
   const loadStoredPdfs = useCallback(async () => {
     try {
@@ -469,6 +491,7 @@ export function TourDiary() {
     loadOfficerInfo();
     loadAllDrafts();
     loadCompletedDiaries();
+    loadSavedDiaries();
     loadStoredPdfs();
     
     // Check for recovery state
@@ -477,7 +500,7 @@ export function TourDiary() {
       setRecoveryDraft(recovery);
       setShowRecoveryPrompt(true);
     }
-  }, [loadAllDrafts, loadCompletedDiaries, loadStoredPdfs]);
+  }, []);
 
   // Load data when month/year changes
   useEffect(() => {
@@ -573,7 +596,7 @@ export function TourDiary() {
   }
 
 
-  // Save draft to localStorage
+  // Save draft to IndexedDB
   async function saveDraftToLocal() {
     if (!officerName) {
       alert('Please enter Officer Name before saving the draft.');
@@ -588,85 +611,45 @@ export function TourDiary() {
     setIsSavingDraft(true);
 
     try {
-      const draftId = generateDraftId(officerName, currentYear, currentMonth);
-      const drafts = getDrafts();
-      const existingDraftIndex = drafts.findIndex(d => d.id === draftId);
-
-      const newDraft: TourDiaryDraft = {
-        version: DRAFT_VERSION,
-        id: draftId,
+      const officerId = user?.id || officerName;
+      await saveDraftToIndexedDB(
+        officerId,
         officerName,
-        designation,
-        customDesignation,
-        district,
-        customDistrict,
-        mandal,
-        customMandal,
-        division,
-        customDivision,
-        month: currentMonth,
-        year: currentYear,
+        designation || customDesignation || '',
+        district || customDistrict || '',
+        mandal || customMandal || '',
+        currentYear,
+        currentMonth,
+        tourDiary?.opening_meter || 0,
         journeys,
         dateStatusOverrides,
-        openingMeter: tourDiary?.opening_meter || 0,
-        closingMeter: tourDiary?.closing_meter || null,
-        totalKm: tourDiary?.total_km || 0,
-        createdAt: existingDraftIndex >= 0 ? drafts[existingDraftIndex].createdAt : new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+        dateRemarks
+      );
 
-      if (existingDraftIndex >= 0) {
-        // Update existing draft
-        if (confirm(`A draft for ${MONTHS[currentMonth - 1]} ${currentYear} already exists.\n\nDo you want to update the existing draft?`)) {
-          drafts[existingDraftIndex] = newDraft;
-          if (!saveDrafts(drafts)) {
-            throw new Error('Failed to save draft to localStorage');
-          }
-          setLastSaved(new Date());
-          setLastSavedState(JSON.stringify({
-            officerName,
-            designation,
-            district,
-            mandal,
-            division,
-            journeys,
-            dateStatusOverrides
-          }));
-          setHasUnsavedChanges(false);
-          alert('✓ Draft updated successfully');
-        } else {
-          setIsSavingDraft(false);
-          return;
-        }
-      } else {
-        // Create new draft
-        drafts.push(newDraft);
-        if (!saveDrafts(drafts)) {
-          throw new Error('Failed to save draft to localStorage');
-        }
-        setLastSaved(new Date());
-        setLastSavedState(JSON.stringify({
-          officerName,
-          designation,
-          district,
-          mandal,
-          division,
-          journeys,
-          dateStatusOverrides
-        }));
-        setHasUnsavedChanges(false);
-        alert(`✓ ${MONTHS[currentMonth - 1]} ${currentYear} draft saved successfully`);
-      }
+      setLastSaved(new Date());
+      setLastSavedState(JSON.stringify({
+        officerName,
+        designation,
+        district,
+        mandal,
+        division,
+        journeys,
+        dateStatusOverrides
+      }));
+      setHasUnsavedChanges(false);
 
-      clearRecoveryState();
+      // Reload drafts from IndexedDB
+      await loadAllDrafts();
+      alert('✓ Draft saved successfully');
     } catch (error) {
       console.error('Error saving draft:', error);
-      alert('Unable to save the draft locally. Please check available browser storage.');
+      alert('Failed to save draft. Please try again.');
     } finally {
       setIsSavingDraft(false);
     }
   }
 
+  // Load draft from IndexedDB
   // Load draft from localStorage
   function loadDraftFromLocal(draft: TourDiaryDraft) {
     if (hasUnsavedChanges) {
@@ -742,6 +725,136 @@ export function TourDiary() {
     }
   }
 
+  // Save completed diary to database
+  async function saveCompletedDiary() {
+    if (!user) {
+      alert('You must be logged in to save a diary.');
+      return;
+    }
+
+    if (!officerName) {
+      alert('Please enter Officer Name before saving.');
+      return;
+    }
+
+    try {
+      const summary = calculateMonthlySummary();
+      
+      const diaryData = {
+        officer_id: user.id,
+        year: currentYear,
+        month: currentMonth,
+        opening_meter: summary.openingMeter,
+        closing_meter: summary.closingMeter,
+        total_km: summary.totalDistance,
+        status: 'Completed',
+        officer_name: officerName,
+        designation: getHeaderDesignation(),
+        district: getHeaderDistrict(),
+        mandal: getHeaderMandal(),
+        division: getHeaderDivision()
+      };
+
+      // Check if diary already exists for this month/year
+      const { data: existingDiary } = await supabase
+        .from('tour_diaries')
+        .select('id')
+        .eq('officer_id', user.id)
+        .eq('year', currentYear)
+        .eq('month', currentMonth)
+        .single();
+
+      let savedDiary;
+
+      if (existingDiary) {
+        // Update existing diary
+        const { data, error } = await supabase
+          .from('tour_diaries')
+          .update(diaryData)
+          .eq('id', existingDiary.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        savedDiary = data;
+      } else {
+        // Insert new diary
+        const { data, error } = await supabase
+          .from('tour_diaries')
+          .insert(diaryData)
+          .select()
+          .single();
+
+        if (error) throw error;
+        savedDiary = data;
+      }
+
+      // Save journeys to database
+      if (savedDiary) {
+        // Delete existing journeys for this diary
+        await supabase
+          .from('tour_journeys')
+          .delete()
+          .eq('tour_diary_id', savedDiary.id);
+
+        // Insert all journeys
+        const journeysToSave = journeys.map(journey => ({
+          tour_diary_id: savedDiary.id,
+          officer_id: user.id,
+          journey_date: journey.journey_date,
+          from_place: journey.from_place,
+          to_place: journey.to_place,
+          time_from: journey.time_from,
+          time_to: journey.time_to,
+          mode: journey.mode,
+          custom_mode_of_journey: journey.custom_mode_of_journey,
+          meter_from: journey.meter_from,
+          distance_km: journey.distance_km,
+          meter_to: journey.meter_to,
+          purpose: journey.purpose,
+          custom_purpose: journey.custom_purpose,
+          remarks: journey.remarks
+        }));
+
+        if (journeysToSave.length > 0) {
+          const { error: journeyError } = await supabase
+            .from('tour_journeys')
+            .insert(journeysToSave);
+
+          if (journeyError) throw journeyError;
+        }
+      }
+
+      // Remove draft from localStorage since it's now saved
+      const draftId = generateDraftId(officerName, currentYear, currentMonth);
+      const drafts = getDrafts();
+      const filteredDrafts = drafts.filter(d => d.id !== draftId);
+      saveDrafts(filteredDrafts);
+      loadAllDrafts();
+
+      // Reload completed diaries
+      await loadCompletedDiaries();
+
+      alert(`✓ ${MONTHS[currentMonth - 1]} ${currentYear} diary saved successfully!`);
+      
+      // Clear unsaved changes
+      setHasUnsavedChanges(false);
+      setLastSavedState(JSON.stringify({
+        officerName,
+        designation,
+        district,
+        mandal,
+        division,
+        journeys,
+        dateStatusOverrides
+      }));
+
+    } catch (error) {
+      console.error('Error saving completed diary:', error);
+      alert('Failed to save diary. Please try again.');
+    }
+  }
+
   // Load journeys for current month
   async function loadJourneys() {
     // Journeys are now managed locally through the draft system
@@ -760,11 +873,7 @@ export function TourDiary() {
 
   function getDefaultHolidaysForDate(date: string): Holiday[] {
     // Date is in DD-MM-YYYY format, holidays are stored with date in DD-MM-YYYY format
-    const result = holidaysByDate.get(date) || [];
-    if (result.length > 0) {
-      console.log(`Found holidays for ${date}:`, result);
-    }
-    return result;
+    return holidaysByDate.get(date) || [];
   }
 
   function getDisplayedHolidaysForDate(date: string): Holiday[] {
@@ -885,10 +994,35 @@ export function TourDiary() {
     setActionMenuOpen(null);
   }
 
+  // Avail Leave on Optional Holiday
+  function availLeaveOnOptionalHoliday(date: string) {
+    const dayJourneys = getJourneysForDate(date);
+    if (dayJourneys.length > 0) {
+      if (!confirm('This date already contains tour details.\n\nAvailing leave will disable the tour entry for this date.\n\nDo you want to continue?')) {
+        return;
+      }
+    }
+    
+    // Preserve the optional holiday info
+    const displayedHolidays = getDisplayedHolidaysForDate(date);
+    const optionalHoliday = displayedHolidays.find(h => h.holiday_type === 'OPTIONAL');
+    
+    setDateStatusOverrides((previous) => ({
+      ...previous,
+      [date]: {
+        status: 'OPTIONAL',
+        holiday_name: optionalHoliday?.holiday_name || '',
+        holiday_type: 'OPTIONAL',
+        leave_type: 'OPTIONAL_HOLIDAY_LEAVE'
+      }
+    }));
+    setActionMenuOpen(null);
+  }
+
   function cancelLeave(date: string) {
     setDateStatusOverrides((previous) => {
       const next = { ...previous };
-      if (next[date]?.leave_type === 'NORMAL_LEAVE') {
+      if (next[date]?.leave_type === 'NORMAL_LEAVE' || next[date]?.leave_type === 'OPTIONAL_HOLIDAY_LEAVE') {
         delete next[date];
       }
       return next;
@@ -961,12 +1095,44 @@ export function TourDiary() {
       return leaveType !== 'NONE';
     }
     
+    // Disable for all leave types including OPTIONAL_HOLIDAY_LEAVE
     return leaveType !== 'NONE' || isSundayDay || isSecondSaturdayDay || !!holiday;
   }
 
   // Get journeys for a specific date
   function getJourneysForDate(date: string): TourJourney[] {
     return journeys.filter(j => j.journey_date === date);
+  }
+
+  // Check if a date has a completed journey (all mandatory fields filled and saved)
+  function hasCompletedJourney(date: string): boolean {
+    const dayJourneys = getJourneysForDate(date);
+    if (dayJourneys.length === 0) return false;
+    
+    // Check if at least one journey has all mandatory fields
+    return dayJourneys.some(j => 
+      j.to_place && 
+      j.distance_km !== null && j.distance_km !== undefined && j.distance_km > 0 &&
+      j.purpose
+    );
+  }
+
+  // Check if journey entry is required for a date (working day, not holiday/leave)
+  function isJourneyRequired(date: string): boolean {
+    return !isTourEntryDisabled(date);
+  }
+
+  // Check if all previous working days in the month have completed journeys
+  function arePreviousWorkingDaysCompleted(targetDate: string): boolean {
+    const [targetDay] = targetDate.split('-').map(Number);
+    
+    for (let day = 1; day < targetDay; day++) {
+      const date = formatDate(currentYear, currentMonth, day);
+      if (isJourneyRequired(date) && !hasCompletedJourney(date)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   // Calculate monthly summary - Centralized calculation function for UI, Preview, and PDF
@@ -1085,6 +1251,12 @@ export function TourDiary() {
 
   // Open journey form for new journey
   function openJourneyForm(date: string, continueFrom?: TourJourney) {
+    // Check if previous working days have completed journeys before allowing navigation
+    if (!arePreviousWorkingDaysCompleted(date)) {
+      alert('Please save the previous date\'s journey before moving to the next date.');
+      return;
+    }
+
     setSelectedDate(date);
     setEditingJourney(null);
 
@@ -1100,6 +1272,13 @@ export function TourDiary() {
       defaultFromPlace = district || officerInfo?.district || '';
     }
 
+    // Check if date is Tuesday and not a holiday/leave for default purpose
+    const [day] = date.split('-').map(Number);
+    const dayName = getDayName(currentYear, currentMonth, day);
+    const isTuesday = dayName === 'Tuesday';
+    const isHoliday = isTourEntryDisabled(date);
+    const defaultPurpose = (isTuesday && !isHoliday) ? 'Rythu Nestham VC' : '';
+
     setFormData({
       journey_date: date,
       from_place: continueFrom?.to_place || previousJourney?.to_place || defaultFromPlace,
@@ -1111,7 +1290,7 @@ export function TourDiary() {
       meter_from: continueFrom?.meter_to || previousJourney?.meter_to || lastJourney?.meter_to || tourDiary?.opening_meter || 0,
       distance_km: 0,
       meter_to: continueFrom?.meter_to || previousJourney?.meter_to || lastJourney?.meter_to || tourDiary?.opening_meter || 0,
-      purpose: '',
+      purpose: defaultPurpose,
       custom_purpose: '',
       remarks: ''
     });
@@ -1146,17 +1325,23 @@ export function TourDiary() {
   // Save journey
   async function saveJourney() {
     try {
-      // Validation
-      if (!formData.from_place || !formData.to_place) {
-        alert('Please enter both From and To places');
+      // Validation - mandatory fields
+      if (!formData.to_place) {
+        alert('To Place is required.');
+        return;
+      }
+      if (formData.distance_km === null || formData.distance_km === undefined || formData.distance_km <= 0) {
+        alert('Please enter a valid distance greater than 0 km.');
         return;
       }
       if (!formData.purpose) {
-        alert('Please select a purpose');
+        alert('Purpose is required.');
         return;
       }
-      if (formData.distance_km < 0) {
-        alert('Distance cannot be negative');
+      
+      // Additional validation
+      if (!formData.from_place) {
+        alert('From Place is required.');
         return;
       }
       if (formData.meter_to < formData.meter_from) {
@@ -1649,20 +1834,6 @@ export function TourDiary() {
 
   const summary = calculateMonthlySummary();
 
-  // Handle Continue Draft
-  const handleContinueDraft = () => {
-    loadAllDrafts();
-    if (allDrafts.length === 0) {
-      alert('No drafts found. Create a new tour diary first.');
-      return;
-    }
-    if (allDrafts.length === 1) {
-      loadDraft(allDrafts[0]);
-      return;
-    }
-    setShowDraftPicker(true);
-  };
-
   // Handle loading a specific draft
   const loadDraft = (draft: TourDiaryDraft) => {
     setCurrentYear(draft.year);
@@ -1708,6 +1879,35 @@ export function TourDiary() {
     setDivision('');
     setTourDiary(diary);
     loadJourneys();
+    setShowLandingPage(false);
+  };
+
+  // Handle opening a saved diary from IndexedDB
+  const openSavedDiary = (diary: SavedDiaryRecord) => {
+    setCurrentYear(diary.year);
+    setCurrentMonth(diary.month);
+    setOfficerName(diary.officer_name || '');
+    setDesignation(diary.designation || '');
+    setDistrict(diary.district || '');
+    setMandal(diary.mandal || '');
+    setDivision('');
+    setTourDiary({
+      id: diary.id,
+      officer_id: diary.officer_id,
+      year: diary.year,
+      month: diary.month,
+      opening_meter: diary.opening_meter,
+      closing_meter: diary.closing_meter,
+      total_km: diary.total_km,
+      status: diary.status,
+      officer_name: diary.officer_name,
+      designation: diary.designation,
+      district: diary.district,
+      mandal: diary.mandal
+    });
+    setJourneys(diary.journeys);
+    setDateStatusOverrides(diary.dateStatusOverrides || {});
+    setDateRemarks(diary.dateRemarks || {});
     setShowLandingPage(false);
   };
 
@@ -1794,36 +1994,37 @@ export function TourDiary() {
         <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
           {/* Action Cards - Compact Mobile-First Design */}
           <div className="mb-8 space-y-3 lg:grid lg:grid-cols-3 lg:gap-4 lg:space-y-0">
-            {/* Continue Draft Card - Only show when drafts exist */}
-            {allDrafts.length > 0 && (
-              <button
-                onClick={handleContinueDraft}
-                className="flex items-center gap-4 rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-amber-300 hover:shadow-md dark:border-amber-800 dark:bg-amber-950/30 dark:hover:border-amber-700"
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-200 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                  <Clock className="h-5 w-5" />
-                </div>
-                <div className="flex-1 text-left">
-                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                    Continue Draft
-                  </h3>
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                    {allDrafts.length === 1 
-                      ? `${MONTHS[allDrafts[0].month - 1]} ${allDrafts[0].year} • Last edited today`
-                      : `${allDrafts.length} drafts available`
-                    }
-                  </p>
-                </div>
-                <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-black uppercase text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                  Draft
-                </span>
-                <ArrowRight className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" />
-              </button>
-            )}
+            {/* Continue Draft Card - Only show latest draft */}
+            {(() => {
+              const latestDraft = getLatestDraft();
+              return latestDraft ? (
+                <button
+                  onClick={() => loadDraft(latestDraft)}
+                  className="flex items-center gap-4 rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-amber-300 hover:shadow-md dark:border-amber-800 dark:bg-amber-950/30 dark:hover:border-amber-700"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-200 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                    <Clock className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                      Continue Draft
+                    </h3>
+                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      {MONTHS[latestDraft.month - 1]} {latestDraft.year} • Last edited {new Date(latestDraft.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-black uppercase text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                    Draft
+                  </span>
+                  <ArrowRight className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" />
+                </button>
+              ) : null;
+            })()}
 
             {/* New Tour Diary Card */}
             <button
               onClick={() => {
+                // Always start with a completely blank diary
                 setShowLandingPage(false);
                 setJourneys([]);
                 setDateStatusOverrides({});
@@ -1837,6 +2038,11 @@ export function TourDiary() {
                 setCustomMandal('');
                 setDivision('');
                 setCustomDivision('');
+                setLastSavedState('');
+                setHasUnsavedChanges(false);
+                // Reset to current month/year
+                setCurrentYear(new Date().getFullYear());
+                setCurrentMonth(new Date().getMonth() + 1);
               }}
               className="flex items-center gap-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-emerald-300 hover:shadow-md dark:border-emerald-800 dark:bg-emerald-950/30 dark:hover:border-emerald-700"
               style={{ backgroundColor: 'rgba(236, 253, 245, 0.8)' }}
@@ -1942,18 +2148,6 @@ export function TourDiary() {
                                 onClick={async () => {
                                   const blob = await getDiaryPdf(pdf.id);
                                   if (blob) {
-                                    setPdfPreview({ blob, fileName: pdf.fileName });
-                                  }
-                                  setPdfMenuOpen(null);
-                                }}
-                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
-                              >
-                                Preview
-                              </button>
-                              <button 
-                                onClick={async () => {
-                                  const blob = await getDiaryPdf(pdf.id);
-                                  if (blob) {
                                     const url = URL.createObjectURL(blob);
                                     window.open(url, '_blank');
                                   }
@@ -2028,78 +2222,17 @@ export function TourDiary() {
               Recent Diaries
             </h2>
             <div className="space-y-3">
-              {allDrafts.length === 0 && completedDiaries.length === 0 && (
+              {savedDiaries.length === 0 && (
                 <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-                  No recent diaries found
+                  No saved diaries found
                 </p>
               )}
               
-              {/* Drafts */}
-              {allDrafts.map((draft) => (
-                <div
-                  key={draft.id}
-                  className="relative rounded-xl border border-emerald-200 bg-white p-4 shadow-sm dark:border-emerald-800 dark:bg-slate-900"
-                >
-                  <div className="flex items-center justify-between">
-                    <button
-                      onClick={() => loadDraft(draft)}
-                      className="flex-1 text-left"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
-                          <Clock className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-900 dark:text-white">
-                            {MONTHS[draft.month - 1]} {draft.year}
-                          </p>
-                          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                            Last edited: {new Date(draft.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                            {' • '} Entries: {draft.journeys?.length || 0}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                    <div className="flex items-center gap-2">
-                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black uppercase text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                        Draft
-                      </span>
-                      <button
-                        onClick={() => setDraftMenuOpen(draftMenuOpen === draft.id ? null : draft.id)}
-                        className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                  {draftMenuOpen === draft.id && (
-                    <div className="absolute right-4 top-14 z-10 w-52 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
-                      <div className="py-1">
-                        <button onClick={() => loadDraft(draft)} className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900">Continue</button>
-                        <button onClick={() => {
-                          if (confirm('Delete this draft?')) {
-                            // Remove from individual storage
-                            localStorage.removeItem(`${DRAFT_STORAGE_KEY}_${draft.id}`);
-                            // Also remove from old array storage
-                            const drafts = getDrafts();
-                            const filteredDrafts = drafts.filter(d => d.id !== draft.id);
-                            saveDrafts(filteredDrafts);
-                            // Reload drafts
-                            loadAllDrafts();
-                            setDraftMenuOpen(null);
-                          }
-                        }} className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900">Delete</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Completed Diaries */}
-              {completedDiaries.slice(0, 5).map((diary) => (
+              {/* Show saved diaries from IndexedDB */}
+              {savedDiaries.slice(0, 5).map((diary) => (
                 <button
                   key={diary.id}
-                  onClick={() => openCompletedDiary(diary)}
+                  onClick={() => openSavedDiary(diary)}
                   className="w-full rounded-xl border border-emerald-200 bg-white p-4 text-left shadow-sm transition-all hover:border-emerald-400 hover:shadow-md dark:border-emerald-800 dark:bg-slate-900 dark:hover:border-emerald-600"
                 >
                   <div className="flex items-center gap-3">
@@ -2117,178 +2250,9 @@ export function TourDiary() {
                   </div>
                 </button>
               ))}
-
-              {/* Downloaded PDFs */}
-              {storedPdfs.map((pdf) => (
-                <div
-                  key={pdf.id}
-                  className="relative w-full rounded-xl border border-blue-200 bg-white p-4 text-left shadow-sm transition-all hover:border-blue-400 hover:shadow-md dark:border-blue-800 dark:bg-slate-900 dark:hover:border-blue-600"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-slate-900 dark:text-white">
-                        {MONTHS[pdf.month - 1]} {pdf.year}
-                      </p>
-                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                        {pdf.fileName} • {formatFileSize(pdf.fileSize)}
-                      </p>
-                      <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                        Downloaded: {new Date(pdf.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black uppercase text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      PDF
-                    </span>
-                    <button
-                      onClick={() => setPdfMenuOpen(pdfMenuOpen === pdf.id ? null : pdf.id)}
-                      className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
-                  </div>
-                  {pdfMenuOpen === pdf.id && (
-                    <div className="absolute right-4 top-14 z-10 w-52 rounded-lg border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-800">
-                      <div className="py-1">
-                        <button 
-                          onClick={async () => {
-                            const blob = await getDiaryPdf(pdf.id);
-                            if (blob) {
-                              setPdfPreview({ blob, fileName: pdf.fileName });
-                            }
-                            setPdfMenuOpen(null);
-                          }}
-                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
-                        >
-                          Preview
-                        </button>
-                        <button 
-                          onClick={async () => {
-                            const blob = await getDiaryPdf(pdf.id);
-                            if (blob) {
-                              const url = URL.createObjectURL(blob);
-                              window.open(url, '_blank');
-                            }
-                            setPdfMenuOpen(null);
-                          }}
-                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
-                        >
-                          Open PDF
-                        </button>
-                        <button 
-                          onClick={async () => {
-                            const blob = await getDiaryPdf(pdf.id);
-                            if (blob) {
-                              const url = URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = pdf.fileName;
-                              a.click();
-                              URL.revokeObjectURL(url);
-                            }
-                            setPdfMenuOpen(null);
-                          }}
-                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
-                        >
-                          Download
-                        </button>
-                        <button 
-                          onClick={() => {
-                            const newName = prompt('Enter new filename:', pdf.fileName);
-                            if (newName && newName !== pdf.fileName && newName.endsWith('.pdf')) {
-                              renameDiaryPdf(pdf.id, newName);
-                              loadStoredPdfs();
-                            }
-                            setPdfMenuOpen(null);
-                          }}
-                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
-                        >
-                          Rename
-                        </button>
-                        <button 
-                          onClick={() => {
-                            if (confirm('Delete this PDF? This will not delete the Tour Diary data.')) {
-                              deleteDiaryPdf(pdf.id);
-                              loadStoredPdfs();
-                            }
-                            setPdfMenuOpen(null);
-                          }}
-                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
             </div>
           </div>
-        </div>
-      </div>
-    );
-  }
 
-  // Continue Draft Picker Modal
-  if (showDraftPicker) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-emerald-200/50 bg-white p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900">
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Continue Draft</h2>
-              <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Choose an unfinished tour diary to resume.</p>
-            </div>
-            <button onClick={() => { setShowDraftPicker(false); setDraftMenuOpen(null); }} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" aria-label="Close draft picker">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {allDrafts.map((draft) => (
-              <div key={draft.id} className="relative rounded-xl border border-emerald-200 bg-white p-4 shadow-sm dark:border-emerald-800 dark:bg-slate-950">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <h3 className="font-black text-slate-900 dark:text-white">{MONTHS[draft.month - 1]} {draft.year}</h3>
-                    <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-400">Last edited: {new Date(draft.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Entries: {draft.journeys?.length || 0}</p>
-                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Status: Draft</p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <button onClick={() => loadDraft(draft)} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">Continue</button>
-                    <button onClick={() => setDraftMenuOpen(draftMenuOpen === draft.id ? null : draft.id)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" aria-label="Draft actions">
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-                {draftMenuOpen === draft.id && (
-                  <div className="absolute right-4 top-14 z-10 w-52 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
-                    <div className="py-1">
-                      <button onClick={() => loadDraft(draft)} className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900">Continue</button>
-                      <button onClick={() => {
-                        if (confirm('Delete this draft?')) {
-                          // Remove from individual storage
-                          localStorage.removeItem(`${DRAFT_STORAGE_KEY}_${draft.id}`);
-                          // Also remove from old array storage
-                          const drafts = getDrafts();
-                          const filteredDrafts = drafts.filter(d => d.id !== draft.id);
-                          saveDrafts(filteredDrafts);
-                          // Reload drafts
-                          loadAllDrafts();
-                          setDraftMenuOpen(null);
-                          if (allDrafts.length === 1) {
-                            setShowDraftPicker(false);
-                          }
-                        }
-                      }} className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900">Delete</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     );
@@ -2301,24 +2265,20 @@ export function TourDiary() {
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
-              <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
-                <h1 className="flex items-center gap-2 text-xl font-black text-white">
-                  <NotebookPen className="h-6 w-6" aria-label="Tour Diary" />
-                  Tour Diary
-                </h1>
-                <p className="text-sm font-semibold text-white/90">
-                  Monthly Tour Diary with Journey Tracking
-                </p>
+              <div className="relative rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
+                <div className="absolute right-2 top-2">
+                  <BackButton onClick={() => setShowLandingPage(true)}>Back</BackButton>
+                </div>
+                <div className="pr-16">
+                  <h1 className="flex items-center gap-2 text-xl font-black text-white">
+                    <NotebookPen className="h-6 w-6" aria-label="Tour Diary" />
+                    Tour Diary
+                  </h1>
+                  <p className="text-sm font-semibold text-white/90">
+                    Monthly Tour Diary with Journey Tracking
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowLandingPage(true)}
-                className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-emerald-900"
-              >
-                ← Back to Diaries
-              </button>
-              <BackButton onClick={() => navigate('/officer-toolkit')}>Back</BackButton>
             </div>
           </div>
         </div>
@@ -2636,15 +2596,8 @@ export function TourDiary() {
                     {actionMenuOpen === date && (
                       <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
                         <div className="py-1">
-                          {getDateLeaveType(date) === 'NONE' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && (
-                            <button
-                              onClick={() => availLeave(date)}
-                              className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                            >
-                              Avail Leave
-                            </button>
-                          )}
-                          {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
+                          {/* When marked as Working Day - show Cancel Leave if leave is availed, otherwise Restore Default */}
+                          {dateOverride?.status === 'WORKING' && getDateLeaveType(date) !== 'NONE' && (
                             <button
                               onClick={() => cancelLeave(date)}
                               className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
@@ -2652,41 +2605,88 @@ export function TourDiary() {
                               Cancel Leave
                             </button>
                           )}
-                          {displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'NONE' && (
+                          {dateOverride?.status === 'WORKING' && getDateLeaveType(date) === 'NONE' && (
                             <button
-                              onClick={() => availOptionalHoliday(date)}
+                              onClick={() => restoreDefaultStatus(date)}
                               className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
                             >
-                              Avail Optional Holiday
+                              Restore Default
                             </button>
                           )}
-                          {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && (
-                            <button
-                              onClick={() => cancelOptionalHoliday(date)}
-                              className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                            >
-                              Cancel Optional Holiday
-                            </button>
-                          )}
-                          {/* Holiday/Sunday/Second Saturday management options */}
-                          {(isSundayDay || isSecondSaturdayDay || displayedHolidays.some(h => h.holiday_type === 'GENERAL')) && (
+                          {/* For holidays, Sundays, Second Saturdays - show only Mark as Working Day and Remarks */}
+                          {dateOverride?.status !== 'WORKING' && (isSundayDay || isSecondSaturdayDay || displayedHolidays.some(h => h.holiday_type === 'GENERAL')) && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
                             <>
-                              <div className="border-t border-emerald-200 dark:border-emerald-800 my-1"></div>
-                              {!dateOverride || dateOverride.status === 'DEFAULT' ? (
-                                <>
-                                  <button
-                                    onClick={() => markAsWorkingDay(date)}
-                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                  >
-                                    Mark as Working Day
-                                  </button>
-                                </>
-                              ) : (
+                              <button
+                                onClick={() => markAsWorkingDay(date)}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                              >
+                                Mark as Working Day
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setActionMenuOpen(null);
+                                  setRemarksDialogOpen(date);
+                                }}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                              >
+                                Remarks
+                              </button>
+                            </>
+                          )}
+                          {/* For normal working days - show leave management options */}
+                          {dateOverride?.status !== 'WORKING' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
+                            <>
+                              {getDateLeaveType(date) === 'NONE' && (
                                 <button
-                                  onClick={() => restoreDefaultStatus(date)}
+                                  onClick={() => availLeave(date)}
                                   className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
                                 >
-                                  Restore Default
+                                  Avail Leave
+                                </button>
+                              )}
+                              {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
+                                <button
+                                  onClick={() => cancelLeave(date)}
+                                  className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                >
+                                  Cancel Leave
+                                </button>
+                              )}
+                            </>
+                          )}
+                          {/* For optional holidays - show optional holiday specific actions */}
+                          {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
+                            <>
+                              {getDateLeaveType(date) === 'NONE' && (
+                                <>
+                                  <button
+                                    onClick={() => availOptionalHoliday(date)}
+                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                  >
+                                    Avail Optional Holiday
+                                  </button>
+                                  <button
+                                    onClick={() => availLeaveOnOptionalHoliday(date)}
+                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                  >
+                                    Avail Leave
+                                  </button>
+                                </>
+                              )}
+                              {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && (
+                                <button
+                                  onClick={() => cancelOptionalHoliday(date)}
+                                  className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                >
+                                  Cancel Optional Holiday
+                                </button>
+                              )}
+                              {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY_LEAVE' && (
+                                <button
+                                  onClick={() => cancelLeave(date)}
+                                  className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                >
+                                  Cancel Leave
                                 </button>
                               )}
                             </>
@@ -2720,6 +2720,11 @@ export function TourDiary() {
                     </span>
                   ))}
                   {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-black uppercase text-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
+                      ✓ Leave Availed
+                    </span>
+                  )}
+                  {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY_LEAVE' && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-black uppercase text-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
                       ✓ Leave Availed
                     </span>
@@ -2962,6 +2967,39 @@ export function TourDiary() {
                   {editingJourney ? 'Update Journey' : 'Save Journey'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remarks Dialog for Holidays */}
+      {remarksDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-emerald-200/50 bg-white p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900">
+            <h2 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Add Remarks</h2>
+            <p className="mb-4 text-sm font-semibold text-slate-600 dark:text-slate-400">
+              {remarksDialogOpen} - {getDayName(currentYear, currentMonth, parseInt(remarksDialogOpen.split('-')[0]))}
+            </p>
+            <textarea
+              value={dateRemarks[remarksDialogOpen] || ''}
+              onChange={(e) => setDateRemarks({ ...dateRemarks, [remarksDialogOpen]: e.target.value })}
+              rows={4}
+              placeholder="Enter remarks for this date..."
+              className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setRemarksDialogOpen(null)}
+                className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-900/40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setRemarksDialogOpen(null)}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
