@@ -4,11 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, Car, AlertCircle, CheckCircle, RefreshCw, Eye, NotebookPen, MoreVertical } from 'lucide-react';
+import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, Car, AlertCircle, CheckCircle, RefreshCw, Eye, NotebookPen, MoreVertical, FolderOpen, Clock, ChevronRight as ArrowRight, Copy, Check, X, ClipboardList } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../data/telanganaDistrictMandalData';
+import { saveDiaryPdf, hasDiaryPdf, getAllDiaryPdfs, deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, formatFileSize, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
 
 // Types
 interface TourDiary {
@@ -114,7 +115,7 @@ const DRAFT_VERSION = 1;
 const TOUR_DIARY_COLUMN_COUNT = 10;
 
 const JOURNEY_MODES = [
-  'Car', 'Government Vehicle', 'Hired Vehicle', 'Bus', 'Others'
+  'Car', 'Govt. Vehicle', 'Hired Vehicle', 'Bus', 'Others'
 ];
 
 const PURPOSES = [
@@ -127,7 +128,6 @@ const PURPOSES = [
 // 2026 Holidays Data
 const HOLIDAYS_2026: Omit<Holiday, 'id'>[] = [
   // General Holidays
-  { year: 2026, date: '01-01-2026', holiday_name: 'New Year Day', holiday_type: 'GENERAL' },
   { year: 2026, date: '14-01-2026', holiday_name: 'Bhogi', holiday_type: 'GENERAL' },
   { year: 2026, date: '15-01-2026', holiday_name: 'Sankranti / Pongal', holiday_type: 'GENERAL' },
   { year: 2026, date: '26-01-2026', holiday_name: 'Republic Day', holiday_type: 'GENERAL' },
@@ -327,7 +327,6 @@ export function TourDiary() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [tourDiary, setTourDiary] = useState<TourDiary | null>(null);
-  const [showDiaryForm, setShowDiaryForm] = useState(false);
   const [journeys, setJourneys] = useState<TourJourney[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [dateStatusOverrides, setDateStatusOverrides] = useState<Record<string, DateStatusOverride>>({});
@@ -356,9 +355,7 @@ export function TourDiary() {
   // Draft state
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
-  const [showLoadDraftModal, setShowLoadDraftModal] = useState(false);
   const [showNewDiaryModal, setShowNewDiaryModal] = useState(false);
-  const [draftSearchTerm, setDraftSearchTerm] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedState, setLastSavedState] = useState<string>('');
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
@@ -367,6 +364,17 @@ export function TourDiary() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [showOptionalHolidayConfirm, setShowOptionalHolidayConfirm] = useState(false);
   const [pendingLeaveDate, setPendingLeaveDate] = useState<string | null>(null);
+  
+  // Landing page state
+  const [showLandingPage, setShowLandingPage] = useState(true);
+  const [showDraftPicker, setShowDraftPicker] = useState(false);
+  const [draftMenuOpen, setDraftMenuOpen] = useState<string | null>(null);
+  const [allDrafts, setAllDrafts] = useState<TourDiaryDraft[]>([]);
+  const [completedDiaries, setCompletedDiaries] = useState<TourDiary[]>([]);
+  const [storedPdfs, setStoredPdfs] = useState<DiaryPdfMetadata[]>([]);
+  const [pdfMenuOpen, setPdfMenuOpen] = useState<string | null>(null);
+  const [pdfPreview, setPdfPreview] = useState<{ blob: Blob; fileName: string } | null>(null);
+  const [showMyDiariesDropdown, setShowMyDiariesDropdown] = useState(false);
   
   // Form state
   const holidaysByDate = useMemo(() => groupHolidaysByDate(holidays), [holidays]);
@@ -402,10 +410,66 @@ export function TourDiary() {
     }
   }, [currentYear, currentMonth, user]);
 
+  // Load all drafts from localStorage
+  const loadAllDrafts = useCallback(() => {
+    const draftMap = new Map<string, TourDiaryDraft>();
+    getDrafts().forEach((draft) => draftMap.set(draft.id, draft));
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(`${DRAFT_STORAGE_KEY}_`)) {
+        try {
+          const draft = JSON.parse(localStorage.getItem(key) || '{}');
+          if (draft.version === DRAFT_VERSION) {
+            draftMap.set(draft.id, draft);
+          }
+        } catch (e) {
+          console.error('Error parsing draft:', e);
+        }
+      }
+    }
+
+    const drafts = Array.from(draftMap.values());
+    drafts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    setAllDrafts(drafts);
+    return drafts;
+  }, []);
+
+  // Load completed diaries from Supabase
+  const loadCompletedDiaries = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('tour_diaries')
+        .select('*')
+        .eq('officer_id', user.id)
+        .order('year', { ascending: false })
+        .order('month', { ascending: false });
+      
+      if (error) throw error;
+      setCompletedDiaries(data || []);
+    } catch (error) {
+      console.error('Error loading completed diaries:', error);
+    }
+  }, [user]);
+
+  // Load stored PDFs
+  const loadStoredPdfs = useCallback(async () => {
+    try {
+      const pdfs = await getAllDiaryPdfs();
+      setStoredPdfs(pdfs);
+    } catch (error) {
+      console.error('Error loading stored PDFs:', error);
+    }
+  }, []);
+
   // Initialize
   useEffect(() => {
     setMounted(true);
     loadOfficerInfo();
+    loadAllDrafts();
+    loadCompletedDiaries();
+    loadStoredPdfs();
     
     // Check for recovery state
     const recovery = getRecoveryState();
@@ -413,7 +477,7 @@ export function TourDiary() {
       setRecoveryDraft(recovery);
       setShowRecoveryPrompt(true);
     }
-  }, []);
+  }, [loadAllDrafts, loadCompletedDiaries, loadStoredPdfs]);
 
   // Load data when month/year changes
   useEffect(() => {
@@ -653,7 +717,7 @@ export function TourDiary() {
         dateStatusOverrides: draft.dateStatusOverrides || {}
       }));
       setHasUnsavedChanges(false);
-      setShowLoadDraftModal(false);
+      setShowDraftPicker(false);
       alert(`✓ ${MONTHS[draft.month - 1]} ${draft.year} draft loaded successfully`);
     } catch (error) {
       console.error('Error loading draft:', error);
@@ -676,66 +740,6 @@ export function TourDiary() {
         alert('Failed to delete draft. Please try again.');
       }
     }
-  }
-
-  // Get filtered drafts
-  function getFilteredDrafts(): TourDiaryDraft[] {
-    const drafts = getDrafts();
-    const searchTerm = draftSearchTerm.toLowerCase();
-
-    return drafts
-      .filter(draft => {
-        if (!searchTerm) return true;
-        return (
-          draft.officerName.toLowerCase().includes(searchTerm) ||
-          MONTHS[draft.month - 1].toLowerCase().includes(searchTerm) ||
-          draft.year.toString().includes(searchTerm)
-        );
-      })
-      .sort((a, b) => {
-        // Sort by year DESC, month DESC, updatedAt DESC
-        if (b.year !== a.year) return b.year - a.year;
-        if (b.month !== a.month) return b.month - a.month;
-        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-      });
-  }
-
-  // Restore recovery state
-  function restoreRecoveryState() {
-    if (recoveryDraft) {
-      loadDraftFromLocal(recoveryDraft);
-      setShowRecoveryPrompt(false);
-      setRecoveryDraft(null);
-    }
-  }
-
-  // Discard recovery state
-  function discardRecoveryState() {
-    clearRecoveryState();
-    setShowRecoveryPrompt(false);
-    setRecoveryDraft(null);
-  }
-
-  // Create new tour diary
-  function createNewTourDiary(year: number, month: number) {
-    const draftId = generateDraftId(officerName || 'Officer', year, month);
-    const existingDraft = getDrafts().find(d => d.id === draftId);
-
-    if (existingDraft) {
-      if (confirm(`A ${MONTHS[month - 1]} ${year} draft already exists.\n\n[Load Existing]\n[Start New]\n[Cancel]`)) {
-        loadDraftFromLocal(existingDraft);
-      }
-    } else {
-      setCurrentYear(year);
-      setCurrentMonth(month);
-      setJourneys([]);
-      setDateStatusOverrides({});
-      setTourDiary(null);
-      setLastSavedState('');
-      setHasUnsavedChanges(false);
-      alert(`✓ New ${MONTHS[month - 1]} ${year} Tour Diary created`);
-    }
-    setShowNewDiaryModal(false);
   }
 
   // Load journeys for current month
@@ -919,6 +923,28 @@ export function TourDiary() {
     setActionMenuOpen(null);
   }
 
+  function markAsWorkingDay(date: string) {
+    setDateStatusOverrides((previous) => ({
+      ...previous,
+      [date]: {
+        status: 'WORKING',
+        holiday_name: '',
+        holiday_type: 'GENERAL',
+        leave_type: 'NONE'
+      }
+    }));
+    setActionMenuOpen(null);
+  }
+
+  function restoreDefaultStatus(date: string) {
+    setDateStatusOverrides((previous) => {
+      const next = { ...previous };
+      delete next[date];
+      return next;
+    });
+    setActionMenuOpen(null);
+  }
+
   function getDateLeaveType(date: string): LeaveType {
     return dateStatusOverrides[date]?.leave_type || 'NONE';
   }
@@ -928,6 +954,12 @@ export function TourDiary() {
     const isSundayDay = isSunday(currentYear, currentMonth, parseInt(date.split('-')[0]));
     const isSecondSaturdayDay = isSecondSaturday(currentYear, currentMonth, parseInt(date.split('-')[0]));
     const holiday = getDisplayedHolidaysForDate(date).find(h => h.holiday_type === 'GENERAL');
+    const dateOverride = dateStatusOverrides[date];
+    
+    // Allow journey if date is marked as working day (override)
+    if (dateOverride?.status === 'WORKING') {
+      return leaveType !== 'NONE';
+    }
     
     return leaveType !== 'NONE' || isSundayDay || isSecondSaturdayDay || !!holiday;
   }
@@ -937,31 +969,39 @@ export function TourDiary() {
     return journeys.filter(j => j.journey_date === date);
   }
 
-  // Calculate monthly summary
+  // Calculate monthly summary - Centralized calculation function for UI, Preview, and PDF
   function calculateMonthlySummary() {
-    const totalDistance = journeys.reduce((sum, j) => sum + j.distance_km, 0);
-    const tourDays = new Set(journeys.map(j => j.journey_date)).size;
-    const sundays = [];
-    const secondSaturdays = [];
-    const governmentHolidays = [];
-    const optionalHolidays = [];
+    const totalDaysInMonth = getDaysInMonth(currentYear, currentMonth);
+    
+    // Track dates for each category
+    const sundayDates: string[] = [];
+    const secondSaturdayDates: string[] = [];
+    const governmentHolidayDates: string[] = [];
+    const optionalHolidayDates: string[] = [];
+    
     let optionalHolidaysAvailed = 0;
     let leavesAvailed = 0;
 
-    for (let day = 1; day <= getDaysInMonth(currentYear, currentMonth); day++) {
+    for (let day = 1; day <= totalDaysInMonth; day++) {
       const date = formatDate(currentYear, currentMonth, day);
-      if (isSunday(currentYear, currentMonth, day)) {
-        sundays.push(date);
-      }
-      if (isSecondSaturday(currentYear, currentMonth, day)) {
-        secondSaturdays.push(date);
-      }
+      const isSundayDay = isSunday(currentYear, currentMonth, day);
+      const isSecondSaturdayDay = isSecondSaturday(currentYear, currentMonth, day);
       const displayedHolidays = getDisplayedHolidaysForDate(date);
-      if (displayedHolidays.some(holiday => holiday.holiday_type === 'GENERAL')) {
-        governmentHolidays.push(date);
+      const hasGeneralHoliday = displayedHolidays.some(holiday => holiday.holiday_type === 'GENERAL');
+      const hasOptionalHoliday = displayedHolidays.some(holiday => holiday.holiday_type === 'OPTIONAL');
+      
+      // Track dates by category
+      if (isSundayDay) {
+        sundayDates.push(date);
       }
-      if (displayedHolidays.some(holiday => holiday.holiday_type === 'OPTIONAL')) {
-        optionalHolidays.push(date);
+      if (isSecondSaturdayDay) {
+        secondSaturdayDates.push(date);
+      }
+      if (hasGeneralHoliday) {
+        governmentHolidayDates.push(date);
+      }
+      if (hasOptionalHoliday) {
+        optionalHolidayDates.push(date);
       }
       
       // Count leaves and optional holidays availed
@@ -973,33 +1013,72 @@ export function TourDiary() {
       }
     }
 
-    // Calculate meter readings from journeys
-    const meterReadings = journeys.map(j => j.meter_to);
-    const closingMeter = meterReadings.length > 0 ? Math.max(...meterReadings) : 0;
-    const openingMeter = journeys.length > 0 ? Math.min(...journeys.map(j => j.meter_from)) : 0;
+    // Calculate unique non-working days (avoid double-counting overlaps)
+    const allNonWorkingDates = new Set<string>();
+    sundayDates.forEach(date => allNonWorkingDates.add(date));
+    secondSaturdayDates.forEach(date => allNonWorkingDates.add(date));
+    governmentHolidayDates.forEach(date => allNonWorkingDates.add(date));
+    
+    const uniqueNonWorkingDays = allNonWorkingDates.size;
+    
+    // Working Days = Total Days - Unique Non-Working Days
+    const workingDays = Math.max(0, totalDaysInMonth - uniqueNonWorkingDays);
+    
+    // Calculate total distance from journeys - filter by selected month/year
+    const journeysInMonth = journeys.filter(j => {
+      const journeyDate = j.journey_date; // Format: DD-MM-YYYY
+      const [day, month, year] = journeyDate.split('-').map(Number);
+      return year === currentYear && month === currentMonth;
+    });
+    const totalDistance = journeysInMonth.reduce((sum, j) => sum + (j.distance_km || 0), 0);
 
-    // Count unique villages visited (split by space or comma)
+    // Tour Days = Number of unique dates having at least one valid saved Add Journey entry in the selected month
+    // Exclude dates that are invalid for tour activity under existing Leave/Optional Holiday business rules
+    const uniqueJourneyDates = new Set<string>();
+    journeysInMonth.forEach(journey => {
+      const journeyDate = journey.journey_date;
+      const [day, month, year] = journeyDate.split('-').map(Number);
+      
+      // Check if this date is valid for tour activity (not a leave or optional holiday availed)
+      const leaveType = getDateLeaveType(journeyDate);
+      const isLeave = leaveType === 'NORMAL_LEAVE';
+      const isOptionalHolidayAvailed = leaveType === 'OPTIONAL_HOLIDAY';
+      
+      // Only count as Tour Day if not a leave or optional holiday availed
+      if (!isLeave && !isOptionalHolidayAvailed) {
+        uniqueJourneyDates.add(journeyDate);
+      }
+    });
+    const tourDays = uniqueJourneyDates.size;
+
+    // Calculate meter readings from journeys - filter by selected month/year
+    const meterReadingsInMonth = journeysInMonth.map(j => j.meter_to).filter(m => m !== null && m !== undefined);
+    const closingMeter = meterReadingsInMonth.length > 0 ? Math.max(...meterReadingsInMonth) : 0;
+    const openingMeter = journeysInMonth.length > 0 ? Math.min(...journeysInMonth.map(j => j.meter_from)) : 0;
+
+    // Count unique villages visited (split by space or comma) - filter by selected month/year
     const villagesSet = new Set<string>();
-    journeys.forEach(journey => {
+    journeysInMonth.forEach(journey => {
       if (journey.to_place) {
-        // Split by comma or space and trim
         const villages = journey.to_place.split(/[, ]+/).map(v => v.trim()).filter(v => v.length > 0);
         villages.forEach(v => villagesSet.add(v));
       }
     });
 
     return {
-      totalDistance,
+      totalDays: totalDaysInMonth,
+      workingDays,
       tourDays,
+      totalDistance,
+      closingMeter,
+      openingMeter,
       villagesVisited: villagesSet.size,
-      sundays: sundays.length,
-      secondSaturdays: secondSaturdays.length,
-      governmentHolidays: governmentHolidays.length,
-      optionalHolidays: optionalHolidays.length,
+      sundays: sundayDates.length,
+      secondSaturdays: secondSaturdayDates.length,
+      governmentHolidays: governmentHolidayDates.length,
+      optionalHolidays: optionalHolidayDates.length,
       optionalHolidaysAvailed,
       leavesAvailed,
-      openingMeter,
-      closingMeter,
       isReconciled: Math.abs((closingMeter - openingMeter) - totalDistance) < 0.1
     };
   }
@@ -1157,11 +1236,14 @@ export function TourDiary() {
   }
 
   // Delete journey
-  function deleteJourney(journey: TourJourney) {
+  function deleteJourney(journeyId: string) {
     if (!confirm('Are you sure you want to delete this journey?')) return;
 
     // Remove journey from local state
-    setJourneys(prev => prev.filter(j => j.id !== journey.id));
+    setJourneys(prev => prev.filter(j => j.id !== journeyId));
+    
+    // Mark as unsaved changes so it gets saved to draft
+    setHasUnsavedChanges(true);
   }
 
 
@@ -1310,10 +1392,11 @@ export function TourDiary() {
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0); // Black
       const monthYear = `${MONTHS[currentMonth - 1]}-${currentYear}`;
-      const displayDesignation = getHeaderDesignation();
-      const displayMandal = getHeaderMandal();
-      const displayDivision = getHeaderDivision();
-      const displayDistrict = getHeaderDistrict();
+      const displayDesignation = getHeaderDesignation() || '....................';
+      const displayMandal = getHeaderMandal() || '....................';
+      const displayDivision = getHeaderDivision() || '....................';
+      const displayDistrict = getHeaderDistrict() || '....................';
+      const displayName = officerName || officerInfo?.name || '....................';
       
       let xPos = 14;
       const yPos = 12;
@@ -1324,19 +1407,21 @@ export function TourDiary() {
       };
       
       addHeaderText('Tour Diary of ');
-      addHeaderText(officerName || officerInfo?.name || '', true);
+      addHeaderText(' ' + displayName, true);
       addHeaderText(', ');
       addHeaderText(displayDesignation, true);
-      if (shouldShowHeaderMandal()) {
+      if (shouldShowHeaderMandal() && displayMandal !== '....................') {
         addHeaderText(', ');
         addHeaderText(displayMandal, true);
       }
-      if (shouldShowHeaderDivision()) {
+      if (shouldShowHeaderDivision() && displayDivision !== '....................') {
         addHeaderText(', Division: ');
         addHeaderText(displayDivision, true);
       }
-      addHeaderText(', Dist: ');
-      addHeaderText(displayDistrict, true);
+      if (displayDistrict !== '....................') {
+        addHeaderText(', Dist: ');
+        addHeaderText(displayDistrict, true);
+      }
       addHeaderText(' for the Month of ');
       addHeaderText(monthYear, true);
       addHeaderText('.');
@@ -1417,16 +1502,16 @@ export function TourDiary() {
           }
         },
         columnStyles: {
-          0: { cellWidth: 18 },
-          1: { cellWidth: 32 },
-          2: { cellWidth: 34 },
-          3: { cellWidth: 18 },
-          4: { cellWidth: 18 },
-          5: { cellWidth: 22 },
-          6: { cellWidth: 18 },
-          7: { cellWidth: 18 },
-          8: { cellWidth: 24 },
-          9: { cellWidth: 44 }
+          0: { cellWidth: 18, halign: 'center' },
+          1: { cellWidth: 32, halign: 'center' },
+          2: { cellWidth: 34, halign: 'center' },
+          3: { cellWidth: 18, halign: 'center' },
+          4: { cellWidth: 18, halign: 'center' },
+          5: { cellWidth: 22, halign: 'center' },
+          6: { cellWidth: 18, halign: 'center' },
+          7: { cellWidth: 18, halign: 'center' },
+          8: { cellWidth: 24, halign: 'center' },
+          9: { cellWidth: 44, halign: 'center' }
         }
       });
 
@@ -1439,11 +1524,11 @@ export function TourDiary() {
       doc.setFont('times', 'bold');
       doc.text('ABSTRACT', 14, abstractY);
       doc.setFont('times', 'normal');
-      doc.text(`Total No of Working Days: ${summary.tourDays}`, 14, abstractY + 4);
+      doc.text(`Total No of Working Days: ${summary.workingDays}`, 14, abstractY + 4);
       doc.text(`Total No of Days on Tour: ${summary.tourDays}`, 14, abstractY + 7);
-      doc.text(`Total No of Holidays availed: ${summary.sundays + summary.secondSaturdays + summary.governmentHolidays}`, 14, abstractY + 10);
+      doc.text(`Total No of Holidays availed: ${summary.sundays + summary.secondSaturdays + summary.governmentHolidays + summary.optionalHolidaysAvailed}`, 14, abstractY + 10);
       doc.text(`No of Villages Visited: ${summary.villagesVisited}`, 14, abstractY + 13);
-      doc.text(`Leaves availed: 0`, 14, abstractY + 16);
+      doc.text(`Leaves availed: ${summary.leavesAvailed}`, 14, abstractY + 16);
 
       // Signature section - conditional based on officer designation
       const signatureY = abstractY + 12;
@@ -1461,7 +1546,35 @@ export function TourDiary() {
         doc.text('Asst.Director of Agriculture', 175, signatureY);
       }
 
-      doc.save(`Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.pdf`);
+      // Generate PDF blob for storage
+      const pdfBlob = doc.output('blob');
+      const fileName = `Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.pdf`;
+      
+      // Save to IndexedDB
+      try {
+        const diaryId = tourDiary?.id || generateDraftId(officerName || 'Officer', currentYear, currentMonth);
+        const existingPdf = await hasDiaryPdf(diaryId, currentMonth, currentYear);
+        
+        if (existingPdf) {
+          const shouldReplace = confirm(`A PDF for ${MONTHS[currentMonth - 1]} ${currentYear} already exists in My Diaries. Replace it?`);
+          if (!shouldReplace) {
+            // Still download the PDF even if user doesn't want to replace
+            doc.save(fileName);
+            setIsGeneratingPDF(false);
+            return;
+          }
+        }
+        
+        await saveDiaryPdf(diaryId, currentMonth, currentYear, pdfBlob, fileName);
+        await loadStoredPdfs(); // Refresh the PDF list
+      } catch (storageError) {
+        console.error('Failed to save PDF to IndexedDB:', storageError);
+        // Don't prevent the normal download if storage fails
+        alert(`PDF downloaded successfully, but couldn't be saved to My Diaries because browser storage is full.`);
+      }
+      
+      // Normal browser download
+      doc.save(fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert(`Failed to generate PDF. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -1536,10 +1649,647 @@ export function TourDiary() {
 
   const summary = calculateMonthlySummary();
 
+  // Handle Continue Draft
+  const handleContinueDraft = () => {
+    loadAllDrafts();
+    if (allDrafts.length === 0) {
+      alert('No drafts found. Create a new tour diary first.');
+      return;
+    }
+    if (allDrafts.length === 1) {
+      loadDraft(allDrafts[0]);
+      return;
+    }
+    setShowDraftPicker(true);
+  };
+
+  // Handle loading a specific draft
+  const loadDraft = (draft: TourDiaryDraft) => {
+    setCurrentYear(draft.year);
+    setCurrentMonth(draft.month);
+    setOfficerName(draft.officerName);
+    setDesignation(draft.designation);
+    setCustomDesignation(draft.customDesignation || '');
+    setDistrict(draft.district);
+    setCustomDistrict(draft.customDistrict || '');
+    setMandal(draft.mandal);
+    setCustomMandal(draft.customMandal || '');
+    setDivision(draft.division);
+    setCustomDivision(draft.customDivision || '');
+    setJourneys(draft.journeys || []);
+    setDateStatusOverrides(draft.dateStatusOverrides || {});
+    setTourDiary({
+      id: draft.id,
+      officer_id: user?.id || '',
+      year: draft.year,
+      month: draft.month,
+      opening_meter: draft.openingMeter,
+      closing_meter: draft.closingMeter,
+      total_km: draft.totalKm,
+      status: 'draft',
+      officer_name: draft.officerName,
+      designation: draft.designation,
+      district: draft.district,
+      mandal: draft.mandal
+    });
+    setShowDraftPicker(false);
+    setDraftMenuOpen(null);
+    setShowLandingPage(false);
+  };
+
+  // Handle opening a completed diary
+  const openCompletedDiary = (diary: TourDiary) => {
+    setCurrentYear(diary.year);
+    setCurrentMonth(diary.month);
+    setOfficerName(diary.officer_name || '');
+    setDesignation(diary.designation || '');
+    setDistrict(diary.district || '');
+    setMandal(diary.mandal || '');
+    setDivision('');
+    setTourDiary(diary);
+    loadJourneys();
+    setShowLandingPage(false);
+  };
+
+  // Handle My Diaries - toggle dropdown
+  const handleMyDiaries = () => {
+    setShowMyDiariesDropdown(!showMyDiariesDropdown);
+  };
+
+  // Recovery state functions
+  const discardRecoveryState = () => {
+    localStorage.removeItem(RECOVERY_STORAGE_KEY);
+    setRecoveryDraft(null);
+    setShowRecoveryPrompt(false);
+  };
+
+  const restoreRecoveryState = () => {
+    if (recoveryDraft) {
+      setCurrentYear(recoveryDraft.year);
+      setCurrentMonth(recoveryDraft.month);
+      setOfficerName(recoveryDraft.officerName);
+      setDesignation(recoveryDraft.designation);
+      setCustomDesignation(recoveryDraft.customDesignation || '');
+      setDistrict(recoveryDraft.district);
+      setCustomDistrict(recoveryDraft.customDistrict || '');
+      setMandal(recoveryDraft.mandal);
+      setCustomMandal(recoveryDraft.customMandal || '');
+      setDivision(recoveryDraft.division);
+      setCustomDivision(recoveryDraft.customDivision || '');
+      setJourneys(recoveryDraft.journeys || []);
+      setDateStatusOverrides(recoveryDraft.dateStatusOverrides || {});
+      setTourDiary({
+        id: recoveryDraft.id,
+        officer_id: user?.id || '',
+        year: recoveryDraft.year,
+        month: recoveryDraft.month,
+        opening_meter: recoveryDraft.openingMeter,
+        closing_meter: recoveryDraft.closingMeter,
+        total_km: recoveryDraft.totalKm,
+        status: 'draft',
+        officer_name: recoveryDraft.officerName,
+        designation: recoveryDraft.designation,
+        district: recoveryDraft.district,
+        mandal: recoveryDraft.mandal
+      });
+      localStorage.removeItem(RECOVERY_STORAGE_KEY);
+      setRecoveryDraft(null);
+      setShowRecoveryPrompt(false);
+      setShowLandingPage(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950 flex items-center justify-center">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-700" />
+      </div>
+    );
+  }
+
+  // Landing Page
+  if (showLandingPage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
+        {/* Header */}
+        <div className="sticky top-0 z-40 border-b border-emerald-200/50 bg-white/80 backdrop-blur-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
+          <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
+                  <h1 className="flex items-center gap-2 text-xl font-black text-white">
+                    <NotebookPen className="h-6 w-6" aria-label="Tour Diary" />
+                    Tour Diary
+                  </h1>
+                  <p className="text-sm font-semibold text-white/90">
+                    Manage your monthly tour diaries
+                  </p>
+                </div>
+              </div>
+              <BackButton onClick={() => navigate('/officer-toolkit')}>Back</BackButton>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+          {/* Action Cards - Compact Mobile-First Design */}
+          <div className="mb-8 space-y-3 lg:grid lg:grid-cols-3 lg:gap-4 lg:space-y-0">
+            {/* Continue Draft Card - Only show when drafts exist */}
+            {allDrafts.length > 0 && (
+              <button
+                onClick={handleContinueDraft}
+                className="flex items-center gap-4 rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-amber-300 hover:shadow-md dark:border-amber-800 dark:bg-amber-950/30 dark:hover:border-amber-700"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-200 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    Continue Draft
+                  </h3>
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    {allDrafts.length === 1 
+                      ? `${MONTHS[allDrafts[0].month - 1]} ${allDrafts[0].year} • Last edited today`
+                      : `${allDrafts.length} drafts available`
+                    }
+                  </p>
+                </div>
+                <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-black uppercase text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                  Draft
+                </span>
+                <ArrowRight className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" />
+              </button>
+            )}
+
+            {/* New Tour Diary Card */}
+            <button
+              onClick={() => {
+                setShowLandingPage(false);
+                setJourneys([]);
+                setDateStatusOverrides({});
+                setTourDiary(null);
+                setOfficerName('');
+                setDesignation('');
+                setCustomDesignation('');
+                setDistrict('');
+                setCustomDistrict('');
+                setMandal('');
+                setCustomMandal('');
+                setDivision('');
+                setCustomDivision('');
+              }}
+              className="flex items-center gap-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-emerald-300 hover:shadow-md dark:border-emerald-800 dark:bg-emerald-950/30 dark:hover:border-emerald-700"
+              style={{ backgroundColor: 'rgba(236, 253, 245, 0.8)' }}
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-200 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
+                <Plus className="h-5 w-5" />
+              </div>
+              <div className="flex-1 text-left">
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                  New Tour Diary
+                </h3>
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                  Create a diary for a new month
+                </p>
+              </div>
+              <ArrowRight className="h-5 w-5 shrink-0 text-emerald-700 dark:text-emerald-400" />
+            </button>
+
+            {/* My Diaries Card */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 shadow-sm dark:border-slate-800 dark:bg-slate-950/30" style={{ backgroundColor: 'rgba(248, 250, 252, 0.8)' }}>
+              <button
+                onClick={handleMyDiaries}
+                className="flex w-full items-center gap-4 px-4 py-3 transition-all active:scale-[0.98] hover:border-slate-300 hover:shadow-md"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-200 text-slate-800 dark:bg-slate-900 dark:text-slate-200">
+                  <ClipboardList className="h-5 w-5" />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    My Diaries
+                  </h3>
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    View and manage saved diaries
+                    {completedDiaries.length > 0 && ` • ${completedDiaries.length} Diaries`}
+                    {storedPdfs.length > 0 && ` • ${storedPdfs.length} PDFs`}
+                  </p>
+                </div>
+                {showMyDiariesDropdown ? (
+                  <ChevronRight className="h-5 w-5 shrink-0 rotate-90 text-slate-700 dark:text-slate-400" />
+                ) : (
+                  <ChevronRight className="h-5 w-5 shrink-0 text-slate-700 dark:text-slate-400" />
+                )}
+              </button>
+              
+              {showMyDiariesDropdown && (
+                <div className="border-t border-slate-200 p-4 dark:border-slate-800">
+                  <div className="space-y-3">
+                    {/* Completed Diaries */}
+                    {completedDiaries.slice(0, 5).map((diary) => (
+                      <button
+                        key={diary.id}
+                        onClick={() => openCompletedDiary(diary)}
+                        className="w-full rounded-xl border border-emerald-200 bg-white p-3 text-left shadow-sm transition-all hover:border-emerald-400 hover:shadow-md dark:border-emerald-800 dark:bg-slate-900 dark:hover:border-emerald-600"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+                            <Check className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">
+                              {MONTHS[diary.month - 1]} {diary.year}
+                            </p>
+                            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                              {diary.total_km.toFixed(1)} km
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+
+                    {/* Downloaded PDFs */}
+                    {storedPdfs.map((pdf) => (
+                      <div
+                        key={pdf.id}
+                        className="relative w-full rounded-xl border border-blue-200 bg-white p-3 text-left shadow-sm transition-all hover:border-blue-400 hover:shadow-md dark:border-blue-800 dark:bg-slate-900 dark:hover:border-blue-600"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                            <FileText className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">
+                              {MONTHS[pdf.month - 1]} {pdf.year}
+                            </p>
+                            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                              {pdf.fileName} • {formatFileSize(pdf.fileSize)}
+                            </p>
+                          </div>
+                          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black uppercase text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            PDF
+                          </span>
+                          <button
+                            onClick={() => setPdfMenuOpen(pdfMenuOpen === pdf.id ? null : pdf.id)}
+                            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+                        </div>
+                        {pdfMenuOpen === pdf.id && (
+                          <div className="absolute right-2 top-12 z-10 w-52 rounded-lg border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-800">
+                            <div className="py-1">
+                              <button 
+                                onClick={async () => {
+                                  const blob = await getDiaryPdf(pdf.id);
+                                  if (blob) {
+                                    setPdfPreview({ blob, fileName: pdf.fileName });
+                                  }
+                                  setPdfMenuOpen(null);
+                                }}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
+                              >
+                                Preview
+                              </button>
+                              <button 
+                                onClick={async () => {
+                                  const blob = await getDiaryPdf(pdf.id);
+                                  if (blob) {
+                                    const url = URL.createObjectURL(blob);
+                                    window.open(url, '_blank');
+                                  }
+                                  setPdfMenuOpen(null);
+                                }}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
+                              >
+                                Open PDF
+                              </button>
+                              <button 
+                                onClick={async () => {
+                                  const blob = await getDiaryPdf(pdf.id);
+                                  if (blob) {
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = pdf.fileName;
+                                    a.click();
+                                    URL.revokeObjectURL(url);
+                                  }
+                                  setPdfMenuOpen(null);
+                                }}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
+                              >
+                                Download
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  const newName = prompt('Enter new filename:', pdf.fileName);
+                                  if (newName && newName !== pdf.fileName && newName.endsWith('.pdf')) {
+                                    renameDiaryPdf(pdf.id, newName);
+                                    loadStoredPdfs();
+                                  }
+                                  setPdfMenuOpen(null);
+                                }}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
+                              >
+                                Rename
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  if (confirm('Delete this PDF? This will not delete the Tour Diary data.')) {
+                                    deleteDiaryPdf(pdf.id);
+                                    loadStoredPdfs();
+                                  }
+                                  setPdfMenuOpen(null);
+                                }}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {completedDiaries.length === 0 && storedPdfs.length === 0 && (
+                      <p className="text-center text-sm font-semibold text-slate-600 dark:text-slate-400">
+                        No saved diaries or PDFs
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Diaries Section */}
+          <div id="my-tour-diaries">
+            <h2 className="mb-4 text-lg font-black text-slate-900 dark:text-white">
+              Recent Diaries
+            </h2>
+            <div className="space-y-3">
+              {allDrafts.length === 0 && completedDiaries.length === 0 && (
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                  No recent diaries found
+                </p>
+              )}
+              
+              {/* Drafts */}
+              {allDrafts.map((draft) => (
+                <div
+                  key={draft.id}
+                  className="relative rounded-xl border border-emerald-200 bg-white p-4 shadow-sm dark:border-emerald-800 dark:bg-slate-900"
+                >
+                  <div className="flex items-center justify-between">
+                    <button
+                      onClick={() => loadDraft(draft)}
+                      className="flex-1 text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
+                          <Clock className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900 dark:text-white">
+                            {MONTHS[draft.month - 1]} {draft.year}
+                          </p>
+                          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                            Last edited: {new Date(draft.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            {' • '} Entries: {draft.journeys?.length || 0}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black uppercase text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                        Draft
+                      </span>
+                      <button
+                        onClick={() => setDraftMenuOpen(draftMenuOpen === draft.id ? null : draft.id)}
+                        className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  {draftMenuOpen === draft.id && (
+                    <div className="absolute right-4 top-14 z-10 w-52 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
+                      <div className="py-1">
+                        <button onClick={() => loadDraft(draft)} className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900">Continue</button>
+                        <button onClick={() => {
+                          if (confirm('Delete this draft?')) {
+                            // Remove from individual storage
+                            localStorage.removeItem(`${DRAFT_STORAGE_KEY}_${draft.id}`);
+                            // Also remove from old array storage
+                            const drafts = getDrafts();
+                            const filteredDrafts = drafts.filter(d => d.id !== draft.id);
+                            saveDrafts(filteredDrafts);
+                            // Reload drafts
+                            loadAllDrafts();
+                            setDraftMenuOpen(null);
+                          }
+                        }} className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900">Delete</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Completed Diaries */}
+              {completedDiaries.slice(0, 5).map((diary) => (
+                <button
+                  key={diary.id}
+                  onClick={() => openCompletedDiary(diary)}
+                  className="w-full rounded-xl border border-emerald-200 bg-white p-4 text-left shadow-sm transition-all hover:border-emerald-400 hover:shadow-md dark:border-emerald-800 dark:bg-slate-900 dark:hover:border-emerald-600"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+                      <Check className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-slate-900 dark:text-white">
+                        {MONTHS[diary.month - 1]} {diary.year}
+                      </p>
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        Total Distance: {diary.total_km.toFixed(1)} km
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+
+              {/* Downloaded PDFs */}
+              {storedPdfs.map((pdf) => (
+                <div
+                  key={pdf.id}
+                  className="relative w-full rounded-xl border border-blue-200 bg-white p-4 text-left shadow-sm transition-all hover:border-blue-400 hover:shadow-md dark:border-blue-800 dark:bg-slate-900 dark:hover:border-blue-600"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-slate-900 dark:text-white">
+                        {MONTHS[pdf.month - 1]} {pdf.year}
+                      </p>
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        {pdf.fileName} • {formatFileSize(pdf.fileSize)}
+                      </p>
+                      <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                        Downloaded: {new Date(pdf.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black uppercase text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      PDF
+                    </span>
+                    <button
+                      onClick={() => setPdfMenuOpen(pdfMenuOpen === pdf.id ? null : pdf.id)}
+                      className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+                  </div>
+                  {pdfMenuOpen === pdf.id && (
+                    <div className="absolute right-4 top-14 z-10 w-52 rounded-lg border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-800">
+                      <div className="py-1">
+                        <button 
+                          onClick={async () => {
+                            const blob = await getDiaryPdf(pdf.id);
+                            if (blob) {
+                              setPdfPreview({ blob, fileName: pdf.fileName });
+                            }
+                            setPdfMenuOpen(null);
+                          }}
+                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
+                        >
+                          Preview
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            const blob = await getDiaryPdf(pdf.id);
+                            if (blob) {
+                              const url = URL.createObjectURL(blob);
+                              window.open(url, '_blank');
+                            }
+                            setPdfMenuOpen(null);
+                          }}
+                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
+                        >
+                          Open PDF
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            const blob = await getDiaryPdf(pdf.id);
+                            if (blob) {
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = pdf.fileName;
+                              a.click();
+                              URL.revokeObjectURL(url);
+                            }
+                            setPdfMenuOpen(null);
+                          }}
+                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
+                        >
+                          Download
+                        </button>
+                        <button 
+                          onClick={() => {
+                            const newName = prompt('Enter new filename:', pdf.fileName);
+                            if (newName && newName !== pdf.fileName && newName.endsWith('.pdf')) {
+                              renameDiaryPdf(pdf.id, newName);
+                              loadStoredPdfs();
+                            }
+                            setPdfMenuOpen(null);
+                          }}
+                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900"
+                        >
+                          Rename
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if (confirm('Delete this PDF? This will not delete the Tour Diary data.')) {
+                              deleteDiaryPdf(pdf.id);
+                              loadStoredPdfs();
+                            }
+                            setPdfMenuOpen(null);
+                          }}
+                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Continue Draft Picker Modal
+  if (showDraftPicker) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-emerald-200/50 bg-white p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Continue Draft</h2>
+              <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Choose an unfinished tour diary to resume.</p>
+            </div>
+            <button onClick={() => { setShowDraftPicker(false); setDraftMenuOpen(null); }} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" aria-label="Close draft picker">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {allDrafts.map((draft) => (
+              <div key={draft.id} className="relative rounded-xl border border-emerald-200 bg-white p-4 shadow-sm dark:border-emerald-800 dark:bg-slate-950">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h3 className="font-black text-slate-900 dark:text-white">{MONTHS[draft.month - 1]} {draft.year}</h3>
+                    <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-400">Last edited: {new Date(draft.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Entries: {draft.journeys?.length || 0}</p>
+                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Status: Draft</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button onClick={() => loadDraft(draft)} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">Continue</button>
+                    <button onClick={() => setDraftMenuOpen(draftMenuOpen === draft.id ? null : draft.id)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" aria-label="Draft actions">
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                {draftMenuOpen === draft.id && (
+                  <div className="absolute right-4 top-14 z-10 w-52 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
+                    <div className="py-1">
+                      <button onClick={() => loadDraft(draft)} className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900">Continue</button>
+                      <button onClick={() => {
+                        if (confirm('Delete this draft?')) {
+                          // Remove from individual storage
+                          localStorage.removeItem(`${DRAFT_STORAGE_KEY}_${draft.id}`);
+                          // Also remove from old array storage
+                          const drafts = getDrafts();
+                          const filteredDrafts = drafts.filter(d => d.id !== draft.id);
+                          saveDrafts(filteredDrafts);
+                          // Reload drafts
+                          loadAllDrafts();
+                          setDraftMenuOpen(null);
+                          if (allDrafts.length === 1) {
+                            setShowDraftPicker(false);
+                          }
+                        }
+                      }} className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900">Delete</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -1561,7 +2311,15 @@ export function TourDiary() {
                 </p>
               </div>
             </div>
-            <BackButton onClick={() => navigate('/officer-toolkit')}>Back</BackButton>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowLandingPage(true)}
+                className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-emerald-900"
+              >
+                ← Back to Diaries
+              </button>
+              <BackButton onClick={() => navigate('/officer-toolkit')}>Back</BackButton>
+            </div>
           </div>
         </div>
       </div>
@@ -1695,22 +2453,6 @@ export function TourDiary() {
           </div>
         </div>
 
-        {/* New Tour Diary Button */}
-        {!showDiaryForm && (
-          <div className={`mb-6 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <button
-              onClick={() => setShowDiaryForm(true)}
-              className="flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-sm font-bold text-white hover:bg-indigo-700 shadow-lg transition-all duration-300 hover:shadow-xl"
-            >
-              <Plus className="h-5 w-5" />
-              New Tour Diary
-            </button>
-          </div>
-        )}
-
-        {/* Tour Diary Creation Form - Only shown when button is clicked */}
-        {showDiaryForm && (
-          <>
         {/* Month/Year Selection */}
         <div className={`mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -1767,13 +2509,6 @@ export function TourDiary() {
                 )}
               </button>
               <button
-                onClick={() => setShowLoadDraftModal(true)}
-                className="flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-bold text-white hover:bg-teal-700"
-              >
-                <Table className="h-4 w-4" />
-                Load Draft
-              </button>
-              <button
                 onClick={openEditablePreview}
                 className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-bold text-white hover:bg-purple-700"
               >
@@ -1813,38 +2548,47 @@ export function TourDiary() {
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">Monthly Summary</h2>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Working Days</p>
+              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.workingDays}</p>
+            </div>
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Tour Days</p>
               <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.tourDays}</p>
             </div>
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Total Distance</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.totalDistance.toFixed(1)} KM</p>
-            </div>
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Sundays</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.sundays}</p>
-            </div>
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">2nd Saturdays</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.secondSaturdays}</p>
-            </div>
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Govt Holidays</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.governmentHolidays}</p>
-            </div>
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Optional Holidays</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.optionalHolidays}</p>
+            <div className="rounded-lg bg-orange-50 p-3 dark:bg-orange-950/30 col-span-2 sm:col-span-3 lg:col-span-2">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Holidays & Non-Working Days</p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Sundays:</span>
+                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.sundays}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Second Saturdays:</span>
+                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.secondSaturdays}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Government Holidays:</span>
+                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.governmentHolidays}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Optional Holidays:</span>
+                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.optionalHolidays}</span>
+                </div>
+              </div>
             </div>
             <div className="rounded-lg bg-purple-50 p-3 dark:bg-purple-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Optional Holidays Availed</p>
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No. of Optional Holidays Availed</p>
               <p className="text-lg font-black text-purple-700 dark:text-purple-400">{summary.optionalHolidaysAvailed}</p>
             </div>
             <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No. of Leaves Availed</p>
               <p className="text-lg font-black text-gray-700 dark:text-gray-400">{summary.leavesAvailed}</p>
+            </div>
+            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Total Distance</p>
+              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.totalDistance.toFixed(1)} km</p>
             </div>
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Closing Meter</p>
@@ -1878,95 +2622,119 @@ export function TourDiary() {
             return (
               <div
                 key={date}
-                className="rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80"
+                className="relative rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80"
               >
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      {date} - {dayName}
-                    </h3>
-                    {isSundayDay && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-black uppercase text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
-                        🔵 WEEKLY HOLIDAY
-                      </span>
-                    )}
-                    {isSecondSaturdayDay && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-1 text-[10px] font-black uppercase text-orange-800 dark:bg-orange-900/40 dark:text-orange-200">
-                        🟠 2ND SATURDAY
-                      </span>
-                    )}
-                    {displayedHolidays.map((holiday) => (
-                      <span key={`${holiday.id}-${holiday.holiday_type}`} className={`mr-1 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-black uppercase ${holiday.holiday_type === 'GENERAL' ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200' : 'border border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200'}`}>
-                        {holiday.holiday_name} - {getHolidayTypeLabel(holiday.holiday_type)}
-                        {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && holiday.holiday_type === 'OPTIONAL' && (
-                          <span className="ml-1 text-[9px]">✓ Availed</span>
-                        )}
-                      </span>
-                    ))}
-                    {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-black uppercase text-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
-                        ✓ Leave Availed
-                      </span>
+                {/* Three-dot action menu - absolutely positioned at top-right */}
+                <div className="absolute right-4 top-4 z-10">
+                  <div className="relative">
+                    <button
+                      onClick={() => setActionMenuOpen(actionMenuOpen === date ? null : date)}
+                      className="flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-emerald-900"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+                    {actionMenuOpen === date && (
+                      <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
+                        <div className="py-1">
+                          {getDateLeaveType(date) === 'NONE' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && (
+                            <button
+                              onClick={() => availLeave(date)}
+                              className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                            >
+                              Avail Leave
+                            </button>
+                          )}
+                          {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
+                            <button
+                              onClick={() => cancelLeave(date)}
+                              className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                            >
+                              Cancel Leave
+                            </button>
+                          )}
+                          {displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'NONE' && (
+                            <button
+                              onClick={() => availOptionalHoliday(date)}
+                              className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                            >
+                              Avail Optional Holiday
+                            </button>
+                          )}
+                          {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && (
+                            <button
+                              onClick={() => cancelOptionalHoliday(date)}
+                              className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                            >
+                              Cancel Optional Holiday
+                            </button>
+                          )}
+                          {/* Holiday/Sunday/Second Saturday management options */}
+                          {(isSundayDay || isSecondSaturdayDay || displayedHolidays.some(h => h.holiday_type === 'GENERAL')) && (
+                            <>
+                              <div className="border-t border-emerald-200 dark:border-emerald-800 my-1"></div>
+                              {!dateOverride || dateOverride.status === 'DEFAULT' ? (
+                                <>
+                                  <button
+                                    onClick={() => markAsWorkingDay(date)}
+                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                  >
+                                    Mark as Working Day
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  onClick={() => restoreDefaultStatus(date)}
+                                  className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                >
+                                  Restore Default
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
-                  <div className="flex flex-wrap justify-end gap-2">
-                    {/* Three-dot action menu */}
-                    <div className="relative">
-                      <button
-                        onClick={() => setActionMenuOpen(actionMenuOpen === date ? null : date)}
-                        className="flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-emerald-900"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                      {actionMenuOpen === date && (
-                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
-                          <div className="py-1">
-                            {getDateLeaveType(date) === 'NONE' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && (
-                              <button
-                                onClick={() => availLeave(date)}
-                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                              >
-                                Avail Leave
-                              </button>
-                            )}
-                            {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
-                              <button
-                                onClick={() => cancelLeave(date)}
-                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                              >
-                                Cancel Leave
-                              </button>
-                            )}
-                            {displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'NONE' && (
-                              <button
-                                onClick={() => availOptionalHoliday(date)}
-                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                              >
-                                Avail Optional Holiday
-                              </button>
-                            )}
-                            {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && (
-                              <button
-                                onClick={() => cancelOptionalHoliday(date)}
-                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                              >
-                                Cancel Optional Holiday
-                              </button>
-                            )}
-                          </div>
-                        </div>
+                </div>
+
+                <div className="mb-3 pr-12">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {date} - {dayName}
+                  </h3>
+                  {isSundayDay && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-black uppercase text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+                      🔵 WEEKLY HOLIDAY
+                    </span>
+                  )}
+                  {isSecondSaturdayDay && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-1 text-[10px] font-black uppercase text-orange-800 dark:bg-orange-900/40 dark:text-orange-200">
+                      🟠 2ND SATURDAY
+                    </span>
+                  )}
+                  {displayedHolidays.map((holiday) => (
+                    <span key={`${holiday.id}-${holiday.holiday_type}`} className={`mr-1 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-black uppercase ${holiday.holiday_type === 'GENERAL' ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200' : 'border border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200'}`}>
+                      {holiday.holiday_name} - {getHolidayTypeLabel(holiday.holiday_type)}
+                      {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && holiday.holiday_type === 'OPTIONAL' && (
+                        <span className="ml-1 text-[9px]">✓ Availed</span>
                       )}
-                    </div>
-                    {!isTourEntryDisabled(date) && (
-                      <button
-                        onClick={() => openJourneyForm(date)}
+                    </span>
+                  ))}
+                  {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-black uppercase text-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
+                      ✓ Leave Availed
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap justify-end gap-2">
+                  {!isTourEntryDisabled(date) && (
+                    <button
+                      onClick={() => openJourneyForm(date)}
                         className="flex items-center gap-1 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
                       >
                         <Plus className="h-3 w-3" />
                         Add Journey
                       </button>
                     )}
-                  </div>
                 </div>
 
                 {dateOverride && dateOverride.status !== 'WORKING' && (
@@ -2033,8 +2801,7 @@ export function TourDiary() {
             );
           })}
         </div>
-          </>
-        )}
+        </div>
 
       {/* Journey Form Modal */}
       {showJourneyForm && (
@@ -2215,11 +2982,6 @@ export function TourDiary() {
             </div>
 
             <div className="mb-4 rounded border border-gray-300 bg-white p-4">
-              <div className="mb-4 text-center">
-                <p className="text-base font-bold text-gray-900">
-                  Tour Diary of {officerName || officerInfo?.name || ''}, {getHeaderDesignation()}, {getHeaderMandal()}, Division: {getHeaderDivision()}, Dist: {getHeaderDistrict()} for the Month of {MONTHS[currentMonth - 1]}-{currentYear}.
-                </p>
-              </div>
 
               <div className="mb-4 grid grid-cols-2 gap-4 text-xs text-gray-900">
                 <div>
@@ -2282,11 +3044,11 @@ export function TourDiary() {
                             </>
                           ) : (
                             row.map((cell: any, cellIndex: number) => (
-                              <td key={cellIndex} className="border border-gray-900 px-2 py-1">
+                              <td key={cellIndex} className="border border-gray-900 px-2 py-1 text-center">
                                 <input
                                   type="text"
                                   defaultValue={cell}
-                                  className="w-full bg-transparent text-xs outline-none focus:bg-blue-50"
+                                  className="w-full bg-transparent text-center text-xs outline-none focus:bg-blue-50"
                                   onChange={(e) => {
                                     const newData = [...editablePreviewData];
                                     if (!newData[rowIndex]) newData[rowIndex] = [...row];
@@ -2310,11 +3072,11 @@ export function TourDiary() {
 
               <div className="mt-4 text-xs text-gray-900">
                 <p className="font-bold">ABSTRACT</p>
-                <p>Total No of Working Days: {summary.tourDays}</p>
+                <p>Total No of Working Days: {summary.workingDays}</p>
                 <p>Total No of Days on Tour: {summary.tourDays}</p>
-                <p>Total No of Holidays availed: {summary.sundays + summary.secondSaturdays + summary.governmentHolidays}</p>
+                <p>Total No of Holidays availed: {summary.sundays + summary.secondSaturdays + summary.governmentHolidays + summary.optionalHolidaysAvailed}</p>
                 <p>No of Villages Visited: {summary.villagesVisited}</p>
-                <p>Leaves availed: 0</p>
+                <p>Leaves availed: {summary.leavesAvailed}</p>
               </div>
 
               {/* Signature section - conditional based on officer designation */}
@@ -2364,73 +3126,6 @@ export function TourDiary() {
         </div>
       )}
 
-      {/* Load Draft Modal */}
-      {showLoadDraftModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="mx-4 max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-emerald-200/50 bg-white/95 p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900/95">
-            <h2 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">LOAD TOUR DIARY DRAFT</h2>
-            <div className="mb-4">
-              <input type="text" placeholder="Search drafts..." value={draftSearchTerm} onChange={(e) => setDraftSearchTerm(e.target.value)} className="w-full rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white" />
-            </div>
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{officerName ? `Officer: ${officerName}` : 'All Officers'}</p>
-            </div>
-            <div className="space-y-3">
-              {getFilteredDrafts().length === 0 ? (
-                <p className="text-center text-sm font-semibold text-slate-500 dark:text-slate-400">No drafts found</p>
-              ) : (
-                getFilteredDrafts().map((draft) => (
-                  <div key={draft.id} className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950/30">
-                    <div className="mb-2 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">{draft.officerName}</p>
-                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{MONTHS[draft.month - 1]} {draft.year}</p>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-500">{draft.journeys.length} tour entries</p>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-500">Last saved: {new Date(draft.updatedAt).toLocaleString()}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => loadDraftFromLocal(draft)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700">Load</button>
-                        <button onClick={() => deleteDraftFromLocal(draft.id, draft.month, draft.year)} className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700">Delete</button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            <div className="mt-6 flex justify-end">
-              <button onClick={() => setShowLoadDraftModal(false)} className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-900/40">Close</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* New Tour Diary Modal */}
-      {showNewDiaryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-md rounded-2xl border border-emerald-200/50 bg-white/95 p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900/95">
-            <h2 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">NEW TOUR DIARY</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Month</label>
-                <select value={currentMonth} onChange={(e) => setCurrentMonth(parseInt(e.target.value))} className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white">
-                  {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Year</label>
-                <select value={currentYear} onChange={(e) => setCurrentYear(parseInt(e.target.value))} className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white">
-                  {[2025, 2026, 2027, 2028].map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end gap-2">
-              <button onClick={() => setShowNewDiaryModal(false)} className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-900/40">Cancel</button>
-              <button onClick={() => createNewTourDiary(currentYear, currentMonth)} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">Create New Diary</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Recovery Prompt Modal */}
       {showRecoveryPrompt && recoveryDraft && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -2449,7 +3144,30 @@ export function TourDiary() {
         </div>
       )}
 
-      </div>
+      {/* PDF Preview Modal */}
+      {pdfPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="mx-4 h-[90vh] w-full max-w-5xl rounded-2xl border border-blue-200/50 bg-white shadow-2xl dark:border-blue-800/50 dark:bg-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-800">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{pdfPreview.fileName}</h2>
+              <button 
+                onClick={() => setPdfPreview(null)}
+                className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="h-[calc(90vh-60px)] overflow-auto bg-slate-100 dark:bg-slate-950">
+              <iframe
+                src={URL.createObjectURL(pdfPreview.blob)}
+                className="h-full w-full border-0"
+                title="PDF Preview"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
