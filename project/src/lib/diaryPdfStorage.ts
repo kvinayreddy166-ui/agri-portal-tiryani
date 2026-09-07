@@ -2,7 +2,7 @@
 // This service handles local storage of downloaded PDF files using IndexedDB
 
 const DB_NAME = 'agronix-local';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Unified with diaryStorage.ts
 const STORE_NAME = 'diary-pdfs';
 
 export interface DiaryPdfMetadata {
@@ -13,6 +13,7 @@ export interface DiaryPdfMetadata {
   fileName: string;
   mimeType: string;
   fileSize: number;
+  totalEntries?: number; // Number of journey entries
   createdAt: string;
   updatedAt: string;
 }
@@ -86,7 +87,8 @@ export async function saveDiaryPdf(
   month: number,
   year: number,
   blob: Blob,
-  fileName?: string
+  fileName?: string,
+  totalEntries?: number
 ): Promise<DiaryPdfMetadata> {
   try {
     const db = await getDatabase();
@@ -102,6 +104,7 @@ export async function saveDiaryPdf(
       fileName: finalFileName,
       mimeType: blob.type || 'application/pdf',
       fileSize: blob.size,
+      totalEntries,
       blob,
       createdAt: now,
       updatedAt: now

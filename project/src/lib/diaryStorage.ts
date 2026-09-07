@@ -2,9 +2,10 @@
 // This service handles local storage of completed/saved diary records and drafts using IndexedDB
 
 const DB_NAME = 'agronix-local';
-const DB_VERSION = 2; // Incremented to add new object store
+const DB_VERSION = 2; // Unified database version
 const STORE_NAME = 'tour-diaries';
 const DRAFTS_STORE_NAME = 'tour-diary-drafts';
+const PDF_STORE_NAME = 'diary-pdfs';
 
 export interface SavedDiaryRecord {
   id: string;
@@ -40,6 +41,8 @@ export interface DraftRecord {
   dateStatusOverrides: Record<string, any>;
   dateRemarks: Record<string, string>;
   status: 'DRAFT';
+  totalEntries?: number; // Number of journey entries
+  displayName?: string; // Custom display name for the draft
   createdAt: string;
   updatedAt: string;
 }
@@ -82,6 +85,17 @@ function openDatabase(): Promise<IDBDatabase> {
         draftStore.createIndex('year', 'year', { unique: false });
         draftStore.createIndex('createdAt', 'createdAt', { unique: false });
         draftStore.createIndex('updatedAt', 'updatedAt', { unique: false });
+      }
+
+      // Create object store for PDFs (if not already created by diaryPdfStorage)
+      if (!db.objectStoreNames.contains(PDF_STORE_NAME)) {
+        const pdfStore = db.createObjectStore(PDF_STORE_NAME, { keyPath: 'id' });
+        
+        // Create indexes for efficient queries
+        pdfStore.createIndex('diaryId', 'diaryId', { unique: false });
+        pdfStore.createIndex('month', 'month', { unique: false });
+        pdfStore.createIndex('year', 'year', { unique: false });
+        pdfStore.createIndex('createdAt', 'createdAt', { unique: false });
       }
     };
   });
@@ -270,6 +284,7 @@ export async function saveDraft(
       dateStatusOverrides,
       dateRemarks,
       status: 'DRAFT',
+      totalEntries: journeys.length,
       createdAt: now,
       updatedAt: now
     };
@@ -364,6 +379,53 @@ export async function deleteDraft(id: string): Promise<boolean> {
     });
   } catch (error) {
     console.error('Error deleting draft:', error);
+    return false;
+  }
+}
+
+// Rename draft
+export async function renameDraft(id: string, newDisplayName: string): Promise<boolean> {
+  try {
+    const db = await getDatabase();
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([DRAFTS_STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(DRAFTS_STORE_NAME);
+      
+      // First get the existing record
+      const getRequest = store.get(id);
+      
+      getRequest.onsuccess = () => {
+        const record = getRequest.result as DraftRecord | undefined;
+        if (!record) {
+          reject(new Error('Draft not found'));
+          return;
+        }
+
+        // Update the displayName and updatedAt
+        const updatedRecord: DraftRecord = {
+          ...record,
+          displayName: newDisplayName,
+          updatedAt: new Date().toISOString()
+        };
+
+        const putRequest = store.put(updatedRecord);
+        
+        putRequest.onsuccess = () => {
+          resolve(true);
+        };
+
+        putRequest.onerror = () => {
+          reject(new Error('Failed to rename draft'));
+        };
+      };
+
+      getRequest.onerror = () => {
+        reject(new Error('Failed to get draft for renaming'));
+      };
+    });
+  } catch (error) {
+    console.error('Error renaming draft:', error);
     return false;
   }
 }

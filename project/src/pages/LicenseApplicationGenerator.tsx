@@ -64,6 +64,7 @@ const DISTRICT_DDO_CODES: Record<string, string> = {
   'Nagarkurnool': '28010102003',
   'Narayanpet': '34010102001',
   'Nirmal': '04010102002',
+  'Nizamabad': '05010102001',
   'Peddapalli': '07010102002',
   'Rajanna Sircilla': '14010102003',
   'Ranga Reddy': '23010102004',
