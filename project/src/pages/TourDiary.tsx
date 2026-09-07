@@ -2103,31 +2103,31 @@ export function TourDiary() {
         </div>
 
         <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-          {/* Action Cards - Compact Mobile-First Design */}
-          <div className="mb-8 space-y-3 lg:grid lg:grid-cols-3 lg:gap-4 lg:space-y-0">
+          {/* Action Cards - Modern Mobile-First Design */}
+          <div className="mb-8 flex flex-col gap-4">
             {/* Continue Draft Card - Only show latest draft */}
             {(() => {
               const latestDraft = getLatestDraft();
               return latestDraft ? (
                 <button
                   onClick={() => loadDraft(latestDraft)}
-                  className="flex items-center gap-4 rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-amber-300 hover:shadow-md dark:border-amber-800 dark:bg-amber-950/30 dark:hover:border-amber-700"
+                  className="flex w-full items-center gap-4 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-amber-100/50 px-5 py-4 shadow-sm transition-all active:scale-[0.98] hover:border-amber-300 hover:shadow-md dark:border-amber-800 dark:from-amber-950/50 dark:to-amber-900/30 dark:hover:border-amber-700"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-200 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                    <Clock className="h-5 w-5" />
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-200 to-amber-300 text-amber-800 shadow-sm dark:from-amber-900 dark:to-amber-800 dark:text-amber-200">
+                    <Clock className="h-6 w-6" />
                   </div>
                   <div className="flex-1 text-left">
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    <h3 className="text-base font-black text-slate-900 dark:text-white">
                       Continue Draft
                     </h3>
-                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
                       {MONTHS[latestDraft.month - 1]} {latestDraft.year} • Last edited {new Date(latestDraft.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
-                  <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-black uppercase text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                  <span className="rounded-full bg-amber-200 px-3 py-1 text-xs font-black uppercase text-amber-800 shadow-sm dark:bg-amber-900 dark:text-amber-200">
                     Draft
                   </span>
-                  <ArrowRight className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" />
+                  <ArrowRight className="h-6 w-6 shrink-0 text-amber-700 dark:text-amber-400" />
                 </button>
               ) : null;
             })()}
@@ -2155,276 +2155,271 @@ export function TourDiary() {
                 setCurrentYear(new Date().getFullYear());
                 setCurrentMonth(new Date().getMonth() + 1);
               }}
-              className="flex items-center gap-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-emerald-300 hover:shadow-md dark:border-emerald-800 dark:bg-emerald-950/30 dark:hover:border-emerald-700"
+              className="flex w-full items-center gap-4 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-emerald-100/50 px-5 py-4 shadow-sm transition-all active:scale-[0.98] hover:border-emerald-300 hover:shadow-md dark:border-emerald-800 dark:from-emerald-950/50 dark:to-emerald-900/30 dark:hover:border-emerald-700"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-200 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
-                <Plus className="h-5 w-5" />
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-200 to-emerald-300 text-emerald-800 shadow-sm dark:from-emerald-900 dark:to-emerald-800 dark:text-emerald-200">
+                <Plus className="h-6 w-6" />
               </div>
               <div className="flex-1 text-left">
-                <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                <h3 className="text-base font-black text-slate-900 dark:text-white">
                   New Tour Diary
                 </h3>
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
                   Create a diary for a new month
                 </p>
               </div>
-              <ArrowRight className="h-5 w-5 shrink-0 text-emerald-700 dark:text-emerald-400" />
+              <ArrowRight className="h-6 w-6 shrink-0 text-emerald-700 dark:text-emerald-400" />
             </button>
 
             {/* My Diaries Card */}
-            <div className="rounded-xl border border-slate-200 bg-slate-50/80 shadow-sm dark:border-slate-800 dark:bg-slate-950/30">
-              <button
-                onClick={handleMyDiaries}
-                className="flex w-full items-center gap-4 px-4 py-3 transition-all active:scale-[0.98] hover:border-slate-300 hover:shadow-md"
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-200 text-slate-800 dark:bg-slate-900 dark:text-slate-200">
-                  <ClipboardList className="h-5 w-5" />
-                </div>
-                <div className="flex-1 text-left">
-                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                    My Diaries
-                  </h3>
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                    Drafts & saved PDFs
-                    {allDrafts.length > 0 && ` • ${allDrafts.length} Drafts`}
-                    {storedPdfs.length > 0 && ` • ${storedPdfs.length} PDFs`}
-                  </p>
-                </div>
-                {showMyDiariesDropdown ? (
-                  <ChevronRight className="h-5 w-5 shrink-0 rotate-90 text-slate-700 dark:text-slate-400" />
-                ) : (
-                  <ChevronRight className="h-5 w-5 shrink-0 text-slate-700 dark:text-slate-400" />
-                )}
-              </button>
-              
-              {showMyDiariesDropdown && (
-                <div className="border-t border-slate-200 p-4 dark:border-slate-800">
-                  <div className="space-y-4">
-                    {(() => {
-                      const grouped = getGroupedMyDiaries();
-                      if (grouped.size === 0) {
-                        return (
-                          <div className="text-center py-6">
-                            <p className="text-sm font-bold text-slate-900 dark:text-white mb-2">No Tour Diaries Yet</p>
-                            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-4">Create your first Tour Diary to get started</p>
-                            <button
-                              onClick={() => {
-                                setShowLandingPage(false);
-                                setJourneys([]);
-                                setDateStatusOverrides({});
-                                setTourDiary(null);
-                                setOfficerName('');
-                                setDesignation('');
-                                setCustomDesignation('');
-                                setDistrict('');
-                                setCustomDistrict('');
-                                setMandal('');
-                                setCustomMandal('');
-                                setDivision('');
-                                setCustomDivision('');
-                                setLastSavedState('');
-                                setHasUnsavedChanges(false);
-                                setCurrentYear(new Date().getFullYear());
-                                setCurrentMonth(new Date().getMonth() + 1);
-                                setShowMyDiariesDropdown(false);
-                              }}
-                              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
+            <button
+              onClick={handleMyDiaries}
+              className="flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100/50 px-5 py-4 shadow-sm transition-all active:scale-[0.98] hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:from-slate-950/50 dark:to-slate-900/30 dark:hover:border-slate-700"
+            >
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 shadow-sm dark:from-slate-900 dark:to-slate-800 dark:text-slate-200">
+                <ClipboardList className="h-6 w-6" />
+              </div>
+              <div className="flex-1 text-left">
+                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                  My Diaries
+                </h3>
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                  Drafts & saved PDFs
+                  {allDrafts.length > 0 && ` • ${allDrafts.length} Drafts`}
+                  {storedPdfs.length > 0 && ` • ${storedPdfs.length} PDFs`}
+                </p>
+              </div>
+              <ArrowRight className="h-6 w-6 shrink-0 text-slate-700 dark:text-slate-400" />
+            </button>
+          </div>
+
+          {/* My Diaries Dropdown Content */}
+          {showMyDiariesDropdown && (
+            <div className="mb-8 rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80">
+              <div className="space-y-4">
+                {(() => {
+                  const grouped = getGroupedMyDiaries();
+                  if (grouped.size === 0) {
+                    return (
+                      <div className="text-center py-6">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white mb-2">No Tour Diaries Yet</p>
+                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-4">Create your first Tour Diary to get started</p>
+                        <button
+                          onClick={() => {
+                            setShowLandingPage(false);
+                            setJourneys([]);
+                            setDateStatusOverrides({});
+                            setTourDiary(null);
+                            setOfficerName('');
+                            setDesignation('');
+                            setCustomDesignation('');
+                            setDistrict('');
+                            setCustomDistrict('');
+                            setMandal('');
+                            setCustomMandal('');
+                            setDivision('');
+                            setCustomDivision('');
+                            setLastSavedState('');
+                            setHasUnsavedChanges(false);
+                            setCurrentYear(new Date().getFullYear());
+                            setCurrentMonth(new Date().getMonth() + 1);
+                            setShowMyDiariesDropdown(false);
+                          }}
+                          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
+                        >
+                          New Tour Diary
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  return Array.from(grouped.entries()).map(([key, items]) => {
+                    const [year, month] = key.split('-').map(Number);
+                    return (
+                      <div key={key}>
+                        <h3 className="mb-2 text-xs font-black uppercase text-slate-700 dark:text-slate-300">
+                          {MONTHS[month - 1]} {year}
+                        </h3>
+                        <div className="space-y-2">
+                          {items.map(item => (
+                            <div
+                              key={item.id}
+                              className={`relative rounded-xl border p-3 text-left shadow-sm transition-all hover:shadow-md ${
+                                item.type === 'draft'
+                                  ? 'border-amber-200 bg-white hover:border-amber-400 dark:border-amber-800 dark:bg-slate-900 dark:hover:border-amber-600'
+                                  : 'border-emerald-200 bg-white hover:border-emerald-400 dark:border-emerald-800 dark:bg-slate-900 dark:hover:border-emerald-600'
+                              }`}
                             >
-                              New Tour Diary
-                            </button>
-                          </div>
-                        );
-                      }
-
-                      return Array.from(grouped.entries()).map(([key, items]) => {
-                        const [year, month] = key.split('-').map(Number);
-                        return (
-                          <div key={key}>
-                            <h3 className="mb-2 text-xs font-black uppercase text-slate-700 dark:text-slate-300">
-                              {MONTHS[month - 1]} {year}
-                            </h3>
-                            <div className="space-y-2">
-                              {items.map(item => (
-                                <div
-                                  key={item.id}
-                                  className={`relative rounded-xl border p-3 text-left shadow-sm transition-all hover:shadow-md ${
-                                    item.type === 'draft'
-                                      ? 'border-amber-200 bg-white hover:border-amber-400 dark:border-amber-800 dark:bg-slate-900 dark:hover:border-amber-600'
-                                      : 'border-emerald-200 bg-white hover:border-emerald-400 dark:border-emerald-800 dark:bg-slate-900 dark:hover:border-emerald-600'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                                      item.type === 'draft'
-                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'
-                                        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
-                                    }`}>
-                                      {item.type === 'draft' ? (
-                                        <NotebookPen className="h-4 w-4" />
-                                      ) : (
-                                        <FileText className="h-4 w-4" />
-                                      )}
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="text-sm font-bold text-slate-900 dark:text-white">
-                                        {item.title}
-                                      </p>
-                                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                        {item.subtitle}
-                                      </p>
-                                      <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-500">
-                                        {item.type === 'draft'
-                                          ? `Last saved: ${new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
-                                          : `Saved: ${new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
-                                        }
-                                      </p>
-                                    </div>
-                                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${
-                                      item.type === 'draft'
-                                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
-                                        : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200'
-                                    }`}>
-                                      {item.type === 'draft' ? 'DRAFT' : 'PDF SAVED'}
-                                    </span>
-                                    <button
-                                      onClick={() => {
-                                        if (item.type === 'draft') {
-                                          setDraftMenuOpen(draftMenuOpen === item.id ? null : item.id);
-                                        } else {
-                                          setPdfMenuOpen(pdfMenuOpen === item.id ? null : item.id);
-                                        }
-                                      }}
-                                      className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                                    >
-                                      <MoreVertical className="h-4 w-4" />
-                                    </button>
-                                  </div>
-
-                                  {/* Draft menu */}
-                                  {item.type === 'draft' && draftMenuOpen === item.id && (
-                                    <div className="absolute right-2 top-12 z-10 w-48 rounded-lg border border-amber-200 bg-white shadow-lg dark:border-amber-800 dark:bg-slate-800">
-                                      <div className="py-1">
-                                        <button
-                                          onClick={() => {
-                                            loadDraftFromLocal(item.data as TourDiaryDraft);
-                                            setDraftMenuOpen(null);
-                                            setShowMyDiariesDropdown(false);
-                                          }}
-                                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-amber-50 dark:text-slate-200 dark:hover:bg-amber-900"
-                                        >
-                                          Continue
-                                        </button>
-                                        <button
-                                          onClick={async () => {
-                                            const newName = prompt('Enter new name:', item.title);
-                                            if (newName && newName.trim()) {
-                                              const success = await renameDraft(item.id, newName.trim());
-                                              if (success) {
-                                                await loadAllDrafts();
-                                              } else {
-                                                alert('Failed to rename draft');
-                                              }
-                                            }
-                                            setDraftMenuOpen(null);
-                                          }}
-                                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-amber-50 dark:text-slate-200 dark:hover:bg-amber-900"
-                                        >
-                                          Rename
-                                        </button>
-                                        <button
-                                          onClick={async () => {
-                                            if (confirm('Delete this draft?')) {
-                                              await deleteDraftFromIndexedDB(item.id);
-                                              await loadAllDrafts();
-                                            }
-                                            setDraftMenuOpen(null);
-                                          }}
-                                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900"
-                                        >
-                                          Delete
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* PDF menu */}
-                                  {item.type === 'pdf' && pdfMenuOpen === item.id && (
-                                    <div className="absolute right-2 top-12 z-10 w-52 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
-                                      <div className="py-1">
-                                        <button
-                                          onClick={async () => {
-                                            const blob = await getDiaryPdf(item.id);
-                                            if (blob) {
-                                              const url = URL.createObjectURL(blob);
-                                              window.open(url, '_blank');
-                                            }
-                                            setPdfMenuOpen(null);
-                                          }}
-                                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                        >
-                                          Open PDF
-                                        </button>
-                                        <button
-                                          onClick={async () => {
-                                            const blob = await getDiaryPdf(item.id);
-                                            if (blob) {
-                                              const url = URL.createObjectURL(blob);
-                                              const a = document.createElement('a');
-                                              a.href = url;
-                                              a.download = (item.data as DiaryPdfMetadata).fileName;
-                                              a.click();
-                                              URL.revokeObjectURL(url);
-                                            }
-                                            setPdfMenuOpen(null);
-                                          }}
-                                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                        >
-                                          Download
-                                        </button>
-                                        <button
-                                          onClick={async () => {
-                                            const newName = prompt('Enter new filename:', (item.data as DiaryPdfMetadata).fileName);
-                                            if (newName && newName.trim()) {
-                                              const success = await renameDiaryPdf(item.id, newName.trim());
-                                              if (success) {
-                                                await loadStoredPdfs();
-                                              } else {
-                                                alert('Failed to rename PDF');
-                                              }
-                                            }
-                                            setPdfMenuOpen(null);
-                                          }}
-                                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                        >
-                                          Rename
-                                        </button>
-                                        <button
-                                          onClick={async () => {
-                                            if (confirm('Delete this PDF? This will not delete the Tour Diary data.')) {
-                                              await deleteDiaryPdf(item.id);
-                                              await loadStoredPdfs();
-                                            }
-                                            setPdfMenuOpen(null);
-                                          }}
-                                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900"
-                                        >
-                                          Delete
-                                        </button>
-                                      </div>
-                                    </div>
+                              <div className="flex items-center gap-3">
+                                <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                                  item.type === 'draft'
+                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'
+                                    : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
+                                }`}>
+                                  {item.type === 'draft' ? (
+                                    <NotebookPen className="h-4 w-4" />
+                                  ) : (
+                                    <FileText className="h-4 w-4" />
                                   )}
                                 </div>
-                              ))}
+                                <div className="flex-1">
+                                  <p className="text-sm font-bold text-slate-900 dark:text-white">
+                                    {item.title}
+                                  </p>
+                                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                    {item.subtitle}
+                                  </p>
+                                  <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-500">
+                                    {item.type === 'draft'
+                                      ? `Last saved: ${new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+                                      : `Saved: ${new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
+                                    }
+                                  </p>
+                                </div>
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${
+                                  item.type === 'draft'
+                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
+                                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200'
+                                }`}>
+                                  {item.type === 'draft' ? 'DRAFT' : 'PDF SAVED'}
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    if (item.type === 'draft') {
+                                      setDraftMenuOpen(draftMenuOpen === item.id ? null : item.id);
+                                    } else {
+                                      setPdfMenuOpen(pdfMenuOpen === item.id ? null : item.id);
+                                    }
+                                  }}
+                                  className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </button>
+                              </div>
+
+                              {/* Draft menu */}
+                              {item.type === 'draft' && draftMenuOpen === item.id && (
+                                <div className="absolute right-2 top-12 z-10 w-48 rounded-lg border border-amber-200 bg-white shadow-lg dark:border-amber-800 dark:bg-slate-800">
+                                  <div className="py-1">
+                                    <button
+                                      onClick={() => {
+                                        loadDraftFromLocal(item.data as TourDiaryDraft);
+                                        setDraftMenuOpen(null);
+                                        setShowMyDiariesDropdown(false);
+                                      }}
+                                      className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-amber-50 dark:text-slate-200 dark:hover:bg-amber-900"
+                                    >
+                                      Continue
+                                    </button>
+                                    <button
+                                      onClick={async () => {
+                                        const newName = prompt('Enter new name:', item.title);
+                                        if (newName && newName.trim()) {
+                                          const success = await renameDraft(item.id, newName.trim());
+                                          if (success) {
+                                            await loadAllDrafts();
+                                          } else {
+                                            alert('Failed to rename draft');
+                                          }
+                                        }
+                                        setDraftMenuOpen(null);
+                                      }}
+                                      className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-amber-50 dark:text-slate-200 dark:hover:bg-amber-900"
+                                    >
+                                      Rename
+                                    </button>
+                                    <button
+                                      onClick={async () => {
+                                        if (confirm('Delete this draft?')) {
+                                          await deleteDraftFromIndexedDB(item.id);
+                                          await loadAllDrafts();
+                                        }
+                                        setDraftMenuOpen(null);
+                                      }}
+                                      className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* PDF menu */}
+                              {item.type === 'pdf' && pdfMenuOpen === item.id && (
+                                <div className="absolute right-2 top-12 z-10 w-52 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
+                                  <div className="py-1">
+                                    <button
+                                      onClick={async () => {
+                                        const blob = await getDiaryPdf(item.id);
+                                        if (blob) {
+                                          const url = URL.createObjectURL(blob);
+                                          window.open(url, '_blank');
+                                        }
+                                        setPdfMenuOpen(null);
+                                      }}
+                                      className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                    >
+                                      Open PDF
+                                    </button>
+                                    <button
+                                      onClick={async () => {
+                                        const blob = await getDiaryPdf(item.id);
+                                        if (blob) {
+                                          const url = URL.createObjectURL(blob);
+                                          const a = document.createElement('a');
+                                          a.href = url;
+                                          a.download = (item.data as DiaryPdfMetadata).fileName;
+                                          a.click();
+                                          URL.revokeObjectURL(url);
+                                        }
+                                        setPdfMenuOpen(null);
+                                      }}
+                                      className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                    >
+                                      Download
+                                    </button>
+                                    <button
+                                      onClick={async () => {
+                                        const newName = prompt('Enter new filename:', (item.data as DiaryPdfMetadata).fileName);
+                                        if (newName && newName.trim()) {
+                                          const success = await renameDiaryPdf(item.id, newName.trim());
+                                          if (success) {
+                                            await loadStoredPdfs();
+                                          } else {
+                                            alert('Failed to rename PDF');
+                                          }
+                                        }
+                                        setPdfMenuOpen(null);
+                                      }}
+                                      className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                    >
+                                      Rename
+                                    </button>
+                                    <button
+                                      onClick={async () => {
+                                        if (confirm('Delete this PDF? This will not delete the Tour Diary data.')) {
+                                          await deleteDiaryPdf(item.id);
+                                          await loadStoredPdfs();
+                                        }
+                                        setPdfMenuOpen(null);
+                                      }}
+                                      className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
-                </div>
-              )}
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
       </div>
