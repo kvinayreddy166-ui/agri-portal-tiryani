@@ -151,6 +151,7 @@ export function Login() {
   const [formsLoading, setFormsLoading] = useState(false);
   const [pdfToolOpen, setPdfToolOpen] = useState(false);
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
+  const [statutoryView, setStatutoryView] = useState<'generate' | 'library'>('generate');
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installMessage, setInstallMessage] = useState<string | null>(null);
   const [appInstalled, setAppInstalled] = useState(
@@ -470,34 +471,36 @@ export function Login() {
       <div className="min-h-screen bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24">
         <div className="mx-auto w-full max-w-4xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
           {showStatutoryForms ? (
-            <section className="mb-4 overflow-hidden rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-700 via-green-700 to-teal-800 p-4 text-white shadow-sm sm:p-5">
-              <div className="flex flex-col gap-4">
-                <div className="flex min-w-0 items-start gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
-                    <FileText className="h-6 w-6" />
+            <div className="mb-4">
+              <div className="rounded-2xl bg-gradient-to-r from-[#312E81] via-[#4338CA] to-[#5B21B6] p-4 shadow-lg">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
+                      <FileText className="h-6 w-6 text-white" aria-label="Statutory Forms" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-indigo-100">
+                        {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+                      </p>
+                      <h1 className="text-xl font-black text-white">
+                        {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
+                      </h1>
+                      <p className="text-sm font-semibold text-white/90">
+                        {t('Generate and manage official documents', 'అధికారిక పత్రాలను సృష్టించండి మరియు నిర్వహించండి')}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-black uppercase tracking-wide text-emerald-100">
-                      {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
-                    </p>
-                    <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
-                      {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
-                    </h1>
-                    <p className="mt-1 text-sm font-semibold text-emerald-50">
-                      {t('Generate PDFs and view statutory form files', 'Generate PDFs and view statutory form files')}
-                    </p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={closeToolPage}
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    {t('Back', 'వెనుకకు')}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={closeToolPage}
-                  className="inline-flex self-start items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  {t('Back', 'వెనుకకు')}
-                </button>
               </div>
-            </section>
+            </div>
           ) : (
             <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
@@ -554,115 +557,185 @@ export function Login() {
             </button>
           </div>
           <div className={calculatorOpen || fertilizerCalculatorOpen ? 'hidden' : ''}>
-          <section className="rounded-xl border border-white/70 bg-gradient-to-br from-emerald-100 via-lime-50 to-cyan-100 p-4 shadow-md">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-lg">
-                  <FileText className="h-5 w-5" />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setStatutoryView('generate')}
+              className={`group relative overflow-hidden rounded-xl border p-4 shadow-sm transition-all hover:shadow-md ${
+                statutoryView === 'generate'
+                  ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-green-50'
+                  : 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50 hover:border-emerald-300'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg">
+                  <FileText className="h-6 w-6" />
                 </div>
-                <div className="min-w-0">
-                  <h2 className="text-lg font-black text-slate-950 sm:text-xl">Smart Form Generator</h2>
-                  <p className="text-sm font-semibold text-slate-600">Generate statutory PDF forms for the selected category.</p>
+                <div className="min-w-0 flex-1 text-left">
+                  <h3 className="text-base font-black text-slate-900">
+                    {t('Generate Forms', 'ఫారాలను సృష్టించండి')}
+                  </h3>
+                  <p className="mt-1 text-xs font-semibold text-slate-600 line-clamp-2">
+                    {t('Create statutory forms automatically for sample drawal.', 'నమూనా డ్రాయింగ్ కోసం చట్టబద్ధ ఫారాలను స్వయంచాలకంగా సృష్టించండి.')}
+                  </p>
                 </div>
               </div>
-              <div className="grid w-full gap-2 sm:w-auto sm:min-w-[18rem] sm:grid-cols-[minmax(0,1fr)_auto]">
-                <select
-                  value={statutoryFolder}
-                  onChange={(event) => setStatutoryFolder(event.target.value)}
-                  className="min-h-11 rounded-lg border border-emerald-200 bg-white/90 px-3 py-2 text-sm font-black text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-                  aria-label="Select statutory form category"
-                >
-                  {STATUTORY_FOLDERS.map((folder) => (
-                    <option key={folder.id} value={folder.id}>{language === 'te' ? folder.telugu : folder.label}</option>
-                  ))}
-                </select>
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatutoryView('library')}
+              className={`group relative overflow-hidden rounded-xl border p-4 shadow-sm transition-all hover:shadow-md ${
+                statutoryView === 'library'
+                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50'
+                  : 'border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 hover:border-blue-300'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg">
+                  <Download className="h-6 w-6" />
+                </div>
+                <div className="min-w-0 flex-1 text-left">
+                  <h3 className="text-base font-black text-slate-900">
+                    {t('Forms Library', 'ఫారాలు లైబ్రరీ')}
+                  </h3>
+                  <p className="mt-1 text-xs font-semibold text-slate-600 line-clamp-2">
+                    {t('View and download uploaded statutory forms and documents.', 'అప్‌లోడ్ చేసిన చట్టబద్ధ ఫారాలు మరియు పత్రాలను చూడండి మరియు డౌన్‌లోడ్ చేయండి.')}
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          {statutoryView === 'generate' && (
+            <section className="mt-4 rounded-xl border border-white/70 bg-gradient-to-br from-emerald-100 via-lime-50 to-cyan-100 p-4 shadow-md">
+              <div className="mb-4">
+                <h2 className="text-sm font-black uppercase tracking-wide text-slate-700">
+                  {t('Select Category', 'వర్గాన్ని ఎంచుకోండి')}
+                </h2>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {STATUTORY_FOLDERS.map((folder) => (
+                  <button
+                    key={folder.id}
+                    type="button"
+                    onClick={() => setStatutoryFolder(folder.id)}
+                    className={`rounded-lg border p-3 text-left transition ${
+                      statutoryFolder === folder.id
+                        ? 'border-emerald-500 bg-emerald-600 text-white shadow-md'
+                        : 'border-emerald-200 bg-white text-slate-900 hover:border-emerald-300 hover:bg-emerald-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-black">
+                        {language === 'te' ? folder.telugu : folder.label}
+                      </span>
+                      {statutoryFolder === folder.id && (
+                        <span className="text-emerald-200">✓</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4">
                 <button
                   type="button"
                   onClick={openPdfTool}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-black text-white shadow-md shadow-red-900/10 transition hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-red-700 hover:shadow-lg"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-3 text-sm font-black text-white shadow-md transition hover:from-emerald-700 hover:to-green-700 hover:shadow-lg"
                 >
-                  <FileText className="h-4 w-4" />
-                  Draw Sample
+                  <FileText className="h-5 w-5" />
+                  {t('Start New Sample Drawal', 'కొత్త నమూనా డ్రాయింగ్‌ను ప్రారంభించండి')}
                 </button>
+                <p className="mt-2 text-xs font-semibold text-slate-600 text-center">
+                  {t('Create sample details and generate required statutory forms.', 'నమూనా వివరాలను సృష్టించండి మరియు అవసరమైన చట్టబద్ధ ఫారాలను సృష్టించండి.')}
+                </p>
               </div>
-            </div>
-<div className="mt-4 table-scroll rounded-lg border border-slate-200 bg-white">
-            <table className="w-full min-w-[430px] table-fixed text-left">
-              <thead className="sticky top-0 z-10 bg-slate-900 text-xs font-bold text-white sm:text-sm">
-                <tr>
-                  <th className="w-14 px-2.5 py-2 sm:w-16">{t('S.No.', 'à°•à±à°°.à°¸à°‚.')}</th>
-                  <th className="px-2.5 py-2">{t('Proforma / Form Name', 'à°ªà±à°°à±Šà°«à°¾à°°à±à°®à°¾ / à°«à°¾à°°à°‚ à°ªà±‡à°°à±')}</th>
-                  <th className="w-24 px-2.5 py-2 text-right">{t('Action', 'à°šà°°à±à°¯')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {formsLoading ? (
-                  <tr>
-                    <td colSpan={3} className="px-3 py-6 text-center text-sm font-semibold text-slate-500">
-                      {t('Loading forms...', 'à°«à°¾à°°à°¾à°²à± à°²à±‹à°¡à± à°…à°µà±à°¤à±à°¨à±à°¨à°¾à°¯à°¿...')}
-                    </td>
-                  </tr>
-                ) : selectedStatutoryForms.length > 0 ? (
-                  paginatedStatutoryForms.map((form, index) => (
-                    <tr key={form.id} className="hover:bg-emerald-50/60">
-                      <td className="px-2.5 py-2 align-middle text-sm font-bold text-slate-600">{statutoryPage * PUBLIC_FORMS_PAGE_SIZE + index + 1}</td>
-                      <td className="px-2.5 py-2 align-middle">
-                        <div className="flex w-full min-w-0 items-center gap-2 text-left">
-                          <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                          <span className="block min-w-0 truncate text-sm text-slate-950 sm:text-base">{form.label || form.title}</span>
-                        </div>
-                      </td>
-                      <td className="px-2.5 py-2 align-middle">
-                        <div className="flex items-center justify-end">
-                          {form.file_url && (
-                            <div className="inline-flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => openPublicPreview(form)}
-                                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-emerald-700 transition hover:bg-emerald-50"
-                                aria-label={t('Preview file', 'à°«à±ˆà°²à± à°ªà±à°°à°¿à°µà±à°¯à±‚')}
-                                title={t('Preview', 'à°ªà±à°°à°¿à°µà±à°¯à±‚')}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handlePublicDownload(form)}
-                                disabled={downloadingFormId === form.id}
-                                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-sky-700 transition hover:bg-sky-50 disabled:opacity-50"
-                                aria-label={t('Download file', 'à°«à±ˆà°²à± à°¡à±Œà°¨à±à°²à±‹à°¡à± à°šà±‡à°¯à°‚à°¡à°¿')}
-                                title={t('Download', 'à°¡à±Œà°¨à±à°²à±‹à°¡à±')}
-                              >
-                                {downloadingFormId === form.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <Download className="h-4 w-4" />
-                                )}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={3} className="px-3 py-8 text-center text-sm font-semibold text-slate-500">
-                      {t('No statutory forms uploaded yet.', 'à°‡à°‚à°•à°¾ à°«à°¾à°°à°¾à°²à± à°…à°ªà±à°²à±‹à°¡à± à°•à°¾à°²à±‡à°¦à±.')}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          {selectedStatutoryForms.length > PUBLIC_FORMS_PAGE_SIZE && (
-            <PublicFormsPagination
-              currentPage={statutoryPage}
-              pageCount={statutoryPageCount}
-              onPageChange={setStatutoryPage}
-            />
+            </section>
           )}
-                    </section>
+
+          {statutoryView === 'library' && (
+            <div className="mt-4">
+              <div className="mb-3">
+                <input
+                  type="text"
+                  placeholder={t('🔍 Search forms...', '🔍 ఫారాలను వెతకండి...')}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                />
+              </div>
+              
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="text-sm font-black uppercase tracking-wide text-slate-700">
+                  {t('Available Forms', 'అందుబాటులో ఉన్న ఫారాలు')}
+                </h2>
+                <span className="text-xs font-bold text-slate-500">
+                  {selectedStatutoryForms.length} {t('Forms', 'ఫారాలు')}
+                </span>
+              </div>
+
+              {formsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+                </div>
+              ) : selectedStatutoryForms.length > 0 ? (
+                <div className="grid gap-2">
+                  {paginatedStatutoryForms.map((form) => (
+                    <div
+                      key={form.id}
+                      className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-emerald-300 hover:bg-emerald-50"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+                        <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-black text-slate-900 truncate">{form.label || form.title}</h3>
+                        <p className="text-xs font-semibold text-slate-500 truncate">{form.description || ''}</p>
+                      </div>
+                      {form.file_url && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => openPublicPreview(form)}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-emerald-700 transition hover:bg-emerald-100"
+                            aria-label={t('Preview file', 'ఫైల్‌ను ప్రివ్యూ చేయండి')}
+                            title={t('Preview', 'ప్రివ్యూ')}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handlePublicDownload(form)}
+                            disabled={downloadingFormId === form.id}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-sky-700 transition hover:bg-sky-100 disabled:opacity-50"
+                            aria-label={t('Download file', 'ఫైల్‌ను డౌన్‌లోడ్ చేయండి')}
+                            title={t('Download', 'డౌన్‌లోడ్')}
+                          >
+                            {downloadingFormId === form.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Download className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-slate-200 p-8 text-center">
+                  <FileText className="mx-auto h-12 w-12 text-slate-300" />
+                  <p className="mt-2 text-sm font-semibold text-slate-500">
+                    {t('No statutory forms uploaded yet.', 'ఇంకా చట్టబద్ధ ఫారాలు అప్‌లోడ్ చేయబడలేదు.')}
+                  </p>
+                </div>
+              )}
+              {selectedStatutoryForms.length > PUBLIC_FORMS_PAGE_SIZE && (
+                <PublicFormsPagination
+                  currentPage={statutoryPage}
+                  pageCount={statutoryPageCount}
+                  onPageChange={setStatutoryPage}
+                />
+              )}
+            </div>
+          )}
           </div>
           {calculatorOpen && (
             <div className="rounded-xl border border-sky-100 bg-white p-4">
