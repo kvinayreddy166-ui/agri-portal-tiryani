@@ -563,6 +563,106 @@ button {
   }
 }
 
+/* Landscape orientation support */
+@media screen and (orientation: landscape) {
+  html,
+  body,
+  #root {
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Optimize for mobile landscape with limited height */
+  @media (max-height: 600px) {
+    .portal-card,
+    .app-card,
+    .filter-panel,
+    .stat-card {
+      padding: 0.625rem;
+    }
+
+    .page-title {
+      font-size: 1.125rem;
+      line-height: 1.5rem;
+    }
+
+    .portal-section-title,
+    .section-title {
+      font-size: 0.9375rem;
+      line-height: 1.375rem;
+    }
+
+    .action-button {
+      min-height: 2rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8125rem;
+    }
+
+    .section-header {
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Use horizontal space efficiently in landscape */
+    .filter-panel > div {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-panel > div > * {
+      flex: 1 1 auto;
+      min-width: 120px;
+    }
+  }
+
+  /* Tables in landscape mode */
+  @media (max-height: 600px) and (min-width: 600px) {
+    .table-scroll table,
+    .overflow-x-auto > table {
+      font-size: 0.75rem;
+    }
+
+    .table-scroll th,
+    .overflow-x-auto > table th {
+      font-size: 0.6875rem;
+      padding: 0.375rem 0.5rem;
+    }
+
+    .table-scroll td,
+    .overflow-x-auto > table td {
+      font-size: 0.75rem;
+      padding: 0.375rem 0.5rem;
+    }
+  }
+
+  /* Cards can be displayed side-by-side in landscape */
+  @media (min-width: 768px) and (orientation: landscape) {
+    .stat-card,
+    .modern-stat-card {
+      flex: 1 1 calc(50% - 0.5rem);
+    }
+  }
+}
+
+/* Portrait-specific styles */
+@media screen and (orientation: portrait) {
+  /* Ensure vertical layouts work well in portrait */
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .section-header {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+}
+
 .dark input,
 .dark select,
 .dark textarea {

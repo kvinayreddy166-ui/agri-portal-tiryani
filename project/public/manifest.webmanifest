@@ -48,7 +48,7 @@
     }
   ],
   "categories": ["business", "productivity", "utilities", "agriculture"],
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "dir": "ltr",
   "lang": "en"
 }

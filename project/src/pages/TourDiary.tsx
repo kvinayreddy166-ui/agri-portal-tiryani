@@ -120,10 +120,18 @@ const JOURNEY_MODES = [
 ];
 
 const PURPOSES = [
-  'FIVES', 'Crop Booking Enhancement', 'Rythu Nestham VC', 'Field Inspection',
-  'Pest & Disease Surveillance', 'Farmer Field Visit', 'Input Dealer Shop Inspection',
-  'License Verification', 'Sample Collection', 'Meeting', 'NMNF Awareness Programme',
-  'Government Programme', 'Review Meeting', 'Office Work', 'Orientation Programme', 'Others'
+  'ADA Review Meeting', 'Aspirational Block Meeting', 'ATMA Demonstrations', 'ATMA Training Programme',
+  'Awareness Meeting on Paddy Fine Varieties', 'Awareness Meeting on Pesticide Usage', 'Collector Review Meeting',
+  'Crop Booking Enhancement', 'Crop Cutting Experiments', 'DAO Review Meeting', 'DCS Monitoring',
+  'Departmental Work', 'Drone Spray Demonstration', 'Farmer Field Visit', 'Farm Pond Visit',
+  'Farm School Trainings', 'FFS App Awareness', 'Field Inspection', 'Fertilizer Distribution Monitoring',
+  'FIVES', 'Government Programme', 'GT Points Collection', 'Indiramma Illu Verification',
+  'Input Dealer Shop Inspection', 'Kisan Mela', 'License Verification', 'MCP Awareness Programme',
+  'MCP HDPS Training', 'NMNF Awareness Programme', 'NFSM Demonstration', 'Office Work',
+  'Oil Palm Extension Awareness', 'Official Departmental Training', 'Orientation Programme',
+  'Paddy Procurement Center Visit', 'Pest & Disease Surveillance', 'PM Kisan Beneficiary Verification',
+  'Prajavani Grievance', 'Rythu Nestham VC', 'Sample Collection', 'Video Conference on Govt Schemes',
+  'Others'
 ];
 
 // 2026 Holidays Data
@@ -1790,15 +1798,15 @@ export function TourDiary() {
         },
         columnStyles: {
           0: { cellWidth: 18, halign: 'center' },
-          1: { cellWidth: 32, halign: 'center' },
-          2: { cellWidth: 34, halign: 'center' },
+          1: { cellWidth: 36, halign: 'center' },
+          2: { cellWidth: 38, halign: 'center' },
           3: { cellWidth: 18, halign: 'center' },
           4: { cellWidth: 18, halign: 'center' },
           5: { cellWidth: 22, halign: 'center' },
           6: { cellWidth: 18, halign: 'center' },
           7: { cellWidth: 18, halign: 'center' },
           8: { cellWidth: 24, halign: 'center' },
-          9: { cellWidth: 44, halign: 'center' }
+          9: { cellWidth: 50, halign: 'center' }
         }
       });
 
@@ -1826,14 +1834,14 @@ export function TourDiary() {
 
       if (normalizedDesignation === 'mandal agriculture officer') {
         // Show both signatures for Mandal Agriculture Officer
-        doc.text('Mandal Agriculture Officer', 69, signatureY);
-        doc.text('Asst.Director of Agriculture', 175, signatureY);
+        doc.text('Mandal Agriculture Officer', 79, signatureY);
+        doc.text('Asst.Director of Agriculture', 185, signatureY);
       } else if (normalizedDesignation === 'district agriculture officer') {
         // Show only District Agriculture Officer signature
-        doc.text('District Agriculture Officer', 69, signatureY);
+        doc.text('District Agriculture Officer', 79, signatureY);
       } else {
         // Show only Asst.Director of Agriculture signature for other designations
-        doc.text('Asst.Director of Agriculture', 175, signatureY);
+        doc.text('Asst.Director of Agriculture', 185, signatureY);
       }
 
       // Generate PDF blob for storage
@@ -2023,7 +2031,11 @@ export function TourDiary() {
   };
 
   // Handle My Diaries - toggle dropdown
-  const handleMyDiaries = () => {
+  const handleMyDiaries = async () => {
+    if (!showMyDiariesDropdown) {
+      // Reload PDFs when opening dropdown to ensure they're up to date
+      await loadStoredPdfs();
+    }
     setShowMyDiariesDropdown(!showMyDiariesDropdown);
   };
 
@@ -2085,19 +2097,21 @@ export function TourDiary() {
         {/* Header */}
         <div className="sticky top-0 z-40 border-b border-emerald-200/50 bg-white/80 backdrop-blur-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
           <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
-                  <h1 className="flex items-center gap-2 text-xl font-black text-white">
-                    <NotebookPen className="h-6 w-6" aria-label="Tour Diary" />
-                    Tour Diary
-                  </h1>
-                  <p className="text-sm font-semibold text-white/90">
-                    Manage your monthly tour diaries
-                  </p>
+            <div className="flex-1">
+              <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h1 className="flex items-center gap-2 text-xl font-black text-white">
+                      <NotebookPen className="h-6 w-6" aria-label="Tour Diary" />
+                      Tour Diary
+                    </h1>
+                    <p className="text-sm font-semibold text-white/90">
+                      Manage your monthly tour diaries
+                    </p>
+                  </div>
+                  <BackButton onClick={() => navigate('/officer-toolkit')}>Back</BackButton>
                 </div>
               </div>
-              <BackButton onClick={() => navigate('/officer-toolkit')}>Back</BackButton>
             </div>
           </div>
         </div>
@@ -2431,13 +2445,10 @@ export function TourDiary() {
       {/* Header */}
       <div className="sticky top-0 z-40 border-b border-emerald-200/50 bg-white/80 backdrop-blur-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <div className="relative rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
-                <div className="absolute right-2 top-2">
-                  <BackButton onClick={() => setShowLandingPage(true)}>Back</BackButton>
-                </div>
-                <div className="pr-16">
+          <div className="flex-1">
+            <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
+              <div className="flex items-center justify-between gap-4">
+                <div>
                   <h1 className="flex items-center gap-2 text-xl font-black text-white">
                     <NotebookPen className="h-6 w-6" aria-label="Tour Diary" />
                     Tour Diary
@@ -2446,6 +2457,7 @@ export function TourDiary() {
                     Monthly Tour Diary with Journey Tracking
                   </p>
                 </div>
+                <BackButton onClick={() => setShowLandingPage(true)}>Back</BackButton>
               </div>
             </div>
           </div>
