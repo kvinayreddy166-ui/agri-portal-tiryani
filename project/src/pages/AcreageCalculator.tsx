@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Calculator, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { BackButton } from '../components/ui/BackButton';
 
 const STORAGE_KEY = 'tiryani-acreage-calculator-input';
 const MODE_STORAGE_KEY = 'tiryani-acreage-calculator-mode';
@@ -78,55 +77,62 @@ export function AcreageCalculator() {
   }, [acresCentsPasteInput]);
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-100 via-cyan-50 to-emerald-100 p-4 shadow-md dark:border-sky-900/60 dark:from-sky-950/50 dark:via-slate-900 dark:to-emerald-950/40">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-sky-600 text-white shadow-lg">
-              <Calculator className="h-5 w-5" />
-            </div>
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <section className="rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-800/50">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-black text-slate-950 dark:text-white">Area Calculator</h1>
-              <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">Convert land area between acres, hectares, cents and guntas for field reports.</p>
+              <h1 className="flex items-center gap-2 text-xl font-black text-white">
+                <Calculator className="h-6 w-6" aria-label="Area Calculator" />
+                Area Calculator
+              </h1>
+              <p className="text-sm font-semibold text-white/90">Convert land area between acres, hectares, cents and guntas for field reports.</p>
             </div>
-          </div>
-          <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')}>
-            Back
-          </BackButton>
-        </div>
-      </section>
-
-
-      <section className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-100 to-cyan-100 p-4 text-sm font-semibold text-sky-950 shadow-md dark:border-sky-900 dark:from-sky-950/50 dark:to-cyan-950/40 dark:text-sky-100">
-        <div className="grid gap-2 sm:grid-cols-3">
-          {guideItems.map((item, index) => (
-            <p key={item}><span className="font-black">{index + 1}.</span> {item}</p>
-          ))}
-        </div>
-      </section>
-      <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
-        <div className="space-y-3 rounded-xl border border-sky-200 bg-gradient-to-br from-white via-sky-50 to-cyan-100 p-4 shadow-md dark:border-sky-900/60 dark:from-slate-900 dark:via-sky-950/30 dark:to-cyan-950/30">
-          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-            <label className="block">
-              <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Input type</span>
-              <select
-                value={mode}
-                onChange={(event) => setMode(event.target.value as AcreageMode)}
-                className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
-              >
-                {modeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-            </label>
             <button
               type="button"
-              onClick={resetCalculator}
-              disabled={!hasInput}
-              className="inline-flex min-h-[2.625rem] items-center justify-center gap-2 rounded-lg border border-rose-200 bg-white/90 px-4 py-2 text-sm font-black text-rose-700 shadow-sm transition hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-rose-900/70 dark:bg-slate-950 dark:text-rose-200 dark:hover:bg-rose-950/30"
-              title="Clear calculator inputs"
+              onClick={() => navigate('/officer-toolkit/farm-calculators')}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
             >
-              <RotateCcw className="h-4 w-4" />
-              Clear
+              Back
             </button>
           </div>
+        </section>
+      </div>
+
+      <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+        <section className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-100 to-cyan-100 p-4 text-sm font-semibold text-sky-950 shadow-md dark:border-sky-900 dark:from-sky-950/50 dark:to-cyan-950/40 dark:text-sky-100">
+          <div className="grid gap-2 sm:grid-cols-3">
+            {guideItems.map((item, index) => (
+              <p key={item}><span className="font-black">{index + 1}.</span> {item}</p>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+        <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
+          <div className="space-y-3 rounded-xl border border-sky-200 bg-gradient-to-br from-white via-sky-50 to-cyan-100 p-4 shadow-md dark:border-sky-900/60 dark:from-slate-900 dark:via-sky-950/30 dark:to-cyan-950/30">
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+              <label className="block">
+                <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Input type</span>
+                <select
+                  value={mode}
+                  onChange={(event) => setMode(event.target.value as AcreageMode)}
+                  className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
+                >
+                  {modeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+              <button
+                type="button"
+                onClick={resetCalculator}
+                disabled={!hasInput}
+                className="inline-flex min-h-[2.625rem] items-center justify-center gap-2 rounded-lg border border-rose-200 bg-white/90 px-4 py-2 text-sm font-black text-rose-700 shadow-sm transition hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-rose-900/70 dark:bg-slate-950 dark:text-rose-200 dark:hover:bg-rose-950/30"
+                title="Clear calculator inputs"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Clear
+              </button>
+            </div>
 
           {mode === 'acres' && (
             <label className="block">
@@ -183,6 +189,7 @@ export function AcreageCalculator() {
           )}
         </div>
       </section>
+      </div>
     </div>
   );
 }

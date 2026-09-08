@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { Copy, Leaf, RotateCcw, Ruler, Sprout } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
 
 type AreaUnit = 'acres' | 'hectares';
@@ -56,86 +55,86 @@ export function PlantPopulationCalculator() {
 
   return (
     <div className="space-y-3">
-      <section className="rounded-xl border border-green-200 bg-gradient-to-br from-green-100 via-emerald-50 to-cyan-100 p-3 shadow-md dark:border-green-900/60 dark:from-green-950/50 dark:via-slate-900 dark:to-cyan-950/40 sm:p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-lg">
-              <Sprout className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-wide text-green-700 dark:text-green-300">
-                {t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}
-              </p>
-              <h1 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <section className="rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-800/50 sm:p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="flex items-center gap-2 text-xl font-black text-white">
+                <Sprout className="h-6 w-6" aria-label="Plant Population Calculator" />
                 {t('Plant Population Calculator', 'మొక్కల జనాభా కాలిక్యులేటర్')}
               </h1>
-              <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">
+              <p className="text-sm font-semibold text-white/90">
                 {t('Calculate plant stand from row and plant spacing.', 'వరుసల మధ్య మరియు మొక్కల మధ్య దూరం ఆధారంగా మొక్కల సంఖ్యను లెక్కించండి.')}
               </p>
             </div>
+            <button
+              type="button"
+              onClick={() => navigate('/officer-toolkit/farm-calculators')}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
+            >
+              Back
+            </button>
           </div>
-          <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')}>
-            Back
-          </BackButton>
-        </div>
-      </section>
-
-      <section className="rounded-xl border border-green-200 bg-gradient-to-br from-green-100 to-lime-100 p-4 text-sm font-semibold text-green-950 shadow-md dark:border-green-900 dark:from-green-950/50 dark:to-lime-950/30 dark:text-green-100">
-        <div className="grid gap-2 sm:grid-cols-3">
-          <p><span className="font-black">1.</span> Enter field area.</p>
-          <p><span className="font-black">2.</span> Enter row spacing and plant spacing.</p>
-          <p><span className="font-black">3.</span> Read total plants instantly.</p>
-        </div>
-      </section>
-
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-green-200 bg-gradient-to-br from-white via-green-50 to-lime-100 p-3 shadow-md dark:border-green-900/60 dark:from-slate-900 dark:via-green-950/30 dark:to-lime-950/20">
-        <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
-          <Copy className="h-4 w-4" />
-          {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'టెక్స్ట్ కాపీ')}
-        </button>
-        <button type="button" onClick={shareWhatsApp} disabled={!calculation.result} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-green-600 text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700" aria-label="WhatsApp" title="WhatsApp">
-          <WhatsAppIcon className="h-4 w-4" />
-        </button>
-        <LanguageToggle language={language} onClick={toggleLanguage} />
-        <button type="button" onClick={reset} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
-          <RotateCcw className="h-4 w-4" />
-          {t('Reset', 'రీసెట్')}
-        </button>
+        </section>
       </div>
 
-      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="space-y-3">
-          <FormSection title={t('Step 1: Crop and Area', 'పంట మరియు విస్తీర్ణం')}>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label={t('Crop name', 'పంట పేరు')} optional>
-                <input
-                  value={form.cropName}
-                  onChange={(event) => updateForm('cropName', event.target.value)}
-                  className={inputClass}
-                  placeholder={t('Optional', 'ఐచ్ఛికం')}
-                />
-              </Field>
-              <Field label={t('Area value', 'విస్తీర్ణం')}>
-                <input
-                  type="number"
-                  min="0"
-                  inputMode="decimal"
-                  value={form.areaValue}
-                  onChange={(event) => updateForm('areaValue', event.target.value)}
-                  className={inputClass}
-                  placeholder="1"
-                />
-              </Field>
-              <Field label={t('Area unit', 'విస్తీర్ణ యూనిట్')}>
-                <select value={form.areaUnit} onChange={(event) => updateForm('areaUnit', event.target.value)} className={inputClass}>
-                  <option value="acres">{t('Acres', 'ఎకరాలు')}</option>
-                  <option value="hectares">{t('Hectares', 'హెక్టార్లు')}</option>
-                </select>
-              </Field>
-            </div>
-          </FormSection>
+      <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+        <section className="rounded-xl border border-green-200 bg-gradient-to-br from-green-100 to-lime-100 p-4 text-sm font-semibold text-green-950 shadow-md dark:border-green-900 dark:from-green-950/50 dark:to-lime-950/30 dark:text-green-100">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <p><span className="font-black">1.</span> Enter field area.</p>
+            <p><span className="font-black">2.</span> Enter row spacing and plant spacing.</p>
+            <p><span className="font-black">3.</span> Read total plants instantly.</p>
+          </div>
+        </section>
 
-          <FormSection title={t('Step 2: Spacing', 'దూరం')}>
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-green-200 bg-gradient-to-br from-white via-green-50 to-lime-100 p-3 shadow-md dark:border-green-900/60 dark:from-slate-900 dark:via-green-950/30 dark:to-lime-950/20">
+          <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
+            <Copy className="h-4 w-4" />
+            {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'టెక్స్ట్ కాపీ')}
+          </button>
+          <button type="button" onClick={shareWhatsApp} disabled={!calculation.result} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-green-600 text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700" aria-label="WhatsApp" title="WhatsApp">
+            <WhatsAppIcon className="h-4 w-4" />
+          </button>
+          <LanguageToggle language={language} onClick={toggleLanguage} />
+          <button type="button" onClick={reset} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
+            <RotateCcw className="h-4 w-4" />
+            {t('Reset', 'రీసెట్')}
+          </button>
+        </div>
+
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="space-y-3">
+            <FormSection title={t('Step 1: Crop and Area', 'పంట మరియు విస్తీర్ణం')}>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label={t('Crop name', 'పంట పేరు')} optional>
+                  <input
+                    value={form.cropName}
+                    onChange={(event) => updateForm('cropName', event.target.value)}
+                    className={inputClass}
+                    placeholder={t('Optional', 'ఐచ్ఛికం')}
+                  />
+                </Field>
+                <Field label={t('Area value', 'విస్తీర్ణం')}>
+                  <input
+                    type="number"
+                    min="0"
+                    inputMode="decimal"
+                    value={form.areaValue}
+                    onChange={(event) => updateForm('areaValue', event.target.value)}
+                    className={inputClass}
+                    placeholder="1"
+                  />
+                </Field>
+                <Field label={t('Area unit', 'విస్తీర్ణ యూనిట్')}>
+                  <select value={form.areaUnit} onChange={(event) => updateForm('areaUnit', event.target.value)} className={inputClass}>
+                    <option value="acres">{t('Acres', 'ఎకరాలు')}</option>
+                    <option value="hectares">{t('Hectares', 'హెక్టార్లు')}</option>
+                  </select>
+                </Field>
+              </div>
+            </FormSection>
+
+            <FormSection title={t('Step 2: Spacing', 'దూరం')}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={t('Row-to-row spacing', 'వరుస నుంచి వరుస దూరం')}>
                 <div className="grid grid-cols-[minmax(0,1fr)_7rem] gap-2">
@@ -212,6 +211,7 @@ export function PlantPopulationCalculator() {
           )}
         </aside>
       </section>
+      </div>
     </div>
   );
 }

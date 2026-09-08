@@ -1,8 +1,7 @@
 import React from 'react';
-import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, Wheat } from 'lucide-react';
+import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, Wheat, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
 
 const calculatorItems = [
@@ -64,53 +63,54 @@ export function FarmCalculators() {
 
   return (
     <div className="space-y-4">
-      <section className="overflow-hidden rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-700 via-green-700 to-teal-800 p-4 text-white shadow-sm dark:border-emerald-900 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
-              <FlaskConical className="h-6 w-6" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-wide text-emerald-100">
-                {t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}
-              </p>
-              <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <section className="rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-800/50">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="flex items-center gap-2 text-xl font-black text-white">
+                <FlaskConical className="h-6 w-6" aria-label="Farm Calculators" />
                 {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
               </h1>
-              <p className="mt-1 text-sm font-semibold text-emerald-50">
-                {t('Crop, Seed, Fertilizer and Pesticide Calculations', 'పంట, విత్తనం, ఎరువు మరియు పురుగుమందు లెక్కలు')}
+              <p className="text-sm font-semibold text-white/90">
+                {t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
               </p>
             </div>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
-            <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid">
-              Back
-            </BackButton>
-          </div>
-        </div>
-      </section>
-
-      
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        {calculatorItems.map((item) => (
-          <article
-            key={item.path}
-            onClick={() => navigate(item.path)}
-            className={`min-h-[164px] cursor-pointer rounded-xl border border-white/70 bg-gradient-to-br ${item.panel} p-5 text-center shadow-md transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl dark:border-emerald-900/60`}
-          >
-            <div className="flex h-full flex-col items-center justify-center gap-3">
-              <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${item.accent} text-white shadow-lg`}>
-                <item.icon className="h-7 w-7" />
-              </div>
-              <div className="min-w-0">
-                <h2 className="text-[17px] font-black leading-snug text-slate-950 dark:text-white">{t(item.title, item.titleTe)}</h2>
-                <p className="mt-2 text-xs font-semibold leading-5 text-slate-700 dark:text-slate-300">{t(item.description, item.descriptionTe)}</p>
-              </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
+              <button
+                type="button"
+                onClick={() => navigate('/officer-toolkit')}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {t('Back', 'వెనుకకు')}
+              </button>
             </div>
-          </article>
-        ))}
-      </section>
+          </div>
+        </section>
+      </div>
+
+      <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {calculatorItems.map((item) => (
+            <article
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className={`min-h-[140px] cursor-pointer rounded-xl border border-white/70 bg-gradient-to-br ${item.panel} p-4 text-center shadow-md transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl dark:border-emerald-900/60`}
+            >
+              <div className="flex h-full flex-col items-center justify-center gap-2">
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${item.accent} text-white shadow-lg`}>
+                  <item.icon className="h-6 w-6" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-black leading-snug text-slate-950 dark:text-white">{t(item.title, item.titleTe)}</h2>
+                  <p className="mt-1 text-[11px] font-semibold leading-4 text-slate-700 dark:text-slate-300">{t(item.description, item.descriptionTe)}</p>
+                </div>
+              </div>
+            </article>
+          ))}
+        </section>
+      </div>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { FileText, ChevronRight, CheckCircle, FileText as FileIcon, ExternalLink, Copy } from 'lucide-react';
+import { FileText, ChevronRight, CheckCircle, FileText as FileIcon, ExternalLink, Copy, ArrowLeft, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, ReceiptText, Store, ClipboardList, Sprout, ArrowUpRight, X } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 
 // District to Division mapping
@@ -185,6 +185,9 @@ export function LicenseApplicationGenerator() {
   const navigate = useNavigate();
   const { t, language, toggleLanguage } = useLanguage();
   const [mounted, setMounted] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [toast, setToast] = useState<{ message: string; show: boolean } | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const [licenseType, setLicenseType] = useState<LicenseType | ''>('');
   const [applicationType, setApplicationType] = useState<ApplicationType | ''>('');
@@ -262,10 +265,11 @@ export function LicenseApplicationGenerator() {
   const showNumberOfProducts = licenseType === 'insecticide' && areaType !== '' && 
     (applicationType === 'pc_inclusion' || areaType === 'manufacturing_license');
   const showDivision = licenseType === 'fertilizer' && (dealerType === 'retailer' || dealerType === 'coop_societies');
-  const showChallanDetails = applicationType !== '' && district !== '' && 
+  const showChallanDetails = applicationType !== '' && district !== '' &&
     (showDivision ? division !== '' : true) &&
-    (licenseType === 'fertilizer' ? dealerType !== '' : true) && 
-    (licenseType === 'insecticide' && (applicationType === 'pc_inclusion' || areaType === 'manufacturing_license') ? areaType !== '' && numberOfProducts !== '' : true);
+    (licenseType === 'fertilizer' ? dealerType !== '' : true) &&
+    (licenseType === 'insecticide' && (applicationType === 'pc_inclusion' || areaType === 'manufacturing_license') ? areaType !== '' && numberOfProducts !== '' : true) &&
+    (licenseType === 'insecticide' && applicationType !== 'pc_inclusion' && areaType !== 'manufacturing_license' ? areaType !== '' : true);
   const showDocuments = false; // Amendment types hidden for now
 
   const getAmount = () => {
@@ -423,346 +427,619 @@ export function LicenseApplicationGenerator() {
     setInsecticideAmendmentType(type);
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 dark:from-slate-950 dark:via-violet-950 dark:to-purple-950">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 h-64 w-64 rounded-full bg-violet-400/10 blur-3xl animate-pulse" />
-        <div className="absolute top-40 right-20 h-96 w-96 rounded-full bg-purple-400/10 blur-3xl animate-pulse delay-1000" />
-        <div className="absolute bottom-20 left-1/3 h-80 w-80 rounded-full bg-fuchsia-400/10 blur-3xl animate-pulse delay-2000" />
-      </div>
+  const showToast = (message: string) => {
+    setToast({ message, show: true });
+    setTimeout(() => setToast(null), 3000);
+  };
 
-      <div className="relative mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
-        {/* Header Section */}
-        <div className={`mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="rounded-3xl border border-violet-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-violet-800/50 dark:bg-slate-900/80">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg">
-                  <FileText className="h-8 w-8" />
+  const handleCopy = (text: string, fieldName: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(fieldName);
+    showToast(`${fieldName} copied successfully`);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleProceedToChallan = () => {
+    setShowModal(true);
+  };
+
+  const handleConfirmProceed = () => {
+    setShowModal(false);
+    // Open external portal - preserve existing functionality
+    window.open('https://ifmis.telangana.gov.in/echallan', '_blank');
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950 p-4 pb-28 sm:p-6 sm:pb-24">
+      <div className="mx-auto w-full max-w-5xl">
+        {/* Hero / Title Card */}
+        <div className="mb-6">
+          <div className="rounded-2xl p-4 shadow-lg" style={{ background: 'linear-gradient(135deg, #4F6FBF 0%, #5B6FC7 45%, #7B61C9 100%)', boxShadow: '0 4px 12px rgba(70, 80, 150, 0.15)' }}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/20 shadow-sm ring-1 ring-white/30">
+                  <ReceiptText className="h-6 w-6 text-white" aria-label="License Services" />
                 </div>
-                <div className="min-w-0">
-                  <h1 className="text-2xl font-black text-slate-900 dark:text-white">
-                    License Services
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-100">
+                    {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+                  </p>
+                  <h1 className="text-xl font-black text-white">
+                    {t('License Services', 'లైసెన్స్ సేవలు')}
                   </h1>
-                  <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                    Fertilizer • Seed • Pesticide
+                  <p className="text-sm font-semibold text-white/90">
+                    {t('Challan Details', 'చలాన్ వివరాలు')}
                   </p>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <LanguageToggle language={language} onClick={toggleLanguage} />
-                <BackButton onClick={() => navigate('/officer-toolkit')}>
-                  <span>Back</span>
-                </BackButton>
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/officer-toolkit')}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/20 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/30"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {t('Back', 'వెనుకకు')}
+              </button>
             </div>
           </div>
         </div>
 
-        {/* License Type Selection */}
-        <div className={`mb-4 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="mb-2">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-              Select License Type
-            </h2>
+        {/* Toast Notification */}
+        {toast && (
+          <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right">
+            <div className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-lg dark:bg-white dark:text-slate-900">
+              <CheckCircle className="h-4 w-4 text-emerald-400" />
+              {toast.message}
+            </div>
           </div>
-          <div className="w-full max-w-md">
-            <select
-              value={licenseType}
-              onChange={(e) => handleLicenseTypeChange(e.target.value as LicenseType)}
-              className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-            >
-              <option value="">Select...</option>
-              <option value="fertilizer">Fertilizer</option>
-              <option value="seed">Seed</option>
-              <option value="insecticide">Pesticide</option>
-            </select>
+        )}
+
+        {/* License Details Card */}
+        <div className="mb-6 rounded-2xl border border-slate-200/50 bg-white/95 p-5 shadow-xl dark:border-slate-800/50 dark:bg-slate-900/95">
+          <div className="mb-4 flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg">
+              <BadgeCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                License Details
+              </h2>
+              <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                Select license type, dealer type, application type and district
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* License Type */}
+            <div>
+              <label className="mb-2 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                License Type
+              </label>
+              <div className="relative">
+                <select
+                  value={licenseType}
+                  onChange={(e) => handleLicenseTypeChange(e.target.value as LicenseType)}
+                  className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                >
+                  <option value="">Select License Type</option>
+                  <option value="fertilizer">Fertilizer</option>
+                  <option value="seed">Seed</option>
+                  <option value="insecticide">Pesticide</option>
+                </select>
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <Sprout className="h-5 w-5" />
+                </div>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <ChevronRight className="h-4 w-4 rotate-90" />
+                </div>
+              </div>
+            </div>
+
+            {/* Dealer Type - Segmented Control */}
+            {showDealerType && (
+              <div>
+                <label className="mb-2 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Dealer Type
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: 'retailer', label: 'Retailer' },
+                    { value: 'wholesaler', label: 'Wholesaler' },
+                    { value: 'coop_societies', label: 'Coop. Societies' },
+                    { value: 'manufacturing_license', label: 'Manufacturing License' }
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleDealerTypeChange(option.value as DealerType)}
+                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                        dealerType === option.value
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      <Store className="h-4 w-4" />
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Application Type - Segmented Control */}
+            {licenseType && (
+              <div>
+                <label className="mb-2 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Application Type
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: 'fresh', label: 'Fresh' },
+                    { value: 'renewal', label: 'Renewal' },
+                    { value: 'renewal_grace_period', label: 'Renewal (Grace Period)' },
+                    { value: 'amendment', label: 'Amendment' },
+                    { value: 'duplicate', label: 'Duplicate' },
+                    { value: 'pc_inclusion', label: 'PC Inclusion' }
+                  ].filter(option => {
+                    // Filter options based on license type
+                    if (licenseType === 'insecticide') {
+                      return ['fresh', 'renewal', 'renewal_grace_period', 'amendment', 'duplicate', 'pc_inclusion'].includes(option.value);
+                    }
+                    return ['fresh', 'renewal', 'renewal_grace_period', 'amendment', 'duplicate'].includes(option.value);
+                  }).map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleApplicationTypeChange(option.value as ApplicationType)}
+                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                        applicationType === option.value
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      <ClipboardList className="h-4 w-4" />
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Area Type - Segmented Control for Insecticide */}
+            {showAreaType && (
+              <div>
+                <label className="mb-2 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Area Type
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: 'municipal', label: 'Urban Areas' },
+                    { value: 'rural', label: 'Rural Areas' },
+                    { value: 'manufacturing_license', label: 'Manufacturing License' }
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleAreaTypeChange(option.value as AreaType)}
+                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                        areaType === option.value
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* District */}
+            {licenseType && (
+              <div>
+                <label className="mb-2 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  District
+                </label>
+                <div className="relative">
+                  <select
+                    value={district}
+                    onChange={(e) => handleDistrictChange(e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                  >
+                    <option value="">Select District</option>
+                    {TELANGANA_DISTRICTS.map((dist) => (
+                      <option key={dist} value={dist}>{dist}</option>
+                    ))}
+                  </select>
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <ChevronRight className="h-4 w-4 rotate-90" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Division */}
+            {showDivision && (
+              <div>
+                <label className="mb-2 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Division
+                </label>
+                <div className="relative">
+                  <select
+                    value={division}
+                    onChange={(e) => handleDivisionChange(e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                  >
+                    <option value="">Select Division</option>
+                    {getDivisionsForDistrict(district).map((div) => (
+                      <option key={div} value={div}>{div}</option>
+                    ))}
+                  </select>
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <ChevronRight className="h-4 w-4 rotate-90" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Number of Products for Insecticide */}
+            {showNumberOfProducts && (
+              <div>
+                <label className="mb-2 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Number of Products
+                </label>
+                <input
+                  type="number"
+                  value={numberOfProducts}
+                  onChange={(e) => handleNumberOfProductsChange(e.target.value)}
+                  min="1"
+                  className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                  placeholder="Enter number of products"
+                />
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Selection Fields Container */}
-        {(showDealerType || showAreaType || showDivision || licenseType) && (
-          <div className={`mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            
-            {/* Dealer Type Selection */}
-            {showDealerType && (
-              <div>
-                <div className="mb-1">
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Dealer Type
-                  </h3>
-                </div>
-                <select
-                  value={dealerType}
-                  onChange={(e) => handleDealerTypeChange(e.target.value as DealerType)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-                >
-                  <option value="">Select...</option>
-                  <option value="wholesaler">Wholesaler</option>
-                  <option value="retailer">Retailer</option>
-                  <option value="coop_societies">Coop. Societies</option>
-                  <option value="manufacturing_license">Manufacturing License</option>
-                </select>
-              </div>
-            )}
-            {showAreaType && (
-              <div>
-                <div className="mb-1">
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Area Type
-                  </h3>
-                </div>
-                <select
-                  value={areaType}
-                  onChange={(e) => handleAreaTypeChange(e.target.value as AreaType)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-                >
-                  <option value="">Select...</option>
-                  <option value="municipal">Urban Areas</option>
-                  <option value="rural">Rural Areas</option>
-                  <option value="manufacturing_license">Manufacturing License</option>
-                </select>
-              </div>
-            )}
-
-            {/* Application Type Selection */}
-            {licenseType && (
-              <div>
-                <div className="mb-1">
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Application Type
-                  </h3>
-                </div>
-                <select
-                  value={applicationType}
-                  onChange={(e) => handleApplicationTypeChange(e.target.value as ApplicationType)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-                >
-                  <option value="">Select...</option>
-                  <option value="fresh">Fresh</option>
-                  {licenseType !== 'insecticide' && areaType !== 'manufacturing_license' && <option value="renewal">Renewal within Expiry</option>}
-                  {licenseType !== 'insecticide' && areaType !== 'manufacturing_license' && <option value="renewal_grace_period">Renewal within Grace Period</option>}
-                  {areaType !== 'manufacturing_license' && <option value="amendment">Amendment</option>}
-                  {(licenseType === 'fertilizer' || licenseType === 'seed') && areaType !== 'manufacturing_license' && <option value="duplicate">Duplicate Copy</option>}
-                  {licenseType === 'insecticide' && <option value="pc_inclusion">{areaType === 'manufacturing_license' ? 'Additional Entries' : 'PC Inclusion'}</option>}
-                </select>
-              </div>
-            )}
-
-            {/* Number of Products Selection */}
-            {showNumberOfProducts && (
-              <div>
-                <div className="mb-1">
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Number of Products
-                  </h3>
-                </div>
-                <select
-                  value={numberOfProducts}
-                  onChange={(e) => handleNumberOfProductsChange(e.target.value)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-                >
-                  <option value="">Select...</option>
-                  {areaType === 'manufacturing_license' ? (
-                    <>
-                      {[...Array(9)].map((_, i) => (
-                        <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
-                      ))}
-                      <option value="10+">10 or more</option>
-                    </>
-                  ) : (
-                    <>
-                      {[...Array(14)].map((_, i) => (
-                        <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
-                      ))}
-                      <option value="15+">15 or more</option>
-                    </>
-                  )}
-                </select>
-              </div>
-            )}
-
-            {/* District Selection */}
-            {licenseType && (
-              <div>
-                <div className="mb-1">
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    District
-                  </h3>
-                </div>
-                <select
-                  value={district}
-                  onChange={(e) => handleDistrictChange(e.target.value)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-                >
-                  <option value="">Select...</option>
-                  {TELANGANA_DISTRICTS.filter((districtName) => 
-                    DISTRICT_DDO_CODES[districtName] || DIVISION_DDO_CODES[districtName]
-                  ).map((districtName) => (
-                    <option key={districtName} value={districtName}>{districtName}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Division Selection */}
-            {showDivision && (
-              <div>
-                <div className="mb-1">
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Division
-                  </h3>
-                </div>
-                <select
-                  value={division}
-                  onChange={(e) => handleDivisionChange(e.target.value)}
-                  className="w-full rounded-xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
-                >
-                  <option value="">Select...</option>
-                  {getDivisionsForDistrict(district).filter((divisionName) => 
-                    DIVISION_DDO_CODES[district]?.[divisionName]
-                  ).map((divisionName) => (
-                    <option key={divisionName} value={divisionName}>{divisionName}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+        {/* Empty State */}
+        {!showChallanDetails && (
+          <div className="mb-6 rounded-2xl border border-slate-200/50 bg-white/95 p-8 text-center shadow-xl dark:border-slate-800/50 dark:bg-slate-900/95">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+              <ClipboardList className="h-8 w-8 text-slate-400 dark:text-slate-600" />
+            </div>
+            <h3 className="mb-2 text-lg font-bold text-slate-900 dark:text-white">
+              Select License Details
+            </h3>
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              Choose the required license details to view the applicable challan information.
+            </p>
           </div>
         )}
 
         {/* Challan Details Section */}
         {showChallanDetails && (
-          <div className={`mb-4 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                Challan Details
-              </h2>
-              <a
-                href="https://ifmis.telangana.gov.in/manual_challan_entry"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 px-3 py-1 text-xs font-bold text-white shadow-lg transition-all duration-300 hover:from-violet-700 hover:to-purple-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 dark:from-violet-500 dark:to-purple-500 dark:hover:from-violet-600 dark:hover:to-purple-600"
-              >
-                <ExternalLink className="h-3 w-3" />
-                <span>Challan Entry</span>
-              </a>
-            </div>
-            <div className="rounded-xl border border-violet-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-xl dark:border-violet-800/50 dark:bg-slate-900/80">
-              <div className="mb-3 grid gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-green-600 dark:text-green-400 mb-1">Challan Code</label>
-                  <div className="flex gap-2">
-                    <div className="text-xs font-mono font-bold text-red-600 dark:text-red-400 bg-violet-50/50 dark:bg-violet-950/30 px-3 py-2 rounded-lg border border-violet-200/50 dark:border-violet-800/50 flex-1">
-                      {getChallanCode()}
-                    </div>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(getChallanCodeOnly());
-                      }}
-                      className="flex items-center justify-center rounded-lg border border-violet-200/50 bg-violet-100/50 dark:bg-violet-900/30 px-3 py-2 text-violet-600 dark:text-violet-400 hover:bg-violet-200/50 dark:hover:bg-violet-800/50 transition-all"
-                      title="Copy Challan Code"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </button>
-                  </div>
+          <div className="mb-6 rounded-2xl border border-slate-200/50 bg-white/95 p-5 shadow-xl dark:border-slate-800/50 dark:bg-slate-900/95">
+            <div className="mb-4 flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-lg" style={{ background: 'linear-gradient(135deg, #5B7DBF 0%, #6879C4 50%, #806BC4 100%)' }}>
+                  <FileText className="h-5 w-5" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">DDO CODE</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={ddoCode}
-                      readOnly
-                      placeholder="DDO Code"
-                      className="flex-1 rounded-lg border border-violet-200/50 bg-violet-50/50 dark:bg-violet-950/30 px-3 py-2 text-sm font-bold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:text-white dark:focus:ring-violet-900/30"
-                    />
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(ddoCode);
-                      }}
-                      className="flex items-center justify-center rounded-lg border border-violet-200/50 bg-violet-100/50 dark:bg-violet-900/30 px-3 py-2 text-violet-600 dark:text-violet-400 hover:bg-violet-200/50 dark:hover:bg-violet-800/50 transition-all"
-                      title="Copy DDO Code"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </button>
-                  </div>
+                  <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                    Challan Details
+                  </h2>
+                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                    Use the following details for challan entry in the treasury portal
+                  </p>
                 </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Major Head</label>
-                  <div className="rounded-xl border border-violet-200/50 bg-violet-50/50 px-4 py-2 text-sm font-bold text-slate-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-white">
-                    {getChallanHeads().majorHead}
-                  </div>
+            </div>
+
+            {/* Challan Code Card */}
+            <div className="mb-4 rounded-xl border border-blue-200/50 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 dark:border-blue-800/50 dark:from-blue-950/30 dark:to-indigo-950/30">
+              <div className="mb-2 flex items-center gap-2">
+                <KeyRound className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Challan Code
+                </h3>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <p className="font-mono text-sm font-bold text-slate-900 dark:text-white">
+                    {getChallanCode()}
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Sub Major Head</label>
-                  <div className="rounded-xl border border-violet-200/50 bg-violet-50/50 px-4 py-2 text-sm font-bold text-slate-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-white">
+                <button
+                  onClick={() => handleCopy(getChallanCodeOnly(), 'Challan Code')}
+                  className="inline-flex items-center gap-2 rounded-lg border border-blue-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-blue-600 shadow-sm transition-all hover:bg-blue-50 dark:border-blue-800/50 dark:bg-slate-800/80 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                >
+                  {copiedField === 'Challan Code' ? (
+                    <>
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* DDO Code Card */}
+            <div className="mb-6 rounded-xl border border-slate-200/50 bg-white p-4 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+              <div className="mb-2 flex items-center gap-2">
+                <Landmark className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  DDO Code
+                </h3>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <p className="font-mono text-lg font-bold text-slate-900 dark:text-white">
+                    {ddoCode}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleCopy(ddoCode, 'DDO Code')}
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200/50 bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:bg-slate-200 dark:border-slate-800/50 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
+                >
+                  {copiedField === 'DDO Code' ? (
+                    <>
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Accounting Details */}
+            <div className="mb-4">
+              <div className="mb-3 flex items-center gap-2">
+                <Landmark className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Accounting Details
+                </h3>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="rounded-lg border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-50 dark:bg-blue-950/30">
+                      <KeyRound className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Major Head</span>
+                  </div>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">
+                    {getChallanHeads().majorHead.split(' ')[0]}
+                  </p>
+                  <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                    {getChallanHeads().majorHead.split(' ').slice(1).join(' ')}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-50 dark:bg-blue-950/30">
+                      <KeyRound className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Sub Major Head</span>
+                  </div>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">
                     {getChallanHeads().subMajorHead}
-                  </div>
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Minor Head</label>
-                  <div className="rounded-xl border border-violet-200/50 bg-violet-50/50 px-4 py-2 text-sm font-bold text-slate-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-white">
-                    {getChallanHeads().minorHead}
+
+                <div className="rounded-lg border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-50 dark:bg-blue-950/30">
+                      <KeyRound className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Minor Head</span>
                   </div>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">
+                    {getChallanHeads().minorHead.split(' ')[0]}
+                  </p>
+                  <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                    {getChallanHeads().minorHead.split(' ').slice(1).join(' ')}
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Group Sub Head</label>
-                  <div className="rounded-xl border border-violet-200/50 bg-violet-50/50 px-4 py-2 text-sm font-bold text-slate-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-white">
+
+                <div className="rounded-lg border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-50 dark:bg-blue-950/30">
+                      <KeyRound className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Group Sub Head</span>
+                  </div>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">
                     {getChallanHeads().groupSubHead}
-                  </div>
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Sub Head</label>
-                  <div className="rounded-xl border border-violet-200/50 bg-violet-50/50 px-4 py-2 text-sm font-bold text-slate-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-white">
-                    {getChallanHeads().subHead}
+
+                <div className="rounded-lg border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-50 dark:bg-blue-950/30">
+                      <KeyRound className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Sub Head</span>
                   </div>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">
+                    {getChallanHeads().subHead.split(' ')[0]}
+                  </p>
+                  <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                    {getChallanHeads().subHead.split(' ').slice(1).join(' ')}
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Detailed Head</label>
-                  <div className="rounded-xl border border-violet-200/50 bg-violet-50/50 px-4 py-2 text-sm font-bold text-slate-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-white">
+
+                <div className="rounded-lg border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-50 dark:bg-blue-950/30">
+                      <KeyRound className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Detailed Head</span>
+                  </div>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">
                     000
-                  </div>
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Sub Detailed Head</label>
-                  <div className="rounded-xl border border-violet-200/50 bg-violet-50/50 px-4 py-2 text-sm font-bold text-slate-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-white">
+
+                <div className="rounded-lg border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-50 dark:bg-blue-950/30">
+                      <KeyRound className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Sub Detailed Head</span>
+                  </div>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">
                     000
-                  </div>
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Non-Plan/Plan</label>
-                  <div className="rounded-xl border border-violet-200/50 bg-violet-50/50 px-4 py-2 text-sm font-bold text-slate-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-white">
+
+                <div className="rounded-lg border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-50 dark:bg-blue-950/30">
+                      <KeyRound className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Non-Plan/Plan</span>
+                  </div>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">
                     N
-                  </div>
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Voted/Charged</label>
-                  <div className="rounded-xl border border-violet-200/50 bg-violet-50/50 px-4 py-2 text-sm font-bold text-slate-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-white">
+
+                <div className="rounded-lg border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-50 dark:bg-blue-950/30">
+                      <KeyRound className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Voted/Charged</span>
+                  </div>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">
                     V
-                  </div>
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Non-Contingency/Contingency</label>
-                  <div className="rounded-xl border border-violet-200/50 bg-violet-50/50 px-4 py-2 text-sm font-bold text-slate-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-white">
+
+                <div className="rounded-lg border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-50 dark:bg-blue-950/30">
+                      <KeyRound className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Non-Contingency/Contingency</span>
+                  </div>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">
                     N
-                  </div>
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Amount (₹)</label>
-                  <div className="rounded-xl border border-violet-500 bg-gradient-to-br from-violet-50 to-purple-50 px-4 py-2 text-lg font-black text-violet-700 dark:border-violet-400 dark:from-violet-950/30 dark:to-purple-950/30 dark:text-violet-300">
-                    {getAmount()}
-                  </div>
+              </div>
+            </div>
+
+            {/* Applicable Fee Section */}
+            <div className="mb-6">
+              <div className="mb-4 flex items-center gap-2">
+                <IndianRupee className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                  Applicable Fee
+                </h3>
+              </div>
+              <p className="mb-4 text-sm font-medium text-slate-600 dark:text-slate-400">
+                Fee automatically calculated based on your selection
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border border-emerald-200/50 bg-gradient-to-br from-emerald-50 to-green-50 p-5 shadow-sm dark:border-emerald-800/50 dark:from-emerald-950/30 dark:to-green-950/30">
+                  <p className="mb-2 text-xs font-bold text-slate-600 dark:text-slate-400">
+                    Amount (₹)
+                  </p>
+                  <p className="text-3xl font-black text-emerald-700 dark:text-emerald-300">
+                    ₹ {getAmount().toLocaleString('en-IN')}
+                  </p>
                 </div>
+                <div className="rounded-xl border border-slate-200/50 bg-white p-5 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+                  <p className="mb-2 text-xs font-bold text-slate-600 dark:text-slate-400">
+                    Fee Details
+                  </p>
+                  <p className="mb-2 text-sm font-bold text-slate-900 dark:text-white">
+                    {licenseType === 'fertilizer' ? 'Fertilizer' : licenseType === 'seed' ? 'Seed' : 'Pesticide'}
+                    {showDealerType && dealerType && ` • ${dealerType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+                    {applicationType && ` • ${applicationType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+                  </p>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                    The above fee is applicable for your selected license type, dealer type and application type.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Proceed Button */}
+            <button
+              onClick={handleProceedToChallan}
+              className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-base font-bold text-white shadow-lg transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600"
+              style={{ minHeight: '52px' }}
+            >
+              <ExternalLink className="h-5 w-5" />
+              <span>Proceed to Challan Entry</span>
+            </button>
+
+            {/* Info Message */}
+            <div className="flex items-start gap-3 rounded-xl border border-blue-200/50 bg-blue-50 p-4 dark:border-blue-800/50 dark:bg-blue-950/30">
+              <Info className="h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                You will be redirected to the external Challan Entry Portal. Please use the challan details displayed above while entering the information.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Modal */}
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-md rounded-2xl border border-slate-200/50 bg-white p-6 shadow-2xl dark:border-slate-800/50 dark:bg-slate-900">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg">
+                  <ExternalLink className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                  Proceed to Challan Entry?
+                </h3>
+              </div>
+              <p className="mb-6 text-sm font-medium text-slate-600 dark:text-slate-400">
+                You will be redirected to the external portal. Please use the challan details displayed above while entering the information.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 rounded-xl border border-slate-200/50 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200 dark:border-slate-800/50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmProceed}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600"
+                >
+                  <ArrowUpRight className="h-4 w-4" />
+                  <span>Proceed</span>
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Fertilizer Amendment Type Selection - Hidden for now */}
-        {/* {showFertilizerAmendmentType && (
+        {/* Amendment Type Selections - Hidden for now */}
+        {showFertilizerAmendmentType && (
           <div className={`mb-4 transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="mb-2">
               <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
@@ -773,7 +1050,7 @@ export function LicenseApplicationGenerator() {
               <select
                 value={fertilizerAmendmentType}
                 onChange={(e) => handleFertilizerAmendmentTypeChange(e.target.value as FertilizerAmendmentType)}
-                className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                className="w-full rounded-2xl border border-teal-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 dark:border-teal-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-teal-900/30"
               >
                 <option value="">Amendment Type</option>
                 {Object.entries(FERTILIZER_AMENDMENT_TYPES).map(([key, label]) => (
@@ -782,10 +1059,10 @@ export function LicenseApplicationGenerator() {
               </select>
             </div>
           </div>
-        )} */}
+        )}
 
         {/* Seed Amendment Type Selection - Hidden for now */}
-        {/* {showSeedAmendmentType && (
+        {showSeedAmendmentType && (
           <div className={`mb-4 transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="mb-2">
               <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
@@ -796,7 +1073,7 @@ export function LicenseApplicationGenerator() {
               <select
                 value={seedAmendmentType}
                 onChange={(e) => handleSeedAmendmentTypeChange(e.target.value as SeedAmendmentType)}
-                className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
               >
                 <option value="">Amendment Type</option>
                 {Object.entries(SEED_AMENDMENT_TYPES).map(([key, label]) => (
@@ -805,10 +1082,10 @@ export function LicenseApplicationGenerator() {
               </select>
             </div>
           </div>
-        )} */}
+        )}
 
         {/* Insecticide Amendment Type Selection - Hidden for now */}
-        {/* {showInsecticideAmendmentType && (
+        {showInsecticideAmendmentType && (
           <div className={`mb-4 transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="mb-2">
               <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
@@ -819,7 +1096,7 @@ export function LicenseApplicationGenerator() {
               <select
                 value={insecticideAmendmentType}
                 onChange={(e) => handleInsecticideAmendmentTypeChange(e.target.value as InsecticideAmendmentType)}
-                className="w-full rounded-2xl border border-violet-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 dark:border-violet-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-violet-900/30"
+                className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
               >
                 <option value="">Amendment Type</option>
                 {Object.entries(INSECTICIDE_AMENDMENT_TYPES).map(([key, label]) => (
@@ -828,31 +1105,7 @@ export function LicenseApplicationGenerator() {
               </select>
             </div>
           </div>
-        )} */}
-
-        {/* Required Documents Section - Hidden for now */}
-        {/* {showDocuments && (
-          <div className={`transition-all duration-700 delay-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 text-white">
-                <FileIcon className="h-4 w-4" />
-              </div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                Required Documents
-              </h2>
-            </div>
-            <div className="rounded-2xl border border-violet-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-violet-800/50 dark:bg-slate-900/80">
-              <ul className="space-y-3">
-                {FERTILIZER_AMENDMENT_DOCUMENTS.map((doc, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <ChevronRight className="h-5 w-5 shrink-0 mt-0.5 text-violet-600 dark:text-violet-400" />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{doc}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )} */}
+        )}
       </div>
     </div>
   );

@@ -47,8 +47,8 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/license-application-generator',
     icon: FileText,
     category: 'internal',
-    gradient: 'from-violet-500 to-purple-600',
-    bgGradient: 'from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30',
+    gradient: 'from-teal-500 to-emerald-600',
+    bgGradient: 'from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30',
   },
   {
     title: 'Statutory Forms',

@@ -152,6 +152,7 @@ export function Login() {
   const [pdfToolOpen, setPdfToolOpen] = useState(false);
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
   const [statutoryView, setStatutoryView] = useState<'generate' | 'library'>('generate');
+  const [searchQuery, setSearchQuery] = useState('');
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installMessage, setInstallMessage] = useState<string | null>(null);
   const [appInstalled, setAppInstalled] = useState(
@@ -288,13 +289,23 @@ export function Login() {
     () => statutoryForms.filter((form) => normalizePublicFormCategory(form.category) === statutoryFolder),
     [statutoryForms, statutoryFolder]
   );
-  const statutoryPageCount = Math.max(1, Math.ceil(selectedStatutoryForms.length / PUBLIC_FORMS_PAGE_SIZE));
+
+  const filteredStatutoryForms = useMemo(
+    () => selectedStatutoryForms.filter((form) => {
+      const query = searchQuery.toLowerCase();
+      const title = (form.label || form.title || '').toLowerCase();
+      const description = (form.description || '').toLowerCase();
+      return title.includes(query) || description.includes(query);
+    }),
+    [selectedStatutoryForms, searchQuery]
+  );
+  const statutoryPageCount = Math.max(1, Math.ceil(filteredStatutoryForms.length / PUBLIC_FORMS_PAGE_SIZE));
   const paginatedStatutoryForms = useMemo(
-    () => selectedStatutoryForms.slice(
+    () => filteredStatutoryForms.slice(
       statutoryPage * PUBLIC_FORMS_PAGE_SIZE,
       statutoryPage * PUBLIC_FORMS_PAGE_SIZE + PUBLIC_FORMS_PAGE_SIZE
     ),
-    [selectedStatutoryForms, statutoryPage]
+    [filteredStatutoryForms, statutoryPage]
   );
 
   useEffect(() => {
@@ -302,7 +313,7 @@ export function Login() {
     if (statutoryFolder === 'pesticides') {
       setPdfToolOpen(false);
     }
-  }, [statutoryFolder]);
+  }, [statutoryFolder, searchQuery]);
 
   const openPublicPreview = (form: FormDownload) => {
     if (!form.file_url) return;
@@ -657,6 +668,8 @@ export function Login() {
               <div className="mb-3">
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('🔍 Search forms...', '🔍 ఫారాలను వెతకండి...')}
                   className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 />
@@ -667,7 +680,7 @@ export function Login() {
                   {t('Available Forms', 'అందుబాటులో ఉన్న ఫారాలు')}
                 </h2>
                 <span className="text-xs font-bold text-slate-500">
-                  {selectedStatutoryForms.length} {t('Forms', 'ఫారాలు')}
+                  {filteredStatutoryForms.length} {t('Forms', 'ఫారాలు')}
                 </span>
               </div>
 
@@ -675,7 +688,7 @@ export function Login() {
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
                 </div>
-              ) : selectedStatutoryForms.length > 0 ? (
+              ) : filteredStatutoryForms.length > 0 ? (
                 <div className="grid gap-2">
                   {paginatedStatutoryForms.map((form) => (
                     <div
@@ -727,7 +740,7 @@ export function Login() {
                   </p>
                 </div>
               )}
-              {selectedStatutoryForms.length > PUBLIC_FORMS_PAGE_SIZE && (
+              {filteredStatutoryForms.length > PUBLIC_FORMS_PAGE_SIZE && (
                 <PublicFormsPagination
                   currentPage={statutoryPage}
                   pageCount={statutoryPageCount}

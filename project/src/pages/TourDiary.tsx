@@ -49,6 +49,7 @@ interface TourDiaryDraft {
   totalKm: number;
   createdAt: string;
   updatedAt: string;
+  dateRemarks?: Record<string, string>;
 }
 
 interface TourJourney {
@@ -65,7 +66,7 @@ interface TourJourney {
   meter_from: number;
   distance_km: number;
   meter_to: number;
-  purpose: string;
+  purposes: string[];
   custom_purpose: string | null;
   remarks: string | null;
 }
@@ -131,6 +132,7 @@ const PURPOSES = [
   'Oil Palm Extension Awareness', 'Official Departmental Training', 'Orientation Programme',
   'Paddy Procurement Center Visit', 'Pest & Disease Surveillance', 'PM Kisan Beneficiary Verification',
   'Prajavani Grievance', 'Rythu Nestham VC', 'Sample Collection', 'Video Conference on Govt Schemes',
+  'Attending Quality Control Cases at District Court', 'Additional duties assigned by other Depts',
   'Others'
 ];
 
@@ -403,7 +405,7 @@ export function TourDiary() {
     meter_from: 0,
     distance_km: 0,
     meter_to: 0,
-    purpose: '',
+    purposes: [] as string[],
     custom_purpose: '',
     remarks: ''
   });
@@ -784,7 +786,9 @@ export function TourDiary() {
       const backwardCompatibleJourneys = draft.journeys.map(journey => ({
         ...journey,
         custom_mode_of_journey: journey.custom_mode_of_journey || null,
-        custom_purpose: journey.custom_purpose || null
+        custom_purpose: journey.custom_purpose || null,
+        // Convert old single purpose to purposes array for backward compatibility
+        purposes: (journey as any).purpose ? [(journey as any).purpose] : (journey.purposes || [])
       }));
       
       setJourneys(backwardCompatibleJourneys);
@@ -921,7 +925,7 @@ export function TourDiary() {
           meter_from: journey.meter_from,
           distance_km: journey.distance_km,
           meter_to: journey.meter_to,
-          purpose: journey.purpose,
+          purpose: journey.purposes && journey.purposes.length > 0 ? journey.purposes.join(', ') : '',
           custom_purpose: journey.custom_purpose,
           remarks: journey.remarks
         }));
@@ -1223,7 +1227,7 @@ export function TourDiary() {
     return dayJourneys.some(j => 
       j.to_place && 
       j.distance_km !== null && j.distance_km !== undefined && j.distance_km > 0 &&
-      j.purpose
+      j.purposes && j.purposes.length > 0
     );
   }
 
@@ -1387,7 +1391,7 @@ export function TourDiary() {
     const dayName = getDayName(currentYear, currentMonth, day);
     const isTuesday = dayName === 'Tuesday';
     const isHoliday = isTourEntryDisabled(date);
-    const defaultPurpose = (isTuesday && !isHoliday) ? 'Rythu Nestham VC' : '';
+    const defaultPurposes = (isTuesday && !isHoliday) ? ['Rythu Nestham VC'] : [];
 
     setFormData({
       journey_date: date,
@@ -1400,7 +1404,7 @@ export function TourDiary() {
       meter_from: continueFrom?.meter_to || previousJourney?.meter_to || lastJourney?.meter_to || tourDiary?.opening_meter || 0,
       distance_km: 0,
       meter_to: continueFrom?.meter_to || previousJourney?.meter_to || lastJourney?.meter_to || tourDiary?.opening_meter || 0,
-      purpose: defaultPurpose,
+      purposes: defaultPurposes,
       custom_purpose: '',
       remarks: ''
     });
@@ -1424,7 +1428,7 @@ export function TourDiary() {
       meter_from: journey.meter_from,
       distance_km: journey.distance_km,
       meter_to: journey.meter_to,
-      purpose: journey.purpose,
+      purposes: journey.purposes || [],
       custom_purpose: journey.custom_purpose || '',
       remarks: journey.remarks || ''
     });
@@ -1444,8 +1448,8 @@ export function TourDiary() {
         alert('Please enter a valid distance greater than 0 km.');
         return;
       }
-      if (!formData.purpose) {
-        alert('Purpose is required.');
+      if (formData.purposes.length === 0) {
+        alert('At least one purpose is required.');
         return;
       }
       
@@ -1473,8 +1477,8 @@ export function TourDiary() {
         meter_from: formData.meter_from,
         distance_km: formData.distance_km,
         meter_to: formData.meter_to,
-        purpose: formData.purpose,
-        custom_purpose: formData.purpose === 'Others' ? formData.custom_purpose : null,
+        purposes: formData.purposes,
+        custom_purpose: formData.purposes.includes('Others') ? formData.custom_purpose : null,
         remarks: formData.remarks || null
       };
 
@@ -1501,8 +1505,8 @@ export function TourDiary() {
           meter_from: formData.meter_from,
           distance_km: formData.distance_km,
           meter_to: formData.meter_to,
-          purpose: formData.purpose,
-          custom_purpose: formData.purpose === 'Others' ? formData.custom_purpose : null,
+          purpose: formData.purposes.join(', '),
+          custom_purpose: formData.purposes.includes('Others') ? formData.custom_purpose : null,
           remarks: formData.remarks || null
         };
 
@@ -1584,8 +1588,10 @@ export function TourDiary() {
       } else {
         dayJourneys.forEach(journey => {
           const displayMode = journey.mode === 'Others' ? (journey.custom_mode_of_journey || '') : journey.mode;
-          const displayPurpose = journey.purpose === 'Others' ? (journey.custom_purpose || '') : journey.purpose;
-          
+          const displayPurposes = journey.purposes && journey.purposes.length > 0
+            ? journey.purposes.join(', ')
+            : '';
+
           tableData.push([
             date,
             journey.from_place || '',
@@ -1596,7 +1602,7 @@ export function TourDiary() {
             formatOptionalNumber(journey.meter_from),
             formatOptionalNumber(journey.meter_to),
             formatOptionalNumber(journey.distance_km),
-            displayPurpose || ''
+            displayPurposes || ''
           ]);
         });
       }
@@ -1988,7 +1994,7 @@ export function TourDiary() {
   };
 
   // Handle opening a completed diary
-  const openCompletedDiary = (diary: TourDiary) => {
+  const openCompletedDiary = async (diary: TourDiary) => {
     setCurrentYear(diary.year);
     setCurrentMonth(diary.month);
     setOfficerName(diary.officer_name || '');
@@ -1997,7 +2003,28 @@ export function TourDiary() {
     setMandal(diary.mandal || '');
     setDivision('');
     setTourDiary(diary);
-    loadJourneys();
+
+    // Load journeys from database for completed diary
+    try {
+      const { data: journeyData, error } = await supabase
+        .from('tour_journeys')
+        .select('*')
+        .eq('tour_diary_id', diary.id);
+
+      if (error) throw error;
+
+      // Convert database purpose string back to purposes array for backward compatibility
+      const convertedJourneys = (journeyData || []).map(journey => ({
+        ...journey,
+        purposes: journey.purpose ? journey.purpose.split(', ').map(p => p.trim()) : []
+      }));
+
+      setJourneys(convertedJourneys);
+    } catch (error) {
+      console.error('Error loading journeys for completed diary:', error);
+      setJourneys([]);
+    }
+
     setShowLandingPage(false);
   };
 
@@ -2968,7 +2995,7 @@ export function TourDiary() {
                           </div>
                         </div>
                         <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          {journey.mode === 'Others' ? journey.custom_mode_of_journey : journey.mode} | {journey.purpose === 'Others' ? journey.custom_purpose : journey.purpose}
+                          {journey.mode === 'Others' ? journey.custom_mode_of_journey : journey.mode} | {journey.purposes && journey.purposes.length > 0 ? journey.purposes.join(', ') : 'No purpose'}
                         </p>
                         {journey.remarks && (
                           <p className="mt-1 text-[10px] font-medium text-slate-500 dark:text-slate-400">
@@ -3060,22 +3087,55 @@ export function TourDiary() {
                     className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
                   />
                 </div>
-                <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Purpose</label>
-                  <select
-                    value={formData.purpose}
-                    onChange={(e) => setFormData({ ...formData, purpose: e.target.value, custom_purpose: '' })}
-                    className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
-                  >
-                    <option value="">Select Purpose</option>
-                    {PURPOSES.map(purpose => (
-                      <option key={purpose} value={purpose}>{purpose}</option>
-                    ))}
-                  </select>
+                <div className="col-span-2">
+                  <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Purpose(s)</label>
+                  <div className="space-y-2">
+                    <div className="max-h-48 overflow-y-auto rounded-lg border border-emerald-200 bg-white p-3 dark:border-emerald-800 dark:bg-slate-800">
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {PURPOSES.map(purpose => (
+                          <label key={purpose} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              value={purpose}
+                              checked={formData.purposes.includes(purpose)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setFormData({ ...formData, purposes: [...formData.purposes, purpose] });
+                                } else {
+                                  setFormData({ ...formData, purposes: formData.purposes.filter(p => p !== purpose) });
+                                }
+                              }}
+                              className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500 dark:border-emerald-700 dark:bg-slate-700 dark:text-emerald-500"
+                            />
+                            <span className="text-xs font-semibold text-slate-900 dark:text-white">{purpose}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    {formData.purposes.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {formData.purposes.map(purpose => (
+                          <span
+                            key={purpose}
+                            className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200"
+                          >
+                            {purpose}
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, purposes: formData.purposes.filter(p => p !== purpose) })}
+                              className="ml-1 hover:text-emerald-600 dark:hover:text-emerald-300"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {formData.purpose === 'Others' && (
-                  <div>
-                    <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Specify Purpose</label>
+                {formData.purposes.includes('Others') && (
+                  <div className="col-span-2">
+                    <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Specify Custom Purpose</label>
                     <input
                       type="text"
                       value={formData.custom_purpose}

@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
-import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle, Loader2 } from 'lucide-react';
+import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle, Loader2, Users, ArrowLeft } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 import { supabase } from '../lib/supabase';
 
@@ -41,14 +39,13 @@ interface TabConfig {
   id: OfficerType;
   label: string;
   icon: React.ElementType;
-  teluguLabel: string;
 }
 
 const TABS: TabConfig[] = [
-  { id: 'AEO', label: 'AEO', icon: User, teluguLabel: 'ఏఈఓ' },
-  { id: 'MAO', label: 'MAO', icon: User, teluguLabel: 'ఎంఏఓ' },
-  { id: 'ADA', label: 'ADA', icon: Building2, teluguLabel: 'ఏడీఏ' },
-  { id: 'DAO', label: 'DAO', icon: Building2, teluguLabel: 'డీఏఓ' },
+  { id: 'AEO', label: 'AEO', icon: User },
+  { id: 'MAO', label: 'MAO', icon: User },
+  { id: 'ADA', label: 'ADA', icon: Building2 },
+  { id: 'DAO', label: 'DAO', icon: Building2 },
 ];
 
 // In-memory cache
@@ -116,7 +113,6 @@ function getDropdownCacheKey(officerType: OfficerType, district: string, divisio
 
 export function OfficerContacts() {
   const navigate = useNavigate();
-  const { t, language, toggleLanguage } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<OfficerType>('AEO');
   const [contacts, setContacts] = useState<OfficerContact[]>([]);
@@ -652,27 +648,32 @@ export function OfficerContacts() {
       <div className="relative mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
         <div className={`mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="rounded-3xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-emerald-800/50 dark:bg-slate-900/80">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
-                  <User className="h-8 w-8" />
+          <div className="rounded-2xl border border-[#BBF7D0] bg-gradient-to-br from-[#F0FDF4] via-[#DCFCE7] to-[#BBF7D0] p-4 shadow-lg">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#15803D] shadow-sm ring-1 ring-white/20">
+                  <Users className="h-6 w-6 text-white" aria-label="Officer Contacts" />
                 </div>
-                <div className="min-w-0">
-                  <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[#166534]">
+                    OFFICER DIRECTORY
+                  </p>
+                  <h1 className="text-xl font-black text-[#14532D]">
                     Officer Contacts
                   </h1>
-                  <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                  <p className="text-sm font-semibold text-[#3F6212]">
                     Telangana Agriculture Department
                   </p>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <LanguageToggle language={language} onClick={toggleLanguage} />
-                <BackButton onClick={() => navigate('/officer-toolkit')}>
-                  <span>Back</span>
-                </BackButton>
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/officer-toolkit')}
+                className="inline-flex items-center gap-2 rounded-lg border border-[#86EFAC] bg-white/70 px-3 py-2 text-sm font-black text-[#166534] shadow-sm transition hover:bg-white hover:border-[#4ADE80]"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </button>
             </div>
           </div>
         </div>
@@ -696,7 +697,7 @@ export function OfficerContacts() {
                   }`}
                 >
                   <TabIcon className="h-5 w-5" />
-                  <span>{language === 'te' ? tab.teluguLabel : tab.label}</span>
+                  <span>{tab.label}</span>
                 </button>
               );
             })}

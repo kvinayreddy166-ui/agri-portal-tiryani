@@ -13,7 +13,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
 import { repairTeluguRecord, repairTeluguText } from '../utils/textRepair';
 import {
@@ -1823,54 +1822,56 @@ export function FertilizerCalculator() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-2 text-slate-950 sm:space-y-3">
-      <section className="overflow-hidden rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-700 via-green-700 to-teal-800 p-4 text-white shadow-sm dark:border-emerald-900 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
-              <FileText className="h-6 w-6" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-black uppercase text-emerald-100">Farm Calculator</p>
-              <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+    <div className="space-y-2 sm:space-y-3">
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <section className="overflow-hidden rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 text-white shadow-lg dark:border-emerald-800/50 sm:p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="flex items-center gap-2 text-xl font-black text-white">
+                <FileText className="h-6 w-6" aria-label="Fertilizer Calculator" />
                 {language === 'te' ? '\u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C15\u0C3E\u0C32\u0C3F\u0C15\u0C4D\u0C2F\u0C41\u0C32\u0C47\u0C1F\u0C30\u0C4D' : 'Fertilizer Calculator'}
               </h1>
-              <p className="mt-1 text-sm font-semibold text-emerald-50">
-                {language === 'te' ? '\u0C2A\u0C02\u0C1F\u0C15\u0C41 \u0C05\u0C35\u0C38\u0C30\u0C2E\u0C48\u0C28 \u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C32\u0C46\u0C15\u0C4D\u0C15\u0C3F\u0C02\u0C2A\u0C41' : 'Calculate crop fertilizer requirements'}
+              <p className="text-sm font-semibold text-white/90">
+                {language === 'te' ? '\u0C2A\u0C02\u0C1F\u0C15\u0C01 \u0C05\u0C35\u0C38\u0C30\u0C2E\u0C48\u0C28 \u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C32\u0C46\u0C15\u0C4D\u0C15\u0C3F\u0C02\u0C2A\u0C01' : 'Calculate crop fertilizer requirements'}
               </p>
             </div>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-1.5 sm:justify-end">
-            <LanguageToggle language={language} onClick={toggleLanguage} />
-            <div className="flex gap-1">
-              <button type="button" onClick={exportPdf} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-600 px-2 py-1 text-white" aria-label="Export PDF" title="PDF">
-              <FileText className="h-3.5 w-3.5" />
-            </button>
-              <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-green-600 px-2 py-1 text-white" aria-label="Share on WhatsApp" title="WhatsApp">
-              <WhatsAppIcon className="h-3.5 w-3.5" />
-            </button>
-              <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/15 px-2 py-1 text-[10px] font-black text-white shadow-sm disabled:opacity-50">
-              <RefreshCw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <LanguageToggle language={language} onClick={toggleLanguage} />
+              <div className="flex gap-1">
+                <button type="button" onClick={exportPdf} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-600 px-2 py-1 text-white" aria-label="Export PDF" title="PDF">
+                  <FileText className="h-3.5 w-3.5" />
+                </button>
+                <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-green-600 px-2 py-1 text-white" aria-label="Share on WhatsApp" title="WhatsApp">
+                  <WhatsAppIcon className="h-3.5 w-3.5" />
+                </button>
+                <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/15 px-2 py-1 text-[10px] font-black text-white shadow-sm disabled:opacity-50">
+                  <RefreshCw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/officer-toolkit/farm-calculators')}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
+              >
+                Back
+              </button>
             </div>
-            <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')}>
-              Back
-            </BackButton>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <section className="rounded-xl border border-lime-200 bg-gradient-to-br from-lime-100 to-emerald-100 p-4 text-sm font-semibold text-emerald-950 shadow-md">
-        <div className="grid gap-2 sm:grid-cols-3">
-          <p><span className="font-black">1.</span> Select crop recommendation or enter nutrients manually.</p>
-          <p><span className="font-black">2.</span> Enter area and choose available fertilizers.</p>
-          <p><span className="font-black">3.</span> See fertilizer bags and split doses instantly.</p>
-        </div>
-      </section>
+      <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+        <section className="rounded-xl border border-lime-200 bg-gradient-to-br from-lime-100 to-emerald-100 p-4 text-sm font-semibold text-emerald-950 shadow-md">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <p><span className="font-black">1.</span> Select crop recommendation or enter nutrients manually.</p>
+            <p><span className="font-black">2.</span> Enter area and choose available fertilizers.</p>
+            <p><span className="font-black">3.</span> See fertilizer bags and split doses instantly.</p>
+          </div>
+        </section>
 
-      {/* Farmer Details Section */}
-      <section className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-100 via-lime-50 to-cyan-100 p-3 shadow-md sm:p-4">
-        <div className="flex items-center justify-between gap-2">
+        {/* Farmer Details Section */}
+        <section className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-100 via-lime-50 to-cyan-100 p-3 shadow-md sm:p-4">
+          <div className="flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={() => setShowFarmerDetails(!showFarmerDetails)}
@@ -2197,12 +2198,12 @@ export function FertilizerCalculator() {
       )}
 
       <section className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-100 to-orange-100 p-3 text-amber-950 shadow-md sm:p-4">
-          <h2 className="mb-2 flex items-center gap-2 text-sm font-black sm:text-base"><Leaf className="h-5 w-5" /> {uiLabels.importantAgronomicNote}</h2>
-          <ul className="space-y-1 text-sm font-bold">
-            {visibleAgronomicNotes.map((note) => (
-              <li key={note}>{note}</li>
-            ))}
-          </ul>
+        <h2 className="mb-2 flex items-center gap-2 text-sm font-black sm:text-base"><Leaf className="h-5 w-5" /> {uiLabels.importantAgronomicNote}</h2>
+        <ul className="space-y-1 text-sm font-bold">
+          {visibleAgronomicNotes.map((note) => (
+            <li key={note}>{note}</li>
+          ))}
+        </ul>
       </section>
 
       {isAdminUser && (
