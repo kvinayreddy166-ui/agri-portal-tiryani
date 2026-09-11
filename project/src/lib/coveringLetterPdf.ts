@@ -1,6 +1,8 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
 import { addGovernmentEmblemWatermark } from './pdfWatermark';
+import { isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
+import { drawJustifiedBodyText } from './pdfText';
 
 type CoveringLetterQueueItem = {
   sampleCode: string;
@@ -29,6 +31,10 @@ type OfficerDetails = {
   designation: string;
   mandal: string;
   manualMandal: string;
+  manualDivision: string;
+  office?: string;
+  placeOfCollectionMandal: string;
+  manualPlaceOfCollection: string;
   district: string;
   manualDistrict: string;
   pinCode: string;
@@ -255,8 +261,8 @@ async function drawGovernmentHeader(cursor: PdfCursor) {
   const { doc } = cursor;
   
   // Add Telangana Government emblem to the left of the header text
-  const emblemWidth = 26.36;
-  const emblemHeight = 17.57;
+  const emblemWidth = 23.72;
+  const emblemHeight = 15.81;
   const horizontalGap = 1; // Reduced gap to move logo closer to text
   
   // Calculate text width for centering
@@ -337,15 +343,20 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, 
     currentY += LINE_HEIGHT;
   }
   
-  const designation = officerDetails?.designation || 'Mandal Agriculture Officer';
+  const designation = statutoryDesignationDisplay(officerDetails?.designation || 'Mandal Agriculture Officer');
   doc.setFont(PDF_FONT, 'bold');
   doc.text(`${designation},`, leftColumnX, currentY);
   currentY += LINE_HEIGHT;
   
-  const mandal = officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal || '';
-  if (mandal) {
+  const isADA = isAssistantDirectorOfAgriculture(officerDetails?.designation || '');
+  const isADAT = isAssistantDirectorOfAgricultureT(officerDetails?.designation || '');
+  const resolvedMandal = officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal || '';
+  // For ADA, the Officer From Address uses the DIVISION value; for ADA (T) it uses the OFFICE value
+  const locationValue = isADAT ? officerDetails?.office || resolvedMandal : isADA ? officerDetails?.manualDivision || resolvedMandal : resolvedMandal;
+  if (locationValue) {
     doc.setFont(PDF_FONT, 'bold');
-    doc.text(`${mandal} Mandal,`, leftColumnX, currentY);
+    const locationLabel = isADAT ? '' : isADA ? 'Division' : 'Mandal';
+    doc.text(locationLabel ? `${locationValue} ${locationLabel},` : `${locationValue},`, leftColumnX, currentY);
     currentY += LINE_HEIGHT;
   }
   
@@ -486,14 +497,20 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType
   doc.setFontSize(FONT_SIZES.body);
   doc.setLineHeightFactor(LINE_HEIGHTS.body);
   
-  const mandal = displayValue(officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal);
+  const isADA = isAssistantDirectorOfAgriculture(officerDetails?.designation || '');
+  // For ADA, use placeOfCollectionMandal (or manualPlaceOfCollection if Others), otherwise use regular mandal
+  const placeOfCollection = isADA 
+    ? (officerDetails?.placeOfCollectionMandal === 'Others' 
+        ? officerDetails?.manualPlaceOfCollection || '' 
+        : officerDetails?.placeOfCollectionMandal || '')
+    : displayValue(officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal);
   const district = displayValue(officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict);
   
   // Text segments with different font styles
   const segments = letterType === 'safe-custody'
     ? [
         { text: 'In continuation to the subject cited above, I submit that the following fertilizer samples were drawn from the input dealer premises in ', bold: false },
-        { text: mandal, bold: true },
+        { text: placeOfCollection, bold: true },
         { text: ' Mandal, ', bold: false },
         { text: district, bold: true },
         { text: ' District for quality analysis as per the allotment given by the District Agriculture Officer, ', bold: false },
@@ -503,37 +520,23 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType
       ]
     : [
         { text: 'In continuation to the subject cited above, I am herewith submitting the fertilizer samples drawn from the input dealer premises in ', bold: false },
-        { text: mandal, bold: true },
+        { text: placeOfCollection, bold: true },
         { text: ' Mandal, ', bold: false },
         { text: district, bold: true },
         { text: ' District for quality analysis as per the allotment given by the District Agriculture Officer, ', bold: false },
         { text: district, bold: false },
-        { text: ' District.', bold: false }
+        { text: '.', bold: false }
       ];
   
-  let xPos = PAGE.marginLeft + FIRST_LINE_INDENT;
-  let yPos = cursor.y;
-  const maxWidth = PAGE.contentWidth;
-  
-  segments.forEach(segment => {
-    doc.setFont(PDF_FONT, segment.bold ? 'bold' : 'normal');
-    const words = segment.text.split(' ');
-    
-    words.forEach((word, wordIndex) => {
-      const textToDraw = wordIndex === words.length - 1 ? word : word + ' ';
-      const textWidth = doc.getTextWidth(textToDraw);
-      
-      if (xPos + textWidth > PAGE.marginLeft + maxWidth) {
-        xPos = PAGE.marginLeft;
-        yPos += LINE_HEIGHT;
-      }
-      
-      doc.text(textToDraw, xPos, yPos);
-      xPos += textWidth;
-    });
+  const endY = drawJustifiedBodyText(doc, segments, {
+    x: PAGE.marginLeft,
+    startY: cursor.y,
+    maxWidth: PAGE.contentWidth,
+    lineHeight: LINE_HEIGHT,
+    firstLineIndent: FIRST_LINE_INDENT,
+    fontName: PDF_FONT,
   });
-  
-  cursor.y = yPos + LINE_HEIGHT + PARAGRAPH_SPACING;
+  cursor.y = endY + PARAGRAPH_SPACING;
 }
 
 function drawSampleTableHeading(cursor: PdfCursor, letterType: LetterType = 'quality-analysis') {
@@ -656,7 +659,7 @@ function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   
   cursor.y += LINE_HEIGHT + 5; // Extra space increased by 5 units
   
-  const designation = officerDetails?.designation || 'Mandal Agricultural Officer';
+  const designation = statutoryDesignationDisplay(officerDetails?.designation || 'Mandal Agricultural Officer');
   doc.setFont(PDF_FONT, 'bold');
   doc.text(designation, signatureX, cursor.y, { align: 'right' });
   cursor.y += LINE_HEIGHT;
@@ -670,6 +673,7 @@ function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, m
   
   const district = displayValue(officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict);
   const division = displayValue(metadata?.division);
+  const isADA = isAssistantDirectorOfAgriculture(officerDetails?.designation || '');
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
@@ -678,10 +682,11 @@ function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, m
   
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(11);
-  doc.text(`1. The District Agriculture Officer, ${district} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
-  cursor.y += LINE_HEIGHT;
-  
-  doc.text(`2. The Asst. Director of Agriculture (R), ${division} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
+  if (!isADA) {
+    doc.text(`1. The Asst. Director of Agriculture (R), ${division} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
+    cursor.y += LINE_HEIGHT;
+  }
+  doc.text(`${isADA ? '1' : '2'}. The District Agriculture Officer, ${district} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
   cursor.y += LINE_HEIGHT;
 }
 

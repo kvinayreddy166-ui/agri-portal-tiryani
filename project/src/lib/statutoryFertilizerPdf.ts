@@ -1,5 +1,6 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { addGovernmentEmblemWatermark } from './pdfWatermark';
+import { isAssistantDirectorOfAgriculture } from '../data/assistantDirectorLocation';
 
 export type FertilizerStatutoryFormType = 'J' | 'K_ADA' | 'K_JDA' | 'P';
 
@@ -101,6 +102,10 @@ export type FertilizerPdfValues = {
   mandal: string;
   manualDistrict: string;
   manualMandal: string;
+  manualDivision: string;
+  office: string;
+  placeOfCollectionMandal: string;
+  manualPlaceOfCollection: string;
   pinCode: string;
   // LETTER DETAILS
   financialYear: string;
@@ -222,6 +227,10 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   mandal: '',
   manualDistrict: '',
   manualMandal: '',
+  manualDivision: '',
+  office: '',
+  placeOfCollectionMandal: '',
+  manualPlaceOfCollection: '',
   pinCode: '',
   // LETTER DETAILS
   financialYear: calculateFinancialYear(),
@@ -437,7 +446,7 @@ function buildFormJDealerAddress(values: FertilizerPdfValues): string {
     .filter(Boolean);
   
   // Use placeOfCollection for Mandal value when ADA is selected (Form J specific)
-  const isADA = values.designation === 'Asst. Director of Agriculture';
+  const isADA = isAssistantDirectorOfAgriculture(values.designation);
   const mandalValue = isADA && values.placeOfCollection ? values.placeOfCollection : resolvedMandal;
   if (mandalValue) addressParts.push(`Mandal: ${mandalValue}`);
   if (resolvedDistrict) addressParts.push(`District: ${resolvedDistrict}`);
@@ -590,7 +599,7 @@ function drawPlaceDateAndInspectorSignature(
   if (options.showPlaceDate) {
     doc.setFont(PDF_FONT, 'normal');
     // Use placeOfCollection when ADA is selected, otherwise use place
-    const isADA = values.designation === 'Asst. Director of Agriculture';
+    const isADA = isAssistantDirectorOfAgriculture(values.designation);
     const resolvedPlace = isADA ? (values.placeOfCollection || values.place) : values.place;
     doc.text(`Place: ${resolvedPlace || '___________'}`, PAGE.marginX, cursor.y);
     doc.text(`Date: ${formatFieldValue(values.date) || '____________'}`, PAGE.marginX, cursor.y + 8);

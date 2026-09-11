@@ -62,6 +62,7 @@ const DISTRICT_DDO_CODES: Record<string, string> = {
   'Medchal–Malkajgiri': '21010102003',
   'Mulugu': '35010102002',
   'Nagarkurnool': '28010102003',
+  'Nalgonda': '29010102004',
   'Narayanpet': '34010102001',
   'Nirmal': '04010102002',
   'Nizamabad': '05010102001',

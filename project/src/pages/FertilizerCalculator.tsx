@@ -790,7 +790,7 @@ function buildFertilizerReportHtml(input: FertilizerReportInput, language: 'en' 
               ${filteredSplitPlan.map(({ dose, nutrients, calculation }) => {
                 const stageName = formatStageName(dose.stage);
                 if (!stageName) return '';
-                const rows = formatFertilizerRows(calculation.results, language);
+                const rows = formatFertilizerRows(calculation.results);
                 return `
                   <tr>
                     <td><strong>${stageName}</strong></td>
@@ -2249,6 +2249,7 @@ export function FertilizerCalculator() {
           </div>
         </section>
       )}
+      </div>
     </div>
   );
 }

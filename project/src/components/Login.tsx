@@ -53,7 +53,7 @@ const SeedForms = lazy(() =>
   import('../pages/SeedForms').then((module) => ({ default: module.SeedForms }))
 );
 const FertilizerCalculator = lazy(() =>
-  import('../features/fertilizerCalculator/FertilizerCalculatorCore').then((module) => ({ default: module.FertilizerCalculatorCore }))
+  import('../pages/FertilizerCalculator').then((module) => ({ default: module.FertilizerCalculator }))
 );
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
@@ -480,23 +480,23 @@ export function Login() {
   if (showStatutoryForms || calculatorOpen || fertilizerCalculatorOpen) {
     return (
       <div className="min-h-screen bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24">
-        <div className="mx-auto w-full max-w-4xl rounded-lg border border-white/70 bg-white/95 p-3 shadow-xl shadow-emerald-950/10 sm:p-4">
+        <div className="mx-auto w-full max-w-4xl space-y-4">
           {showStatutoryForms ? (
             <div className="mb-4">
-              <div className="rounded-2xl bg-gradient-to-r from-[#312E81] via-[#4338CA] to-[#5B21B6] p-4 shadow-lg">
+              <div className="rounded-2xl bg-gradient-to-r from-emerald-200 via-teal-200 to-cyan-200 p-4 shadow-lg border border-emerald-300/70">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-sm">
                       <FileText className="h-6 w-6 text-white" aria-label="Statutory Forms" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-indigo-100">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700">
                         {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                       </p>
-                      <h1 className="text-xl font-black text-white">
+                      <h1 className="text-xl font-black text-slate-900">
                         {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
                       </h1>
-                      <p className="text-sm font-semibold text-white/90">
+                      <p className="text-sm font-semibold text-slate-700">
                         {t('Generate and manage official documents', 'అధికారిక పత్రాలను సృష్టించండి మరియు నిర్వహించండి')}
                       </p>
                     </div>
@@ -504,7 +504,7 @@ export function Login() {
                   <button
                     type="button"
                     onClick={closeToolPage}
-                    className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
+                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     {t('Back', 'వెనుకకు')}
@@ -818,10 +818,10 @@ export function Login() {
                     <button
                       type="button"
                       onClick={closePdfTool}
-                      className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-white/80 text-red-600 shadow-sm backdrop-blur-sm transition-all hover:bg-red-50 hover:border-red-300 hover:shadow-md"
+                      className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
                       aria-label="Close seed PDF generator"
                     >
-                      <X className="h-5 w-5" />
+                      Close
                     </button>
                   </header>
                   <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">

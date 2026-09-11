@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Download, Eye, FileText, Loader2, Plus, RotateCcw, Trash2, X } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { isCombinationProductFromActiveIngredient } from '../../lib/statutoryPesticidePdf';
+import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
 
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
 const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';
@@ -33,6 +34,11 @@ type OfficerDetails = {
   designation: string;
   mandal: string;
   manualMandal: string;
+  manualDivision: string;
+  office?: string;
+  placeOfCollectionMandal: string;
+  manualPlaceOfCollection: string;
+  sampleDrawingMandal: string;
   district: string;
   manualDistrict: string;
   pinCode: string;
@@ -497,16 +503,18 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                   />
                 </div>
-                <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-600">DIVISION</label>
-                  <input
-                    type="text"
-                    value={metadata.division}
-                    onChange={(e) => setMetadata({ ...metadata, division: e.target.value })}
-                    placeholder="Enter Division Name"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
-                  />
-                </div>
+                {!isAssistantDirectorOfAgriculture(officerDetails?.designation || '') && (
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-600">DIVISION</label>
+                    <input
+                      type="text"
+                      value={metadata.division}
+                      onChange={(e) => setMetadata({ ...metadata, division: e.target.value })}
+                      placeholder="Enter Division Name"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">OFFICER PHONE NO.</label>
                   <input

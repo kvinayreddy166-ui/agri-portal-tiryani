@@ -28,7 +28,7 @@ const FileDirectory = lazy(() => import('./pages/FileDirectory').then((m) => ({ 
 const SubsidyTracking = lazy(() => import('./pages/SubsidyTracking').then((m) => ({ default: m.SubsidyTracking })));
 const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m) => ({ default: m.DealerStockPortal })));
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
-const FertilizerCalculator = lazy(() => import('./features/fertilizerCalculator/FertilizerCalculatorCore').then((m) => ({ default: m.FertilizerCalculatorCore })));
+const FertilizerCalculator = lazy(() => import('./pages/FertilizerCalculator').then((m) => ({ default: m.FertilizerCalculator })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
 const LicenseApplicationGenerator = lazy(() => import('./pages/LicenseApplicationGenerator').then((m) => ({ default: m.LicenseApplicationGenerator })));
 const FarmCalculators = lazy(() => import('./pages/FarmCalculators').then((m) => ({ default: m.FarmCalculators })));
@@ -42,6 +42,9 @@ const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const OfficerContacts = lazy(() => import('./pages/OfficerContacts').then((m) => ({ default: m.OfficerContacts })));
 const OfficerContactsAdmin = lazy(() => import('./pages/admin/OfficerContactsAdmin').then((m) => ({ default: m.OfficerContactsAdmin })));
 const TourDiary = lazy(() => import('./pages/TourDiary').then((m) => ({ default: m.TourDiary })));
+const CropManagement = lazy(() => import('./pages/CropManagement').then((m) => ({ default: m.CropManagement })));
+const CropAdminDashboard = lazy(() => import('./pages/admin/CropAdminDashboard').then((m) => ({ default: m.CropAdminDashboard })));
+const CropPage = lazy(() => import('./pages/CropPage').then((m) => ({ default: m.CropPage })));
 
 function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
   const [slow, setSlow] = useState(false);

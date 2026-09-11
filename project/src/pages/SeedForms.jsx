@@ -1,20 +1,94 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Eye, FileText, RotateCcw, Save, X } from 'lucide-react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { Download, Eye, FileText, RotateCcw, Save } from 'lucide-react';
 import { SeedInstructionModal } from '../components/ui/SeedInstructionModal';
 import { ToastContainer, useToast } from '../components/ui/Toast';
 import { SeedCoveringLetterModal } from '../components/forms/SeedCoveringLetterModal';
-import {
+import { 
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
-  SEED_DESIGNATION_OPTIONS,
+  SEED_SAMPLE_DRAWAL_DESIGNATION_OPTIONS,
   getMandalsForDistrict,
+  getDivisionsForDistrict,
 } from '../data/telanganaDistrictMandalData';
+import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../data/assistantDirectorLocation';
 import { PopupHintWrapper } from '../components/PopupHint';
+import { supabase } from '../lib/supabase';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
 const LAST_GENERATED_KEY = 'tiryani-seed-forms-last-generated';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
+
+// Fetch mandals for a given district and division from MAO contacts
+async function fetchMandalsForDivision(district, division) {
+  try {
+    console.log('Fetching mandals for district:', district, 'division:', division);
+    
+    // First try: Exact match with MAO
+    let { data, error } = await supabase
+      .from('officer_contacts')
+      .select('mandal')
+      .eq('officer_type', 'MAO')
+      .eq('district', district)
+      .eq('division', division)
+      .eq('active', true)
+      .not('mandal', 'is', null);
+    
+    console.log('Query 1 (exact MAO):', data?.length, 'results');
+    
+    // Second try: Case-insensitive with MAO
+    if (!data || data.length === 0) {
+      ({ data, error } = await supabase
+        .from('officer_contacts')
+        .select('mandal')
+        .ilike('officer_type', '%MAO%')
+        .ilike('district', district)
+        .ilike('division', division)
+        .eq('active', true)
+        .not('mandal', 'is', null));
+      
+      console.log('Query 2 (ilike MAO):', data?.length, 'results');
+    }
+    
+    // Third try: Try with Mandal Agriculture Officer
+    if (!data || data.length === 0) {
+      ({ data, error } = await supabase
+        .from('officer_contacts')
+        .select('mandal')
+        .ilike('officer_type', '%Mandal Agriculture Officer%')
+        .ilike('district', district)
+        .ilike('division', division)
+        .eq('active', true)
+        .not('mandal', 'is', null));
+      
+      console.log('Query 3 (Mandal Agriculture Officer):', data?.length, 'results');
+    }
+    
+    // Fourth try: Try with uppercase district/division (database seems to use uppercase)
+    if (!data || data.length === 0) {
+      ({ data, error } = await supabase
+        .from('officer_contacts')
+        .select('mandal')
+        .eq('officer_type', 'MAO')
+        .eq('district', district.toUpperCase())
+        .eq('division', division.toUpperCase())
+        .eq('active', true)
+        .not('mandal', 'is', null));
+      
+      console.log('Query 4 (uppercase):', data?.length, 'results');
+    }
+    
+    if (error) throw error;
+    
+    console.log('Raw data from query:', data);
+    const mandals = Array.from(new Set(data?.map(d => d.mandal) || [])).sort();
+    console.log('Fetched mandals:', mandals);
+    return mandals;
+  } catch (error) {
+    console.error('Error fetching mandals for division:', error);
+    return [];
+  }
+}
 const PDF_FONT = 'times';
 const PDF_BODY_SIZE = 12.5;
 const PDF_TITLE_SIZE = 16;
@@ -97,6 +171,10 @@ const initialSeedForm = {
   mandal: '',
   manualDistrict: '',
   manualMandal: '',
+  manualDivision: '',
+  office: '',
+  placeOfCollectionMandal: '',
+  manualPlaceOfCollection: '',
   pinCode: '',
   placeManuallyEdited: false,
   collectionPlaceManuallyEdited: false,
@@ -159,6 +237,7 @@ export function SeedForms() {
     }
   });
   const [message, setMessage] = useState('');
+  const [placeOfCollectionMandals, setPlaceOfCollectionMandals] = useState([]);
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
   const [selectedDraftName, setSelectedDraftName] = useState('');
@@ -169,6 +248,19 @@ export function SeedForms() {
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
   }, [form]);
+
+  // Fetch mandals for Place of Collection when ADA and district changes (for ADA, load based on District like MAO)
+  useEffect(() => {
+    console.log('useEffect triggered - designation:', form.designation, 'district:', form.district);
+    if (isAssistantDirectorOfAgriculture(form.designation) && form.district && form.district !== 'Others') {
+      const mandals = getMandalsForDistrict(form.district);
+      console.log('Setting placeOfCollectionMandals from district:', mandals);
+      setPlaceOfCollectionMandals(mandals);
+    } else {
+      console.log('Clearing placeOfCollectionMandals');
+      setPlaceOfCollectionMandals([]);
+    }
+  }, [form.designation, form.district]);
 
   const resolved = useMemo(() => resolveSeedValues(form), [form]);
   const isCottonCrop = resolved.crop === 'Cotton';
@@ -181,9 +273,10 @@ export function SeedForms() {
       }
       if (key === 'district') {
         // Reset manual edit flags when district changes
-        return { ...current, district: value, mandal: '', manualDistrict: '', manualMandal: '', place: '', placeManuallyEdited: false, collectionPlaceManuallyEdited: false };
+        return { ...current, district: value, mandal: '', manualDistrict: '', manualMandal: '', manualDivision: '', placeOfCollectionMandal: '', manualPlaceOfCollection: '', place: '', placeManuallyEdited: false, collectionPlaceManuallyEdited: false };
       }
       if (key === 'mandal') {
+        // Only for non-ADA designations (MAO, etc.)
         // Only auto-populate place and collectionPlace if it has NEVER been set before (not just if currently empty)
         const hasNeverBeenSet = !current.placeManuallyEdited && !current.collectionPlaceManuallyEdited;
         if (hasNeverBeenSet && value) {
@@ -192,6 +285,14 @@ export function SeedForms() {
           return { ...current, mandal: value, manualMandal: '', place: resolvedPlace, collectionPlace: resolvedPlace };
         }
         return { ...current, mandal: value, manualMandal: '' };
+      }
+      if (key === 'manualDivision') {
+        // For ADA, manual Division input - auto-populate place if never set
+        const hasNeverBeenSet = !current.placeManuallyEdited && !current.collectionPlaceManuallyEdited;
+        if (hasNeverBeenSet && value) {
+          return { ...current, manualDivision: value, place: value, collectionPlace: value };
+        }
+        return { ...current, manualDivision: value };
       }
       if (key === 'manualMandal') {
         // Only auto-populate place and collectionPlace if it has NEVER been set before
@@ -202,14 +303,44 @@ export function SeedForms() {
         }
         return { ...current, manualMandal: value };
       }
+      if (key === 'manualDivision') {
+        // Auto-populate collectionPlace with manual division value for ADA
+        if (value) {
+          return { ...current, manualDivision: value, collectionPlace: value };
+        }
+        return { ...current, manualDivision: value };
+      }
+      if (key === 'placeOfCollectionMandal') {
+        // Auto-populate collectionPlace with selected mandal
+        if (value && value !== 'Others') {
+          return { ...current, placeOfCollectionMandal: value, manualPlaceOfCollection: '', collectionPlace: value };
+        }
+        return { ...current, placeOfCollectionMandal: value, manualPlaceOfCollection: '' };
+      }
+      if (key === 'manualPlaceOfCollection') {
+        // Auto-populate collectionPlace with manual value
+        if (value) {
+          return { ...current, manualPlaceOfCollection: value, collectionPlace: value };
+        }
+        return { ...current, manualPlaceOfCollection: value };
+      }
       if (key === 'designation') {
         // When designation changes to ADA or Mandal Agriculture Officer, auto-populate place and collectionPlace if NEVER set before
         const resolvedMandal = current.mandal === 'Others' ? current.manualMandal : current.mandal;
-        const isADA = value === 'Asst. Director of Agriculture';
+        const isADA = isAssistantDirectorOfAgriculture(value);
+        const isADAT = isAssistantDirectorOfAgricultureT(value);
         const isMandalAO = value === 'Mandal Agriculture Officer';
-        const wasADA = current.designation === 'Asst. Director of Agriculture';
+        const wasADA = isAssistantDirectorOfAgriculture(current.designation);
         const wasMandalAO = current.designation === 'Mandal Agriculture Officer';
         const hasNeverBeenSet = !current.placeManuallyEdited && !current.collectionPlaceManuallyEdited;
+        // Clear ADA-specific fields when switching away from ADA
+        if (!isADA && wasADA) {
+          return { ...current, designation: value, manualDivision: '', office: '', placeOfCollectionMandal: '', manualPlaceOfCollection: '' };
+        }
+        // Prefill OFFICE for Asst. Director of Agriculture (T)
+        if (isADAT) {
+          return { ...current, designation: value, office: ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT };
+        }
         // Auto-populate when switching to ADA or Mandal Agriculture Officer and place has never been set
         if ((isADA && !wasADA || isMandalAO && !wasMandalAO) && hasNeverBeenSet && resolvedMandal) {
           // Auto-populate both place and collectionPlace for both ADA and Mandal Agriculture Officer
@@ -584,11 +715,25 @@ export function SeedForms() {
           <Input label="INSPECTOR NAME" value={form.officerName} onChange={(value) => setField('officerName', value)} />
           <Select label="Qualification" value={form.qualification} onChange={(value) => setField('qualification', value)} options={QUALIFICATION_OPTIONS} />
           {form.qualification === 'Others' && <Input label="Enter qualification" value={form.manualQualification} onChange={(value) => setField('manualQualification', value)} />}
-          <Select label="Designation" value={form.designation} onChange={(value) => setField('designation', value)} options={SEED_DESIGNATION_OPTIONS} />
-          <Select label="District" value={form.district} onChange={(value) => setField('district', value)} options={TELANGANA_DISTRICTS.map(toOption)} />
-          <Select label={form.designation === 'Asst. Director of Agriculture' ? 'Division' : 'Mandal'} value={form.mandal} onChange={(value) => setField('mandal', value)} options={form.district && form.district !== 'Others' ? [...getMandalsForDistrict(form.district).map(toOption), { label: 'Others', value: 'Others' }] : [{ label: 'Others', value: 'Others' }]} />
+          <Select label="Designation" value={form.designation} onChange={(value) => setField('designation', value)} options={SEED_SAMPLE_DRAWAL_DESIGNATION_OPTIONS} />
+          <Select label="District" value={form.district} onChange={(value) => setField('district', value)} options={withOthersOption(TELANGANA_DISTRICTS.map(toOption))} />
           {form.district === 'Others' && <Input label="Enter district name" value={form.manualDistrict} onChange={(value) => setField('manualDistrict', value)} />}
-          {form.mandal === 'Others' && <Input label="Enter mandal name" value={form.manualMandal} onChange={(value) => setField('manualMandal', value)} />}
+          {isAssistantDirectorOfAgriculture(form.designation) ? (
+            <>
+              {isAssistantDirectorOfAgricultureT(form.designation) ? (
+                <Input label="OFFICE" value={form.office} onChange={(value) => setField('office', value)} placeholder="Enter Office" />
+              ) : (
+                <Input label="DIVISION" value={form.manualDivision} onChange={(value) => setField('manualDivision', value)} placeholder="Enter Division Name" />
+              )}
+              <Select label="PLACE OF COLLECTION (MANDAL)" value={form.placeOfCollectionMandal} onChange={(value) => setField('placeOfCollectionMandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(placeOfCollectionMandals.map(toOption)) : [{ label: 'Others', value: 'Others' }]} />
+              {form.placeOfCollectionMandal === 'Others' && <Input label="ENTER PLACE OF COLLECTION / MANDAL NAME" value={form.manualPlaceOfCollection} onChange={(value) => setField('manualPlaceOfCollection', value)} />}
+            </>
+          ) : (
+            <>
+              <Select label="Mandal" value={form.mandal} onChange={(value) => setField('mandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(getMandalsForDistrict(form.district).map(toOption)) : [{ label: 'Others', value: 'Others' }]} />
+              {form.mandal === 'Others' && <Input label="Enter mandal name" value={form.manualMandal} onChange={(value) => setField('manualMandal', value)} />}
+            </>
+          )}
           <Input label="PIN CODE" value={form.pinCode} onChange={(value) => setField('pinCode', value)} />
           <Input label="Date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
         </Card>
@@ -725,6 +870,10 @@ export function SeedForms() {
           designation: form.designation,
           mandal: form.mandal,
           manualMandal: form.manualMandal,
+          manualDivision: form.manualDivision,
+          office: form.office,
+          placeOfCollectionMandal: form.placeOfCollectionMandal,
+          manualPlaceOfCollection: form.manualPlaceOfCollection,
           district: form.district,
           manualDistrict: form.manualDistrict,
           pinCode: form.pinCode,
@@ -882,17 +1031,29 @@ function toOption(value) {
 function resolveSeedValues(form) {
   const lab = labOptions.find((item) => item.id === form.labId) || labOptions[0];
   const fromPlace = String(form.place || '').trim();
-  const resolvedMandal = form.mandal === 'Others' ? form.manualMandal : form.mandal;
-  const resolvedDistrict = form.district === 'Others' ? form.manualDistrict : form.district;
+  const resolvedDistrict = effectiveLocationValue(form.district, form.manualDistrict);
   const resolvedQualification = form.qualification === 'Others' ? form.manualQualification : form.qualification;
   const officerNameWithQualification = form.officerName && resolvedQualification 
     ? `${form.officerName}, ${resolvedQualification}`
     : form.officerName;
   
   // Check if ADA is selected to determine whether to use Division or Mandal
-  const isADA = form.designation === 'Asst. Director of Agriculture';
+  const isADA = isAssistantDirectorOfAgriculture(form.designation);
   const isMandalAO = form.designation === 'Mandal Agriculture Officer';
-  const locationLabel = isADA ? 'Division' : 'Mandal';
+  
+  // For ADA: use manual Division input and Place of Collection (Mandal) dropdown
+  // For others: use Mandal dropdown with effective value
+  let resolvedLocation = '';
+  let locationLabel = '';
+  if (isADA) {
+    // For ADA, from/sender address uses the DIVISION value; for ADA (T) it uses the OFFICE value
+    resolvedLocation = isAssistantDirectorOfAgricultureT(form.designation) ? (form.office || '').trim() : form.manualDivision.trim();
+    locationLabel = isAssistantDirectorOfAgricultureT(form.designation) ? '' : 'Division';
+  } else {
+    const resolvedMandal = effectiveLocationValue(form.mandal, form.manualMandal);
+    resolvedLocation = resolvedMandal;
+    locationLabel = 'Mandal';
+  }
   
   // When ADA is selected, use collectionPlace for place field (for Forms VI & VIII)
   // When Mandal Agriculture Officer is selected, use mandal value (fromPlace)
@@ -913,8 +1074,8 @@ function resolveSeedValues(form) {
     seedClass: form.seedClass === 'Other' ? form.seedClassOther : form.seedClass,
     testRequired: form.testRequired === 'Other' ? form.testRequiredOther : form.testRequired,
     labAddress: form.labId === 'other' ? form.customLabAddress : (form.labId === '' ? '' : lab.value),
-    fromAddress: [officerNameWithQualification, form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n'),
-    senderAddress: [form.designation, resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n'),
+    fromAddress: [officerNameWithQualification, statutoryDesignationDisplay(form.designation), resolvedLocation ? [resolvedLocation, locationLabel].filter(Boolean).join(' ') : '', districtWithPinCode].filter(Boolean).join('\n'),
+    senderAddress: [statutoryDesignationDisplay(form.designation), resolvedLocation ? [resolvedLocation, locationLabel].filter(Boolean).join(' ') : '', districtWithPinCode].filter(Boolean).join('\n'),
     district: resolvedDistrict,
     districtWithPinCode: districtWithPinCode,
   };
@@ -925,6 +1086,21 @@ function isCottonSeedForm(form) {
 }
 
 function validateSeedForm(form, kind) {
+  // Validation for Assistant Director of Agriculture custom location fields
+  if (isAssistantDirectorOfAgriculture(form.designation)) {
+    if (form.district === 'Others' && !form.manualDistrict.trim()) return 'Please enter DISTRICT NAME.';
+    if (isAssistantDirectorOfAgricultureT(form.designation)) {
+      if (!(form.office || '').trim()) return 'Please enter OFFICE.';
+    } else if (!form.manualDivision.trim()) return 'Please enter DIVISION NAME.';
+    if (form.placeOfCollectionMandal === 'Others' && !form.manualPlaceOfCollection.trim()) return 'Please enter PLACE OF COLLECTION / MANDAL NAME.';
+  }
+  
+  // Validation for District = Others for all designations
+  if (form.district === 'Others' && !form.manualDistrict.trim()) return 'Please enter DISTRICT NAME.';
+  
+  // Validation for Mandal = Others for non-ADA designations
+  if (!isAssistantDirectorOfAgriculture(form.designation) && form.mandal === 'Others' && !form.manualMandal.trim()) return 'Please enter MANDAL NAME.';
+  
   // Validation removed - users can preview/download PDFs even with empty fields
   return '';
 }
@@ -1062,7 +1238,7 @@ function drawSeedFormVI(doc, form) {
   p.y += noticeLines.length * 7 * 1.5 + 8;
 
   doc.text(`Date : ${fmtDate(r.date) || '____ / ____ / ______'}`, 20, p.y);
-  signatureRight(doc, Math.min(p.y + 16, 246), ['Seed Inspector/', 'Mandal Agriculture Officer']);
+  signatureRight(doc, Math.min(p.y + 16, 246), seedSignatureLines(r.designation));
 }
 
 function drawSeedFormI(doc, form) {
@@ -1157,7 +1333,7 @@ function drawSeedFormI(doc, form) {
   p.y += 6;
   
   // Signature
-  signatureRight(doc, p.y, ['Seed Inspector &', 'Mandal Agriculture Officer']);
+  signatureRight(doc, p.y, seedSignatureLines(r.designation, 'Seed Inspector &'));
 }
 
 function drawSeedFormVIII(doc, form) {
@@ -1198,7 +1374,7 @@ function drawSeedFormVIII(doc, form) {
   const signatureY = Math.min(Math.max(p.y + 8, 224), 242);
   doc.setFont(PDF_FONT, 'bold');
   doc.text(['Signature of the party / Dealer', 'from whose premises samples taken', 'and payment made'], 20, signatureY);
-  signatureRight(doc, signatureY, ['Seed Inspector/', 'Mandal Agriculture Officer']);
+  signatureRight(doc, signatureY, seedSignatureLines(r.designation));
   doc.setFont(PDF_FONT, 'normal');
   doc.text(`Place: ${r.place || '__________'}`, 28, signatureY + 24);
   doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 28, signatureY + 32);
@@ -1240,7 +1416,7 @@ function drawInformationSlip(doc, form) {
     ['10. Kind of test required', r.testRequired],
     ['11. Remarks', r.remarks],
   ]);
-  signatureRight(doc, Math.min(p.y + 16, 252), ['Seed Inspector/', 'Mandal Agriculture Officer']);
+  signatureRight(doc, Math.min(p.y + 16, 252), seedSignatureLines(r.designation));
 }
 
 function page(doc) {
@@ -1373,7 +1549,11 @@ function footer(doc, p, r, options = {}) {
   doc.setFont(PDF_FONT, 'normal');
   doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 24, y);
   doc.text(`Place: ${r.place || '__________'}`, 24, y + 8);
-  signatureRight(doc, y, ['Seed Inspector/', 'Mandal Agriculture Officer']);
+  signatureRight(doc, y, seedSignatureLines(r.designation));
+}
+
+function seedSignatureLines(designation, firstLine = 'Seed Inspector/') {
+  return [firstLine, isAssistantDirectorOfAgriculture(designation) ? statutoryDesignationDisplay(designation) : 'Mandal Agriculture Officer'];
 }
 
 function signatureRight(doc, y, label) {
@@ -1567,13 +1747,15 @@ function DuplicateDownloadModal({ onReview, onContinue, onClose }) {
             Download Anyway
           </button>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-red-700 px-3 py-2 text-red-800 hover:bg-red-50"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
+        <div className="mt-3 flex justify-center">
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex items-center justify-center rounded-lg border border-red-600 bg-red-600 px-4 py-1.5 text-xs font-black text-white hover:bg-red-700 hover:border-red-700"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );

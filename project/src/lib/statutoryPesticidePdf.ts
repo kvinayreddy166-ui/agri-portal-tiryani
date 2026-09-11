@@ -1,5 +1,6 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { addGovernmentEmblemWatermark } from './pdfWatermark';
+import { statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
 
 export type PesticideStatutoryFormType = 'VC' | 'VD' | 'VE' | 'DOCKET';
 
@@ -52,6 +53,7 @@ export type PesticidePdfValues = {
   invoiceParticulars: string;
   invoiceNumber: string;
   invoiceDate: string;
+  stockReceiptDate: string;
   stockPosition: string;
   specimenSeal: string;
   distinctMark: string;
@@ -64,6 +66,11 @@ export type PesticidePdfValues = {
   manualQualification: string;
   manualDistrict: string;
   manualMandal: string;
+  manualDivision: string;
+  office: string;
+  placeOfCollectionMandal: string;
+  manualPlaceOfCollection: string;
+  sampleDrawingMandal: string;
   ptlName: string;
   ptlNameMode: 'default' | 'empty';
   dispatchDate: string;
@@ -125,6 +132,7 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   invoiceParticulars: '',
   invoiceNumber: '',
   invoiceDate: '',
+  stockReceiptDate: '',
   stockPosition: '',
   specimenSeal: '',
   distinctMark: '',
@@ -137,6 +145,11 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   manualQualification: '',
   manualDistrict: '',
   manualMandal: '',
+  manualDivision: '',
+  office: '',
+  placeOfCollectionMandal: '',
+  manualPlaceOfCollection: '',
+  sampleDrawingMandal: '',
   ptlName: '',
   ptlNameMode: 'default',
   dispatchDate: '',
@@ -591,7 +604,7 @@ function drawFormVE(cursor: PdfCursor, values: PesticidePdfValues) {
   paragraphWithHangingIndent(cursor, '3. A copy of this Memorandum along with a Form V (D) has been sent separately with the sample by Registered Post or by hand.');
   cursor.y += 5;
   cursor.y = Math.max(cursor.y + 12, 216);
-  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  const resolvedMandal = sampleMandal(values);
   signatureLine(cursor, `Place: ${resolvedMandal || '________________'}\nDate: ${formatDate(values.sampleDrawnDate)}`, 'Insecticide Inspector');
   cursor.y += 1;
   cursor.doc.text('(Signature & seal)', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
@@ -628,7 +641,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   const drawDate = splitDrawnDate(values);
   
   // Build one continuous paragraph with bold values
-  const mandal = values.mandal === 'Others' ? values.manualMandal : values.mandal || values.manualMandal || '';
+  const mandal = sampleMandal(values);
   const paraText = `I have this ${drawDate.day} day of month ${drawDate.month} year 20${drawDate.year} taken sample from the premises of M/s ${values.dealerName || '____________________'} (Sale/stock/distribution License number ${values.authorizationLicenseNumber || '________'} dated ${formatDate(values.licenseDate) || '________'}) situated at ${dealerLocation(values) || '...........................................................'}${mandal ? `, ${mandal}` : ''}, a sample of the insecticide specified below for the purposes of test or analysis:`;
   
   // Bold values: day, month, year, dealer name, authorization/license number, license date, dealer address, mandal
@@ -712,7 +725,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
     ['14. Any other relevant information', values.otherInformation],
   ], 82);
   cursor.y += 3;
-  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  const resolvedMandal = sampleMandal(values);
   signatureLine(cursor, `Place: ${resolvedMandal || '________________'}`, 'Insecticide Inspector Seal');
   cursor.y += 2;
   cursor.y += 3;
@@ -784,7 +797,7 @@ function subItemField(cursor: PdfCursor, mainLabel: string, subItems: Array<[str
 
 function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
-  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  const resolvedMandal = sampleMandal(values);
   
   // Use Q.C.I. SEAL PARTICULARS value directly
   const qciSealValue = values.qciSealParticulars;
@@ -795,9 +808,9 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     values.invoiceNumber ? `No: ${values.invoiceNumber}` : '',
     values.invoiceDate ? `Dt: ${formatDate(values.invoiceDate)}` : ''
   ].filter(Boolean).join(', ');
-  // Format stock receipt details as "[invoiceDate] from [distributorName]"
+  // Format stock receipt details as "[stockReceiptDate] from [distributorName]"
   const stockReceiptDetailsFormatted = [
-    values.invoiceDate ? formatDate(values.invoiceDate) : '',
+    values.stockReceiptDate ? formatDate(values.stockReceiptDate) : '',
     values.distributorName ? `from ${values.distributorName}` : ''
   ].filter(Boolean).join(' ');
   // Format dealer name with mandal
@@ -1301,12 +1314,42 @@ export function pesticideNameWithoutTrade(values: PesticidePdfValues) {
   return `${technical}${activeDisplay}${formulationDisplay}`.trim();
 }
 
+function isAssistantDirectorOfAgricultureDesignation(values: PesticidePdfValues): boolean {
+  return values.designation === 'Asst. Director of Agriculture' || values.designation === 'Assistant Director of Agriculture' || values.designation === 'Asst. Director of Agriculture (T)';
+}
+
+function isAssistantDirectorOfAgricultureTDesignation(values: PesticidePdfValues): boolean {
+  return values.designation === 'Asst. Director of Agriculture (T)';
+}
+
+// Mandal of the sampled premises - for ADA this is the Place of Collection (Mandal) value
+function sampleMandal(values: PesticidePdfValues): string {
+  if (isAssistantDirectorOfAgricultureDesignation(values)) {
+    const place = values.sampleDrawingMandal || values.placeOfCollectionMandal || '';
+    return place === 'Others' ? values.manualPlaceOfCollection || '' : place;
+  }
+  return values.mandal === 'Others' ? values.manualMandal : values.mandal || values.manualMandal || '';
+}
+
+// Officer-side location - for ADA this is the manual DIVISION value; for ADA (T) it is the OFFICE value
+function officerLocation(values: PesticidePdfValues): string {
+  if (isAssistantDirectorOfAgricultureTDesignation(values)) {
+    return values.office || '';
+  }
+  if (isAssistantDirectorOfAgricultureDesignation(values)) {
+    return values.manualDivision || values.division || '';
+  }
+  return values.mandal === 'Others' ? values.manualMandal : values.mandal;
+}
+
 function inspectorAddress(values: PesticidePdfValues) {
   const resolvedQualification = values.qualification === 'Others' ? values.manualQualification : values.qualification;
   const officerNameWithQualification = values.officerName && resolvedQualification 
     ? `${values.officerName}, ${resolvedQualification}`
     : values.officerName;
-  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  const isADA = isAssistantDirectorOfAgricultureDesignation(values);
+  const isADAT = isAssistantDirectorOfAgricultureTDesignation(values);
+  const resolvedMandal = officerLocation(values);
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
   
   // Format district with PIN Code (e.g., "Kumrambheem Asifabad -504297")
@@ -1321,8 +1364,8 @@ function inspectorAddress(values: PesticidePdfValues) {
   
   const addressParts = [
     officerNameWithQualification,
-    values.designation,
-    resolvedMandal ? `${resolvedMandal} Mandal` : '',
+    statutoryDesignationDisplay(values.designation),
+    resolvedMandal ? (isADAT ? resolvedMandal : `${resolvedMandal} ${isADA ? 'Division' : 'Mandal'}`) : '',
     districtWithPincode,
   ]
     .map((part) => part.trim())
@@ -1359,26 +1402,32 @@ function inspectorLine(values: PesticidePdfValues) {
   const officerNameWithQualification = values.officerName && resolvedQualification 
     ? `${values.officerName}, ${resolvedQualification}`
     : values.officerName;
-  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  const isADA = isAssistantDirectorOfAgricultureDesignation(values) && !isAssistantDirectorOfAgricultureTDesignation(values);
+  const location = officerLocation(values);
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
-  return [officerNameWithQualification, values.designation, resolvedMandal, resolvedDistrict].map((part) => part.trim()).filter(Boolean).join('\n');
+  const locationWithLabel = isADA && location ? `${location} Division` : location;
+  return [officerNameWithQualification, statutoryDesignationDisplay(values.designation), locationWithLabel, resolvedDistrict].map((part) => part.trim()).filter(Boolean).join('\n');
 }
 
 function designationLine(values: PesticidePdfValues) {
-  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
-  const parts = [values.designation];
-  if (resolvedMandal) {
-    parts.push(resolvedMandal);
+  const location = officerLocation(values);
+  const parts = [statutoryDesignationDisplay(values.designation)];
+  if (location) {
+    parts.push(location);
   }
   return parts.map((part) => part.trim()).filter(Boolean).join(', ');
 }
 
 function buildDealerAddress(values: PesticidePdfValues) {
-  const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
+  const resolvedMandal = sampleMandal(values);
   const mandalWithText = resolvedMandal ? `${resolvedMandal} Mandal` : '';
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
   const districtWithPincode = values.pincode && resolvedDistrict ? `${resolvedDistrict} - ${values.pincode}` : resolvedDistrict;
-  const addressLines = [values.dealerName, values.dealerAddress, values.premisesLocation, mandalWithText, districtWithPincode].map((part) => part.trim()).filter(Boolean);
+  // Skip premises location when it matches the mandal to avoid printing the mandal twice
+  const premisesLocation = values.premisesLocation && values.premisesLocation.trim() !== (resolvedMandal || '').trim()
+    ? values.premisesLocation
+    : '';
+  const addressLines = [values.dealerName, values.dealerAddress, premisesLocation, mandalWithText, districtWithPincode].map((part) => part.trim()).filter(Boolean);
   
   // Add punctuation: commas to all lines except last, full stop to last line
   const formattedLines = addressLines.map((line, index) => {
@@ -1396,7 +1445,12 @@ function buildDealerAddress(values: PesticidePdfValues) {
 
 function dealerLocation(values: PesticidePdfValues) {
   const addressWithoutNewlines = values.dealerAddress.replace(/\n/g, ', ');
-  const cleanedParts = [addressWithoutNewlines, values.premisesLocation]
+  const resolvedMandal = sampleMandal(values);
+  // Skip premises location when it matches the mandal to avoid printing the mandal twice
+  const premisesLocation = values.premisesLocation && values.premisesLocation.trim() !== (resolvedMandal || '').trim()
+    ? values.premisesLocation
+    : '';
+  const cleanedParts = [addressWithoutNewlines, premisesLocation]
     .map((part) => part.trim())
     .filter(Boolean)
     .map((part) => part.replace(/^,+|,+$/g, '').trim()); // Remove leading/trailing commas

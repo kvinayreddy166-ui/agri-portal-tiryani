@@ -3,7 +3,7 @@
 // Enable by running the app locally (npm run dev).
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Eye, FlaskConical, RotateCcw, Save, X, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, Eye, FlaskConical, RotateCcw, Save, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   FertilizerPdfValues,
   FertilizerStatutoryFormType,
@@ -22,7 +22,11 @@ import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
   getMandalsForDistrict,
+  getDivisionsForDistrict,
+  getMandalsForDivision,
 } from '../../data/telanganaDistrictMandalData';
+import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../data/assistantDirectorLocation';
+import { supabase } from '../../lib/supabase';
 
 const showCoveringLetter = true;
 
@@ -42,6 +46,8 @@ type FieldConfig = {
   displayFlag?: string;
   dynamicLabel?: boolean;
   readOnly?: boolean;
+  useDivisionOptions?: boolean;
+  condition?: (values: FertilizerPdfValues) => boolean;
 };
 
 type SectionConfig = {
@@ -54,6 +60,100 @@ type SectionConfig = {
 const STORAGE_KEY = 'tiryani-fertilizer-forms-draft';
 const DRAFTS_KEY = 'tiryani-fertilizer-forms-named-drafts';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
+
+// Fetch mandals for a given district and division from MAO contacts
+async function fetchMandalsForDivision(district: string, division: string): Promise<string[]> {
+  const mappedMandals = getMandalsForDivision(division);
+  if (mappedMandals.length > 0) return mappedMandals;
+  try {
+    console.log('Fetching mandals for district:', district, 'division:', division);
+    
+    // Debug: Fetch all unique districts from MAO contacts
+    const { data: allDistricts } = await supabase
+      .from('officer_contacts')
+      .select('district')
+      .ilike('officer_type', '%MAO%')
+      .eq('active', true);
+    
+    const uniqueDistricts = Array.from(new Set(allDistricts?.map(d => d.district) || [])).sort();
+    console.log('All MAO districts in database:', uniqueDistricts);
+    
+    // Debug: Fetch all divisions for the selected district
+    const { data: districtDivisions } = await supabase
+      .from('officer_contacts')
+      .select('division')
+      .ilike('officer_type', '%MAO%')
+      .ilike('district', district)
+      .eq('active', true);
+    
+    const uniqueDivisions = Array.from(new Set(districtDivisions?.map(d => d.division) || [])).sort();
+    console.log(`Divisions for "${district}":`, uniqueDivisions);
+    
+    // First try: Exact match with MAO
+    let { data, error } = await supabase
+      .from('officer_contacts')
+      .select('mandal')
+      .eq('officer_type', 'MAO')
+      .eq('district', district)
+      .eq('division', division)
+      .eq('active', true)
+      .not('mandal', 'is', null);
+    
+    console.log('Query 1 (exact MAO):', data?.length, 'results');
+    
+    // Second try: Case-insensitive with MAO
+    if (!data || data.length === 0) {
+      ({ data, error } = await supabase
+        .from('officer_contacts')
+        .select('mandal')
+        .ilike('officer_type', '%MAO%')
+        .ilike('district', district)
+        .ilike('division', division)
+        .eq('active', true)
+        .not('mandal', 'is', null));
+      
+      console.log('Query 2 (ilike MAO):', data?.length, 'results');
+    }
+    
+    // Third try: Try with Mandal Agriculture Officer
+    if (!data || data.length === 0) {
+      ({ data, error } = await supabase
+        .from('officer_contacts')
+        .select('mandal')
+        .ilike('officer_type', '%Mandal Agriculture Officer%')
+        .ilike('district', district)
+        .ilike('division', division)
+        .eq('active', true)
+        .not('mandal', 'is', null));
+      
+      console.log('Query 3 (Mandal Agriculture Officer):', data?.length, 'results');
+    }
+    
+    // Fourth try: Try with uppercase district/division (database seems to use uppercase)
+    if (!data || data.length === 0) {
+      ({ data, error } = await supabase
+        .from('officer_contacts')
+        .select('mandal')
+        .eq('officer_type', 'MAO')
+        .eq('district', district.toUpperCase())
+        .eq('division', division.toUpperCase())
+        .eq('active', true)
+        .not('mandal', 'is', null));
+      
+      console.log('Query 4 (uppercase):', data?.length, 'results');
+    }
+    
+    if (error) throw error;
+    
+    console.log('Raw data from query:', data);
+    const mandals = Array.from(new Set(data?.map(d => d.mandal) || [])).sort();
+    console.log('Fetched mandals:', mandals);
+    return mandals;
+  } catch (error) {
+    console.error('Error fetching mandals for division:', error);
+    return [];
+  }
+}
 
 function getDefaultQuantity(values: FertilizerPdfValues): string {
   if (values.fertilizerCategory === 'Macro Nutrient Fertilizers') {
@@ -93,6 +193,7 @@ const physicalConditionOptions = [
   { label: 'Free flowing', value: 'Free flowing' },
   { label: 'Powder', value: 'Powder' },
   { label: 'Crystals', value: 'Crystals' },
+  { label: 'Prilled', value: 'Prilled' },
 ];
 
 const bagSourceOptions = [
@@ -103,7 +204,8 @@ const bagSourceOptions = [
 
 const designationOptions = [
   { label: 'Mandal Agriculture Officer', value: 'Mandal Agriculture Officer' },
-  { label: 'Asst. Director of Agriculture', value: 'Asst. Director of Agriculture' },
+  { label: 'Asst. Director of Agriculture (R)', value: 'Asst. Director of Agriculture' },
+  { label: 'Asst. Director of Agriculture (T)', value: 'Asst. Director of Agriculture (T)' },
   { label: 'Fertilizer Inspector', value: 'Fertilizer Inspector' },
 ];
 
@@ -535,12 +637,16 @@ const fertilizerFieldSections: SectionConfig[] = [
       { key: 'qualification', label: 'QUALIFICATION', type: 'select', options: QUALIFICATION_OPTIONS },
       { key: 'manualQualification', label: 'ENTER QUALIFICATION', placeholder: 'Enter qualification' },
       { key: 'designation', label: 'DESIGNATION', type: 'select', options: designationOptions },
-      { key: 'district', label: 'DISTRICT', type: 'select', options: TELANGANA_DISTRICTS.map(d => ({ label: d, value: d })) },
-      { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true },
+      { key: 'district', label: 'DISTRICT', type: 'select', options: withOthersOption(TELANGANA_DISTRICTS.map(d => ({ label: d, value: d }))) },
       { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
-      { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
+      { key: 'manualDivision', label: 'DIVISION', placeholder: 'Enter Division Name', condition: (values) => isAssistantDirectorOfAgriculture(values.designation) && !isAssistantDirectorOfAgricultureT(values.designation) },
+      { key: 'office', label: 'OFFICE', placeholder: 'Enter Office', condition: (values) => isAssistantDirectorOfAgricultureT(values.designation) },
+      { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true, condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
+      { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name', condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
+      { key: 'placeOfCollectionMandal', label: 'PLACE OF COLLECTION (MANDAL)', type: 'select', options: [], condition: (values) => isAssistantDirectorOfAgriculture(values.designation) },
+      { key: 'manualPlaceOfCollection', label: 'ENTER PLACE OF COLLECTION / MANDAL NAME', placeholder: 'Enter place of collection / mandal name', condition: (values) => isAssistantDirectorOfAgriculture(values.designation) && values.placeOfCollectionMandal === 'Others' },
       { key: 'pinCode', label: 'PIN CODE', placeholder: 'Enter PIN Code (optional)' },
-      { key: 'placeOfCollection', label: 'PLACE OF COLLECTION' },
+      { key: 'placeOfCollection', label: 'PLACE OF COLLECTION', condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
       { key: 'date', label: 'DATE', type: 'date' },
     ],
   },
@@ -636,6 +742,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   });
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [placeOfCollectionMandals, setPlaceOfCollectionMandals] = useState<string[]>([]);
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedFertilizerDraft[]>(() => {
     try {
@@ -650,6 +757,26 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(showCoveringLetter ? ['COVERING LETTER DETAILS'] : []));
   const allFields = useMemo(() => fertilizerFieldSections, []);
   const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue } = useToast();
+
+  // Apply effective location values for Assistant Director of Agriculture
+  const documentValues = useMemo(() => {
+    if (!isAssistantDirectorOfAgriculture(values.designation)) return values;
+    const district = effectiveLocationValue(values.district, values.manualDistrict);
+    const division = values.manualDivision.trim();
+    const placeOfCollection = effectiveLocationValue(values.placeOfCollectionMandal, values.manualPlaceOfCollection);
+    return { 
+      ...values, 
+      district, 
+      manualDistrict: '', 
+      division: division, 
+      mandal: division, 
+      manualDivision: division, 
+      placeOfCollectionMandal: placeOfCollection, 
+      manualPlaceOfCollection: '',
+      place: placeOfCollection || values.place,
+      premisesLocation: placeOfCollection || values.premisesLocation
+    };
+  }, [values]);
 
   // Error boundary for rendering
   if (error) {
@@ -677,6 +804,19 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   }
 
   console.log('FertilizerStatutoryPdfTool rendering, showInstructionModal:', showInstructionModal);
+
+  // Fetch mandals for Place of Collection when ADA and district changes (for ADA, load based on District like MAO)
+  useEffect(() => {
+    console.log('useEffect triggered - designation:', values.designation, 'district:', values.district);
+    if (isAssistantDirectorOfAgriculture(values.designation) && values.district && values.district !== 'Others') {
+      const mandals = getMandalsForDistrict(values.district);
+      console.log('Setting placeOfCollectionMandals from district:', mandals);
+      setPlaceOfCollectionMandals(mandals);
+    } else {
+      console.log('Clearing placeOfCollectionMandals');
+      setPlaceOfCollectionMandals([]);
+    }
+  }, [values.designation, values.district]);
 
   useEffect(() => {
     console.log('FertilizerStatutoryPdfTool useEffect ran');
@@ -717,18 +857,26 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       if (key === 'dealerName' || key === 'dealerAddress' || key === 'district' || key === 'mandal' || key === 'manualDistrict' || key === 'manualMandal') {
         next.dealerNameAddress = buildDealerNameAddress(next);
       }
-      if (key === 'officerName' || key === 'designation' || key === 'qualification' || key === 'manualQualification' || key === 'district' || key === 'mandal' || key === 'manualDistrict' || key === 'manualMandal' || key === 'pinCode') {
+      if (key === 'officerName' || key === 'designation' || key === 'qualification' || key === 'manualQualification' || key === 'district' || key === 'mandal' || key === 'manualDistrict' || key === 'manualMandal' || key === 'manualDivision' || key === 'office' || key === 'pinCode') {
         const resolvedQualification = next.qualification === 'Others' ? next.manualQualification : next.qualification;
         const officerNameWithQualification = next.officerName && resolvedQualification 
           ? `${next.officerName}, ${resolvedQualification}`
           : next.officerName;
-        const resolvedMandal = next.mandal === 'Others' ? next.manualMandal : next.mandal;
+        const isADA = isAssistantDirectorOfAgriculture(next.designation);
+        const isADAT = isAssistantDirectorOfAgricultureT(next.designation);
+        const resolvedLocation = isADAT
+          ? (next.office || '').trim()
+          : isADA
+            ? next.manualDivision.trim()
+            : (next.mandal === 'Others' ? next.manualMandal : next.mandal);
         const resolvedDistrict = next.district === 'Others' ? next.manualDistrict : next.district;
-        const isADA = next.designation === 'Asst. Director of Agriculture';
-        const locationLabel = isADA ? 'Division' : 'Mandal';
+        const locationLabel = isADAT ? '' : isADA ? 'Division' : 'Mandal';
+        const locationLine = [resolvedLocation, locationLabel].filter(Boolean).join(' ');
         const districtWithPinCode = next.pinCode ? `${resolvedDistrict} -${next.pinCode}` : resolvedDistrict;
-        const inspectorAddress = [officerNameWithQualification, 'Mandal Agriculture Officer / Fertilizer Inspector', resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
-        const fromAddress = [officerNameWithQualification, 'Mandal Agriculture Officer', resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
+        const inspectorDesignation = isADA ? `${statutoryDesignationDisplay(next.designation)} / Fertilizer Inspector` : 'Mandal Agriculture Officer / Fertilizer Inspector';
+        const fromDesignation = isADA ? statutoryDesignationDisplay(next.designation) : 'Mandal Agriculture Officer';
+        const inspectorAddress = [officerNameWithQualification, inspectorDesignation, locationLine, districtWithPinCode].filter(Boolean).join('\n');
+        const fromAddress = [officerNameWithQualification, fromDesignation, locationLine, districtWithPinCode].filter(Boolean).join('\n');
         next.inspectorNameAddress = inspectorAddress;
         next.fromAddress = fromAddress;
         next.forwardReportAddress = inspectorAddress;
@@ -737,14 +885,20 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         next.mandal = '';
         next.manualDistrict = '';
         next.manualMandal = '';
+        next.manualDivision = '';
+        next.placeOfCollectionMandal = '';
+        next.manualPlaceOfCollection = '';
       }
       if (key === 'mandal') {
         next.manualMandal = '';
+        next.manualDivision = '';
+        next.placeOfCollectionMandal = '';
+        next.manualPlaceOfCollection = '';
         // Auto-populate place field with mandal value
         if (value && value !== 'Others') {
           next.place = value;
           // Also auto-populate placeOfCollection if ADA is selected
-          if (current.designation === 'Asst. Director of Agriculture') {
+          if (isAssistantDirectorOfAgriculture(current.designation)) {
             next.placeOfCollection = value;
           }
         }
@@ -754,19 +908,48 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         if (value) {
           next.place = value;
           // Also auto-populate placeOfCollection if ADA is selected
-          if (current.designation === 'Asst. Director of Agriculture') {
+          if (isAssistantDirectorOfAgriculture(current.designation)) {
             next.placeOfCollection = value;
           }
         }
       }
-      if (key === 'designation') {
-        // When switching to ADA, copy current place to placeOfCollection
-        if (value === 'Asst. Director of Agriculture' && current.designation !== 'Asst. Director of Agriculture') {
-          next.placeOfCollection = current.place || '';
+      if (key === 'manualDivision') {
+        // Auto-populate placeOfCollection with manual division value
+        if (value) {
+          next.placeOfCollection = value;
         }
-        // When switching away from ADA, clear placeOfCollection
-        if (value !== 'Asst. Director of Agriculture' && current.designation === 'Asst. Director of Agriculture') {
-          next.placeOfCollection = '';
+      }
+      if (key === 'placeOfCollectionMandal') {
+        next.manualPlaceOfCollection = '';
+        // Auto-populate placeOfCollection with selected mandal
+        if (value && value !== 'Others') {
+          next.placeOfCollection = value;
+        }
+      }
+      if (key === 'manualPlaceOfCollection') {
+        // Auto-populate placeOfCollection with manual value
+        if (value) {
+          next.placeOfCollection = value;
+        }
+      }
+      if (key === 'designation') {
+        // When switching to ADA, clear mandal/division fields
+        if (isAssistantDirectorOfAgriculture(value) && !isAssistantDirectorOfAgriculture(current.designation)) {
+          next.mandal = '';
+          next.manualMandal = '';
+          next.placeOfCollectionMandal = '';
+          next.manualPlaceOfCollection = '';
+        }
+        // Prefill OFFICE for Asst. Director of Agriculture (T)
+        if (isAssistantDirectorOfAgricultureT(value)) {
+          next.office = ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT;
+        }
+        // When switching away from ADA, clear ADA-specific fields
+        if (!isAssistantDirectorOfAgriculture(value) && isAssistantDirectorOfAgriculture(current.designation)) {
+          next.manualDivision = '';
+          next.office = '';
+          next.placeOfCollectionMandal = '';
+          next.manualPlaceOfCollection = '';
         }
       }
       if (key === 'date') {
@@ -991,13 +1174,31 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completePreviewPdf = async (type = formType) => {
+    // Validation for Assistant Director of Agriculture custom location fields
+    const locationError = getAssistantDirectorLocationError({
+      designation: values.designation,
+      district: values.district,
+      manualDistrict: values.manualDistrict,
+      division: values.mandal, // mandal field stores Division for ADA
+      manualDivision: values.manualDivision,
+      office: values.office,
+      placeOfCollection: values.placeOfCollectionMandal,
+      manualPlaceOfCollection: values.manualPlaceOfCollection,
+      mandal: values.mandal,
+      manualMandal: values.manualMandal,
+    });
+    if (locationError) {
+      setMessage(locationError);
+      return;
+    }
+    
     // Validation removed - users can preview PDFs even with empty fields
     const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
     try {
-      const doc = await generateFertilizerStatutoryPdf(type, values, watermarkEnabled);
-      openFertilizerDocInTab(doc, getFertilizerPdfFileName(type, values), targetWindow);
+      const doc = await generateFertilizerStatutoryPdf(type, documentValues, watermarkEnabled);
+      openFertilizerDocInTab(doc, getFertilizerPdfFileName(type, documentValues), targetWindow);
       setFormType(type);
       showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
     } catch (error) {
@@ -1014,13 +1215,31 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completePreviewAllPdf = async () => {
+    // Validation for Assistant Director of Agriculture custom location fields
+    const locationError = getAssistantDirectorLocationError({
+      designation: values.designation,
+      district: values.district,
+      manualDistrict: values.manualDistrict,
+      division: values.mandal, // mandal field stores Division for ADA
+      manualDivision: values.manualDivision,
+      office: values.office,
+      placeOfCollection: values.placeOfCollectionMandal,
+      manualPlaceOfCollection: values.manualPlaceOfCollection,
+      mandal: values.mandal,
+      manualMandal: values.manualMandal,
+    });
+    if (locationError) {
+      setMessage(locationError);
+      return;
+    }
+    
     // Validation removed - users can preview PDFs even with empty fields
     const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
     try {
-      const doc = await generateAllFertilizerStatutoryPdf(values, watermarkEnabled);
-      openFertilizerDocInTab(doc, getAllFertilizerPdfFileName(values), targetWindow);
+      const doc = await generateAllFertilizerStatutoryPdf(documentValues, watermarkEnabled);
+      openFertilizerDocInTab(doc, getAllFertilizerPdfFileName(documentValues), targetWindow);
       showInfo('Preview Opened', 'All forms preview opened in a new tab.', 4000);
     } catch (error) {
       console.error('Unable to preview all fertilizer PDFs:', error);
@@ -1036,14 +1255,31 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completeDownloadPdf = async (type = formType) => {
+    // Validation for Assistant Director of Agriculture custom location fields
+    const locationError = getAssistantDirectorLocationError({
+      designation: values.designation,
+      district: values.district,
+      manualDistrict: values.manualDistrict,
+      division: values.mandal, // mandal field stores Division for ADA
+      manualDivision: values.manualDivision,
+      office: values.office,
+      placeOfCollection: values.placeOfCollectionMandal,
+      manualPlaceOfCollection: values.manualPlaceOfCollection,
+      mandal: values.mandal,
+      manualMandal: values.manualMandal,
+    });
+    if (locationError) {
+      setMessage(locationError);
+      return;
+    }
+    
     // Validation removed - users can download PDFs even with empty fields
     setBusyAction('download');
     setPreviewError(null);
     try {
-      const doc = await generateFertilizerStatutoryPdf(type, values, watermarkEnabled);
-      const fileName = getFertilizerPdfFileName(type, values);
+      const doc = await generateFertilizerStatutoryPdf(type, documentValues, watermarkEnabled);
+      const fileName = getFertilizerPdfFileName(type, documentValues);
       downloadFertilizerDoc(doc, fileName);
-      setFormType(type);
       showSuccess('PDF Downloaded Successfully', fileName, 4000);
     } catch (error) {
       console.error('Unable to download fertilizer PDF:', error);
@@ -1058,12 +1294,30 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const completeDownloadAllPdf = async () => {
+    // Validation for Assistant Director of Agriculture custom location fields
+    const locationError = getAssistantDirectorLocationError({
+      designation: values.designation,
+      district: values.district,
+      manualDistrict: values.manualDistrict,
+      division: values.mandal, // mandal field stores Division for ADA
+      manualDivision: values.manualDivision,
+      office: values.office,
+      placeOfCollection: values.placeOfCollectionMandal,
+      manualPlaceOfCollection: values.manualPlaceOfCollection,
+      mandal: values.mandal,
+      manualMandal: values.manualMandal,
+    });
+    if (locationError) {
+      setMessage(locationError);
+      return;
+    }
+    
     // Validation removed - users can download PDFs even with empty fields
     setBusyAction('downloadAll');
     setPreviewError(null);
     try {
-      const doc = await generateAllFertilizerStatutoryPdf(values, watermarkEnabled);
-      const fileName = getAllFertilizerPdfFileName(values);
+      const doc = await generateAllFertilizerStatutoryPdf(documentValues, watermarkEnabled);
+      const fileName = getAllFertilizerPdfFileName(documentValues);
       downloadFertilizerDoc(doc, fileName);
       showSuccess('All Forms PDF Downloaded Successfully', fileName, 4000);
     } catch (error) {
@@ -1266,10 +1520,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-white/80 text-red-600 shadow-sm backdrop-blur-sm transition-all hover:bg-red-50 hover:border-red-300 hover:shadow-md"
+                className="inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
                 title="Close"
               >
-                <X className="h-5 w-5" />
+                Close
               </button>
             </div>
           </header>
@@ -1413,6 +1667,30 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                       if (field.key === 'manualMandal' && values.mandal !== 'Others') {
                         return null;
                       }
+                      // Hide mandal dropdown and manual mandal when ADA is selected (ADA uses manual DIVISION entry only)
+                      if ((field.key === 'mandal' || field.key === 'manualMandal') && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide manual division field unless ADA is selected and mandal is "Others"
+                      if (field.key === 'manualDivision' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide office field unless Asst. Director of Agriculture (T) is selected
+                      if (field.key === 'office' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide place of collection mandal field unless ADA is selected
+                      if (field.key === 'placeOfCollectionMandal' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide manual place of collection field unless ADA is selected and placeOfCollectionMandal is "Others"
+                      if (field.key === 'manualPlaceOfCollection' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide place of collection field when ADA is selected (use placeOfCollectionMandal instead)
+                      if (field.key === 'placeOfCollection' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
                       // Hide manual qualification field unless qualification is "Others"
                       if (field.key === 'manualQualification' && values.qualification !== 'Others') {
                         return null;
@@ -1548,7 +1826,16 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                       // Get mandal options based on selected district
                       let fieldOptions = field.options;
                       if (field.key === 'mandal' && values.district && values.district !== 'Others') {
-                        fieldOptions = getMandalsForDistrict(values.district).map(m => ({ label: m, value: m }));
+                        // Never use division options for ADA - ADA should only use manual Division entry
+                        fieldOptions = withOthersOption(getMandalsForDistrict(values.district).map(m => ({ label: m, value: m })));
+                      }
+                      // Get mandal options for place of collection based on selected district (MAO mapping) for ADA
+                      if (field.key === 'placeOfCollectionMandal') {
+                        if (values.district && values.district !== 'Others') {
+                          fieldOptions = withOthersOption(placeOfCollectionMandals.map(m => ({ label: m, value: m })));
+                        } else {
+                          fieldOptions = [{ label: 'Others', value: 'Others' }];
+                        }
                       }
                       return (
                         <PdfInput
@@ -1654,6 +1941,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
             designation: values.designation || '',
             mandal: values.mandal || values.manualMandal || '',
             manualMandal: values.manualMandal || '',
+            manualDivision: values.manualDivision || '',
+            office: values.office || '',
+            placeOfCollectionMandal: values.placeOfCollectionMandal || '',
+            manualPlaceOfCollection: values.manualPlaceOfCollection || '',
             district: values.district || values.manualDistrict || '',
             manualDistrict: values.manualDistrict || '',
             pinCode: values.pinCode || '',
@@ -1753,11 +2044,16 @@ function normalizeFertilizerValues(values: FertilizerPdfValues): FertilizerPdfVa
     : normalized.officerName;
   const resolvedMandal = normalized.mandal === 'Others' ? normalized.manualMandal : normalized.mandal;
   const resolvedDistrict = normalized.district === 'Others' ? normalized.manualDistrict : normalized.district;
-  const isADA = normalized.designation === 'Asst. Director of Agriculture';
-  const locationLabel = isADA ? 'Division' : 'Mandal';
+  const isADA = isAssistantDirectorOfAgriculture(normalized.designation);
+  const isADAT = isAssistantDirectorOfAgricultureT(normalized.designation);
+  const resolvedLocation = isADAT ? (normalized.office || '').trim() : isADA ? normalized.manualDivision.trim() : resolvedMandal;
+  const locationLabel = isADAT ? '' : isADA ? 'Division' : 'Mandal';
+  const locationLine = [resolvedLocation, locationLabel].filter(Boolean).join(' ');
   const districtWithPinCode = normalized.pinCode ? `${resolvedDistrict} -${normalized.pinCode}` : resolvedDistrict;
-  const inspectorAddress = [officerNameWithQualification, 'Mandal Agriculture Officer / Fertilizer Inspector', resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
-  const fromAddress = [officerNameWithQualification, 'Mandal Agriculture Officer', resolvedMandal ? `${resolvedMandal} ${locationLabel}` : '', districtWithPinCode].filter(Boolean).join('\n');
+  const inspectorDesignation = isADA ? `${statutoryDesignationDisplay(normalized.designation)} / Fertilizer Inspector` : 'Mandal Agriculture Officer / Fertilizer Inspector';
+  const fromDesignation = isADA ? statutoryDesignationDisplay(normalized.designation) : 'Mandal Agriculture Officer';
+  const inspectorAddress = [officerNameWithQualification, inspectorDesignation, locationLine, districtWithPinCode].filter(Boolean).join('\n');
+  const fromAddress = [officerNameWithQualification, fromDesignation, locationLine, districtWithPinCode].filter(Boolean).join('\n');
   normalized.inspectorNameAddress = inspectorAddress;
   normalized.fromAddress = fromAddress;
   normalized.forwardReportAddress = inspectorAddress;
@@ -2129,8 +2425,8 @@ function PdfInput({
     );
   }
 
-  // Handle mandal dropdown with "Others" option
-  const selectOptions = field.key === 'mandal' && options 
+  // Handle mandal dropdown with "Others" option (only add if not already present)
+  const selectOptions = field.key === 'mandal' && options && !options.some(opt => opt.value === 'Others')
     ? [...options, { label: 'Others', value: 'Others' }]
     : (options || field.options || []);
 

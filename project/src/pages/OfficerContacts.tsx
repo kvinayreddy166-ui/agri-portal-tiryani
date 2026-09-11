@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BackButton } from '../components/ui/BackButton';
 import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle, Loader2, Users, ArrowLeft } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
+import { AEO_DISTRICTS } from '../data/aeoDistricts';
 import { supabase } from '../lib/supabase';
 
 type OfficerType = 'AEO' | 'MAO' | 'ADA' | 'DAO';
@@ -108,6 +109,10 @@ function getCacheKey(
 
 // Generate dropdown cache key
 function getDropdownCacheKey(officerType: OfficerType, district: string, division: string, mandal: string): string {
+  // For districts, only cache by officer type since districts don't depend on selection
+  if (!district) {
+    return `${officerType}|districts`;
+  }
   return `${officerType}|${district}|${division}|${mandal}`;
 }
 
@@ -331,22 +336,28 @@ export function OfficerContacts() {
   const loadDropdownOptions = async () => {
     const cacheKey = getDropdownCacheKey(activeTab, selectedDistrict, selectedDivision, selectedMandal);
     
-    // Check cache
+    // Check cache (skip cache for districts to ensure fresh data)
     const cached = dropdownCache.get(cacheKey);
-    if (cached) {
+    if (cached && selectedDistrict) {
       setDropdownOptions(cached);
       return;
     }
 
     try {
-      // Load districts for the officer type
-      const { data: districtsData } = await supabase
-        .from('officer_contacts')
-        .select('district')
-        .eq('officer_type', activeTab)
-        .eq('active', true);
-
-      const districts = Array.from(new Set(districtsData?.map(d => d.district) || [])).sort();
+      // Use appropriate district list based on officer type
+      let districts: string[];
+      if (activeTab === 'AEO') {
+        districts = [...AEO_DISTRICTS].sort();
+      } else {
+        // For other officer types, fetch from database
+        const { data: districtsData } = await supabase
+          .from('officer_contacts')
+          .select('district')
+          .eq('officer_type', activeTab)
+          .limit(1000);
+        districts = Array.from(new Set(districtsData?.map(d => d.district) || [])).sort();
+      }
+      console.log(`Districts for ${activeTab}:`, districts.length, districts);
 
       let divisions: string[] = [];
       let mandals: string[] = [];
@@ -710,7 +721,7 @@ export function OfficerContacts() {
         {/* Results Count */}
         <div className={`mb-4 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
-            {loading ? 'Loading...' : `Showing ${totalCount} ${activeTab} contact${totalCount !== 1 ? 's' : ''}`}
+            {loading ? 'Loading...' : `Showing ${totalCount} ${activeTab} contact${totalCount !== 1 ? 's' : ''} across ${dropdownOptions.districts.length} district${dropdownOptions.districts.length !== 1 ? 's' : ''}`}
           </p>
         </div>
 

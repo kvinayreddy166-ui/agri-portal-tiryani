@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bug, Download, Eye, FileText, RotateCcw, Save, X } from 'lucide-react';
+import { Bug, Download, Eye, FileText, RotateCcw, Save } from 'lucide-react';
 import { PesticideCoveringLetterModal } from './PesticideCoveringLetterModal';
 import {
   generateAllPesticideStatutoryPdf,
@@ -20,7 +20,10 @@ import {
   TELANGANA_DISTRICTS,
   DESIGNATION_OPTIONS,
   getMandalsForDistrict,
+  getDivisionsForDistrict,
+  getMandalsForDivision,
 } from '../../data/telanganaDistrictMandalData';
+import { effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, withOthersOption, getAssistantDirectorLocationError } from '../../data/assistantDirectorLocation';
 
 type FieldConfig = {
   key: keyof PesticidePdfValues;
@@ -29,6 +32,7 @@ type FieldConfig = {
   options?: { label: string; value: string }[];
   placeholder?: string;
   dynamicLabel?: boolean;
+  condition?: (values: PesticidePdfValues) => boolean;
 };
 
 type SavedPesticideDraft = {
@@ -97,10 +101,14 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'qualification', label: 'QUALIFICATION', type: 'select', options: QUALIFICATION_OPTIONS },
       { key: 'manualQualification', label: 'ENTER QUALIFICATION', placeholder: 'Enter qualification' },
       { key: 'designation', label: 'DESIGNATION', type: 'select', options: DESIGNATION_OPTIONS },
-      { key: 'district', label: 'DISTRICT', type: 'select', options: TELANGANA_DISTRICTS.map(d => ({ label: d, value: d })) },
-      { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true },
+      { key: 'district', label: 'DISTRICT', type: 'select', options: withOthersOption(TELANGANA_DISTRICTS.map(d => ({ label: d, value: d }))) },
       { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
-      { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name' },
+      { key: 'manualDivision', label: 'DIVISION', placeholder: 'Enter Division Name', condition: (values) => isAssistantDirectorOfAgriculture(values.designation) && !isAssistantDirectorOfAgricultureT(values.designation) },
+      { key: 'office', label: 'OFFICE', placeholder: 'Enter Office', condition: (values) => isAssistantDirectorOfAgricultureT(values.designation) },
+      { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true, condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
+      { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name', condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
+      { key: 'sampleDrawingMandal', label: 'PLACE OF COLLECTION (MANDAL)', type: 'select', options: [], condition: (values) => isAssistantDirectorOfAgriculture(values.designation) },
+      { key: 'manualPlaceOfCollection', label: 'ENTER PLACE OF COLLECTION / MANDAL NAME', placeholder: 'Enter place of collection / mandal name', condition: (values) => isAssistantDirectorOfAgriculture(values.designation) && values.sampleDrawingMandal === 'Others' },
       { key: 'pincode', label: 'PIN CODE' },
       { key: 'sampleDrawnDate', label: 'Date', type: 'date' },
       { key: 'officerEmail', label: 'EMAIL ID' },
@@ -123,6 +131,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'stockRegisterFolio', label: 'STOCK REGISTER FOLIO / PAGE NO.' },
       { key: 'invoiceNumber', label: 'INVOICE NO' },
       { key: 'invoiceDate', label: 'INVOICE DATE', type: 'date' },
+      { key: 'stockReceiptDate', label: 'STOCK RECEIPT DATE', type: 'date' },
       { key: 'stockPosition', label: 'STOCK POSITION OF BATCH', type: 'textarea', placeholder: 'Eg: 50 x (120 GMS) / 50 x (120 Ml)' },
       { key: 'otherInformation', label: 'ANY OTHER RELEVANT INFORMATION', type: 'textarea' },
       { key: 'dispatchDate', label: 'Date of Dispatch', type: 'date' },
@@ -214,8 +223,26 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const [busy, setBusy] = useState(false);
   const [showDownloadAllDialog, setShowDownloadAllDialog] = useState(false);
   const [addToCoveringLetterChecked, setAddToCoveringLetterChecked] = useState(true);
+  const [sampleDrawingMandals, setSampleDrawingMandals] = useState<string[]>([]);
   const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue } = useToast();
   const sections = useMemo(() => fieldSections, []);
+  const documentValues = useMemo(() => {
+    if (!isAssistantDirectorOfAgriculture(values.designation)) return values;
+    const district = effectiveLocationValue(values.district, values.manualDistrict);
+    const division = values.manualDivision.trim();
+    const placeOfCollection = effectiveLocationValue(values.sampleDrawingMandal, values.manualPlaceOfCollection);
+    return { ...values, district, manualDistrict: '', division, manualDivision: division, sampleDrawingMandal: placeOfCollection, manualPlaceOfCollection: '', mandal: division, manualMandal: '', place: placeOfCollection || values.place, premisesLocation: placeOfCollection || values.premisesLocation };
+  }, [values]);
+
+  // Fetch mandals for Place of Collection when ADA and district changes (for ADA, load based on District like MAO)
+  useEffect(() => {
+    if (isAssistantDirectorOfAgriculture(values.designation) && values.district && values.district !== 'Others') {
+      const mandals = getMandalsForDistrict(values.district);
+      setSampleDrawingMandals(mandals);
+    } else {
+      setSampleDrawingMandals([]);
+    }
+  }, [values.designation, values.district]);
 
   const resetDealerDetails = () => {
     setValues(prev => ({
@@ -247,6 +274,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       stockRegisterFolio: '',
       invoiceNumber: '',
       invoiceDate: '',
+      stockReceiptDate: '',
       stockPosition: '',
       otherInformation: '',
       dispatchDate: '',
@@ -277,7 +305,10 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     setValues((current) => {
       const next = { ...current, [key]: value };
       if (key === 'place') {
-        const resolvedPlace = next.mandal === 'Others' ? next.manualMandal : next.mandal;
+        const isADA = isAssistantDirectorOfAgriculture(next.designation);
+        const resolvedPlace = isADA
+          ? next.sampleDrawingMandal
+          : (next.mandal === 'Others' ? next.manualMandal : next.mandal);
         next.place = resolvedPlace || value;
         if (!current.premisesLocation || current.premisesLocation === current.place) {
           next.premisesLocation = next.place;
@@ -287,12 +318,53 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
         next.mandal = '';
         next.manualDistrict = '';
         next.manualMandal = '';
+        next.division = '';
+        next.manualDivision = '';
+        next.sampleDrawingMandal = '';
+        next.manualPlaceOfCollection = '';
         next.place = '';
+      }
+      if (key === 'designation') {
+        // Clear mandal/division fields when designation changes
+        if (isAssistantDirectorOfAgriculture(value)) {
+          next.mandal = '';
+          next.manualMandal = '';
+        } else {
+          next.division = '';
+          next.manualDivision = '';
+          next.sampleDrawingMandal = '';
+          next.manualPlaceOfCollection = '';
+          next.office = '';
+        }
+        // Prefill OFFICE for Asst. Director of Agriculture (T)
+        if (isAssistantDirectorOfAgricultureT(value)) {
+          next.office = ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT;
+        }
       }
       if (key === 'mandal') {
         next.manualMandal = '';
         const resolvedPlace = value === 'Others' ? next.manualMandal : value;
         next.place = resolvedPlace;
+      }
+      if (key === 'division') {
+        next.manualDivision = '';
+        next.sampleDrawingMandal = '';
+        next.manualPlaceOfCollection = '';
+      }
+      if (key === 'manualDivision') {
+        // Auto-populate place with manual division if sampleDrawingMandal is not set yet
+        if (value && !next.sampleDrawingMandal) {
+          next.place = value;
+        }
+      }
+      if (key === 'sampleDrawingMandal') {
+        next.manualPlaceOfCollection = '';
+        next.place = value;
+        next.premisesLocation = value;
+      }
+      if (key === 'manualPlaceOfCollection') {
+        next.place = value;
+        next.premisesLocation = value;
       }
       if (key === 'manualMandal') {
         next.place = value;
@@ -339,6 +411,10 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
         // Auto-populate DISTRIBUTOR NAME and MARKETED BY with MANUFACTURED BY value
         next.distributorName = value;
         next.marketedBy = value;
+      }
+      if (key === 'invoiceDate') {
+        // Auto-populate stockReceiptDate from invoiceDate
+        next.stockReceiptDate = value;
       }
       if (key === 'sampleDrawnDate') {
         const date = new Date(`${value}T00:00:00`);
@@ -449,12 +525,32 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completePreview = async (formType: PesticideStatutoryFormType) => {
+    // Validation for Assistant Director of Agriculture custom location fields
+    const locationError = getAssistantDirectorLocationError({
+      designation: values.designation,
+      district: values.district,
+      manualDistrict: values.manualDistrict,
+      division: values.division,
+      manualDivision: values.manualDivision,
+      office: values.office,
+      placeOfCollection: values.sampleDrawingMandal,
+      placeOfCollectionMandal: values.sampleDrawingMandal,
+      sampleDrawingMandal: values.sampleDrawingMandal,
+      manualPlaceOfCollection: values.manualPlaceOfCollection,
+      mandal: values.mandal,
+      manualMandal: values.manualMandal,
+    });
+    if (locationError) {
+      setMessage(locationError);
+      return;
+    }
+    
     // Validation removed - users can preview PDFs even with empty fields
     const targetWindow = openBlankPdfTab();
     setBusy(true);
     try {
-      const doc = await generatePesticideStatutoryPdf(formType, values, watermarkEnabled);
-      openDocInTab(doc, getPesticidePdfFileName(formType, values), targetWindow);
+      const doc = await generatePesticideStatutoryPdf(formType, documentValues, watermarkEnabled);
+      openDocInTab(doc, getPesticidePdfFileName(formType, documentValues), targetWindow);
       showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
     } catch (error) {
       console.error('Unable to preview pesticide PDF:', error);
@@ -470,11 +566,31 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completeDownload = async (formType: PesticideStatutoryFormType) => {
+    // Validation for Assistant Director of Agriculture custom location fields
+    const locationError = getAssistantDirectorLocationError({
+      designation: values.designation,
+      district: values.district,
+      manualDistrict: values.manualDistrict,
+      division: values.division,
+      manualDivision: values.manualDivision,
+      office: values.office,
+      placeOfCollection: values.sampleDrawingMandal,
+      placeOfCollectionMandal: values.sampleDrawingMandal,
+      sampleDrawingMandal: values.sampleDrawingMandal,
+      manualPlaceOfCollection: values.manualPlaceOfCollection,
+      mandal: values.mandal,
+      manualMandal: values.manualMandal,
+    });
+    if (locationError) {
+      setMessage(locationError);
+      return;
+    }
+    
     // Validation removed - users can download PDFs even with empty fields
     setBusy(true);
     try {
-      const doc = await generatePesticideStatutoryPdf(formType, values, watermarkEnabled);
-      const fileName = getPesticidePdfFileName(formType, values);
+      const doc = await generatePesticideStatutoryPdf(formType, documentValues, watermarkEnabled);
+      const fileName = getPesticidePdfFileName(formType, documentValues);
       downloadDoc(doc, fileName);
       showSuccess('PDF Downloaded Successfully', fileName, 4000);
     } catch (error) {
@@ -490,6 +606,26 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completePreviewAll = async () => {
+    // Validation for Assistant Director of Agriculture custom location fields
+    const locationError = getAssistantDirectorLocationError({
+      designation: values.designation,
+      district: values.district,
+      manualDistrict: values.manualDistrict,
+      division: values.division,
+      manualDivision: values.manualDivision,
+      office: values.office,
+      placeOfCollection: values.sampleDrawingMandal,
+      placeOfCollectionMandal: values.sampleDrawingMandal,
+      sampleDrawingMandal: values.sampleDrawingMandal,
+      manualPlaceOfCollection: values.manualPlaceOfCollection,
+      mandal: values.mandal,
+      manualMandal: values.manualMandal,
+    });
+    if (locationError) {
+      setMessage(locationError);
+      return;
+    }
+    
     // Validation removed - users can preview PDFs even with empty fields
     const targetWindow = openBlankPdfTab();
     setBusy(true);
@@ -511,6 +647,26 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const completeDownloadAll = async () => {
+    // Validation for Assistant Director of Agriculture custom location fields
+    const locationError = getAssistantDirectorLocationError({
+      designation: values.designation,
+      district: values.district,
+      manualDistrict: values.manualDistrict,
+      division: values.division,
+      manualDivision: values.manualDivision,
+      office: values.office,
+      placeOfCollection: values.sampleDrawingMandal,
+      placeOfCollectionMandal: values.sampleDrawingMandal,
+      sampleDrawingMandal: values.sampleDrawingMandal,
+      manualPlaceOfCollection: values.manualPlaceOfCollection,
+      mandal: values.mandal,
+      manualMandal: values.manualMandal,
+    });
+    if (locationError) {
+      setMessage(locationError);
+      return;
+    }
+    
     // Validation removed - users can download PDFs even with empty fields
     setBusy(true);
     try {
@@ -615,10 +771,10 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-white/80 text-red-600 shadow-sm backdrop-blur-sm transition-all hover:bg-red-50 hover:border-red-300 hover:shadow-md"
+              className="inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
               title="Close"
             >
-              <X className="h-5 w-5" />
+              Close
             </button>
           </div>
         </header>
@@ -712,10 +868,57 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                       if (field.key === 'manualFormulationType' && values.formulationType !== 'Others') {
                         return null;
                       }
+                      // Hide sample drawing mandal field unless designation is "Asst. Director of Agriculture"
+                      if (field.key === 'sampleDrawingMandal' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide division field unless designation is "Asst. Director of Agriculture"
+                      if (field.key === 'division' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide manual division field unless designation is "Asst. Director of Agriculture"
+                      if (field.key === 'manualDivision' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide office field unless designation is "Asst. Director of Agriculture (T)"
+                      if (field.key === 'office' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide mandal field when designation is "Asst. Director of Agriculture"
+                      if (field.key === 'mandal' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide manual mandal when designation is "Asst. Director of Agriculture"
+                      if (field.key === 'manualMandal' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide manual place of collection field unless ADA is selected and sampleDrawingMandal is "Others"
+                      if (field.key === 'manualPlaceOfCollection' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide manual district field unless district is "Others"
+                      if (field.key === 'manualDistrict' && values.district !== 'Others') {
+                        return null;
+                      }
                       // Get mandal options based on selected district
                       let fieldOptions = field.options;
-                      if (field.key === 'mandal' && values.district && values.district !== 'Others') {
-                        fieldOptions = getMandalsForDistrict(values.district).map(m => ({ label: m, value: m }));
+                      if (field.key === 'mandal') {
+                        if (values.district && values.district !== 'Others') {
+                          fieldOptions = withOthersOption(getMandalsForDistrict(values.district).map(m => ({ label: m, value: m })));
+                        } else {
+                          fieldOptions = withOthersOption(field.options || []);
+                        }
+                      }
+                      if (field.key === 'district') {
+                        fieldOptions = withOthersOption(field.options || []);
+                      }
+                      // Place of Collection (MANDAL) for ADA - loaded from district based MAO mapping
+                      if (field.key === 'sampleDrawingMandal') {
+                        if (values.district && values.district !== 'Others') {
+                          fieldOptions = withOthersOption(sampleDrawingMandals.map(m => ({ label: m, value: m })));
+                        } else {
+                          fieldOptions = [{ label: 'Others', value: 'Others' }];
+                        }
                       }
                       
                       // Special handling for active ingredient field to show dynamic inputs
@@ -885,6 +1088,11 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
           designation: values.designation,
           mandal: values.mandal,
           manualMandal: values.manualMandal,
+          manualDivision: values.manualDivision,
+          office: values.office,
+          placeOfCollectionMandal: values.sampleDrawingMandal,
+          manualPlaceOfCollection: values.manualPlaceOfCollection,
+          sampleDrawingMandal: values.sampleDrawingMandal,
           district: values.district,
           manualDistrict: values.manualDistrict,
           pinCode: values.pincode,
@@ -961,10 +1169,7 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
     ? 'Division'
     : field.label;
   
-  // Handle mandal dropdown with "Others" option
-  const selectOptions = field.key === 'mandal' && options 
-    ? [...options, { label: 'Others', value: 'Others' }]
-    : (options || field.options || []);
+  const selectOptions = options || field.options || [];
 
   const inputElement = field.type === 'textarea' ? (
     <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} placeholder={field.placeholder} className={commonClass} />

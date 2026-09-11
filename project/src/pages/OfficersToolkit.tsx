@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, FlaskConical, ShieldCheck, FileStack, ExternalLink, Leaf, Globe2, PackageCheck, Database, Bug, Sprout, Scale, FileText, Phone, Calendar, type LucideIcon } from 'lucide-react';
+import { Calculator, LayoutDashboard, ShieldCheck, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
@@ -27,7 +27,7 @@ const toolkitItems: ToolkitItem[] = [
     title: 'Tour Diary',
     description: 'Monthly tour diary with journey tracking.',
     path: '/officer-toolkit/tour-diary',
-    icon: Calendar,
+    icon: CalendarDays,
     category: 'internal',
     gradient: 'from-cyan-500 to-blue-600',
     bgGradient: 'from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30',
@@ -45,7 +45,7 @@ const toolkitItems: ToolkitItem[] = [
     title: 'License Services',
     description: 'Fertilizer • Seed • Pesticide',
     path: '/officer-toolkit/license-application-generator',
-    icon: FileText,
+    icon: FileCheck,
     category: 'internal',
     gradient: 'from-teal-500 to-emerald-600',
     bgGradient: 'from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30',
@@ -54,7 +54,7 @@ const toolkitItems: ToolkitItem[] = [
     title: 'Statutory Forms',
     description: 'Prepare and download field forms.',
     path: '/officer-toolkit/statutory-forms',
-    icon: FileStack,
+    icon: Files,
     category: 'internal',
     gradient: 'from-amber-500 to-orange-600',
     bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
@@ -63,7 +63,7 @@ const toolkitItems: ToolkitItem[] = [
     title: 'Farm Calculators',
     description: 'Crop, seed, fertilizer and pesticide calculations.',
     path: '/officer-toolkit/farm-calculators',
-    icon: Sprout,
+    icon: Calculator,
     category: 'internal',
     gradient: 'from-green-600 to-teal-700',
     bgGradient: 'from-green-50 to-teal-50 dark:from-green-950/30 dark:to-teal-950/30',
@@ -72,7 +72,7 @@ const toolkitItems: ToolkitItem[] = [
     title: 'Crop Doctor',
     description: 'Crop-wise pests, diseases, weeds and nutrient deficiencies.',
     path: '/officer-toolkit/crop-protection',
-    icon: Bug,
+    icon: Stethoscope,
     category: 'internal',
     gradient: 'from-red-500 to-amber-600',
     bgGradient: 'from-red-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30',
@@ -95,7 +95,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'Urea Dashboard',
     description: 'Urea Fertilizer Dashboard Portal',
     externalUrl: 'http://74.225.14.186:8025/login',
-    icon: FlaskConical,
+    icon: LayoutDashboard,
     gradient: 'from-purple-500 to-pink-600',
     bgGradient: 'from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30',
   },
@@ -103,7 +103,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'Crop Loan Waiver',
     description: 'Telangana Crop Loan Waiver Portal',
     externalUrl: 'https://clw.telangana.gov.in/Login.aspx',
-    icon: Leaf,
+    icon: HandCoins,
     gradient: 'from-rose-500 to-red-600',
     bgGradient: 'from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30',
   },
@@ -111,7 +111,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'Soil Health Card',
     description: 'Soil Health Card Portal',
     externalUrl: 'https://soilhealth.dac.gov.in/admin/',
-    icon: ShieldCheck,
+    icon: Globe2,
     gradient: 'from-amber-500 to-orange-600',
     bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
   },
@@ -119,7 +119,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'OLMS',
     description: 'Online License Management System',
     externalUrl: 'https://agriolms.telangana.gov.in/Default.aspx',
-    icon: FileStack,
+    icon: BarChart3,
     gradient: 'from-teal-500 to-cyan-600',
     bgGradient: 'from-teal-50 to-cyan-50 dark:from-teal-950/30 dark:to-cyan-950/30',
   },
@@ -127,7 +127,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'IFMS',
     description: 'Integrated Fertilizer Management System',
     externalUrl: 'https://dbtfert.nic.in/mFMS/loginNew.action',
-    icon: PackageCheck,
+    icon: Database,
     gradient: 'from-indigo-500 to-purple-600',
     bgGradient: 'from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30',
   },
@@ -135,7 +135,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'Treasury Challan Generation',
     description: 'Telangana IFMIS e-Challan Portal',
     externalUrl: 'https://ifmis.telangana.gov.in/echallan',
-    icon: FileStack,
+    icon: Landmark,
     gradient: 'from-slate-600 to-emerald-700',
     bgGradient: 'from-slate-50 to-emerald-50 dark:from-slate-950/30 dark:to-emerald-950/30',
   },
@@ -143,7 +143,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'Agromet Advisories',
     description: 'Agricultural Meteorological Advisories',
     externalUrl: 'https://pjtau.edu.in/agromet-advisories/',
-    icon: Calculator,
+    icon: Sprout,
     gradient: 'from-sky-500 to-blue-600',
     bgGradient: 'from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30',
   },
@@ -151,7 +151,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'IMD Weather',
     description: 'India Meteorological Department Weather',
     externalUrl: 'https://mausam.imd.gov.in/imd_latest/contents/districtwise-warning_mc.php?id=1',
-    icon: Globe2,
+    icon: CloudSunRain,
     gradient: 'from-cyan-500 to-teal-600',
     bgGradient: 'from-cyan-50 to-teal-50 dark:from-cyan-950/30 dark:to-teal-950/30',
   },
@@ -159,7 +159,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'Quality Control - Court Judgements',
     description: 'Fertilizer Control Order Court Judgements',
     externalUrl: 'https://indiankanoon.org/search/?formInput=fertilizer+control+order+&filters=doctypes%3A+judgments&filters=sortby%3A+mostrecent',
-    icon: ShieldCheck,
+    icon: Gavel,
     gradient: 'from-violet-500 to-purple-600',
     bgGradient: 'from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30',
   },
@@ -167,7 +167,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'Rythu Bharosa',
     description: 'Telangana Government Agriculture Portal',
     externalUrl: 'https://rythubharosa.telangana.gov.in/Login.aspx',
-    icon: Leaf,
+    icon: UserRound,
     gradient: 'from-orange-500 to-red-600',
     bgGradient: 'from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30',
   },
@@ -175,7 +175,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'PM-Kisan',
     description: 'Pradhan Mantri Kisan Samman Nidhi',
     externalUrl: 'https://fw.pmkisan.gov.in/',
-    icon: Globe2,
+    icon: IndianRupee,
     gradient: 'from-yellow-500 to-amber-600',
     bgGradient: 'from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/30',
   },
@@ -183,7 +183,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'T-Seed Portal',
     description: 'Telangana Seed Portal',
     externalUrl: 'https://ossds.telangana.gov.in/Tseedlogin.aspx',
-    icon: Leaf,
+    icon: Wheat,
     gradient: 'from-lime-500 to-green-600',
     bgGradient: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
   },
@@ -207,7 +207,7 @@ const externalPortals: ToolkitItem[] = [
     title: 'Farmer Registry',
     description: 'Telangana Farmer Registry',
     externalUrl: 'https://tlfr.agristack.gov.in/farmer-registry-tl/#/',
-    icon: Database,
+    icon: UsersRound,
     gradient: 'from-cyan-500 to-blue-600',
     bgGradient: 'from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30',
   },
@@ -267,46 +267,69 @@ function translateToolkit(label?: string) {
   return label ? labels[label] || label : '';
 }
 
+const cardThemeByGradient: Record<string, { cardBg: string; icon: string }> = {
+  'from-cyan-500 to-blue-600': { cardBg: 'from-cyan-100 to-blue-100 dark:from-cyan-950/30 dark:to-blue-950/30', icon: 'text-cyan-600 dark:text-cyan-400' },
+  'from-emerald-500 to-teal-600': { cardBg: 'from-emerald-100 to-teal-100 dark:from-emerald-950/30 dark:to-teal-950/30', icon: 'text-emerald-600 dark:text-emerald-400' },
+  'from-teal-500 to-emerald-600': { cardBg: 'from-teal-100 to-emerald-100 dark:from-teal-950/30 dark:to-emerald-950/30', icon: 'text-teal-600 dark:text-teal-400' },
+  'from-amber-500 to-orange-600': { cardBg: 'from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30', icon: 'text-amber-600 dark:text-amber-400' },
+  'from-green-600 to-teal-700': { cardBg: 'from-green-100 to-teal-100 dark:from-green-950/30 dark:to-teal-950/30', icon: 'text-green-600 dark:text-green-400' },
+  'from-red-500 to-amber-600': { cardBg: 'from-red-100 to-amber-100 dark:from-red-950/30 dark:to-amber-950/30', icon: 'text-red-600 dark:text-red-400' },
+  'from-blue-600 to-emerald-700': { cardBg: 'from-blue-100 to-emerald-100 dark:from-blue-950/30 dark:to-emerald-950/30', icon: 'text-blue-600 dark:text-blue-400' },
+  'from-purple-500 to-pink-600': { cardBg: 'from-purple-100 to-pink-100 dark:from-purple-950/30 dark:to-pink-950/30', icon: 'text-purple-600 dark:text-purple-400' },
+  'from-rose-500 to-red-600': { cardBg: 'from-rose-100 to-red-100 dark:from-rose-950/30 dark:to-red-950/30', icon: 'text-rose-600 dark:text-rose-400' },
+  'from-teal-500 to-cyan-600': { cardBg: 'from-teal-100 to-cyan-100 dark:from-teal-950/30 dark:to-cyan-950/30', icon: 'text-teal-600 dark:text-teal-400' },
+  'from-indigo-500 to-purple-600': { cardBg: 'from-indigo-100 to-purple-100 dark:from-indigo-950/30 dark:to-purple-950/30', icon: 'text-indigo-600 dark:text-indigo-400' },
+  'from-slate-600 to-emerald-700': { cardBg: 'from-slate-100 to-emerald-100 dark:from-slate-950/30 dark:to-emerald-950/30', icon: 'text-slate-600 dark:text-slate-300' },
+  'from-sky-500 to-blue-600': { cardBg: 'from-sky-100 to-blue-100 dark:from-sky-950/30 dark:to-blue-950/30', icon: 'text-sky-600 dark:text-sky-400' },
+  'from-cyan-500 to-teal-600': { cardBg: 'from-cyan-100 to-teal-100 dark:from-cyan-950/30 dark:to-teal-950/30', icon: 'text-cyan-600 dark:text-cyan-400' },
+  'from-violet-500 to-purple-600': { cardBg: 'from-violet-100 to-purple-100 dark:from-violet-950/30 dark:to-purple-950/30', icon: 'text-violet-600 dark:text-violet-400' },
+  'from-orange-500 to-red-600': { cardBg: 'from-orange-100 to-red-100 dark:from-orange-950/30 dark:to-red-950/30', icon: 'text-orange-600 dark:text-orange-400' },
+  'from-yellow-500 to-amber-600': { cardBg: 'from-yellow-100 to-amber-100 dark:from-yellow-950/30 dark:to-amber-950/30', icon: 'text-amber-600 dark:text-amber-400' },
+  'from-lime-500 to-green-600': { cardBg: 'from-lime-100 to-green-100 dark:from-lime-950/30 dark:to-green-950/30', icon: 'text-lime-600 dark:text-lime-400' },
+  'from-blue-500 to-indigo-600': { cardBg: 'from-blue-100 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30', icon: 'text-blue-600 dark:text-blue-400' },
+  'from-green-600 to-emerald-700': { cardBg: 'from-green-100 to-emerald-100 dark:from-green-950/30 dark:to-emerald-950/30', icon: 'text-emerald-600 dark:text-emerald-400' },
+};
+
 function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: number; onClick: () => void }) {
   const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
+  const theme = cardThemeByGradient[item.gradient];
+  const cardBg = theme?.cardBg ?? item.bgGradient;
+  const iconColor = theme?.icon ?? 'text-emerald-600 dark:text-emerald-400';
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), index * 100);
+    const timer = setTimeout(() => setIsVisible(true), index * 60);
     return () => clearTimeout(timer);
   }, [index]);
 
   return (
     <div
       onClick={onClick}
-      className={`group relative overflow-hidden rounded-2xl border border-emerald-200/50 bg-gradient-to-br ${item.bgGradient} p-5 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 dark:border-emerald-800/50 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      className={`group relative flex h-full cursor-pointer flex-col items-center overflow-hidden rounded-2xl border border-emerald-200/50 bg-gradient-to-br ${cardBg} px-2 pb-3 pt-4 text-center shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-emerald-800/50 sm:px-3 sm:pb-4 sm:pt-5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
     >
       <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-10`} />
-      <div className="relative flex items-start gap-4">
-        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.gradient} text-white shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-          <item.icon className="h-7 w-7" />
+      {item.externalUrl && (
+        <div className="absolute right-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white/80 text-emerald-600 shadow-sm dark:bg-slate-800/80 dark:text-emerald-400">
+          <ExternalLink className="h-3 w-3" />
         </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white transition-colors group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
-            {t(item.title, translateToolkit(item.title))}
-          </h3>
-          <p className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-300 line-clamp-2">
-            {t(item.description, translateToolkit(item.description))}
-          </p>
-          {item.statusMessage && (
-            <div className="mt-2 inline-flex w-fit rounded-full bg-red-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-red-800 dark:bg-red-900/40 dark:text-red-200">
-              {t(item.statusMessage, translateToolkit(item.statusMessage))}
-            </div>
-          )}
-          {item.externalUrl && (
-            <div className="mt-2 flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-              <ExternalLink className="h-3 w-3" />
-              <span>{t('External Portal', 'బాహ్య పోర్టల్')}</span>
-            </div>
-          )}
-        </div>
+      )}
+      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-slate-900/5 transition-transform duration-300 group-hover:scale-110 dark:bg-slate-800 dark:ring-slate-700 sm:h-16 sm:w-16 lg:h-20 lg:w-20">
+        <item.icon className={`h-7 w-7 sm:h-8 sm:w-8 lg:h-10 lg:w-10 ${iconColor}`} />
       </div>
-      <div className={`absolute -right-4 -bottom-4 h-20 w-20 rounded-full bg-gradient-to-br ${item.gradient} opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-20`} />
+      <h3 className="relative mt-2 text-balance text-[11px] font-bold leading-tight text-slate-800 transition-colors group-hover:text-emerald-700 dark:text-slate-100 dark:group-hover:text-emerald-400 sm:mt-3 sm:text-sm">
+        {t(item.title, translateToolkit(item.title))}
+      </h3>
+      <div className="relative mt-1 hidden md:block">
+        <p className="text-[11px] font-medium leading-snug text-slate-500 line-clamp-2 dark:text-slate-400">
+          {t(item.description, translateToolkit(item.description))}
+        </p>
+      </div>
+      {item.statusMessage && (
+        <div className="relative mt-1.5 inline-flex rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-red-800 dark:bg-red-900/40 dark:text-red-200 sm:text-[10px]">
+          {t(item.statusMessage, translateToolkit(item.statusMessage))}
+        </div>
+      )}
+      <div className={`pointer-events-none absolute -right-4 -bottom-4 h-20 w-20 rounded-full bg-gradient-to-br ${item.gradient} opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-20`} />
     </div>
   );
 }
@@ -318,12 +341,15 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
 
   const shouldHideHeader = isAdmin || isTestUser;
 
+  const sortedToolkitItems = [...toolkitItems].sort((a, b) => a.title.localeCompare(b.title));
+  const sortedExternalPortals = [...externalPortals].sort((a, b) => a.title.localeCompare(b.title));
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
+    <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl animate-pulse" />
@@ -335,24 +361,33 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
           <div className={`mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="rounded-3xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-xl dark:border-emerald-800/50 dark:bg-slate-900/80">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
+            <div className="relative overflow-hidden rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 via-white to-teal-50/80 p-5 shadow-xl shadow-emerald-900/5 backdrop-blur-sm dark:border-emerald-800/60 dark:from-emerald-950/40 dark:via-slate-900 dark:to-teal-950/40 sm:p-6">
+              <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-teal-300/20 blur-3xl dark:bg-teal-500/10" aria-hidden="true" />
+              <div className="pointer-events-none absolute -bottom-16 -left-12 h-40 w-40 rounded-full bg-emerald-300/20 blur-3xl dark:bg-emerald-500/10" aria-hidden="true" />
+              <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4 sm:gap-5">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-lg shadow-emerald-600/30 ring-4 ring-emerald-500/15">
                     <ShieldCheck className="h-8 w-8" />
                   </div>
                   <div className="min-w-0">
-                    <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+                    <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
                       {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                     </h1>
-                    <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                    <p className="mt-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">
                       {t('Agricultural Tools & Government Portals', 'వ్యవసాయ పనిముట్లు & ప్రభుత్వ పోర్టల్స్')}
                     </p>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <LanguageToggle language={language} onClick={toggleLanguage} />
-                  <BackButton onClick={() => navigate('/login')}>
+                <div className="flex shrink-0 items-center gap-2.5">
+                  <LanguageToggle
+                    language={language}
+                    onClick={toggleLanguage}
+                    className="h-10 rounded-xl !border-emerald-200 !bg-white/80 !text-emerald-800 px-4 hover:!bg-white dark:!border-emerald-800 dark:!bg-slate-800/80 dark:!text-emerald-200 dark:hover:!bg-slate-700"
+                  />
+                  <BackButton
+                    onClick={() => navigate('/login')}
+                    className="h-10 rounded-xl !border-transparent !bg-gradient-to-r !from-emerald-600 !to-teal-600 !text-white px-4 shadow-md shadow-emerald-600/25 hover:!from-emerald-700 hover:!to-teal-700"
+                  >
                     Back
                   </BackButton>
                 </div>
@@ -377,8 +412,8 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
               {t('Field Tools', 'ఫీల్డ్ టూల్స్')}
             </h2>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {toolkitItems.map((item, index) => (
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+            {sortedToolkitItems.map((item, index) => (
               <ToolkitCard
                 key={item.path}
                 item={item}
@@ -399,13 +434,14 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
               {t('Government Portals', 'ప్రభుత్వ పోర్టల్స్')}
             </h2>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {externalPortals.map((item, index) => (
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+            {sortedExternalPortals.map((item, index) => (
               <a
                 key={item.externalUrl}
                 href={item.externalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="block h-full"
               >
                 <ToolkitCard
                   item={item}
