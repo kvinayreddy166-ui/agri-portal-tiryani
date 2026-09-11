@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bug, Check, ChevronDown, ClipboardCheck, Download, Eye, FlaskConical, FolderOpen, Plus, RotateCcw, Save, Sprout, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Bug, ChevronDown, ClipboardCheck, Download, Eye, FlaskConical, FolderOpen, Plus, RotateCcw, Save, Sprout, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ToastContainer, useToast } from '../components/ui/Toast';
@@ -193,7 +193,8 @@ export function FertilizerDealerInspection() {
   const [form, setForm] = useState<InspectionForm>(loadForm);
   const [drafts, setDrafts] = useState<DraftRecord[]>(loadDrafts);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
-  const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true });
+  const [sameStorageAsSale, setSameStorageAsSale] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false });
   const [showPreview, setShowPreview] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
   const [error, setError] = useState('');
@@ -210,7 +211,7 @@ export function FertilizerDealerInspection() {
   const validate = () => {
     if (!form.inspectionDate) return 'Please enter the date of inspection.';
     if (!form.dealerName.trim()) return 'Please enter the name of the dealer.';
-    if (!form.licenceNo.trim()) return 'Please enter the licence number.';
+    if (!form.licenceNo.trim()) return 'Please enter the license number.';
     return '';
   };
 
@@ -281,35 +282,28 @@ export function FertilizerDealerInspection() {
   }, [form.salesRows]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-slate-950 dark:via-amber-950 dark:to-orange-950">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 dark:from-slate-950 dark:via-blue-950 dark:to-cyan-950">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="relative mx-auto max-w-5xl p-4 pb-28 sm:p-6 lg:p-8">
-        <div className="mb-5 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-4 shadow-lg">
+        <div className="mb-5 rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 p-4 shadow-lg">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-amber-600 shadow-sm ring-1 ring-white/20">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-sky-600 shadow-sm ring-1 ring-white/20">
                 <ClipboardCheck className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-amber-800">Fertilizer inspection</p>
-                <h1 className="text-lg font-black text-amber-900 sm:text-xl">Inspection proforma of fertilizer dealer</h1>
+                <p className="text-[10px] font-black uppercase tracking-widest text-sky-800">Fertilizer inspection</p>
+                <h1 className="text-lg font-black text-sky-900 sm:text-xl">Inspection proforma of fertilizer dealer</h1>
               </div>
             </div>
             <button
               type="button"
               onClick={() => navigate('/officer-toolkit')}
-              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-amber-300 bg-white/70 px-3 py-2 text-sm font-black text-amber-800 shadow-sm transition hover:bg-white hover:border-amber-500"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-sky-300 bg-white/70 px-2 py-1.5 text-xs font-black text-sky-800 shadow-sm transition hover:bg-white hover:border-sky-500"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-3 w-3" />
               Back
             </button>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <ActionButton onClick={saveDraft} icon={Save} tone="amber">Save draft</ActionButton>
-            <ActionButton onClick={() => setShowDrafts(true)} icon={FolderOpen} tone="white">Drafts{drafts.length ? ` (${drafts.length})` : ''}</ActionButton>
-            <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
-            <ActionButton onClick={generatePdf} icon={Download} tone="amber">PDF</ActionButton>
-            <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">Reset</ActionButton>
           </div>
         </div>
 
@@ -317,8 +311,14 @@ export function FertilizerDealerInspection() {
 
         <div className="mb-5 grid grid-cols-3 gap-3">
           <InspectionTypeCard icon={Sprout} label="Seed" tone="emerald" onClick={() => navigate('/officer-toolkit/seed-dealer-inspection')} />
-          <InspectionTypeCard icon={FlaskConical} label="Fertilizer" tone="amber" active />
+          <InspectionTypeCard icon={FlaskConical} label="Fertilizer" tone="sky" active />
           <InspectionTypeCard icon={Bug} label="Pesticide" tone="rose" />
+        </div>
+
+        <div className="mb-3 flex flex-wrap gap-2">
+          <ActionButton onClick={saveDraft} icon={Save} tone="sky">Save draft</ActionButton>
+          <ActionButton onClick={() => setShowDrafts(true)} icon={FolderOpen} tone="white">Drafts{drafts.length ? ` (${drafts.length})` : ''}</ActionButton>
+          <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">Reset</ActionButton>
         </div>
 
         <div className="mb-5 grid gap-3 sm:grid-cols-3">
@@ -334,9 +334,9 @@ export function FertilizerDealerInspection() {
               <Field label="2. Name of the dealer" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Firm / dealer name" />
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
-              <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">3. Licence number</p>
+              <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">3. License Details</p>
               <div className="grid gap-3 sm:grid-cols-3">
-                <Field label="3. Licence number" value={form.licenceNo} onChange={(v) => set('licenceNo', v)} placeholder="Licence number" />
+                <Field label="3. License number" value={form.licenceNo} onChange={(v) => set('licenceNo', v)} placeholder="License number" />
                 <Field label="3(a). Valid from" type="date" value={form.licenceValidFrom} onChange={(v) => set('licenceValidFrom', v)} />
                 <Field label="3(b). Valid up to" type="date" value={form.licenceValidUpTo} onChange={(v) => set('licenceValidUpTo', v)} />
               </div>
@@ -344,28 +344,28 @@ export function FertilizerDealerInspection() {
             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
               <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">3. Address</p>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="3(a). Sale point address" textarea value={form.salePointAddress} onChange={(v) => set('salePointAddress', v)} placeholder="D.no, Village, Mandal" />
-                <div className="flex items-end gap-2">
-                  <div className="flex-1">
-                    <Field label="3(b). Storage point address" textarea value={form.storagePointAddress} onChange={(v) => set('storagePointAddress', v)} placeholder="D.no, Village, Mandal" />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => set('storagePointAddress', form.salePointAddress)}
-                    disabled={!form.salePointAddress.trim()}
-                    title="Same as sale point address"
-                    aria-label="Copy sale point address to storage"
-                    className="inline-flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg bg-amber-600 text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <Check className="h-4 w-4" />
-                  </button>
+                <Field label="3(a). Sale point address" textarea value={form.salePointAddress} onChange={(v) => { set('salePointAddress', v); if (sameStorageAsSale) set('storagePointAddress', v); }} placeholder="D.no, Village, Mandal" />
+                <div>
+                  <Field label="3(b). Storage point address" textarea value={form.storagePointAddress} onChange={(v) => { set('storagePointAddress', v); if (sameStorageAsSale) setSameStorageAsSale(false); }} placeholder="D.no, Village, Mandal" />
+                  <label className="mt-1.5 inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={sameStorageAsSale}
+                      onChange={(e) => {
+                        setSameStorageAsSale(e.target.checked);
+                        if (e.target.checked) set('storagePointAddress', form.salePointAddress);
+                      }}
+                      className="h-3.5 w-3.5 cursor-pointer accent-sky-600"
+                    />
+                    Same as sale point address
+                  </label>
                 </div>
               </div>
             </div>
             <Field label="4. Contact number of the dealer" type="tel" value={form.contactNumber} onChange={(v) => set('contactNumber', v)} placeholder="Mobile / landline number" />
           </Section>
 
-          <Section id={2} title="Digital and business details" subtitle="Items 5 to 9" open={openSections[2]} onToggle={toggleSection}>
+          <Section id={2} title="mFMS and Digital Details" subtitle="Items 5 to 9" open={openSections[2]} onToggle={toggleSection}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="5. mFMS ID number" value={form.mfmsId} onChange={(v) => set('mfmsId', v)} placeholder="mFMS ID" />
               <Field label="6. e-Company name" value={form.eCompanyName} onChange={(v) => set('eCompanyName', v)} placeholder="e-Company name" />
@@ -376,7 +376,7 @@ export function FertilizerDealerInspection() {
           </Section>
 
           <Section id={3} title="Premises and stock verification" subtitle="Items 10 to 12" open={openSections[3]} onToggle={toggleSection}>
-            <StatusInput label="10. Whether the sale and stock premises are the same as those mentioned in the licence" field={form.premisesSameAsLicence} onChange={(p) => setStatus('premisesSameAsLicence', p)} remarksWhen="no" />
+            <StatusInput label="10. Whether the sale and stock premises are the same as those mentioned in the license" field={form.premisesSameAsLicence} onChange={(p) => setStatus('premisesSameAsLicence', p)} remarksWhen="no" />
             <div>
               <p className="mb-1 text-xs font-bold text-slate-800 dark:text-slate-100">11. Stock position at the time of inspection. Details to be furnished.</p>
               <RowTable<StockRow>
@@ -421,7 +421,7 @@ export function FertilizerDealerInspection() {
             {form.stockRegisterInvoices.status === 'no' && (
               <Field label="Details of deficiency" textarea value={form.stockRegisterDeficiency} onChange={(v) => set('stockRegisterDeficiency', v)} placeholder="Describe the deficiency" />
             )}
-            <StatusInput label="14. Whether the selling licence number is mentioned on sales invoices" field={form.licenceNoOnInvoices} onChange={(p) => setStatus('licenceNoOnInvoices', p)} remarksWhen="no" />
+            <StatusInput label="14. Whether the selling license number is mentioned on sales invoices" field={form.licenceNoOnInvoices} onChange={(p) => setStatus('licenceNoOnInvoices', p)} remarksWhen="no" />
             <StatusInput label="15. Whether the dealer purchases stocks from approved and authorised sources. Verify the purchase invoices." field={form.purchasesFromApprovedSources} onChange={(p) => setStatus('purchasesFromApprovedSources', p)} remarksWhen="no" />
             <RowTable<PurchaseInvoiceRow>
               title="Purchase invoice verification"
@@ -464,9 +464,9 @@ export function FertilizerDealerInspection() {
                 </div>
               </div>
             </div>
-            <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 dark:border-amber-900/50 dark:bg-amber-950/20">
-              <p className="mb-1 text-xs font-bold text-amber-800 dark:text-amber-200">Urea stock difference (ePOS − ground balance)</p>
-              <p className="text-sm font-black text-amber-900 dark:text-amber-100">
+            <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-3 dark:border-sky-900/50 dark:bg-sky-950/20">
+              <p className="mb-1 text-xs font-bold text-sky-800 dark:text-sky-200">Urea stock difference (ePOS − ground balance)</p>
+              <p className="text-sm font-black text-sky-900 dark:text-sky-100">
                 {ureaDifference.diff} {form.ureaEposUnit} — {ureaDifference.status}
               </p>
             </div>
@@ -510,7 +510,7 @@ export function FertilizerDealerInspection() {
               />
             )}
             <div>
-              <p className="mb-1 text-xs font-bold text-slate-800 dark:text-slate-100">24. Licence suspension date</p>
+              <p className="mb-1 text-xs font-bold text-slate-800 dark:text-slate-100">24. License suspension date</p>
               <StatusButtons value={form.licenceSuspended} onChange={(v) => set('licenceSuspended', v)} />
             </div>
             {form.licenceSuspended === 'yes' && (
@@ -533,7 +533,7 @@ export function FertilizerDealerInspection() {
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border border-slate-300 text-xs">
                 <thead>
-                  <tr className="bg-amber-50">
+                  <tr className="bg-sky-50">
                     <th className="border border-slate-300 px-2 py-1 text-left font-bold">Sl. no.</th>
                     <th className="border border-slate-300 px-2 py-1 text-left font-bold">Product</th>
                     <th className="border border-slate-300 px-2 py-1 text-left font-bold">Opening balance</th>
@@ -562,7 +562,7 @@ export function FertilizerDealerInspection() {
                       </tr>
                     );
                   })}
-                  <tr className="bg-amber-100 font-black">
+                  <tr className="bg-sky-100 font-black">
                     <td className="border border-slate-300 px-2 py-1 text-center" colSpan={2}>Total</td>
                     <td className="border border-slate-300 px-2 py-1">{salesTotals.opening || ''}</td>
                     <td className="border border-slate-300 px-2 py-1">{salesTotals.receipt || ''}</td>
@@ -576,6 +576,11 @@ export function FertilizerDealerInspection() {
             <p className="text-[10px] font-semibold text-slate-400">Total stock and closing balance are calculated automatically.</p>
           </Section>
 
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
+          <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
+          <ActionButton onClick={generatePdf} icon={Download} tone="sky">PDF</ActionButton>
         </div>
       </div>
 
@@ -592,7 +597,7 @@ export function FertilizerDealerInspection() {
                     <p className="text-xs text-slate-500">Saved {new Date(draft.savedAt).toLocaleString()}</p>
                   </div>
                   <div className="flex shrink-0 gap-2">
-                    <button type="button" onClick={() => loadDraft(draft)} className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-black text-white hover:bg-amber-700">Edit</button>
+                    <button type="button" onClick={() => loadDraft(draft)} className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-black text-white hover:bg-sky-700">Edit</button>
                     <button type="button" onClick={() => deleteDraft(draft.id)} className="rounded-lg border border-red-200 bg-white px-2 py-1.5 text-red-600 hover:bg-red-50" aria-label="Delete draft"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </li>
@@ -603,7 +608,7 @@ export function FertilizerDealerInspection() {
       )}
 
       {showPreview && (
-        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={generatePdf} icon={Download} tone="amber">Download PDF</ActionButton>}>
+        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={generatePdf} icon={Download} tone="sky">Download PDF</ActionButton>}>
           <Preview form={form} ureaDifference={ureaDifference} salesTotals={salesTotals} />
         </Modal>
       )}
@@ -611,11 +616,11 @@ export function FertilizerDealerInspection() {
   );
 }
 
-function ActionButton({ children, onClick, icon: Icon, tone }: { children: React.ReactNode; onClick: () => void; icon: React.ElementType; tone: 'amber' | 'purple' | 'white' }) {
+function ActionButton({ children, onClick, icon: Icon, tone }: { children: React.ReactNode; onClick: () => void; icon: React.ElementType; tone: 'sky' | 'purple' | 'white' }) {
   const toneClass = {
-    amber: 'bg-amber-600 text-white hover:bg-amber-700',
+    sky: 'bg-sky-600 text-white hover:bg-sky-700',
     purple: 'bg-purple-600 text-white hover:bg-purple-700',
-    white: 'border border-amber-300 bg-white/80 text-amber-800 hover:bg-white',
+    white: 'border border-sky-300 bg-white/80 text-sky-800 hover:bg-white',
   }[tone];
   return (
     <button type="button" onClick={onClick} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black shadow-sm transition sm:text-sm ${toneClass}`}>
@@ -627,23 +632,23 @@ function ActionButton({ children, onClick, icon: Icon, tone }: { children: React
 
 function Section({ id, title, subtitle, open, onToggle, children }: { id: number; title: string; subtitle: string; open: boolean; onToggle: (id: number) => void; children: React.ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-amber-200/60 bg-white/90 shadow-md backdrop-blur-sm dark:border-amber-800/50 dark:bg-slate-900/80">
+    <div className="overflow-hidden rounded-2xl border border-sky-200/60 bg-white/90 shadow-md backdrop-blur-sm dark:border-sky-800/50 dark:bg-slate-900/80">
       <button type="button" onClick={() => onToggle(id)} className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left">
         <div className="flex items-center gap-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-sm font-black text-white">{id}</span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-sm font-black text-white">{id}</span>
           <div>
             <h2 className="text-sm font-black text-slate-900 dark:text-white sm:text-base">{title}</h2>
             <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{subtitle}</p>
           </div>
         </div>
-        <ChevronDown className={`h-5 w-5 text-amber-700 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-5 w-5 text-sky-700 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && <div className="grid gap-3 border-t border-amber-100 px-4 py-4 dark:border-amber-900">{children}</div>}
+      {open && <div className="grid gap-3 border-t border-sky-100 px-4 py-4 dark:border-sky-900">{children}</div>}
     </div>
   );
 }
 
-const inputClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white';
+const inputClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white';
 const labelClass = 'mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300';
 
 function Field({ label, value, onChange, type = 'text', textarea = false, placeholder = '', options, helper = '' }: { label: string; value: string; onChange: (v: string) => void; type?: string; textarea?: boolean; placeholder?: string; options?: string[]; helper?: string }) {
@@ -687,15 +692,15 @@ function StatusButtons({ value, onChange }: { value: Status; onChange: (v: Statu
   );
 }
 
-function InspectionTypeCard({ icon: Icon, label, tone, active = false, onClick }: { icon: React.ComponentType<{ className?: string }>; label: string; tone: 'emerald' | 'amber' | 'rose'; active?: boolean; onClick?: () => void }) {
+function InspectionTypeCard({ icon: Icon, label, tone, active = false, onClick }: { icon: React.ComponentType<{ className?: string }>; label: string; tone: 'emerald' | 'sky' | 'rose'; active?: boolean; onClick?: () => void }) {
   const toneClass = {
     emerald: 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100',
-    amber: 'border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-100',
+    sky: 'border-sky-500 bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-100',
     rose: 'border-rose-500 bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-100',
   }[tone];
   const iconBg = {
     emerald: 'bg-emerald-600',
-    amber: 'bg-amber-600',
+    sky: 'bg-sky-600',
     rose: 'bg-rose-600',
   }[tone];
   return (
@@ -735,7 +740,7 @@ function RowTable<T extends Record<string, string>>({ title, rows, onChange, emp
     <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
       <div className="mb-2 flex items-center justify-between gap-2">
         <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{title}</p>
-        <button type="button" onClick={() => onChange([...rows, empty()])} className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-amber-600 px-2.5 py-1.5 text-xs font-black text-white hover:bg-amber-700">
+        <button type="button" onClick={() => onChange([...rows, empty()])} className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-sky-600 px-2.5 py-1.5 text-xs font-black text-white hover:bg-sky-700">
           <Plus className="h-3.5 w-3.5" />
           {addLabel}
         </button>
@@ -788,11 +793,10 @@ function RowTable<T extends Record<string, string>>({ title, rows, onChange, emp
 function Modal({ title, onClose, children, wide = false, footer }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean; footer?: React.ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className={`flex max-h-[90vh] w-full flex-col rounded-2xl border border-amber-200/50 bg-white shadow-2xl dark:border-amber-800/50 dark:bg-slate-900 ${wide ? 'max-w-4xl' : 'max-w-lg'}`}>
+      <div className={`flex max-h-[90vh] w-full flex-col rounded-2xl border border-sky-200/50 bg-white shadow-2xl dark:border-sky-800/50 dark:bg-slate-900 ${wide ? 'max-w-4xl' : 'max-w-lg'}`}>
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-slate-700">
           <h2 className="flex-1 text-center text-lg font-bold text-slate-900 dark:text-white">{title}</h2>
           <button type="button" onClick={onClose} className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-red-700">
-            <X className="h-4 w-4" />
             Close
           </button>
         </div>
@@ -811,7 +815,7 @@ function buildRows(form: InspectionForm, ureaDifference: { diff: number; status:
   const items: string[][] = [
     ['1', 'Date of inspection', formatDate(form.inspectionDate)],
     ['2', 'Name of the dealer', form.dealerName || '-'],
-    ['3', 'Licence number', [form.licenceNo, form.licenceValidFrom && `Valid from: ${formatDate(form.licenceValidFrom)}`, form.licenceValidUpTo && `Valid up to: ${formatDate(form.licenceValidUpTo)}`].filter(Boolean).join(' - ') || '-'],
+    ['3', 'License number', [form.licenceNo, form.licenceValidFrom && `Valid from: ${formatDate(form.licenceValidFrom)}`, form.licenceValidUpTo && `Valid up to: ${formatDate(form.licenceValidUpTo)}`].filter(Boolean).join(' - ') || '-'],
     ['3(a)', 'Sale point address', form.salePointAddress || '-'],
     ['3(b)', 'Storage point address', form.storagePointAddress || '-'],
     ['4', 'Contact number of the dealer', form.contactNumber || '-'],
@@ -820,11 +824,11 @@ function buildRows(form: InspectionForm, ureaDifference: { diff: number; status:
     ['7', 'QR code number', form.qrCodeNo || '-'],
     ['8', 'Payment aggregator', form.paymentAggregator || '-'],
     ['9', 'Virtual payment address (VPA)', form.vpa || '-'],
-    ['10', 'Whether the sale and stock premises are the same as those mentioned in the licence', statusText(form.premisesSameAsLicence)],
+    ['10', 'Whether the sale and stock premises are the same as those mentioned in the license', statusText(form.premisesSameAsLicence)],
     ['11', 'Stock position at the time of inspection. Details to be furnished.', listOrNil(form.stockRows, 'product(s)')],
     ['12', 'Whether the ground balance of stocks tallies with the stock register and ePOS, or whether there is any discrepancy', `${statusText(form.groundBalance)}${form.groundBalance.status === 'no' && form.discrepancyRows.length ? `\n${listOrNil(form.discrepancyRows, 'discrepancy/ies')}` : ''}`],
     ['13', 'Whether the stock register and sales invoices are maintained properly. If not, give details.', `${statusText(form.stockRegisterInvoices)}${form.stockRegisterInvoices.status === 'no' && form.stockRegisterDeficiency ? `\nDeficiency: ${form.stockRegisterDeficiency}` : ''}`],
-    ['14', 'Whether the selling licence number is mentioned on sales invoices', statusText(form.licenceNoOnInvoices)],
+    ['14', 'Whether the selling license number is mentioned on sales invoices', statusText(form.licenceNoOnInvoices)],
     ['15', 'Whether the dealer purchases stocks from approved and authorised sources. Verify the purchase invoices.', `${statusText(form.purchasesFromApprovedSources)}${form.purchaseInvoiceRows.length ? `\n${listOrNil(form.purchaseInvoiceRows, 'invoice(s)')}` : ''}`],
     ['16', 'Whether the dealer has exhibited the price list as per the E.C. Act', statusText(form.priceListExhibited)],
     ['17', 'Whether bills are being issued to consumers, duly mentioning the batch number and trade name of fertilizers', statusText(form.billsIssuedWithBatch)],
@@ -835,7 +839,7 @@ function buildRows(form: InspectionForm, ureaDifference: { diff: number; status:
     ['', 'Urea stock difference', `${ureaDifference.diff} ${form.ureaEposUnit} — ${ureaDifference.status}`],
     ['22', 'Details of samples drawn', listOrNil(form.sampleRows, 'sample(s)')],
     ['23', 'Any show-cause notices issued during this year', form.showCauseIssued === 'yes' ? listOrNil(form.showCauseRows, 'notice(s)') : form.showCauseIssued === 'no' ? 'No' : '-'],
-    ['24', 'Licence suspension date', form.licenceSuspended === 'yes' ? [form.suspensionDate && formatDate(form.suspensionDate), form.suspensionOrderNo && `Order: ${form.suspensionOrderNo}`, form.suspensionRemarks].filter(Boolean).join(' - ') || 'Yes' : form.licenceSuspended === 'no' ? 'No' : '-'],
+    ['24', 'License suspension date', form.licenceSuspended === 'yes' ? [form.suspensionDate && formatDate(form.suspensionDate), form.suspensionOrderNo && `Order: ${form.suspensionOrderNo}`, form.suspensionRemarks].filter(Boolean).join(' - ') || 'Yes' : form.licenceSuspended === 'no' ? 'No' : '-'],
     ['25', 'Reasons for suspension', form.licenceSuspended === 'yes' ? form.suspensionReasons || '-' : '-'],
   ];
 
@@ -865,16 +869,19 @@ function buildPdf(form: InspectionForm) {
 
   doc.setFont('times', 'bold');
   doc.setFontSize(12);
-  doc.text('Inspection proforma of fertilizer dealer', pageWidth / 2, 16, { align: 'center' });
+  const fertTitle = 'Inspection proforma of fertilizer dealer';
+  doc.text(fertTitle, pageWidth / 2, 16, { align: 'center' });
+  const fertTitleWidth = doc.getTextWidth(fertTitle);
+  doc.setLineWidth(0.4);
+  doc.line(pageWidth / 2 - fertTitleWidth / 2, 18, pageWidth / 2 + fertTitleWidth / 2, 18);
   doc.setFont('times', 'normal');
   doc.setFontSize(9);
-  doc.text(`Date of inspection: ${formatDate(form.inspectionDate)}`, pageWidth - margin, 22, { align: 'right' });
 
   autoTable(doc, {
-    startY: 26,
+    startY: 22,
     margin: { top: 16, left: margin, right: margin, bottom: 14 },
     rowPageBreak: 'avoid',
-    head: [['No.', 'Particulars', 'Observation / remarks']],
+    head: [['No.', 'Particulars', 'Observation / Remarks']],
     body: items,
     styles: { font: 'times', fontSize: 9, cellPadding: 1.5, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0], valign: 'top' },
     headStyles: { fillColor: [254, 243, 199], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2 },
@@ -913,9 +920,8 @@ function buildPdf(form: InspectionForm) {
   doc.text('Signature of fertilizer inspector and seal', pageWidth - margin, signatureY, { align: 'right' });
   doc.setFont('times', 'normal');
   doc.setFontSize(9);
-  if (form.dealerName.trim()) doc.text(form.dealerName.trim(), margin, signatureY + 5);
-  const inspectorLine = [form.inspectorName.trim(), form.inspectorDesignation.trim(), form.inspectorOffice.trim()].filter(Boolean).join(', ');
-  if (inspectorLine) doc.text(inspectorLine, pageWidth - margin, signatureY + 5, { align: 'right' });
+  doc.setFont('times', 'italic');
+  if (form.dealerName.trim()) doc.text(`(${form.dealerName.trim()})`, margin, signatureY + 5);
   return doc;
 }
 
@@ -927,10 +933,10 @@ function Preview({ form, ureaDifference, salesTotals }: { form: InspectionForm; 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse border border-slate-400 text-xs">
           <thead>
-            <tr className="bg-amber-50">
+            <tr className="bg-sky-50">
               <th className="border border-slate-400 px-2 py-1 text-left font-bold">No.</th>
               <th className="border border-slate-400 px-2 py-1 text-left font-bold">Particulars</th>
-              <th className="border border-slate-400 px-2 py-1 text-left font-bold">Observation / remarks</th>
+              <th className="border border-slate-400 px-2 py-1 text-left font-bold">Observation / Remarks</th>
             </tr>
           </thead>
           <tbody>

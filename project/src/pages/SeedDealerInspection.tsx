@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bug, Check, ChevronDown, ClipboardCheck, Download, Eye, FlaskConical, FolderOpen, Plus, RotateCcw, Save, Sprout, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Bug, ChevronDown, ClipboardCheck, Download, Eye, FlaskConical, FolderOpen, Plus, RotateCcw, Save, Sprout, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ToastContainer, useToast } from '../components/ui/Toast';
@@ -10,8 +10,8 @@ type StatusField = { status: Status; remarks: string };
 
 type GroundBalanceRow = { crop: string; variety: string; lotNo: string; physicalStock: string; registerBalance: string };
 type FormORow = { lotNo: string; verified: Status; discrepancies: string };
-type DetentionRow = { variety: string; lotNo: string; quantity: string; unit: string; remarks: string };
-type SeizureRow = { variety: string; lotNo: string; quantity: string; unit: string; reason: string; remarks: string };
+type DetentionRow = { crop: string; variety: string; lotNo: string; quantity: string; unit: string; remarks: string };
+type SeizureRow = { crop: string; variety: string; lotNo: string; quantity: string; unit: string; reason: string };
 type SampleRow = { crop: string; variety: string; lotNo: string; quantity: string; sampleType: string };
 type MajorDefect = { checked: boolean; details: string; crop: string; cropOther: string; variety: string; lotNo: string; quantity: string };
 type RectifiableDefect = { checked: boolean; remarks: string };
@@ -37,6 +37,7 @@ interface InspectionForm {
   formDSinceWhen: string;
   billsIssued: StatusField;
   rectifiableDefects: RectifiableDefect[];
+  detentionMade: Status;
   detentions: DetentionRow[];
   majorDefects: MajorDefect[];
   stockSeized: Status;
@@ -58,17 +59,17 @@ const FORM_KEY = 'tiryani-seed-inspection-form';
 const DRAFTS_KEY = 'tiryani-seed-inspection-drafts';
 
 const RECTIFIABLE_DEFECT_LABELS = [
-  'Non-display of licence at a conspicuous place',
+  'Non-display of license at a conspicuous place',
   'Non-display of stock and price list',
   'Non-maintenance of book of accounts in the prescribed format',
   'Issuance of credit/cash bill in incomplete shape',
-  'Conduct of business after expiry of licence within the grace period',
+  'Conduct of business after expiry of license within the grace period',
 ];
 
 const MAJOR_DEFECT_LABELS = [
-  'Selling of seed not included in the licence',
-  'Improper/incorrect labelling (IPC 487)',
-  'Misrepresentation and misleading statements with exaggerated claims of yields (IPC)',
+  'Selling of seed not included in the license',
+  'Improper/incorrect labelling',
+  'Misrepresentation and misleading statements with exaggerated claims of yields',
   'Labelling with imaginary names of the product without there being such an authorised name',
   'Labelling with imaginary names of the product without there being such an authorised name as per the variety',
 ];
@@ -85,8 +86,8 @@ const DESIGNATION_OPTIONS = [
 const emptyStatus = (): StatusField => ({ status: '', remarks: '' });
 const emptyGroundRow = (): GroundBalanceRow => ({ crop: '', variety: '', lotNo: '', physicalStock: '', registerBalance: '' });
 const emptyFormORow = (): FormORow => ({ lotNo: '', verified: '', discrepancies: '' });
-const emptyDetention = (): DetentionRow => ({ variety: '', lotNo: '', quantity: '', unit: 'kg', remarks: '' });
-const emptySeizure = (): SeizureRow => ({ variety: '', lotNo: '', quantity: '', unit: 'kg', reason: '', remarks: '' });
+const emptyDetention = (): DetentionRow => ({ crop: '', variety: '', lotNo: '', quantity: '', unit: 'kg', remarks: '' });
+const emptySeizure = (): SeizureRow => ({ crop: '', variety: '', lotNo: '', quantity: '', unit: 'kg', reason: '' });
 const emptySample = (): SampleRow => ({ crop: '', variety: '', lotNo: '', quantity: '', sampleType: SAMPLE_TYPE_OPTIONS[0] });
 
 const initialForm = (): InspectionForm => ({
@@ -110,6 +111,7 @@ const initialForm = (): InspectionForm => ({
   formDSinceWhen: '',
   billsIssued: emptyStatus(),
   rectifiableDefects: RECTIFIABLE_DEFECT_LABELS.map(() => ({ checked: false, remarks: '' })),
+  detentionMade: '',
   detentions: [],
   majorDefects: MAJOR_DEFECT_LABELS.map(() => ({ checked: false, details: '', crop: '', cropOther: '', variety: '', lotNo: '', quantity: '' })),
   stockSeized: '',
@@ -171,7 +173,8 @@ export function SeedDealerInspection() {
   const [form, setForm] = useState<InspectionForm>(loadForm);
   const [drafts, setDrafts] = useState<DraftRecord[]>(loadDrafts);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
-  const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 1: true, 2: true, 3: true, 4: true, 5: true, 6: true });
+  const [sameSaleAsStorage, setSameSaleAsStorage] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false });
   const [showPreview, setShowPreview] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
   const [error, setError] = useState('');
@@ -262,18 +265,11 @@ export function SeedDealerInspection() {
             <button
               type="button"
               onClick={() => navigate('/officer-toolkit')}
-              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[#86EFAC] bg-white/70 px-3 py-2 text-sm font-black text-[#166534] shadow-sm transition hover:bg-white hover:border-[#4ADE80]"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#86EFAC] bg-white/70 px-2 py-1.5 text-xs font-black text-[#166534] shadow-sm transition hover:bg-white hover:border-[#4ADE80]"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-3 w-3" />
               Back
             </button>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <ActionButton onClick={saveDraft} icon={Save} tone="emerald">Save draft</ActionButton>
-            <ActionButton onClick={() => setShowDrafts(true)} icon={FolderOpen} tone="white">Drafts{drafts.length ? ` (${drafts.length})` : ''}</ActionButton>
-            <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
-            <ActionButton onClick={generatePdf} icon={Download} tone="emerald">PDF</ActionButton>
-            <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">Reset</ActionButton>
           </div>
         </div>
 
@@ -283,6 +279,12 @@ export function SeedDealerInspection() {
           <InspectionTypeCard icon={Sprout} label="Seed" tone="emerald" active />
           <InspectionTypeCard icon={FlaskConical} label="Fertilizer" tone="amber" onClick={() => navigate('/officer-toolkit/fertilizer-dealer-inspection')} />
           <InspectionTypeCard icon={Bug} label="Pesticide" tone="rose" />
+        </div>
+
+        <div className="mb-3 flex flex-wrap gap-2">
+          <ActionButton onClick={saveDraft} icon={Save} tone="emerald">Save draft</ActionButton>
+          <ActionButton onClick={() => setShowDrafts(true)} icon={FolderOpen} tone="white">Drafts{drafts.length ? ` (${drafts.length})` : ''}</ActionButton>
+          <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">Reset</ActionButton>
         </div>
 
         <div className="mb-5 grid gap-3 sm:grid-cols-3">
@@ -300,30 +302,29 @@ export function SeedDealerInspection() {
             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
               <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">3. Location and place of business</p>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="3(a). Storage" value={form.storagePlace} onChange={(v) => set('storagePlace', v)} placeholder="D.no, Village, Mandal" />
-                <div className="flex items-end gap-2">
-                  <div className="flex-1">
-                    <Field label="3(b). Sale" value={form.salePlace} onChange={(v) => set('salePlace', v)} placeholder="D.no, Village, Mandal" />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => set('salePlace', form.storagePlace)}
-                    disabled={!form.storagePlace.trim()}
-                    title="Same as storage address"
-                    aria-label="Copy storage address to sale"
-                    className="inline-flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <Check className="h-4 w-4" />
-                  </button>
+                <Field label="3(a). Storage" value={form.storagePlace} onChange={(v) => { set('storagePlace', v); if (sameSaleAsStorage) set('salePlace', v); }} placeholder="D.no, Village, Mandal" />
+                <div>
+                  <Field label="3(b). Sale" value={form.salePlace} onChange={(v) => { set('salePlace', v); if (sameSaleAsStorage) setSameSaleAsStorage(false); }} placeholder="D.no, Village, Mandal" />
+                  <label className="mt-1.5 inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={sameSaleAsStorage}
+                      onChange={(e) => {
+                        setSameSaleAsStorage(e.target.checked);
+                        if (e.target.checked) set('salePlace', form.storagePlace);
+                      }}
+                      className="h-3.5 w-3.5 cursor-pointer accent-emerald-600"
+                    />
+                    Same as storage address
+                  </label>
                 </div>
               </div>
-              <p className="mt-1 text-[11px] font-semibold text-slate-500">Tap the tick to copy the storage address to sale.</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="4(a). Seed licence no." value={form.licenceNo} onChange={(v) => set('licenceNo', v)} placeholder="Licence number" />
-              <Field label="4(b). Licence validity" type="date" value={form.licenceValidity} onChange={(v) => set('licenceValidity', v)} />
+              <Field label="4(a). Seed license no." value={form.licenceNo} onChange={(v) => set('licenceNo', v)} placeholder="License number" />
+              <Field label="4(b). License validity" type="date" value={form.licenceValidity} onChange={(v) => set('licenceValidity', v)} />
             </div>
-            <StatusInput label="5. Whether stock and sale premises are the same as mentioned in the licence" field={form.premisesSameAsLicence} onChange={(p) => setStatus('premisesSameAsLicence', p)} remarksWhen="no" />
+            <StatusInput label="5. Whether stock and sale premises are the same as mentioned in the license" field={form.premisesSameAsLicence} onChange={(p) => setStatus('premisesSameAsLicence', p)} remarksWhen="no" />
             <StatusInput label="6. Suitability of premises for stocking and sale" field={form.premisesSuitable} onChange={(p) => setStatus('premisesSuitable', p)} remarksWhen="no" />
           </Section>
 
@@ -349,18 +350,20 @@ export function SeedDealerInspection() {
             )}
             <StatusInput label="10. Whether containers are labelled as per the provisions of the Seeds Act" field={form.containersLabelled} onChange={(p) => setStatus('containersLabelled', p)} remarksWhen="no" />
             <StatusInput label="11. Verify copy of Form No-11 issued by TSSOCA authorities for each of the certified lots" field={form.formOVerified} onChange={(p) => setStatus('formOVerified', p)} remarksLabel="Discrepancies / remarks" />
-            <RowTable<FormORow>
-              title="Certified lot details"
-              rows={form.formORows}
-              onChange={(rows) => set('formORows', rows)}
-              empty={emptyFormORow}
-              addLabel="Add certified lot"
-              columns={[
-                { key: 'lotNo', label: 'Certified lot number' },
-                { key: 'verified', label: 'Form No-11 verified', type: 'status' },
-                { key: 'discrepancies', label: 'Discrepancies observed' },
-              ]}
-            />
+            {form.formOVerified.status === 'yes' && (
+              <RowTable<FormORow>
+                title="Certified lot details"
+                rows={form.formORows}
+                onChange={(rows) => set('formORows', rows)}
+                empty={emptyFormORow}
+                addLabel="Add certified lot"
+                columns={[
+                  { key: 'lotNo', label: 'Certified lot number' },
+                  { key: 'verified', label: 'Form No-11 verified', type: 'status' },
+                  { key: 'discrepancies', label: 'Discrepancies observed' },
+                ]}
+              />
+            )}
           </Section>
 
           <Section id={3} title="Compliance verification" subtitle="Items 12 to 14" open={openSections[3]} onToggle={toggleSection}>
@@ -369,7 +372,7 @@ export function SeedDealerInspection() {
             {form.formDSubmitted.status === 'no' && (
               <Field label="If no, since when has the dealer failed to submit Form D" value={form.formDSinceWhen} onChange={(v) => set('formDSinceWhen', v)} placeholder="Month / year or date" />
             )}
-            <StatusInput label="14. Whether the dealer is issuing proper bills to the farmer containing details of brand, lot no., price, validity, etc." field={form.billsIssued} onChange={(p) => setStatus('billsIssued', p)} remarksWhen="no" />
+            <StatusInput label="14. Whether the dealer is issuing proper bills to the farmer containing details of brand, lot no, price, validity, etc." field={form.billsIssued} onChange={(p) => setStatus('billsIssued', p)} remarksWhen="no" />
           </Section>
 
           <Section id={4} title="Defects and violations" subtitle="Items 15 and 17" open={openSections[4]} onToggle={toggleSection}>
@@ -417,20 +420,27 @@ export function SeedDealerInspection() {
           </Section>
 
           <Section id={5} title="Detention and seizure" subtitle="Items 16 and 18" open={openSections[5]} onToggle={toggleSection}>
-            <RowTable<DetentionRow>
-              title="16. Detentions made, if any (variety, lot no., quantity detained)"
-              rows={form.detentions}
-              onChange={(rows) => set('detentions', rows)}
-              empty={emptyDetention}
-              addLabel="Add detention"
-              columns={[
-                { key: 'variety', label: 'Variety' },
-                { key: 'lotNo', label: 'Lot no.' },
-                { key: 'quantity', label: 'Quantity detained' },
-                { key: 'unit', label: 'Unit', type: 'select', options: UNIT_OPTIONS },
-                { key: 'remarks', label: 'Remarks' },
-              ]}
-            />
+            <div>
+              <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">16. Detentions made, if any</p>
+              <StatusButtons value={form.detentionMade} onChange={(v) => set('detentionMade', v)} />
+            </div>
+            {form.detentionMade === 'yes' && (
+              <RowTable<DetentionRow>
+                title="Detention details (variety, lot no., quantity detained)"
+                rows={form.detentions}
+                onChange={(rows) => set('detentions', rows)}
+                empty={emptyDetention}
+                addLabel="Add detention"
+                columns={[
+                  { key: 'crop', label: 'Crop', type: 'select', options: CROP_OPTIONS, allowOther: true },
+                  { key: 'variety', label: 'Variety' },
+                  { key: 'lotNo', label: 'Lot no.' },
+                  { key: 'quantity', label: 'Quantity detained' },
+                  { key: 'unit', label: 'Unit', type: 'select', options: UNIT_OPTIONS },
+                  { key: 'remarks', label: 'Remarks' },
+                ]}
+              />
+            )}
             <div>
               <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">18. Was stock seized?</p>
               <StatusButtons value={form.stockSeized} onChange={(v) => set('stockSeized', v)} />
@@ -443,12 +453,12 @@ export function SeedDealerInspection() {
                 empty={emptySeizure}
                 addLabel="Add seized stock"
                 columns={[
+                  { key: 'crop', label: 'Crop', type: 'select', options: CROP_OPTIONS, allowOther: true },
                   { key: 'variety', label: 'Variety' },
                   { key: 'lotNo', label: 'Lot number' },
                   { key: 'quantity', label: 'Quantity' },
                   { key: 'unit', label: 'Unit', type: 'select', options: UNIT_OPTIONS },
                   { key: 'reason', label: 'Reason for seizure' },
-                  { key: 'remarks', label: 'Remarks' },
                 ]}
               />
             )}
@@ -470,6 +480,11 @@ export function SeedDealerInspection() {
               ]}
             />
           </Section>
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
+          <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
+          <ActionButton onClick={generatePdf} icon={Download} tone="emerald">PDF</ActionButton>
         </div>
       </div>
 
@@ -699,7 +714,6 @@ function Modal({ title, onClose, children, wide = false, footer }: { title: stri
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-slate-700">
           <h2 className="flex-1 text-center text-lg font-bold text-slate-900 dark:text-white">{title}</h2>
           <button type="button" onClick={onClose} className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-red-700">
-            <X className="h-4 w-4" />
             Close
           </button>
         </div>
@@ -732,8 +746,8 @@ function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSub
     ['3', 'Location and place of business', ''],
     ['3(a)', 'Storage', form.storagePlace || '-'],
     ['3(b)', 'Sale', form.salePlace || '-'],
-    ['4', 'Seed licence no. and its validity', [form.licenceNo, form.licenceValidity && `Valid up to: ${formatDate(form.licenceValidity)}`].filter(Boolean).join(' - ') || '-'],
-    ['5', 'Whether stock and sale premises are the same as mentioned in the licence', statusText(form.premisesSameAsLicence)],
+    ['4', 'Seed license no. and its validity', [form.licenceNo, form.licenceValidity && `Valid up to: ${formatDate(form.licenceValidity)}`].filter(Boolean).join(' - ') || '-'],
+    ['5', 'Whether stock and sale premises are the same as mentioned in the license', statusText(form.premisesSameAsLicence)],
     ['6', 'Suitability of premises for stocking and sale', statusText(form.premisesSuitable)],
     ['7', 'Whether stock and price board exhibited', statusText(form.stockPriceBoard)],
     ['8', 'Whether stock register maintained properly', statusText(form.stockRegisterMaintained)],
@@ -744,7 +758,7 @@ function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSub
     ['13', 'Whether the dealer is submitting Form D regularly; if not, since how long has he failed', `${statusText(form.formDSubmitted)}${form.formDSubmitted.status === 'no' && form.formDSinceWhen ? `\nSince: ${form.formDSinceWhen}` : ''}`],
     ['14', 'Whether the dealer is issuing proper bills to the farmer containing details of brand, lot no., price, validity, etc.', statusText(form.billsIssued)],
     ['15', 'Defects noticed which are rectifiable', rectifiable.length ? rectifiable.join('\n') : 'Nil'],
-    ['16', 'Detentions made, if any (variety, lot no., quantity detained)', listOrNil(form.detentions, 'detention(s)')],
+    ['16', 'Detentions made, if any (variety, lot no., quantity detained)', form.detentionMade === 'yes' ? listOrNil(form.detentions, 'detention(s)') : form.detentionMade === 'no' ? 'No' : form.detentionMade === 'na' ? 'N/A' : '-'],
     ['17', 'Major defects noticed (details)', major.length ? major.join('\n') : 'Nil'],
     ['18', 'Stock seized', form.stockSeized === 'yes' ? listOrNil(form.seizures, 'seizure(s)') : form.stockSeized === 'no' ? 'No' : form.stockSeized === 'na' ? 'N/A' : '-'],
     ['19', 'Details of seed samples drawn (crop / variety / lot no.)', listOrNil(form.samples, 'sample(s)')],
@@ -752,9 +766,9 @@ function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSub
 
   const subTables: PdfSubTable[] = [];
   if (form.groundBalance.status === 'no' && form.groundBalanceRows.length) subTables.push({ title: 'Item 9 - Lot-wise ground balance details', head: ['Crop', 'Variety', 'Lot number', 'Physical stock', 'Stock register balance'], body: form.groundBalanceRows.map((r) => [r.crop, r.variety, r.lotNo, r.physicalStock, r.registerBalance]) });
-  if (form.formORows.length) subTables.push({ title: 'Item 11 - Form No-11 certified lot details', head: ['Certified lot number', 'Form No-11 verified', 'Discrepancies observed'], body: form.formORows.map((r) => [r.lotNo, statusLabel(r.verified), r.discrepancies]) });
-  if (form.detentions.length) subTables.push({ title: 'Item 16 - Detentions made', head: ['Variety', 'Lot no.', 'Quantity detained', 'Unit', 'Remarks'], body: form.detentions.map((r) => [r.variety, r.lotNo, r.quantity, r.unit, r.remarks]) });
-  if (form.stockSeized === 'yes' && form.seizures.length) subTables.push({ title: 'Item 18 - Stock seized', head: ['Variety', 'Lot number', 'Quantity', 'Unit', 'Reason for seizure', 'Remarks'], body: form.seizures.map((r) => [r.variety, r.lotNo, r.quantity, r.unit, r.reason, r.remarks]) });
+  if (form.formOVerified.status === 'yes' && form.formORows.length) subTables.push({ title: 'Item 11 - Form No-11 certified lot details', head: ['Certified lot number', 'Form No-11 verified', 'Discrepancies observed'], body: form.formORows.map((r) => [r.lotNo, statusLabel(r.verified), r.discrepancies]) });
+  if (form.detentionMade === 'yes' && form.detentions.length) subTables.push({ title: 'Item 16 - Detentions made', head: ['Crop', 'Variety', 'Lot no.', 'Quantity detained', 'Unit', 'Remarks'], body: form.detentions.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.unit, r.remarks]) });
+  if (form.stockSeized === 'yes' && form.seizures.length) subTables.push({ title: 'Item 18 - Stock seized', head: ['Crop', 'Variety', 'Lot number', 'Quantity', 'Unit', 'Reason for seizure'], body: form.seizures.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.unit, r.reason]) });
   if (form.samples.length) subTables.push({ title: 'Item 19 - Seed samples drawn', head: ['Crop', 'Variety / hybrid', 'Lot no.', 'Quantity', 'Sample type'], body: form.samples.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.sampleType]) });
   return { items, subTables };
 }
@@ -769,16 +783,19 @@ function buildPdf(form: InspectionForm) {
 
   doc.setFont('times', 'bold');
   doc.setFontSize(13);
-  doc.text('Inspection proforma of seed dealer / distributor', pageWidth / 2, 16, { align: 'center' });
+  const seedTitle = 'Inspection proforma of seed dealer / distributor';
+  doc.text(seedTitle, pageWidth / 2, 16, { align: 'center' });
+  const seedTitleWidth = doc.getTextWidth(seedTitle);
+  doc.setLineWidth(0.4);
+  doc.line(pageWidth / 2 - seedTitleWidth / 2, 18, pageWidth / 2 + seedTitleWidth / 2, 18);
   doc.setFont('times', 'normal');
   doc.setFontSize(9);
-  doc.text(`Date of inspection: ${formatDate(form.inspectionDate)}`, pageWidth - margin, 22, { align: 'right' });
 
   autoTable(doc, {
-    startY: 26,
+    startY: 22,
     margin: { top: 16, left: margin, right: margin, bottom: 14 },
     rowPageBreak: 'avoid',
-    head: [['No.', 'Particulars', 'Observation / remarks']],
+    head: [['No.', 'Particulars', 'Observation / Remarks']],
     body: items,
     styles: { font: 'times', fontSize: 9, cellPadding: 1.5, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0], valign: 'top' },
     headStyles: { fillColor: [220, 252, 231], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2 },
@@ -817,9 +834,8 @@ function buildPdf(form: InspectionForm) {
   doc.text('Signature of the seed inspector', pageWidth - margin, signatureY, { align: 'right' });
   doc.setFont('times', 'normal');
   doc.setFontSize(9);
-  if (form.dealerName.trim()) doc.text(form.dealerName.trim(), margin, signatureY + 5);
-  const inspectorLine = [form.inspectorName.trim(), form.inspectorDesignation.trim(), form.inspectorOffice.trim()].filter(Boolean).join(', ');
-  if (inspectorLine) doc.text(inspectorLine, pageWidth - margin, signatureY + 5, { align: 'right' });
+  doc.setFont('times', 'italic');
+  if (form.dealerName.trim()) doc.text(`(${form.dealerName.trim()})`, margin, signatureY + 5);
   return doc;
 }
 
@@ -834,7 +850,7 @@ function Preview({ form }: { form: InspectionForm }) {
             <tr className="bg-emerald-50">
               <th className="border border-slate-400 px-2 py-1 text-left font-bold">No.</th>
               <th className="border border-slate-400 px-2 py-1 text-left font-bold">Particulars</th>
-              <th className="border border-slate-400 px-2 py-1 text-left font-bold">Observation / remarks</th>
+              <th className="border border-slate-400 px-2 py-1 text-left font-bold">Observation / Remarks</th>
             </tr>
           </thead>
           <tbody>
