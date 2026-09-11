@@ -164,7 +164,6 @@ export const SEED_SAMPLE_DRAWAL_DESIGNATION_OPTIONS = [
   { label: 'Asst. Director of Agriculture (R)', value: 'Asst. Director of Agriculture' },
   { label: 'Asst. Director of Agriculture (T)', value: 'Asst. Director of Agriculture (T)' },
   { label: 'Seed Inspector', value: 'Seed Inspector' },
-  { label: 'Others', value: 'Others' },
 ];
 
 // District to Division mapping

@@ -361,9 +361,9 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
           <div className={`mb-5 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="relative overflow-hidden rounded-2xl border border-lime-400/70 bg-gradient-to-br from-lime-200 via-lime-100 to-lime-200/70 px-4 py-3 shadow-lg shadow-lime-900/10 backdrop-blur-sm dark:border-lime-700/60 dark:from-lime-900/50 dark:via-slate-900 dark:to-lime-900/40">
+            <div className="relative overflow-hidden rounded-2xl border border-violet-300/70 bg-gradient-to-br from-violet-200 via-violet-100 to-purple-200/70 px-4 py-3 shadow-lg shadow-violet-900/10 backdrop-blur-sm dark:border-violet-700/60 dark:from-violet-900/50 dark:via-slate-900 dark:to-purple-900/40">
               <div className="relative flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-md shadow-emerald-600/30">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 text-white shadow-md shadow-violet-600/30">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
@@ -375,15 +375,15 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                   </p>
                 </div>
               </div>
-              <div className="relative mt-3 flex items-center justify-between gap-3 border-t border-lime-400/60 pt-3 dark:border-lime-700/50">
+              <div className="relative mt-3 flex items-center justify-between gap-3 border-t border-violet-300/60 pt-3 dark:border-violet-700/50">
                 <LanguageToggle
                   language={language}
                   onClick={toggleLanguage}
-                  className="h-9 rounded-xl !border-emerald-200 !bg-white/80 !text-emerald-800 px-3 hover:!bg-white dark:!border-emerald-800 dark:!bg-slate-800/80 dark:!text-emerald-200 dark:hover:!bg-slate-700"
+                  className="h-9 rounded-xl !border-violet-200 !bg-white/80 !text-violet-800 px-3 hover:!bg-white dark:!border-violet-800 dark:!bg-slate-800/80 dark:!text-violet-200 dark:hover:!bg-slate-700"
                 />
                 <BackButton
                   onClick={() => navigate('/login')}
-                  className="h-9 rounded-xl !border-transparent !bg-gradient-to-r !from-emerald-600 !to-teal-600 !text-white px-4 shadow-md shadow-emerald-600/25 hover:!from-emerald-700 hover:!to-teal-700"
+                  className="h-9 rounded-xl !border-transparent !bg-gradient-to-r !from-violet-600 !to-purple-600 !text-white px-4 shadow-md shadow-violet-600/25 hover:!from-violet-700 hover:!to-purple-700"
                 >
                   Back
                 </BackButton>
