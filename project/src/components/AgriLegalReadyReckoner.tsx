@@ -458,7 +458,7 @@ export function AgriLegalReadyReckoner() {
             </div>
             <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-wide text-emerald-100">Officer Toolkit</p>
-              <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Agri Legal Ready Reckoner</h1>
+              <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Acts & Orders</h1>
               <p className="mt-1 max-w-3xl text-sm font-semibold text-emerald-50">
                 Search Acts, Rules, Orders, clauses, penal provisions, stop sale, seizure, sampling and notice workflows.
               </p>

@@ -124,7 +124,7 @@ const PAGE_SEO: Record<string, { title: string; description: string }> = {
     description: 'Calculate seed requirements based on area and crop variety for Tiryani farmers.',
   },
   '/officer-toolkit/legal-ready-reckoner': {
-    title: 'Legal Ready Reckoner | AGRONIX',
+    title: 'Acts & Orders | AGRONIX',
     description: 'Agriculture laws, FCO clauses, offences, and legal reference for officers and farmers.',
   },
   '/analytics': {

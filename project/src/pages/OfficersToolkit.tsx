@@ -79,7 +79,7 @@ const toolkitItems: ToolkitItem[] = [
     statusMessage: 'Under development',
   },
   {
-    title: 'Legal Ready Reckoner',
+    title: 'Acts & Orders',
     description: 'Acts, clauses, stop sale, seizure, sampling and notice tools.',
     path: '/officer-toolkit/legal-ready-reckoner',
     icon: Scale,
@@ -225,7 +225,7 @@ function translateToolkit(label?: string) {
     'Crop, seed, fertilizer and pesticide calculations.': 'పంట, విత్తనం, ఎరువు మరియు పురుగుమందుల లెక్కలు.',
     'Crop Doctor': 'పంట డాక్టర్',
     'Crop-wise pests, diseases, weeds and nutrient deficiencies.': 'పంటల వారీగా పురుగులు, వ్యాధులు, కలుపు మొక్కలు మరియు పోషక లోపాలు.',
-    'Legal Ready Reckoner': 'లీగల్ రెడీ రెకనర్',
+    'Acts & Orders': 'చట్టాలు & ఉత్తర్వులు',
     'Acts, clauses, stop sale, seizure, sampling and notice tools.': 'చట్టాలు, క్లాజులు, స్టాప్ సేల్, సీజర్, శాంప్లింగ్ మరియు నోటీస్ సాధనాలు.',
     'Under development': 'అభివృద్ధిలో ఉంది',
     'Urea Dashboard': 'యూరియా డ్యాష్‌బోర్డ్',
@@ -268,26 +268,26 @@ function translateToolkit(label?: string) {
 }
 
 const cardThemeByGradient: Record<string, { cardBg: string; icon: string }> = {
-  'from-cyan-500 to-blue-600': { cardBg: 'from-cyan-100 to-blue-100 dark:from-cyan-950/30 dark:to-blue-950/30', icon: 'text-cyan-600 dark:text-cyan-400' },
-  'from-emerald-500 to-teal-600': { cardBg: 'from-emerald-100 to-teal-100 dark:from-emerald-950/30 dark:to-teal-950/30', icon: 'text-emerald-600 dark:text-emerald-400' },
-  'from-teal-500 to-emerald-600': { cardBg: 'from-teal-100 to-emerald-100 dark:from-teal-950/30 dark:to-emerald-950/30', icon: 'text-teal-600 dark:text-teal-400' },
-  'from-amber-500 to-orange-600': { cardBg: 'from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30', icon: 'text-amber-600 dark:text-amber-400' },
-  'from-green-600 to-teal-700': { cardBg: 'from-green-100 to-teal-100 dark:from-green-950/30 dark:to-teal-950/30', icon: 'text-green-600 dark:text-green-400' },
-  'from-red-500 to-amber-600': { cardBg: 'from-red-100 to-amber-100 dark:from-red-950/30 dark:to-amber-950/30', icon: 'text-red-600 dark:text-red-400' },
-  'from-blue-600 to-emerald-700': { cardBg: 'from-blue-100 to-emerald-100 dark:from-blue-950/30 dark:to-emerald-950/30', icon: 'text-blue-600 dark:text-blue-400' },
-  'from-purple-500 to-pink-600': { cardBg: 'from-purple-100 to-pink-100 dark:from-purple-950/30 dark:to-pink-950/30', icon: 'text-purple-600 dark:text-purple-400' },
-  'from-rose-500 to-red-600': { cardBg: 'from-rose-100 to-red-100 dark:from-rose-950/30 dark:to-red-950/30', icon: 'text-rose-600 dark:text-rose-400' },
-  'from-teal-500 to-cyan-600': { cardBg: 'from-teal-100 to-cyan-100 dark:from-teal-950/30 dark:to-cyan-950/30', icon: 'text-teal-600 dark:text-teal-400' },
-  'from-indigo-500 to-purple-600': { cardBg: 'from-indigo-100 to-purple-100 dark:from-indigo-950/30 dark:to-purple-950/30', icon: 'text-indigo-600 dark:text-indigo-400' },
-  'from-slate-600 to-emerald-700': { cardBg: 'from-slate-100 to-emerald-100 dark:from-slate-950/30 dark:to-emerald-950/30', icon: 'text-slate-600 dark:text-slate-300' },
-  'from-sky-500 to-blue-600': { cardBg: 'from-sky-100 to-blue-100 dark:from-sky-950/30 dark:to-blue-950/30', icon: 'text-sky-600 dark:text-sky-400' },
-  'from-cyan-500 to-teal-600': { cardBg: 'from-cyan-100 to-teal-100 dark:from-cyan-950/30 dark:to-teal-950/30', icon: 'text-cyan-600 dark:text-cyan-400' },
-  'from-violet-500 to-purple-600': { cardBg: 'from-violet-100 to-purple-100 dark:from-violet-950/30 dark:to-purple-950/30', icon: 'text-violet-600 dark:text-violet-400' },
-  'from-orange-500 to-red-600': { cardBg: 'from-orange-100 to-red-100 dark:from-orange-950/30 dark:to-red-950/30', icon: 'text-orange-600 dark:text-orange-400' },
-  'from-yellow-500 to-amber-600': { cardBg: 'from-yellow-100 to-amber-100 dark:from-yellow-950/30 dark:to-amber-950/30', icon: 'text-amber-600 dark:text-amber-400' },
-  'from-lime-500 to-green-600': { cardBg: 'from-lime-100 to-green-100 dark:from-lime-950/30 dark:to-green-950/30', icon: 'text-lime-600 dark:text-lime-400' },
-  'from-blue-500 to-indigo-600': { cardBg: 'from-blue-100 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30', icon: 'text-blue-600 dark:text-blue-400' },
-  'from-green-600 to-emerald-700': { cardBg: 'from-green-100 to-emerald-100 dark:from-green-950/30 dark:to-emerald-950/30', icon: 'text-emerald-600 dark:text-emerald-400' },
+  'from-cyan-500 to-blue-600': { cardBg: 'from-cyan-200 to-blue-200 dark:from-cyan-950/30 dark:to-blue-950/30', icon: 'text-cyan-600 dark:text-cyan-400' },
+  'from-emerald-500 to-teal-600': { cardBg: 'from-emerald-200 to-teal-200 dark:from-emerald-950/30 dark:to-teal-950/30', icon: 'text-emerald-600 dark:text-emerald-400' },
+  'from-teal-500 to-emerald-600': { cardBg: 'from-teal-200 to-emerald-200 dark:from-teal-950/30 dark:to-emerald-950/30', icon: 'text-teal-600 dark:text-teal-400' },
+  'from-amber-500 to-orange-600': { cardBg: 'from-amber-200 to-orange-200 dark:from-amber-950/30 dark:to-orange-950/30', icon: 'text-amber-600 dark:text-amber-400' },
+  'from-green-600 to-teal-700': { cardBg: 'from-green-200 to-teal-200 dark:from-green-950/30 dark:to-teal-950/30', icon: 'text-green-600 dark:text-green-400' },
+  'from-red-500 to-amber-600': { cardBg: 'from-red-200 to-amber-200 dark:from-red-950/30 dark:to-amber-950/30', icon: 'text-red-600 dark:text-red-400' },
+  'from-blue-600 to-emerald-700': { cardBg: 'from-blue-200 to-emerald-200 dark:from-blue-950/30 dark:to-emerald-950/30', icon: 'text-blue-600 dark:text-blue-400' },
+  'from-purple-500 to-pink-600': { cardBg: 'from-purple-200 to-pink-200 dark:from-purple-950/30 dark:to-pink-950/30', icon: 'text-purple-600 dark:text-purple-400' },
+  'from-rose-500 to-red-600': { cardBg: 'from-rose-200 to-red-200 dark:from-rose-950/30 dark:to-red-950/30', icon: 'text-rose-600 dark:text-rose-400' },
+  'from-teal-500 to-cyan-600': { cardBg: 'from-teal-200 to-cyan-200 dark:from-teal-950/30 dark:to-cyan-950/30', icon: 'text-teal-600 dark:text-teal-400' },
+  'from-indigo-500 to-purple-600': { cardBg: 'from-indigo-200 to-purple-200 dark:from-indigo-950/30 dark:to-purple-950/30', icon: 'text-indigo-600 dark:text-indigo-400' },
+  'from-slate-600 to-emerald-700': { cardBg: 'from-slate-200 to-emerald-200 dark:from-slate-950/30 dark:to-emerald-950/30', icon: 'text-slate-600 dark:text-slate-300' },
+  'from-sky-500 to-blue-600': { cardBg: 'from-sky-200 to-blue-200 dark:from-sky-950/30 dark:to-blue-950/30', icon: 'text-sky-600 dark:text-sky-400' },
+  'from-cyan-500 to-teal-600': { cardBg: 'from-cyan-200 to-teal-200 dark:from-cyan-950/30 dark:to-teal-950/30', icon: 'text-cyan-600 dark:text-cyan-400' },
+  'from-violet-500 to-purple-600': { cardBg: 'from-violet-200 to-purple-200 dark:from-violet-950/30 dark:to-purple-950/30', icon: 'text-violet-600 dark:text-violet-400' },
+  'from-orange-500 to-red-600': { cardBg: 'from-orange-200 to-red-200 dark:from-orange-950/30 dark:to-red-950/30', icon: 'text-orange-600 dark:text-orange-400' },
+  'from-yellow-500 to-amber-600': { cardBg: 'from-yellow-200 to-amber-200 dark:from-yellow-950/30 dark:to-amber-950/30', icon: 'text-amber-600 dark:text-amber-400' },
+  'from-lime-500 to-green-600': { cardBg: 'from-lime-200 to-green-200 dark:from-lime-950/30 dark:to-green-950/30', icon: 'text-lime-600 dark:text-lime-400' },
+  'from-blue-500 to-indigo-600': { cardBg: 'from-blue-200 to-indigo-200 dark:from-blue-950/30 dark:to-indigo-950/30', icon: 'text-blue-600 dark:text-blue-400' },
+  'from-green-600 to-emerald-700': { cardBg: 'from-green-200 to-emerald-200 dark:from-green-950/30 dark:to-emerald-950/30', icon: 'text-emerald-600 dark:text-emerald-400' },
 };
 
 function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: number; onClick: () => void }) {
@@ -361,7 +361,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
           <div className={`mb-5 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="relative overflow-hidden rounded-2xl border border-violet-300/70 bg-gradient-to-br from-violet-200 via-violet-100 to-purple-200/70 px-4 py-3 shadow-lg shadow-violet-900/10 backdrop-blur-sm dark:border-violet-700/60 dark:from-violet-900/50 dark:via-slate-900 dark:to-purple-900/40">
+            <div className="relative overflow-hidden rounded-2xl border border-violet-400/70 bg-gradient-to-br from-violet-300 via-violet-200 to-purple-300/80 px-4 py-3 shadow-lg shadow-violet-900/15 backdrop-blur-sm dark:border-violet-700/60 dark:from-violet-900/50 dark:via-slate-900 dark:to-purple-900/40">
               <div className="relative flex min-w-0 items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 text-white shadow-md shadow-violet-600/30">
                   <ShieldCheck className="h-5 w-5" />
@@ -375,7 +375,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                   </p>
                 </div>
               </div>
-              <div className="relative mt-3 flex items-center justify-between gap-3 border-t border-violet-300/60 pt-3 dark:border-violet-700/50">
+              <div className="relative mt-3 flex items-center justify-between gap-3 border-t border-violet-400/60 pt-3 dark:border-violet-700/50">
                 <LanguageToggle
                   language={language}
                   onClick={toggleLanguage}

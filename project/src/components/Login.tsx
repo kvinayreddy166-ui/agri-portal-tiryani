@@ -19,7 +19,6 @@ import {
   Smartphone,
   Sprout,
   Store,
-  UserRoundCheck,
   X,
 } from 'lucide-react';
 import { FileTypeIcon } from './ui/FileTypeIcon';
@@ -58,7 +57,6 @@ const FertilizerCalculator = lazy(() =>
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
 const TEST_EMAIL = 'test@gmail.com';
-const TEST_PASSWORD = 'Test@123';
 
 function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
   return (
@@ -353,11 +351,6 @@ export function Login() {
   };
 
   const acreCalculation = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
-
-  const handleTestLogin = () => {
-    setEmail(TEST_EMAIL);
-    setPassword(TEST_PASSWORD);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -937,19 +930,6 @@ export function Login() {
                 {loading ? t('Signing in...', 'à°²à°¾à°—à°¿à°¨à± à°…à°µà±à°¤à±‹à°‚à°¦à°¿...') : loginMode === 'dealer' ? t('Dealer Sign In', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Sign In', 'à°²à°¾à°—à°¿à°¨à±')}
               </button>
             </form>
-
-            {loginMode === 'staff' && (
-              <button
-                type="button"
-                onClick={handleTestLogin}
-                className="mt-3 w-full rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 py-3 text-sm font-bold text-sky-950 transition hover:bg-sky-100 animate-slide-up delay-600"
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <UserRoundCheck className="h-4 w-4" />
-                  {t('Test Login', 'à°ªà°°à±€à°•à±à°· à°²à°¾à°—à°¿à°¨à±')}
-                </span>
-              </button>
-            )}
 
             {siteHitSummary && (
               <div className="mt-3 flex items-center gap-2 text-sm text-emerald-700 animate-slide-up delay-700">

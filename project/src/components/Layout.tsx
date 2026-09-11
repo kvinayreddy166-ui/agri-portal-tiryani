@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState, ReactNode, useEffect } from 'react';
+import React, { useMemo, useState, ReactNode, useEffect } from 'react';
 import {
   ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
@@ -355,7 +355,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'pesticide-calculator': { title: t('Pesticide Calculator', 'పురుగుమందుల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'plant-population-calculator': { title: t('Plant Population Calculator', 'మొక్కల జనాభా కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'seed-rate-calculator': { title: t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    'legal-ready-reckoner': { title: t('Legal Ready Reckoner', 'లీగల్ రెడీ రెకనర్'), breadcrumbs: [dashboard, toolkit] },
+    'legal-ready-reckoner': { title: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు'), breadcrumbs: [dashboard, toolkit] },
     'gos-circulars': { title: t('GOs & Circulars', 'జి.ఓ.లు & సర్క్యులర్లు'), breadcrumbs: [dashboard] },
     quality: { title: t('Quality Control', 'నాణ్యత నియంత్రణ'), breadcrumbs: [dashboard] },
     'farm-mechanization': { title: t('Farm Mechanization', 'వ్యవసాయ యాంత్రీకరణ'), breadcrumbs: [dashboard] },
@@ -412,7 +412,7 @@ function translateMenu(label: string) {
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
     'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
     'Fertilizer Calculator': 'ఎరువుల కాలిక్యులేటర్',
-    'Legal Ready Reckoner': 'లీగల్ రెడీ రెకనర్',
+    'Acts & Orders': 'చట్టాలు & ఉత్తర్వులు',
     'Seed Rate Calculator': 'విత్తన మోతాదు కాలిక్యులేటర్',
     'Plant Population Calculator': 'మొక్కల జనాభా కాలిక్యులేటర్',
     'Pesticide Calculator': 'పురుగుమందుల కాలిక్యులేటర్',

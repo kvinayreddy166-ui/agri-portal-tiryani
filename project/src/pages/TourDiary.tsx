@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../data/telanganaDistrictMandalData';
+import { statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
 import { saveDiaryPdf, hasDiaryPdf, getAllDiaryPdfs, deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, formatFileSize, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
 import { saveDiary, getAllSavedDiaries, getSavedDiary, deleteSavedDiary, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, getDraft as getDraftFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft, DraftRecord } from '../lib/diaryStorage';
 
@@ -1693,7 +1694,7 @@ export function TourDiary() {
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0); // Black
       const monthYear = `${MONTHS[currentMonth - 1]}-${currentYear}`;
-      const displayDesignation = getHeaderDesignation() || '....................';
+      const displayDesignation = statutoryDesignationDisplay(getHeaderDesignation()) || '....................';
       const displayMandal = getHeaderMandal() || '....................';
       const displayDivision = getHeaderDivision() || '....................';
       const displayDistrict = getHeaderDistrict() || '....................';
@@ -1730,7 +1731,8 @@ export function TourDiary() {
       // Generate table with merged header cells - compact for one page
       autoTable(doc, {
         startY: 16,
-        margin: { left: 14, right: 14 },
+        margin: { top: 16, left: 14, right: 14, bottom: 14 },
+        rowPageBreak: 'avoid',
         tableWidth: 'wrap',
         head: [
           ['Date', 'Visiting Place', 'Visiting Place', 'Visiting Time', 'Visiting Time', 'Mode of Journey', 'Meter Reading', 'Meter Reading', 'Distance (Km)', 'Purpose of Visit'],
@@ -1811,8 +1813,8 @@ export function TourDiary() {
           5: { cellWidth: 22, halign: 'center' },
           6: { cellWidth: 18, halign: 'center' },
           7: { cellWidth: 18, halign: 'center' },
-          8: { cellWidth: 24, halign: 'center' },
-          9: { cellWidth: 50, halign: 'center' }
+          8: { cellWidth: 18, halign: 'center' },
+          9: { cellWidth: 56, halign: 'center' }
         }
       });
 
@@ -1821,14 +1823,21 @@ export function TourDiary() {
       doc.setFontSize(7);
       
       // ABSTRACT section - 2 column compact layout
-      const abstractY = finalY + 3;
+      // Keep on the same page below the table when it fits; only break when it would overflow
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const printableBottom = pageHeight - 14;
+      let abstractY = finalY + 3;
+      if (abstractY + 19 > printableBottom) {
+        doc.addPage();
+        abstractY = 16;
+      }
       doc.setFont('times', 'bold');
       doc.text('ABSTRACT', 14, abstractY);
       doc.setFont('times', 'normal');
-      doc.text(`Total No of Working Days: ${summary.workingDays}`, 14, abstractY + 4);
-      doc.text(`Total No of Days on Tour: ${summary.tourDays}`, 14, abstractY + 7);
-      doc.text(`Total No of Holidays availed: ${summary.sundays + summary.secondSaturdays + summary.governmentHolidays + summary.optionalHolidaysAvailed}`, 14, abstractY + 10);
-      doc.text(`No of Villages Visited: ${summary.villagesVisited}`, 14, abstractY + 13);
+      doc.text(`Total no of Working Days: ${summary.workingDays}`, 14, abstractY + 4);
+      doc.text(`Total no of Days on Tour: ${summary.tourDays}`, 14, abstractY + 7);
+      doc.text(`Total no of Holidays availed: ${summary.sundays + summary.secondSaturdays + summary.governmentHolidays + summary.optionalHolidaysAvailed}`, 14, abstractY + 10);
+      doc.text(`No of villages visited: ${summary.villagesVisited}`, 14, abstractY + 13);
       doc.text(`Leaves availed: ${summary.leavesAvailed}`, 14, abstractY + 16);
 
       // Signature section - conditional based on officer designation
@@ -1845,7 +1854,10 @@ export function TourDiary() {
       } else if (normalizedDesignation === 'district agriculture officer') {
         // Show only District Agriculture Officer signature
         doc.text('District Agriculture Officer', 79, signatureY);
-      } else {
+      } else if (normalizedDesignation === 'asst director of agriculture' || normalizedDesignation === 'assistant director of agriculture') {
+        // Show Asst.Director of Agriculture (R) signature in the MAO position
+        doc.text('Asst.Director of Agriculture (R)', 79, signatureY);
+      } else if (normalizedDesignation) {
         // Show only Asst.Director of Agriculture signature for other designations
         doc.text('Asst.Director of Agriculture', 185, signatureY);
       }
@@ -1902,7 +1914,7 @@ export function TourDiary() {
       // Sheet 1: Monthly Tour Diary - Match reference format with merged headers
       const monthYear = `${MONTHS[currentMonth - 1]}-${currentYear}`;
       const diaryData = [
-        [`Tour Diary of ${officerName || officerInfo?.name || ''}, ${getHeaderDesignation()}, ${getHeaderMandal()}, Division: ${getHeaderDivision()}, Dist: ${getHeaderDistrict()} for the Month of ${monthYear}.`],
+        [`Tour Diary of ${officerName || officerInfo?.name || ''}, ${statutoryDesignationDisplay(getHeaderDesignation())}, ${getHeaderMandal()}, Division: ${getHeaderDivision()}, Dist: ${getHeaderDistrict()} for the Month of ${monthYear}.`],
         [''],
         ['Date', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE (KM)', 'PURPOSE OF VISIT'],
         ['', 'FROM', 'TO', 'FROM', 'TO', '', 'From', 'To', '', '']
@@ -2685,7 +2697,7 @@ export function TourDiary() {
               <button
                 onClick={() => generatePDF()}
                 disabled={isGeneratingPDF}
-                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isGeneratingPDF ? (
                   <>
@@ -2820,25 +2832,14 @@ export function TourDiary() {
                               Restore Default
                             </button>
                           )}
-                          {/* For holidays, Sundays, Second Saturdays - show only Mark as Working Day and Remarks */}
+                          {/* For holidays, Sundays, Second Saturdays - show only Mark as Working Day */}
                           {dateOverride?.status !== 'WORKING' && (isSundayDay || isSecondSaturdayDay || displayedHolidays.some(h => h.holiday_type === 'GENERAL')) && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
-                            <>
-                              <button
-                                onClick={() => markAsWorkingDay(date)}
-                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                              >
-                                Mark as Working Day
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setActionMenuOpen(null);
-                                  setRemarksDialogOpen(date);
-                                }}
-                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                              >
-                                Remarks
-                              </button>
-                            </>
+                            <button
+                              onClick={() => markAsWorkingDay(date)}
+                              className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                            >
+                              Mark as Working Day
+                            </button>
                           )}
                           {/* For normal working days - show leave management options */}
                           {dateOverride?.status !== 'WORKING' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
@@ -3250,10 +3251,10 @@ export function TourDiary() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-2xl border border-emerald-200/50 bg-white p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Tour Diary Preview (Editable)</h2>
+              <h2 className="flex-1 text-center text-lg font-bold text-slate-900 dark:text-white">Tour Diary Preview</h2>
               <button
                 onClick={() => setShowPreview(false)}
-                className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-900/40"
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
               >
                 Close
               </button>
@@ -3265,7 +3266,7 @@ export function TourDiary() {
                 <div>
                   <p>Month: {MONTHS[currentMonth - 1]} {currentYear}</p>
                   <p>Name: {officerName || officerInfo?.name || ''}</p>
-                  <p>Designation: {getHeaderDesignation()}</p>
+                  <p>Designation: {statutoryDesignationDisplay(getHeaderDesignation())}</p>
                 </div>
                 <div>
                   {shouldShowHeaderMandal() && <p>Mandal: {getHeaderMandal()}</p>}
@@ -3350,10 +3351,10 @@ export function TourDiary() {
 
               <div className="mt-4 text-xs text-gray-900">
                 <p className="font-bold">ABSTRACT</p>
-                <p>Total No of Working Days: {summary.workingDays}</p>
-                <p>Total No of Days on Tour: {summary.tourDays}</p>
-                <p>Total No of Holidays availed: {summary.sundays + summary.secondSaturdays + summary.governmentHolidays + summary.optionalHolidaysAvailed}</p>
-                <p>No of Villages Visited: {summary.villagesVisited}</p>
+                <p>Total no of Working Days: {summary.workingDays}</p>
+                <p>Total no of Days on Tour: {summary.tourDays}</p>
+                <p>Total no of Holidays availed: {summary.sundays + summary.secondSaturdays + summary.governmentHolidays + summary.optionalHolidaysAvailed}</p>
+                <p>No of villages visited: {summary.villagesVisited}</p>
                 <p>Leaves availed: {summary.leavesAvailed}</p>
               </div>
 
@@ -3374,24 +3375,25 @@ export function TourDiary() {
                         <span>District Agriculture Officer</span>
                       </div>
                     );
-                  } else {
+                  } else if (normalizedDesignation === 'asst director of agriculture' || normalizedDesignation === 'assistant director of agriculture') {
+                    return (
+                      <div className="flex justify-start text-xs font-bold text-gray-900">
+                        <span>Asst.Director of Agriculture (R)</span>
+                      </div>
+                    );
+                  } else if (normalizedDesignation) {
                     return (
                       <div className="flex justify-end text-xs font-bold text-gray-900">
                         <span>Asst.Director of Agriculture</span>
                       </div>
                     );
                   }
+                  return null;
                 })()}
               </div>
             </div>
 
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowPreview(false)}
-                className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-900/40"
-              >
-                Close
-              </button>
               <button
                 onClick={() => {
                   setShowPreview(false);
@@ -3401,7 +3403,7 @@ export function TourDiary() {
                     generatePDF();
                   }
                 }}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
               >
                 Download PDF
               </button>

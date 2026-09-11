@@ -716,13 +716,14 @@ export function SeedForms() {
           <Select label="Qualification" value={form.qualification} onChange={(value) => setField('qualification', value)} options={QUALIFICATION_OPTIONS} />
           {form.qualification === 'Others' && <Input label="Enter qualification" value={form.manualQualification} onChange={(value) => setField('manualQualification', value)} />}
           <Select label="Designation" value={form.designation} onChange={(value) => setField('designation', value)} options={SEED_SAMPLE_DRAWAL_DESIGNATION_OPTIONS} />
+          {isAssistantDirectorOfAgricultureT(form.designation) && (
+            <Input label="OFFICE" value={form.office} onChange={(value) => setField('office', value)} placeholder="Enter Office" />
+          )}
           <Select label="District" value={form.district} onChange={(value) => setField('district', value)} options={withOthersOption(TELANGANA_DISTRICTS.map(toOption))} />
           {form.district === 'Others' && <Input label="Enter district name" value={form.manualDistrict} onChange={(value) => setField('manualDistrict', value)} />}
           {isAssistantDirectorOfAgriculture(form.designation) ? (
             <>
-              {isAssistantDirectorOfAgricultureT(form.designation) ? (
-                <Input label="OFFICE" value={form.office} onChange={(value) => setField('office', value)} placeholder="Enter Office" />
-              ) : (
+              {!isAssistantDirectorOfAgricultureT(form.designation) && (
                 <Input label="DIVISION" value={form.manualDivision} onChange={(value) => setField('manualDivision', value)} placeholder="Enter Division Name" />
               )}
               <Select label="PLACE OF COLLECTION (MANDAL)" value={form.placeOfCollectionMandal} onChange={(value) => setField('placeOfCollectionMandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(placeOfCollectionMandals.map(toOption)) : [{ label: 'Others', value: 'Others' }]} />

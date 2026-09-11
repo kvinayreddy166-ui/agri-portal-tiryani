@@ -153,8 +153,8 @@ export const DESIGNATION_OPTIONS = [
 
 export const SEED_DESIGNATION_OPTIONS = [
   { label: 'Mandal Agriculture Officer', value: 'Mandal Agriculture Officer' },
+  { label: 'Asst. Director of Agriculture (R)', value: 'Asst. Director of Agriculture' },
   { label: 'District Agriculture Officer', value: 'District Agriculture Officer' },
-  { label: 'Asst. Director of Agriculture', value: 'Asst. Director of Agriculture' },
   { label: 'Others', value: 'Others' },
 ];
 
