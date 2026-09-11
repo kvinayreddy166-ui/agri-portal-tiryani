@@ -1825,37 +1825,35 @@ export function FertilizerCalculator() {
     <div className="space-y-2 sm:space-y-3">
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <section className="overflow-hidden rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 text-white shadow-lg dark:border-emerald-800/50 sm:p-5">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="flex items-center gap-2 text-xl font-black text-white">
+          <div>
+            <h1 className="flex items-center gap-2 text-xl font-black text-white">
                 <FileText className="h-6 w-6" aria-label="Fertilizer Calculator" />
                 {language === 'te' ? '\u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C15\u0C3E\u0C32\u0C3F\u0C15\u0C4D\u0C2F\u0C41\u0C32\u0C47\u0C1F\u0C30\u0C4D' : 'Fertilizer Calculator'}
               </h1>
               <p className="text-sm font-semibold text-white/90">
                 {language === 'te' ? '\u0C2A\u0C02\u0C1F\u0C15\u0C01 \u0C05\u0C35\u0C38\u0C30\u0C2E\u0C48\u0C28 \u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C32\u0C46\u0C15\u0C4D\u0C15\u0C3F\u0C02\u0C2A\u0C01' : 'Calculate crop fertilizer requirements'}
               </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <LanguageToggle language={language} onClick={toggleLanguage} />
-              <div className="flex gap-1">
-                <button type="button" onClick={exportPdf} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-600 px-2 py-1 text-white" aria-label="Export PDF" title="PDF">
-                  <FileText className="h-3.5 w-3.5" />
-                </button>
-                <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-green-600 px-2 py-1 text-white" aria-label="Share on WhatsApp" title="WhatsApp">
-                  <WhatsAppIcon className="h-3.5 w-3.5" />
-                </button>
-                <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/15 px-2 py-1 text-[10px] font-black text-white shadow-sm disabled:opacity-50">
-                  <RefreshCw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/officer-toolkit/farm-calculators')}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
-              >
-                Back
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+            <LanguageToggle language={language} onClick={toggleLanguage} />
+            <div className="flex gap-1">
+              <button type="button" onClick={exportPdf} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-600 px-2 py-1 text-white" aria-label="Export PDF" title="PDF">
+                <FileText className="h-3.5 w-3.5" />
+              </button>
+              <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-green-600 px-2 py-1 text-white" aria-label="Share on WhatsApp" title="WhatsApp">
+                <WhatsAppIcon className="h-3.5 w-3.5" />
+              </button>
+              <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/15 px-2 py-1 text-[10px] font-black text-white shadow-sm disabled:opacity-50">
+                <RefreshCw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
               </button>
             </div>
+            <button
+              type="button"
+              onClick={() => navigate('/officer-toolkit/farm-calculators')}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
+            >
+              Back
+            </button>
           </div>
         </section>
       </div>

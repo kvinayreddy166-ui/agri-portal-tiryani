@@ -65,27 +65,25 @@ export function FarmCalculators() {
     <div className="space-y-4">
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <section className="rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-800/50">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="flex items-center gap-2 text-xl font-black text-white">
-                <FlaskConical className="h-6 w-6" aria-label="Farm Calculators" />
-                {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
-              </h1>
-              <p className="text-sm font-semibold text-white/90">
-                {t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
-              <button
-                type="button"
-                onClick={() => navigate('/officer-toolkit')}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                {t('Back', 'వెనుకకు')}
-              </button>
-            </div>
+          <div>
+            <h1 className="flex items-center gap-2 text-xl font-black text-white">
+              <FlaskConical className="h-6 w-6" aria-label="Farm Calculators" />
+              {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+            </h1>
+            <p className="text-sm font-semibold text-white/90">
+              {t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
+            </p>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
+            <button
+              type="button"
+              onClick={() => navigate('/officer-toolkit')}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t('Back', 'వెనుకకు')}
+            </button>
           </div>
         </section>
       </div>
