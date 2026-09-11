@@ -42,6 +42,8 @@ const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const OfficerContacts = lazy(() => import('./pages/OfficerContacts').then((m) => ({ default: m.OfficerContacts })));
 const OfficerContactsAdmin = lazy(() => import('./pages/admin/OfficerContactsAdmin').then((m) => ({ default: m.OfficerContactsAdmin })));
 const TourDiary = lazy(() => import('./pages/TourDiary').then((m) => ({ default: m.TourDiary })));
+const SeedDealerInspection = lazy(() => import('./pages/SeedDealerInspection').then((m) => ({ default: m.SeedDealerInspection })));
+const FertilizerDealerInspection = lazy(() => import('./pages/FertilizerDealerInspection').then((m) => ({ default: m.FertilizerDealerInspection })));
 const CropManagement = lazy(() => import('./pages/CropManagement').then((m) => ({ default: m.CropManagement })));
 const CropAdminDashboard = lazy(() => import('./pages/admin/CropAdminDashboard').then((m) => ({ default: m.CropAdminDashboard })));
 const CropPage = lazy(() => import('./pages/CropPage').then((m) => ({ default: m.CropPage })));
@@ -241,6 +243,8 @@ const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/legal-ready-reckoner',
   '/officer-toolkit/officer-contacts',
   '/officer-toolkit/tour-diary',
+  '/officer-toolkit/seed-dealer-inspection',
+  '/officer-toolkit/fertilizer-dealer-inspection',
 ]);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
@@ -276,6 +280,8 @@ const PAGE_PATHS: Record<string, string> = {
   'officer-contacts': '/officer-toolkit/officer-contacts',
   'officer-contacts-admin': '/admin/officer-contacts',
   'tour-diary': '/officer-toolkit/tour-diary',
+  'seed-dealer-inspection': '/officer-toolkit/seed-dealer-inspection',
+  'fertilizer-dealer-inspection': '/officer-toolkit/fertilizer-dealer-inspection',
   analytics: '/analytics',
   settings: '/settings',
 };
@@ -538,6 +544,8 @@ function AppContent() {
         'officer-contacts',
         'officer-contacts-admin',
         'tour-diary',
+        'seed-dealer-inspection',
+        'fertilizer-dealer-inspection',
         'analytics',
         'settings',
       ]),
@@ -586,6 +594,12 @@ function AppContent() {
       }
       if (page === 'officer-toolkit/tour-diary') {
         page = 'tour-diary';
+      }
+      if (page === 'officer-toolkit/seed-dealer-inspection') {
+        page = 'seed-dealer-inspection';
+      }
+      if (page === 'officer-toolkit/fertilizer-dealer-inspection') {
+        page = 'fertilizer-dealer-inspection';
       }
 
       const result = validPages.has(page) ? page : 'dashboard';
@@ -820,6 +834,22 @@ function AppContent() {
     );
   }
 
+  if (!user && currentPage === 'seed-dealer-inspection') {
+    return (
+      <SafeSuspense fallback={<GlobalAppLoader />}>
+        <SeedDealerInspection />
+      </SafeSuspense>
+    );
+  }
+
+  if (!user && currentPage === 'fertilizer-dealer-inspection') {
+    return (
+      <SafeSuspense fallback={<GlobalAppLoader />}>
+        <FertilizerDealerInspection />
+      </SafeSuspense>
+    );
+  }
+
   // Removed fallback loader for unknown officer-toolkit routes
   // All officer-toolkit routes should be handled by PUBLIC_AUTH_ROUTES
 
@@ -925,6 +955,10 @@ function AppContent() {
         );
       case 'tour-diary':
         return <TourDiary />;
+      case 'seed-dealer-inspection':
+        return <SeedDealerInspection />;
+      case 'fertilizer-dealer-inspection':
+        return <FertilizerDealerInspection />;
       case 'analytics':
         return <Analytics />;
       case 'settings':

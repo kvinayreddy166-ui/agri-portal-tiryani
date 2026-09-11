@@ -356,6 +356,8 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'plant-population-calculator': { title: t('Plant Population Calculator', 'మొక్కల జనాభా కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'seed-rate-calculator': { title: t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'legal-ready-reckoner': { title: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు'), breadcrumbs: [dashboard, toolkit] },
+    'seed-dealer-inspection': { title: t('Inspections', 'తనిఖీలు'), breadcrumbs: [dashboard, toolkit] },
+    'fertilizer-dealer-inspection': { title: t('Fertilizer inspection', 'ఎరువుల తనిఖీ'), breadcrumbs: [dashboard, toolkit] },
     'gos-circulars': { title: t('GOs & Circulars', 'జి.ఓ.లు & సర్క్యులర్లు'), breadcrumbs: [dashboard] },
     quality: { title: t('Quality Control', 'నాణ్యత నియంత్రణ'), breadcrumbs: [dashboard] },
     'farm-mechanization': { title: t('Farm Mechanization', 'వ్యవసాయ యాంత్రీకరణ'), breadcrumbs: [dashboard] },

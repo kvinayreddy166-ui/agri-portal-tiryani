@@ -123,6 +123,14 @@ const PAGE_SEO: Record<string, { title: string; description: string }> = {
     title: 'Seed Rate Calculator | AGRONIX',
     description: 'Calculate seed requirements based on area and crop variety for Tiryani farmers.',
   },
+  '/officer-toolkit/seed-dealer-inspection': {
+    title: 'Inspections | AGRONIX',
+    description: 'Inspection proforma of seed dealer / distributor for seed inspectors with draft, preview and PDF.',
+  },
+  '/officer-toolkit/fertilizer-dealer-inspection': {
+    title: 'Fertilizer inspection | AGRONIX',
+    description: 'Inspection proforma of fertilizer dealer for fertilizer inspectors with draft, preview and PDF.',
+  },
   '/officer-toolkit/legal-ready-reckoner': {
     title: 'Acts & Orders | AGRONIX',
     description: 'Agriculture laws, FCO clauses, offences, and legal reference for officers and farmers.',

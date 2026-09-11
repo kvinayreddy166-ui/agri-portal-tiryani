@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, LayoutDashboard, ShieldCheck, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, type LucideIcon } from 'lucide-react';
+import { Calculator, LayoutDashboard, ShieldCheck, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { BackButton } from '../components/ui/BackButton';
@@ -60,6 +60,16 @@ const toolkitItems: ToolkitItem[] = [
     bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
   },
   {
+    title: 'Inspections',
+    description: 'Inspection proforma of seed, fertilizer & insecticide.',
+    path: '/officer-toolkit/seed-dealer-inspection',
+    icon: ClipboardCheck,
+    category: 'internal',
+    gradient: 'from-lime-500 to-green-600',
+    bgGradient: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
+    statusMessage: 'Under development',
+  },
+  {
     title: 'Farm Calculators',
     description: 'Crop, seed, fertilizer and pesticide calculations.',
     path: '/officer-toolkit/farm-calculators',
@@ -80,7 +90,7 @@ const toolkitItems: ToolkitItem[] = [
   },
   {
     title: 'Acts & Orders',
-    description: 'Acts, clauses, stop sale, seizure, sampling and notice tools.',
+    description: 'FCO, Seed Act, Insecticide Act, clauses, Rules.',
     path: '/officer-toolkit/legal-ready-reckoner',
     icon: Scale,
     category: 'internal',
@@ -221,12 +231,14 @@ function translateToolkit(label?: string) {
     'Fertilizer • Seed • Pesticide': 'ఎరువులు • విత్తనాలు • పురుగుమందులు',
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
     'Prepare and download field forms.': 'క్షేత్ర ఫారాలను సిద్ధం చేసి డౌన్‌లోడ్ చేయండి.',
+    'Inspections': 'తనిఖీలు',
+    'Inspection proforma of seed, fertilizer & insecticide.': 'విత్తనం, ఎరువు & పురుగుమందు తనిఖీ ప్రొఫార్మా.',
     'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
     'Crop, seed, fertilizer and pesticide calculations.': 'పంట, విత్తనం, ఎరువు మరియు పురుగుమందుల లెక్కలు.',
     'Crop Doctor': 'పంట డాక్టర్',
     'Crop-wise pests, diseases, weeds and nutrient deficiencies.': 'పంటల వారీగా పురుగులు, వ్యాధులు, కలుపు మొక్కలు మరియు పోషక లోపాలు.',
     'Acts & Orders': 'చట్టాలు & ఉత్తర్వులు',
-    'Acts, clauses, stop sale, seizure, sampling and notice tools.': 'చట్టాలు, క్లాజులు, స్టాప్ సేల్, సీజర్, శాంప్లింగ్ మరియు నోటీస్ సాధనాలు.',
+    'FCO, Seed Act, Insecticide Act, clauses, Rules.': 'FCO, విత్తన చట్టం, పురుగుమందు చట్టం, క్లాజులు, నియమాలు.',
     'Under development': 'అభివృద్ధిలో ఉంది',
     'Urea Dashboard': 'యూరియా డ్యాష్‌బోర్డ్',
     'Urea Fertilizer Dashboard Portal': 'యూరియా ఎరువుల డ్యాష్‌బోర్డ్ పోర్టల్',
