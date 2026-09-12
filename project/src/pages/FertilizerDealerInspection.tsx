@@ -583,7 +583,7 @@ export function FertilizerDealerInspection() {
           <ActionButton onClick={generatePdf} icon={Download} tone="sky">PDF</ActionButton>
         </div>
 
-        <div className="mt-4 flex items-center justify-end gap-1.5">
+        <div className="mt-4 flex items-center justify-center gap-1.5">
           <Sprout className="h-3.5 w-3.5 text-sky-600" />
           <span className="bg-gradient-to-r from-sky-700 to-cyan-600 bg-clip-text text-[11px] font-black uppercase tracking-[0.35em] text-transparent">Agronix</span>
         </div>
@@ -989,7 +989,6 @@ function Preview({ form, ureaDifference, salesTotals }: { form: InspectionForm; 
         </div>
         <div className="text-right">
           <p>Signature of fertilizer inspector and seal</p>
-          <p className="font-semibold">{[form.inspectorName, form.inspectorDesignation, form.inspectorOffice].filter(Boolean).join(', ')}</p>
         </div>
       </div>
     </div>

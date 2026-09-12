@@ -317,7 +317,7 @@ export function SeedDealerInspection() {
                         setSameSaleAsStorage(e.target.checked);
                         if (e.target.checked) set('salePlace', form.storagePlace);
                       }}
-                      className="h-4 w-4 cursor-pointer accent-emerald-600"
+                      className="h-4 w-4 shrink-0 cursor-pointer accent-emerald-600"
                     />
                     Same as storage address
                   </label>
@@ -491,7 +491,7 @@ export function SeedDealerInspection() {
           <ActionButton onClick={generatePdf} icon={Download} tone="emerald">PDF</ActionButton>
         </div>
 
-        <div className="mt-4 flex items-center justify-end gap-1.5">
+        <div className="mt-4 flex items-center justify-center gap-1.5">
           <Sprout className="h-3.5 w-3.5 text-[#15803D]" />
           <span className="bg-gradient-to-r from-[#15803D] to-[#0D9488] bg-clip-text text-[11px] font-black uppercase tracking-[0.35em] text-transparent">Agronix</span>
         </div>
@@ -650,8 +650,8 @@ function CheckRow({ label, checked, onToggle, children }: { label: string; check
   return (
     <div className={`rounded-xl border p-3 ${checked ? toneClass : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800/40'}`}>
       <label className="flex cursor-pointer items-start gap-3">
-        <input type="checkbox" checked={checked} onChange={(e) => onToggle(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
-        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</span>
+        <input type="checkbox" checked={checked} onChange={(e) => onToggle(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 rounded border border-slate-300 text-emerald-600 accent-emerald-600" />
+        <span className="min-w-0 flex-1 break-normal text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</span>
       </label>
       {checked && <div className="mt-3 grid gap-2">{children}</div>}
     </div>
@@ -907,7 +907,6 @@ function Preview({ form }: { form: InspectionForm }) {
         </div>
         <div className="text-right">
           <p>Signature of the seed inspector</p>
-          <p className="font-semibold">{[form.inspectorName, form.inspectorDesignation, form.inspectorOffice].filter(Boolean).join(', ')}</p>
         </div>
       </div>
     </div>
