@@ -59,19 +59,23 @@ const FORM_KEY = 'tiryani-seed-inspection-form';
 const DRAFTS_KEY = 'tiryani-seed-inspection-drafts';
 
 const RECTIFIABLE_DEFECT_LABELS = [
+  'Conduct of business after expiry of license within the grace period',
+  'Issuance of credit/cash bill in incomplete shape',
+  'Maintaining bill book and register without seed inspectors attestation',
   'Non-display of license at a conspicuous place',
   'Non-display of stock and price list',
   'Non-maintenance of book of accounts in the prescribed format',
-  'Issuance of credit/cash bill in incomplete shape',
-  'Conduct of business after expiry of license within the grace period',
+  'Selling of seed in damaged torn out container/ packet',
 ];
 
 const MAJOR_DEFECT_LABELS = [
-  'Selling of seed not included in the license',
   'Improper/incorrect labelling',
-  'Misrepresentation and misleading statements with exaggerated claims of yields',
+  'Labeling of imaginary names of product without there being such authorized name and such variety of seed containing unauthorized seed',
   'Labelling with imaginary names of the product without there being such an authorised name',
-  'Labelling with imaginary names of the product without there being such an authorised name as per the variety',
+  'Misrepresentation and misleading statements with exaggerated claims of yields',
+  'Selling of expired seed',
+  'Selling of seed not included in the license',
+  'Selling of spurious (genetically impure) / substandard seed',
 ];
 
 const UNIT_OPTIONS = ['kg', 'quintals', 'packets', 'bags'];
@@ -313,7 +317,7 @@ export function SeedDealerInspection() {
                         setSameSaleAsStorage(e.target.checked);
                         if (e.target.checked) set('salePlace', form.storagePlace);
                       }}
-                      className="h-3.5 w-3.5 cursor-pointer accent-emerald-600"
+                      className="h-4 w-4 cursor-pointer accent-emerald-600"
                     />
                     Same as storage address
                   </label>
@@ -400,7 +404,7 @@ export function SeedDealerInspection() {
                 const item = form.majorDefects[index];
                 const update = (patch: Partial<MajorDefect>) => set('majorDefects', form.majorDefects.map((d, i) => (i === index ? { ...d, ...patch } : d)));
                 return (
-                  <CheckRow key={label} label={`${index + 1}. ${label}`} checked={item.checked} onToggle={(checked) => update({ checked })} tone="red">
+                  <CheckRow key={label} label={`${index + 1}. ${label}`} checked={item.checked} onToggle={(checked) => update({ checked })}>
                     <Field label="Details / description" textarea value={item.details} onChange={(v) => update({ details: v })} />
                     <div className="grid gap-2 sm:grid-cols-4">
                       <div>
@@ -485,6 +489,11 @@ export function SeedDealerInspection() {
         <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
           <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
           <ActionButton onClick={generatePdf} icon={Download} tone="emerald">PDF</ActionButton>
+        </div>
+
+        <div className="mt-4 flex items-center justify-end gap-1.5">
+          <Sprout className="h-3.5 w-3.5 text-[#15803D]" />
+          <span className="bg-gradient-to-r from-[#15803D] to-[#0D9488] bg-clip-text text-[11px] font-black uppercase tracking-[0.35em] text-transparent">Agronix</span>
         </div>
       </div>
 
@@ -636,8 +645,8 @@ function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarks
   );
 }
 
-function CheckRow({ label, checked, onToggle, children, tone = 'amber' }: { label: string; checked: boolean; onToggle: (checked: boolean) => void; children: React.ReactNode; tone?: 'amber' | 'red' }) {
-  const toneClass = tone === 'red' ? 'border-red-200 bg-red-50/60 dark:border-red-900/50 dark:bg-red-950/20' : 'border-amber-200 bg-amber-50/60 dark:border-amber-900/50 dark:bg-amber-950/20';
+function CheckRow({ label, checked, onToggle, children }: { label: string; checked: boolean; onToggle: (checked: boolean) => void; children: React.ReactNode }) {
+  const toneClass = 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/50 dark:bg-emerald-950/20';
   return (
     <div className={`rounded-xl border p-3 ${checked ? toneClass : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800/40'}`}>
       <label className="flex cursor-pointer items-start gap-3">
@@ -836,6 +845,16 @@ function buildPdf(form: InspectionForm) {
   doc.setFontSize(9);
   doc.setFont('times', 'italic');
   if (form.dealerName.trim()) doc.text(`(${form.dealerName.trim()})`, margin, signatureY + 5);
+
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(21, 128, 61);
+    doc.text('AGRONIX', pageWidth - margin, pageHeight - 6, { align: 'right' });
+    doc.setTextColor(0, 0, 0);
+  }
   return doc;
 }
 

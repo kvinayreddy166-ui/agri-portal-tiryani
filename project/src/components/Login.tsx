@@ -476,20 +476,20 @@ export function Login() {
         <div className="mx-auto w-full max-w-4xl space-y-4">
           {showStatutoryForms ? (
             <div className="mb-4">
-              <div className="rounded-2xl bg-gradient-to-r from-emerald-200 via-teal-200 to-cyan-200 p-4 shadow-lg border border-emerald-300/70">
+              <div className="rounded-2xl bg-gradient-to-r from-emerald-700 via-green-700 to-teal-700 p-4 shadow-lg border border-emerald-800/60">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-sm">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/25">
                       <FileText className="h-6 w-6 text-white" aria-label="Statutory Forms" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100">
                         {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                       </p>
-                      <h1 className="text-xl font-black text-slate-900">
+                      <h1 className="text-xl font-black text-white">
                         {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
                       </h1>
-                      <p className="text-sm font-semibold text-slate-700">
+                      <p className="text-sm font-semibold text-emerald-50">
                         {t('Generate and manage official documents', 'అధికారిక పత్రాలను సృష్టించండి మరియు నిర్వహించండి')}
                       </p>
                     </div>
@@ -497,7 +497,7 @@ export function Login() {
                   <button
                     type="button"
                     onClick={closeToolPage}
-                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-50"
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     {t('Back', 'వెనుకకు')}
@@ -565,21 +565,21 @@ export function Login() {
             <button
               type="button"
               onClick={() => setStatutoryView('generate')}
-              className={`group relative overflow-hidden rounded-xl border p-4 shadow-sm transition-all hover:shadow-md ${
+              className={`group relative overflow-hidden rounded-xl border p-3 shadow-sm transition-all hover:shadow-md ${
                 statutoryView === 'generate'
                   ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-green-50'
                   : 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50 hover:border-emerald-300'
               }`}
             >
-              <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg">
-                  <FileText className="h-6 w-6" />
+              <div className="flex items-start gap-2.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg">
+                  <FileText className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1 text-left">
-                  <h3 className="text-base font-black text-slate-900">
+                  <h3 className="text-sm font-black text-slate-900">
                     {t('Generate Forms', 'ఫారాలను సృష్టించండి')}
                   </h3>
-                  <p className="mt-1 text-xs font-semibold text-slate-600 line-clamp-2">
+                  <p className="mt-0.5 text-[11px] font-semibold text-slate-600 line-clamp-2">
                     {t('Create statutory forms automatically for sample drawal.', 'నమూనా డ్రాయింగ్ కోసం చట్టబద్ధ ఫారాలను స్వయంచాలకంగా సృష్టించండి.')}
                   </p>
                 </div>
@@ -588,21 +588,21 @@ export function Login() {
             <button
               type="button"
               onClick={() => setStatutoryView('library')}
-              className={`group relative overflow-hidden rounded-xl border p-4 shadow-sm transition-all hover:shadow-md ${
+              className={`group relative overflow-hidden rounded-xl border p-3 shadow-sm transition-all hover:shadow-md ${
                 statutoryView === 'library'
                   ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50'
                   : 'border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 hover:border-blue-300'
               }`}
             >
-              <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg">
-                  <Download className="h-6 w-6" />
+              <div className="flex items-start gap-2.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg">
+                  <Download className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1 text-left">
-                  <h3 className="text-base font-black text-slate-900">
+                  <h3 className="text-sm font-black text-slate-900">
                     {t('Forms Library', 'ఫారాలు లైబ్రరీ')}
                   </h3>
-                  <p className="mt-1 text-xs font-semibold text-slate-600 line-clamp-2">
+                  <p className="mt-0.5 text-[11px] font-semibold text-slate-600 line-clamp-2">
                     {t('View and download uploaded statutory forms and documents.', 'అప్‌లోడ్ చేసిన చట్టబద్ధ ఫారాలు మరియు పత్రాలను చూడండి మరియు డౌన్‌లోడ్ చేయండి.')}
                   </p>
                 </div>
@@ -623,14 +623,14 @@ export function Login() {
                     key={folder.id}
                     type="button"
                     onClick={() => setStatutoryFolder(folder.id)}
-                    className={`rounded-lg border p-3 text-left transition ${
+                    className={`rounded-lg border p-2 text-left transition ${
                       statutoryFolder === folder.id
                         ? 'border-emerald-500 bg-emerald-600 text-white shadow-md'
                         : 'border-emerald-200 bg-white text-slate-900 hover:border-emerald-300 hover:bg-emerald-50'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-black">
+                      <span className="text-xs font-black">
                         {language === 'te' ? folder.telugu : folder.label}
                       </span>
                       {statutoryFolder === folder.id && (

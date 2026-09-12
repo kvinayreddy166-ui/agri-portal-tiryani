@@ -112,10 +112,7 @@ export function CropProtectionDashboard({
               {label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid">
-              Back
-            </BackButton>
+          <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
             <LanguageToggle language={language} onClick={() => setLanguage((value) => (value === 'en' ? 'te' : 'en'))} tone="solid" />
             <button
               type="button"
@@ -124,6 +121,7 @@ export function CropProtectionDashboard({
             >
               <RefreshCw className="h-4 w-4" /> {label('Refresh', language)}
             </button>
+            <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="ml-auto">Back</BackButton>
           </div>
         </div>
         <div className="relative mt-4">

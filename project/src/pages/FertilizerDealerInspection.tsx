@@ -355,7 +355,7 @@ export function FertilizerDealerInspection() {
                         setSameStorageAsSale(e.target.checked);
                         if (e.target.checked) set('storagePointAddress', form.salePointAddress);
                       }}
-                      className="h-3.5 w-3.5 cursor-pointer accent-sky-600"
+                      className="h-4 w-4 cursor-pointer accent-sky-600"
                     />
                     Same as sale point address
                   </label>
@@ -581,6 +581,11 @@ export function FertilizerDealerInspection() {
         <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
           <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
           <ActionButton onClick={generatePdf} icon={Download} tone="sky">PDF</ActionButton>
+        </div>
+
+        <div className="mt-4 flex items-center justify-end gap-1.5">
+          <Sprout className="h-3.5 w-3.5 text-sky-600" />
+          <span className="bg-gradient-to-r from-sky-700 to-cyan-600 bg-clip-text text-[11px] font-black uppercase tracking-[0.35em] text-transparent">Agronix</span>
         </div>
       </div>
 
@@ -922,6 +927,16 @@ function buildPdf(form: InspectionForm) {
   doc.setFontSize(9);
   doc.setFont('times', 'italic');
   if (form.dealerName.trim()) doc.text(`(${form.dealerName.trim()})`, margin, signatureY + 5);
+
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(2, 132, 199);
+    doc.text('AGRONIX', pageWidth - margin, pageHeight - 6, { align: 'right' });
+    doc.setTextColor(0, 0, 0);
+  }
   return doc;
 }
 

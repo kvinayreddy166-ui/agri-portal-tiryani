@@ -464,7 +464,9 @@ export function AgriLegalReadyReckoner() {
               </p>
             </div>
           </div>
-          <BackButton onClick={handleBack} tone="solid">Back</BackButton>
+          <div className="mt-3 flex justify-end">
+            <BackButton onClick={handleBack} tone="solid">Back</BackButton>
+          </div>
         </div>
       </section>
       {!selectedLegalArea && (

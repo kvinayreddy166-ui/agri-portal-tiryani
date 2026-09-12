@@ -2164,23 +2164,23 @@ export function TourDiary() {
               return latestDraft ? (
                 <button
                   onClick={() => loadDraft(latestDraft)}
-                  className="flex w-full items-center gap-4 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-amber-100/50 px-5 py-4 shadow-sm transition-all active:scale-[0.98] hover:border-amber-300 hover:shadow-md dark:border-amber-800 dark:from-amber-950/50 dark:to-amber-900/30 dark:hover:border-amber-700"
+                  className="flex w-full items-center gap-3 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-amber-100/50 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-amber-300 hover:shadow-md dark:border-amber-800 dark:from-amber-950/50 dark:to-amber-900/30 dark:hover:border-amber-700"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-200 to-amber-300 text-amber-800 shadow-sm dark:from-amber-900 dark:to-amber-800 dark:text-amber-200">
-                    <Clock className="h-6 w-6" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-200 to-amber-300 text-amber-800 shadow-sm dark:from-amber-900 dark:to-amber-800 dark:text-amber-200">
+                    <Clock className="h-5 w-5" />
                   </div>
                   <div className="flex-1 text-left">
-                    <h3 className="text-base font-black text-slate-900 dark:text-white">
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white">
                       Continue Draft
                     </h3>
-                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                       {MONTHS[latestDraft.month - 1]} {latestDraft.year} • Last edited {new Date(latestDraft.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
                   <span className="rounded-full bg-amber-200 px-3 py-1 text-xs font-black uppercase text-amber-800 shadow-sm dark:bg-amber-900 dark:text-amber-200">
                     Draft
                   </span>
-                  <ArrowRight className="h-6 w-6 shrink-0 text-amber-700 dark:text-amber-400" />
+                  <ArrowRight className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" />
                 </button>
               ) : null;
             })()}
@@ -2208,41 +2208,41 @@ export function TourDiary() {
                 setCurrentYear(new Date().getFullYear());
                 setCurrentMonth(new Date().getMonth() + 1);
               }}
-              className="flex w-full items-center gap-4 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-emerald-100/50 px-5 py-4 shadow-sm transition-all active:scale-[0.98] hover:border-emerald-300 hover:shadow-md dark:border-emerald-800 dark:from-emerald-950/50 dark:to-emerald-900/30 dark:hover:border-emerald-700"
+              className="flex w-full items-center gap-3 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-emerald-100/50 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-emerald-300 hover:shadow-md dark:border-emerald-800 dark:from-emerald-950/50 dark:to-emerald-900/30 dark:hover:border-emerald-700"
             >
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-200 to-emerald-300 text-emerald-800 shadow-sm dark:from-emerald-900 dark:to-emerald-800 dark:text-emerald-200">
-                <Plus className="h-6 w-6" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-200 to-emerald-300 text-emerald-800 shadow-sm dark:from-emerald-900 dark:to-emerald-800 dark:text-emerald-200">
+                <Plus className="h-5 w-5" />
               </div>
               <div className="flex-1 text-left">
-                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">
                   New Tour Diary
                 </h3>
-                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                   Create a diary for a new month
                 </p>
               </div>
-              <ArrowRight className="h-6 w-6 shrink-0 text-emerald-700 dark:text-emerald-400" />
+              <ArrowRight className="h-5 w-5 shrink-0 text-emerald-700 dark:text-emerald-400" />
             </button>
 
             {/* My Diaries Card */}
             <button
               onClick={handleMyDiaries}
-              className="flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100/50 px-5 py-4 shadow-sm transition-all active:scale-[0.98] hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:from-slate-950/50 dark:to-slate-900/30 dark:hover:border-slate-700"
+              className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100/50 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:from-slate-950/50 dark:to-slate-900/30 dark:hover:border-slate-700"
             >
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 shadow-sm dark:from-slate-900 dark:to-slate-800 dark:text-slate-200">
-                <ClipboardList className="h-6 w-6" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 shadow-sm dark:from-slate-900 dark:to-slate-800 dark:text-slate-200">
+                <ClipboardList className="h-5 w-5" />
               </div>
               <div className="flex-1 text-left">
-                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">
                   My Diaries
                 </h3>
-                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                   Drafts & saved PDFs
                   {allDrafts.length > 0 && ` • ${allDrafts.length} Drafts`}
                   {storedPdfs.length > 0 && ` • ${storedPdfs.length} PDFs`}
                 </p>
               </div>
-              <ArrowRight className="h-6 w-6 shrink-0 text-slate-700 dark:text-slate-400" />
+              <ArrowRight className="h-5 w-5 shrink-0 text-slate-700 dark:text-slate-400" />
             </button>
           </div>
 
