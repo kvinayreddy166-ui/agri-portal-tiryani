@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { FolderOpen, Loader2, RefreshCw, Eye, Power, PowerOff, Trash2, Search, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
+import { FolderOpen, Loader2, RefreshCw, Eye, Power, PowerOff, Trash2, Search, ChevronLeft, ChevronRight, FileText, RotateCw } from 'lucide-react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useToast } from '../../../components/ui/Toast';
 import { useAuth } from '../../../context/AuthContext';
@@ -8,6 +8,7 @@ import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import {
   deleteDocument,
   fetchDocuments,
+  processDocument,
   toggleDocumentActive,
 } from '../services/knowledgeService';
 import { DOCUMENT_TYPES, type DocumentType, type KnowledgeDocument } from '../types';
@@ -66,6 +67,16 @@ export function KnowledgeDocumentLibrary() {
       load();
     } catch (e) {
       toast.showReset('Update failed', (e as Error).message);
+    }
+  };
+
+  const handleReprocess = async (doc: KnowledgeDocument) => {
+    try {
+      await processDocument(doc.id);
+      toast.showInfo('Processing started', 'Track progress in the Processing Queue.');
+      load();
+    } catch (e) {
+      toast.showReset('Reprocess failed', (e as Error).message);
     }
   };
 
@@ -148,6 +159,7 @@ export function KnowledgeDocumentLibrary() {
                     <td className="p-3">
                       <div className="flex items-center gap-1">
                         <IconBtn title="View" onClick={() => go('viewer', { documentId: d.id })}><Eye className="h-4 w-4" /></IconBtn>
+                        <IconBtn title="Reprocess" onClick={() => handleReprocess(d)}><RotateCw className="h-4 w-4 text-blue-600" /></IconBtn>
                         <IconBtn title={d.is_active ? 'Deactivate' : 'Activate'} onClick={() => handleToggle(d)}>
                           {d.is_active ? <PowerOff className="h-4 w-4 text-amber-600" /> : <Power className="h-4 w-4 text-green-600" />}
                         </IconBtn>

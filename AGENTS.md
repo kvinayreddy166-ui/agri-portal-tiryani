@@ -24,7 +24,7 @@ The app is a static Vite SPA on Vercel + Supabase (Auth, Postgres 17, Storage). 
 
 ### Edge Functions (Deno)
 - `supabase/functions/_shared/knowledge.ts` — shared helpers (admin client, JWT verify, Ollama config).
-- `supabase/functions/knowledge-process/index.ts` — extraction (unpdf/mammoth), scanned-PDF detection, cleaning, semantic chunking, batched embeddings, save.
+- `supabase/functions/knowledge-process/index.ts` — extraction (raw PDF content-stream parser / mammoth for DOCX), scanned-PDF detection, cleaning, semantic chunking, batched embeddings, save.
 - `supabase/functions/knowledge-search/index.ts` — hybrid vector + FTS search via RPCs, merge + normalize + rank.
 - `supabase/functions/knowledge-ask/index.ts` — full RAG pipeline: search → no-answer detection → LLM with [SOURCE_N] context → citation mapping → query analytics.
 

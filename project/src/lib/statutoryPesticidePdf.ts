@@ -699,18 +699,26 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   
   // Use J Form spacing (lineHeight: 5.25, gap: 0.85) for compact multiline rows
   const compactFieldOptions = { lineHeight: 5.25, gap: 0.85 };
-  
+  const compactValueWideOptions = { ...compactFieldOptions, valueLineHeightFactor: 1.1 };
+
   // Points 1-2: use compact J Form spacing for multiline content
   fieldList(cursor, [
     ['1. Common name of the insecticide', pesticideNameWithoutTrade(values), '(Mention complete details like nominal content, formulation type, etc.)'],
     ['2. Trade name, if any', values.tradeName],
   ], 82, 0, compactFieldOptions);
-  
+
   // Points 3-6: use compact J Form spacing to fix excessive gaps
+  // Points 3 & 5 render their values at 1.1 line spacing between wrapped lines
   fieldList(cursor, [
     ['3. Manufactured by', values.manufacturedBy],
+  ], 82, 0, compactValueWideOptions);
+  fieldList(cursor, [
     ['4. Registration number', values.registrationNumber],
+  ], 82, 0, compactFieldOptions);
+  fieldList(cursor, [
     ['5. Marketed by', values.marketedBy],
+  ], 82, 0, compactValueWideOptions);
+  fieldList(cursor, [
     ['6. Manufacturing License No.', values.manufacturingLicenseNumber],
   ], 82, 0, compactFieldOptions);
   
@@ -739,7 +747,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.doc.text(witness2Label, PAGE.marginX, cursor.y);
   const witness2Width = cursor.doc.getTextWidth(witness2Label);
   drawBlank(cursor.doc, PAGE.marginX + witness2Width + 3, cursor.y, 80);
-  cursor.y += 5;
+  cursor.y += 7;
   cursor.doc.setFont(PDF_FONT, 'bold');
   cursor.doc.text('(Received one sealed portion of sample along with a copy of this Form.)', PAGE.marginX, cursor.y);
   cursor.doc.setFont(PDF_FONT, 'normal');
@@ -796,6 +804,7 @@ function subItemField(cursor: PdfCursor, mainLabel: string, subItems: Array<[str
 }
 
 function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
+  cursor.doc.setLineHeightFactor(0.9);
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
   const resolvedMandal = sampleMandal(values);
   
@@ -875,31 +884,43 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   
   // Use J Form spacing (lineHeight: 5.25, gap: 0.85) for compact multiline rows
   const compactFieldOptions = { lineHeight: 5.25, gap: 0.85 };
-  
+  const compactValueWideOptions = { ...compactFieldOptions, valueLineHeightFactor: 1.1 };
+
   // Check if we're near the end of the page before rendering the last few fields
   // If we have less than 40mm remaining, move to next page to prevent awkward pagination
   if (cursor.y > PAGE.bottom - 40) {
     cursor.doc.addPage();
     cursor.y = PAGE.top;
   }
-  
+
   // Render fields 4-6: default spacing
   fieldList(cursor, mainFields.slice(0, 3), 82);
-  
+
   // Render fields 7-9: compact J Form spacing for multiline addresses
-  fieldList(cursor, mainFields.slice(3, 6), 82, 0, compactFieldOptions);
-  
+  // Fields 7 & 8 render their values at 1.1 line spacing between wrapped lines
+  fieldList(cursor, mainFields.slice(3, 5), 82, 0, compactValueWideOptions);
+  fieldList(cursor, mainFields.slice(5, 6), 82, 0, compactFieldOptions);
+
   // Render fields 10-12: default spacing
   fieldList(cursor, mainFields.slice(6, 9), 82);
-  
+
   // Render fields 13-14: compact J Form spacing for multiline content
-  fieldList(cursor, mainFields.slice(9, 11), 82, 0, compactFieldOptions);
+  // Field 13 renders its value at 1.1 line spacing between wrapped lines
+  fieldList(cursor, mainFields.slice(9, 10), 82, 0, compactValueWideOptions);
+  fieldList(cursor, mainFields.slice(10, 11), 82, 0, compactFieldOptions);
+
+  // Render fields 15-18: default spacing
+  fieldList(cursor, mainFields.slice(11, 15), 82);
+
+  // Field 19 (P.T.L. address): 1.2 line spacing between wrapped lines
+  fieldList(cursor, mainFields.slice(15, 16), 82, 0, { valueLineHeightFactor: 1.2 });
+
+  // Render field 20: default spacing
+  fieldList(cursor, mainFields.slice(16), 82);
   
-  // Render fields 15-20: default spacing
-  fieldList(cursor, mainFields.slice(11), 82);
-  
-  cursor.y += 5;
+  cursor.y += 9;
   signatureLine(cursor, '', 'Signature of Insecticide Inspector');
+  cursor.doc.setLineHeightFactor(1.25);
 }
 
 function centeredTitle(cursor: PdfCursor, title: string, subtitle = '') {
@@ -935,7 +956,7 @@ function centeredTitle(cursor: PdfCursor, title: string, subtitle = '') {
   cursor.doc.setFontSize(BODY_SIZE);
 }
 
-function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, labelWidth = 74, xOffset = 0, options: { lineHeight?: number; gap?: number } = {}) {
+function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, labelWidth = 74, xOffset = 0, options: { lineHeight?: number; gap?: number; valueLineHeightFactor?: number } = {}) {
   rows.forEach(([label, value, note]) => {
     // Check if we're near the end of the page before rendering each field
     // If we have less than 25mm remaining, move to next page to prevent awkward pagination
@@ -948,15 +969,16 @@ function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, la
   });
 }
 
-function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', labelWidth = 74, xOffset = 0, options: { lineHeight?: number; gap?: number } = {}) {
+function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', labelWidth = 74, xOffset = 0, options: { lineHeight?: number; gap?: number; valueLineHeightFactor?: number } = {}) {
   const x = PAGE.marginX + xOffset;
   const valueX = x + labelWidth + 5;
   const available = PAGE.width - valueX - PAGE.marginX;
   const valueLines = split(cursor, value || '', available);
-  
+
   // Use custom lineHeight/gap if provided, otherwise use defaults
   const rowLineHeight = options.lineHeight ?? LINE_HEIGHT;
   const rowGap = options.gap ?? 0.2;
+  const valueLineHeightFactor = options.valueLineHeightFactor;
   
   // Handle hanging indent for multi-line labels (both numbered and sub-point labels)
   const labelMatch = label.match(/^(\d+\.\s+|\([a-z]\)\s*)(.*)$/);
@@ -984,8 +1006,16 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
     cursor.doc.setFontSize(originalFontSize);
   }
   
-  const rows = Math.max(labelLines.length, valueLines.length, 1);
-  const totalHeight = rows * rowLineHeight + noteHeight + rowGap;
+  // Wrapped lines render at the font's actual pitch (fontSize * lineHeightFactor),
+  // not the row's lineHeight — reserve only what is actually rendered so multi-line
+  // values do not create blank space below the row.
+  const scaleFactor = cursor.doc.internal.scaleFactor;
+  const renderedLinePitch = (cursor.doc.getFontSize() * (cursor.doc.getLineHeightFactor() || 1.15)) / scaleFactor;
+  const valueLinePitch = (cursor.doc.getFontSize() * (valueLineHeightFactor ?? (cursor.doc.getLineHeightFactor() || 1.15))) / scaleFactor;
+  const blockHeight = (lineCount: number, pitch = renderedLinePitch) => (lineCount <= 1 ? rowLineHeight : rowLineHeight + (lineCount - 1) * pitch);
+  const leftHeight = blockHeight(Math.max(labelLines.length, 1)) + noteHeight;
+  const rightHeight = blockHeight(Math.max(valueLines.length, 1), valueLinePitch);
+  const totalHeight = Math.max(leftHeight, rightHeight) + rowGap;
   
   // Page-break handling: ensure the entire row fits on the current page
   // If not, move to the next page to prevent splitting
@@ -1007,12 +1037,19 @@ function fieldRow(cursor: PdfCursor, label: string, value: string, note = '', la
   if (noteLines.length > 0) {
     const originalFontSize = cursor.doc.getFontSize();
     cursor.doc.setFontSize(10);
-    cursor.doc.text(noteLines, labelStartX, y + labelLines.length * 4.5);
+    cursor.doc.text(noteLines, labelStartX, y + (labelLines.length - 1) * renderedLinePitch + 4.5);
     cursor.doc.setFontSize(originalFontSize);
   }
   
   if (valueLines.length) {
-    cursor.doc.text(valueLines, valueX, y);
+    if (valueLineHeightFactor != null) {
+      const originalFactor = cursor.doc.getLineHeightFactor() || 1.15;
+      cursor.doc.setLineHeightFactor(valueLineHeightFactor);
+      cursor.doc.text(valueLines, valueX, y);
+      cursor.doc.setLineHeightFactor(originalFactor);
+    } else {
+      cursor.doc.text(valueLines, valueX, y);
+    }
   } else {
     drawBlank(cursor.doc, valueX, y, available);
   }
