@@ -2,7 +2,7 @@ import React, { useMemo, useState, ReactNode, useEffect } from 'react';
 import {
   ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Database, FileText,
+  FolderOpen, Moon, Sun, Landmark, Database, FileText, BookOpen,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +24,7 @@ const adminMenuItems = [
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
   { id: 'farmer-database', label: 'Farmer Database', icon: Database },
   { id: 'officer-toolkit', label: 'Officer Toolkit', icon: FileStack },
+  { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
   { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
   { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText },
@@ -298,7 +299,7 @@ function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: str
   const sections = [
     { title: t('Overview', 'అవలోకనం'), ids: ['dashboard', 'stock-analytics', 'analytics'] },
     { title: t('Field Operations', 'ఫీల్డ్ ఆపరేషన్స్'), ids: ['dealers', 'farmer-database', 'subsidy', 'farm-mechanization', 'quality'] },
-    { title: t('Knowledge', 'జ్ఞానం'), ids: ['officer-toolkit', 'gos-circulars'] },
+    { title: t('Knowledge', 'జ్ఞానం'), ids: ['officer-toolkit', 'gos-circulars', 'knowledge'] },
     { title: t('Records', 'రికార్డులు'), ids: ['file-directory', 'excel', 'settings'] },
   ];
 
@@ -340,6 +341,24 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     };
   }
 
+  if (page.startsWith('knowledge-')) {
+    const knowledgeTitles: Record<string, string> = {
+      'knowledge-library': 'Document Library',
+      'knowledge-upload': 'Upload Document',
+      'knowledge-categories': 'Categories',
+      'knowledge-queue': 'Processing Queue',
+      'knowledge-analytics': 'Query Analytics',
+      'knowledge-settings': 'Settings',
+      'knowledge-assistant': 'Knowledge Assistant',
+      'knowledge-search': 'Search Documents',
+      'knowledge-viewer': 'Document Viewer',
+    };
+    return {
+      title: t(knowledgeTitles[page] ?? 'Knowledge Base', 'జ్ఞాన భాండాగారం'),
+      breadcrumbs: [dashboard, { label: t('Knowledge Base', 'జ్ఞాన భాండాగారం'), page: 'knowledge' }],
+    };
+  }
+
   const meta: Record<string, { title: string; breadcrumbs: BreadcrumbItem[] }> = {
     'stock-analytics': { title: t('Command Center', 'కమాండ్ సెంటర్'), breadcrumbs: [dashboard] },
     'stock-receipts-sales': { title: t('Stock Receipts & Sales', 'స్టాక్ రసీట్లు & అమ్మకాలు'), breadcrumbs: [dashboard] },
@@ -347,6 +366,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     dealers: { title: t('Dealers Directory', 'డీలర్ల డైరెక్టరీ'), breadcrumbs: [dashboard] },
     'farmer-database': { title: t('Farmer Database', 'రైతుల డేటాబేస్'), breadcrumbs: [dashboard] },
     'officer-toolkit': { title: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), breadcrumbs: [dashboard] },
+    knowledge: { title: t('Knowledge Base', 'జ్ఞాన భాండాగారం'), breadcrumbs: [dashboard] },
     forms: { title: t('Statutory Forms', 'చట్టబద్ధ ఫారాలు'), breadcrumbs: [dashboard, toolkit] },
     'acreage-calculator': { title: t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit] },
     'farm-calculators': { title: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), breadcrumbs: [dashboard, toolkit] },

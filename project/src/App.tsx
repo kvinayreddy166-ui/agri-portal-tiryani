@@ -47,6 +47,16 @@ const FertilizerDealerInspection = lazy(() => import('./pages/FertilizerDealerIn
 const CropManagement = lazy(() => import('./pages/CropManagement').then((m) => ({ default: m.CropManagement })));
 const CropAdminDashboard = lazy(() => import('./pages/admin/CropAdminDashboard').then((m) => ({ default: m.CropAdminDashboard })));
 const CropPage = lazy(() => import('./pages/CropPage').then((m) => ({ default: m.CropPage })));
+const KnowledgeDashboard = lazy(() => import('./features/knowledge-base/pages/KnowledgeDashboard').then((m) => ({ default: m.KnowledgeDashboard })));
+const KnowledgeDocumentLibrary = lazy(() => import('./features/knowledge-base/pages/KnowledgeDocumentLibrary').then((m) => ({ default: m.KnowledgeDocumentLibrary })));
+const KnowledgeUpload = lazy(() => import('./features/knowledge-base/pages/KnowledgeUpload').then((m) => ({ default: m.KnowledgeUpload })));
+const KnowledgeCategories = lazy(() => import('./features/knowledge-base/pages/KnowledgeCategories').then((m) => ({ default: m.KnowledgeCategories })));
+const KnowledgeProcessingQueue = lazy(() => import('./features/knowledge-base/pages/KnowledgeProcessingQueue').then((m) => ({ default: m.KnowledgeProcessingQueue })));
+const KnowledgeAnalytics = lazy(() => import('./features/knowledge-base/pages/KnowledgeAnalytics').then((m) => ({ default: m.KnowledgeAnalytics })));
+const KnowledgeSettings = lazy(() => import('./features/knowledge-base/pages/KnowledgeSettings').then((m) => ({ default: m.KnowledgeSettings })));
+const KnowledgeAssistant = lazy(() => import('./features/knowledge-base/pages/KnowledgeAssistant').then((m) => ({ default: m.KnowledgeAssistant })));
+const KnowledgeSearch = lazy(() => import('./features/knowledge-base/pages/KnowledgeSearch').then((m) => ({ default: m.KnowledgeSearch })));
+const KnowledgeDocumentViewer = lazy(() => import('./features/knowledge-base/pages/KnowledgeDocumentViewer').then((m) => ({ default: m.KnowledgeDocumentViewer })));
 
 function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
   const [slow, setSlow] = useState(false);
@@ -284,6 +294,16 @@ const PAGE_PATHS: Record<string, string> = {
   'fertilizer-dealer-inspection': '/officer-toolkit/fertilizer-dealer-inspection',
   analytics: '/analytics',
   settings: '/settings',
+  knowledge: '/knowledge',
+  'knowledge-library': '/knowledge/library',
+  'knowledge-upload': '/knowledge/upload',
+  'knowledge-categories': '/knowledge/categories',
+  'knowledge-queue': '/knowledge/queue',
+  'knowledge-analytics': '/knowledge/analytics',
+  'knowledge-settings': '/knowledge/settings',
+  'knowledge-assistant': '/knowledge/assistant',
+  'knowledge-search': '/knowledge/search',
+  'knowledge-viewer': '/knowledge/viewer',
 };
 
 function pageToPath(page: string) {
@@ -347,6 +367,8 @@ function getPageBackFallback(page: string, isDealerUser: boolean) {
   if (page === 'farm-calculators') return '/officer-toolkit';
   if (page === 'fertilizer-calculator' || page === 'pesticide-calculator' || page === 'plant-population-calculator' || page === 'seed-rate-calculator') return '/officer-toolkit/farm-calculators';
   if (page === 'legal-ready-reckoner') return '/officer-toolkit';
+  if (page.startsWith('knowledge-')) return '/knowledge';
+  if (page === 'knowledge') return '/dashboard';
   if (page === 'officer-toolkit') return '/dashboard';
   if (page.startsWith('quality-')) return '/quality';
   if (page.startsWith('subsidy-')) return '/subsidy';
@@ -548,6 +570,16 @@ function AppContent() {
         'fertilizer-dealer-inspection',
         'analytics',
         'settings',
+        'knowledge',
+        'knowledge-library',
+        'knowledge-upload',
+        'knowledge-categories',
+        'knowledge-queue',
+        'knowledge-analytics',
+        'knowledge-settings',
+        'knowledge-assistant',
+        'knowledge-search',
+        'knowledge-viewer',
       ]),
     []
   );
@@ -601,6 +633,17 @@ function AppContent() {
       if (page === 'officer-toolkit/fertilizer-dealer-inspection') {
         page = 'fertilizer-dealer-inspection';
       }
+
+      if (page === 'knowledge/library') page = 'knowledge-library';
+      if (page === 'knowledge/upload') page = 'knowledge-upload';
+      if (page === 'knowledge/categories') page = 'knowledge-categories';
+      if (page === 'knowledge/queue') page = 'knowledge-queue';
+      if (page === 'knowledge/analytics') page = 'knowledge-analytics';
+      if (page === 'knowledge/settings') page = 'knowledge-settings';
+      if (page === 'knowledge/assistant') page = 'knowledge-assistant';
+      if (page === 'knowledge/search') page = 'knowledge-search';
+      if (page === 'knowledge/viewer') page = 'knowledge-viewer';
+      if (page === 'knowledge') page = 'knowledge';
 
       const result = validPages.has(page) ? page : 'dashboard';
       console.log('getPageFromLocation:', `pathname="${location.pathname}"`, `page="${page}"`, `result="${result}"`, `validPages.has(page)=${validPages.has(page)}`);
@@ -963,6 +1006,66 @@ function AppContent() {
         return <Analytics />;
       case 'settings':
         return <Settings />;
+      case 'knowledge':
+        return (
+          <SafeSuspense fallback={<PageLoader />}>
+            <KnowledgeDashboard />
+          </SafeSuspense>
+        );
+      case 'knowledge-library':
+        return (
+          <SafeSuspense fallback={<PageLoader />}>
+            <KnowledgeDocumentLibrary />
+          </SafeSuspense>
+        );
+      case 'knowledge-upload':
+        return (
+          <SafeSuspense fallback={<PageLoader />}>
+            <KnowledgeUpload />
+          </SafeSuspense>
+        );
+      case 'knowledge-categories':
+        return (
+          <SafeSuspense fallback={<PageLoader />}>
+            <KnowledgeCategories />
+          </SafeSuspense>
+        );
+      case 'knowledge-queue':
+        return (
+          <SafeSuspense fallback={<PageLoader />}>
+            <KnowledgeProcessingQueue />
+          </SafeSuspense>
+        );
+      case 'knowledge-analytics':
+        return (
+          <SafeSuspense fallback={<PageLoader />}>
+            <KnowledgeAnalytics />
+          </SafeSuspense>
+        );
+      case 'knowledge-settings':
+        return (
+          <SafeSuspense fallback={<PageLoader />}>
+            <KnowledgeSettings />
+          </SafeSuspense>
+        );
+      case 'knowledge-assistant':
+        return (
+          <SafeSuspense fallback={<PageLoader />}>
+            <KnowledgeAssistant />
+          </SafeSuspense>
+        );
+      case 'knowledge-search':
+        return (
+          <SafeSuspense fallback={<PageLoader />}>
+            <KnowledgeSearch />
+          </SafeSuspense>
+        );
+      case 'knowledge-viewer':
+        return (
+          <SafeSuspense fallback={<PageLoader />}>
+            <KnowledgeDocumentViewer />
+          </SafeSuspense>
+        );
       default:
         return <Dashboard />;
     }

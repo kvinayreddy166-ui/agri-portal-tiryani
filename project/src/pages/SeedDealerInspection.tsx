@@ -8,8 +8,7 @@ import { ToastContainer, useToast } from '../components/ui/Toast';
 type Status = '' | 'yes' | 'no' | 'na';
 type StatusField = { status: Status; remarks: string };
 
-type GroundBalanceRow = { crop: string; variety: string; lotNo: string; physicalStock: string; registerBalance: string };
-type FormORow = { lotNo: string; verified: Status; discrepancies: string };
+type GroundBalanceRow = { crop: string; variety: string; lotNo: string; registerQuantity: string; groundStock: string; difference: string; unit: string };
 type DetentionRow = { crop: string; variety: string; lotNo: string; quantity: string; unit: string; remarks: string };
 type SeizureRow = { crop: string; variety: string; lotNo: string; quantity: string; unit: string; reason: string };
 type SampleRow = { crop: string; variety: string; lotNo: string; quantity: string; sampleType: string };
@@ -30,12 +29,12 @@ interface InspectionForm {
   groundBalance: StatusField;
   groundBalanceRows: GroundBalanceRow[];
   containersLabelled: StatusField;
-  formOVerified: StatusField;
-  formORows: FormORow[];
   arrivalInformed: StatusField;
   formDSubmitted: StatusField;
   formDSinceWhen: string;
+  licenceOnInvoices: StatusField;
   billsIssued: StatusField;
+  purchaseAuthorized: StatusField;
   rectifiableDefects: RectifiableDefect[];
   detentionMade: Status;
   detentions: DetentionRow[];
@@ -88,8 +87,7 @@ const DESIGNATION_OPTIONS = [
 ];
 
 const emptyStatus = (): StatusField => ({ status: '', remarks: '' });
-const emptyGroundRow = (): GroundBalanceRow => ({ crop: '', variety: '', lotNo: '', physicalStock: '', registerBalance: '' });
-const emptyFormORow = (): FormORow => ({ lotNo: '', verified: '', discrepancies: '' });
+const emptyGroundRow = (): GroundBalanceRow => ({ crop: '', variety: '', lotNo: '', registerQuantity: '', groundStock: '', difference: '', unit: 'kg' });
 const emptyDetention = (): DetentionRow => ({ crop: '', variety: '', lotNo: '', quantity: '', unit: 'kg', remarks: '' });
 const emptySeizure = (): SeizureRow => ({ crop: '', variety: '', lotNo: '', quantity: '', unit: 'kg', reason: '' });
 const emptySample = (): SampleRow => ({ crop: '', variety: '', lotNo: '', quantity: '', sampleType: SAMPLE_TYPE_OPTIONS[0] });
@@ -108,12 +106,12 @@ const initialForm = (): InspectionForm => ({
   groundBalance: emptyStatus(),
   groundBalanceRows: [],
   containersLabelled: emptyStatus(),
-  formOVerified: emptyStatus(),
-  formORows: [],
   arrivalInformed: emptyStatus(),
   formDSubmitted: emptyStatus(),
   formDSinceWhen: '',
+  licenceOnInvoices: emptyStatus(),
   billsIssued: emptyStatus(),
+  purchaseAuthorized: emptyStatus(),
   rectifiableDefects: RECTIFIABLE_DEFECT_LABELS.map(() => ({ checked: false, remarks: '' })),
   detentionMade: '',
   detentions: [],
@@ -305,23 +303,21 @@ export function SeedDealerInspection() {
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
               <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">3. Location and place of business</p>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3">
                 <Field label="3(a). Storage" value={form.storagePlace} onChange={(v) => { set('storagePlace', v); if (sameSaleAsStorage) set('salePlace', v); }} placeholder="D.no, Village, Mandal" />
-                <div>
-                  <Field label="3(b). Sale" value={form.salePlace} onChange={(v) => { set('salePlace', v); if (sameSaleAsStorage) setSameSaleAsStorage(false); }} placeholder="D.no, Village, Mandal" />
-                  <label className="mt-1.5 inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={sameSaleAsStorage}
-                      onChange={(e) => {
-                        setSameSaleAsStorage(e.target.checked);
-                        if (e.target.checked) set('salePlace', form.storagePlace);
-                      }}
-                      className="h-4 w-4 shrink-0 cursor-pointer accent-emerald-600"
-                    />
-                    Same as storage address
-                  </label>
-                </div>
+                <label className="-my-1 inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={sameSaleAsStorage}
+                    onChange={(e) => {
+                      setSameSaleAsStorage(e.target.checked);
+                      if (e.target.checked) set('salePlace', form.storagePlace);
+                    }}
+                    className="h-4 w-4 shrink-0 cursor-pointer accent-emerald-600"
+                  />
+                  Same as storage address
+                </label>
+                <Field label="3(b). Sale" value={form.salePlace} onChange={(v) => { set('salePlace', v); if (sameSaleAsStorage) setSameSaleAsStorage(false); }} placeholder="D.no, Village, Mandal" />
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -329,13 +325,13 @@ export function SeedDealerInspection() {
               <Field label="4(b). License validity" type="date" value={form.licenceValidity} onChange={(v) => set('licenceValidity', v)} />
             </div>
             <StatusInput label="5. Whether stock and sale premises are the same as mentioned in the license" field={form.premisesSameAsLicence} onChange={(p) => setStatus('premisesSameAsLicence', p)} remarksWhen="no" />
-            <StatusInput label="6. Suitability of premises for stocking and sale" field={form.premisesSuitable} onChange={(p) => setStatus('premisesSuitable', p)} remarksWhen="no" />
+            <StatusInput label="6. Whether the premises are suitable for stocking and sale as per provisions of the Act and Rules" field={form.premisesSuitable} onChange={(p) => setStatus('premisesSuitable', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={2} title="Stock and register verification" subtitle="Items 7 to 11" open={openSections[2]} onToggle={toggleSection}>
-            <StatusInput label="7. Whether stock and price board exhibited" field={form.stockPriceBoard} onChange={(p) => setStatus('stockPriceBoard', p)} remarksWhen="no" />
-            <StatusInput label="8. Whether stock register maintained properly" field={form.stockRegisterMaintained} onChange={(p) => setStatus('stockRegisterMaintained', p)} remarksWhen="no" />
-            <StatusInput label="9. Whether ground balance is tallying with the stock register (give lot-wise details separately)" field={form.groundBalance} onChange={(p) => setStatus('groundBalance', p)} remarksWhen="no" />
+          <Section id={2} title="Stock and register verification" subtitle="Items 7 to 10" open={openSections[2]} onToggle={toggleSection}>
+            <StatusInput label="7. Whether stock and price board exhibited as per the SCO, 1983" field={form.stockPriceBoard} onChange={(p) => setStatus('stockPriceBoard', p)} remarksWhen="no" />
+            <StatusInput label="8. Whether stock register & sale invoices are maintained properly" field={form.stockRegisterMaintained} onChange={(p) => setStatus('stockRegisterMaintained', p)} remarksWhen="no" />
+            <StatusInput label="9. Whether ground balance is tallying with the stock register (if not give lot-wise details separately)" field={form.groundBalance} onChange={(p) => setStatus('groundBalance', p)} remarksWhen="no" />
             {form.groundBalance.status === 'no' && (
               <RowTable<GroundBalanceRow>
                 title="Lot-wise details"
@@ -346,41 +342,35 @@ export function SeedDealerInspection() {
                 columns={[
                   { key: 'crop', label: 'Crop', type: 'select', options: CROP_OPTIONS, allowOther: true },
                   { key: 'variety', label: 'Variety' },
-                  { key: 'lotNo', label: 'Lot number' },
-                  { key: 'physicalStock', label: 'Physical stock' },
-                  { key: 'registerBalance', label: 'Stock register balance' },
+                  { key: 'lotNo', label: 'Lot no.' },
+                  { key: 'registerQuantity', label: 'Stock register quantity' },
+                  { key: 'groundStock', label: 'Ground stock' },
+                  { key: 'difference', label: 'Difference', compute: (r) => {
+                    const reg = parseFloat(r.registerQuantity);
+                    const ground = parseFloat(r.groundStock);
+                    if (Number.isNaN(reg) || Number.isNaN(ground)) return '';
+                    return String(reg - ground);
+                  }, dependsOn: ['registerQuantity', 'groundStock'] },
+                  { key: 'unit', label: 'Unit', type: 'select', options: UNIT_OPTIONS },
                 ]}
               />
             )}
-            <StatusInput label="10. Whether containers are labelled as per the provisions of the Seeds Act" field={form.containersLabelled} onChange={(p) => setStatus('containersLabelled', p)} remarksWhen="no" />
-            <StatusInput label="11. Verify copy of Form No-11 issued by TSSOCA authorities for each of the certified lots" field={form.formOVerified} onChange={(p) => setStatus('formOVerified', p)} remarksLabel="Discrepancies / remarks" />
-            {form.formOVerified.status === 'yes' && (
-              <RowTable<FormORow>
-                title="Certified lot details"
-                rows={form.formORows}
-                onChange={(rows) => set('formORows', rows)}
-                empty={emptyFormORow}
-                addLabel="Add certified lot"
-                columns={[
-                  { key: 'lotNo', label: 'Certified lot number' },
-                  { key: 'verified', label: 'Form No-11 verified', type: 'status' },
-                  { key: 'discrepancies', label: 'Discrepancies observed' },
-                ]}
-              />
-            )}
+            <StatusInput label="10. Whether containers/packets/bags are labelled as per the provisions of the Seeds Act" field={form.containersLabelled} onChange={(p) => setStatus('containersLabelled', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={3} title="Compliance verification" subtitle="Items 12 to 14" open={openSections[3]} onToggle={toggleSection}>
-            <StatusInput label="12. Whether the dealer is informing arrivals of seeds before commencement of sale" field={form.arrivalInformed} onChange={(p) => setStatus('arrivalInformed', p)} remarksWhen="no" />
-            <StatusInput label="13. Whether the dealer is submitting Form D regularly" field={form.formDSubmitted} onChange={(p) => setStatus('formDSubmitted', p)} remarksWhen="no" />
+          <Section id={3} title="Compliance verification" subtitle="Items 11 to 15" open={openSections[3]} onToggle={toggleSection}>
+            <StatusInput label="11. Whether the dealer is informing arrivals of seeds before commencement of sale" field={form.arrivalInformed} onChange={(p) => setStatus('arrivalInformed', p)} remarksWhen="no" />
+            <StatusInput label="12. Whether the dealer is submitting Form D regularly" field={form.formDSubmitted} onChange={(p) => setStatus('formDSubmitted', p)} remarksWhen="no" />
             {form.formDSubmitted.status === 'no' && (
               <Field label="If no, since when has the dealer failed to submit Form D" value={form.formDSinceWhen} onChange={(v) => set('formDSinceWhen', v)} placeholder="Month / year or date" />
             )}
-            <StatusInput label="14. Whether the dealer is issuing proper bills to the farmer containing details of brand, lot no, price, validity, etc." field={form.billsIssued} onChange={(p) => setStatus('billsIssued', p)} remarksWhen="no" />
+            <StatusInput label="13. Whether the Licence No. is mentioned on the sales invoices" field={form.licenceOnInvoices} onChange={(p) => setStatus('licenceOnInvoices', p)} remarksWhen="no" />
+            <StatusInput label="14. Whether the dealer is issuing proper bills to the farmer containing details of variety, lot no, price, validity, etc." field={form.billsIssued} onChange={(p) => setStatus('billsIssued', p)} remarksWhen="no" />
+            <StatusInput label="15. Whether the dealer is purchasing stocks from approved and authorized sources or not (verify purchase invoices)" field={form.purchaseAuthorized} onChange={(p) => setStatus('purchaseAuthorized', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={4} title="Defects and violations" subtitle="Items 15 and 17" open={openSections[4]} onToggle={toggleSection}>
-            <p className="text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">15. Defects noticed which are rectifiable</p>
+          <Section id={4} title="Defects and violations" subtitle="Items 16 and 18" open={openSections[4]} onToggle={toggleSection}>
+            <p className="text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">16. Defects noticed which are rectifiable</p>
             <div className="grid gap-2">
               {RECTIFIABLE_DEFECT_LABELS.map((label, index) => {
                 const item = form.rectifiableDefects[index];
@@ -397,7 +387,7 @@ export function SeedDealerInspection() {
               })}
             </div>
             <p className="mt-3 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
-              17. Major defects noticed (details to be given){checkedMajorDefects ? ` - ${checkedMajorDefects} selected` : ''}
+              18. Major defects noticed (details to be given){checkedMajorDefects ? ` - ${checkedMajorDefects} selected` : ''}
             </p>
             <div className="grid gap-2">
               {MAJOR_DEFECT_LABELS.map((label, index) => {
@@ -423,9 +413,9 @@ export function SeedDealerInspection() {
             </div>
           </Section>
 
-          <Section id={5} title="Detention and seizure" subtitle="Items 16 and 18" open={openSections[5]} onToggle={toggleSection}>
+          <Section id={5} title="Detention and seizure" subtitle="Items 17 and 19" open={openSections[5]} onToggle={toggleSection}>
             <div>
-              <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">16. Detentions made, if any</p>
+              <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">17. Detentions made, if any</p>
               <StatusButtons value={form.detentionMade} onChange={(v) => set('detentionMade', v)} />
             </div>
             {form.detentionMade === 'yes' && (
@@ -446,7 +436,7 @@ export function SeedDealerInspection() {
               />
             )}
             <div>
-              <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">18. Was stock seized?</p>
+              <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">19. Was stock seized?</p>
               <StatusButtons value={form.stockSeized} onChange={(v) => set('stockSeized', v)} />
             </div>
             {form.stockSeized === 'yes' && (
@@ -468,9 +458,9 @@ export function SeedDealerInspection() {
             )}
           </Section>
 
-          <Section id={6} title="Seed samples" subtitle="Item 19" open={openSections[6]} onToggle={toggleSection}>
+          <Section id={6} title="Seed samples" subtitle="Item 20" open={openSections[6]} onToggle={toggleSection}>
             <RowTable<SampleRow>
-              title="19. Details of seed samples drawn (crop / variety / lot no.)"
+              title="20. Details of seed samples drawn (crop / variety / lot no.)"
               rows={form.samples}
               onChange={(rows) => set('samples', rows)}
               empty={emptySample}
@@ -658,10 +648,17 @@ function CheckRow({ label, checked, onToggle, children }: { label: string; check
   );
 }
 
-type Column<T> = { key: keyof T; label: string; type?: 'text' | 'select' | 'status'; options?: string[]; allowOther?: boolean };
+type Column<T> = { key: keyof T; label: string; type?: 'text' | 'select' | 'status'; options?: string[]; allowOther?: boolean; compute?: (row: T) => string; dependsOn?: (keyof T)[] };
 
 function RowTable<T extends Record<string, string>>({ title, rows, onChange, empty, addLabel, columns }: { title: string; rows: T[]; onChange: (rows: T[]) => void; empty: () => T; addLabel: string; columns: Column<T>[] }) {
-  const update = (index: number, key: keyof T, value: string) => onChange(rows.map((row, i) => (i === index ? { ...row, [key]: value } : row)));
+  const update = (index: number, key: keyof T, value: string) => {
+    const updated = rows.map((row, i) => (i === index ? { ...row, [key]: value } : row));
+    const computeCols = columns.filter((c) => c.compute && (!c.dependsOn || c.dependsOn.includes(key)));
+    if (computeCols.length) {
+      updated[index] = computeCols.reduce((row, c) => ({ ...row, [c.key]: c.compute!(row) }), updated[index]);
+    }
+    onChange(updated);
+  };
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -702,6 +699,8 @@ function RowTable<T extends Record<string, string>>({ title, rows, onChange, emp
                       )
                     ) : column.type === 'status' ? (
                       <StatusButtons value={row[column.key] as Status} onChange={(v) => update(index, column.key, v)} />
+                    ) : column.compute ? (
+                      <input value={row[column.key]} readOnly placeholder="Auto" className={`${inputClass} cursor-not-allowed bg-slate-100 dark:bg-slate-700/60`} />
                     ) : (
                       <input value={row[column.key]} onChange={(e) => update(index, column.key, e.target.value)} className={inputClass} />
                     )}
@@ -757,28 +756,28 @@ function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSub
     ['3(b)', 'Sale', form.salePlace || '-'],
     ['4', 'Seed license no. and its validity', [form.licenceNo, form.licenceValidity && `Valid up to: ${formatDate(form.licenceValidity)}`].filter(Boolean).join(' - ') || '-'],
     ['5', 'Whether stock and sale premises are the same as mentioned in the license', statusText(form.premisesSameAsLicence)],
-    ['6', 'Suitability of premises for stocking and sale', statusText(form.premisesSuitable)],
-    ['7', 'Whether stock and price board exhibited', statusText(form.stockPriceBoard)],
-    ['8', 'Whether stock register maintained properly', statusText(form.stockRegisterMaintained)],
-    ['9', 'Whether ground balance is tallying with the stock register (lot-wise details given separately)', `${statusText(form.groundBalance)}${form.groundBalance.status === 'no' && form.groundBalanceRows.length ? `\n${listOrNil(form.groundBalanceRows, 'lot(s)')}` : ''}`],
-    ['10', 'Whether containers are labelled as per the provisions of the Seeds Act', statusText(form.containersLabelled)],
-    ['11', 'Verification of copy of Form No-11 issued by TSSOCA authorities for each of the certified lots; discrepancies', `${statusText(form.formOVerified)}${form.formORows.length ? `\n${listOrNil(form.formORows, 'certified lot(s)')}` : ''}`],
-    ['12', 'Whether the dealer is informing arrivals of seeds before commencement of sale', statusText(form.arrivalInformed)],
-    ['13', 'Whether the dealer is submitting Form D regularly; if not, since how long has he failed', `${statusText(form.formDSubmitted)}${form.formDSubmitted.status === 'no' && form.formDSinceWhen ? `\nSince: ${form.formDSinceWhen}` : ''}`],
-    ['14', 'Whether the dealer is issuing proper bills to the farmer containing details of brand, lot no., price, validity, etc.', statusText(form.billsIssued)],
-    ['15', 'Defects noticed which are rectifiable', rectifiable.length ? rectifiable.join('\n') : 'Nil'],
-    ['16', 'Detentions made, if any (variety, lot no., quantity detained)', form.detentionMade === 'yes' ? listOrNil(form.detentions, 'detention(s)') : form.detentionMade === 'no' ? 'No' : form.detentionMade === 'na' ? 'N/A' : '-'],
-    ['17', 'Major defects noticed (details)', major.length ? major.join('\n') : 'Nil'],
-    ['18', 'Stock seized', form.stockSeized === 'yes' ? listOrNil(form.seizures, 'seizure(s)') : form.stockSeized === 'no' ? 'No' : form.stockSeized === 'na' ? 'N/A' : '-'],
-    ['19', 'Details of seed samples drawn (crop / variety / lot no.)', listOrNil(form.samples, 'sample(s)')],
+    ['6', 'Whether the premises are suitable for stocking and sale as per provisions of the Act and Rules', statusText(form.premisesSuitable)],
+    ['7', 'Whether stock and price board exhibited as per the SCO, 1983', statusText(form.stockPriceBoard)],
+    ['8', 'Whether stock register & sale invoices are maintained properly', statusText(form.stockRegisterMaintained)],
+    ['9', 'Whether ground balance is tallying with the stock register (if not, lot-wise details given separately)', `${statusText(form.groundBalance)}${form.groundBalance.status === 'no' && form.groundBalanceRows.length ? `\n${listOrNil(form.groundBalanceRows, 'lot(s)')}` : ''}`],
+    ['10', 'Whether containers/packets/bags are labelled as per the provisions of the Seeds Act', statusText(form.containersLabelled)],
+    ['11', 'Whether the dealer is informing arrivals of seeds before commencement of sale', statusText(form.arrivalInformed)],
+    ['12', 'Whether the dealer is submitting Form D regularly; if not, since how long has he failed', `${statusText(form.formDSubmitted)}${form.formDSubmitted.status === 'no' && form.formDSinceWhen ? `\nSince: ${form.formDSinceWhen}` : ''}`],
+    ['13', 'Whether the Licence No. is mentioned on the sales invoices', statusText(form.licenceOnInvoices)],
+    ['14', 'Whether the dealer is issuing proper bills to the farmer containing details of variety, lot no., price, validity, etc.', statusText(form.billsIssued)],
+    ['15', 'Whether the dealer is purchasing stocks from approved and authorized sources or not (verify purchase invoices)', statusText(form.purchaseAuthorized)],
+    ['16', 'Defects noticed which are rectifiable', rectifiable.length ? rectifiable.join('\n') : 'Nil'],
+    ['17', 'Detentions made, if any (variety, lot no., quantity detained)', form.detentionMade === 'yes' ? listOrNil(form.detentions, 'detention(s)') : form.detentionMade === 'no' ? 'No' : form.detentionMade === 'na' ? 'N/A' : '-'],
+    ['18', 'Major defects noticed (details)', major.length ? major.join('\n') : 'Nil'],
+    ['19', 'Stock seized', form.stockSeized === 'yes' ? listOrNil(form.seizures, 'seizure(s)') : form.stockSeized === 'no' ? 'No' : form.stockSeized === 'na' ? 'N/A' : '-'],
+    ['20', 'Details of seed samples drawn (crop / variety / lot no.)', listOrNil(form.samples, 'sample(s)')],
   ];
 
   const subTables: PdfSubTable[] = [];
-  if (form.groundBalance.status === 'no' && form.groundBalanceRows.length) subTables.push({ title: 'Item 9 - Lot-wise ground balance details', head: ['Crop', 'Variety', 'Lot number', 'Physical stock', 'Stock register balance'], body: form.groundBalanceRows.map((r) => [r.crop, r.variety, r.lotNo, r.physicalStock, r.registerBalance]) });
-  if (form.formOVerified.status === 'yes' && form.formORows.length) subTables.push({ title: 'Item 11 - Form No-11 certified lot details', head: ['Certified lot number', 'Form No-11 verified', 'Discrepancies observed'], body: form.formORows.map((r) => [r.lotNo, statusLabel(r.verified), r.discrepancies]) });
-  if (form.detentionMade === 'yes' && form.detentions.length) subTables.push({ title: 'Item 16 - Detentions made', head: ['Crop', 'Variety', 'Lot no.', 'Quantity detained', 'Unit', 'Remarks'], body: form.detentions.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.unit, r.remarks]) });
-  if (form.stockSeized === 'yes' && form.seizures.length) subTables.push({ title: 'Item 18 - Stock seized', head: ['Crop', 'Variety', 'Lot number', 'Quantity', 'Unit', 'Reason for seizure'], body: form.seizures.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.unit, r.reason]) });
-  if (form.samples.length) subTables.push({ title: 'Item 19 - Seed samples drawn', head: ['Crop', 'Variety / hybrid', 'Lot no.', 'Quantity', 'Sample type'], body: form.samples.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.sampleType]) });
+  if (form.groundBalance.status === 'no' && form.groundBalanceRows.length) subTables.push({ title: 'Item 9 - Lot-wise ground balance details', head: ['Crop', 'Variety', 'Lot no.', 'Stock register quantity', 'Ground stock', 'Difference', 'Unit'], body: form.groundBalanceRows.map((r) => [r.crop, r.variety, r.lotNo, r.registerQuantity, r.groundStock, r.difference, r.unit]) });
+  if (form.detentionMade === 'yes' && form.detentions.length) subTables.push({ title: 'Item 17 - Detentions made', head: ['Crop', 'Variety', 'Lot no.', 'Quantity detained', 'Unit', 'Remarks'], body: form.detentions.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.unit, r.remarks]) });
+  if (form.stockSeized === 'yes' && form.seizures.length) subTables.push({ title: 'Item 19 - Stock seized', head: ['Crop', 'Variety', 'Lot number', 'Quantity', 'Unit', 'Reason for seizure'], body: form.seizures.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.unit, r.reason]) });
+  if (form.samples.length) subTables.push({ title: 'Item 20 - Seed samples drawn', head: ['Crop', 'Variety / hybrid', 'Lot no.', 'Quantity', 'Sample type'], body: form.samples.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.sampleType]) });
   return { items, subTables };
 }
 
