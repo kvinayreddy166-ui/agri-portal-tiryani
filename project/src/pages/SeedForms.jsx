@@ -1059,7 +1059,10 @@ function resolveSeedValues(form) {
   // When ADA is selected, use collectionPlace for place field (for Forms VI & VIII)
   // When Mandal Agriculture Officer is selected, use mandal value (fromPlace)
   // Otherwise use the auto-populated place value
-  const resolvedPlace = isADA ? (form.collectionPlace || fromPlace) : (fromPlace || form.collectionPlace);
+  const resolvedCollectionPlace = isAssistantDirectorOfAgriculture(form.designation)
+    ? effectiveLocationValue(form.placeOfCollectionMandal, form.manualPlaceOfCollection)
+    : form.collectionPlace;
+  const resolvedPlace = isADA ? resolvedCollectionPlace : (fromPlace || resolvedCollectionPlace);
   
   // Format district with PIN code for Form V and Form II
   const districtWithPinCode = form.pinCode 
@@ -1069,7 +1072,7 @@ function resolveSeedValues(form) {
   return {
     ...form,
     place: resolvedPlace,
-    collectionPlace: form.collectionPlace,
+    collectionPlace: resolvedCollectionPlace,
     crop: form.crop === 'Other' ? form.cropOther : form.crop,
     nature: form.nature === 'Other' ? form.natureOther : form.nature,
     seedClass: form.seedClass === 'Other' ? form.seedClassOther : form.seedClass,
@@ -1238,7 +1241,11 @@ function drawSeedFormVI(doc, form) {
   const noticeLines = doc.splitTextToSize(notice, 170);
   p.y += noticeLines.length * 7 * 1.5 + 8;
 
-  doc.text(`Date : ${fmtDate(r.date) || '____ / ____ / ______'}`, 20, p.y);
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Date :', 20, p.y);
+  const viDateLabelWidth = doc.getTextWidth('Date :');
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(fmtDate(r.date) || '____ / ____ / ______', 20 + viDateLabelWidth + 2, p.y);
   signatureRight(doc, Math.min(p.y + 16, 246), seedSignatureLines(r.designation));
 }
 
@@ -1304,34 +1311,26 @@ function drawSeedFormI(doc, form) {
   
   // Which has been taken today
   doc.setFont(PDF_FONT, 'normal');
-  p.y += 4;
+  p.y += 2;
   richPara(doc, p, [
     { text: 'Which has been taken today on, ' },
     { text: fmtDate(r.collectionDate) || '____________________________', bold: true },
   ]);
   p.y += 2;
   
-  // From section
-  doc.setFont(PDF_FONT, 'bold');
-  doc.text('From:', 20, p.y);
-  p.y += 7;
-  const formattedFromAddress = formatAddressWithCommas(r.fromAddress || '________________');
-  doc.text(doc.splitTextToSize(formattedFromAddress, 170), 20, p.y);
-  p.y += Math.max(10, doc.splitTextToSize(formattedFromAddress || '', 170).length * 6 + 8);
-  
   // Place
   doc.setFont(PDF_FONT, 'bold');
   doc.text('Place:', 20, p.y);
   doc.setFont(PDF_FONT, 'normal');
   doc.text(r.place || '____________________________', 35, p.y);
-  p.y += 6;
+  p.y += 5;
   
   // Date
   doc.setFont(PDF_FONT, 'bold');
   doc.text('Date:', 20, p.y);
   doc.setFont(PDF_FONT, 'normal');
   doc.text(fmtDate(r.date) || '____________________________', 35, p.y);
-  p.y += 6;
+  p.y += 5;
   
   // Signature
   signatureRight(doc, p.y, seedSignatureLines(r.designation, 'Seed Inspector &'));
@@ -1344,10 +1343,10 @@ function drawSeedFormVIII(doc, form) {
   richPara(doc, p, [
     { text: 'I have this day ' },
     { text: fmtDate(r.collectionDate) || '____ / ____ / ______', bold: true },
-    { text: ' taken from the premises of ' },
-    { text: [r.dealerName, r.dealerAddress].filter(Boolean).join(', ') || '________________', bold: true },
-    { text: ' situated at ' },
-    { text: blank(r.place), bold: true },
+    { text: ' taken from the premises of M/s ' },
+    { text: r.dealerName || '________________', bold: true },
+    { text: ', situated at ' },
+    { text: blank([r.dealerAddress, r.place, r.mandal && `${r.mandal} Mandal`, r.districtWithPinCode || r.district].filter(Boolean).join(', ')), bold: true },
     { text: ' Samples of Seeds specified below to have same tested / Analyzed by Seed Analyst.' },
   ]);
   doc.setFont(PDF_FONT, 'bold');
@@ -1374,11 +1373,20 @@ function drawSeedFormVIII(doc, form) {
   field(doc, p, 'Whether Cost Paid', r.costPaid, 78);
   const signatureY = Math.min(Math.max(p.y + 8, 224), 242);
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(['Signature of the party / Dealer', 'from whose premises samples taken', 'and payment made'], 20, signatureY);
+  ['Signature of the party / Dealer', 'from whose premises samples taken', 'and payment made'].forEach((line, i) => {
+    doc.text(line, 20, signatureY + i * 5);
+  });
   signatureRight(doc, signatureY, seedSignatureLines(r.designation));
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Place:', 20, signatureY + 24);
+  const placeLabelWidth = doc.getTextWidth('Place:');
   doc.setFont(PDF_FONT, 'normal');
-  doc.text(`Place: ${r.place || '__________'}`, 28, signatureY + 24);
-  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 28, signatureY + 32);
+  doc.text(r.place || '__________', 20 + placeLabelWidth + 2, signatureY + 24);
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Date:', 20, signatureY + 29);
+  const dateLabelWidth = doc.getTextWidth('Date:');
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(fmtDate(r.date) || '__________', 20 + dateLabelWidth + 2, signatureY + 29);
 }
 
 async function drawInfoSlips(doc, form, addPageBefore) {
@@ -1547,9 +1555,16 @@ function richPara(doc, p, segments) {
 
 function footer(doc, p, r, options = {}) {
   const y = options.compact ? Math.min(Math.max(p.y + 10, 224), 246) : 250;
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Place:', 24, y);
+  const placeLabelWidth = doc.getTextWidth('Place:');
   doc.setFont(PDF_FONT, 'normal');
-  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 24, y);
-  doc.text(`Place: ${r.place || '__________'}`, 24, y + 8);
+  doc.text(r.place || '__________', 24 + placeLabelWidth + 2, y);
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Date:', 24, y + 5);
+  const dateLabelWidth = doc.getTextWidth('Date:');
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(fmtDate(r.date) || '__________', 24 + dateLabelWidth + 2, y + 5);
   signatureRight(doc, y, seedSignatureLines(r.designation));
 }
 
@@ -1560,7 +1575,10 @@ function seedSignatureLines(designation, firstLine = 'Seed Inspector/') {
 function signatureRight(doc, y, label) {
   doc.setFont(PDF_FONT, 'bold');
   const labelLines = Array.isArray(label) ? label : [label];
-  doc.text(['Signature', ...labelLines], 162, y, { align: 'center' });
+  const lines = ['Signature', ...labelLines];
+  lines.forEach((line, i) => {
+    doc.text(line, 162, y + i * 5, { align: 'center' });
+  });
   doc.setFont(PDF_FONT, 'normal');
 }
 

@@ -597,12 +597,21 @@ function drawPlaceDateAndInspectorSignature(
 
   const { doc } = cursor;
   if (options.showPlaceDate) {
-    doc.setFont(PDF_FONT, 'normal');
     // Use placeOfCollection when ADA is selected, otherwise use place
     const isADA = isAssistantDirectorOfAgriculture(values.designation);
     const resolvedPlace = isADA ? (values.placeOfCollection || values.place) : values.place;
-    doc.text(`Place: ${resolvedPlace || '___________'}`, PAGE.marginX, cursor.y);
-    doc.text(`Date: ${formatFieldValue(values.date) || '____________'}`, PAGE.marginX, cursor.y + 8);
+    const placeValue = resolvedPlace || '___________';
+    const dateValue = formatFieldValue(values.date) || '____________';
+    doc.setFont(PDF_FONT, 'bold');
+    doc.text('Place:', PAGE.marginX, cursor.y);
+    const placeLabelWidth = doc.getTextWidth('Place:');
+    doc.setFont(PDF_FONT, 'normal');
+    doc.text(placeValue, PAGE.marginX + placeLabelWidth + 2, cursor.y);
+    doc.setFont(PDF_FONT, 'bold');
+    doc.text('Date:', PAGE.marginX, cursor.y + 5);
+    const dateLabelWidth = doc.getTextWidth('Date:');
+    doc.setFont(PDF_FONT, 'normal');
+    doc.text(dateValue, PAGE.marginX + dateLabelWidth + 2, cursor.y + 5);
   }
   doc.setFont(PDF_FONT, 'bold');
   doc.text(

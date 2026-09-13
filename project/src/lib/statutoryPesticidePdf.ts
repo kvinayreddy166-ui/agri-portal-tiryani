@@ -578,8 +578,7 @@ function drawFormVD(cursor: PdfCursor, values: PesticidePdfValues) {
   ]);
   cursor.y += 8;
   cursor.y += 18;
-  signatureLine(cursor, `Date: ${formatDate(values.sampleDrawnDate)}`, 'Insecticide Inspector');
-  cursor.y += 1;
+  signatureLineMixed(cursor, [{ label: 'Date:', value: formatDate(values.sampleDrawnDate) }], 'Insecticide Inspector');
   cursor.doc.text('(Signature & seal)', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
   cursor.y += LINE_HEIGHT;
 }
@@ -605,8 +604,10 @@ function drawFormVE(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.y += 5;
   cursor.y = Math.max(cursor.y + 12, 216);
   const resolvedMandal = sampleMandal(values);
-  signatureLine(cursor, `Place: ${resolvedMandal || '________________'}\nDate: ${formatDate(values.sampleDrawnDate)}`, 'Insecticide Inspector');
-  cursor.y += 1;
+  signatureLineMixed(cursor, [
+    { label: 'Place:', value: resolvedMandal || '________________' },
+    { label: 'Date:', value: formatDate(values.sampleDrawnDate) },
+  ], 'Insecticide Inspector');
   cursor.doc.text('(Signature & seal)', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
   cursor.y += LINE_HEIGHT;
 }
@@ -725,8 +726,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
     ['14. Any other relevant information', values.otherInformation],
   ], 82);
   cursor.y += 3;
-  const resolvedMandal = sampleMandal(values);
-  signatureLine(cursor, `Place: ${resolvedMandal || '________________'}`, 'Insecticide Inspector Seal');
+  signatureLineMixed(cursor, [{ label: 'Date:', value: formatDate(values.sampleDrawnDate) }], 'Insecticide Inspector Seal');
   cursor.y += 2;
   cursor.y += 3;
   const witness1Label = '1. Signature of witness:';
@@ -1048,6 +1048,22 @@ function signatureLine(cursor: PdfCursor, left: string, right: string) {
   cursor.doc.setFont(PDF_FONT, 'bold');
   cursor.doc.text(left, PAGE.marginX, cursor.y);
   cursor.doc.text(right, PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
+  cursor.doc.setFont(PDF_FONT, 'normal');
+  cursor.y += LINE_HEIGHT;
+}
+
+function signatureLineMixed(cursor: PdfCursor, leftLines: { label: string; value: string }[], right: string) {
+  ensure(cursor, LINE_HEIGHT * 2, true);
+  cursor.doc.setFont(PDF_FONT, 'bold');
+  cursor.doc.text(right, PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
+  leftLines.forEach((line, i) => {
+    const y = cursor.y + i * LINE_HEIGHT;
+    cursor.doc.setFont(PDF_FONT, 'bold');
+    cursor.doc.text(line.label, PAGE.marginX, y);
+    const labelWidth = cursor.doc.getTextWidth(line.label);
+    cursor.doc.setFont(PDF_FONT, 'normal');
+    cursor.doc.text(line.value, PAGE.marginX + labelWidth + 2, y);
+  });
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.y += LINE_HEIGHT;
 }

@@ -14,6 +14,30 @@ declare global {
 
 installPwaRecovery();
 
+// Lock orientation to portrait in installed PWA so the app does not rotate
+// even when the device's auto-rotation toggle is off.
+try {
+  const lockOrientation = () => {
+    try {
+      void screen.orientation.lock('portrait');
+    } catch {
+      // lock() requires fullscreen and may reject in browsers — ignore.
+    }
+  };
+  if (screen.orientation && typeof screen.orientation.lock === 'function') {
+    // Some browsers require fullscreen before orientation.lock() succeeds.
+    if (document.fullscreenElement) {
+      lockOrientation();
+    } else {
+      document.addEventListener('fullscreenchange', lockOrientation, { once: true });
+    }
+    // Re-apply on orientation change (e.g. user rotates then returns).
+    screen.orientation.addEventListener?.('change', lockOrientation);
+  }
+} catch {
+  // Orientation lock is best-effort only.
+}
+
 try {
   window.sessionStorage.removeItem('tiryani-startup-recovery-v1');
   window.sessionStorage.removeItem('tiryani-startup-recovery-v2');
