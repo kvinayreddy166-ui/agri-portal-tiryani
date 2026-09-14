@@ -169,19 +169,4 @@ export const officerWorkflows: OfficerWorkflow[] = [
       'Follow prosecution/suspension procedure after report',
     ],
   },
-  {
-    id: 'sampling-workflow',
-    title: 'Sampling Workflow',
-    steps: [
-      'Select product/lot/batch',
-      'Draw sample as per prescribed procedure',
-      'Mention exact verified rule/schedule/form for sampling',
-      'Divide sample into required parts',
-      'Seal, sign and label samples',
-      'Give one sample/copy to dealer where required',
-      'Send sample to notified lab within prescribed time',
-      'Maintain sample dispatch register',
-      'Communicate lab result within prescribed time',
-    ],
-  },
 ];

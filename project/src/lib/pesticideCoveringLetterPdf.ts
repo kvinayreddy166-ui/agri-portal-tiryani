@@ -419,18 +419,18 @@ function drawReference(cursor: PdfCursor, metadata: PesticideCoveringLetterMetad
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
   doc.text('Ref:', PAGE.marginLeft, cursor.y);
-  cursor.y += LINE_HEIGHT;
-  
+  const refIndent = PAGE.marginLeft + doc.getTextWidth('Ref: ');
+
   doc.setFont(PDF_FONT, 'normal');
-  const ref1 = '1. C&DA, TS, Hyd Memo No. PP/34/2026-27, Dt. 21.05.2026.';
-  doc.text(ref1, PAGE.marginLeft + 5, cursor.y);
+  const ref1 = '1) C&DA, TS, Hyd Memo No. PP/34/2026-27, Dt. 21.05.2026.';
+  doc.text(ref1, refIndent, cursor.y);
   cursor.y += LINE_HEIGHT;
-  
+
   const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict;
-  const ref2Text = `2. DAO ${displayValue(district)} Memo No. ${displayValue(metadata.daoMemoNumber)}, Dt. ${displayValue(formatDate(metadata.daoMemoDate))}.`;
-  
+  const ref2Text = `2) DAO ${displayValue(district)} Memo No. ${displayValue(metadata.daoMemoNumber)}, Dt. ${displayValue(formatDate(metadata.daoMemoDate))}.`;
+
   doc.setFont(PDF_FONT, 'normal');
-  doc.text(ref2Text, PAGE.marginLeft + 5, cursor.y);
+  doc.text(ref2Text, refIndent, cursor.y);
   
   cursor.y += LINE_HEIGHT + 1;
 }
@@ -561,9 +561,15 @@ function drawClosing(cursor: PdfCursor) {
   doc.setLineHeightFactor(LINE_HEIGHTS.body);
   
   const closingText = 'Hence, I request the kind authority to arrange for quality analysis and communicate the results to the above address at an early date.';
-  const splitClosing = doc.splitTextToSize(closingText, PAGE.contentWidth);
-  doc.text(splitClosing, PAGE.marginLeft, cursor.y);
-  cursor.y += (splitClosing.length * LINE_HEIGHT) + PARAGRAPH_SPACING;
+  const firstLineIndent = 12;
+  const firstLine = doc.splitTextToSize(closingText, PAGE.contentWidth - firstLineIndent)[0];
+  const restText = closingText.slice(firstLine.length).trim();
+  const restLines = restText ? doc.splitTextToSize(restText, PAGE.contentWidth) : [];
+  doc.text(firstLine, PAGE.marginLeft + firstLineIndent, cursor.y);
+  if (restLines.length) {
+    doc.text(restLines, PAGE.marginLeft, cursor.y + LINE_HEIGHT);
+  }
+  cursor.y += ((1 + restLines.length) * LINE_HEIGHT) + PARAGRAPH_SPACING;
   
   doc.text('Thanking you.', PAGE.width / 2, cursor.y, { align: 'center' });
   cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;

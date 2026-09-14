@@ -281,6 +281,35 @@ export function FertilizerDealerInspection() {
     return { opening, receipt, total: opening + receipt, sales, closing: opening + receipt - sales };
   }, [form.salesRows]);
 
+  const summary = useMemo(() => {
+    const statusFields: StatusField[] = [
+      form.premisesSameAsLicence, form.groundBalance, form.stockRegisterInvoices, form.licenceNoOnInvoices,
+      form.purchasesFromApprovedSources, form.priceListExhibited, form.billsIssuedWithBatch,
+      form.stocksStoredAsPerAct, form.reportsSubmitted,
+    ];
+    const toggles: Status[] = [form.showCauseIssued, form.licenceSuspended];
+    const textDone = [form.inspectionDate, form.dealerName, form.licenceNo || form.salePointAddress || form.storagePointAddress, form.contactNumber, form.mfmsId, form.eCompanyName, form.qrCodeNo, form.paymentAggregator, form.vpa].filter((v) => v.trim()).length;
+    const statusDone = statusFields.filter((f) => f.status !== '').length;
+    const toggleDone = toggles.filter((s) => s !== '').length;
+    const stockDone = form.stockRows.length ? 1 : 0;
+    const ureaDone = [form.ureaEposQty, form.ureaGroundQty].filter((v) => v.trim()).length;
+    const samplesDone = form.sampleRows.length ? 1 : 0;
+    const reasonsDone = form.licenceSuspended !== 'yes' || form.suspensionReasons.trim() ? 1 : 0;
+    const all = [...statusFields.map((f) => f.status), ...toggles];
+    return {
+      total: 25,
+      completed: textDone + statusDone + toggleDone + stockDone + ureaDone + samplesDone + reasonsDone,
+      yes: all.filter((s) => s === 'yes').length,
+      no: all.filter((s) => s === 'no').length,
+      na: all.filter((s) => s === 'na').length,
+      stockItems: form.stockRows.length,
+      discrepancies: form.discrepancyRows.length,
+      invoices: form.purchaseInvoiceRows.length,
+      samples: form.sampleRows.length,
+      notices: form.showCauseRows.length,
+    };
+  }, [form]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 dark:from-slate-950 dark:via-blue-950 dark:to-cyan-950">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
@@ -312,7 +341,7 @@ export function FertilizerDealerInspection() {
         <div className="mb-5 grid grid-cols-3 gap-3">
           <InspectionTypeCard icon={Sprout} label="Seed" tone="emerald" onClick={() => navigate('/officer-toolkit/seed-dealer-inspection')} />
           <InspectionTypeCard icon={FlaskConical} label="Fertilizer" tone="sky" active />
-          <InspectionTypeCard icon={Bug} label="Pesticide" tone="rose" />
+          <InspectionTypeCard icon={Bug} label="Pesticide" tone="rose" onClick={() => navigate('/officer-toolkit/insecticide-dealer-inspection')} />
         </div>
 
         <div className="mb-3 flex flex-wrap gap-2">
@@ -578,6 +607,22 @@ export function FertilizerDealerInspection() {
 
         </div>
 
+        <div className="mt-5 rounded-2xl border border-sky-200/60 bg-white/90 p-3 shadow-md dark:border-sky-800/50 dark:bg-slate-900/80">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-sky-800">Inspection summary</p>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+            <SummaryChip label="Total items" value={summary.total} />
+            <SummaryChip label="Completed" value={summary.completed} />
+            <SummaryChip label="Yes" value={summary.yes} />
+            <SummaryChip label="No" value={summary.no} />
+            <SummaryChip label="N/A" value={summary.na} />
+            <SummaryChip label="Stock items" value={summary.stockItems} />
+            <SummaryChip label="Discrepancies" value={summary.discrepancies} />
+            <SummaryChip label="Invoices" value={summary.invoices} />
+            <SummaryChip label="Samples" value={summary.samples} />
+            <SummaryChip label="Notices" value={summary.notices} />
+          </div>
+        </div>
+
         <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
           <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
           <ActionButton onClick={generatePdf} icon={Download} tone="sky">PDF</ActionButton>
@@ -719,6 +764,15 @@ function InspectionTypeCard({ icon: Icon, label, tone, active = false, onClick }
       </span>
       <span className="text-sm font-bold">{label}</span>
     </button>
+  );
+}
+
+function SummaryChip({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-2 py-1.5 text-center dark:border-sky-900/50 dark:bg-sky-950/20">
+      <p className="text-sm font-black text-sky-700 dark:text-sky-300">{value}</p>
+      <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
+    </div>
   );
 }
 

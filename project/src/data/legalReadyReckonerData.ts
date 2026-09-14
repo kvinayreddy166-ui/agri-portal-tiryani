@@ -412,7 +412,7 @@ export const legalReadyReckonerEntries: LegalReadyReckonerEntry[] = [
   {
     id: 'forms-schedules-starter',
     category: 'Show Cause Notice',
-    lawName: 'FCO / Insecticides Rules / Seeds Rules',
+    lawName: 'Insecticides Rules / Seeds Rules',
     referenceNumber: 'Forms and Schedules',
     referenceType: 'form',
     nestedReference: { actOrOrder: 'Multiple input laws' },

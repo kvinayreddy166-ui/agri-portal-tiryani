@@ -249,6 +249,34 @@ export function SeedDealerInspection() {
 
   const checkedMajorDefects = useMemo(() => form.majorDefects.filter((d) => d.checked).length, [form.majorDefects]);
 
+  const summary = useMemo(() => {
+    const statusFields: StatusField[] = [
+      form.premisesSameAsLicence, form.premisesSuitable, form.stockPriceBoard, form.stockRegisterMaintained,
+      form.groundBalance, form.containersLabelled, form.arrivalInformed, form.formDSubmitted,
+      form.licenceOnInvoices, form.billsIssued, form.purchaseAuthorized,
+    ];
+    const toggles: Status[] = [form.detentionMade, form.stockSeized];
+    const textDone = [form.inspectionDate, form.dealerName, form.storagePlace || form.salePlace, form.licenceNo].filter((v) => v.trim()).length;
+    const statusDone = statusFields.filter((f) => f.status !== '').length;
+    const toggleDone = toggles.filter((s) => s !== '').length;
+    const rectifiableDone = form.rectifiableDefects.some((d) => d.checked) ? 1 : 0;
+    const majorDone = checkedMajorDefects ? 1 : 0;
+    const samplesDone = form.samples.length ? 1 : 0;
+    const all = [...statusFields.map((f) => f.status), ...toggles];
+    return {
+      total: 20,
+      completed: textDone + statusDone + toggleDone + rectifiableDone + majorDone + samplesDone,
+      yes: all.filter((s) => s === 'yes').length,
+      no: all.filter((s) => s === 'no').length,
+      na: all.filter((s) => s === 'na').length,
+      variations: form.groundBalanceRows.length,
+      detained: form.detentions.length,
+      offences: checkedMajorDefects,
+      seized: form.seizures.length,
+      samples: form.samples.length,
+    };
+  }, [form, checkedMajorDefects]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
@@ -280,7 +308,7 @@ export function SeedDealerInspection() {
         <div className="mb-5 grid grid-cols-3 gap-3">
           <InspectionTypeCard icon={Sprout} label="Seed" tone="emerald" active />
           <InspectionTypeCard icon={FlaskConical} label="Fertilizer" tone="amber" onClick={() => navigate('/officer-toolkit/fertilizer-dealer-inspection')} />
-          <InspectionTypeCard icon={Bug} label="Pesticide" tone="rose" />
+          <InspectionTypeCard icon={Bug} label="Pesticide" tone="rose" onClick={() => navigate('/officer-toolkit/insecticide-dealer-inspection')} />
         </div>
 
         <div className="mb-3 flex flex-wrap gap-2">
@@ -476,6 +504,22 @@ export function SeedDealerInspection() {
           </Section>
         </div>
 
+        <div className="mt-5 rounded-2xl border border-emerald-200/60 bg-white/90 p-3 shadow-md dark:border-emerald-800/50 dark:bg-slate-900/80">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-emerald-800">Inspection summary</p>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+            <SummaryChip label="Total items" value={summary.total} />
+            <SummaryChip label="Completed" value={summary.completed} />
+            <SummaryChip label="Yes" value={summary.yes} />
+            <SummaryChip label="No" value={summary.no} />
+            <SummaryChip label="N/A" value={summary.na} />
+            <SummaryChip label="Variations" value={summary.variations} />
+            <SummaryChip label="Detained" value={summary.detained} />
+            <SummaryChip label="Offences" value={summary.offences} />
+            <SummaryChip label="Seized" value={summary.seized} />
+            <SummaryChip label="Samples" value={summary.samples} />
+          </div>
+        </div>
+
         <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
           <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
           <ActionButton onClick={generatePdf} icon={Download} tone="emerald">PDF</ActionButton>
@@ -631,6 +675,15 @@ function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarks
           <input value={field.remarks} onChange={(e) => onChange({ remarks: e.target.value })} placeholder={remarksLabel} className={`${inputClass} sm:flex-1`} />
         )}
       </div>
+    </div>
+  );
+}
+
+function SummaryChip({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-2 py-1.5 text-center dark:border-emerald-900/50 dark:bg-emerald-950/20">
+      <p className="text-sm font-black text-emerald-700 dark:text-emerald-300">{value}</p>
+      <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
     </div>
   );
 }

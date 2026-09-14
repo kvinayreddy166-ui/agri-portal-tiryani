@@ -50,7 +50,7 @@ export const noticeCategoryConfigs: NoticeCategoryConfig[] = [
   {
     category: 'fertiliser',
     tabLabel: 'Fertiliser',
-    title: 'Show Cause Notice Entry (Tiryani)',
+    title: 'Show Cause Notice Entry',
     heading: 'Violations: FCO 1985 Clause Descriptions',
     dealerLabel: 'Select Dealer',
     memoPrefix: 'Frt/1',
@@ -69,7 +69,7 @@ export const noticeCategoryConfigs: NoticeCategoryConfig[] = [
   {
     category: 'seed',
     tabLabel: 'Seed',
-    title: 'Show Cause Notice: Seeds (Control) Order (Tiryani)',
+    title: 'Show Cause Notice: Seeds (Control) Order',
     heading: 'Violations: Seeds (Control) Order 1983 & Act 1966',
     dealerLabel: 'Select Seed Dealer',
     memoPrefix: 'Seed/1',
@@ -88,7 +88,7 @@ export const noticeCategoryConfigs: NoticeCategoryConfig[] = [
   {
     category: 'pesticide',
     tabLabel: 'Pesticide',
-    title: 'Show Cause Notice: Insecticides Act & Rules (Tiryani)',
+    title: 'Show Cause Notice: Insecticides Act & Rules',
     heading: 'Violations: Insecticides Act 1968 & Rules 1971',
     dealerLabel: 'Select Pesticide Dealer',
     memoPrefix: 'Pest/1',

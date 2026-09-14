@@ -44,6 +44,7 @@ const OfficerContactsAdmin = lazy(() => import('./pages/admin/OfficerContactsAdm
 const TourDiary = lazy(() => import('./pages/TourDiary').then((m) => ({ default: m.TourDiary })));
 const SeedDealerInspection = lazy(() => import('./pages/SeedDealerInspection').then((m) => ({ default: m.SeedDealerInspection })));
 const FertilizerDealerInspection = lazy(() => import('./pages/FertilizerDealerInspection').then((m) => ({ default: m.FertilizerDealerInspection })));
+const InsecticideDealerInspection = lazy(() => import('./pages/InsecticideDealerInspection').then((m) => ({ default: m.InsecticideDealerInspection })));
 const CropManagement = lazy(() => import('./pages/CropManagement').then((m) => ({ default: m.CropManagement })));
 const CropAdminDashboard = lazy(() => import('./pages/admin/CropAdminDashboard').then((m) => ({ default: m.CropAdminDashboard })));
 const CropPage = lazy(() => import('./pages/CropPage').then((m) => ({ default: m.CropPage })));
@@ -255,6 +256,7 @@ const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/tour-diary',
   '/officer-toolkit/seed-dealer-inspection',
   '/officer-toolkit/fertilizer-dealer-inspection',
+  '/officer-toolkit/insecticide-dealer-inspection',
 ]);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
@@ -292,6 +294,7 @@ const PAGE_PATHS: Record<string, string> = {
   'tour-diary': '/officer-toolkit/tour-diary',
   'seed-dealer-inspection': '/officer-toolkit/seed-dealer-inspection',
   'fertilizer-dealer-inspection': '/officer-toolkit/fertilizer-dealer-inspection',
+  'insecticide-dealer-inspection': '/officer-toolkit/insecticide-dealer-inspection',
   analytics: '/analytics',
   settings: '/settings',
   knowledge: '/knowledge',
@@ -568,6 +571,7 @@ function AppContent() {
         'tour-diary',
         'seed-dealer-inspection',
         'fertilizer-dealer-inspection',
+        'insecticide-dealer-inspection',
         'analytics',
         'settings',
         'knowledge',
@@ -632,6 +636,9 @@ function AppContent() {
       }
       if (page === 'officer-toolkit/fertilizer-dealer-inspection') {
         page = 'fertilizer-dealer-inspection';
+      }
+      if (page === 'officer-toolkit/insecticide-dealer-inspection') {
+        page = 'insecticide-dealer-inspection';
       }
 
       if (page === 'knowledge/library') page = 'knowledge-library';
@@ -893,6 +900,14 @@ function AppContent() {
     );
   }
 
+  if (!user && currentPage === 'insecticide-dealer-inspection') {
+    return (
+      <SafeSuspense fallback={<GlobalAppLoader />}>
+        <InsecticideDealerInspection />
+      </SafeSuspense>
+    );
+  }
+
   // Removed fallback loader for unknown officer-toolkit routes
   // All officer-toolkit routes should be handled by PUBLIC_AUTH_ROUTES
 
@@ -1002,6 +1017,8 @@ function AppContent() {
         return <SeedDealerInspection />;
       case 'fertilizer-dealer-inspection':
         return <FertilizerDealerInspection />;
+      case 'insecticide-dealer-inspection':
+        return <InsecticideDealerInspection />;
       case 'analytics':
         return <Analytics />;
       case 'settings':

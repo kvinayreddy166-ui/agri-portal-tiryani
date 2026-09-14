@@ -378,6 +378,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'legal-ready-reckoner': { title: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు'), breadcrumbs: [dashboard, toolkit] },
     'seed-dealer-inspection': { title: t('Inspections', 'తనిఖీలు'), breadcrumbs: [dashboard, toolkit] },
     'fertilizer-dealer-inspection': { title: t('Fertilizer inspection', 'ఎరువుల తనిఖీ'), breadcrumbs: [dashboard, toolkit] },
+    'insecticide-dealer-inspection': { title: t('Insecticide inspection', 'పురుగుమందుల తనిఖీ'), breadcrumbs: [dashboard, toolkit] },
     'gos-circulars': { title: t('GOs & Circulars', 'జి.ఓ.లు & సర్క్యులర్లు'), breadcrumbs: [dashboard] },
     quality: { title: t('Quality Control', 'నాణ్యత నియంత్రణ'), breadcrumbs: [dashboard] },
     'farm-mechanization': { title: t('Farm Mechanization', 'వ్యవసాయ యాంత్రీకరణ'), breadcrumbs: [dashboard] },

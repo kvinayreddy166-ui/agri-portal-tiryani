@@ -45,11 +45,6 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 const recommendedActions: RecommendedAction[] = [
   'show cause',
-  'stop sale',
-  'seizure',
-  'suspension',
-  'cancellation',
-  'prosecution',
 ];
 
 const dealerOptions = ['Select dealer from records', 'Sri Lakshmi Agro Agencies', 'Tiryani Farmers Service Centre', 'Rythu Seeds & Pesticides'];
@@ -135,8 +130,8 @@ ${form.officerDesignation || ''}
 Copy submitted to the higher authority for information where required.`;
 }
 
-export function ShowCauseNoticeEntry() {
-  const [form, setForm] = useState<NoticeFormState>(() => makeInitialForm('fertiliser'));
+export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: NoticeCategory } = {}) {
+  const [form, setForm] = useState<NoticeFormState>(() => makeInitialForm(lockedCategory ?? 'fertiliser'));
   const [savedNotices, setSavedNotices] = useState<SavedNotice[]>(() => readSavedNotices());
   const [savedSearch, setSavedSearch] = useState('');
   const previewRef = useRef<HTMLDivElement>(null);
@@ -153,15 +148,16 @@ export function ShowCauseNoticeEntry() {
   const noticeText = useMemo(() => buildNoticeText(form, selectedViolations), [form, selectedViolations]);
 
   const filteredSaved = useMemo(() => {
+    const scoped = lockedCategory ? savedNotices.filter((notice) => notice.category === lockedCategory) : savedNotices;
     const term = savedSearch.trim().toLowerCase();
-    if (!term) return savedNotices;
-    return savedNotices.filter((notice) =>
+    if (!term) return scoped;
+    return scoped.filter((notice) =>
       [notice.memoNumber, notice.dealerName, notice.firmName, notice.category, notice.inspectionDate, notice.status]
         .join(' ')
         .toLowerCase()
         .includes(term)
     );
-  }, [savedNotices, savedSearch]);
+  }, [savedNotices, savedSearch, lockedCategory]);
 
   useEffect(() => {
     writeSavedNotices(savedNotices);
@@ -277,6 +273,7 @@ export function ShowCauseNoticeEntry() {
         </div>
 
         <div className="space-y-4 p-4">
+          {!lockedCategory && (
           <div className="inline-flex flex-wrap rounded-lg border border-white bg-white p-1 shadow-sm">
             {noticeCategoryConfigs.map((item) => (
               <button
@@ -291,6 +288,7 @@ export function ShowCauseNoticeEntry() {
               </button>
             ))}
           </div>
+          )}
 
           <div className="grid gap-3 md:grid-cols-4">
             <label className="block">
