@@ -322,7 +322,7 @@ export function FertilizerDealerInspection() {
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-sky-800">Fertilizer inspection</p>
-                <h1 className="text-lg font-black text-sky-900 sm:text-xl">Inspection proforma of fertilizer dealer</h1>
+                <h1 className="text-lg font-black text-sky-900 sm:text-xl">Fertilizer dealer inspection form</h1>
               </div>
             </div>
             <button
@@ -928,7 +928,7 @@ function buildPdf(form: InspectionForm) {
 
   doc.setFont('times', 'bold');
   doc.setFontSize(12);
-  const fertTitle = 'Inspection proforma of fertilizer dealer';
+  const fertTitle = 'Fertilizer dealer inspection report';
   doc.text(fertTitle, pageWidth / 2, 16, { align: 'center' });
   const fertTitleWidth = doc.getTextWidth(fertTitle);
   doc.setLineWidth(0.4);
@@ -968,19 +968,30 @@ function buildPdf(form: InspectionForm) {
     y = (doc as any).lastAutoTable.finalY;
   }
 
-  if (y + 30 > bottom) {
+  if (y + 45 > bottom) {
     doc.addPage();
     y = 16;
   }
   const signatureY = y + 22;
   doc.setFont('times', 'bold');
   doc.setFontSize(9.5);
-  doc.text('Signature of dealer and seal', margin, signatureY);
-  doc.text('Signature of fertilizer inspector and seal', pageWidth - margin, signatureY, { align: 'right' });
+  const dealerLabel = 'Signature of dealer and seal';
+  doc.text(dealerLabel, margin, signatureY);
+  const dealerCenterX = margin + doc.getTextWidth(dealerLabel) / 2;
+  const signatureLabel = 'Signature of fertilizer inspector and seal';
+  doc.text(signatureLabel, pageWidth - margin, signatureY, { align: 'right' });
+  const signatureCenterX = pageWidth - margin - doc.getTextWidth(signatureLabel) / 2;
   doc.setFont('times', 'normal');
   doc.setFontSize(9);
   doc.setFont('times', 'italic');
-  if (form.dealerName.trim()) doc.text(`(${form.dealerName.trim()})`, margin, signatureY + 5);
+  if (form.dealerName.trim()) doc.text(`(${form.dealerName.trim()})`, dealerCenterX, signatureY + 5, { align: 'center' });
+  [
+    form.inspectorName.trim() ? `(${form.inspectorName.trim()})` : '',
+    form.inspectorDesignation.split('&')[0].trim(),
+    form.inspectorOffice.trim(),
+  ]
+    .filter(Boolean)
+    .forEach((line, i) => doc.text(line, signatureCenterX, signatureY + 5 + i * 4, { align: 'center' }));
 
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
@@ -998,7 +1009,7 @@ function Preview({ form, ureaDifference, salesTotals }: { form: InspectionForm; 
   const { items, subTables } = buildRows(form, ureaDifference, salesTotals);
   return (
     <div className="text-slate-900">
-      <h3 className="mb-3 text-center text-base font-black">Inspection proforma of fertilizer dealer</h3>
+      <h3 className="mb-3 text-center text-base font-black">Fertilizer dealer inspection report</h3>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse border border-slate-400 text-xs">
           <thead>
@@ -1037,12 +1048,19 @@ function Preview({ form, ureaDifference, salesTotals }: { form: InspectionForm; 
         </div>
       ))}
       <div className="mt-8 flex justify-between text-xs font-bold">
-        <div>
+        <div className="text-center">
           <p>Signature of dealer and seal</p>
-          <p className="font-semibold">{form.dealerName}</p>
+          {form.dealerName.trim() && <p className="font-normal italic">({form.dealerName.trim()})</p>}
         </div>
-        <div className="text-right">
+        <div className="text-center">
           <p>Signature of fertilizer inspector and seal</p>
+          {[
+            form.inspectorName.trim() ? `(${form.inspectorName.trim()})` : '',
+            form.inspectorDesignation.split('&')[0].trim(),
+            form.inspectorOffice.trim(),
+          ].filter(Boolean).map((line) => (
+            <p key={line} className="font-normal italic">{line}</p>
+          ))}
         </div>
       </div>
     </div>

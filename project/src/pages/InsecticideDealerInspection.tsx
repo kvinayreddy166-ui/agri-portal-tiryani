@@ -260,8 +260,8 @@ export function InsecticideDealerInspection() {
                 <ClipboardCheck className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#9F1239]">Inspection and compliance monitoring</p>
-                <h1 className="text-lg font-black text-[#881337] sm:text-xl">Insecticide dealer inspection</h1>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#9F1239]">Insecticide inspection</p>
+                <h1 className="text-lg font-black text-[#881337] sm:text-xl">Pesticide dealer inspection form</h1>
               </div>
             </div>
             <button
@@ -849,20 +849,30 @@ function buildPdf(form: InspectionForm) {
     y = (doc as any).lastAutoTable.finalY;
   }
 
-  if (y + 30 > bottom) {
+  if (y + 45 > bottom) {
     doc.addPage();
     y = 16;
   }
   const signatureY = y + 22;
   doc.setFont('times', 'bold');
   doc.setFontSize(9.5);
-  doc.text('Signature of dealer', margin, signatureY);
-  doc.text('Signature of inspecting officer', pageWidth - margin, signatureY, { align: 'right' });
+  const dealerLabel = 'Signature of dealer';
+  doc.text(dealerLabel, margin, signatureY);
+  const dealerCenterX = margin + doc.getTextWidth(dealerLabel) / 2;
+  const signatureLabel = 'Signature of Insecticide Inspector';
+  doc.text(signatureLabel, pageWidth - margin, signatureY, { align: 'right' });
+  const signatureCenterX = pageWidth - margin - doc.getTextWidth(signatureLabel) / 2;
   doc.setFont('times', 'normal');
   doc.setFontSize(9);
   doc.setFont('times', 'italic');
-  if (form.dealerName.trim()) doc.text(`(${form.dealerName.trim()})`, margin, signatureY + 5);
-  if (form.inspectorDesignation.trim()) doc.text(`(${form.inspectorDesignation.trim()})`, pageWidth - margin, signatureY + 5, { align: 'right' });
+  if (form.dealerName.trim()) doc.text(`(${form.dealerName.trim()})`, dealerCenterX, signatureY + 5, { align: 'center' });
+  [
+    form.inspectorName.trim() ? `(${form.inspectorName.trim()})` : '',
+    form.inspectorDesignation.split('&')[0].trim(),
+    form.inspectorOffice.trim(),
+  ]
+    .filter(Boolean)
+    .forEach((line, i) => doc.text(line, signatureCenterX, signatureY + 5 + i * 4, { align: 'center' }));
 
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
@@ -919,13 +929,19 @@ function Preview({ form }: { form: InspectionForm }) {
         </div>
       ))}
       <div className="mt-8 flex justify-between text-xs font-bold">
-        <div>
+        <div className="text-center">
           <p>Signature of dealer</p>
-          <p className="font-semibold">{form.dealerName}</p>
+          {form.dealerName.trim() && <p className="font-normal italic">({form.dealerName.trim()})</p>}
         </div>
-        <div className="text-right">
-          <p>Signature of inspecting officer</p>
-          <p className="font-semibold">{form.inspectorDesignation}</p>
+        <div className="text-center">
+          <p>Signature of Insecticide Inspector</p>
+          {[
+            form.inspectorName.trim() ? `(${form.inspectorName.trim()})` : '',
+            form.inspectorDesignation.split('&')[0].trim(),
+            form.inspectorOffice.trim(),
+          ].filter(Boolean).map((line) => (
+            <p key={line} className="font-normal italic">{line}</p>
+          ))}
         </div>
       </div>
     </div>

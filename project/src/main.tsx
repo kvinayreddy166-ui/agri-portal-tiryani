@@ -17,20 +17,22 @@ installPwaRecovery();
 // Lock orientation to portrait in installed PWA so the app does not rotate
 // even when the device's auto-rotation toggle is off.
 try {
+  const orientationApi = screen.orientation as ScreenOrientation & { lock?: (orientation: string) => Promise<void> };
   const lockOrientation = () => {
     try {
-      void screen.orientation.lock('portrait');
+      void orientationApi.lock?.('portrait')?.catch(() => {});
     } catch {
       // lock() requires fullscreen and may reject in browsers — ignore.
     }
   };
-  if (screen.orientation && typeof screen.orientation.lock === 'function') {
+  if (orientationApi && typeof orientationApi.lock === 'function') {
+    // Try immediately — installed PWAs may honour the lock without fullscreen.
+    lockOrientation();
     // Some browsers require fullscreen before orientation.lock() succeeds.
-    if (document.fullscreenElement) {
-      lockOrientation();
-    } else {
-      document.addEventListener('fullscreenchange', lockOrientation, { once: true });
-    }
+    document.addEventListener('fullscreenchange', lockOrientation);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) lockOrientation();
+    });
     // Re-apply on orientation change (e.g. user rotates then returns).
     screen.orientation.addEventListener?.('change', lockOrientation);
   }

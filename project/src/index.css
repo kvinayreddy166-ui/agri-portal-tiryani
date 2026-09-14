@@ -581,6 +581,29 @@ button {
   }
 }
 
+/* Force portrait: rotate the app back when a phone-sized screen is in
+   landscape. Desktop/tablet windows (taller than 600px) are unaffected. */
+@media screen and (orientation: landscape) and (max-height: 600px) {
+  html,
+  body {
+    overflow: hidden;
+    height: 100%;
+  }
+
+  #root {
+    position: fixed;
+    top: 100%;
+    left: 0;
+    width: 100vh;
+    height: 100vw;
+    transform: rotate(-90deg);
+    transform-origin: left top;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .dark input,
 .dark select,
 .dark textarea {
