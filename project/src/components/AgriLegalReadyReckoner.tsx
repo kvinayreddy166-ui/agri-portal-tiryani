@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  AlertTriangle,
+  ArrowRight,
   Bookmark,
   BookmarkCheck,
   BookOpen,
   ChevronDown,
+  Clock,
   Copy,
   Download,
   FileSearch,
@@ -12,6 +15,7 @@ import {
   ClipboardList,
   FlaskConical,
   IndianRupee,
+  ListOrdered,
   Microscope,
   PackageCheck,
   Printer,
@@ -41,6 +45,13 @@ type FertilizerSection = 'clauses' | 'forms' | 'schedules' | 'officer';
 type OfficerCornerAction = 'offences' | 'stop-sale' | 'show-cause';
 
 const BOOKMARK_KEY = 'agri-legal-reckoner-bookmarks';
+
+const fcoClauseLocationByNo = new Map<string, { clauseId: string; cardId: string }>();
+fcoClauseCards.forEach((card) => {
+  card.clauses.forEach((clause) => {
+    fcoClauseLocationByNo.set(clause.clauseNo.toLowerCase(), { clauseId: clause.id, cardId: card.id });
+  });
+});
 const legalAreaCards: Array<{
   id: MainLegalArea;
   title: string;
@@ -143,7 +154,7 @@ function normalizeFcoReferenceQuery(value: string) {
 }
 
 function isFcoExactReferenceQuery(value: string) {
-  return /^(clause\s*)?\d+[a-z]?(?:\(\d+[a-z]?\))*$/i.test(value.trim());
+  return /^(clause\s*)?\d+[a-z]*(?:\(\d+[a-z]*\))*$/i.test(value.trim());
 }
 
 function fcoClauseMatchesQuery(clause: FcoClause, rawTerm: string) {
@@ -315,25 +326,27 @@ export function AgriLegalReadyReckoner() {
 
   return (
     <div className="space-y-4">
+      {!selectedFcoCardId && (
       <section className="overflow-hidden rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-700 via-green-700 to-teal-800 p-4 text-white shadow-sm dark:border-emerald-900 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
-              <Scale className="h-6 w-6" />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
+                <Scale className="h-6 w-6" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-wide text-emerald-100">Officer Toolkit</p>
+                <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Acts & Orders</h1>
+                <p className="mt-1 max-w-3xl text-sm font-semibold text-emerald-50">
+                  Search Acts, Rules, Orders, clauses, penal provisions, stop sale, seizure, sampling and notice workflows.
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-wide text-emerald-100">Officer Toolkit</p>
-              <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Acts & Orders</h1>
-              <p className="mt-1 max-w-3xl text-sm font-semibold text-emerald-50">
-                Search Acts, Rules, Orders, clauses, penal provisions, stop sale, seizure, sampling and notice workflows.
-              </p>
+            <div className="mt-3 flex justify-end">
+              <BackButton onClick={handleBack} tone="solid">Back</BackButton>
             </div>
           </div>
-          <div className="mt-3 flex justify-end">
-            <BackButton onClick={handleBack} tone="solid">Back</BackButton>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
       {!selectedLegalArea && (
         <LegalAreaOpeningScreen onOpen={openLegalArea} />
       )}
@@ -434,7 +447,7 @@ export function AgriLegalReadyReckoner() {
 function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: FertilizerSection) => void }) {
   const cards: Array<{ id: FertilizerSection; title: string; subtitle: string; description: string; icon: React.ElementType; tone: string }> = [
     { id: 'clauses', title: 'Clauses', subtitle: '39 Clauses', description: 'FCO clause cards, sub-clauses, officer action and timelines.', icon: BookOpen, tone: 'from-emerald-500 via-green-500 to-teal-700' },
-    { id: 'forms', title: 'Forms', subtitle: '27 Forms', description: 'Registration, manufacturing, sampling and business record forms.', icon: FileText, tone: 'from-amber-500 via-orange-400 to-emerald-600' },
+    { id: 'forms', title: 'Forms', subtitle: '28 Forms', description: 'Registration, manufacturing, sampling and business record forms.', icon: FileText, tone: 'from-amber-500 via-orange-400 to-emerald-600' },
     { id: 'schedules', title: 'Schedules', subtitle: '8 Schedules', description: 'Specifications, sampling procedures, tolerance limits and analysis methods.', icon: ClipboardList, tone: 'from-sky-500 via-cyan-500 to-emerald-600' },
     { id: 'officer', title: 'Officer Corner', subtitle: 'Field actions & notices', description: 'Offences, stop sale and show cause references.', icon: ShieldAlert, tone: 'from-rose-500 via-orange-500 to-amber-500' },
   ];
@@ -450,7 +463,6 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
           <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300">Open clauses, forms, schedules, or officer field actions.</p>
         </div>
       </div>
-      <FcoImplementationChart />
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -480,79 +492,6 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
       </div>
       
     </section>
-  );
-}
-
-const fcoImplementationColumns = [
-  {
-    title: 'Licensing',
-    subtitle: 'Clause 8 & 14',
-    tone: 'cyan',
-    items: [
-      'Clause 8 and Clause 14',
-      'C&DA / State Licensing Officer',
-      'Manufacturing Licence in Form F',
-      'Marketing Licence in Form A2',
-    ],
-  },
-  {
-    title: 'Notified Authorities',
-    subtitle: 'Clause 26A / Clause 8',
-    tone: 'cyan',
-    items: [
-      'DAO: District Licensing Officer',
-      'ADA: Division Licensing Officer',
-      'Marketing Licence in Form A2',
-    ],
-  },
-  {
-    title: 'Quality Monitoring / Testing',
-    subtitle: 'Clause 29: Laboratory and Analysts',
-    tone: 'green',
-    items: ['3 FCO Labs', '64 labs in country', 'CFQCTI Faridabad'],
-  },
-  {
-    title: 'Enforcement at Field Level',
-    subtitle: 'Clause 27 and 28',
-    tone: 'blue',
-    items: [
-      'Clause 27',
-      'All Agriculture Officers and above rank notified as Fertiliser Inspectors as per G.O.Ms.No.131',
-      'Inspects all licensed premises in jurisdiction',
-      'Draws samples for testing',
-      'Launches prosecution in case of breach of Act/Order',
-      'Sends inspection reports to licensing officer',
-    ],
-  },
-];
-
-function FcoImplementationChart() {
-  return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 p-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-950 sm:p-3">
-      <div className="mx-auto mb-3 flex max-w-md items-center justify-center rounded-lg bg-cyan-500 px-3 py-2 text-center text-sm font-black uppercase text-slate-950 shadow-sm sm:text-base">
-        Implementation of FCO, 1985
-      </div>
-      <div className="grid gap-2 lg:grid-cols-4">
-        {fcoImplementationColumns.map((column) => (
-          <div key={column.title} className="flex min-w-0 flex-col rounded-lg border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-900">
-            <div className={`rounded-lg border px-2.5 py-2.5 text-center ${column.tone === 'green' ? 'border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-100' : column.tone === 'blue' ? 'border-blue-300 bg-blue-50 text-blue-950 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100' : 'border-cyan-300 bg-cyan-50 text-slate-950 dark:border-cyan-800 dark:bg-cyan-950/30 dark:text-cyan-50'}`}>
-              <h3 className="text-sm font-black uppercase leading-tight sm:text-base">{column.title}</h3>
-              <p className="mt-1 text-xs font-black leading-4">{column.subtitle}</p>
-            </div>
-            <div className="mt-2 flex flex-col gap-1.5">
-              {column.items.map((item) => (
-                <div key={item} className={`flex min-h-9 items-center justify-center rounded-lg border bg-white px-2.5 py-2 text-center text-xs font-black leading-4 text-slate-800 dark:bg-slate-950 dark:text-slate-100 ${column.tone === 'green' ? 'border-emerald-200 dark:border-emerald-900' : column.tone === 'blue' ? 'border-blue-200 dark:border-blue-900' : 'border-cyan-200 dark:border-cyan-900'}`}>
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-      <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-center text-xs font-black text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
-        Verify latest Government notification and departmental instructions before legal action.
-      </p>
-    </div>
   );
 }
 
@@ -601,6 +540,24 @@ function FertilizerClausesPanel({
   onSelectCard: (cardId: string) => void;
   onToggleBookmark: (id: string) => void;
 }) {
+  if (activeCard) {
+    return (
+      <FcoCardDetailPage
+        card={activeCard}
+        activeTab={activeTab}
+        bookmarks={bookmarks}
+        onBack={onBackToCards}
+        onToggleBookmark={onToggleBookmark}
+        onOpenRelated={(target) => {
+          onSelectCard(target.cardId);
+          window.setTimeout(() => {
+            document.getElementById(`fco-clause-${target.clauseId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 80);
+        }}
+      />
+    );
+  }
+
   return (
     <section className="space-y-3">
       <FertilizerSectionHeader title="Clauses" subtitle="39 Clauses" icon={BookOpen} onBack={onBack} />
@@ -616,15 +573,7 @@ function FertilizerClausesPanel({
           />
         </div>
       </div>
-      {activeCard ? (
-        <FcoCardDetailPage
-          card={activeCard}
-          activeTab={activeTab}
-          bookmarks={bookmarks}
-          onBack={onBackToCards}
-          onToggleBookmark={onToggleBookmark}
-        />
-      ) : cards.length > 0 ? (
+      {cards.length > 0 ? (
         <FcoDashboardCards
           cards={cards}
           activeCardId={activeCardId}
@@ -894,12 +843,14 @@ function FcoCardDetailPage({
   bookmarks,
   onBack,
   onToggleBookmark,
+  onOpenRelated,
 }: {
   card: FcoClauseCard;
   activeTab: FcoTabId;
   bookmarks: string[];
   onBack: () => void;
   onToggleBookmark: (id: string) => void;
+  onOpenRelated: (target: { clauseId: string; cardId: string }) => void;
 }) {
   const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
 
@@ -932,6 +883,7 @@ function FcoCardDetailPage({
             activeTab={activeTab}
             bookmarked={bookmarks.includes(clause.id)}
             onToggleBookmark={() => onToggleBookmark(clause.id)}
+            onOpenRelated={onOpenRelated}
           />
         ))}
       </div>
@@ -939,7 +891,23 @@ function FcoCardDetailPage({
   );
 }
 
-function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark }: { clause: FcoClause; activeTab: FcoTabId; bookmarked: boolean; onToggleBookmark: () => void }) {
+const fcoGlanceChipTones = {
+  slate: 'bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
+  amber: 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900',
+  blue: 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900',
+  emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900',
+} as const;
+
+function FcoGlanceChip({ icon: Icon, label, tone = 'slate' }: { icon: typeof Clock; label: string; tone?: keyof typeof fcoGlanceChipTones }) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ring-1 ${fcoGlanceChipTones[tone]}`}>
+      <Icon className="h-3 w-3" />
+      {label}
+    </span>
+  );
+}
+
+function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, onOpenRelated }: { clause: FcoClause; activeTab: FcoTabId; bookmarked: boolean; onToggleBookmark: () => void; onOpenRelated: (target: { clauseId: string; cardId: string }) => void }) {
   const copyClause = () => navigator.clipboard?.writeText(fcoClauseToText(clause));
   const shareClause = async () => {
     const text = fcoClauseToText(clause);
@@ -948,7 +916,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark }:
   };
 
   return (
-    <details className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" open>
+    <details id={`fco-clause-${clause.id}`} className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" open>
       <summary className="flex cursor-pointer list-none flex-col gap-2 border-b border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-950 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Clause {clause.clauseNo} - {clause.category}</p>
@@ -967,15 +935,40 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark }:
           </button>
         </div>
       </summary>
-      <div className="space-y-2 p-2.5">
+      <div className="space-y-2.5 p-2.5">
+        {(clause.subClauses.length > 0 || clause.provisos.length > 0 || clause.forms.length > 0 || clause.timelines.length > 0) && (
+          <div className="flex flex-wrap gap-1.5">
+            {clause.subClauses.length > 0 && <FcoGlanceChip icon={ListOrdered} label={`${clause.subClauses.length} sub-clause${clause.subClauses.length === 1 ? '' : 's'}`} />}
+            {clause.provisos.length > 0 && <FcoGlanceChip icon={AlertTriangle} label={`${clause.provisos.length} proviso${clause.provisos.length === 1 ? '' : 's'}`} tone="amber" />}
+            {clause.forms.length > 0 && <FcoGlanceChip icon={FileText} label={`${clause.forms.length} form${clause.forms.length === 1 ? '' : 's'}`} tone="blue" />}
+            {clause.timelines.length > 0 && <FcoGlanceChip icon={Clock} label={`${clause.timelines.length} timeline${clause.timelines.length === 1 ? '' : 's'}`} tone="emerald" />}
+          </div>
+        )}
         <FcoClauseTabContent clause={clause} activeTab={activeTab} />
-        {clause.subClauses.length > 0 && (
+        {clause.provisos.length > 0 && (
           <div className="space-y-1.5">
+            {clause.provisos.map((proviso) => (
+              <div key={proviso.title} className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 dark:border-amber-900/60 dark:bg-amber-950/30">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <div className="min-w-0">
+                  <p className="text-[11px] font-black uppercase tracking-wide text-amber-800 dark:text-amber-300">{proviso.title}</p>
+                  <p className="mt-0.5 text-[12px] font-semibold leading-5 text-amber-900 dark:text-amber-100">{proviso.plainEnglish}</p>
+                  <p className="mt-0.5 text-[11px] font-medium leading-4 text-amber-700/80 dark:text-amber-200/70">{proviso.legalText}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {clause.subClauses.length > 0 && (
+          <div className="grid gap-1.5 sm:grid-cols-2">
             {clause.subClauses.map((subClause) => (
-              <details key={subClause.no} className="rounded-lg border border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
-                <summary className="cursor-pointer list-none px-2.5 py-1.5 text-[13px] font-black text-slate-900 dark:text-white">{subClause.no} - {subClause.plainEnglish}</summary>
-                <div className="space-y-1.5 border-t border-slate-100 px-2.5 py-2 text-[13px] font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200">
-                  <p>{subClause.legalText}</p>
+              <details key={subClause.no} className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+                <summary className="flex cursor-pointer list-none items-center gap-2 p-2">
+                  <span className="flex h-7 min-w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-amber-500 to-orange-500 px-1.5 text-[10px] font-black text-white shadow-sm">{subClause.no}</span>
+                  <span className="text-[12px] font-bold leading-4 text-slate-800 dark:text-slate-100">{subClause.plainEnglish}</span>
+                </summary>
+                <div className="space-y-1.5 border-t border-slate-100 px-2.5 py-2 text-[12px] font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200">
+                  <p className="text-slate-500 dark:text-slate-400">{subClause.legalText}</p>
                   {subClause.officerAction && <p><span className="font-black text-amber-700 dark:text-amber-300">Officer:</span> {subClause.officerAction.join('; ')}</p>}
                   {subClause.dealerObligation && <p><span className="font-black text-blue-700 dark:text-blue-300">Dealer:</span> {subClause.dealerObligation.join('; ')}</p>}
                   <button type="button" onClick={() => navigator.clipboard?.writeText(`${subClause.no}: ${subClause.legalText}\n${subClause.plainEnglish}`)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
@@ -986,6 +979,25 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark }:
             ))}
           </div>
         )}
+        {clause.related.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-800">
+            <span className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Related</span>
+            {clause.related.map((item) => {
+              const match = /^clause\s+(.+)$/i.exec(item.trim());
+              const target = match ? fcoClauseLocationByNo.get(match[1].toLowerCase()) : undefined;
+              if (!target) {
+                return (
+                  <span key={item} className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700">{item}</span>
+                );
+              }
+              return (
+                <button key={item} type="button" onClick={() => onOpenRelated(target)} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 ring-1 ring-emerald-200 transition hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900 dark:hover:bg-emerald-950">
+                  {item} <ArrowRight className="h-3 w-3" />
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     </details>
   );
@@ -993,7 +1005,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark }:
 
 
 function FcoClauseTabContent({ clause, activeTab }: { clause: FcoClause; activeTab: FcoTabId }) {
-  if (activeTab === 'fullText') return <FcoTextBlock items={[clause.legalText, ...clause.explanations.map((item) => `Explanation: ${item}`), ...clause.provisos.map((item) => `${item.title}: ${item.legalText}`)]} />;
+  if (activeTab === 'fullText') return <FcoTextBlock items={[clause.legalText, ...clause.explanations.map((item) => `Explanation: ${item}`)]} />;
   if (activeTab === 'plainEnglish') return <FcoTextBlock items={[clause.plainEnglish, clause.summary]} />;
   if (activeTab === 'officerAction') return <FcoTextBlock items={clause.subClauses.flatMap((item) => item.officerAction || []).concat(clause.subClauses.flatMap((item) => item.dealerObligation?.map((obligationText) => `Dealer obligation: ${obligationText}`) || []))} empty="No specific officer action listed for this clause." />;
   if (activeTab === 'formsTimelines') return <FcoTextBlock items={[...clause.forms.map((item) => `Form: ${item}`), ...clause.timelines.map((item) => `Timeline: ${item}`), ...clause.related.map((item) => `Related: ${item}`)]} empty="No specific form or timeline listed for this clause." />;
@@ -1122,7 +1134,6 @@ function FertilizerFormsPanel({
   onBack: () => void;
   onViewForm: (form: FertilizerFormEntry) => void;
 }) {
-  const [openFormId, setOpenFormId] = useState<string | null>(null);
   const term = search.trim().toLowerCase();
   const visibleForms = fertilizerForms.filter((form) => {
     if (category !== 'All' && form.category !== category) return false;
@@ -1141,7 +1152,6 @@ function FertilizerFormsPanel({
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">FCO Forms</p>
               <h2 className="mt-0.5 text-lg font-black text-slate-950 dark:text-white">Forms</h2>
-              <p className="mt-0.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">Tap a form card to show View and PDF actions.</p>
             </div>
           </div>
           <button type="button" onClick={onBack} className="w-fit rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-xs font-black text-amber-800 shadow-sm hover:bg-amber-50 dark:border-amber-900 dark:bg-slate-950 dark:text-amber-200">
@@ -1174,38 +1184,28 @@ function FertilizerFormsPanel({
       </div>
 
       <div className="grid auto-rows-fr gap-2 p-2 md:grid-cols-2 xl:grid-cols-3">
-        {visibleForms.map((form) => {
-          const isOpen = openFormId === form.id;
-          return (
-            <article key={form.id} className={`flex min-h-[9rem] min-w-0 flex-col rounded-lg border bg-white p-2.5 shadow-sm transition hover:border-amber-200 hover:shadow-md dark:bg-slate-900 ${isOpen ? 'border-amber-300 bg-amber-50/40 dark:border-amber-800 dark:bg-amber-950/10' : 'border-slate-200 dark:border-slate-700'}`}>
-              <button
-                type="button"
-                onClick={() => setOpenFormId((current) => current === form.id ? null : form.id)}
-                className="flex flex-1 cursor-pointer flex-col gap-2 text-left"
-                aria-expanded={isOpen}
-              >
-                <div className="flex min-w-0 items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.formNo} - {form.category}</p>
-                    <h3 className="mt-0.5 text-[13px] leading-4 text-slate-950 dark:text-white">{form.title}</h3>
-                  </div>
-                  <span className="max-w-[7rem] shrink-0 rounded-lg bg-amber-100 px-1.5 py-0.5 text-center text-[10px] font-black leading-3 text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:ring-amber-900">{form.clause || 'PDF'}</span>
+        {visibleForms.map((form) => (
+          <article key={form.id} className="flex min-h-[9rem] min-w-0 flex-col rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm transition hover:border-amber-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+            <div className="flex min-w-0 flex-1 flex-col gap-2 text-left">
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.formNo} - {form.category}</p>
+                  <h3 className="mt-0.5 text-[13px] leading-4 text-slate-950 dark:text-white">{form.title}</h3>
                 </div>
-                <p className="text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.description}</p>
+                <span className="max-w-[7rem] shrink-0 rounded-lg bg-amber-100 px-1.5 py-0.5 text-center text-[10px] font-black leading-3 text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:ring-amber-900">{form.clause || 'PDF'}</span>
+              </div>
+              <p className="text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.description}</p>
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-1.5 border-t border-amber-100 pt-2 dark:border-slate-800">
+              <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-lg bg-amber-700 px-2 py-1.5 text-[11px] font-black text-white hover:bg-amber-800">
+                <FileSearch className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">View</span>
               </button>
-              {isOpen && (
-                <div className="mt-2 grid grid-cols-2 gap-1.5 border-t border-amber-100 pt-2 dark:border-slate-800">
-                  <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-lg bg-amber-700 px-2 py-1.5 text-[11px] font-black text-white hover:bg-amber-800">
-                    <FileSearch className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">View</span>
-                  </button>
-                  <a href={form.pdfPath} download className="inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
-                    <Download className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">PDF</span>
-                  </a>
-                </div>
-              )}
-            </article>
-          );
-        })}
+              <a href={form.pdfPath} download className="inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+                <Download className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">PDF</span>
+              </a>
+            </div>
+          </article>
+        ))}
         {visibleForms.length === 0 && (
           <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 xl:col-span-3 dark:border-slate-700">
             No forms found
