@@ -24,6 +24,7 @@ import {
   Share2,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   SprayCan,
   Sprout,
   Store,
@@ -52,6 +53,14 @@ fcoClauseCards.forEach((card) => {
     fcoClauseLocationByNo.set(clause.clauseNo.toLowerCase(), { clauseId: clause.id, cardId: card.id });
   });
 });
+
+const fcoTabs: Array<{ id: FcoTabId; label: string; icon: typeof Clock }> = [
+  { id: 'plainEnglish', label: 'Simple', icon: BookOpen },
+  { id: 'fullText', label: 'Full Text', icon: FileText },
+  { id: 'officerAction', label: 'Officer Action', icon: ClipboardList },
+  { id: 'formsTimelines', label: 'Forms & Timelines', icon: Clock },
+  { id: 'mnemonics', label: 'Memory', icon: Sparkles },
+];
 const legalAreaCards: Array<{
   id: MainLegalArea;
   title: string;
@@ -363,6 +372,7 @@ export function AgriLegalReadyReckoner() {
           activeCardId={selectedFcoCardId}
           activeTab={fcoActiveTab}
           bookmarks={bookmarks}
+          onTabChange={setFcoActiveTab}
           onSearchChange={(value) => {
             setQuery(value);
             setSelectedFcoCardId(null);
@@ -523,6 +533,7 @@ function FertilizerClausesPanel({
   activeTab,
   bookmarks,
   onSearchChange,
+  onTabChange,
   onBack,
   onBackToCards,
   onSelectCard,
@@ -535,6 +546,7 @@ function FertilizerClausesPanel({
   activeTab: FcoTabId;
   bookmarks: string[];
   onSearchChange: (value: string) => void;
+  onTabChange: (tab: FcoTabId) => void;
   onBack: () => void;
   onBackToCards: () => void;
   onSelectCard: (cardId: string) => void;
@@ -548,6 +560,7 @@ function FertilizerClausesPanel({
         bookmarks={bookmarks}
         onBack={onBackToCards}
         onToggleBookmark={onToggleBookmark}
+        onTabChange={onTabChange}
         onOpenRelated={(target) => {
           onSelectCard(target.cardId);
           window.setTimeout(() => {
@@ -844,6 +857,7 @@ function FcoCardDetailPage({
   onBack,
   onToggleBookmark,
   onOpenRelated,
+  onTabChange,
 }: {
   card: FcoClauseCard;
   activeTab: FcoTabId;
@@ -851,6 +865,7 @@ function FcoCardDetailPage({
   onBack: () => void;
   onToggleBookmark: (id: string) => void;
   onOpenRelated: (target: { clauseId: string; cardId: string }) => void;
+  onTabChange: (tab: FcoTabId) => void;
 }) {
   const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
 
@@ -875,6 +890,27 @@ function FcoCardDetailPage({
       </div>
 
 
+      <div className="flex gap-1 overflow-x-auto border-b border-slate-100 bg-white px-2 py-2 dark:border-slate-800 dark:bg-slate-950">
+        {fcoTabs.map((tab) => {
+          const TabIcon = tab.icon;
+          const selected = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onTabChange(tab.id)}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-black ring-1 transition ${
+                selected
+                  ? 'bg-emerald-600 text-white ring-emerald-600 shadow-sm'
+                  : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-800'
+              }`}
+            >
+              <TabIcon className="h-3.5 w-3.5" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
       <div className="space-y-2 p-2">
         {card.clauses.map((clause) => (
           <FcoClauseAccordion
@@ -1008,8 +1044,71 @@ function FcoClauseTabContent({ clause, activeTab }: { clause: FcoClause; activeT
   if (activeTab === 'fullText') return <FcoTextBlock items={[clause.legalText, ...clause.explanations.map((item) => `Explanation: ${item}`)]} />;
   if (activeTab === 'plainEnglish') return <FcoTextBlock items={[clause.plainEnglish, clause.summary]} />;
   if (activeTab === 'officerAction') return <FcoTextBlock items={clause.subClauses.flatMap((item) => item.officerAction || []).concat(clause.subClauses.flatMap((item) => item.dealerObligation?.map((obligationText) => `Dealer obligation: ${obligationText}`) || []))} empty="No specific officer action listed for this clause." />;
-  if (activeTab === 'formsTimelines') return <FcoTextBlock items={[...clause.forms.map((item) => `Form: ${item}`), ...clause.timelines.map((item) => `Timeline: ${item}`), ...clause.related.map((item) => `Related: ${item}`)]} empty="No specific form or timeline listed for this clause." />;
+  if (activeTab === 'formsTimelines') return <FcoFormsTimelines clause={clause} />;
   return <FcoTextBlock items={[clause.mnemonic || '', ...importantFcoMnemonics.filter((item) => clause.clauseNo === item.label.replace('Clause ', '') || clause.keywords.join(' ').toLowerCase().includes(item.code.toLowerCase())).map((item) => `${item.label}: ${item.code} - ${item.meaning}`)]} empty="No mnemonic listed for this clause." />;
+}
+
+function parseTimelineDuration(text: string): { value: number; unit: string; label: string } | null {
+  const match = /(\d+)\s*[-–]?\s*(working\s+days?|days?|weeks?|months?|years?)/i.exec(text);
+  if (!match) return null;
+  const label = `${text.slice(0, match.index)} ${text.slice(match.index + match[0].length)}`
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^[\s:;,.()\-–—]*(for|of|from|within|after|in|by)?[\s:;,.()\-–—]*/i, '')
+    .replace(/[\s:;,.()\-–—]*$/i, '')
+    .trim();
+  return { value: Number(match[1]), unit: match[2].replace(/\s+/g, ' '), label: label || text };
+}
+
+function FcoTimelineStepper({ timelines }: { timelines: string[] }) {
+  return (
+    <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-2.5 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+      <p className="text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Deadline track</p>
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        {timelines.map((timeline, index) => {
+          const parsed = parseTimelineDuration(timeline);
+          return (
+            <React.Fragment key={timeline}>
+              {index > 0 && <ArrowRight className="h-3.5 w-3.5 shrink-0 text-emerald-400 dark:text-emerald-600" />}
+              <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-2 py-1.5 shadow-sm dark:border-emerald-900 dark:bg-slate-900">
+                {parsed ? (
+                  <span className="flex h-8 min-w-8 shrink-0 flex-col items-center justify-center rounded-md bg-gradient-to-br from-emerald-600 to-teal-500 px-1 leading-none text-white">
+                    <span className="text-[13px] font-black">{parsed.value}</span>
+                    <span className="text-[7px] font-black uppercase">{parsed.unit.replace('working ', 'work ')}</span>
+                  </span>
+                ) : (
+                  <Clock className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                )}
+                <span className="text-[11px] font-bold leading-4 text-slate-700 dark:text-slate-200">{parsed ? parsed.label : timeline}</span>
+              </div>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function FcoFormsTimelines({ clause }: { clause: FcoClause }) {
+  if (clause.forms.length === 0 && clause.timelines.length === 0) {
+    return <p className="rounded-lg border border-dashed border-slate-200 p-3 text-sm font-semibold text-slate-500">No specific form or timeline listed for this clause.</p>;
+  }
+  return (
+    <div className="space-y-2.5">
+      {clause.timelines.length > 0 && <FcoTimelineStepper timelines={clause.timelines} />}
+      {clause.forms.length > 0 && (
+        <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-2.5 dark:border-blue-900/50 dark:bg-blue-950/20">
+          <p className="text-[10px] font-black uppercase tracking-wide text-blue-700 dark:text-blue-300">Forms</p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {clause.forms.map((form) => (
+              <span key={form} className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-[11px] font-black text-blue-700 ring-1 ring-blue-200 dark:bg-slate-900 dark:text-blue-300 dark:ring-blue-900">
+                <FileText className="h-3 w-3" /> {form}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function FcoTextBlock({ items, empty = 'No matter available.' }: { items: string[]; empty?: string }) {

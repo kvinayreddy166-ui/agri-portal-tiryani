@@ -264,7 +264,7 @@ function enrichFcoCurrentReference() {
   if (clause2) {
     clause2.explanations = Array.from(new Set([
       ...clause2.explanations,
-      'Current PDF-1 reference adds biostimulant and nano fertiliser to the practical fertiliser-definition search set.',
+      'The fertiliser definition now also covers bio-stimulants and nano fertilisers - check the product category before choosing the sampling workflow.',
       'Current structure recognises 7 schedules including Schedule VI Biostimulants and Schedule VII Nano Fertilisers.',
     ]));
   }
@@ -285,7 +285,7 @@ function enrichFcoCurrentReference() {
       officerAction: action('Add Clause 8(4) qualification check to dealer eligibility and licence verification checklist.'),
       dealerObligation: obligation('Keep qualification/training proof available for verification.'),
     });
-    clause8.timelines = Array.from(new Set([...clause8.timelines, 'Authorisation validity: 5 years as current PDF-1 officer reference']));
+    clause8.timelines = Array.from(new Set([...clause8.timelines, 'Authorisation validity: 5 years']));
     clause8.keywords = Array.from(new Set([...clause8.keywords, '8(4)', 'retail dealer qualification', '15 days certificate course', 'BSc Agriculture', 'BSc Chemistry', 'Diploma Agriculture Science', '5 years validity']));
   }
 
@@ -296,7 +296,7 @@ function enrichFcoCurrentReference() {
     clause10.plainEnglish = 'Use 5 years for dealer licence expiry checks.';
     clause10.subClauses = clause10.subClauses.map((subClause) =>
       subClause.no === '10'
-        ? { ...subClause, legalText: 'Current officer reference: registration/authorisation valid for 5 years unless renewed/suspended/cancelled.', plainEnglish: 'Validity period is five years in current reference.' }
+        ? { ...subClause, legalText: 'Registration/authorisation is valid for 5 years unless renewed, suspended or cancelled.', plainEnglish: 'Validity period is five years unless affected by later order.' }
         : subClause
     );
     clause10.timelines = ['5 years validity'];
