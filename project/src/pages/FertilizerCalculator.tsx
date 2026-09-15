@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Check,
   FileText,
   Leaf,
   Plus,
@@ -1963,10 +1964,16 @@ export function FertilizerCalculator() {
         <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-3 shadow-md sm:p-4">
           <div className="mb-2 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-xs font-black sm:mb-3 sm:text-sm">
             <button type="button" onClick={() => setMode('simple')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${mode === 'simple' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}>
-              {language === 'te' ? repairTeluguText(uiLabels.mode1Simple) : 'Manual nutrients'}
+              <span className="inline-flex items-center justify-center gap-1">
+                {mode === 'simple' && <Check className="h-3.5 w-3.5" />}
+                {language === 'te' ? repairTeluguText(uiLabels.mode1Simple) : 'Manual nutrients'}
+              </span>
             </button>
             <button type="button" onClick={() => setMode('crop')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${mode === 'crop' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}>
-              {language === 'te' ? repairTeluguText(uiLabels.mode2Crop) : 'Crop recommendation'}
+              <span className="inline-flex items-center justify-center gap-1">
+                {mode === 'crop' && <Check className="h-3.5 w-3.5" />}
+                {language === 'te' ? repairTeluguText(uiLabels.mode2Crop) : 'Crop recommendation'}
+              </span>
             </button>
           </div>
 
@@ -1974,10 +1981,16 @@ export function FertilizerCalculator() {
             <div className="space-y-2 sm:space-y-3">
               <div className="grid grid-cols-2 rounded-xl bg-emerald-50 p-1 text-xs font-black sm:text-sm">
                 <button type="button" onClick={() => setSimpleTab('forward')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${simpleTab === 'forward' ? 'bg-white text-emerald-800 shadow-sm' : 'text-emerald-700'}`}>
-                  {uiLabels.requiredToFertilizer}
+                  <span className="inline-flex items-center justify-center gap-1">
+                    {simpleTab === 'forward' && <Check className="h-3.5 w-3.5" />}
+                    {uiLabels.requiredToFertilizer}
+                  </span>
                 </button>
                 <button type="button" onClick={() => setSimpleTab('reverse')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${simpleTab === 'reverse' ? 'bg-white text-emerald-800 shadow-sm' : 'text-emerald-700'}`}>
-                  {uiLabels.bagsToNutrients}
+                  <span className="inline-flex items-center justify-center gap-1">
+                    {simpleTab === 'reverse' && <Check className="h-3.5 w-3.5" />}
+                    {uiLabels.bagsToNutrients}
+                  </span>
                 </button>
               </div>
 
@@ -2089,8 +2102,9 @@ export function FertilizerCalculator() {
                 key={gradeKey(grade)}
                 type="button"
                 onClick={() => toggleGrade(gradeKey(grade))}
-                className={`rounded-lg border p-2.5 text-left transition ${selectedKeys.includes(gradeKey(grade)) ? 'border-emerald-600 bg-emerald-50 text-emerald-950' : 'border-slate-200 bg-slate-50 text-slate-700'}`}
+                className={`relative rounded-lg border p-2.5 text-left transition ${selectedKeys.includes(gradeKey(grade)) ? 'border-emerald-600 bg-emerald-50 text-emerald-950' : 'border-slate-200 bg-slate-50 text-slate-700'}`}
               >
+                {selectedKeys.includes(gradeKey(grade)) && <Check className="absolute right-1.5 top-1.5 h-4 w-4 text-emerald-600" />}
                 <span className="block text-sm font-black">{grade.name}</span>
                 <span className="text-xs font-bold">{getGradeLabel(grade)} | {grade.bag_kg} {uiLabels.kgBag}</span>
               </button>

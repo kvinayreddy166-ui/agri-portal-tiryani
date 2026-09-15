@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Copy, Leaf, RotateCcw, Ruler, Sprout } from 'lucide-react';
+import { Copy, Leaf, RotateCcw, Sprout } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
+import { ToastContainer, useToast } from '../components/ui/Toast';
 
 type AreaUnit = 'acres' | 'hectares';
 type SpacingUnit = 'cm' | 'm' | 'feet' | 'inches';
@@ -20,16 +21,30 @@ const initialForm = {
   plantSpacingUnit: 'cm' as SpacingUnit,
 };
 
+const numericFieldWarnings: Partial<Record<keyof typeof initialForm, [string, string]>> = {
+  areaValue: ['Area must be greater than 0.', 'విస్తీర్ణం 0 కంటే ఎక్కువగా ఉండాలి.'],
+  rowSpacing: ['Row spacing must be greater than 0.', 'వరుస దూరం 0 కంటే ఎక్కువగా ఉండాలి.'],
+  plantSpacing: ['Plant spacing must be greater than 0.', 'మొక్క దూరం 0 కంటే ఎక్కువగా ఉండాలి.'],
+};
+
 export function PlantPopulationCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
+  const { toasts, removeToast, showWarning } = useToast();
   const calculation = useMemo(() => calculatePlantPopulation(form), [form]);
   const shareText = useMemo(() => buildShareText(form, calculation.result, t), [calculation.result, form, t]);
 
   const updateForm = (field: keyof typeof initialForm, value: string) => {
     setCopied(false);
+    const warning = numericFieldWarnings[field];
+    if (warning) {
+      const parsed = Number.parseFloat(value);
+      if (Number.isFinite(parsed) && parsed <= 0) {
+        showWarning(t('Invalid input', 'చెల్లని ఇన్‌పుట్'), t(warning[0], warning[1]));
+      }
+    }
     setForm((current) => ({ ...current, [field]: value }));
   };
 
@@ -55,6 +70,7 @@ export function PlantPopulationCalculator() {
 
   return (
     <div className="space-y-3">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <section className="rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-800/50 sm:p-4">
           <div className="flex items-center justify-between gap-4">
@@ -179,18 +195,7 @@ export function PlantPopulationCalculator() {
         </div>
 
         <aside className="space-y-3">
-          {calculation.errors.length > 0 && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4 shadow-sm dark:border-red-900/60 dark:bg-red-950/30">
-              <p className="text-sm font-black text-red-800 dark:text-red-200">{t('Check inputs', 'ఇన్‌పుట్‌లను తనిఖీ చేయండి')}</p>
-              <ul className="mt-2 space-y-1 text-sm font-semibold text-red-700 dark:text-red-200">
-                {calculation.errors.map((error) => (
-                  <li key={error}>- {error}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {calculation.result ? (
+          {calculation.result && (
             <>
               <ResultGrid areaUnit={form.areaUnit} result={calculation.result} t={t} />
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
@@ -202,12 +207,6 @@ export function PlantPopulationCalculator() {
                 </div>
               </div>
             </>
-          ) : (
-            <div className="rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-lime-100 p-4 text-center shadow-md dark:border-green-900/60 dark:from-slate-900 dark:to-green-950/30">
-              <Ruler className="mx-auto h-9 w-9 text-slate-400" />
-              <p className="mt-2 text-sm font-black text-slate-700 dark:text-slate-200">{t('Results will appear here', 'ఫలితాలు ఇక్కడ కనిపిస్తాయి')}</p>
-              <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Enter area and spacing details.', 'విస్తీర్ణం మరియు దూరం వివరాలు నమోదు చేయండి.')}</p>
-            </div>
           )}
         </aside>
       </section>

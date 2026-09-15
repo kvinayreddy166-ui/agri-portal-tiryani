@@ -142,7 +142,6 @@ export function AcreageCalculator() {
                 onChange={setAcreInput}
                 placeholder={'Example:\n2.10\n2.36\n0.15'}
               />
-              <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">Existing format: 2.10 means 2 acres 10 guntas.</p>
             </label>
           )}
 

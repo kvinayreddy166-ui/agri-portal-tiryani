@@ -3,6 +3,7 @@ import { useAuth, AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PortalLogo } from './components/ui/PortalLogo';
+import { AgronixBrandMark } from './components/ui/AgronixBrandMark';
 import { OfflineScreen } from './components/ui/OfflineScreen';
 import { APP_BUILD_LABEL, clearAppCacheAndReload } from './lib/appVersion';
 import { isRecoverableChunkError } from './lib/pwaRecovery';
@@ -513,6 +514,8 @@ function AppContent() {
     location.pathname === '/officer-toolkit/acreage-calculator' ||
     location.pathname === '/fertilizer-calculator' ||
     location.pathname === '/acreage-calculator';
+  const isOfficerToolkitRoute =
+    location.pathname === '/officer-toolkit' || location.pathname.startsWith('/officer-toolkit/');
   useAppScrollRestoration(location, navigationType);
   useInitialBackFallback(location, loading, Boolean(user));
 
@@ -792,6 +795,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <OfficersToolkit isAdmin={false} isTestUser={false} />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -800,6 +804,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <LicenseApplicationGenerator />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -808,6 +813,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <FarmCalculators />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -816,6 +822,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader hideLogo />}>
         <AcreageCalculator />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -824,6 +831,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader hideLogo />}>
         <FertilizerCalculator />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -832,6 +840,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <CropProtectionTool />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -840,6 +849,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <PesticideCalculator />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -848,6 +858,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <PlantPopulationCalculator />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -856,6 +867,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <SeedRateCalculator />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -864,6 +876,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <AgriLegalReadyReckoner />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -872,6 +885,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <OfficerContacts />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -880,6 +894,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <TourDiary />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -888,6 +903,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <SeedDealerInspection />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -896,6 +912,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <FertilizerDealerInspection />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -904,6 +921,7 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <InsecticideDealerInspection />
+        <AgronixBrandMark />
       </SafeSuspense>
     );
   }
@@ -1092,6 +1110,7 @@ function AppContent() {
     <SafeSuspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
       <Layout currentPage={currentPage} onNavigate={navigateToPage} onBack={handleBack} onSignOut={handleSignOut}>
         {renderPage()}
+        {isOfficerToolkitRoute && <AgronixBrandMark />}
       </Layout>
     </SafeSuspense>
   );

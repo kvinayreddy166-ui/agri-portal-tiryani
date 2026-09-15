@@ -761,9 +761,6 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
     <section className="overflow-hidden rounded-lg border border-emerald-100 bg-[linear-gradient(135deg,#f7fee7_0%,#ecfdf5_48%,#eff6ff_100%)] p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-5">
       <div className="mx-auto max-w-4xl text-center">
         <h2 className="text-xl font-black text-emerald-950 dark:text-white sm:text-2xl">Select input category</h2>
-        <p className="mt-2 text-sm font-semibold leading-6 text-emerald-900/75 dark:text-slate-300">
-          Open the legal ready reckoner by input type for faster field inspection reference.
-        </p>
       </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
         {legalAreaCards.map((card) => {
@@ -774,17 +771,17 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
               type="button"
               onClick={() => onOpen(card.id)}
               style={{ animationDelay: card.delay }}
-              className={`agri-legal-round-card group relative mx-auto flex aspect-square w-full max-w-[11.5rem] flex-col items-center justify-center overflow-hidden rounded-full border border-white/80 bg-gradient-to-br from-white via-lime-50 to-emerald-50 p-4 text-center shadow-lg ${card.glow} ring-1 ring-emerald-900/5 transition duration-300 hover:-translate-y-2 hover:scale-[1.06] hover:rotate-[1deg] hover:shadow-2xl focus-visible:outline-emerald-700 active:scale-[0.97] dark:border-slate-700 dark:bg-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950`}
+              className={`agri-legal-round-card group relative mx-auto flex aspect-square w-full max-w-[10.4rem] flex-col items-center justify-center overflow-hidden rounded-full border border-white/80 bg-gradient-to-br from-white via-lime-50 to-emerald-50 p-[0.9rem] text-center shadow-lg ${card.glow} ring-1 ring-emerald-900/5 transition duration-300 hover:-translate-y-2 hover:scale-[1.06] hover:rotate-[1deg] hover:shadow-2xl focus-visible:outline-emerald-700 active:scale-[0.97] dark:border-slate-700 dark:bg-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950`}
             >
               <span className={`absolute inset-2 rounded-full bg-gradient-to-br ${card.color} opacity-[0.18] transition group-hover:opacity-[0.28]`} />
               <span className="agri-card-field-lines absolute inset-4 rounded-full" />
               <span className="agri-card-shine absolute inset-0 rounded-full" />
               <span className="agri-legal-ripple absolute inset-0 rounded-full" />
-              <span className={`relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-lg ${card.glow} ring-4 ring-white/80 transition duration-300 group-hover:scale-110 group-hover:rotate-3 sm:h-16 sm:w-16`}>
-                <Icon className="h-7 w-7 sm:h-8 sm:w-8" strokeWidth={1.9} />
+              <span className={`relative flex h-[3.15rem] w-[3.15rem] items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-lg ${card.glow} ring-4 ring-white/80 transition duration-300 group-hover:scale-110 group-hover:rotate-3 sm:h-[3.6rem] sm:w-[3.6rem]`}>
+                <Icon className="h-[1.57rem] w-[1.57rem] sm:h-[1.8rem] sm:w-[1.8rem]" strokeWidth={1.9} />
               </span>
-              <span className="relative mt-3 text-base font-black sm:text-lg text-emerald-950 dark:text-white">{card.title}</span>
-              <span className="relative mt-1 max-w-[9.5rem] text-[11px] font-bold leading-4 text-emerald-900/75 dark:text-slate-300">{card.description}</span>
+              <span className="relative mt-2.5 text-[0.9rem] font-black sm:text-[1.02rem] text-emerald-950 dark:text-white">{card.title}</span>
+              <span className="relative mt-1 max-w-[8.5rem] text-[10px] font-bold leading-4 text-emerald-900/75 dark:text-slate-300">{card.description}</span>
             </button>
           );
         })}

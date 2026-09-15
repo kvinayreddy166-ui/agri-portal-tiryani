@@ -779,8 +779,8 @@ export function SeedForms() {
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
           <label>
             <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600">Dealer / Party address</span>
-            <PopupHintWrapper message="Enter only D.No. and Village/Town; Mandal and District will be auto-populated">
-              <textarea rows={2} value={form.dealerAddress} onChange={(event) => setField('dealerAddress', event.target.value)} placeholder="village" className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" />
+            <PopupHintWrapper message="Enter D.No, Road and Village; Mandal and District will be auto-populated">
+              <textarea rows={2} value={form.dealerAddress} onChange={(event) => setField('dealerAddress', event.target.value)} placeholder="D.No, Road, Village" className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" />
             </PopupHintWrapper>
           </label>
           <div className="grid gap-2 sm:grid-cols-2">

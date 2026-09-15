@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-export type ToastType = 'success' | 'info' | 'reset' | 'saved' | 'deleted' | 'loaded' | 'queue';
+export type ToastType = 'success' | 'info' | 'reset' | 'saved' | 'deleted' | 'loaded' | 'queue' | 'warning';
 
 interface ToastProps {
   type: ToastType;
@@ -45,6 +45,11 @@ const toastConfig: Record<ToastType, { icon: string; bgColor: string; borderColo
     icon: '📋',
     bgColor: 'bg-indigo-500/90',
     borderColor: 'border-indigo-400',
+  },
+  warning: {
+    icon: '⚠️',
+    bgColor: 'bg-orange-500/90',
+    borderColor: 'border-orange-400',
   },
 };
 
@@ -205,5 +210,9 @@ export function useToast() {
     showToast('queue', title, subtitle, duration);
   }, [showToast]);
 
-  return { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue };
+  const showWarning = useCallback((title: string, subtitle?: string, duration?: number) => {
+    showToast('warning', title, subtitle, duration);
+  }, [showToast]);
+
+  return { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue, showWarning };
 }

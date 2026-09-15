@@ -494,11 +494,6 @@ export function InsecticideDealerInspection() {
           <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
           <ActionButton onClick={generatePdf} icon={Download} tone="rose">PDF</ActionButton>
         </div>
-
-        <div className="mt-4 flex items-center justify-center gap-1.5">
-          <Bug className="h-3.5 w-3.5 text-[#BE123C]" />
-          <span className="bg-gradient-to-r from-[#BE123C] to-[#F43F5E] bg-clip-text text-[11px] font-black uppercase tracking-[0.35em] text-transparent">Agronix</span>
-        </div>
       </div>
 
       {showDrafts && (

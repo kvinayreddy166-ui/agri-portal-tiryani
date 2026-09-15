@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Bug, Calculator, Copy, RotateCcw, ShieldAlert } from 'lucide-react';
+import { Bug, Check, Copy, RotateCcw, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
+import { ToastContainer, useToast } from '../components/ui/Toast';
 
 type Mode = 'activeIngredient' | 'directDose';
 type AreaUnit = 'acres' | 'hectares';
@@ -27,12 +28,22 @@ const initialForm = {
   directDose: '',
 };
 
+const numericFieldWarnings: Partial<Record<keyof typeof initialForm, { isInvalid: (value: number) => boolean; message: [string, string] }>> = {
+  areaValue: { isInvalid: (v) => v <= 0, message: ['Area must be greater than 0.', 'విస్తీర్ణం 0 కంటే ఎక్కువగా ఉండాలి.'] },
+  waterPerAcre: { isInvalid: (v) => v <= 0, message: ['Water volume per acre must be greater than 0.', 'ఎకరానికి నీటి పరిమాణం 0 కంటే ఎక్కువగా ఉండాలి.'] },
+  customTankSize: { isInvalid: (v) => v <= 0, message: ['Tank size must be greater than 0.', 'ట్యాంక్ పరిమాణం 0 కంటే ఎక్కువగా ఉండాలి.'] },
+  aiPercentage: { isInvalid: (v) => v <= 0 || v > 100, message: ['Active ingredient % must be greater than 0 and up to 100.', 'యాక్టివ్ ఇంగ్రిడియెంట్ % 0 కంటే ఎక్కువగా మరియు 100 వరకు ఉండాలి.'] },
+  aiDose: { isInvalid: (v) => v <= 0, message: ['Recommended a.i. dose must be greater than 0.', 'సిఫార్సు చేసిన a.i. మోతాదు 0 కంటే ఎక్కువగా ఉండాలి.'] },
+  directDose: { isInvalid: (v) => v <= 0, message: ['Dose per litre must be greater than 0.', 'లీటరుకు మోతాదు 0 కంటే ఎక్కువగా ఉండాలి.'] },
+};
+
 export function PesticideCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
   const [mode, setMode] = useState<Mode>('activeIngredient');
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
+  const { toasts, removeToast, showWarning } = useToast();
 
   const calculation = useMemo(() => calculatePesticide(mode, form), [form, mode]);
   const unitLabels = getUnitLabels(form.unitType);
@@ -43,6 +54,13 @@ export function PesticideCalculator() {
 
   const updateForm = (field: keyof typeof initialForm, value: string) => {
     setCopied(false);
+    const warning = numericFieldWarnings[field];
+    if (warning) {
+      const parsed = Number.parseFloat(value);
+      if (Number.isFinite(parsed) && warning.isInvalid(parsed)) {
+        showWarning(t('Invalid input', 'చెల్లని ఇన్‌పుట్'), t(warning.message[0], warning.message[1]));
+      }
+    }
     setForm((current) => ({ ...current, [field]: value }));
   };
 
@@ -69,6 +87,7 @@ export function PesticideCalculator() {
 
   return (
     <div className="space-y-3">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <section className="rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-800/50 sm:p-4">
           <div className="flex items-center justify-between gap-4">
@@ -134,11 +153,13 @@ export function PesticideCalculator() {
                   <div className="grid grid-cols-2 gap-2">
                     <label className={radioCardClass(form.unitType === 'liquid')}>
                       <input type="radio" className="sr-only" checked={form.unitType === 'liquid'} onChange={() => updateForm('unitType', 'liquid')} />
+                      {form.unitType === 'liquid' && <Check className="absolute right-2 top-2 h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
                       <span className="text-sm font-black">{t('Liquid', 'ద్రవం')}</span>
                       <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">mL, mL/L</span>
                     </label>
                     <label className={radioCardClass(form.unitType === 'solid')}>
                       <input type="radio" className="sr-only" checked={form.unitType === 'solid'} onChange={() => updateForm('unitType', 'solid')} />
+                      {form.unitType === 'solid' && <Check className="absolute right-2 top-2 h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
                       <span className="text-sm font-black">{t('Solid', 'ఘన పదార్థం')}</span>
                       <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">g, g/L</span>
                     </label>
@@ -207,18 +228,7 @@ export function PesticideCalculator() {
         </div>
 
         <aside className="space-y-3">
-          {calculation.errors.length > 0 && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4 shadow-sm dark:border-red-900/60 dark:bg-red-950/30">
-              <p className="text-sm font-black text-red-800 dark:text-red-200">{t('Check inputs', 'ఇన్‌పుట్‌లను తనిఖీ చేయండి')}</p>
-              <ul className="mt-2 space-y-1 text-sm font-semibold text-red-700 dark:text-red-200">
-                {calculation.errors.map((error) => (
-                  <li key={error}>- {error}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {calculation.result ? (
+          {calculation.result && (
             <>
               <ResultGrid result={calculation.result} unitLabels={unitLabels} t={t} />
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
@@ -230,12 +240,6 @@ export function PesticideCalculator() {
                 </div>
               </div>
             </>
-          ) : (
-            <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-100 p-4 text-center shadow-md dark:border-amber-900/60 dark:from-slate-900 dark:to-amber-950/30">
-              <Calculator className="mx-auto h-9 w-9 text-slate-400" />
-              <p className="mt-2 text-sm font-black text-slate-700 dark:text-slate-200">{t('Results will appear here', 'ఫలితాలు ఇక్కడ కనిపిస్తాయి')}</p>
-              <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Enter area, water, selected tank size and dose details.', 'విస్తీర్ణం, నీరు, ఎంచుకున్న ట్యాంక్ పరిమాణం మరియు మోతాదు వివరాలు నమోదు చేయండి.')}</p>
-            </div>
           )}
         </aside>
       </section>
@@ -255,7 +259,10 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 function ModeButton({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} className={`min-h-10 rounded-md px-3 py-2 text-sm font-black transition ${active ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-950 dark:text-emerald-300' : 'text-slate-600 hover:bg-white/70 dark:text-slate-300 dark:hover:bg-slate-950/70'}`}>
-      {label}
+      <span className="inline-flex items-center justify-center gap-1.5">
+        {active && <Check className="h-4 w-4" />}
+        {label}
+      </span>
     </button>
   );
 }
@@ -313,7 +320,7 @@ function ResultGrid({ result, unitLabels, t }: { result: PesticideResult; unitLa
 const inputClass = 'min-h-11 w-full rounded-lg border border-amber-200 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-100 dark:border-amber-900 dark:bg-slate-950 dark:text-white dark:focus:ring-amber-900/40';
 
 function radioCardClass(active: boolean) {
-  return `flex min-h-16 cursor-pointer flex-col justify-center rounded-lg border p-3 transition ${active ? 'border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100' : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'}`;
+  return `relative flex min-h-16 cursor-pointer flex-col justify-center rounded-lg border p-3 transition ${active ? 'border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100' : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'}`;
 }
 
 interface PesticideResult {

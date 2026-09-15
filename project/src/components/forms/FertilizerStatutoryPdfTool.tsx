@@ -653,8 +653,8 @@ const fertilizerFieldSections: SectionConfig[] = [
   {
     title: 'SAMPLE DETAILS',
     fields: [
-      { key: 'no', label: 'NO.', placeholder: 'Enter Your Sample Serial No.' },
-      { key: 'sampleCode', label: 'CODE NO. OF SAMPLE', placeholder: 'Enter Your J Form Number' },
+      { key: 'no', label: 'NO.', placeholder: 'Enter Form No' },
+      { key: 'sampleCode', label: 'CODE NO. OF SAMPLE', placeholder: 'Enter Sample Code' },
       { key: 'samplingDate', label: 'DATE OF SAMPLING', type: 'date' },
       { key: 'fertilizerCategory', label: 'FERTILIZER CATEGORY', type: 'select', options: fertilizerCategoryOptions },
       { key: 'fertilizerTypeGrade', label: 'NAME AND GRADE OF FERTILIZER', type: 'select', options: fertilizerTypeGradeOptions },
@@ -688,7 +688,7 @@ const fertilizerFieldSections: SectionConfig[] = [
     title: 'DEALER DETAILS',
     fields: [
       { key: 'dealerName', label: 'DEALER / PARTY NAME', placeholder: 'Firm Name' },
-      { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS', type: 'textarea', placeholder: 'village' },
+      { key: 'dealerAddress', label: 'DEALER / PARTY ADDRESS', type: 'textarea', placeholder: 'D.No, Road, Village' },
       { key: 'authorizationNumber', label: 'LETTER OF AUTHORIZATION NUMBER', placeholder: 'Enter License No:' },
     ],
   },

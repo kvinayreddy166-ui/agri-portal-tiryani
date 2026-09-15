@@ -153,7 +153,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
     title: 'DEALER DETAILS',
     fields: [
       { key: 'dealerName', label: 'DEALER / LICENSEE NAME', placeholder: 'Firm Name' },
-      { key: 'dealerAddress', label: 'DEALER ADDRESS', type: 'textarea', placeholder: 'Door NO, Village/ town' },
+      { key: 'dealerAddress', label: 'DEALER ADDRESS', type: 'textarea', placeholder: 'D.No, Road, Village' },
       { key: 'authorizationLicenseNumber', label: 'AUTHORIZATION/ LICENSE NO' },
       { key: 'licenseDate', label: 'LICENSE DATE', type: 'date' },
     ],
