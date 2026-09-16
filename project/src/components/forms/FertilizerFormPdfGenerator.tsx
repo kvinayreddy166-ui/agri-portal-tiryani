@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Download, X, Loader2 } from 'lucide-react';
+import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist';
 import type { FertilizerFormEntry } from '../../data/fertilizerForms';
 
 export function FertilizerFormPdfGenerator({ form, onClose }: { form: FertilizerFormEntry; onClose: () => void }) {
@@ -11,7 +12,8 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
 
   useEffect(() => {
     let cancelled = false;
-    let pdfDoc: { destroy: () => Promise<void> } | null = null;
+    let loadingTask: PDFDocumentLoadingTask | null = null;
+    let pdfDoc: PDFDocumentProxy | null = null;
 
     const renderPdf = async () => {
       try {
@@ -19,12 +21,12 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
         setError(null);
         setRenderedPages(0);
 
-        const pdfjs = await import('pdfjs-dist');
+        const pdfjs = await import('pdfjs-dist/legacy/build/pdf.min.mjs');
         if (cancelled) return;
 
         if (!pdfjs.GlobalWorkerOptions.workerSrc) {
           pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-            'pdfjs-dist/build/pdf.worker.min.mjs',
+            'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
             import.meta.url
           ).toString();
         }
@@ -34,7 +36,7 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
         const arrayBuffer = await response.arrayBuffer();
         if (cancelled) return;
 
-        const loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer), useWorkerFetch: false });
+        loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer), useWorkerFetch: false });
         pdfDoc = await loadingTask.promise;
         if (cancelled) return;
 
@@ -68,13 +70,7 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
           canvas.style.boxShadow = '0 1px 3px rgba(0,0,0,0.12)';
           canvas.style.background = '#ffffff';
 
-          const context = canvas.getContext('2d', { alpha: false });
-          if (!context) continue;
-
-          context.fillStyle = '#ffffff';
-          context.fillRect(0, 0, canvas.width, canvas.height);
-
-          await page.render({ canvasContext: context, viewport, canvas }).promise;
+          await page.render({ canvas, viewport, background: '#ffffff' }).promise;
           if (cancelled) break;
 
           container.appendChild(canvas);
@@ -104,8 +100,8 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
 
     return () => {
       cancelled = true;
-      if (pdfDoc) {
-        pdfDoc.destroy().catch(() => {});
+      if (loadingTask) {
+        loadingTask.destroy().catch(() => {});
       }
     };
   }, [form.pdfPath, form.page]);

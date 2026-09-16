@@ -943,7 +943,13 @@ function FcoGlanceChip({ icon: Icon, label, tone = 'slate' }: { icon: typeof Clo
   );
 }
 
+function fcoRealSubClauses(clause: FcoClause) {
+  const clauseNo = clause.clauseNo.replace(/\s+/g, '').toLowerCase();
+  return clause.subClauses.filter((item) => item.no.replace(/\s+/g, '').toLowerCase() !== clauseNo);
+}
+
 function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, onOpenRelated }: { clause: FcoClause; activeTab: FcoTabId; bookmarked: boolean; onToggleBookmark: () => void; onOpenRelated: (target: { clauseId: string; cardId: string }) => void }) {
+  const subClauses = fcoRealSubClauses(clause);
   const copyClause = () => navigator.clipboard?.writeText(fcoClauseToText(clause));
   const shareClause = async () => {
     const text = fcoClauseToText(clause);
@@ -972,9 +978,9 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
         </div>
       </summary>
       <div className="space-y-2.5 p-2.5">
-        {(clause.subClauses.length > 0 || clause.provisos.length > 0 || clause.forms.length > 0 || clause.timelines.length > 0) && (
+        {(subClauses.length > 0 || clause.provisos.length > 0 || clause.forms.length > 0 || clause.timelines.length > 0) && (
           <div className="flex flex-wrap gap-1.5">
-            {clause.subClauses.length > 0 && <FcoGlanceChip icon={ListOrdered} label={`${clause.subClauses.length} sub-clause${clause.subClauses.length === 1 ? '' : 's'}`} />}
+            {subClauses.length > 0 && <FcoGlanceChip icon={ListOrdered} label={`${subClauses.length} sub-clause${subClauses.length === 1 ? '' : 's'}`} />}
             {clause.provisos.length > 0 && <FcoGlanceChip icon={AlertTriangle} label={`${clause.provisos.length} proviso${clause.provisos.length === 1 ? '' : 's'}`} tone="amber" />}
             {clause.forms.length > 0 && <FcoGlanceChip icon={FileText} label={`${clause.forms.length} form${clause.forms.length === 1 ? '' : 's'}`} tone="blue" />}
             {clause.timelines.length > 0 && <FcoGlanceChip icon={Clock} label={`${clause.timelines.length} timeline${clause.timelines.length === 1 ? '' : 's'}`} tone="emerald" />}
@@ -995,9 +1001,9 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
             ))}
           </div>
         )}
-        {clause.subClauses.length > 0 && (
+        {subClauses.length > 0 && (
           <div className="grid gap-1.5 sm:grid-cols-2">
-            {clause.subClauses.map((subClause) => (
+            {subClauses.map((subClause) => (
               <details key={subClause.no} className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
                 <summary className="flex cursor-pointer list-none items-center gap-2 p-2">
                   <span className="flex h-7 min-w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-amber-500 to-orange-500 px-1.5 text-[10px] font-black text-white shadow-sm">{subClause.no}</span>
@@ -1127,7 +1133,7 @@ function fcoClauseToText(clause: FcoClause) {
     clause.summary,
     clause.legalText,
     clause.plainEnglish,
-    ...clause.subClauses.map((item) => `${item.no}: ${item.legalText} - ${item.plainEnglish}`),
+    ...fcoRealSubClauses(clause).map((item) => `${item.no}: ${item.legalText} - ${item.plainEnglish}`),
     clause.mnemonic ? `Mnemonic: ${clause.mnemonic}` : '',
   ].filter(Boolean).join('\n');
 }

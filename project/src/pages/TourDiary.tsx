@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, Car, AlertCircle, CheckCircle, RefreshCw, Eye, NotebookPen, MoreVertical, FolderOpen, Clock, ChevronRight as ArrowRight, Copy, Check, X, ClipboardList } from 'lucide-react';
+import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, Car, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, FolderOpen, Clock, ChevronRight as ArrowRight, Copy, Check, X, ClipboardList } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -330,6 +330,198 @@ function clearRecoveryState(): void {
   }
 }
 
+// Accessible UI primitives
+type ToastType = 'success' | 'error' | 'warning' | 'info';
+
+interface ToastItem {
+  id: number;
+  message: string;
+  type: ToastType;
+}
+
+interface DialogOptions {
+  title: string;
+  message?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  destructive?: boolean;
+}
+
+interface DialogState extends DialogOptions {
+  kind: 'confirm' | 'prompt';
+  defaultValue?: string;
+  inputLabel?: string;
+  resolve: (value: string | boolean | null) => void;
+}
+
+const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// Accessible modal wrapper: dialog semantics, Escape-to-close, focus trap, focus restore
+function AccessibleModal({ onClose, labelledBy, className, children }: {
+  onClose?: () => void;
+  labelledBy?: string;
+  className: string;
+  children: React.ReactNode;
+}) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const panel = panelRef.current;
+    panel?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (onCloseRef.current) {
+          e.stopPropagation();
+          onCloseRef.current();
+        }
+        return;
+      }
+      if (e.key !== 'Tab' || !panel) return;
+      const focusables = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+        .filter(el => el.getClientRects().length > 0);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+      previouslyFocused?.focus?.();
+    };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        tabIndex={-1}
+        className={`${className} outline-none`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+const TOAST_STYLES: Record<ToastType, { icon: React.ReactNode; classes: string }> = {
+  success: {
+    icon: <CheckCircle className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />,
+    classes: 'border-emerald-300 bg-white dark:border-emerald-700 dark:bg-slate-800'
+  },
+  error: {
+    icon: <AlertCircle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" aria-hidden="true" />,
+    classes: 'border-red-300 bg-white dark:border-red-700 dark:bg-slate-800'
+  },
+  warning: {
+    icon: <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />,
+    classes: 'border-amber-300 bg-white dark:border-amber-700 dark:bg-slate-800'
+  },
+  info: {
+    icon: <Info className="h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />,
+    classes: 'border-blue-300 bg-white dark:border-blue-700 dark:bg-slate-800'
+  }
+};
+
+function ToastStack({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: (id: number) => void }) {
+  if (toasts.length === 0) return null;
+  return (
+    <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-4 z-[70] flex flex-col items-center gap-2 px-4 sm:items-end sm:px-6">
+      {toasts.map(toast => (
+        <div
+          key={toast.id}
+          role="status"
+          className={`pointer-events-auto flex w-full max-w-sm items-center gap-2 rounded-xl border px-4 py-3 shadow-lg ${TOAST_STYLES[toast.type].classes}`}
+        >
+          {TOAST_STYLES[toast.type].icon}
+          <p className="flex-1 text-sm font-semibold text-slate-900 dark:text-white">{toast.message}</p>
+          <button
+            type="button"
+            aria-label="Dismiss notification"
+            onClick={() => onDismiss(toast.id)}
+            className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DiaryDialog({ dialog, onResolve }: { dialog: DialogState; onResolve: (value: string | boolean | null) => void }) {
+  const [value, setValue] = useState(dialog.defaultValue || '');
+  const cancelValue = dialog.kind === 'prompt' ? null : false;
+
+  return (
+    <AccessibleModal
+      labelledBy="diary-dialog-title"
+      onClose={() => onResolve(cancelValue)}
+      className="w-full max-w-md rounded-2xl border border-emerald-200/50 bg-white p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900"
+    >
+      <h2 id="diary-dialog-title" className="mb-2 text-lg font-bold text-slate-900 dark:text-white">
+        {dialog.title}
+      </h2>
+      {dialog.message && (
+        <p className="mb-4 whitespace-pre-line text-sm font-semibold text-slate-600 dark:text-slate-400">
+          {dialog.message}
+        </p>
+      )}
+      {dialog.kind === 'prompt' && (
+        <div className="mb-4">
+          <label htmlFor="diary-dialog-input" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
+            {dialog.inputLabel || 'Name'}
+          </label>
+          <input
+            id="diary-dialog-input"
+            type="text"
+            value={value}
+            autoFocus
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onResolve(value.trim() || null);
+              }
+            }}
+            className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+      )}
+      <div className="mt-4 flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => onResolve(cancelValue)}
+          className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-900/40"
+        >
+          {dialog.cancelLabel || 'Cancel'}
+        </button>
+        <button
+          type="button"
+          onClick={() => onResolve(dialog.kind === 'prompt' ? (value.trim() || null) : true)}
+          className={`rounded-lg px-4 py-2 text-sm font-bold text-white ${dialog.destructive ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+        >
+          {dialog.confirmLabel || 'OK'}
+        </button>
+      </div>
+    </AccessibleModal>
+  );
+}
+
 export function TourDiary() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -379,6 +571,13 @@ export function TourDiary() {
   const [pendingLeaveDate, setPendingLeaveDate] = useState<string | null>(null);
   const [remarksDialogOpen, setRemarksDialogOpen] = useState<string | null>(null);
   const [dateRemarks, setDateRemarks] = useState<Record<string, string>>({});
+
+  // Toast + dialog state (replaces native alert/confirm/prompt)
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const toastSeq = useRef(0);
+  const [dialogState, setDialogState] = useState<DialogState | null>(null);
+  const [expandedOverrides, setExpandedOverrides] = useState<Record<string, boolean>>({});
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   // Landing page state
   const [showLandingPage, setShowLandingPage] = useState(true);
@@ -410,6 +609,71 @@ export function TourDiary() {
     custom_purpose: '',
     remarks: ''
   });
+
+  // Toast helpers
+  const showToast = useCallback((message: string, type: ToastType = 'info') => {
+    const id = ++toastSeq.current;
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4500);
+  }, []);
+
+  const dismissToast = useCallback((id: number) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  // Dialog helpers (styled replacements for confirm()/prompt())
+  const askConfirm = useCallback((options: DialogOptions): Promise<boolean> => {
+    return new Promise(resolve => {
+      setDialogState({ kind: 'confirm', ...options, resolve });
+    });
+  }, []);
+
+  const askPrompt = useCallback((options: DialogOptions & { defaultValue?: string; inputLabel?: string }): Promise<string | null> => {
+    return new Promise(resolve => {
+      setDialogState({ kind: 'prompt', ...options, resolve });
+    });
+  }, []);
+
+  const resolveDialog = useCallback((value: string | boolean | null) => {
+    setDialogState(prev => {
+      prev?.resolve(value);
+      return null;
+    });
+  }, []);
+
+  // Dismiss open menus on outside click or Escape
+  useEffect(() => {
+    if (!actionMenuOpen && !draftMenuOpen && !pdfMenuOpen) return;
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      if (!(e.target as HTMLElement).closest('[data-menu-root]')) {
+        setActionMenuOpen(null);
+        setDraftMenuOpen(null);
+        setPdfMenuOpen(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActionMenuOpen(null);
+        setDraftMenuOpen(null);
+        setPdfMenuOpen(null);
+      }
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [actionMenuOpen, draftMenuOpen, pdfMenuOpen]);
+
+  // Reset day-card expansion when switching months
+  useEffect(() => {
+    setExpandedOverrides({});
+  }, [currentYear, currentMonth]);
 
   // Load all data with proper loading state management
   const loadAllData = useCallback(async () => {
@@ -711,12 +975,12 @@ export function TourDiary() {
   // Save draft to IndexedDB (explicit save)
   async function saveDraftToLocal() {
     if (!officerName) {
-      alert('Please enter Officer Name before saving the draft.');
+      showToast('Please enter Officer Name before saving the draft.', 'error');
       return;
     }
 
     if (!currentMonth || !currentYear) {
-      alert('Please select Month and Year before saving the draft.');
+      showToast('Please select Month and Year before saving the draft.', 'error');
       return;
     }
 
@@ -753,19 +1017,25 @@ export function TourDiary() {
       // Reload drafts from IndexedDB
       await loadAllDrafts();
       const monthName = MONTHS[currentMonth - 1];
-      alert(`✓ ${monthName} ${currentYear} draft saved`);
+      showToast(`${monthName} ${currentYear} draft saved`, 'success');
     } catch (error) {
       console.error('Error saving draft:', error);
-      alert('Failed to save draft. Please try again.');
+      showToast('Failed to save draft. Please try again.', 'error');
     } finally {
       setIsSavingDraft(false);
     }
   }
 
   // Load draft from IndexedDB
-  function loadDraftFromLocal(draft: TourDiaryDraft) {
+  async function loadDraftFromLocal(draft: TourDiaryDraft) {
     if (hasUnsavedChanges) {
-      if (!confirm('You have unsaved changes.\n\nLoading another draft will replace the current Tour Diary.\n\nDo you want to continue?')) {
+      const proceed = await askConfirm({
+        title: 'Unsaved changes',
+        message: 'Loading another draft will replace the current Tour Diary.\n\nDo you want to continue?',
+        confirmLabel: 'Load Draft',
+        destructive: true
+      });
+      if (!proceed) {
         return;
       }
     }
@@ -819,36 +1089,41 @@ export function TourDiary() {
       setShowLandingPage(false);
     } catch (error) {
       console.error('Error loading draft:', error);
-      alert('Failed to load draft. Please try again.');
+      showToast('Failed to load draft. Please try again.', 'error');
     }
   }
 
   // Delete draft from localStorage
-  function deleteDraftFromLocal(draftId: string, month: number, year: number) {
-    if (confirm(`Delete ${MONTHS[month - 1]} ${year} draft?\n\nThis action cannot be undone.`)) {
-      try {
-        const drafts = getDrafts();
-        const filteredDrafts = drafts.filter(d => d.id !== draftId);
-        if (!saveDrafts(filteredDrafts)) {
-          throw new Error('Failed to delete draft');
-        }
-        alert('✓ Draft deleted successfully');
-      } catch (error) {
-        console.error('Error deleting draft:', error);
-        alert('Failed to delete draft. Please try again.');
+  async function deleteDraftFromLocal(draftId: string, month: number, year: number) {
+    const proceed = await askConfirm({
+      title: 'Delete draft?',
+      message: `Delete ${MONTHS[month - 1]} ${year} draft? This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      destructive: true
+    });
+    if (!proceed) return;
+    try {
+      const drafts = getDrafts();
+      const filteredDrafts = drafts.filter(d => d.id !== draftId);
+      if (!saveDrafts(filteredDrafts)) {
+        throw new Error('Failed to delete draft');
       }
+      showToast('Draft deleted', 'success');
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      showToast('Failed to delete draft. Please try again.', 'error');
     }
   }
 
   // Save completed diary to database
   async function saveCompletedDiary() {
     if (!user) {
-      alert('You must be logged in to save a diary.');
+      showToast('You must be logged in to save a diary.', 'error');
       return;
     }
 
     if (!officerName) {
-      alert('Please enter Officer Name before saving.');
+      showToast('Please enter Officer Name before saving.', 'error');
       return;
     }
 
@@ -950,7 +1225,7 @@ export function TourDiary() {
       // Reload completed diaries
       await loadCompletedDiaries();
 
-      alert(`✓ ${MONTHS[currentMonth - 1]} ${currentYear} diary saved successfully!`);
+      showToast(`${MONTHS[currentMonth - 1]} ${currentYear} diary saved successfully!`, 'success');
       
       // Clear unsaved changes
       setHasUnsavedChanges(false);
@@ -966,7 +1241,7 @@ export function TourDiary() {
 
     } catch (error) {
       console.error('Error saving completed diary:', error);
-      alert('Failed to save diary. Please try again.');
+      showToast('Failed to save diary. Please try again.', 'error');
     }
   }
 
@@ -1089,14 +1364,20 @@ export function TourDiary() {
   }
 
   // Leave and Optional Holiday Actions
-  function availLeave(date: string) {
+  async function availLeave(date: string) {
     const dayJourneys = getJourneysForDate(date);
     if (dayJourneys.length > 0) {
-      if (!confirm('This date already contains tour details.\n\nAvailing leave will disable the tour entry for this date.\n\nDo you want to continue?')) {
+      const proceed = await askConfirm({
+        title: 'Avail leave?',
+        message: 'This date already contains tour details. Availing leave will disable the tour entry for this date.',
+        confirmLabel: 'Avail Leave',
+        destructive: true
+      });
+      if (!proceed) {
         return;
       }
     }
-    
+
     setDateStatusOverrides((previous) => ({
       ...previous,
       [date]: {
@@ -1110,14 +1391,20 @@ export function TourDiary() {
   }
 
   // Avail Leave on Optional Holiday
-  function availLeaveOnOptionalHoliday(date: string) {
+  async function availLeaveOnOptionalHoliday(date: string) {
     const dayJourneys = getJourneysForDate(date);
     if (dayJourneys.length > 0) {
-      if (!confirm('This date already contains tour details.\n\nAvailing leave will disable the tour entry for this date.\n\nDo you want to continue?')) {
+      const proceed = await askConfirm({
+        title: 'Avail leave?',
+        message: 'This date already contains tour details. Availing leave will disable the tour entry for this date.',
+        confirmLabel: 'Avail Leave',
+        destructive: true
+      });
+      if (!proceed) {
         return;
       }
     }
-    
+
     // Preserve the optional holiday info
     const displayedHolidays = getDisplayedHolidaysForDate(date);
     const optionalHoliday = displayedHolidays.find(h => h.holiday_type === 'OPTIONAL');
@@ -1240,7 +1527,7 @@ export function TourDiary() {
   // Check if all previous working days in the month have completed journeys
   function arePreviousWorkingDaysCompleted(targetDate: string): boolean {
     const [targetDay] = targetDate.split('-').map(Number);
-    
+
     for (let day = 1; day < targetDay; day++) {
       const date = formatDate(currentYear, currentMonth, day);
       if (isJourneyRequired(date) && !hasCompletedJourney(date)) {
@@ -1249,6 +1536,115 @@ export function TourDiary() {
     }
     return true;
   }
+
+  // Find the earliest incomplete working day before a target date
+  function firstIncompleteWorkingDay(targetDate: string): string | null {
+    const [targetDay] = targetDate.split('-').map(Number);
+
+    for (let day = 1; day < targetDay; day++) {
+      const date = formatDate(currentYear, currentMonth, day);
+      if (isJourneyRequired(date) && !hasCompletedJourney(date)) {
+        return date;
+      }
+    }
+    return null;
+  }
+
+  // Expand a day card and scroll it into view (used by mini-calendar + warnings)
+  function scrollToDay(date: string) {
+    setExpandedOverrides(prev => ({ ...prev, [date]: true }));
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById(`day-card-${date}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  }
+
+  function isTodayDate(day: number): boolean {
+    const today = new Date();
+    return day === today.getDate() && currentMonth === today.getMonth() + 1 && currentYear === today.getFullYear();
+  }
+
+  // Whether a day card is expanded: explicit toggle wins, otherwise auto-expand today + days with entries
+  function isDayExpanded(date: string, day: number, dayJourneys: TourJourney[]): boolean {
+    if (expandedOverrides[date] !== undefined) return expandedOverrides[date];
+    return isTodayDate(day) || dayJourneys.length > 0;
+  }
+
+  function toggleDayExpanded(date: string, day: number, dayJourneys: TourJourney[]) {
+    const current = isDayExpanded(date, day, dayJourneys);
+    setExpandedOverrides(prev => ({ ...prev, [date]: !current }));
+  }
+
+  function setAllDaysExpanded(expanded: boolean) {
+    const next: Record<string, boolean> = {};
+    for (let day = 1; day <= getDaysInMonth(currentYear, currentMonth); day++) {
+      next[formatDate(currentYear, currentMonth, day)] = expanded;
+    }
+    setExpandedOverrides(next);
+  }
+
+  // Status for the month-at-a-glance mini calendar
+  type DayCellStatus = 'tour' | 'leave' | 'optionalAvailed' | 'holiday' | 'optional' | 'weeklyOff' | 'pending';
+
+  function getDayCellStatus(date: string, day: number): DayCellStatus {
+    const leaveType = getDateLeaveType(date);
+    if (leaveType === 'NORMAL_LEAVE' || leaveType === 'OPTIONAL_HOLIDAY_LEAVE') return 'leave';
+    if (leaveType === 'OPTIONAL_HOLIDAY') return 'optionalAvailed';
+    if (getJourneysForDate(date).length > 0) return 'tour';
+    if (dateStatusOverrides[date]?.status === 'WORKING') return 'pending';
+    const displayedHolidays = getDisplayedHolidaysForDate(date);
+    if (displayedHolidays.some(h => h.holiday_type === 'GENERAL')) return 'holiday';
+    if (isSunday(currentYear, currentMonth, day) || isSecondSaturday(currentYear, currentMonth, day)) return 'weeklyOff';
+    if (displayedHolidays.some(h => h.holiday_type === 'OPTIONAL')) return 'optional';
+    return 'pending';
+  }
+
+  // Working-day completion progress for the month
+  const monthProgress = useMemo(() => {
+    const totalDays = getDaysInMonth(currentYear, currentMonth);
+    let required = 0;
+    let filled = 0;
+    const pendingDates: string[] = [];
+    for (let day = 1; day <= totalDays; day++) {
+      const date = formatDate(currentYear, currentMonth, day);
+      if (isJourneyRequired(date)) {
+        required++;
+        if (hasCompletedJourney(date)) {
+          filled++;
+        } else {
+          pendingDates.push(date);
+        }
+      }
+    }
+    return { required, filled, pendingDates };
+  }, [currentYear, currentMonth, journeys, dateStatusOverrides, holidays]);
+
+  // Autocomplete suggestions built from previously entered journeys (current diary + all saved drafts)
+  const placeSuggestions = useMemo(() => {
+    const places = new Set<string>();
+    const collect = (list: TourJourney[]) => {
+      list.forEach(j => {
+        if (j.from_place?.trim()) places.add(j.from_place.trim());
+        if (j.to_place?.trim()) places.add(j.to_place.trim());
+      });
+    };
+    collect(journeys);
+    allDrafts.forEach(d => collect(d.journeys || []));
+    return Array.from(places).sort((a, b) => a.localeCompare(b));
+  }, [journeys, allDrafts]);
+
+  const distanceSuggestions = useMemo(() => {
+    const distances = new Set<number>();
+    const collect = (list: TourJourney[]) => {
+      list.forEach(j => {
+        if (j.distance_km > 0) distances.add(j.distance_km);
+      });
+    };
+    collect(journeys);
+    allDrafts.forEach(d => collect(d.journeys || []));
+    return Array.from(distances).sort((a, b) => a - b);
+  }, [journeys, allDrafts]);
 
   // Calculate monthly summary - Centralized calculation function for UI, Preview, and PDF
   function calculateMonthlySummary() {
@@ -1368,12 +1764,23 @@ export function TourDiary() {
   function openJourneyForm(date: string, continueFrom?: TourJourney) {
     // Check if previous working days have completed journeys before allowing navigation
     if (!arePreviousWorkingDaysCompleted(date)) {
-      alert('Please save the previous date\'s journey before moving to the next date.');
+      const missingDate = firstIncompleteWorkingDay(date);
+      showToast(`Please complete the journey for ${missingDate || 'the earlier working days'} before moving ahead.`, 'warning');
+      if (missingDate) scrollToDay(missingDate);
+      return;
+    }
+
+    // Only one journey is allowed per date - open the existing entry for editing instead
+    const existingJourneys = getJourneysForDate(date);
+    if (existingJourneys.length > 0) {
+      showToast('Only one journey is allowed per date. Opening the existing entry for editing.', 'info');
+      editJourney(existingJourneys[0]);
       return;
     }
 
     setSelectedDate(date);
     setEditingJourney(null);
+    setFormErrors({});
 
     const previousJourney = continueFrom || getJourneysForDate(date).slice(-1)[0];
     const lastJourney = journeys.slice(-1)[0];
@@ -1417,6 +1824,7 @@ export function TourDiary() {
   function editJourney(journey: TourJourney) {
     setSelectedDate(journey.journey_date);
     setEditingJourney(journey);
+    setFormErrors({});
 
     setFormData({
       journey_date: journey.journey_date,
@@ -1440,27 +1848,32 @@ export function TourDiary() {
   // Save journey
   async function saveJourney() {
     try {
-      // Validation - mandatory fields
+      // Validation - mandatory fields shown inline
+      const errors: Record<string, string> = {};
       if (!formData.to_place) {
-        alert('To Place is required.');
-        return;
+        errors.to_place = 'To Place is required.';
       }
       if (formData.distance_km === null || formData.distance_km === undefined || formData.distance_km <= 0) {
-        alert('Please enter a valid distance greater than 0 km.');
-        return;
+        errors.distance_km = 'Please enter a valid distance greater than 0 km.';
       }
       if (formData.purposes.length === 0) {
-        alert('At least one purpose is required.');
-        return;
+        errors.purposes = 'At least one purpose is required.';
       }
-      
-      // Additional validation
       if (!formData.from_place) {
-        alert('From Place is required.');
-        return;
+        errors.from_place = 'From Place is required.';
       }
       if (formData.meter_to < formData.meter_from) {
-        alert('Meter To cannot be less than Meter From');
+        errors.meter_to = 'Meter To cannot be less than Meter From.';
+      }
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
+        return;
+      }
+      setFormErrors({});
+
+      // Only one journey is allowed per date
+      if (!editingJourney && journeys.some(j => j.journey_date === formData.journey_date)) {
+        showToast('A journey already exists for this date. Edit the existing entry instead.', 'warning');
         return;
       }
 
@@ -1531,17 +1944,23 @@ export function TourDiary() {
       setEditingJourney(null);
     } catch (error) {
       console.error('Error saving journey:', error);
-      alert('Failed to save journey. Please try again.');
+      showToast('Failed to save journey. Please try again.', 'error');
     }
   }
 
   // Delete journey
-  function deleteJourney(journeyId: string) {
-    if (!confirm('Are you sure you want to delete this journey?')) return;
+  async function deleteJourney(journeyId: string) {
+    const proceed = await askConfirm({
+      title: 'Delete journey?',
+      message: 'This journey entry will be permanently removed.',
+      confirmLabel: 'Delete',
+      destructive: true
+    });
+    if (!proceed) return;
 
     // Remove journey from local state
     setJourneys(prev => prev.filter(j => j.id !== journeyId));
-    
+
     // Mark as unsaved changes so it gets saved to draft
     setHasUnsavedChanges(true);
   }
@@ -1872,7 +2291,11 @@ export function TourDiary() {
         const existingPdf = await hasDiaryPdf(diaryId, currentMonth, currentYear);
         
         if (existingPdf) {
-          const shouldReplace = confirm(`A PDF for ${MONTHS[currentMonth - 1]} ${currentYear} already exists in My Diaries. Replace it?`);
+          const shouldReplace = await askConfirm({
+            title: 'PDF already saved',
+            message: `A PDF for ${MONTHS[currentMonth - 1]} ${currentYear} already exists in My Diaries. Replace it?`,
+            confirmLabel: 'Replace'
+          });
           if (!shouldReplace) {
             // Still download the PDF even if user doesn't want to replace
             doc.save(fileName);
@@ -1888,7 +2311,7 @@ export function TourDiary() {
         console.error('Failed to save PDF to IndexedDB:', storageError);
         // Check if it's a quota exceeded error
         if (storageError instanceof Error && storageError.name === 'QuotaExceededError') {
-          alert(`PDF downloaded successfully, but couldn't be saved to My Diaries because browser storage is full. Please clear some space or delete old PDFs.`);
+          showToast('PDF downloaded, but could not be saved to My Diaries — browser storage is full. Delete old PDFs to free space.', 'warning');
         } else {
           // Other errors - still allow download but log the issue
           console.warn('PDF storage failed (non-quota error):', storageError);
@@ -1899,7 +2322,7 @@ export function TourDiary() {
       doc.save(fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert(`Failed to generate PDF. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showToast(`Failed to generate PDF. ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -1960,7 +2383,7 @@ export function TourDiary() {
       XLSX.writeFile(workbook, `Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.xlsx`);
     } catch (error) {
       console.error('Error generating Excel:', error);
-      alert('Failed to generate Excel. Please try again later.');
+      showToast('Failed to generate Excel. Please try again later.', 'error');
     }
   }
 
@@ -2337,6 +2760,9 @@ export function TourDiary() {
                                   {item.type === 'draft' ? 'DRAFT' : 'PDF SAVED'}
                                 </span>
                                 <button
+                                  aria-label={`Actions for ${item.title}`}
+                                  aria-haspopup="menu"
+                                  aria-expanded={item.type === 'draft' ? draftMenuOpen === item.id : pdfMenuOpen === item.id}
                                   onClick={() => {
                                     if (item.type === 'draft') {
                                       setDraftMenuOpen(draftMenuOpen === item.id ? null : item.id);
@@ -2346,15 +2772,16 @@ export function TourDiary() {
                                   }}
                                   className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
                                 >
-                                  <MoreVertical className="h-4 w-4" />
+                                  <MoreVertical className="h-4 w-4" aria-hidden="true" />
                                 </button>
                               </div>
 
                               {/* Draft menu */}
                               {item.type === 'draft' && draftMenuOpen === item.id && (
-                                <div className="absolute right-2 top-12 z-10 w-48 rounded-lg border border-amber-200 bg-white shadow-lg dark:border-amber-800 dark:bg-slate-800">
+                                <div role="menu" data-menu-root className="absolute right-2 top-12 z-10 w-48 rounded-lg border border-amber-200 bg-white shadow-lg dark:border-amber-800 dark:bg-slate-800">
                                   <div className="py-1">
                                     <button
+                                      role="menuitem"
                                       onClick={() => {
                                         loadDraftFromLocal(item.data as TourDiaryDraft);
                                         setDraftMenuOpen(null);
@@ -2365,29 +2792,43 @@ export function TourDiary() {
                                       Continue
                                     </button>
                                     <button
+                                      role="menuitem"
                                       onClick={async () => {
-                                        const newName = prompt('Enter new name:', item.title);
-                                        if (newName && newName.trim()) {
-                                          const success = await renameDraft(item.id, newName.trim());
+                                        setDraftMenuOpen(null);
+                                        const newName = await askPrompt({
+                                          title: 'Rename draft',
+                                          inputLabel: 'Draft name',
+                                          defaultValue: item.title,
+                                          confirmLabel: 'Rename'
+                                        });
+                                        if (newName) {
+                                          const success = await renameDraft(item.id, newName);
                                           if (success) {
                                             await loadAllDrafts();
                                           } else {
-                                            alert('Failed to rename draft');
+                                            showToast('Failed to rename draft.', 'error');
                                           }
                                         }
-                                        setDraftMenuOpen(null);
                                       }}
                                       className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-amber-50 dark:text-slate-200 dark:hover:bg-amber-900"
                                     >
                                       Rename
                                     </button>
                                     <button
+                                      role="menuitem"
                                       onClick={async () => {
-                                        if (confirm('Delete this draft?')) {
+                                        setDraftMenuOpen(null);
+                                        const proceed = await askConfirm({
+                                          title: 'Delete draft?',
+                                          message: `Delete "${item.title}"? This action cannot be undone.`,
+                                          confirmLabel: 'Delete',
+                                          destructive: true
+                                        });
+                                        if (proceed) {
                                           await deleteDraftFromIndexedDB(item.id);
                                           await loadAllDrafts();
+                                          showToast('Draft deleted', 'success');
                                         }
-                                        setDraftMenuOpen(null);
                                       }}
                                       className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900"
                                     >
@@ -2399,9 +2840,10 @@ export function TourDiary() {
 
                               {/* PDF menu */}
                               {item.type === 'pdf' && pdfMenuOpen === item.id && (
-                                <div className="absolute right-2 top-12 z-10 w-52 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
+                                <div role="menu" data-menu-root className="absolute right-2 top-12 z-10 w-52 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
                                   <div className="py-1">
                                     <button
+                                      role="menuitem"
                                       onClick={async () => {
                                         const blob = await getDiaryPdf(item.id);
                                         if (blob) {
@@ -2415,6 +2857,7 @@ export function TourDiary() {
                                       Open PDF
                                     </button>
                                     <button
+                                      role="menuitem"
                                       onClick={async () => {
                                         const blob = await getDiaryPdf(item.id);
                                         if (blob) {
@@ -2432,29 +2875,43 @@ export function TourDiary() {
                                       Download
                                     </button>
                                     <button
+                                      role="menuitem"
                                       onClick={async () => {
-                                        const newName = prompt('Enter new filename:', (item.data as DiaryPdfMetadata).fileName);
-                                        if (newName && newName.trim()) {
-                                          const success = await renameDiaryPdf(item.id, newName.trim());
+                                        setPdfMenuOpen(null);
+                                        const newName = await askPrompt({
+                                          title: 'Rename PDF',
+                                          inputLabel: 'Filename',
+                                          defaultValue: (item.data as DiaryPdfMetadata).fileName,
+                                          confirmLabel: 'Rename'
+                                        });
+                                        if (newName) {
+                                          const success = await renameDiaryPdf(item.id, newName);
                                           if (success) {
                                             await loadStoredPdfs();
                                           } else {
-                                            alert('Failed to rename PDF');
+                                            showToast('Failed to rename PDF.', 'error');
                                           }
                                         }
-                                        setPdfMenuOpen(null);
                                       }}
                                       className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
                                     >
                                       Rename
                                     </button>
                                     <button
+                                      role="menuitem"
                                       onClick={async () => {
-                                        if (confirm('Delete this PDF? This will not delete the Tour Diary data.')) {
+                                        setPdfMenuOpen(null);
+                                        const proceed = await askConfirm({
+                                          title: 'Delete PDF?',
+                                          message: 'This will not delete the Tour Diary data.',
+                                          confirmLabel: 'Delete',
+                                          destructive: true
+                                        });
+                                        if (proceed) {
                                           await deleteDiaryPdf(item.id);
                                           await loadStoredPdfs();
+                                          showToast('PDF deleted', 'success');
                                         }
-                                        setPdfMenuOpen(null);
                                       }}
                                       className="block w-full px-4 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900"
                                     >
@@ -2475,6 +2932,12 @@ export function TourDiary() {
           )}
 
         </div>
+
+        {/* Toast notifications */}
+        <ToastStack toasts={toasts} onDismiss={dismissToast} />
+
+        {/* Confirm / prompt dialog */}
+        {dialogState && <DiaryDialog dialog={dialogState} onResolve={resolveDialog} />}
       </div>
     );
   }
@@ -2509,8 +2972,9 @@ export function TourDiary() {
           <h2 className="mb-4 text-sm font-bold text-slate-900 dark:text-white">Officer Details</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Officer Name</label>
+              <label htmlFor="od-name" className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Officer Name</label>
               <input
+                id="od-name"
                 type="text"
                 value={officerName}
                 onChange={(e) => setOfficerName(e.target.value)}
@@ -2519,8 +2983,9 @@ export function TourDiary() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Designation</label>
+              <label htmlFor="od-designation" className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Designation</label>
               <select
+                id="od-designation"
                 value={designation}
                 onChange={(e) => {
                   setDesignation(e.target.value);
@@ -2536,6 +3001,7 @@ export function TourDiary() {
               {designation === 'Others' && (
                 <input
                   type="text"
+                  aria-label="Custom designation"
                   value={customDesignation}
                   onChange={(e) => setCustomDesignation(e.target.value)}
                   className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
@@ -2544,8 +3010,9 @@ export function TourDiary() {
               )}
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">District</label>
+              <label htmlFor="od-district" className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">District</label>
               <select
+                id="od-district"
                 value={district}
                 onChange={(e) => {
                   setDistrict(e.target.value);
@@ -2564,6 +3031,7 @@ export function TourDiary() {
               {district === 'Others' && (
                 <input
                   type="text"
+                  aria-label="Custom district name"
                   value={customDistrict}
                   onChange={(e) => setCustomDistrict(e.target.value)}
                   className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
@@ -2573,8 +3041,9 @@ export function TourDiary() {
             </div>
             {designation !== 'District Agriculture Officer' && (
               <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Division</label>
+                <label htmlFor="od-division" className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Division</label>
                 <select
+                  id="od-division"
                   value={division}
                   onChange={(e) => {
                     setDivision(e.target.value);
@@ -2592,6 +3061,7 @@ export function TourDiary() {
                 {division === 'Others' && (
                   <input
                     type="text"
+                    aria-label="Custom division name"
                     value={customDivision}
                     onChange={(e) => setCustomDivision(e.target.value)}
                     className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
@@ -2602,8 +3072,9 @@ export function TourDiary() {
             )}
             {designation === 'Mandal Agriculture Officer' || designation === 'Others' || designation === '' ? (
               <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Mandal</label>
+                <label htmlFor="od-mandal" className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Mandal</label>
                 <select
+                  id="od-mandal"
                   value={mandal}
                   onChange={(e) => {
                     setMandal(e.target.value);
@@ -2621,6 +3092,7 @@ export function TourDiary() {
                 {mandal === 'Others' && (
                   <input
                     type="text"
+                    aria-label="Custom mandal name"
                     value={customMandal}
                     onChange={(e) => setCustomMandal(e.target.value)}
                     className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
@@ -2638,14 +3110,16 @@ export function TourDiary() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => navigateMonth('prev')}
+                aria-label="Previous month"
                 className="rounded-lg bg-emerald-100 p-2 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
               </button>
               <div className="flex items-center gap-2">
                 <select
                   value={currentMonth}
                   onChange={(e) => setCurrentMonth(parseInt(e.target.value))}
+                  aria-label="Select month"
                   className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
                 >
                   {MONTHS.map((m, i) => (
@@ -2655,6 +3129,7 @@ export function TourDiary() {
                 <select
                   value={currentYear}
                   onChange={(e) => setCurrentYear(parseInt(e.target.value))}
+                  aria-label="Select year"
                   className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
                 >
                   {[2025, 2026, 2027, 2028].map(y => (
@@ -2664,9 +3139,10 @@ export function TourDiary() {
               </div>
               <button
                 onClick={() => navigateMonth('next')}
+                aria-label="Next month"
                 className="rounded-lg bg-emerald-100 p-2 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -2776,19 +3252,141 @@ export function TourDiary() {
           </div>
           {summary.isReconciled ? (
             <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              <CheckCircle className="h-4 w-4" />
+              <CheckCircle className="h-4 w-4" aria-hidden="true" />
               Meter readings reconciled
             </div>
           ) : (
             <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-amber-600 dark:text-amber-400">
-              <AlertCircle className="h-4 w-4" />
+              <AlertCircle className="h-4 w-4" aria-hidden="true" />
               Meter reconciliation requires review
             </div>
           )}
         </div>
 
+        {/* Month Overview: progress + mini calendar */}
+        <div className={`mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* Completion progress */}
+          <div className="mb-4">
+            <div className="mb-1 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">Diary Progress</h2>
+              <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                {monthProgress.filled} / {monthProgress.required} working days filled
+              </p>
+            </div>
+            <div
+              role="progressbar"
+              aria-valuenow={monthProgress.filled}
+              aria-valuemin={0}
+              aria-valuemax={Math.max(monthProgress.required, 1)}
+              aria-label="Working days filled"
+              className="h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
+            >
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+                style={{ width: `${monthProgress.required > 0 ? Math.round((monthProgress.filled / monthProgress.required) * 100) : 0}%` }}
+              />
+            </div>
+            {monthProgress.pendingDates.length > 0 && (
+              <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {monthProgress.pendingDates.length} pending — next:{' '}
+                <button
+                  type="button"
+                  onClick={() => scrollToDay(monthProgress.pendingDates[0])}
+                  className="font-bold text-emerald-700 underline decoration-emerald-400 underline-offset-2 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300"
+                >
+                  {monthProgress.pendingDates[0]}
+                </button>
+              </p>
+            )}
+          </div>
+
+          {/* Mini calendar */}
+          <div className="grid grid-cols-7 gap-1" role="grid" aria-label={`${MONTHS[currentMonth - 1]} ${currentYear} overview`}>
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+              <div key={i} role="columnheader" className="pb-1 text-center text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">
+                {d}
+              </div>
+            ))}
+            {Array.from({ length: new Date(currentYear, currentMonth - 1, 1).getDay() }).map((_, i) => (
+              <div key={`blank-${i}`} aria-hidden="true" />
+            ))}
+            {Array.from({ length: getDaysInMonth(currentYear, currentMonth) }, (_, i) => i + 1).map(day => {
+              const date = formatDate(currentYear, currentMonth, day);
+              const status = getDayCellStatus(date, day);
+              const cellStyles: Record<string, string> = {
+                tour: 'bg-emerald-600 text-white border border-emerald-600 dark:bg-emerald-600 dark:text-white',
+                pending: 'bg-white text-slate-700 border border-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600',
+                holiday: 'bg-rose-100 text-rose-800 border border-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-900',
+                optional: 'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/30 dark:text-purple-300 dark:border-purple-900',
+                optionalAvailed: 'bg-purple-600 text-white border border-purple-600',
+                leave: 'bg-slate-400 text-white border border-slate-400 dark:bg-slate-600 dark:border-slate-600',
+                weeklyOff: 'bg-sky-100 text-sky-800 border border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-900'
+              };
+              const statusLabels: Record<string, string> = {
+                tour: 'journey recorded',
+                pending: 'pending',
+                holiday: 'holiday',
+                optional: 'optional holiday',
+                optionalAvailed: 'optional holiday availed',
+                leave: 'leave',
+                weeklyOff: 'weekly off'
+              };
+              const isToday = isTodayDate(day);
+              return (
+                <button
+                  key={date}
+                  type="button"
+                  role="gridcell"
+                  onClick={() => scrollToDay(date)}
+                  aria-label={`${date} ${getDayName(currentYear, currentMonth, day)}: ${statusLabels[status]}${isToday ? ', today' : ''}`}
+                  className={`flex h-8 w-full items-center justify-center rounded-md text-xs font-semibold transition-transform hover:scale-105 sm:h-9 ${cellStyles[status]} ${isToday ? 'ring-2 ring-amber-500 ring-offset-1 dark:ring-offset-slate-900' : ''}`}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Legend */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+            {[
+              { label: 'Tour', swatch: 'bg-emerald-600' },
+              { label: 'Pending', swatch: 'bg-white border border-slate-300 dark:bg-slate-800 dark:border-slate-600' },
+              { label: 'Holiday', swatch: 'bg-rose-100 border border-rose-200 dark:bg-rose-950/50' },
+              { label: 'Weekly off', swatch: 'bg-sky-100 border border-sky-200 dark:bg-sky-950/40' },
+              { label: 'Leave', swatch: 'bg-slate-400 dark:bg-slate-600' },
+              { label: 'Opt. holiday', swatch: 'bg-purple-600' }
+            ].map(item => (
+              <span key={item.label} className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">
+                <span className={`h-3 w-3 rounded ${item.swatch}`} aria-hidden="true" />
+                {item.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
         {/* Monthly Diary */}
-        <div className={`space-y-3 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Daily Entries</h2>
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={() => setAllDaysExpanded(true)}
+                className="rounded-lg px-2 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
+              >
+                Expand all
+              </button>
+              <button
+                type="button"
+                onClick={() => setAllDaysExpanded(false)}
+                className="rounded-lg px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                Collapse all
+              </button>
+            </div>
+          </div>
+          <div className="space-y-3">
           {Array.from({ length: getDaysInMonth(currentYear, currentMonth) }, (_, i) => i + 1).map(day => {
             const date = formatDate(currentYear, currentMonth, day);
             const dayName = getDayName(currentYear, currentMonth, day);
@@ -2797,258 +3395,344 @@ export function TourDiary() {
             const dayJourneys = getJourneysForDate(date);
             const isSundayDay = isSunday(currentYear, currentMonth, day);
             const isSecondSaturdayDay = isSecondSaturday(currentYear, currentMonth, day);
+            const expanded = isDayExpanded(date, day, dayJourneys);
+            const entryDisabled = isTourEntryDisabled(date);
 
             return (
               <div
                 key={date}
-                className="relative rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80"
+                id={`day-card-${date}`}
+                className="scroll-mt-32 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80"
               >
-                {/* Three-dot action menu - absolutely positioned at top-right */}
-                <div className="absolute right-4 top-4 z-10">
-                  <div className="relative">
-                    <button
-                      onClick={() => setActionMenuOpen(actionMenuOpen === date ? null : date)}
-                      className="flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-emerald-900"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
-                    {actionMenuOpen === date && (
-                      <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
-                        <div className="py-1">
-                          {/* When marked as Working Day - show Cancel Leave if leave is availed, otherwise Restore Default */}
-                          {dateOverride?.status === 'WORKING' && getDateLeaveType(date) !== 'NONE' && (
-                            <button
-                              onClick={() => cancelLeave(date)}
-                              className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                            >
-                              Cancel Leave
-                            </button>
+                <div className="flex items-start justify-between gap-2">
+                  {/* Day header - tap to expand/collapse */}
+                  <button
+                    type="button"
+                    onClick={() => toggleDayExpanded(date, day, dayJourneys)}
+                    aria-expanded={expanded}
+                    aria-controls={`day-body-${date}`}
+                    className="min-w-0 flex-1 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-slate-900 dark:text-white">
+                        {date} - {dayName}
+                      </span>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <span className="mt-1.5 flex flex-wrap items-center gap-1">
+                      {isSundayDay && (
+                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-[10px] font-black uppercase text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+                          Weekly Holiday
+                        </span>
+                      )}
+                      {isSecondSaturdayDay && (
+                        <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-1 text-[10px] font-black uppercase text-orange-800 dark:bg-orange-900/40 dark:text-orange-200">
+                          2nd Saturday
+                        </span>
+                      )}
+                      {displayedHolidays.map((holiday) => (
+                        <span key={`${holiday.id}-${holiday.holiday_type}`} className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-black uppercase ${holiday.holiday_type === 'GENERAL' ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200' : 'border border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200'}`}>
+                          {holiday.holiday_name} - {getHolidayTypeLabel(holiday.holiday_type)}
+                          {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && holiday.holiday_type === 'OPTIONAL' && (
+                            <span className="text-[9px]">(Availed)</span>
                           )}
-                          {dateOverride?.status === 'WORKING' && getDateLeaveType(date) === 'NONE' && (
-                            <button
-                              onClick={() => restoreDefaultStatus(date)}
-                              className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                            >
-                              Restore Default
-                            </button>
-                          )}
-                          {/* For holidays, Sundays, Second Saturdays - show only Mark as Working Day */}
-                          {dateOverride?.status !== 'WORKING' && (isSundayDay || isSecondSaturdayDay || displayedHolidays.some(h => h.holiday_type === 'GENERAL')) && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
-                            <button
-                              onClick={() => markAsWorkingDay(date)}
-                              className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                            >
-                              Mark as Working Day
-                            </button>
-                          )}
-                          {/* For normal working days - show leave management options */}
-                          {dateOverride?.status !== 'WORKING' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
-                            <>
-                              {getDateLeaveType(date) === 'NONE' && (
-                                <button
-                                  onClick={() => availLeave(date)}
-                                  className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                >
-                                  Avail Leave
-                                </button>
-                              )}
-                              {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
-                                <button
-                                  onClick={() => cancelLeave(date)}
-                                  className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                >
-                                  Cancel Leave
-                                </button>
-                              )}
-                            </>
-                          )}
-                          {/* For optional holidays - show optional holiday specific actions */}
-                          {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
-                            <>
-                              {getDateLeaveType(date) === 'NONE' && (
-                                <>
+                        </span>
+                      ))}
+                      {(getDateLeaveType(date) === 'NORMAL_LEAVE' || getDateLeaveType(date) === 'OPTIONAL_HOLIDAY_LEAVE') && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-black uppercase text-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
+                          Leave Availed
+                        </span>
+                      )}
+                      {dayJourneys.length > 0 ? (
+                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                          {dayJourneys.length} {dayJourneys.length === 1 ? 'journey' : 'journeys'}
+                        </span>
+                      ) : !entryDisabled ? (
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                          No entry
+                        </span>
+                      ) : null}
+                    </span>
+                  </button>
+
+                  {/* Day actions */}
+                  <div className="flex shrink-0 items-start gap-1.5">
+                    {!entryDisabled && (
+                      <button
+                        type="button"
+                        onClick={() => (dayJourneys.length > 0 ? editJourney(dayJourneys[0]) : openJourneyForm(date))}
+                        className="flex items-center gap-1 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
+                      >
+                        {dayJourneys.length > 0 ? (
+                          <Edit className="h-3 w-3" aria-hidden="true" />
+                        ) : (
+                          <Plus className="h-3 w-3" aria-hidden="true" />
+                        )}
+                        {dayJourneys.length > 0 ? 'Edit Journey' : 'Add Journey'}
+                      </button>
+                    )}
+                    <div className="relative" data-menu-root>
+                      <button
+                        type="button"
+                        onClick={() => setActionMenuOpen(actionMenuOpen === date ? null : date)}
+                        aria-label={`Actions for ${date}`}
+                        aria-haspopup="menu"
+                        aria-expanded={actionMenuOpen === date}
+                        className="flex items-center gap-1 rounded-lg border border-emerald-200 bg-white p-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-emerald-900"
+                      >
+                        <MoreVertical className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                      {actionMenuOpen === date && (
+                        <div role="menu" className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
+                          <div className="py-1">
+                            {/* When marked as Working Day - show Cancel Leave if leave is availed, otherwise Restore Default */}
+                            {dateOverride?.status === 'WORKING' && getDateLeaveType(date) !== 'NONE' && (
+                              <button
+                                role="menuitem"
+                                onClick={() => cancelLeave(date)}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                              >
+                                Cancel Leave
+                              </button>
+                            )}
+                            {dateOverride?.status === 'WORKING' && getDateLeaveType(date) === 'NONE' && (
+                              <button
+                                role="menuitem"
+                                onClick={() => restoreDefaultStatus(date)}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                              >
+                                Restore Default
+                              </button>
+                            )}
+                            {/* For holidays, Sundays, Second Saturdays - show only Mark as Working Day */}
+                            {dateOverride?.status !== 'WORKING' && (isSundayDay || isSecondSaturdayDay || displayedHolidays.some(h => h.holiday_type === 'GENERAL')) && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
+                              <button
+                                role="menuitem"
+                                onClick={() => markAsWorkingDay(date)}
+                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                              >
+                                Mark as Working Day
+                              </button>
+                            )}
+                            {/* For normal working days - show leave management options */}
+                            {dateOverride?.status !== 'WORKING' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
+                              <>
+                                {getDateLeaveType(date) === 'NONE' && (
                                   <button
-                                    onClick={() => availOptionalHoliday(date)}
-                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                  >
-                                    Avail Optional Holiday
-                                  </button>
-                                  <button
-                                    onClick={() => availLeaveOnOptionalHoliday(date)}
+                                    role="menuitem"
+                                    onClick={() => availLeave(date)}
                                     className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
                                   >
                                     Avail Leave
                                   </button>
-                                </>
-                              )}
-                              {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && (
-                                <button
-                                  onClick={() => cancelOptionalHoliday(date)}
-                                  className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                >
-                                  Cancel Optional Holiday
-                                </button>
-                              )}
-                              {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY_LEAVE' && (
-                                <button
-                                  onClick={() => cancelLeave(date)}
-                                  className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                >
-                                  Cancel Leave
-                                </button>
-                              )}
-                            </>
-                          )}
+                                )}
+                                {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
+                                  <button
+                                    role="menuitem"
+                                    onClick={() => cancelLeave(date)}
+                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                  >
+                                    Cancel Leave
+                                  </button>
+                                )}
+                              </>
+                            )}
+                            {/* For optional holidays - show optional holiday specific actions */}
+                            {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
+                              <>
+                                {getDateLeaveType(date) === 'NONE' && (
+                                  <>
+                                    <button
+                                      role="menuitem"
+                                      onClick={() => availOptionalHoliday(date)}
+                                      className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                    >
+                                      Avail Optional Holiday
+                                    </button>
+                                    <button
+                                      role="menuitem"
+                                      onClick={() => availLeaveOnOptionalHoliday(date)}
+                                      className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                    >
+                                      Avail Leave
+                                    </button>
+                                  </>
+                                )}
+                                {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && (
+                                  <button
+                                    role="menuitem"
+                                    onClick={() => cancelOptionalHoliday(date)}
+                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                  >
+                                    Cancel Optional Holiday
+                                  </button>
+                                )}
+                                {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY_LEAVE' && (
+                                  <button
+                                    role="menuitem"
+                                    onClick={() => cancelLeave(date)}
+                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                                  >
+                                    Cancel Leave
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mb-3 pr-12">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    {date} - {dayName}
-                  </h3>
-                  {isSundayDay && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-black uppercase text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
-                      🔵 WEEKLY HOLIDAY
-                    </span>
-                  )}
-                  {isSecondSaturdayDay && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-1 text-[10px] font-black uppercase text-orange-800 dark:bg-orange-900/40 dark:text-orange-200">
-                      🟠 2ND SATURDAY
-                    </span>
-                  )}
-                  {displayedHolidays.map((holiday) => (
-                    <span key={`${holiday.id}-${holiday.holiday_type}`} className={`mr-1 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-black uppercase ${holiday.holiday_type === 'GENERAL' ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200' : 'border border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200'}`}>
-                      {holiday.holiday_name} - {getHolidayTypeLabel(holiday.holiday_type)}
-                      {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && holiday.holiday_type === 'OPTIONAL' && (
-                        <span className="ml-1 text-[9px]">✓ Availed</span>
                       )}
-                    </span>
-                  ))}
-                  {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-black uppercase text-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
-                      ✓ Leave Availed
-                    </span>
-                  )}
-                  {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY_LEAVE' && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-black uppercase text-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
-                      ✓ Leave Availed
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-wrap justify-end gap-2">
-                  {!isTourEntryDisabled(date) && (
-                    <button
-                      onClick={() => openJourneyForm(date)}
-                        className="flex items-center gap-1 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
-                      >
-                        <Plus className="h-3 w-3" />
-                        Add Journey
-                      </button>
-                    )}
-                </div>
-
-                {dateOverride && dateOverride.status !== 'WORKING' && (
-                  <div className="mb-3 max-w-md">
-                    <label className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Holiday Name</label>
-                    <input
-                      type="text"
-                      value={dateOverride.holiday_name}
-                      onChange={(e) => updateDateStatusOverrideName(date, e.target.value)}
-                      className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
-                    />
+                    </div>
                   </div>
-                )}
+                </div>
 
-                {dayJourneys.length === 0 ? (
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">No journey recorded</p>
-                ) : (
-                  <div className="space-y-2">
-                    {dayJourneys.map((journey, idx) => (
-                      <div
-                        key={journey.id}
-                        className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-950/30"
-                      >
-                        <div className="mb-2 flex items-center justify-between">
-                          <div>
-                            <p className="text-xs font-bold text-slate-900 dark:text-white">
-                              {journey.from_place} → {journey.to_place}
-                            </p>
-                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                              {formatTime(journey.time_from)} - {formatTime(journey.time_to)}
-                            </p>
-                          </div>
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => editJourney(journey)}
-                              className="rounded-lg bg-blue-100 p-1.5 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800"
-                            >
-                              <Edit className="h-3 w-3" />
-                            </button>
-                            <button
-                              onClick={() => deleteJourney(journey.id)}
-                              className="rounded-lg bg-red-100 p-1.5 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
-                          </div>
-                        </div>
-                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          {journey.mode === 'Others' ? journey.custom_mode_of_journey : journey.mode} | {journey.purposes && journey.purposes.length > 0 ? journey.purposes.join(', ') : 'No purpose'}
-                        </p>
-                        {journey.remarks && (
-                          <p className="mt-1 text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                            Remarks: {journey.remarks}
-                          </p>
-                        )}
-                        <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                          Meter: {journey.meter_from.toFixed(1)} → {journey.meter_to.toFixed(1)}
-                        </p>
+                {expanded && (
+                  <div id={`day-body-${date}`} className="mt-3">
+                    {dateOverride && dateOverride.status !== 'WORKING' && (
+                      <div className="mb-3 max-w-md">
+                        <label htmlFor={`holiday-name-${date}`} className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Holiday Name</label>
+                        <input
+                          id={`holiday-name-${date}`}
+                          type="text"
+                          value={dateOverride.holiday_name}
+                          onChange={(e) => updateDateStatusOverrideName(date, e.target.value)}
+                          className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
+                        />
                       </div>
-                    ))}
+                    )}
+
+                    {dayJourneys.length === 0 ? (
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">No journey recorded</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {dayJourneys.map((journey) => (
+                          <div
+                            key={journey.id}
+                            className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-950/30"
+                          >
+                            <div className="mb-2 flex items-center justify-between">
+                              <div>
+                                <p className="text-xs font-bold text-slate-900 dark:text-white">
+                                  {journey.from_place} → {journey.to_place}
+                                </p>
+                                <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                                  {formatTime(journey.time_from)} - {formatTime(journey.time_to)}
+                                </p>
+                              </div>
+                              <div className="flex gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => editJourney(journey)}
+                                  aria-label={`Edit journey from ${journey.from_place} to ${journey.to_place}`}
+                                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800"
+                                >
+                                  <Edit className="h-4 w-4" aria-hidden="true" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteJourney(journey.id)}
+                                  aria-label={`Delete journey from ${journey.from_place} to ${journey.to_place}`}
+                                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+                                >
+                                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                              {journey.mode === 'Others' ? journey.custom_mode_of_journey : journey.mode} | {journey.purposes && journey.purposes.length > 0 ? journey.purposes.join(', ') : 'No purpose'}
+                            </p>
+                            {journey.remarks && (
+                              <p className="mt-1 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                                Remarks: {journey.remarks}
+                              </p>
+                            )}
+                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                              Meter: {journey.meter_from.toFixed(1)} → {journey.meter_to.toFixed(1)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             );
           })}
+          </div>
         </div>
         </div>
 
       {/* Journey Form Modal */}
       {showJourneyForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-emerald-200/50 bg-white p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900">
-            <h2 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
+        <AccessibleModal
+          labelledBy="journey-form-title"
+          onClose={() => setShowJourneyForm(false)}
+          className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-emerald-200/50 bg-white p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900"
+        >
+            <h2 id="journey-form-title" className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
               {editingJourney ? 'Edit Journey' : 'Add Journey'}
               {selectedDate && <span className="ml-2 text-sm font-normal text-slate-600 dark:text-slate-300"> - {selectedDate}</span>}
             </h2>
 
             <div className="space-y-4">
+              {/* Autocomplete suggestions from previously entered journeys */}
+              <datalist id="jf-place-suggestions">
+                {placeSuggestions.map(place => (
+                  <option key={place} value={place} />
+                ))}
+              </datalist>
+              <datalist id="jf-distance-suggestions">
+                {distanceSuggestions.map(distance => (
+                  <option key={distance} value={distance} />
+                ))}
+              </datalist>
+
               {/* Landscape-oriented form */}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">From Place</label>
+                  <label htmlFor="jf-from-place" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">From Place</label>
                   <input
+                    id="jf-from-place"
                     type="text"
+                    list="jf-place-suggestions"
                     value={formData.from_place}
-                    onChange={(e) => setFormData({ ...formData, from_place: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, from_place: e.target.value });
+                      if (formErrors.from_place) setFormErrors({ ...formErrors, from_place: '' });
+                    }}
+                    aria-invalid={!!formErrors.from_place}
+                    aria-describedby={formErrors.from_place ? 'jf-from-place-err' : undefined}
                     className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
                   />
+                  {formErrors.from_place && (
+                    <p id="jf-from-place-err" role="alert" className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">{formErrors.from_place}</p>
+                  )}
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">To Place</label>
+                  <label htmlFor="jf-to-place" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">To Place</label>
                   <input
+                    id="jf-to-place"
                     type="text"
+                    list="jf-place-suggestions"
                     value={formData.to_place}
-                    onChange={(e) => setFormData({ ...formData, to_place: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, to_place: e.target.value });
+                      if (formErrors.to_place) setFormErrors({ ...formErrors, to_place: '' });
+                    }}
+                    aria-invalid={!!formErrors.to_place}
+                    aria-describedby={formErrors.to_place ? 'jf-to-place-err' : undefined}
                     className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
                   />
+                  {formErrors.to_place && (
+                    <p id="jf-to-place-err" role="alert" className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">{formErrors.to_place}</p>
+                  )}
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Mode</label>
+                  <label htmlFor="jf-mode" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Mode</label>
                   <select
+                    id="jf-mode"
                     value={formData.mode}
                     onChange={(e) => setFormData({ ...formData, mode: e.target.value, custom_mode_of_journey: '' })}
                     className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
@@ -3060,8 +3744,9 @@ export function TourDiary() {
                 </div>
                 {formData.mode === 'Others' && (
                   <div>
-                    <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Specify Mode of Journey</label>
+                    <label htmlFor="jf-custom-mode" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Specify Mode of Journey</label>
                     <input
+                      id="jf-custom-mode"
                       type="text"
                       value={formData.custom_mode_of_journey}
                       onChange={(e) => setFormData({ ...formData, custom_mode_of_journey: e.target.value })}
@@ -3071,8 +3756,9 @@ export function TourDiary() {
                   </div>
                 )}
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Time From</label>
+                  <label htmlFor="jf-time-from" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Time From</label>
                   <input
+                    id="jf-time-from"
                     type="time"
                     value={formData.time_from}
                     onChange={(e) => setFormData({ ...formData, time_from: e.target.value })}
@@ -3080,8 +3766,9 @@ export function TourDiary() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Time To</label>
+                  <label htmlFor="jf-time-to" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Time To</label>
                   <input
+                    id="jf-time-to"
                     type="time"
                     value={formData.time_to}
                     onChange={(e) => setFormData({ ...formData, time_to: e.target.value })}
@@ -3089,12 +3776,17 @@ export function TourDiary() {
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Purpose(s)</label>
+                  <span id="jf-purposes-label" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Purpose(s)</span>
                   <div className="space-y-2">
-                    <div className="max-h-48 overflow-y-auto rounded-lg border border-emerald-200 bg-white p-3 dark:border-emerald-800 dark:bg-slate-800">
+                    <div
+                      role="group"
+                      aria-labelledby="jf-purposes-label"
+                      aria-invalid={!!formErrors.purposes}
+                      className="max-h-48 overflow-y-auto rounded-lg border border-emerald-200 bg-white p-3 dark:border-emerald-800 dark:bg-slate-800"
+                    >
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         {PURPOSES.map(purpose => (
-                          <label key={purpose} className="flex items-center gap-2 cursor-pointer">
+                          <label key={purpose} className="flex cursor-pointer items-center gap-2">
                             <input
                               type="checkbox"
                               value={purpose}
@@ -3105,6 +3797,7 @@ export function TourDiary() {
                                 } else {
                                   setFormData({ ...formData, purposes: formData.purposes.filter(p => p !== purpose) });
                                 }
+                                if (formErrors.purposes) setFormErrors({ ...formErrors, purposes: '' });
                               }}
                               className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500 dark:border-emerald-700 dark:bg-slate-700 dark:text-emerald-500"
                             />
@@ -3113,6 +3806,9 @@ export function TourDiary() {
                         ))}
                       </div>
                     </div>
+                    {formErrors.purposes && (
+                      <p role="alert" className="text-xs font-semibold text-red-600 dark:text-red-400">{formErrors.purposes}</p>
+                    )}
                     {formData.purposes.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {formData.purposes.map(purpose => (
@@ -3124,9 +3820,10 @@ export function TourDiary() {
                             <button
                               type="button"
                               onClick={() => setFormData({ ...formData, purposes: formData.purposes.filter(p => p !== purpose) })}
+                              aria-label={`Remove purpose ${purpose}`}
                               className="ml-1 hover:text-emerald-600 dark:hover:text-emerald-300"
                             >
-                              <X className="h-3 w-3" />
+                              <X className="h-3 w-3" aria-hidden="true" />
                             </button>
                           </span>
                         ))}
@@ -3136,8 +3833,9 @@ export function TourDiary() {
                 </div>
                 {formData.purposes.includes('Others') && (
                   <div className="col-span-2">
-                    <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Specify Custom Purpose</label>
+                    <label htmlFor="jf-custom-purpose" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Specify Custom Purpose</label>
                     <input
+                      id="jf-custom-purpose"
                       type="text"
                       value={formData.custom_purpose}
                       onChange={(e) => setFormData({ ...formData, custom_purpose: e.target.value })}
@@ -3147,8 +3845,9 @@ export function TourDiary() {
                   </div>
                 )}
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Meter From</label>
+                  <label htmlFor="jf-meter-from" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Meter From</label>
                   <input
+                    id="jf-meter-from"
                     type="number"
                     step="0.1"
                     value={formData.meter_from}
@@ -3160,33 +3859,48 @@ export function TourDiary() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Distance KM</label>
+                  <label htmlFor="jf-distance" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Distance KM</label>
                   <input
+                    id="jf-distance"
                     type="number"
                     step="0.1"
+                    list="jf-distance-suggestions"
                     value={formData.distance_km}
                     onChange={(e) => {
                       const distance = parseFloat(e.target.value) || 0;
                       setFormData({ ...formData, distance_km: distance, meter_to: formData.meter_from + distance });
+                      if (formErrors.distance_km) setFormErrors({ ...formErrors, distance_km: '' });
                     }}
+                    aria-invalid={!!formErrors.distance_km}
+                    aria-describedby={formErrors.distance_km ? 'jf-distance-err' : undefined}
                     className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-emerald-800 dark:bg-slate-800 dark:text-white"
                   />
+                  {formErrors.distance_km && (
+                    <p id="jf-distance-err" role="alert" className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">{formErrors.distance_km}</p>
+                  )}
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Meter To (Auto)</label>
+                  <label htmlFor="jf-meter-to" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Meter To (Auto)</label>
                   <input
+                    id="jf-meter-to"
                     type="number"
                     step="0.1"
                     value={formData.meter_to}
                     readOnly
+                    aria-invalid={!!formErrors.meter_to}
+                    aria-describedby={formErrors.meter_to ? 'jf-meter-to-err' : undefined}
                     className="w-full rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
                   />
+                  {formErrors.meter_to && (
+                    <p id="jf-meter-to-err" role="alert" className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">{formErrors.meter_to}</p>
+                  )}
                 </div>
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Remarks</label>
+                <label htmlFor="jf-remarks" className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Remarks</label>
                 <textarea
+                  id="jf-remarks"
                   value={formData.remarks}
                   onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                   rows={2}
@@ -3196,12 +3910,14 @@ export function TourDiary() {
 
               <div className="flex justify-end gap-2">
                 <button
+                  type="button"
                   onClick={() => setShowJourneyForm(false)}
                   className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-900/40"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={saveJourney}
                   className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
                 >
@@ -3209,19 +3925,23 @@ export function TourDiary() {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* Remarks Dialog for Holidays */}
       {remarksDialogOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-emerald-200/50 bg-white p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900">
-            <h2 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Add Remarks</h2>
+        <AccessibleModal
+          labelledBy="remarks-dialog-title"
+          onClose={() => setRemarksDialogOpen(null)}
+          className="w-full max-w-md rounded-2xl border border-emerald-200/50 bg-white p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900"
+        >
+            <h2 id="remarks-dialog-title" className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Add Remarks</h2>
             <p className="mb-4 text-sm font-semibold text-slate-600 dark:text-slate-400">
               {remarksDialogOpen} - {getDayName(currentYear, currentMonth, parseInt(remarksDialogOpen.split('-')[0]))}
             </p>
+            <label htmlFor="date-remarks-input" className="sr-only">Remarks for {remarksDialogOpen}</label>
             <textarea
+              id="date-remarks-input"
               value={dateRemarks[remarksDialogOpen] || ''}
               onChange={(e) => setDateRemarks({ ...dateRemarks, [remarksDialogOpen]: e.target.value })}
               rows={4}
@@ -3230,29 +3950,34 @@ export function TourDiary() {
             />
             <div className="mt-4 flex justify-end gap-2">
               <button
+                type="button"
                 onClick={() => setRemarksDialogOpen(null)}
                 className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-900/40"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => setRemarksDialogOpen(null)}
                 className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
               >
                 Save
               </button>
             </div>
-          </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* Preview Modal */}
       {showPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-2xl border border-emerald-200/50 bg-white p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900">
+        <AccessibleModal
+          labelledBy="preview-modal-title"
+          onClose={() => setShowPreview(false)}
+          className="max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-2xl border border-emerald-200/50 bg-white p-6 shadow-2xl dark:border-emerald-800/50 dark:bg-slate-900"
+        >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="flex-1 text-center text-lg font-bold text-slate-900 dark:text-white">Tour Diary Preview</h2>
+              <h2 id="preview-modal-title" className="flex-1 text-center text-lg font-bold text-slate-900 dark:text-white">Tour Diary Preview</h2>
               <button
+                type="button"
                 onClick={() => setShowPreview(false)}
                 className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
               >
@@ -3395,6 +4120,7 @@ export function TourDiary() {
 
             <div className="flex justify-end gap-2">
               <button
+                type="button"
                 onClick={() => {
                   setShowPreview(false);
                   if (editablePreviewData.length > 0) {
@@ -3408,39 +4134,44 @@ export function TourDiary() {
                 Download PDF
               </button>
             </div>
-          </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* Recovery Prompt Modal */}
       {showRecoveryPrompt && recoveryDraft && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-md rounded-2xl border border-amber-200/50 bg-white/95 p-6 shadow-2xl dark:border-amber-800/50 dark:bg-slate-900/95">
-            <h2 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Unsaved Tour Diary Found</h2>
+        <AccessibleModal
+          labelledBy="recovery-prompt-title"
+          className="mx-4 w-full max-w-md rounded-2xl border border-amber-200/50 bg-white/95 p-6 shadow-2xl dark:border-amber-800/50 dark:bg-slate-900/95"
+        >
+            <h2 id="recovery-prompt-title" className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Unsaved Tour Diary Found</h2>
             <p className="mb-4 text-sm font-semibold text-slate-600 dark:text-slate-400">A previous unsaved Tour Diary was found for:</p>
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
               <p className="text-sm font-bold text-slate-900 dark:text-white">{recoveryDraft.officerName}</p>
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{MONTHS[recoveryDraft.month - 1]} {recoveryDraft.year}</p>
             </div>
             <div className="mt-6 flex justify-end gap-2">
-              <button onClick={discardRecoveryState} className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-900/40">Discard</button>
-              <button onClick={restoreRecoveryState} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">Restore</button>
+              <button type="button" onClick={discardRecoveryState} className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-900/40">Discard</button>
+              <button type="button" onClick={restoreRecoveryState} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">Restore</button>
             </div>
-          </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* PDF Preview Modal */}
       {pdfPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="mx-4 h-[90vh] w-full max-w-5xl rounded-2xl border border-blue-200/50 bg-white shadow-2xl dark:border-blue-800/50 dark:bg-slate-900">
+        <AccessibleModal
+          labelledBy="pdf-preview-title"
+          onClose={() => setPdfPreview(null)}
+          className="mx-4 h-[90vh] w-full max-w-5xl rounded-2xl border border-blue-200/50 bg-white shadow-2xl dark:border-blue-800/50 dark:bg-slate-900"
+        >
             <div className="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-800">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{pdfPreview.fileName}</h2>
-              <button 
+              <h2 id="pdf-preview-title" className="text-lg font-bold text-slate-900 dark:text-white">{pdfPreview.fileName}</h2>
+              <button
+                type="button"
                 onClick={() => setPdfPreview(null)}
+                aria-label="Close PDF preview"
                 className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
             <div className="h-[calc(90vh-60px)] overflow-auto bg-slate-100 dark:bg-slate-950">
@@ -3450,9 +4181,14 @@ export function TourDiary() {
                 title="PDF Preview"
               />
             </div>
-          </div>
-        </div>
+        </AccessibleModal>
       )}
+
+      {/* Toast notifications */}
+      <ToastStack toasts={toasts} onDismiss={dismissToast} />
+
+      {/* Confirm / prompt dialog */}
+      {dialogState && <DiaryDialog dialog={dialogState} onResolve={resolveDialog} />}
 
     </div>
   );
