@@ -3199,11 +3199,12 @@ export function TourDiary() {
         </div>
 
         {/* Monthly Summary */}
-        <div className={`mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Monthly Summary</h2>
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <details className={`group mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-lg backdrop-blur-sm transition-all duration-700 delay-100 dark:border-emerald-800/50 dark:bg-slate-900/80 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-slate-900 dark:text-white">
+            <span>Monthly Summary</span>
+            <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Working Days</p>
               <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.workingDays}</p>
@@ -3261,18 +3262,19 @@ export function TourDiary() {
               Meter reconciliation requires review
             </div>
           )}
-        </div>
+        </details>
 
         {/* Month Overview: progress + mini calendar */}
-        <div className={`mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <details className={`group mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-lg backdrop-blur-sm transition-all duration-700 delay-200 dark:border-emerald-800/50 dark:bg-slate-900/80 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-slate-900 dark:text-white">
+            <span>Daily Progress</span>
+            <span className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{monthProgress.filled} / {monthProgress.required} working days</span>
+              <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true" />
+            </span>
+          </summary>
           {/* Completion progress */}
-          <div className="mb-4">
-            <div className="mb-1 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">Diary Progress</h2>
-              <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                {monthProgress.filled} / {monthProgress.required} working days filled
-              </p>
-            </div>
+          <div className="mt-4 mb-4">
             <div
               role="progressbar"
               aria-valuenow={monthProgress.filled}
@@ -3363,7 +3365,7 @@ export function TourDiary() {
               </span>
             ))}
           </div>
-        </div>
+        </details>
 
         {/* Monthly Diary */}
         <div className={`transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
@@ -3457,135 +3459,16 @@ export function TourDiary() {
                       ) : null}
                     </span>
                   </button>
-
-                  {/* Day actions */}
-                  <div className="flex shrink-0 items-start gap-1.5">
-                    {!entryDisabled && (
-                      <button
-                        type="button"
-                        onClick={() => (dayJourneys.length > 0 ? editJourney(dayJourneys[0]) : openJourneyForm(date))}
-                        className="flex items-center gap-1 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
-                      >
-                        {dayJourneys.length > 0 ? (
-                          <Edit className="h-3 w-3" aria-hidden="true" />
-                        ) : (
-                          <Plus className="h-3 w-3" aria-hidden="true" />
-                        )}
-                        {dayJourneys.length > 0 ? 'Edit Journey' : 'Add Journey'}
-                      </button>
-                    )}
-                    <div className="relative" data-menu-root>
-                      <button
-                        type="button"
-                        onClick={() => setActionMenuOpen(actionMenuOpen === date ? null : date)}
-                        aria-label={`Actions for ${date}`}
-                        aria-haspopup="menu"
-                        aria-expanded={actionMenuOpen === date}
-                        className="flex items-center gap-1 rounded-lg border border-emerald-200 bg-white p-1.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-emerald-900"
-                      >
-                        <MoreVertical className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                      {actionMenuOpen === date && (
-                        <div role="menu" className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
-                          <div className="py-1">
-                            {/* When marked as Working Day - show Cancel Leave if leave is availed, otherwise Restore Default */}
-                            {dateOverride?.status === 'WORKING' && getDateLeaveType(date) !== 'NONE' && (
-                              <button
-                                role="menuitem"
-                                onClick={() => cancelLeave(date)}
-                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                              >
-                                Cancel Leave
-                              </button>
-                            )}
-                            {dateOverride?.status === 'WORKING' && getDateLeaveType(date) === 'NONE' && (
-                              <button
-                                role="menuitem"
-                                onClick={() => restoreDefaultStatus(date)}
-                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                              >
-                                Restore Default
-                              </button>
-                            )}
-                            {/* For holidays, Sundays, Second Saturdays - show only Mark as Working Day */}
-                            {dateOverride?.status !== 'WORKING' && (isSundayDay || isSecondSaturdayDay || displayedHolidays.some(h => h.holiday_type === 'GENERAL')) && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
-                              <button
-                                role="menuitem"
-                                onClick={() => markAsWorkingDay(date)}
-                                className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                              >
-                                Mark as Working Day
-                              </button>
-                            )}
-                            {/* For normal working days - show leave management options */}
-                            {dateOverride?.status !== 'WORKING' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
-                              <>
-                                {getDateLeaveType(date) === 'NONE' && (
-                                  <button
-                                    role="menuitem"
-                                    onClick={() => availLeave(date)}
-                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                  >
-                                    Avail Leave
-                                  </button>
-                                )}
-                                {getDateLeaveType(date) === 'NORMAL_LEAVE' && (
-                                  <button
-                                    role="menuitem"
-                                    onClick={() => cancelLeave(date)}
-                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                  >
-                                    Cancel Leave
-                                  </button>
-                                )}
-                              </>
-                            )}
-                            {/* For optional holidays - show optional holiday specific actions */}
-                            {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
-                              <>
-                                {getDateLeaveType(date) === 'NONE' && (
-                                  <>
-                                    <button
-                                      role="menuitem"
-                                      onClick={() => availOptionalHoliday(date)}
-                                      className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                    >
-                                      Avail Optional Holiday
-                                    </button>
-                                    <button
-                                      role="menuitem"
-                                      onClick={() => availLeaveOnOptionalHoliday(date)}
-                                      className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                    >
-                                      Avail Leave
-                                    </button>
-                                  </>
-                                )}
-                                {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && (
-                                  <button
-                                    role="menuitem"
-                                    onClick={() => cancelOptionalHoliday(date)}
-                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                  >
-                                    Cancel Optional Holiday
-                                  </button>
-                                )}
-                                {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY_LEAVE' && (
-                                  <button
-                                    role="menuitem"
-                                    onClick={() => cancelLeave(date)}
-                                    className="block w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
-                                  >
-                                    Cancel Leave
-                                  </button>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  {!entryDisabled && dayJourneys.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => openJourneyForm(date)}
+                      className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
+                    >
+                      <Plus className="h-3 w-3" aria-hidden="true" />
+                      Add Journey
+                    </button>
+                  )}
                 </div>
 
                 {expanded && (
@@ -3657,6 +3540,33 @@ export function TourDiary() {
                     )}
                   </div>
                 )}
+
+                <div className="mt-3 flex flex-wrap items-center justify-end gap-1.5 border-t border-emerald-100 pt-3 dark:border-emerald-900/60">
+                  {dateOverride?.status === 'WORKING' && getDateLeaveType(date) !== 'NONE' && (
+                    <button type="button" onClick={() => cancelLeave(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Leave</button>
+                  )}
+                  {dateOverride?.status === 'WORKING' && getDateLeaveType(date) === 'NONE' && (
+                    <button type="button" onClick={() => restoreDefaultStatus(date)} className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">Restore Default</button>
+                  )}
+                  {dateOverride?.status !== 'WORKING' && (isSundayDay || isSecondSaturdayDay || displayedHolidays.some(h => h.holiday_type === 'GENERAL')) && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
+                    <button type="button" onClick={() => markAsWorkingDay(date)} className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">Mark Working Day</button>
+                  )}
+                  {dateOverride?.status !== 'WORKING' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'NONE' && (
+                    <button type="button" onClick={() => availLeave(date)} className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-black uppercase text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-200">Avail Leave</button>
+                  )}
+                  {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'NONE' && (
+                    <>
+                      <button type="button" onClick={() => availOptionalHoliday(date)} className="rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-[10px] font-black uppercase text-purple-800 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200">Avail Optional Holiday</button>
+                      <button type="button" onClick={() => availLeaveOnOptionalHoliday(date)} className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-black uppercase text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-200">Avail Leave</button>
+                    </>
+                  )}
+                  {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && (
+                    <button type="button" onClick={() => cancelOptionalHoliday(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Optional Holiday</button>
+                  )}
+                  {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'OPTIONAL_HOLIDAY_LEAVE' && (
+                    <button type="button" onClick={() => cancelLeave(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Leave</button>
+                  )}
+                </div>
               </div>
             );
           })}
