@@ -236,16 +236,8 @@ export function LicenseApplicationGenerator() {
   React.useEffect(() => {
     if (division && district) {
       const divisionDdoCode = DIVISION_DDO_CODES[district]?.[division];
-      if (divisionDdoCode) {
-        setDdoCode(divisionDdoCode);
-      } else {
-        const districtDdoCode = DISTRICT_DDO_CODES[district];
-        if (districtDdoCode) {
-          setDdoCode(districtDdoCode);
-        } else {
-          setDdoCode(''); // Clear if no code found
-        }
-      }
+      // Show only the division's own DDO code - never fall back to the district code for unmapped divisions
+      setDdoCode(divisionDdoCode || '');
     } else if (district) {
       const districtDdoCode = DISTRICT_DDO_CODES[district];
       if (districtDdoCode) {
@@ -786,13 +778,24 @@ export function LicenseApplicationGenerator() {
               </div>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1">
-                  <p className="font-mono text-lg font-bold text-slate-900 dark:text-white">
-                    {ddoCode}
-                  </p>
+                  {ddoCode ? (
+                    <p className="font-mono text-lg font-bold text-slate-900 dark:text-white">
+                      {ddoCode}
+                    </p>
+                  ) : (
+                    <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                      {division
+                        ? 'DDO code not available for this division'
+                        : district
+                          ? 'DDO code not available for this district'
+                          : 'Select a district'}
+                    </p>
+                  )}
                 </div>
                 <button
                   onClick={() => handleCopy(ddoCode, 'DDO Code')}
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200/50 bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:bg-slate-200 dark:border-slate-800/50 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
+                  disabled={!ddoCode}
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200/50 bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800/50 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
                 >
                   {copiedField === 'DDO Code' ? (
                     <>

@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bug, ChevronDown, ClipboardCheck, Download, Eye, FlaskConical, FolderOpen, Plus, RotateCcw, Save, Sprout, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bug, ChevronDown, ClipboardCheck, Download, Eye, FileText, FlaskConical, FolderOpen, Plus, RotateCcw, Save, Sprout, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ToastContainer, useToast } from '../components/ui/Toast';
+import { ShowCauseNoticeEntry } from '../components/ShowCauseNoticeEntry';
 
 type Status = '' | 'yes' | 'no' | 'na';
 type StatusField = { status: Status; remarks: string };
@@ -179,6 +180,7 @@ export function SeedDealerInspection() {
   const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false });
   const [showPreview, setShowPreview] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
+  const [showNotices, setShowNotices] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -305,10 +307,11 @@ export function SeedDealerInspection() {
 
         {error && <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</div>}
 
-        <div className="mb-5 grid grid-cols-3 gap-3">
+        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <InspectionTypeCard icon={Sprout} label="Seed" tone="emerald" active />
           <InspectionTypeCard icon={FlaskConical} label="Fertilizer" tone="amber" onClick={() => navigate('/officer-toolkit/fertilizer-dealer-inspection')} />
           <InspectionTypeCard icon={Bug} label="Pesticide" tone="rose" onClick={() => navigate('/officer-toolkit/insecticide-dealer-inspection')} />
+          <InspectionTypeCard icon={FileText} label="Notices / Memos" tone="purple" onClick={() => setShowNotices(true)} />
         </div>
 
         <div className="mb-3 flex flex-wrap gap-2">
@@ -549,6 +552,12 @@ export function SeedDealerInspection() {
         </Modal>
       )}
 
+      {showNotices && (
+        <Modal title="Notices / Memos" onClose={() => setShowNotices(false)} wide>
+          <ShowCauseNoticeEntry lockedCategory="seed" />
+        </Modal>
+      )}
+
       {showPreview && (
         <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={generatePdf} icon={Download} tone="emerald">Download PDF</ActionButton>}>
           <Preview form={form} />
@@ -634,16 +643,18 @@ function StatusButtons({ value, onChange }: { value: Status; onChange: (v: Statu
   );
 }
 
-function InspectionTypeCard({ icon: Icon, label, tone, active = false, onClick }: { icon: React.ComponentType<{ className?: string }>; label: string; tone: 'emerald' | 'amber' | 'rose'; active?: boolean; onClick?: () => void }) {
+function InspectionTypeCard({ icon: Icon, label, tone, active = false, onClick }: { icon: React.ComponentType<{ className?: string }>; label: string; tone: 'emerald' | 'amber' | 'rose' | 'purple'; active?: boolean; onClick?: () => void }) {
   const toneClass = {
     emerald: 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100',
     amber: 'border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-100',
     rose: 'border-rose-500 bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-100',
+    purple: 'border-purple-500 bg-purple-50 text-purple-800 dark:bg-purple-950/40 dark:text-purple-100',
   }[tone];
   const iconBg = {
     emerald: 'bg-emerald-600',
     amber: 'bg-amber-600',
     rose: 'bg-rose-600',
+    purple: 'bg-purple-600',
   }[tone];
   return (
     <button

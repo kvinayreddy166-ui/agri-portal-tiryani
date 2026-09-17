@@ -36,14 +36,13 @@ import { fcoClauseCards, fcoMemoryMnemonic, importantFcoMnemonics, validateFcoCl
 import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory, type FertilizerFormEntry } from '../data/fertilizerForms';
 import { fertilizerSchedules, type FertilizerScheduleEntry } from '../data/fertilizerSchedules';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
-import { ShowCauseNoticeEntry } from './ShowCauseNoticeEntry';
 import { BackButton } from './ui/BackButton';
 import { FertilizerFormPdfGenerator } from './forms/FertilizerFormPdfGenerator';
 
 type ReckonerView = 'powers' | 'notice';
 type MainLegalArea = 'fertilizer' | 'seed' | 'insecticide';
 type FertilizerSection = 'clauses' | 'forms' | 'schedules' | 'officer';
-type OfficerCornerAction = 'offences' | 'stop-sale' | 'show-cause';
+type OfficerCornerAction = 'offences' | 'stop-sale';
 
 const BOOKMARK_KEY = 'agri-legal-reckoner-bookmarks';
 
@@ -437,13 +436,11 @@ export function AgriLegalReadyReckoner() {
 
       {selectedLegalArea && selectedLegalArea !== 'fertilizer' && (
         <>
-      <div className={`grid gap-3 sm:grid-cols-2`}>
+      <div className="grid gap-3 sm:grid-cols-2">
         <ViewButton active={view === 'powers'} icon={ShieldAlert} label="Stop Sale & Seizure" onClick={() => setView('powers')} />
-        <ViewButton active={view === 'notice'} icon={FileText} label="Show Cause Notice" onClick={() => setView('notice')} />
       </div>
 
       {view === 'powers' && selectedLegalArea && <PowersSection area={selectedLegalArea} />}
-      {view === 'notice' && <ShowCauseNoticeEntry lockedCategory={selectedLegalArea === 'seed' ? 'seed' : 'pesticide'} />}
         </>
       )}
       {selectedFertilizerForm && (
@@ -459,7 +456,7 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
     { id: 'clauses', title: 'Clauses', subtitle: '39 Clauses', description: 'FCO clause cards, sub-clauses, officer action and timelines.', icon: BookOpen, tone: 'from-emerald-500 via-green-500 to-teal-700' },
     { id: 'forms', title: 'Forms', subtitle: '28 Forms', description: 'Registration, manufacturing, sampling and business record forms.', icon: FileText, tone: 'from-amber-500 via-orange-400 to-emerald-600' },
     { id: 'schedules', title: 'Schedules', subtitle: '8 Schedules', description: 'Specifications, sampling procedures, tolerance limits and analysis methods.', icon: ClipboardList, tone: 'from-sky-500 via-cyan-500 to-emerald-600' },
-    { id: 'officer', title: 'Officer Corner', subtitle: 'Field actions & notices', description: 'Offences, stop sale and show cause references.', icon: ShieldAlert, tone: 'from-rose-500 via-orange-500 to-amber-500' },
+    { id: 'officer', title: 'Officer Corner', subtitle: 'Field actions & notices', description: 'Offences and stop sale references.', icon: ShieldAlert, tone: 'from-rose-500 via-orange-500 to-amber-500' },
   ];
 
   return (
@@ -673,7 +670,6 @@ function OfficerCornerPanel({
   const actions: Array<{ id: OfficerCornerAction; title: string; subtitle: string; icon: React.ElementType }> = [
     { id: 'offences', title: 'Offences', subtitle: 'FCO/ECA offence references', icon: Scale },
     { id: 'stop-sale', title: 'Issue Stop Sale / Seizure Notice', subtitle: 'Stop sale, seizure and workflow table', icon: ShieldAlert },
-    { id: 'show-cause', title: 'Issue Memo / Show Cause Notice', subtitle: 'Notice drafting helper', icon: FileText },
   ];
 
   if (!action) {
@@ -713,7 +709,7 @@ function OfficerCornerPanel({
         </div>
       )}
       {action === 'stop-sale' && <PowersSection area="fertilizer" />}
-      {action === 'show-cause' && <ShowCauseNoticeEntry lockedCategory="fertiliser" />}
+
     </section>
   );
 }

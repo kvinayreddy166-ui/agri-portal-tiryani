@@ -723,20 +723,19 @@ export function TourDiary() {
     return allDrafts.length > 0 ? allDrafts[0] : null;
   }, [allDrafts]);
 
-  // Group drafts and PDFs by month for My Diaries
+  // Group drafts by month for My Diaries
   const getGroupedMyDiaries = useCallback(() => {
     const items: Array<{
       id: string;
-      type: 'draft' | 'pdf';
+      type: 'draft';
       month: number;
       year: number;
       title: string;
       subtitle: string;
       date: string;
-      data: TourDiaryDraft | DiaryPdfMetadata;
+      data: TourDiaryDraft;
     }> = [];
 
-    // Add drafts
     allDrafts.forEach(draft => {
       items.push({
         id: draft.id,
@@ -747,20 +746,6 @@ export function TourDiary() {
         subtitle: `Draft • ${draft.journeys.length} entries`,
         date: draft.updatedAt,
         data: draft
-      });
-    });
-
-    // Add PDFs
-    storedPdfs.forEach(pdf => {
-      items.push({
-        id: pdf.id,
-        type: 'pdf',
-        month: pdf.month,
-        year: pdf.year,
-        title: `${MONTHS[pdf.month - 1]} ${pdf.year}`,
-        subtitle: `PDF Saved • ${pdf.totalEntries || 0} entries`,
-        date: pdf.createdAt,
-        data: pdf
       });
     });
 
@@ -781,7 +766,7 @@ export function TourDiary() {
     });
 
     return grouped;
-  }, [allDrafts, storedPdfs]);
+  }, [allDrafts]);
 
   // Load completed diaries from Supabase
   const loadCompletedDiaries = useCallback(async () => {
@@ -811,16 +796,6 @@ export function TourDiary() {
     }
   }, []);
 
-  // Load stored PDFs
-  const loadStoredPdfs = useCallback(async () => {
-    try {
-      const pdfs = await getAllDiaryPdfs();
-      setStoredPdfs(pdfs);
-    } catch (error) {
-      console.error('Error loading stored PDFs:', error);
-    }
-  }, []);
-
   // Initialize
   useEffect(() => {
     setMounted(true);
@@ -828,7 +803,6 @@ export function TourDiary() {
     loadAllDrafts();
     loadCompletedDiaries();
     loadSavedDiaries();
-    loadStoredPdfs();
     
     // Check for recovery state
     const recovery = getRecoveryState();
@@ -1871,6 +1845,13 @@ export function TourDiary() {
       }
       setFormErrors({});
 
+      // One journey per date - block duplicates on create
+      if (!editingJourney && journeys.some(j => j.journey_date === formData.journey_date)) {
+        showToast('Only one journey per date is allowed. Edit the existing entry instead.', 'warning');
+        setShowJourneyForm(false);
+        return;
+      }
+
       // Only one journey is allowed per date
       if (!editingJourney && journeys.some(j => j.journey_date === formData.journey_date)) {
         showToast('A journey already exists for this date. Edit the existing entry instead.', 'warning');
@@ -2285,40 +2266,7 @@ export function TourDiary() {
       const pdfBlob = doc.output('blob');
       const fileName = `Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.pdf`;
       
-      // Save to IndexedDB
-      try {
-        const diaryId = tourDiary?.id || generateDraftId(officerName || 'Officer', currentYear, currentMonth);
-        const existingPdf = await hasDiaryPdf(diaryId, currentMonth, currentYear);
-        
-        if (existingPdf) {
-          const shouldReplace = await askConfirm({
-            title: 'PDF already saved',
-            message: `A PDF for ${MONTHS[currentMonth - 1]} ${currentYear} already exists in My Diaries. Replace it?`,
-            confirmLabel: 'Replace'
-          });
-          if (!shouldReplace) {
-            // Still download the PDF even if user doesn't want to replace
-            doc.save(fileName);
-            setIsGeneratingPDF(false);
-            return;
-          }
-        }
-        
-        await saveDiaryPdf(diaryId, currentMonth, currentYear, pdfBlob, fileName, journeys.length);
-        await loadStoredPdfs(); // Refresh the PDF list
-        console.log('PDF saved to IndexedDB successfully');
-      } catch (storageError) {
-        console.error('Failed to save PDF to IndexedDB:', storageError);
-        // Check if it's a quota exceeded error
-        if (storageError instanceof Error && storageError.name === 'QuotaExceededError') {
-          showToast('PDF downloaded, but could not be saved to My Diaries — browser storage is full. Delete old PDFs to free space.', 'warning');
-        } else {
-          // Other errors - still allow download but log the issue
-          console.warn('PDF storage failed (non-quota error):', storageError);
-        }
-      }
-      
-      // Normal browser download (always happens regardless of storage success)
+      // PDFs are downloaded only; My Diaries stores drafts exclusively.
       doc.save(fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -2493,11 +2441,7 @@ export function TourDiary() {
   };
 
   // Handle My Diaries - toggle dropdown
-  const handleMyDiaries = async () => {
-    if (!showMyDiariesDropdown) {
-      // Reload PDFs when opening dropdown to ensure they're up to date
-      await loadStoredPdfs();
-    }
+  const handleMyDiaries = () => {
     setShowMyDiariesDropdown(!showMyDiariesDropdown);
   };
 
@@ -2660,9 +2604,8 @@ export function TourDiary() {
                   My Diaries
                 </h3>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                  Drafts & saved PDFs
+                  Drafts
                   {allDrafts.length > 0 && ` • ${allDrafts.length} Drafts`}
-                  {storedPdfs.length > 0 && ` • ${storedPdfs.length} PDFs`}
                 </p>
               </div>
               <ArrowRight className="h-5 w-5 shrink-0 text-slate-700 dark:text-slate-400" />
@@ -2887,8 +2830,7 @@ export function TourDiary() {
                                         if (newName) {
                                           const success = await renameDiaryPdf(item.id, newName);
                                           if (success) {
-                                            await loadStoredPdfs();
-                                          } else {
+                                            } else {
                                             showToast('Failed to rename PDF.', 'error');
                                           }
                                         }
@@ -2909,7 +2851,6 @@ export function TourDiary() {
                                         });
                                         if (proceed) {
                                           await deleteDiaryPdf(item.id);
-                                          await loadStoredPdfs();
                                           showToast('PDF deleted', 'success');
                                         }
                                       }}
