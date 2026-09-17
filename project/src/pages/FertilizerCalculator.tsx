@@ -1742,16 +1742,6 @@ export function FertilizerCalculator() {
         return;
       }
       
-      console.log('WhatsApp share: Building text with data:', {
-        language,
-        mode,
-        area,
-        required: activeRequired,
-        resultsCount: activeCalculation.results.length,
-        selectedRecommendation,
-        splitPlanLength: splitFertilizerPlan?.length || 0,
-      });
-      
       const text = buildWhatsAppText({
         language,
         mode,
@@ -1767,8 +1757,6 @@ export function FertilizerCalculator() {
         farmerDetails,
       });
       
-      console.log('WhatsApp share: Generated text length:', text?.length);
-      
       if (!text || text.trim().length === 0) {
         console.error('WhatsApp share: Generated text is empty');
         alert('Unable to generate WhatsApp message. Please try again.');
@@ -1776,7 +1764,6 @@ export function FertilizerCalculator() {
       }
       
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      console.log('WhatsApp share: Opening URL:', whatsappUrl.substring(0, 100) + '...');
       window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('WhatsApp share error:', error);

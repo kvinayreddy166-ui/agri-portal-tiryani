@@ -22,11 +22,8 @@ import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
   getMandalsForDistrict,
-  getDivisionsForDistrict,
-  getMandalsForDivision,
 } from '../../data/telanganaDistrictMandalData';
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../data/assistantDirectorLocation';
-import { supabase } from '../../lib/supabase';
 
 const showCoveringLetter = true;
 
@@ -60,100 +57,6 @@ type SectionConfig = {
 const STORAGE_KEY = 'tiryani-fertilizer-forms-draft';
 const DRAFTS_KEY = 'tiryani-fertilizer-forms-named-drafts';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
-
-// Fetch mandals for a given district and division from MAO contacts
-async function fetchMandalsForDivision(district: string, division: string): Promise<string[]> {
-  const mappedMandals = getMandalsForDivision(division);
-  if (mappedMandals.length > 0) return mappedMandals;
-  try {
-    console.log('Fetching mandals for district:', district, 'division:', division);
-    
-    // Debug: Fetch all unique districts from MAO contacts
-    const { data: allDistricts } = await supabase
-      .from('officer_contacts')
-      .select('district')
-      .ilike('officer_type', '%MAO%')
-      .eq('active', true);
-    
-    const uniqueDistricts = Array.from(new Set(allDistricts?.map(d => d.district) || [])).sort();
-    console.log('All MAO districts in database:', uniqueDistricts);
-    
-    // Debug: Fetch all divisions for the selected district
-    const { data: districtDivisions } = await supabase
-      .from('officer_contacts')
-      .select('division')
-      .ilike('officer_type', '%MAO%')
-      .ilike('district', district)
-      .eq('active', true);
-    
-    const uniqueDivisions = Array.from(new Set(districtDivisions?.map(d => d.division) || [])).sort();
-    console.log(`Divisions for "${district}":`, uniqueDivisions);
-    
-    // First try: Exact match with MAO
-    let { data, error } = await supabase
-      .from('officer_contacts')
-      .select('mandal')
-      .eq('officer_type', 'MAO')
-      .eq('district', district)
-      .eq('division', division)
-      .eq('active', true)
-      .not('mandal', 'is', null);
-    
-    console.log('Query 1 (exact MAO):', data?.length, 'results');
-    
-    // Second try: Case-insensitive with MAO
-    if (!data || data.length === 0) {
-      ({ data, error } = await supabase
-        .from('officer_contacts')
-        .select('mandal')
-        .ilike('officer_type', '%MAO%')
-        .ilike('district', district)
-        .ilike('division', division)
-        .eq('active', true)
-        .not('mandal', 'is', null));
-      
-      console.log('Query 2 (ilike MAO):', data?.length, 'results');
-    }
-    
-    // Third try: Try with Mandal Agriculture Officer
-    if (!data || data.length === 0) {
-      ({ data, error } = await supabase
-        .from('officer_contacts')
-        .select('mandal')
-        .ilike('officer_type', '%Mandal Agriculture Officer%')
-        .ilike('district', district)
-        .ilike('division', division)
-        .eq('active', true)
-        .not('mandal', 'is', null));
-      
-      console.log('Query 3 (Mandal Agriculture Officer):', data?.length, 'results');
-    }
-    
-    // Fourth try: Try with uppercase district/division (database seems to use uppercase)
-    if (!data || data.length === 0) {
-      ({ data, error } = await supabase
-        .from('officer_contacts')
-        .select('mandal')
-        .eq('officer_type', 'MAO')
-        .eq('district', district.toUpperCase())
-        .eq('division', division.toUpperCase())
-        .eq('active', true)
-        .not('mandal', 'is', null));
-      
-      console.log('Query 4 (uppercase):', data?.length, 'results');
-    }
-    
-    if (error) throw error;
-    
-    console.log('Raw data from query:', data);
-    const mandals = Array.from(new Set(data?.map(d => d.mandal) || [])).sort();
-    console.log('Fetched mandals:', mandals);
-    return mandals;
-  } catch (error) {
-    console.error('Error fetching mandals for division:', error);
-    return [];
-  }
-}
 
 function getDefaultQuantity(values: FertilizerPdfValues): string {
   if (values.fertilizerCategory === 'Macro Nutrient Fertilizers') {
@@ -714,20 +617,15 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  console.log('FertilizerStatutoryPdfTool mounted, showCoveringLetter:', import.meta.env.DEV);
   const [error, setError] = useState<string | null>(null);
   const [formType, setFormType] = useState<FertilizerStatutoryFormType>('J');
   const [showInstructionModal, setShowInstructionModal] = useState(true);
   const [showCoveringLetterModal, setShowCoveringLetterModal] = useState(false);
 
-  useEffect(() => {
-    console.log('showCoveringLetterModal changed:', showCoveringLetterModal);
-  }, [showCoveringLetterModal]);
   const [showDownloadAllDialog, setShowDownloadAllDialog] = useState(false);
   const [addToCoveringLetterChecked, setAddToCoveringLetterChecked] = useState(true);
   const [values, setValues] = useState<FertilizerPdfValues>(() => {
     try {
-      console.log('Loading initial values');
       const saved = window.localStorage.getItem(STORAGE_KEY);
       const loaded = saved ? { ...initialFertilizerPdfValues, ...JSON.parse(saved) } : initialFertilizerPdfValues;
       // Only reset compositionDisplayFlags to empty for new forms (no saved data)
@@ -803,32 +701,22 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     );
   }
 
-  console.log('FertilizerStatutoryPdfTool rendering, showInstructionModal:', showInstructionModal);
-
   // Fetch mandals for Place of Collection when ADA and district changes (for ADA, load based on District like MAO)
   useEffect(() => {
-    console.log('useEffect triggered - designation:', values.designation, 'district:', values.district);
     if (isAssistantDirectorOfAgriculture(values.designation) && values.district && values.district !== 'Others') {
-      const mandals = getMandalsForDistrict(values.district);
-      console.log('Setting placeOfCollectionMandals from district:', mandals);
-      setPlaceOfCollectionMandals(mandals);
+      setPlaceOfCollectionMandals(getMandalsForDistrict(values.district));
     } else {
-      console.log('Clearing placeOfCollectionMandals');
       setPlaceOfCollectionMandals([]);
     }
   }, [values.designation, values.district]);
 
   useEffect(() => {
-    console.log('FertilizerStatutoryPdfTool useEffect ran');
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
     } catch (error) {
       console.error('Error in useEffect:', error);
       setError('Failed to save form data to localStorage');
     }
-    return () => {
-      console.log('FertilizerStatutoryPdfTool cleanup/unmount');
-    };
   }, [values]);
 
   const setField = (key: keyof FertilizerPdfValues, value: string) => {
@@ -1873,9 +1761,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                   <button
                     type="button"
                     onClick={() => {
-                      console.log('Generate Covering Letter button clicked, setting showCoveringLetterModal to true');
                       setShowCoveringLetterModal(true);
-                      console.log('showCoveringLetterModal after set:', true);
                     }}
                     className="group relative w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-0.5 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 active:scale-95 active:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-500/50 focus:ring-offset-2 min-h-[44px]"
                   >

@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { X, Download, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
-import * as PptxGen from 'pptxgenjs';
 
 interface PptxPreviewProps {
   file: File;
@@ -35,37 +34,16 @@ export function PptxPreview({ file, onClose, onDownload, className = '' }: PptxP
         url = URL.createObjectURL(file);
         setFallbackUrl(url);
 
-        const arrayBuffer = await file.arrayBuffer();
-        
         // PPTX parsing is complex, so we'll use a simplified approach
         // Extract basic slide information
         const slideData: SlideData[] = [];
-        let slideCount = 0;
-        
-        // Try to parse with pptxgenjs (this is limited for preview)
-        try {
-          const pptx = await PptxGen.read(arrayBuffer, { type: 'array' });
-          slideCount = pptx.slides.length;
-          
-          for (let i = 0; i < slideCount; i++) {
-            const slide = pptx.slides[i];
-            slideData.push({
-              index: i,
-              title: `Slide ${i + 1}`,
-              content: slide.objects.length > 0 ? `${slide.objects.length} objects` : 'Empty slide'
-            });
-          }
-        } catch (parseError) {
-          console.warn('PPTX parsing limited, using fallback:', parseError);
-          // Fallback: estimate slides based on file size (rough approximation)
-          const estimatedSlides = Math.max(1, Math.floor(file.size / 50000));
-          for (let i = 0; i < estimatedSlides; i++) {
-            slideData.push({
-              index: i,
-              title: `Slide ${i + 1}`,
-              content: 'Preview not available'
-            });
-          }
+        const estimatedSlides = Math.max(1, Math.floor(file.size / 50000));
+        for (let i = 0; i < estimatedSlides; i++) {
+          slideData.push({
+            index: i,
+            title: `Slide ${i + 1}`,
+            content: 'Preview not available'
+          });
         }
 
         if (mounted) {
@@ -96,12 +74,14 @@ export function PptxPreview({ file, onClose, onDownload, className = '' }: PptxP
   }, [file]);
 
   const handleDownload = () => {
+    const downloadUrl = URL.createObjectURL(file);
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(file);
+    link.href = downloadUrl;
     link.download = file.name;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(downloadUrl);
     if (onDownload) onDownload();
   };
 

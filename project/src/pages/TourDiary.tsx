@@ -814,7 +814,6 @@ export function TourDiary() {
 
   // Load data when month/year changes
   useEffect(() => {
-    console.log('useEffect triggered - mounted:', mounted, 'user:', !!user);
     // Load holidays regardless of user (static data)
     if (mounted) {
       loadHolidays();
@@ -1970,8 +1969,6 @@ export function TourDiary() {
   function generateTourDiaryData() {
     const tableData = [];
     
-    console.log('Generating table data for:', currentMonth, currentYear);
-    console.log('Journeys count:', journeys.length);
     
     for (let day = 1; day <= getDaysInMonth(currentYear, currentMonth); day++) {
       const date = formatDate(currentYear, currentMonth, day);
@@ -2009,7 +2006,6 @@ export function TourDiary() {
       }
     }
     
-    console.log('Generated table data rows:', tableData.length);
     return tableData;
   }
 
@@ -2052,9 +2048,6 @@ export function TourDiary() {
       const summary = calculateMonthlySummary();
       const tableData = customTableData || generateTourDiaryData();
 
-      console.log('Table data type:', typeof tableData);
-      console.log('Table data value:', tableData);
-      console.log('Is array:', Array.isArray(tableData));
 
       // Validate table data before passing to autoTable
       if (!Array.isArray(tableData)) {
@@ -2087,8 +2080,6 @@ export function TourDiary() {
       const specialPdfRowStatuses = validatedTableData.map(row => getSpecialDateStatusForRow(row));
 
       // Log table data for debugging
-      console.log('Table data length:', validatedTableData.length);
-      console.log('First row:', validatedTableData[0]);
 
       // Header - TOUR DIARY OF format
       doc.setFontSize(10);
@@ -2507,6 +2498,7 @@ export function TourDiary() {
               <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
                 <div className="flex items-center justify-between gap-4">
                   <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100">Officer Toolkit</p>
                     <h1 className="flex items-center gap-2 text-xl font-black text-white">
                       <NotebookPen className="h-6 w-6" aria-label="Tour Diary" />
                       Tour Diary
@@ -2892,6 +2884,7 @@ export function TourDiary() {
             <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
               <div className="flex items-center justify-between gap-4">
                 <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100">Officer Toolkit</p>
                   <h1 className="flex items-center gap-2 text-xl font-black text-white">
                     <NotebookPen className="h-6 w-6" aria-label="Tour Diary" />
                     Tour Diary

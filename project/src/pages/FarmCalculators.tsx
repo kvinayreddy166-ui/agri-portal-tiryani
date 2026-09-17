@@ -66,6 +66,9 @@ export function FarmCalculators() {
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <section className="rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-800/50">
           <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100">
+              {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+            </p>
             <h1 className="flex items-center gap-2 text-xl font-black text-white">
               <FlaskConical className="h-6 w-6" aria-label="Farm Calculators" />
               {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}

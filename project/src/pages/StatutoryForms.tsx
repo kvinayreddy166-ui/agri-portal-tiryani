@@ -25,7 +25,7 @@ const emptyForm = {
 
 const STATE_KEY = 'tiryani-statutory-forms-state';
 
-export function FormsDownloads() {
+export function StatutoryForms() {
   const { isAdminUser } = useAuth();
   const { t } = useLanguage();
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
@@ -101,7 +101,7 @@ export function FormsDownloads() {
     try {
       const { data, error } = await supabase
         .from('forms_downloads')
-        .select('*')
+        .select('id, title, label, description, file_url, file_type, category, created_at')
         .in('category', folders.map((folder) => folder.id))
         .order('created_at', { ascending: false });
 

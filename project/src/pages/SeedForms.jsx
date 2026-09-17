@@ -22,7 +22,6 @@ const COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 // Fetch mandals for a given district and division from MAO contacts
 async function fetchMandalsForDivision(district, division) {
   try {
-    console.log('Fetching mandals for district:', district, 'division:', division);
     
     // First try: Exact match with MAO
     let { data, error } = await supabase
@@ -34,7 +33,6 @@ async function fetchMandalsForDivision(district, division) {
       .eq('active', true)
       .not('mandal', 'is', null);
     
-    console.log('Query 1 (exact MAO):', data?.length, 'results');
     
     // Second try: Case-insensitive with MAO
     if (!data || data.length === 0) {
@@ -47,7 +45,6 @@ async function fetchMandalsForDivision(district, division) {
         .eq('active', true)
         .not('mandal', 'is', null));
       
-      console.log('Query 2 (ilike MAO):', data?.length, 'results');
     }
     
     // Third try: Try with Mandal Agriculture Officer
@@ -61,7 +58,6 @@ async function fetchMandalsForDivision(district, division) {
         .eq('active', true)
         .not('mandal', 'is', null));
       
-      console.log('Query 3 (Mandal Agriculture Officer):', data?.length, 'results');
     }
     
     // Fourth try: Try with uppercase district/division (database seems to use uppercase)
@@ -75,14 +71,11 @@ async function fetchMandalsForDivision(district, division) {
         .eq('active', true)
         .not('mandal', 'is', null));
       
-      console.log('Query 4 (uppercase):', data?.length, 'results');
     }
     
     if (error) throw error;
     
-    console.log('Raw data from query:', data);
     const mandals = Array.from(new Set(data?.map(d => d.mandal) || [])).sort();
-    console.log('Fetched mandals:', mandals);
     return mandals;
   } catch (error) {
     console.error('Error fetching mandals for division:', error);
@@ -251,13 +244,10 @@ export function SeedForms() {
 
   // Fetch mandals for Place of Collection when ADA and district changes (for ADA, load based on District like MAO)
   useEffect(() => {
-    console.log('useEffect triggered - designation:', form.designation, 'district:', form.district);
     if (isAssistantDirectorOfAgriculture(form.designation) && form.district && form.district !== 'Others') {
       const mandals = getMandalsForDistrict(form.district);
-      console.log('Setting placeOfCollectionMandals from district:', mandals);
       setPlaceOfCollectionMandals(mandals);
     } else {
-      console.log('Clearing placeOfCollectionMandals');
       setPlaceOfCollectionMandals([]);
     }
   }, [form.designation, form.district]);

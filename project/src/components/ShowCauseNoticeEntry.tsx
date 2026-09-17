@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Edit3, FileText, Plus, Printer, Save, Search, X } from 'lucide-react';
+import { Download, Edit3, FileText, Plus, Printer, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear, financialYearForDate } from '../utils/financialYear';
 import { isAssistantDirectorOfAgriculture, statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../data/assistantDirectorLocation';
 import {
@@ -10,7 +10,6 @@ import {
   noticeCategoryConfigs,
   allShowCauseViolations,
   type NoticeCategory,
-  type RecommendedAction,
   type ShowCauseViolation,
 } from '../data/showCauseViolationData';
 
@@ -39,7 +38,6 @@ interface NoticeFormState {
   invoiceDetails: string;
   productRemarks: string;
   observation: string;
-  recommendedActions: RecommendedAction[];
   selectedViolationIds: string[];
   status: NoticeStatus;
 }
@@ -75,10 +73,6 @@ function readStatutoryDetails(category: NoticeCategory) {
     return {};
   }
 }
-
-const recommendedActions: RecommendedAction[] = [
-  'show cause',
-];
 
 function designationOptionsFor(category: NoticeCategory) {
   const inspector = category === 'seed' ? 'Seed Inspector' : category === 'pesticide' ? 'Insecticide Inspector' : 'Fertilizer Inspector';
@@ -153,7 +147,6 @@ function makeInitialForm(category: NoticeCategory): NoticeFormState {
     invoiceDetails: '',
     productRemarks: '',
     observation: '',
-    recommendedActions: ['show cause'],
     selectedViolationIds: [],
     status: 'Draft',
   };
@@ -193,11 +186,10 @@ interface NoticeSegment {
 type NoticeBlock =
   | { kind: 'center'; text: string; bold?: boolean; underline?: boolean }
   | { kind: 'memoRow'; left: NoticeSegment[]; right: NoticeSegment[] }
-  | { kind: 'para'; segments: NoticeSegment[]; indent?: number }
-  | { kind: 'labelPara'; label: string; segments: NoticeSegment[] }
+  | { kind: 'para'; segments: NoticeSegment[]; indent?: number; firstLineIndent?: number }
+  | { kind: 'labelPara'; label: string; segments: NoticeSegment[]; indent?: number }
   | { kind: 'heading'; text: string }
-  | { kind: 'checks'; items: NoticeSegment[][] }
-  | { kind: 'lines'; items: NoticeSegment[][]; indent?: number; align?: 'right' }
+  | { kind: 'lines'; items: NoticeSegment[][]; indent?: number; align?: 'right'; centerLines?: boolean }
   | { kind: 'table'; header: [string, string]; rows: { label: string; value: string }[] }
   | { kind: 'gap'; mm?: number };
 
@@ -241,23 +233,29 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       : `1. The Asst. Director of Agriculture (R), ${divisionName}, for information and necessary action.\n2. The District Agriculture Officer, ${districtDisplay}, for information and necessary action.`
   ).split('\n');
 
-  const dealerItems: NoticeSegment[][] = [
+  const addressLines: NoticeSegment[][] = [
     [{ text: `M/s. ${form.firmName || form.dealerName || '__________________________________________'}`, bold: true }],
     [{ text: form.dealerAddress || '_______________________________________________', bold: true }],
-    ...((isADA || isDAO)
-      ? [
-          [{ text: effectiveLocationValue(form.mandal, form.manualMandal) || '________________', bold: true }],
-          [{ text: districtDisplay, bold: true }],
-        ]
+    [{ text: effectiveLocationValue(form.mandal, form.manualMandal) || '________________', bold: true }],
+    [{ text: districtDisplay, bold: true }],
+  ];
+
+  const dealerItems: NoticeSegment[][] = [
+    ...addressLines.map((line, index) => {
+      const suffix = index === addressLines.length - 1 ? '.' : ',';
+      const last = line[line.length - 1];
+      return [...line.slice(0, -1), { ...last, text: `${last.text.trimEnd()}${suffix}` }];
+    }),
+    ...(form.licenceNumber.trim()
+      ? [[{ text: 'Licence No.: ' }, { text: form.licenceNumber, bold: true }]]
       : []),
-    [{ text: 'Licence No.: ' }, { text: form.licenceNumber || '___________________________________', bold: true }],
   ];
 
   // Violation line: "description which is contravention to <Ref> <Act/Order/Rules>"
   // - Section -> parent Act, Clause -> Control Order, Rule -> Rules (actOrOrder already names the instrument)
   const violationItems: NoticeSegment[][] = selectedViolations.map((item) => [
     { text: item.shortDescription.replace(/\.+$/, '') },
-    { text: ` which is contravention to ${item.exactReference} ${item.actOrOrder.replace(/,/g, '')}`, bold: true },
+    { text: ` which is contravention to ${item.exactReference} of ${item.actOrOrder.replace(/,/g, '')}.`, bold: true },
   ]);
 
   const productRows = [
@@ -273,26 +271,25 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     [{ text: officerLocation, bold: true }],
   ];
 
-  // Sections are numbered dynamically and shown only when they have content
-  let sectionNumber = 0;
+  // Sections are shown only when they have content
   const sectionBlocks: NoticeBlock[] = [];
   if (violationItems.length > 0) {
     sectionBlocks.push(
-      { kind: 'heading', text: `${++sectionNumber}. Irregularity / Violation noticed:` },
-      { kind: 'checks', items: violationItems },
+      { kind: 'heading', text: 'Irregularity / Violation noticed:' },
+      ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${index + 1}.`, segments: item })),
       { kind: 'gap', mm: 2 },
     );
   }
   if (productRows.length > 0) {
     sectionBlocks.push(
-      { kind: 'heading', text: `${++sectionNumber}. Product details, wherever applicable:` },
+      { kind: 'heading', text: 'Product details, wherever applicable:' },
       { kind: 'table', header: ['Particulars', 'Details'], rows: productRows },
       { kind: 'gap', mm: 2 },
     );
   }
   if (observation) {
     sectionBlocks.push(
-      { kind: 'heading', text: `${++sectionNumber}. Specific observation:` },
+      { kind: 'heading', text: 'Specific observation:' },
       { kind: 'para', indent: 8, segments: [{ text: observation, bold: true }] },
       { kind: 'gap', mm: 1 },
     );
@@ -335,7 +332,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     { kind: 'gap', mm: 2 },
     {
       kind: 'para',
-      indent: 10,
+      firstLineIndent: 10,
       segments: sectionBlocks.length > 0
         ? [
             { text: 'It is informed that during the inspection of the above-mentioned dealer/firm premises on ' },
@@ -352,7 +349,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     { kind: 'gap', mm: 1 },
     {
       kind: 'para',
-      indent: 10,
       segments: [
         { text: 'In view of the above, you are hereby directed to submit your ' },
         { text: `written explanation within ${explanationPeriod} from the date of receipt of this notice`, bold: true },
@@ -361,7 +357,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     },
     {
       kind: 'para',
-      indent: 10,
       segments: [
         { text: 'If no explanation is received within the stipulated period, the matter will be considered ' },
         { text: 'without further reference to you', bold: true },
@@ -371,9 +366,9 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       ],
     },
     { kind: 'gap', mm: 8 },
-    { kind: 'lines', items: signatureItems, align: 'right' },
+    { kind: 'lines', items: signatureItems, align: 'right', centerLines: true },
     { kind: 'gap', mm: 4 },
-    { kind: 'lines', items: [[{ text: 'Copy submitted to:', bold: true }]] },
+    { kind: 'lines', items: [[{ text: 'Copy To:', bold: true }]] },
     { kind: 'lines', items: copyLines.map((line) => [{ text: line }]) },
   ];
 }
@@ -397,19 +392,18 @@ function noticeBlocksHtml(blocks: NoticeBlock[]) {
         case 'memoRow':
           return `<div style="display:flex;justify-content:space-between;gap:12pt;"><span>${segmentsHtml(block.left)}</span><span>${segmentsHtml(block.right)}</span></div>`;
         case 'para':
-          return `<p style="margin:0 0 4pt ${block.indent || 0}mm;text-align:justify;">${segmentsHtml(block.segments)}</p>`;
+          return `<p style="margin:0 0 4pt ${block.indent || 0}mm;text-align:justify;${block.firstLineIndent ? `text-indent:${block.firstLineIndent}mm;` : ''}">${segmentsHtml(block.segments)}</p>`;
         case 'labelPara':
-          return `<div style="display:flex;margin:0 0 4pt;"><strong style="flex:none;">${escapeHtml(block.label)}&nbsp;</strong><span style="flex:1;text-align:justify;">${segmentsHtml(block.segments)}</span></div>`;
+          return `<div style="display:flex;margin:0 0 4pt ${block.indent || 0}mm;"><strong style="flex:none;">${escapeHtml(block.label)}&nbsp;</strong><span style="flex:1;text-align:justify;">${segmentsHtml(block.segments)}</span></div>`;
         case 'heading':
           return `<p style="margin:6pt 0 2pt;font-weight:700;">${escapeHtml(block.text)}</p>`;
-        case 'checks':
-          return block.items
-            .map((item) => `<div style="margin:1pt 0 1pt 8mm;">&#9744;&nbsp;${segmentsHtml(item)}</div>`)
-            .join('');
-        case 'lines':
-          return `<div style="margin-left:${block.indent || 0}mm;${block.align === 'right' ? 'text-align:right;' : ''}">${block.items
-            .map((item) => `<div>${segmentsHtml(item)}</div>`)
-            .join('')}</div>`;
+        case 'lines': {
+          const inner = block.items.map((item) => `<div>${segmentsHtml(item)}</div>`).join('');
+          if (block.centerLines) {
+            return `<div style="margin-left:${block.indent || 0}mm;text-align:right;"><div style="display:inline-block;text-align:center;">${inner}</div></div>`;
+          }
+          return `<div style="margin-left:${block.indent || 0}mm;${block.align === 'right' ? 'text-align:right;' : ''}">${inner}</div>`;
+        }
         case 'table':
           return `<table style="width:92%;border-collapse:collapse;margin:2pt 0 2pt 8mm;"><thead><tr>${block.header
             .map((cell) => `<th style="border:1pt solid #000;padding:2pt 6pt;text-align:left;font-weight:700;">${escapeHtml(cell)}</th>`)
@@ -539,15 +533,6 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     });
   };
 
-  const toggleAction = (action: RecommendedAction) => {
-    setForm((current) => {
-      const selected = new Set(current.recommendedActions);
-      if (selected.has(action) && selected.size > 1) selected.delete(action);
-      else selected.add(action);
-      return { ...current, recommendedActions: Array.from(selected) };
-    });
-  };
-
   const saveNotice = () => {
     const id = `${form.memoNumber || 'draft'}-${Date.now()}`;
     const saved: SavedNotice = { ...form, id, savedAt: new Date().toISOString() };
@@ -580,13 +565,17 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       invoiceDetails: notice.invoiceDetails || '',
       productRemarks: notice.productRemarks || '',
       observation: notice.observation,
-      recommendedActions: notice.recommendedActions,
       selectedViolationIds: notice.selectedViolationIds,
       status: notice.status,
     };
     setForm(noticeForm);
     setShowProductDetails(Boolean(notice.productName || notice.batchLotNumber || notice.quantityInvolved || notice.productRemarks));
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const deleteSavedNotice = (notice: SavedNotice) => {
+    if (!window.confirm(`Delete saved notice "${notice.memoNumber || 'Untitled'}"?`)) return;
+    setSavedNotices((current) => current.filter((item) => item.id !== notice.id));
   };
 
   const printNotice = () => {
@@ -598,7 +587,9 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     popup.print();
   };
 
-  const downloadPdf = async () => {
+  const noticeFileName = () => `${form.memoNumber || 'show-cause-notice'}.pdf`.replace(/[\\/]/g, '-');
+
+  const buildNoticePdfDoc = async () => {
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
     doc.setProperties({ title: form.memoNumber || 'Show Cause Notice', subject: 'Show Cause Notice', creator: 'AGRONIX' });
@@ -622,9 +613,13 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     const runsWidth = (runs: NoticeSegment[]) =>
       runs.reduce((total, run) => total + measure(run.text, !!run.bold), 0) + Math.max(runs.length - 1, 0) * spaceWidth();
 
-    const drawRuns = (runs: NoticeSegment[], x: number, lineY: number) => {
+    const drawRuns = (runs: NoticeSegment[], x: number, lineY: number, justifyToWidth?: number) => {
       let cx = x;
-      const gap = spaceWidth();
+      let gap = spaceWidth();
+      if (justifyToWidth && runs.length > 1) {
+        const extra = justifyToWidth - runsWidth(runs);
+        if (extra > 0) gap += extra / (runs.length - 1);
+      }
       runs.forEach((run) => {
         doc.setFont(fontName, run.bold ? 'bold' : 'normal');
         doc.setFontSize(12);
@@ -633,7 +628,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       });
     };
 
-    const wrapSegments = (segments: NoticeSegment[], width: number): NoticeSegment[][] => {
+    const wrapSegments = (segments: NoticeSegment[], width: number, firstLineWidth?: number): NoticeSegment[][] => {
       const words: NoticeSegment[] = [];
       segments.forEach((segment) => {
         segment.text
@@ -643,11 +638,13 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       });
       const lines: NoticeSegment[][] = [];
       let current: NoticeSegment[] = [];
+      let limit = firstLineWidth ?? width;
       words.forEach((word) => {
         const candidate = [...current, word];
-        if (current.length > 0 && runsWidth(candidate) > width) {
+        if (current.length > 0 && runsWidth(candidate) > limit) {
           lines.push(current);
           current = [word];
+          limit = width;
         } else {
           current = candidate;
         }
@@ -691,26 +688,33 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
         }
         case 'para': {
           const indent = block.indent || 0;
-          const lines = wrapSegments(block.segments, CW - indent);
-          lines.forEach((runs) => {
+          const firstLineIndent = block.firstLineIndent || 0;
+          const lineWidth = CW - indent;
+          const lines = wrapSegments(block.segments, lineWidth, firstLineIndent ? lineWidth - firstLineIndent : undefined);
+          lines.forEach((runs, index) => {
             ensureSpace(LH);
-            drawRuns(runs, ML + indent, y);
+            const isLastLine = index === lines.length - 1;
+            const offset = index === 0 ? firstLineIndent : 0;
+            drawRuns(runs, ML + indent + offset, y, isLastLine ? undefined : lineWidth - offset);
             y += LH;
           });
           y += 1;
           break;
         }
         case 'labelPara': {
+          const indent = block.indent || 0;
           const labelWidth = measure(`${block.label} `, true);
-          const lines = wrapSegments(block.segments, CW - labelWidth);
+          const lineWidth = CW - indent - labelWidth;
+          const lines = wrapSegments(block.segments, lineWidth);
           lines.forEach((runs, index) => {
             ensureSpace(LH);
             if (index === 0) {
               doc.setFont(fontName, 'bold');
               doc.setFontSize(12);
-              doc.text(block.label, ML, y);
+              doc.text(block.label, ML + indent, y);
             }
-            drawRuns(runs, ML + labelWidth, y);
+            const isLastLine = index === lines.length - 1;
+            drawRuns(runs, ML + indent + labelWidth, y, isLastLine ? undefined : lineWidth);
             y += LH;
           });
           y += 1;
@@ -725,25 +729,19 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           });
           break;
         }
-        case 'checks': {
-          block.items.forEach((item) => {
-            const lines = wrapSegments(item, CW - 14);
-            lines.forEach((runs, index) => {
-              ensureSpace(LH);
-              if (index === 0) doc.rect(ML + 8, y - 3.2, 3.2, 3.2);
-              drawRuns(runs, ML + 14, y);
-              y += LH;
-            });
-          });
-          break;
-        }
         case 'lines': {
           const indent = block.indent || 0;
-          block.items.forEach((item) => {
-            const lines = wrapSegments(item, CW - indent);
+          const wrapped = block.items.map((item) => wrapSegments(item, CW - indent));
+          const blockWidth = block.centerLines
+            ? Math.max(...wrapped.flat().map((runs) => runsWidth(runs)))
+            : 0;
+          wrapped.forEach((lines) => {
             lines.forEach((runs) => {
               ensureSpace(LH);
-              const x = block.align === 'right' ? PAGE_W - MR - runsWidth(runs) : ML + indent;
+              const w = runsWidth(runs);
+              const x = block.align === 'right'
+                ? PAGE_W - MR - (block.centerLines ? blockWidth - (blockWidth - w) / 2 : w)
+                : ML + indent;
               drawRuns(runs, x, y);
               y += LH;
             });
@@ -785,20 +783,48 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       }
     });
 
-    doc.save(`${form.memoNumber || 'show-cause-notice'}.pdf`.replace(/[\\/]/g, '-'));
+    return doc;
+  };
+
+  const downloadPdf = async () => {
+    const doc = await buildNoticePdfDoc();
+    doc.save(noticeFileName());
+  };
+
+  const previewPdf = async () => {
+    const targetWindow = window.open('', '_blank');
+    if (targetWindow) {
+      targetWindow.opener = null;
+      targetWindow.document.title = 'Preparing PDF...';
+      targetWindow.document.body.innerHTML = '<p style="font-family: system-ui; padding: 24px;">Preparing PDF...</p>';
+    }
+    try {
+      const doc = await buildNoticePdfDoc();
+      const blob = new File([doc.output('blob')], noticeFileName(), { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+      if (targetWindow && !targetWindow.closed) {
+        targetWindow.location.href = blobUrl;
+      } else {
+        window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      }
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (error) {
+      console.error('Unable to preview notice PDF:', error);
+      targetWindow?.close();
+      window.alert('PDF preview could not be generated. Please try the download option.');
+    }
   };
 
   return (
     <div className="space-y-4">
-      <div className={`overflow-hidden rounded-lg bg-gradient-to-r ${config.theme.header} px-4 py-3 text-white shadow-sm`}>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      {!lockedCategory && (
+        <div className={`overflow-hidden rounded-lg bg-gradient-to-r ${config.theme.header} px-4 py-3 text-white shadow-sm`}>
           <div>
             <h2 className="text-lg font-black">{config.title}</h2>
             <p className="text-xs font-semibold text-white/85">Show Cause Notice / Memo Entry</p>
           </div>
-          <span className="w-fit rounded-full bg-white/20 px-3 py-1 text-xs font-black">FY {form.financialYear}</span>
         </div>
-      </div>
+      )}
 
           {!lockedCategory && (
           <div className="inline-flex flex-wrap rounded-lg border border-white bg-white p-1 shadow-sm">
@@ -820,10 +846,10 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
             <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700">Officer Details</h3>
             <div className="grid gap-3 md:grid-cols-3">
-              <TextInput label="Inspecting Officer Name" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
+              <TextInput label="Inspecting Officer" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
               <SelectInput label="Officer Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
               <SelectInput
-                label="District Name"
+                label="District"
                 value={form.district}
                 onChange={(value) => updateForm({ district: value, mandal: '', manualMandal: '', manualDistrict: '' })}
                 options={districtOptions}
@@ -847,7 +873,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                   onChange={(value) => updateForm({ manualMandal: value })}
                 />
               )}
-              <TextInput label="Memo Number" value={form.memoNumber} onChange={(value) => updateForm({ memoNumber: value })} />
+              <TextInput label="Memo/Lr. No" value={form.memoNumber} onChange={(value) => updateForm({ memoNumber: value })} />
               <TextInput
                 label="Inspection Date"
                 type="date"
@@ -906,7 +932,6 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                       {violation.exactReference}
                     </span>
                     <span className="block text-sm font-bold text-slate-900">{violation.shortDescription}</span>
-                    <span className="mt-1 block text-xs font-semibold text-slate-500">{violation.sourceStatus}</span>
                   </span>
                 </label>
               ))}
@@ -963,26 +988,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
             )}
           </div>
 
-          <div>
-            <p className="mb-2 text-xs font-black text-slate-600">Recommended action</p>
-            <div className="flex flex-wrap gap-2">
-              {recommendedActions.map((action) => (
-                <button
-                  key={action}
-                  type="button"
-                  onClick={() => toggleAction(action)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-black capitalize transition ${
-                    form.recommendedActions.includes(action) ? `${config.theme.button} border-transparent text-white` : 'border-slate-200 bg-white text-slate-600'
-                  }`}
-                >
-                  {action}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => previewRef.current?.scrollIntoView({ behavior: 'smooth' })} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-black text-white shadow-sm ${config.theme.button}`}>
+            <button type="button" onClick={previewPdf} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-black text-white shadow-sm ${config.theme.button}`}>
               <FileText className="h-4 w-4" />
               {config.previewButtonLabel}
             </button>
@@ -1028,10 +1035,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               <tr>
                 <th className="px-3 py-2">Memo</th>
                 <th className="px-3 py-2">Dealer</th>
-                <th className="px-3 py-2">Category</th>
                 <th className="px-3 py-2">Inspection</th>
                 <th className="px-3 py-2">Clauses/Sections/Rules</th>
-                <th className="px-3 py-2">Deadline</th>
                 <th className="px-3 py-2">Status</th>
                 <th className="px-3 py-2 text-right">Action</th>
               </tr>
@@ -1041,22 +1046,25 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                 <tr key={notice.id}>
                   <td className="px-3 py-2 font-black">{notice.memoNumber}</td>
                   <td className="px-3 py-2">{notice.firmName || notice.dealerName || '-'}</td>
-                  <td className="px-3 py-2 capitalize">{notice.category}</td>
                   <td className="px-3 py-2">{notice.inspectionDate}</td>
                   <td className="px-3 py-2">{allShowCauseViolations.filter((item) => notice.selectedViolationIds.includes(item.violationId)).map((item) => item.exactReference).join(', ') || '-'}</td>
-                  <td className="px-3 py-2">{notice.deadline}</td>
                   <td className="px-3 py-2">{notice.status}</td>
                   <td className="px-3 py-2 text-right">
-                    <button type="button" onClick={() => editSavedNotice(notice)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-emerald-700 hover:bg-emerald-50">
-                      <Edit3 className="h-3.5 w-3.5" />
-                      Edit
-                    </button>
+                    <div className="inline-flex items-center gap-1">
+                      <button type="button" onClick={() => editSavedNotice(notice)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-emerald-700 hover:bg-emerald-50">
+                        <Edit3 className="h-3.5 w-3.5" />
+                        Edit
+                      </button>
+                      <button type="button" onClick={() => deleteSavedNotice(notice)} aria-label="Delete saved notice" className="inline-flex items-center justify-center rounded-md p-1.5 text-red-600 hover:bg-red-50">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
               {filteredSaved.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-3 py-8 text-center font-semibold text-slate-500">No saved notices yet.</td>
+                  <td colSpan={6} className="px-3 py-8 text-center font-semibold text-slate-500">No saved notices yet.</td>
                 </tr>
               )}
             </tbody>

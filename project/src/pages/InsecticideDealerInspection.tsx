@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bug, ChevronDown, ClipboardCheck, Download, Eye, FileText, FlaskConical, FolderOpen, Plus, RotateCcw, Save, Sprout, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ClipboardCheck, Download, Eye, FolderOpen, Plus, RotateCcw, Save, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ToastContainer, useToast } from '../components/ui/Toast';
-import { ShowCauseNoticeEntry } from '../components/ShowCauseNoticeEntry';
+
 
 type Status = '' | 'yes' | 'no' | 'na';
 type StatusField = { status: Status; remarks: string };
@@ -156,7 +156,6 @@ export function InsecticideDealerInspection() {
   const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false });
   const [showPreview, setShowPreview] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
-  const [showNotices, setShowNotices] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -268,7 +267,11 @@ export function InsecticideDealerInspection() {
             </div>
             <button
               type="button"
-              onClick={() => navigate('/officer-toolkit')}
+              onClick={() => {
+                const idx = (window.history.state as { idx?: number } | null)?.idx;
+                if (typeof idx === 'number' && idx > 0) navigate(-1);
+                else navigate('/officer-toolkit/inspections-notices');
+              }}
               className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#FDA4AF] bg-white/70 px-2 py-1.5 text-xs font-black text-[#9F1239] shadow-sm transition hover:bg-white hover:border-[#FB7185]"
             >
               <ArrowLeft className="h-3 w-3" />
@@ -278,13 +281,6 @@ export function InsecticideDealerInspection() {
         </div>
 
         {error && <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</div>}
-
-        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <InspectionTypeCard icon={Sprout} label="Seed" tone="emerald" onClick={() => navigate('/officer-toolkit/seed-dealer-inspection')} />
-          <InspectionTypeCard icon={FlaskConical} label="Fertilizer" tone="sky" onClick={() => navigate('/officer-toolkit/fertilizer-dealer-inspection')} />
-          <InspectionTypeCard icon={Bug} label="Pesticide" tone="rose" active />
-          <InspectionTypeCard icon={FileText} label="Notices / Memos" tone="purple" onClick={() => setShowNotices(true)} />
-        </div>
 
         <div className="mb-3 flex flex-wrap gap-2">
           <ActionButton onClick={saveDraft} icon={Save} tone="rose">Save draft</ActionButton>
@@ -522,12 +518,6 @@ export function InsecticideDealerInspection() {
         </Modal>
       )}
 
-      {showNotices && (
-        <Modal title="Notices / Memos" onClose={() => setShowNotices(false)} wide>
-          <ShowCauseNoticeEntry lockedCategory="pesticide" />
-        </Modal>
-      )}
-
       {showPreview && (
         <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={generatePdf} icon={Download} tone="rose">Download PDF</ActionButton>}>
           <Preview form={form} />
@@ -613,33 +603,6 @@ function StatusButtons({ value, onChange, allowNa = true }: { value: Status; onC
   );
 }
 
-function InspectionTypeCard({ icon: Icon, label, tone, active = false, onClick }: { icon: React.ComponentType<{ className?: string }>; label: string; tone: 'emerald' | 'sky' | 'rose' | 'purple'; active?: boolean; onClick?: () => void }) {
-  const toneClass = {
-    emerald: 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100',
-    sky: 'border-sky-500 bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-100',
-    rose: 'border-rose-400 bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-100',
-    purple: 'border-purple-500 bg-purple-50 text-purple-800 dark:bg-purple-950/40 dark:text-purple-100',
-  }[tone];
-  const iconBg = {
-    emerald: 'bg-emerald-600',
-    sky: 'bg-sky-600',
-    rose: 'bg-rose-600',
-    purple: 'bg-purple-600',
-  }[tone];
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex items-center gap-2 rounded-xl border p-3 text-left transition ${active ? `${toneClass} shadow-md ring-1 ring-current/20` : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200'}`}
-    >
-      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white ${active ? iconBg : 'bg-slate-400'}`}>
-        <Icon className="h-4 w-4" />
-      </span>
-      <span className="text-sm font-bold">{label}</span>
-    </button>
-  );
-}
-
 function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarksWhen = 'answered', allowNa = true }: { label: string; field: StatusField; onChange: (patch: Partial<StatusField>) => void; remarksLabel?: string; remarksWhen?: 'answered' | 'no'; allowNa?: boolean }) {
   const showRemarks = remarksWhen === 'no' ? field.status === 'no' : Boolean(field.status) && field.status !== 'na';
   return (
@@ -719,10 +682,10 @@ function RowTable<T extends Record<string, string>>({ title, rows, onChange, emp
   );
 }
 
-function Modal({ title, onClose, children, wide = false, footer }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean; footer?: React.ReactNode }) {
+function Modal({ title, onClose, children, wide = false, footer, fullScreen = false }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean; footer?: React.ReactNode; fullScreen?: boolean }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className={`flex max-h-[90vh] w-full flex-col rounded-2xl border border-rose-200/50 bg-white shadow-2xl dark:border-rose-800/50 dark:bg-slate-900 ${wide ? 'max-w-4xl' : 'max-w-lg'}`}>
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 ${fullScreen ? 'sm:p-4' : 'p-4'}`}>
+      <div className={`flex w-full flex-col bg-white shadow-2xl dark:bg-slate-900 ${wide ? 'max-w-4xl' : 'max-w-lg'} ${fullScreen ? 'h-full max-h-none sm:h-auto sm:max-h-[90vh] sm:rounded-2xl sm:border sm:border-rose-200/50 dark:sm:border-rose-800/50' : 'max-h-[90vh] rounded-2xl border border-rose-200/50 dark:border-rose-800/50'}`}>
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-slate-700">
           <h2 className="flex-1 text-center text-lg font-bold text-slate-900 dark:text-white">{title}</h2>
           <button type="button" onClick={onClose} className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-red-700">
@@ -814,23 +777,24 @@ function buildPdf(form: InspectionForm) {
   const { items, subTables } = buildRows(form);
 
   doc.setFont('times', 'bold');
-  doc.setFontSize(13);
-  const pdfTitle = 'Insecticide dealer inspection report';
+  doc.setFontSize(14);
+  const pdfTitle = 'Insecticide Dealer Inspection Report';
   doc.text(pdfTitle, pageWidth / 2, 16, { align: 'center' });
   const pdfTitleWidth = doc.getTextWidth(pdfTitle);
   doc.setLineWidth(0.4);
   doc.line(pageWidth / 2 - pdfTitleWidth / 2, 18, pageWidth / 2 + pdfTitleWidth / 2, 18);
   doc.setFont('times', 'normal');
-  doc.setFontSize(9);
+  doc.setFontSize(10);
 
   autoTable(doc, {
     startY: 22,
     margin: { top: 16, left: margin, right: margin, bottom: 14 },
     rowPageBreak: 'avoid',
+    theme: 'grid',
     head: [['No.', 'Particulars', 'Observation / Remarks']],
     body: items,
-    styles: { font: 'times', fontSize: 9, cellPadding: 1.5, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0], valign: 'top' },
-    headStyles: { fillColor: [255, 228, 230], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2 },
+    styles: { font: 'times', fontSize: 10, cellPadding: 1.5, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0], valign: 'top' },
+    headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2 },
     columnStyles: { 0: { cellWidth: 12, halign: 'center' }, 1: { cellWidth: 78 }, 2: { cellWidth: pageWidth - margin * 2 - 90 } },
   });
 
@@ -841,27 +805,28 @@ function buildPdf(form: InspectionForm) {
       y = 16;
     }
     doc.setFont('times', 'bold');
-    doc.setFontSize(9.5);
+    doc.setFontSize(10.5);
     doc.text(table.title, margin, y + 6);
     autoTable(doc, {
       startY: y + 8,
       margin: { top: 16, left: margin, right: margin, bottom: 14 },
       rowPageBreak: 'avoid',
+      theme: 'grid',
       head: [table.head],
       body: table.body,
-      styles: { font: 'times', fontSize: 8.5, cellPadding: 1.2, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0] },
-      headStyles: { fillColor: [241, 245, 249], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2 },
+      styles: { font: 'times', fontSize: 9.5, cellPadding: 1.2, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0] },
+      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2 },
     });
     y = (doc as any).lastAutoTable.finalY;
   }
 
-  if (y + 45 > bottom) {
+  if (y + 30 > bottom) {
     doc.addPage();
     y = 16;
   }
-  const signatureY = y + 22;
+  const signatureY = y + 14;
   doc.setFont('times', 'bold');
-  doc.setFontSize(9.5);
+  doc.setFontSize(10.5);
   const dealerLabel = 'Signature of dealer';
   doc.text(dealerLabel, margin, signatureY);
   const dealerCenterX = margin + doc.getTextWidth(dealerLabel) / 2;
@@ -869,7 +834,7 @@ function buildPdf(form: InspectionForm) {
   doc.text(signatureLabel, pageWidth - margin, signatureY, { align: 'right' });
   const signatureCenterX = pageWidth - margin - doc.getTextWidth(signatureLabel) / 2;
   doc.setFont('times', 'normal');
-  doc.setFontSize(9);
+  doc.setFontSize(10);
   doc.setFont('times', 'italic');
   if (form.dealerName.trim()) doc.text(`(${form.dealerName.trim()})`, dealerCenterX, signatureY + 5, { align: 'center' });
   [
@@ -883,9 +848,9 @@ function buildPdf(form: InspectionForm) {
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    doc.setFont('times', 'bold');
+    doc.setFont('courier', 'bold');
     doc.setFontSize(7);
-    doc.setTextColor(190, 18, 60);
+    doc.setTextColor(128);
     doc.text('AGRONIX', pageWidth - margin, pageHeight - 6, { align: 'right' });
     doc.setTextColor(0, 0, 0);
   }
@@ -896,7 +861,7 @@ function Preview({ form }: { form: InspectionForm }) {
   const { items, subTables } = buildRows(form);
   return (
     <div className="text-slate-900">
-      <h3 className="mb-3 text-center text-base font-black">Insecticide dealer inspection report</h3>
+      <h3 className="mb-3 text-center text-base font-black">Insecticide Dealer Inspection Report</h3>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse border border-slate-400 text-xs">
           <thead>

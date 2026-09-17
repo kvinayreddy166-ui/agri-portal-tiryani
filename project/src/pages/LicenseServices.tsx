@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { BackButton } from '../components/ui/BackButton';
-import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { FileText, ChevronRight, CheckCircle, FileText as FileIcon, ExternalLink, Copy, ArrowLeft, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, ReceiptText, Store, ClipboardList, Sprout, ArrowUpRight, X } from 'lucide-react';
+import { FileText, ChevronRight, CheckCircle, ExternalLink, Copy, ArrowLeft, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, ReceiptText, Store, ClipboardList, Sprout, ArrowUpRight } from 'lucide-react';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 
 // District to Division mapping
@@ -171,20 +169,9 @@ const INSECTICIDE_AMENDMENT_TYPES: Record<InsecticideAmendmentType, string> = {
   extension_of_lease: 'Extension of Lease Agreement',
 };
 
-const FERTILIZER_AMENDMENT_DOCUMENTS = [
-  'Request Letter',
-  'Godown Rental Agreement',
-  'Sale Point Rental Agreement',
-  'Details of Person Responsible',
-  'Details of Samples Drawn Particulars in the Last 3 Years Along with the Results',
-  'Product-wise Sale Particulars for the Last 3 Years',
-  'Self Declaration of Non-Conviction',
-  'Self Declaration / Proprietorship Declaration',
-];
-
-export function LicenseApplicationGenerator() {
+export function LicenseServices() {
   const navigate = useNavigate();
-  const { t, language, toggleLanguage } = useLanguage();
+  const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState<{ message: string; show: boolean } | null>(null);
@@ -263,8 +250,6 @@ export function LicenseApplicationGenerator() {
     (licenseType === 'fertilizer' ? dealerType !== '' : true) &&
     (licenseType === 'insecticide' && (applicationType === 'pc_inclusion' || areaType === 'manufacturing_license') ? areaType !== '' && numberOfProducts !== '' : true) &&
     (licenseType === 'insecticide' && applicationType !== 'pc_inclusion' && areaType !== 'manufacturing_license' ? areaType !== '' : true);
-  const showDocuments = false; // Amendment types hidden for now
-
   const getAmount = () => {
     const isFertilizerWholesaler = licenseType === 'fertilizer' && dealerType === 'wholesaler';
     const isFertilizerCoopSocieties = licenseType === 'fertilizer' && dealerType === 'coop_societies';

@@ -210,7 +210,7 @@ function readBookmarks() {
   }
 }
 
-export function AgriLegalReadyReckoner() {
+export function ActsAndOrders() {
   const navigate = useNavigate();
   const [view, setView] = useState<ReckonerView>('powers');
   const [selectedLegalArea, setSelectedLegalArea] = useState<MainLegalArea | null>(null);
@@ -252,7 +252,7 @@ export function AgriLegalReadyReckoner() {
     if (category !== 'Fertiliser') return [];
     if (!term) return fcoOffenceEntries;
     return fcoOffenceEntries.filter((entry) =>
-      [entry.serialNumber, entry.offenceType, entry.contraventionProvision, entry.punishmentProvision, entry.useInField, entry.sourceStatus]
+      [entry.serialNumber, entry.offenceType, entry.contraventionProvision, entry.punishmentProvision, entry.useInField]
         .join(' ')
         .toLowerCase()
         .includes(term)

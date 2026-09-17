@@ -6,7 +6,7 @@ import { PortalLogo } from './components/ui/PortalLogo';
 import { AgronixBrandMark } from './components/ui/AgronixBrandMark';
 import { OfflineScreen } from './components/ui/OfflineScreen';
 import { APP_BUILD_LABEL, clearAppCacheAndReload } from './lib/appVersion';
-import { isRecoverableChunkError } from './lib/pwaRecovery';
+import { isRecoverableChunkError, recoverFromStaleAssets } from './lib/pwaRecovery';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { SEO, OrganizationSchema } from './components/seo/SEO';
@@ -16,7 +16,7 @@ const Login = lazy(() => import('./components/Login').then((m) => ({ default: m.
 const Layout = lazy(() => import('./components/Layout').then((m) => ({ default: m.Layout })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const DealerManagement = lazy(() => import('./pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));
-const FormsDownloads = lazy(() => import('./pages/FormsDownloads').then((m) => ({ default: m.FormsDownloads })));
+const StatutoryForms = lazy(() => import('./pages/StatutoryForms').then((m) => ({ default: m.StatutoryForms })));
 const ExcelUploads = lazy(() => import('./pages/ExcelUploads').then((m) => ({ default: m.ExcelUploads })));
 const Analytics = lazy(() => import('./pages/Analytics').then((m) => ({ default: m.Analytics })));
 const FarmerDatabase = lazy(() => import('./pages/FarmerDatabase').then((m) => ({ default: m.FarmerDatabase })));
@@ -31,13 +31,13 @@ const DealerStockPortal = lazy(() => import('./pages/DealerStockPortal').then((m
 const AcreageCalculator = lazy(() => import('./pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const FertilizerCalculator = lazy(() => import('./pages/FertilizerCalculator').then((m) => ({ default: m.FertilizerCalculator })));
 const OfficersToolkit = lazy(() => import('./pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
-const LicenseApplicationGenerator = lazy(() => import('./pages/LicenseApplicationGenerator').then((m) => ({ default: m.LicenseApplicationGenerator })));
+const LicenseServices = lazy(() => import('./pages/LicenseServices').then((m) => ({ default: m.LicenseServices })));
 const FarmCalculators = lazy(() => import('./pages/FarmCalculators').then((m) => ({ default: m.FarmCalculators })));
 const CropProtectionTool = lazy(() => import('./pages/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
 const PesticideCalculator = lazy(() => import('./pages/PesticideCalculator').then((m) => ({ default: m.PesticideCalculator })));
 const PlantPopulationCalculator = lazy(() => import('./pages/PlantPopulationCalculator').then((m) => ({ default: m.PlantPopulationCalculator })));
 const SeedRateCalculator = lazy(() => import('./pages/SeedRateCalculator').then((m) => ({ default: m.SeedRateCalculator })));
-const AgriLegalReadyReckoner = lazy(() => import('./components/AgriLegalReadyReckoner').then((m) => ({ default: m.AgriLegalReadyReckoner })));
+const ActsAndOrders = lazy(() => import('./components/ActsAndOrders').then((m) => ({ default: m.ActsAndOrders })));
 const StockAnalytics = lazy(() => import('./pages/StockAnalytics'));
 const StockReceiptsSales = lazy(() => import('./pages/StockReceiptsSales'));
 const OfficerContacts = lazy(() => import('./pages/OfficerContacts').then((m) => ({ default: m.OfficerContacts })));
@@ -46,6 +46,7 @@ const TourDiary = lazy(() => import('./pages/TourDiary').then((m) => ({ default:
 const SeedDealerInspection = lazy(() => import('./pages/SeedDealerInspection').then((m) => ({ default: m.SeedDealerInspection })));
 const FertilizerDealerInspection = lazy(() => import('./pages/FertilizerDealerInspection').then((m) => ({ default: m.FertilizerDealerInspection })));
 const InsecticideDealerInspection = lazy(() => import('./pages/InsecticideDealerInspection').then((m) => ({ default: m.InsecticideDealerInspection })));
+const InspectionsNoticesHub = lazy(() => import('./pages/InspectionsNoticesHub').then((m) => ({ default: m.InspectionsNoticesHub })));
 const CropManagement = lazy(() => import('./pages/CropManagement').then((m) => ({ default: m.CropManagement })));
 const CropAdminDashboard = lazy(() => import('./pages/admin/CropAdminDashboard').then((m) => ({ default: m.CropAdminDashboard })));
 const CropPage = lazy(() => import('./pages/CropPage').then((m) => ({ default: m.CropPage })));
@@ -136,7 +137,6 @@ class LazyLoadBoundary extends Component<LazyLoadBoundaryProps, LazyLoadBoundary
       window.sessionStorage.setItem(RELOAD_ATTEMPT_KEY, String(Date.now()));
       
       // Attempt automatic recovery with cache-busting
-      const { recoverFromStaleAssets } = await import('./lib/pwaRecovery');
       await recoverFromStaleAssets();
       
       // If recovery succeeds, the page will reload automatically
@@ -258,6 +258,7 @@ const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/seed-dealer-inspection',
   '/officer-toolkit/fertilizer-dealer-inspection',
   '/officer-toolkit/insecticide-dealer-inspection',
+  '/officer-toolkit/inspections-notices',
 ]);
 const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
@@ -296,6 +297,7 @@ const PAGE_PATHS: Record<string, string> = {
   'seed-dealer-inspection': '/officer-toolkit/seed-dealer-inspection',
   'fertilizer-dealer-inspection': '/officer-toolkit/fertilizer-dealer-inspection',
   'insecticide-dealer-inspection': '/officer-toolkit/insecticide-dealer-inspection',
+  'inspections-notices': '/officer-toolkit/inspections-notices',
   analytics: '/analytics',
   settings: '/settings',
   knowledge: '/knowledge',
@@ -575,6 +577,7 @@ function AppContent() {
         'seed-dealer-inspection',
         'fertilizer-dealer-inspection',
         'insecticide-dealer-inspection',
+        'inspections-notices',
         'analytics',
         'settings',
         'knowledge',
@@ -643,6 +646,9 @@ function AppContent() {
       if (page === 'officer-toolkit/insecticide-dealer-inspection') {
         page = 'insecticide-dealer-inspection';
       }
+      if (page === 'officer-toolkit/inspections-notices') {
+        page = 'inspections-notices';
+      }
 
       if (page === 'knowledge/library') page = 'knowledge-library';
       if (page === 'knowledge/upload') page = 'knowledge-upload';
@@ -655,9 +661,7 @@ function AppContent() {
       if (page === 'knowledge/viewer') page = 'knowledge-viewer';
       if (page === 'knowledge') page = 'knowledge';
 
-      const result = validPages.has(page) ? page : 'dashboard';
-      console.log('getPageFromLocation:', `pathname="${location.pathname}"`, `page="${page}"`, `result="${result}"`, `validPages.has(page)=${validPages.has(page)}`);
-      return result;
+      return validPages.has(page) ? page : 'dashboard';
     } catch (error) {
       console.error('Error getting page from location:', error);
       return 'dashboard';
@@ -803,7 +807,7 @@ function AppContent() {
   if (!user && currentPage === 'license-application-generator') {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
-        <LicenseApplicationGenerator />
+        <LicenseServices />
         <AgronixBrandMark />
       </SafeSuspense>
     );
@@ -875,7 +879,7 @@ function AppContent() {
   if (!user && currentPage === 'legal-ready-reckoner') {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
-        <AgriLegalReadyReckoner />
+        <ActsAndOrders />
         <AgronixBrandMark />
       </SafeSuspense>
     );
@@ -921,6 +925,15 @@ function AppContent() {
     return (
       <SafeSuspense fallback={<GlobalAppLoader />}>
         <InsecticideDealerInspection />
+        <AgronixBrandMark />
+      </SafeSuspense>
+    );
+  }
+
+  if (!user && currentPage === 'inspections-notices') {
+    return (
+      <SafeSuspense fallback={<GlobalAppLoader />}>
+        <InspectionsNoticesHub />
         <AgronixBrandMark />
       </SafeSuspense>
     );
@@ -974,7 +987,7 @@ function AppContent() {
       case 'crop-oilseeds':
         return <CropPage cropType="oilseeds" />;
       case 'forms':
-        return <FormsDownloads />;
+        return <StatutoryForms />;
       case 'gos-circulars':
         return <GosCirculars />;
       case 'quality':
@@ -1002,7 +1015,7 @@ function AppContent() {
       case 'officer-toolkit':
         return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} />;
       case 'license-application-generator':
-        return <LicenseApplicationGenerator />;
+        return <LicenseServices />;
       case 'farm-calculators':
         return <FarmCalculators />;
       case 'acreage-calculator':
@@ -1018,7 +1031,7 @@ function AppContent() {
       case 'seed-rate-calculator':
         return <SeedRateCalculator />;
       case 'legal-ready-reckoner':
-        return <AgriLegalReadyReckoner />;
+        return <ActsAndOrders />;
       case 'officer-contacts':
         return <OfficerContacts />;
       case 'officer-contacts-admin':
@@ -1037,6 +1050,8 @@ function AppContent() {
         return <FertilizerDealerInspection />;
       case 'insecticide-dealer-inspection':
         return <InsecticideDealerInspection />;
+      case 'inspections-notices':
+        return <InspectionsNoticesHub />;
       case 'analytics':
         return <Analytics />;
       case 'settings':

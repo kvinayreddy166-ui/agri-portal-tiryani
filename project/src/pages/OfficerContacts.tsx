@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BackButton } from '../components/ui/BackButton';
 import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle, Loader2, Users, ArrowLeft } from 'lucide-react';
-import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 import { AEO_DISTRICTS } from '../data/aeoDistricts';
 import { supabase } from '../lib/supabase';
 
@@ -52,47 +50,6 @@ const TABS: TabConfig[] = [
 // In-memory cache
 const contactsCache = new Map<string, CacheEntry>();
 const dropdownCache = new Map<string, DropdownOptions>();
-
-// District to Division mapping (from LicenseApplicationGenerator)
-const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
-  'Adilabad': ['Adilabad Rural', 'Boath', 'Ichoda', 'Tamsi', 'Utnoor'],
-  'Bhadradri Kothagudem': ['Aswaraopeta', 'Bhadrachalam', 'Kothagudem', 'Manuguru', 'Yellandu'],
-  'Hanamkonda': ['Hanamkonda', 'Parkal'],
-  'Jagtial': ['Dharmapuri', 'Jagtial', 'Korutla'],
-  'Jangaon': ['Ghanpur Station', 'Jangaon', 'Palakurthi'],
-  'Jayashankar Bhupalpally': ['Bhupalpally', 'Mahadevpur'],
-  'Jogulamba Gadwal': ['Alampur', 'Gadwal', 'Ieeja'],
-  'Kamareddy': ['Banswada', 'Bichkunda', 'Kamareddy', 'Yellareddy'],
-  'Karimnagar': ['Choppadandi', 'Huzurabad', 'Karimnagar', 'Manakondur'],
-  'Khammam': ['Khammam Urban', 'Kusumanchi', 'Madhira', 'Sathupalle', 'Wyra'],
-  'Kumrambheem Asifabad': ['Asifabad', 'Kagaznagar', 'Penchikalpet', 'Sirpur U'],
-  'Hyderabad': [],
-  'Mahabubabad': ['Mahabubabad', 'Maripeda'],
-  'Mahabubnagar': ['Devarkadara', 'Jadcherla', 'Mahabubnagar Rural'],
-  'Mancherial': ['Bellampalle', 'Bheemini', 'Chennur', 'Mancherial'],
-  'Medak': ['Kowdipalle', 'Medak', 'Narsapur', 'Ramayampet'],
-  'Medchal-Malkajgiri': ['Malkajgiri', 'Medchal'],
-  'Mulugu': ['Eturnagaram', 'Mulugu'],
-  'Nagarkurnool': ['Achampet', 'Kalwakurthy', 'Kollapur', 'Nagarkurnool'],
-  'Nalgonda': ['Anumula', 'Devarakonda', 'Miryalaguda', 'Munugode', 'Nakrekal', 'Nalgonda'],
-  'Narayanpet': ['Kosgi', 'Makthal', 'Narayanpet'],
-  'Nirmal': ['Bhainsa', 'Khanapur', 'Mudhole', 'Nirmal'],
-  'Nizamabad': ['Armoor', 'Balkonda', 'Bheemgal', 'Bodhan', 'Indalwai', 'Nizamabad Rural', 'Nizamabad South', 'Rudrur'],
-  'Peddapalli': ['Manthani', 'Peddapalle', 'Ramagundam'],
-  'Rajanna Sircilla': ['Sircilla', 'Vemulawada'],
-  'Rangareddy': ['Amangal', 'Chevella', 'Ibrahimpatnam', 'Maheshwaram', 'Rajendranagar', 'Shadnagar'],
-  'Sangareddy': ['Andole', 'Narayankhed', 'Patancheru', 'Raikode', 'Sangareddy', 'Zahirabad'],
-  'Siddipet': ['Cheriyal', 'Dubbak', 'Gajwel', 'Husnabad', 'Mulug', 'Siddipet'],
-  'Suryapet': ['Huzurnagar', 'Kodad', 'Suryapet', 'Thungathurthy'],
-  'Vikarabad': ['Kodangal', 'Pargi', 'Tandur', 'Vikarabad'],
-  'Wanaparthy': ['Kothakota', 'Pangal', 'Wanaparthy'],
-  'Warangal': ['Narsampet', 'Wardhannapet'],
-  'Yadadri Bhuvanagiri': ['Alair', 'Bhongir', 'Yadagirigutta'],
-};
-
-function getDivisionsForDistrict(district: string): string[] {
-  return DISTRICT_DIVISION_MAPPING[district] || [];
-}
 
 // Generate cache key
 function getCacheKey(
@@ -357,8 +314,6 @@ export function OfficerContacts() {
           .limit(1000);
         districts = Array.from(new Set(districtsData?.map(d => d.district) || [])).sort();
       }
-      console.log(`Districts for ${activeTab}:`, districts.length, districts);
-
       let divisions: string[] = [];
       let mandals: string[] = [];
       let clusters: string[] = [];

@@ -1,8 +1,8 @@
-import React, { useMemo, useState, ReactNode, useEffect } from 'react';
+import React, { useMemo, useState, ReactNode } from 'react';
 import {
   ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Database, FileText, BookOpen,
+  FolderOpen, Moon, Sun, Landmark, Database, BookOpen,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
 import { useAuth } from '../context/AuthContext';
@@ -390,17 +390,6 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
   };
 
   return meta[page] || { title: t('Dashboard', 'డ్యాష్‌బోర్డ్'), breadcrumbs: [{ label: t('Dashboard', 'డ్యాష్‌బోర్డ్') }] };
-}
-
-function cropTitle(page: string) {
-  const titles: Record<string, string> = {
-    'crop-cotton': 'Cotton',
-    'crop-paddy': 'Paddy',
-    'crop-maize': 'Maize',
-    'crop-pulses': 'Pulses',
-    'crop-oilseeds': 'Oilseeds',
-  };
-  return titles[page] || 'Crop Intelligence';
 }
 
 function qualityTitle(page: string) {
