@@ -123,7 +123,7 @@ const JOURNEY_MODES = [
 
 const PURPOSES = [
   'ADA Review Meeting', 'Aspirational Block Meeting', 'ATMA Demonstrations', 'ATMA Training Programme',
-  'Awareness Meeting on Paddy Fine Varieties', 'Awareness Meeting on Pesticide Usage', 'Collector Review Meeting',
+  'Awareness Meeting on Paddy Fine Varieties', 'Awareness Meeting on Pesticide Usage', 'Cheyutha Pension Verification', 'Collector Review Meeting',
   'Crop Booking Enhancement', 'Crop Cutting Experiments', 'DAO Review Meeting', 'DCS Monitoring',
   'Departmental Work', 'Drone Spray Demonstration', 'Farmer Field Visit', 'Farm Pond Visit',
   'Farm School Trainings', 'FFS App Awareness', 'Field Inspection', 'Fertilizer Distribution Monitoring',
@@ -2218,7 +2218,7 @@ export function TourDiary() {
       const pageHeight = doc.internal.pageSize.getHeight();
       const printableBottom = pageHeight - 14;
       let abstractY = finalY + 3;
-      if (abstractY + 19 > printableBottom) {
+      if (abstractY + 16 > printableBottom) {
         doc.addPage();
         abstractY = 16;
       }
@@ -2227,9 +2227,8 @@ export function TourDiary() {
       doc.setFont('times', 'normal');
       doc.text(`Total no of Working Days: ${summary.workingDays}`, 14, abstractY + 4);
       doc.text(`Total no of Days on Tour: ${summary.tourDays}`, 14, abstractY + 7);
-      doc.text(`Total no of Holidays availed: ${summary.sundays + summary.secondSaturdays + summary.governmentHolidays + summary.optionalHolidaysAvailed}`, 14, abstractY + 10);
-      doc.text(`No of villages visited: ${summary.villagesVisited}`, 14, abstractY + 13);
-      doc.text(`Leaves availed: ${summary.leavesAvailed}`, 14, abstractY + 16);
+      doc.text(`No of villages visited: ${summary.villagesVisited}`, 14, abstractY + 10);
+      doc.text(`Leaves availed: ${summary.leavesAvailed}`, 14, abstractY + 13);
 
       // Signature section - conditional based on officer designation
       const signatureY = abstractY + 12;
@@ -3922,7 +3921,6 @@ export function TourDiary() {
                 <p className="font-bold">ABSTRACT</p>
                 <p>Total no of Working Days: {summary.workingDays}</p>
                 <p>Total no of Days on Tour: {summary.tourDays}</p>
-                <p>Total no of Holidays availed: {summary.sundays + summary.secondSaturdays + summary.governmentHolidays + summary.optionalHolidaysAvailed}</p>
                 <p>No of villages visited: {summary.villagesVisited}</p>
                 <p>Leaves availed: {summary.leavesAvailed}</p>
               </div>

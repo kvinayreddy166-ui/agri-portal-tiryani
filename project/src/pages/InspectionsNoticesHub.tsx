@@ -48,7 +48,7 @@ export function InspectionsNoticesHub() {
   const [selectedNoticeCategory, setSelectedNoticeCategory] = useState<NoticeCategory | null>(null);
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
+    <div className="mx-auto w-full max-w-4xl p-2 sm:p-3">
       <div className="mb-4 rounded-2xl border border-lime-200/60 bg-gradient-to-r from-lime-50 to-green-50 p-4 shadow-sm">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -75,95 +75,105 @@ export function InspectionsNoticesHub() {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <button
-          type="button"
-          onClick={() => {
-            setShowInspectionTypes((current) => !current);
-            setShowNoticeTypes(false);
-          }}
-          className={`rounded-xl border p-4 text-left shadow-sm transition ${
+      <div className="grid items-start gap-3 sm:grid-cols-2">
+        <div
+          className={`overflow-hidden rounded-xl border shadow-sm transition ${
             showInspectionTypes
-              ? 'border-lime-500 bg-lime-600 text-white'
-              : 'border-lime-200 bg-white text-slate-900 hover:border-lime-400 hover:bg-lime-50'
+              ? 'border-lime-500 bg-white'
+              : 'border-lime-200 bg-white hover:border-lime-400 hover:bg-lime-50'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${showInspectionTypes ? 'bg-white/20' : 'bg-lime-100'}`}>
-                <ClipboardCheck className={`h-5 w-5 ${showInspectionTypes ? 'text-white' : 'text-lime-700'}`} />
+          <button
+            type="button"
+            onClick={() => {
+              setShowInspectionTypes((current) => !current);
+              setShowNoticeTypes(false);
+            }}
+            className={`block w-full p-3 text-left transition ${
+              showInspectionTypes ? 'bg-lime-600 text-white' : 'text-slate-900'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${showInspectionTypes ? 'bg-white/20' : 'bg-lime-100'}`}>
+                  <ClipboardCheck className={`h-4 w-4 ${showInspectionTypes ? 'text-white' : 'text-lime-700'}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-black">Inspections</p>
+                  <p className={`text-[11px] font-semibold leading-tight ${showInspectionTypes ? 'text-lime-100' : 'text-slate-500'}`}>
+                    Seed • Fertilizer • Pesticide dealer inspection
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-black">Inspections</p>
-                <p className={`text-xs font-semibold ${showInspectionTypes ? 'text-lime-100' : 'text-slate-500'}`}>
-                  Seed • Fertilizer • Pesticide dealer inspection
-                </p>
-              </div>
+              {showInspectionTypes && <span className="text-lime-200">✓</span>}
             </div>
-            {showInspectionTypes && <span className="text-lime-200">✓</span>}
-          </div>
-        </button>
+          </button>
+          {showInspectionTypes && (
+            <div className="grid gap-2 border-t border-lime-200/70 bg-lime-50/50 p-3">
+              {INSPECTION_TYPES.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => navigate(item.path)}
+                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span className="text-sm font-black">{item.label} Inspection</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setShowNoticeTypes((current) => !current);
-            setShowInspectionTypes(false);
-          }}
-          className={`rounded-xl border p-4 text-left shadow-sm transition ${
+        <div
+          className={`overflow-hidden rounded-xl border shadow-sm transition ${
             showNoticeTypes
-              ? 'border-purple-500 bg-purple-600 text-white'
-              : 'border-purple-200 bg-white text-slate-900 hover:border-purple-400 hover:bg-purple-50'
+              ? 'border-purple-500 bg-white'
+              : 'border-purple-200 bg-white hover:border-purple-400 hover:bg-purple-50'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${showNoticeTypes ? 'bg-white/20' : 'bg-purple-100'}`}>
-                <FileText className={`h-5 w-5 ${showNoticeTypes ? 'text-white' : 'text-purple-700'}`} />
+          <button
+            type="button"
+            onClick={() => {
+              setShowNoticeTypes((current) => !current);
+              setShowInspectionTypes(false);
+            }}
+            className={`block w-full p-3 text-left transition ${
+              showNoticeTypes ? 'bg-purple-600 text-white' : 'text-slate-900'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${showNoticeTypes ? 'bg-white/20' : 'bg-purple-100'}`}>
+                  <FileText className={`h-4 w-4 ${showNoticeTypes ? 'text-white' : 'text-purple-700'}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-black">Notices / Memos</p>
+                  <p className={`text-[11px] font-semibold leading-tight ${showNoticeTypes ? 'text-purple-100' : 'text-slate-500'}`}>
+                    Seed • Fertilizer • Pesticide notices and memos
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-black">Notices / Memos</p>
-                <p className={`text-xs font-semibold ${showNoticeTypes ? 'text-purple-100' : 'text-slate-500'}`}>
-                  Seed • Fertilizer • Pesticide notices and memos
-                </p>
-              </div>
+              {showNoticeTypes && <span className="text-purple-200">✓</span>}
             </div>
-            {showNoticeTypes && <span className="text-purple-200">✓</span>}
-          </div>
-        </button>
+          </button>
+          {showNoticeTypes && (
+            <div className="grid gap-2 border-t border-purple-200/70 bg-purple-50/50 p-3">
+              {NOTICE_TYPES.map((item) => (
+                <button
+                  key={item.category}
+                  type="button"
+                  onClick={() => setSelectedNoticeCategory(item.category)}
+                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span className="text-sm font-black">{item.label} Notices / Memos</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-
-      {showInspectionTypes && (
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {INSPECTION_TYPES.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => navigate(item.path)}
-              className={`flex items-center gap-3 rounded-xl border p-4 text-left shadow-sm transition ${toneClasses[item.tone]}`}
-            >
-              <item.icon className="h-6 w-6 shrink-0" />
-              <span className="text-sm font-black">{item.label} Inspection</span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {showNoticeTypes && (
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {NOTICE_TYPES.map((item) => (
-            <button
-              key={item.category}
-              type="button"
-              onClick={() => setSelectedNoticeCategory(item.category)}
-              className={`flex items-center gap-3 rounded-xl border p-4 text-left shadow-sm transition ${toneClasses[item.tone]}`}
-            >
-              <item.icon className="h-6 w-6 shrink-0" />
-              <span className="text-sm font-black">{item.label} Notices / Memos</span>
-            </button>
-          ))}
-        </div>
-      )}
 
       {selectedNoticeCategory && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-0 backdrop-blur-sm sm:p-4">

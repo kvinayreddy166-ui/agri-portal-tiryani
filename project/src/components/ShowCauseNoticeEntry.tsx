@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Edit3, FileText, Plus, Printer, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Download, Edit3, FileText, Plus, Printer, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear, financialYearForDate } from '../utils/financialYear';
 import { isAssistantDirectorOfAgriculture, statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../data/assistantDirectorLocation';
 import {
@@ -453,6 +453,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const [savedNotices, setSavedNotices] = useState<SavedNotice[]>(() => readSavedNotices());
   const [savedSearch, setSavedSearch] = useState('');
   const [showProductDetails, setShowProductDetails] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const previewRef = useRef<HTMLDivElement>(null);
 
   const config = useMemo(() => getConfig(form.category), [form.category]);
@@ -460,6 +461,22 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     () => allShowCauseViolations.filter((item) => item.category === form.category),
     [form.category]
   );
+  const violationGroups = useMemo(() => {
+    const groups: { label: string; items: ShowCauseViolation[] }[] = [];
+    const byLabel = new Map<string, ShowCauseViolation[]>();
+    for (const item of categoryViolations) {
+      const label = item.group || '';
+      let bucket = byLabel.get(label);
+      if (!bucket) {
+        bucket = [];
+        byLabel.set(label, bucket);
+        groups.push({ label, items: bucket });
+      }
+      bucket.push(item);
+    }
+    return groups;
+  }, [categoryViolations]);
+  const hasViolationGroups = useMemo(() => violationGroups.some((group) => group.label !== ''), [violationGroups]);
   const selectedViolations = useMemo(
     () => allShowCauseViolations.filter((item) => form.selectedViolationIds.includes(item.violationId)),
     [form.selectedViolationIds]
@@ -487,6 +504,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   // ADA uses Division for the office location; ADA and DAO use a district-based Place of Inspection
   const isADAOfficer = isAdaDesignation(form.officerDesignation);
   const isDAOOfficer = isDaoDesignation(form.officerDesignation);
+  const isMAOOfficer = isMaoDesignation(form.officerDesignation);
   const usesPlaceOfInspection = isADAOfficer || isDAOOfficer;
 
   const filteredSaved = useMemo(() => {
@@ -532,6 +550,33 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       return { ...current, selectedViolationIds: Array.from(selected) };
     });
   };
+
+  const toggleViolationGroup = (label: string) => {
+    setExpandedGroups((current) => {
+      const next = new Set(current);
+      const key = label || '__default';
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const renderViolationCard = (violation: ShowCauseViolation) => (
+    <label key={violation.violationId} title={violation.shortDescription} className={`flex h-full cursor-pointer items-start gap-3 rounded-lg border p-3 shadow-sm transition ${config.theme.card}`}>
+      <input
+        type="checkbox"
+        checked={form.selectedViolationIds.includes(violation.violationId)}
+        onChange={() => toggleViolation(violation.violationId)}
+        className={`mt-0.5 h-4 w-4 shrink-0 rounded ${config.theme.checkbox}`}
+      />
+      <span className="min-w-0">
+        <span className={`mb-1 inline-flex rounded-full px-2 py-0.5 text-[11px] font-black leading-tight ${config.theme.badge}`}>
+          {violation.exactReference}
+        </span>
+        <span className="block break-words text-sm font-bold leading-snug text-slate-900 line-clamp-2">{violation.shortDescription}</span>
+      </span>
+    </label>
+  );
 
   const saveNotice = () => {
     const id = `${form.memoNumber || 'draft'}-${Date.now()}`;
@@ -847,7 +892,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
             <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700">Officer Details</h3>
             <div className="grid gap-3 md:grid-cols-3">
               <TextInput label="Inspecting Officer" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
-              <SelectInput label="Officer Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
+              <SelectInput label="Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
               <SelectInput
                 label="District"
                 value={form.district}
@@ -857,8 +902,12 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               {form.district === 'Others' && (
                 <TextInput label="Enter District Name" value={form.manualDistrict} onChange={(value) => updateForm({ manualDistrict: value })} />
               )}
-              {isADAOfficer && (
-                <TextInput label="Division" value={form.division} onChange={(value) => updateForm({ division: value })} />
+              {(isADAOfficer || isMAOOfficer) && (
+                <TextInput
+                  label={isADAOfficer ? 'Division' : 'Division (Copy to ADA)'}
+                  value={form.division}
+                  onChange={(value) => updateForm({ division: value })}
+                />
               )}
               <SelectInput
                 label={usesPlaceOfInspection ? 'Place of Inspection' : 'Mandal'}
@@ -900,7 +949,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
             </label>
-            <TextInput label="Licence Number" value={form.licenceNumber} onChange={(value) => updateForm({ licenceNumber: value })} />
+            <TextInput label="Licence Number" value={form.licenceNumber} onChange={(value) => updateForm({ licenceNumber: value })} optional />
             <SelectInput
               label="Deadline"
               value={form.deadline}
@@ -918,24 +967,41 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
           <section>
             <h3 className={`mb-3 rounded-lg px-3 py-2 text-sm font-black ${config.theme.badge}`}>{config.heading}</h3>
-            <div className="grid gap-3 md:grid-cols-2">
-              {categoryViolations.map((violation) => (
-                <label key={violation.violationId} className={`flex cursor-pointer gap-3 rounded-lg border p-3 shadow-sm transition ${config.theme.card}`}>
-                  <input
-                    type="checkbox"
-                    checked={form.selectedViolationIds.includes(violation.violationId)}
-                    onChange={() => toggleViolation(violation.violationId)}
-                    className={`mt-1 h-4 w-4 rounded ${config.theme.checkbox}`}
-                  />
-                  <span className="min-w-0">
-                    <span className={`mb-1 inline-flex rounded-full px-2 py-0.5 text-[11px] font-black ${config.theme.badge}`}>
-                      {violation.exactReference}
-                    </span>
-                    <span className="block text-sm font-bold text-slate-900">{violation.shortDescription}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
+            {hasViolationGroups ? (
+              <div className="space-y-2">
+                {violationGroups.map((group) => {
+                  const groupKey = group.label || '__default';
+                  const collapsed = !expandedGroups.has(groupKey);
+                  const selectedCount = group.items.filter((item) => form.selectedViolationIds.includes(item.violationId)).length;
+                  return (
+                    <div key={groupKey} className={`overflow-hidden rounded-lg border ${config.theme.panel}`}>
+                      <button
+                        type="button"
+                        onClick={() => toggleViolationGroup(group.label)}
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left"
+                      >
+                        <span className="text-xs font-black text-slate-800">{group.label || 'Violations'}</span>
+                        <span className="flex shrink-0 items-center gap-2">
+                          {selectedCount > 0 && (
+                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${config.theme.badge}`}>{selectedCount} selected</span>
+                          )}
+                          <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
+                        </span>
+                      </button>
+                      {!collapsed && (
+                        <div className="grid gap-2 p-2 md:grid-cols-2">
+                          {group.items.map((violation) => renderViolationCard(violation))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2">
+                {categoryViolations.map((violation) => renderViolationCard(violation))}
+              </div>
+            )}
           </section>
 
           <div className="space-y-3">
@@ -1093,10 +1159,13 @@ function SelectInput({ label, value, onChange, options }: { label: string; value
   );
 }
 
-function TextInput({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (value: string) => void; type?: string }) {
+function TextInput({ label, value, onChange, type = 'text', optional = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; optional?: boolean }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-black text-slate-600">{label}</span>
+      <span className="mb-1 block text-xs font-black text-slate-600">
+        {label}
+        {optional && <span className="ml-1 text-[11px] font-bold text-slate-400">(Optional)</span>}
+      </span>
       <input
         type={type}
         value={value}
