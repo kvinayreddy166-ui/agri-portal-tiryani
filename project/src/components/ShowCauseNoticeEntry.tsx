@@ -50,6 +50,48 @@ interface SavedNotice extends NoticeFormState {
 const STORAGE_KEY = 'agri-legal-show-cause-notices';
 const today = () => new Date().toISOString().slice(0, 10);
 
+// Sort key for a legal reference like "Rule 10(4)(i)", "Section 18(2)", "Clause 8A"
+// Order: Sections first, then Clauses, then Rules, then Terms & Conditions / other refs.
+// Within each instrument type, provisions sort in ascending numeric order;
+// references with "r/w" sort after plain references to the same number.
+type ProvisionKey = (number | string)[];
+function provisionSortKey(reference: string): ProvisionKey {
+  const instrumentRank = /\bSection/i.test(reference) ? 0
+    : /\bClause/i.test(reference) ? 1
+    : /\bRule/i.test(reference) ? 2
+    : 3;
+  const match = reference.match(/(\d+)\s*([A-Za-z])?\s*(?:\((\d+|[ivx]+)\))?\s*(?:\((\d+|[a-z]+)\))?/i);
+  if (!match) return [instrumentRank, Number.MAX_SAFE_INTEGER, reference];
+  const toOrder = (part?: string): number => {
+    if (!part) return 0;
+    if (/^\d+$/.test(part)) return parseInt(part, 10);
+    const roman: Record<string, number> = { i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6 };
+    return roman[part.toLowerCase()] ?? part.toLowerCase().charCodeAt(0) - 96;
+  };
+  return [
+    instrumentRank,
+    parseInt(match[1], 10),
+    reference.includes('r/w') ? 1 : 0,
+    (match[2] || '').toLowerCase(),
+    toOrder(match[3]),
+    (match[3] || '').toLowerCase(),
+    toOrder(match[4]),
+    (match[4] || '').toLowerCase(),
+    reference,
+  ];
+}
+
+function compareProvisionKeys(a: ProvisionKey, b: ProvisionKey): number {
+  for (let i = 0; i < a.length; i++) {
+    const x = a[i];
+    const y = b[i];
+    if (x === y) continue;
+    if (typeof x === 'number' && typeof y === 'number') return x - y;
+    return String(x).localeCompare(String(y));
+  }
+  return 0;
+}
+
 function readStatutoryDetails(category: NoticeCategory) {
   const storageKey = category === 'fertiliser'
     ? 'tiryani-fertilizer-forms-draft'
@@ -485,6 +527,9 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
         groups.push({ label, items: bucket });
       }
       bucket.push(item);
+    }
+    for (const bucket of byLabel.values()) {
+      bucket.sort((a, b) => compareProvisionKeys(provisionSortKey(a.exactReference), provisionSortKey(b.exactReference)));
     }
     return groups;
   }, [categoryViolations]);

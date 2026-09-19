@@ -111,13 +111,13 @@ function paragraph(reference: string, text: string) {
 }
 
 const seedViolationGroups = {
-  licence: '1. Licence & Dealer Requirements',
-  stock: '2. Stock, Price & Sales',
-  quality: '3. Seed Quality & Standards',
-  labelling: '4. Labelling & Packaging',
-  records: '5. Records & Registers',
-  inspection: '6. Inspection & Enforcement',
-  btCotton: '7. Bt Cotton / Special Cases',
+  licence: 'A. Licence & Dealer Requirements',
+  stock: 'B. Stock, Price & Sales',
+  quality: 'C. Seed Quality & Standards',
+  labelling: 'D. Labelling & Packaging',
+  records: 'E. Records & Registers',
+  inspection: 'F. Inspection & Enforcement',
+  btCotton: 'G. Bt Cotton / Special Cases',
 } as const;
 
 const SEED_PENALTY = 'Seeds Act, 1966 Section 19 - verify latest';
@@ -1430,7 +1430,7 @@ const fertiliserViolations: ShowCauseViolation[] = [
 ];
 
 const pesticideViolationGroups = {
-  major: 'A. Insecticides Act, 1968 – Major Violations',
+  major: 'A. Sale, Stock & Distribution',
   licence: 'B. Licence & Dealer Premises',
   expired: 'C. Expired Insecticides',
   records: 'D. Sales Records & Documents',
@@ -1494,7 +1494,7 @@ const pesticideViolations: ShowCauseViolation[] = [
   {
     violationId: 'pest-s18-2',
     category: 'pesticide',
-    group: pesticideViolationGroups.major,
+    group: pesticideViolationGroups.licence,
     actOrOrder: 'Insecticides Act, 1968',
     exactReference: 'Section 18(2)',
     parentReference: 'Section 18',
@@ -1505,21 +1505,6 @@ const pesticideViolations: ShowCauseViolation[] = [
     noticeParagraph: paragraph('Insecticides Act, 1968 Section 18(2)', 'insecticide was stocked/sold or distributed without a valid licence or contrary to licence conditions'),
     linkedPenalProvision: PESTICIDE_PENALTY,
     actionType: ['show cause', 'stop sale', 'seizure', 'suspension', 'prosecution'],
-    sourceStatus: 'verify latest',
-  },
-  {
-    violationId: 'pest-s23',
-    category: 'pesticide',
-    group: pesticideViolationGroups.major,
-    actOrOrder: 'Insecticides Act, 1968',
-    exactReference: 'Section 23',
-    referenceType: 'section',
-    shortDescription: 'Failure/refusal to disclose the place where insecticide is kept when required by the Inspector.',
-    detailedDescription: 'Place of storage was not disclosed on lawful demand by the Insecticide Inspector.',
-    officerUse: 'Use after recording the demand made and the refusal/failure to disclose.',
-    noticeParagraph: paragraph('Insecticides Act, 1968 Section 23', 'the place where insecticide was kept was not disclosed when lawfully required'),
-    linkedPenalProvision: PESTICIDE_PENALTY,
-    actionType: ['show cause', 'prosecution'],
     sourceStatus: 'verify latest',
   },
   {
@@ -1867,10 +1852,10 @@ const pesticideViolations: ShowCauseViolation[] = [
     actOrOrder: 'Insecticides Rules, 1971',
     exactReference: 'Rule 36',
     referenceType: 'rule',
-    shortDescription: 'Inadequate ventilation/lighting/dryness/storage accommodation.',
+    shortDescription: 'Inadequate ventilation, lighting, dryness or storage accommodation.',
     detailedDescription: 'Storage lacked adequate ventilation, lighting, dryness or accommodation.',
     officerUse: 'Use with inspection observation of storage conditions.',
-    noticeParagraph: paragraph('Insecticides Rules, 1971 Rule 36', 'ventilation/lighting/dryness/storage accommodation was inadequate'),
+    noticeParagraph: paragraph('Insecticides Rules, 1971 Rule 36', 'ventilation, lighting, dryness or storage accommodation was inadequate'),
     linkedPenalProvision: PESTICIDE_PENALTY,
     actionType: ['show cause'],
     sourceStatus: 'verify latest',

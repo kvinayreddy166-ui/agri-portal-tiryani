@@ -2088,35 +2088,44 @@ export function TourDiary() {
       const displayName = officerName || officerInfo?.name || '....................';
       
       const drawDiaryTitle = () => {
-        let xPos = 14;
         const yPos = 12;
-        const addHeaderText = (text: string, bold = false) => {
-          doc.setFont('times', bold ? 'bold' : 'normal');
-          doc.text(text, xPos, yPos);
-          xPos += doc.getTextWidth(text);
-        };
+        const segments: { text: string; bold: boolean }[] = [
+          { text: 'Tour Diary of ', bold: false },
+          { text: ' ' + displayName, bold: true },
+          { text: ', ', bold: false },
+          { text: displayDesignation, bold: true },
+        ];
+        if (shouldShowHeaderMandal() && displayMandal !== '....................') {
+          segments.push({ text: ', ', bold: false }, { text: displayMandal, bold: true });
+        }
+        if (shouldShowHeaderDivision() && displayDivision !== '....................') {
+          segments.push({ text: ', Division: ', bold: false }, { text: displayDivision, bold: true });
+        }
+        if (displayDistrict !== '....................') {
+          segments.push({ text: ', Dist: ', bold: false }, { text: displayDistrict, bold: true });
+        }
+        segments.push(
+          { text: ' for the Month of ', bold: false },
+          { text: monthYear, bold: true },
+          { text: '.', bold: false }
+        );
 
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-        addHeaderText('Tour Diary of ');
-        addHeaderText(' ' + displayName, true);
-        addHeaderText(', ');
-        addHeaderText(displayDesignation, true);
-        if (shouldShowHeaderMandal() && displayMandal !== '....................') {
-          addHeaderText(', ');
-          addHeaderText(displayMandal, true);
+
+        // Center the full title line over the table (table spans x=14..274, center=144)
+        const tableCenterX = 144;
+        const totalWidth = segments.reduce((sum, seg) => {
+          doc.setFont('times', seg.bold ? 'bold' : 'normal');
+          return sum + doc.getTextWidth(seg.text);
+        }, 0);
+        let xPos = Math.max(14, tableCenterX - totalWidth / 2);
+
+        for (const seg of segments) {
+          doc.setFont('times', seg.bold ? 'bold' : 'normal');
+          doc.text(seg.text, xPos, yPos);
+          xPos += doc.getTextWidth(seg.text);
         }
-        if (shouldShowHeaderDivision() && displayDivision !== '....................') {
-          addHeaderText(', Division: ');
-          addHeaderText(displayDivision, true);
-        }
-        if (displayDistrict !== '....................') {
-          addHeaderText(', Dist: ');
-          addHeaderText(displayDistrict, true);
-        }
-        addHeaderText(' for the Month of ');
-        addHeaderText(monthYear, true);
-        addHeaderText('.');
       };
 
       drawDiaryTitle();
@@ -2224,8 +2233,9 @@ export function TourDiary() {
       if (abstractY + 16 > printableBottom) {
         doc.addPage();
         drawDiaryTitle();
-        abstractY = 21;
+        abstractY = 26;
       }
+      doc.setFontSize(7);
       doc.setFont('times', 'bold');
       doc.text('ABSTRACT', 14, abstractY);
       const drawAbstractValue = (label: string, value: string | number, x: number, y: number) => {
@@ -2241,7 +2251,7 @@ export function TourDiary() {
       drawAbstractValue('\u2022 Leaves Availed: ', summary.leavesAvailed, 108, abstractY + 7);
 
       // Signature section - conditional based on officer designation
-      const signatureY = abstractY + 15;
+      const signatureY = abstractY + 17;
       const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
 
       doc.setFont('times', 'bold');
@@ -2249,17 +2259,17 @@ export function TourDiary() {
 
       if (normalizedDesignation === 'mandal agriculture officer') {
         // Show both signatures for Mandal Agriculture Officer
-        doc.text('Mandal Agriculture Officer', 79, signatureY);
-        doc.text('Asst.Director of Agriculture', 185, signatureY);
+        doc.text('Mandal Agriculture Officer', 94, signatureY);
+        doc.text('Asst.Director of Agriculture', 200, signatureY);
       } else if (normalizedDesignation === 'district agriculture officer') {
         // Show only District Agriculture Officer signature
-        doc.text('District Agriculture Officer', 79, signatureY);
+        doc.text('District Agriculture Officer', 94, signatureY);
       } else if (normalizedDesignation === 'asst director of agriculture' || normalizedDesignation === 'assistant director of agriculture') {
         // Show Asst.Director of Agriculture (R) signature in the MAO position
-        doc.text('Asst.Director of Agriculture (R)', 79, signatureY);
+        doc.text('Asst.Director of Agriculture (R)', 94, signatureY);
       } else if (normalizedDesignation) {
         // Show only Asst.Director of Agriculture signature for other designations
-        doc.text('Asst.Director of Agriculture', 185, signatureY);
+        doc.text('Asst.Director of Agriculture', 200, signatureY);
       }
 
       // Generate PDF blob for storage
@@ -3938,7 +3948,7 @@ export function TourDiary() {
               </div>
 
               {/* Signature section - conditional based on officer designation */}
-              <div className="mt-3 flex flex-col pl-12">
+              <div className="mt-4 flex translate-x-[7px] flex-col pl-12">
                 {(() => {
                   const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
                   if (normalizedDesignation === 'mandal agriculture officer') {
