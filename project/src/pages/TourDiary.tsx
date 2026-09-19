@@ -2073,10 +2073,6 @@ export function TourDiary() {
         return Array.from({ length: TOUR_DIARY_COLUMN_COUNT }, (_, index) => row[index] ?? '');
       });
 
-      // Add total distance row at the end
-      const totalRow = Array(TOUR_DIARY_COLUMN_COUNT).fill('');
-      totalRow[8] = `${summary.totalDistance.toFixed(0)} km`;
-      validatedTableData.push(totalRow);
       const specialPdfRowStatuses = validatedTableData.map(row => getSpecialDateStatusForRow(row));
 
       // Log table data for debugging
@@ -2091,38 +2087,44 @@ export function TourDiary() {
       const displayDistrict = getHeaderDistrict() || '....................';
       const displayName = officerName || officerInfo?.name || '....................';
       
-      let xPos = 14;
-      const yPos = 12;
-      const addHeaderText = (text: string, bold = false) => {
-        doc.setFont('times', bold ? 'bold' : 'normal');
-        doc.text(text, xPos, yPos);
-        xPos += doc.getTextWidth(text);
-      };
-      
-      addHeaderText('Tour Diary of ');
-      addHeaderText(' ' + displayName, true);
-      addHeaderText(', ');
-      addHeaderText(displayDesignation, true);
-      if (shouldShowHeaderMandal() && displayMandal !== '....................') {
+      const drawDiaryTitle = () => {
+        let xPos = 14;
+        const yPos = 12;
+        const addHeaderText = (text: string, bold = false) => {
+          doc.setFont('times', bold ? 'bold' : 'normal');
+          doc.text(text, xPos, yPos);
+          xPos += doc.getTextWidth(text);
+        };
+
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        addHeaderText('Tour Diary of ');
+        addHeaderText(' ' + displayName, true);
         addHeaderText(', ');
-        addHeaderText(displayMandal, true);
-      }
-      if (shouldShowHeaderDivision() && displayDivision !== '....................') {
-        addHeaderText(', Division: ');
-        addHeaderText(displayDivision, true);
-      }
-      if (displayDistrict !== '....................') {
-        addHeaderText(', Dist: ');
-        addHeaderText(displayDistrict, true);
-      }
-      addHeaderText(' for the Month of ');
-      addHeaderText(monthYear, true);
-      addHeaderText('.');
+        addHeaderText(displayDesignation, true);
+        if (shouldShowHeaderMandal() && displayMandal !== '....................') {
+          addHeaderText(', ');
+          addHeaderText(displayMandal, true);
+        }
+        if (shouldShowHeaderDivision() && displayDivision !== '....................') {
+          addHeaderText(', Division: ');
+          addHeaderText(displayDivision, true);
+        }
+        if (displayDistrict !== '....................') {
+          addHeaderText(', Dist: ');
+          addHeaderText(displayDistrict, true);
+        }
+        addHeaderText(' for the Month of ');
+        addHeaderText(monthYear, true);
+        addHeaderText('.');
+      };
+
+      drawDiaryTitle();
 
       // Generate table with merged header cells - compact for one page
       autoTable(doc, {
-        startY: 16,
-        margin: { top: 16, left: 14, right: 14, bottom: 14 },
+        startY: 14,
+        margin: { top: 14, left: 14, right: 14, bottom: 8 },
         rowPageBreak: 'avoid',
         tableWidth: 'wrap',
         head: [
@@ -2157,11 +2159,6 @@ export function TourDiary() {
             }
           }
 
-          // Make the last row (total distance) bold
-          if (data.row.index === data.table.body.length - 1) {
-            data.cell.styles.fontStyle = 'bold';
-          }
-          
           // Merge header cells for parent columns
           if (data.section === 'head') {
             // Column 0: Date - keep as is (single cell)
@@ -2195,6 +2192,9 @@ export function TourDiary() {
             // Columns 8-9: Distance and Purpose - keep as is (single cells)
           }
         },
+        didDrawPage: (data) => {
+          if (data.pageNumber > 1) drawDiaryTitle();
+        },
         columnStyles: {
           0: { cellWidth: 18, halign: 'center' },
           1: { cellWidth: 36, halign: 'center' },
@@ -2212,26 +2212,36 @@ export function TourDiary() {
       // Abstract section - Compact layout
       const finalY = (doc as any).lastAutoTable.finalY;
       doc.setFontSize(7);
+      doc.setFont('times', 'bold');
+      doc.text(summary.totalDistance.toFixed(0), 209, finalY + 3, { align: 'center' });
+      doc.setFont('times', 'normal');
       
       // ABSTRACT section - 2 column compact layout
       // Keep on the same page below the table when it fits; only break when it would overflow
       const pageHeight = doc.internal.pageSize.getHeight();
-      const printableBottom = pageHeight - 14;
-      let abstractY = finalY + 3;
+      const printableBottom = pageHeight - 8;
+      let abstractY = finalY + 7;
       if (abstractY + 16 > printableBottom) {
         doc.addPage();
-        abstractY = 16;
+        drawDiaryTitle();
+        abstractY = 21;
       }
       doc.setFont('times', 'bold');
       doc.text('ABSTRACT', 14, abstractY);
-      doc.setFont('times', 'normal');
-      doc.text(`Total no of Working Days: ${summary.workingDays}`, 14, abstractY + 4);
-      doc.text(`Total no of Days on Tour: ${summary.tourDays}`, 14, abstractY + 7);
-      doc.text(`No of villages visited: ${summary.villagesVisited}`, 14, abstractY + 10);
-      doc.text(`Leaves availed: ${summary.leavesAvailed}`, 14, abstractY + 13);
+      const drawAbstractValue = (label: string, value: string | number, x: number, y: number) => {
+        doc.setFont('times', 'normal');
+        doc.text(label, x, y);
+        const valueX = x + doc.getTextWidth(label);
+        doc.setFont('times', 'bold');
+        doc.text(String(value), valueX, y);
+      };
+      drawAbstractValue('\u2022 Total No. of Working Days: ', summary.workingDays, 14, abstractY + 4);
+      drawAbstractValue('\u2022 Total No. of Days on Tour: ', summary.tourDays, 108, abstractY + 4);
+      drawAbstractValue('\u2022 No. of Villages Visited: ', summary.villagesVisited, 14, abstractY + 7);
+      drawAbstractValue('\u2022 Leaves Availed: ', summary.leavesAvailed, 108, abstractY + 7);
 
       // Signature section - conditional based on officer designation
-      const signatureY = abstractY + 12;
+      const signatureY = abstractY + 15;
       const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
 
       doc.setFont('times', 'bold');
@@ -2287,17 +2297,14 @@ export function TourDiary() {
         diaryData.push(row);
       });
 
-      // Add total distance row
+      // Total distance value below the distance column
       diaryData.push(['', '', '', '', '', '', '', '', summary.totalDistance.toFixed(0), '']);
 
-      // Add ABSTRACT section
+      // Add ABSTRACT section - 2 column layout
       diaryData.push(['']);
       diaryData.push(['', 'ABSTRACT']);
-      diaryData.push(['', 'Total No of Working Days', String(summary.tourDays)]);
-      diaryData.push(['', 'Total No of Days on Tour', String(summary.tourDays)]);
-      diaryData.push(['', 'Total No of Holidays availed', String(summary.sundays + summary.secondSaturdays + summary.governmentHolidays)]);
-      diaryData.push(['', 'No of Villages Visited', String(summary.villagesVisited)]);
-      diaryData.push(['', 'Leaves availed', '0']);
+      diaryData.push(['', '• Total No. of Working Days', String(summary.workingDays), '• Total No. of Days on Tour', String(summary.tourDays)]);
+      diaryData.push(['', '• No. of Villages Visited', String(summary.villagesVisited), '• Leaves Availed', String(summary.leavesAvailed)]);
 
       const diarySheet = XLSX.utils.aoa_to_sheet(diaryData);
 
@@ -3830,7 +3837,7 @@ export function TourDiary() {
 
             <div className="mb-4 rounded border border-gray-300 bg-white p-4">
 
-              <div className="mb-4 grid grid-cols-2 gap-4 text-xs text-gray-900">
+              <div className="mb-2 grid grid-cols-2 gap-4 text-xs text-gray-900">
                 <div>
                   <p>Month: {MONTHS[currentMonth - 1]} {currentYear}</p>
                   <p>Name: {officerName || officerInfo?.name || ''}</p>
@@ -3910,23 +3917,28 @@ export function TourDiary() {
                       );
                     })}
                   </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={8}></td>
+                      <td className="px-2 py-1 text-center text-xs font-bold text-gray-900">{summary.totalDistance.toFixed(0)}</td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
 
               <div className="mt-4 text-xs text-gray-900">
-                <p>Total Distance: {summary.totalDistance.toFixed(0)}</p>
-              </div>
-
-              <div className="mt-4 text-xs text-gray-900">
                 <p className="font-bold">ABSTRACT</p>
-                <p>Total no of Working Days: {summary.workingDays}</p>
-                <p>Total no of Days on Tour: {summary.tourDays}</p>
-                <p>No of villages visited: {summary.villagesVisited}</p>
-                <p>Leaves availed: {summary.leavesAvailed}</p>
+                <div className="grid grid-cols-2 gap-x-6">
+                  <p>• Total No. of Working Days: {summary.workingDays}</p>
+                  <p>• Total No. of Days on Tour: {summary.tourDays}</p>
+                  <p>• No. of Villages Visited: {summary.villagesVisited}</p>
+                  <p>• Leaves Availed: {summary.leavesAvailed}</p>
+                </div>
               </div>
 
               {/* Signature section - conditional based on officer designation */}
-              <div className="mt-2 flex flex-col pl-12">
+              <div className="mt-3 flex flex-col pl-12">
                 {(() => {
                   const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
                   if (normalizedDesignation === 'mandal agriculture officer') {

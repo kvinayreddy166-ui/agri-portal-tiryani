@@ -598,8 +598,7 @@ export function Login() {
             </button>
           </div>
 
-          {statutoryView === 'generate' && (
-            <section className="mt-4 rounded-xl border border-white/70 bg-gradient-to-br from-emerald-100 via-lime-50 to-cyan-100 p-4 shadow-md">
+          <section className="mt-4 rounded-xl border border-white/70 bg-gradient-to-br from-emerald-100 via-lime-50 to-cyan-100 p-4 shadow-md">
               <div className="mb-4">
                 <h2 className="text-sm font-black uppercase tracking-wide text-slate-700">
                   {t('Select Category', 'వర్గాన్ని ఎంచుకోండి')}
@@ -628,21 +627,22 @@ export function Login() {
                   </button>
                 ))}
               </div>
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={openPdfTool}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-3 text-sm font-black text-white shadow-md transition hover:from-emerald-700 hover:to-green-700 hover:shadow-lg"
-                >
-                  <FileText className="h-5 w-5" />
-                  {t('Start New Sample Drawal', 'కొత్త నమూనా డ్రాయింగ్‌ను ప్రారంభించండి')}
-                </button>
-                <p className="mt-2 text-xs font-semibold text-slate-600 text-center">
-                  {t('Create sample details and generate required statutory forms.', 'నమూనా వివరాలను సృష్టించండి మరియు అవసరమైన చట్టబద్ధ ఫారాలను సృష్టించండి.')}
-                </p>
-              </div>
+              {statutoryView === 'generate' && (
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={openPdfTool}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-3 text-sm font-black text-white shadow-md transition hover:from-emerald-700 hover:to-green-700 hover:shadow-lg"
+                  >
+                    <FileText className="h-5 w-5" />
+                    {t('Start New Sample Drawal', 'కొత్త నమూనా డ్రాయింగ్‌ను ప్రారంభించండి')}
+                  </button>
+                  <p className="mt-2 text-xs font-semibold text-slate-600 text-center">
+                    {t('Create sample details and generate required statutory forms.', 'నమూనా వివరాలను సృష్టించండి మరియు అవసరమైన చట్టబద్ధ ఫారాలను సృష్టించండి.')}
+                  </p>
+                </div>
+              )}
             </section>
-          )}
 
           {statutoryView === 'library' && (
             <div className="mt-4">

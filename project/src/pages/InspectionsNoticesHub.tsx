@@ -89,18 +89,18 @@ export function InspectionsNoticesHub() {
               setShowInspectionTypes((current) => !current);
               setShowNoticeTypes(false);
             }}
-            className={`block w-full p-3 text-left transition ${
+            className={`block min-h-[76px] w-full p-4 text-left transition ${
               showInspectionTypes ? 'bg-lime-600 text-white' : 'text-slate-900'
             }`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5">
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${showInspectionTypes ? 'bg-white/20' : 'bg-lime-100'}`}>
-                  <ClipboardCheck className={`h-4 w-4 ${showInspectionTypes ? 'text-white' : 'text-lime-700'}`} />
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showInspectionTypes ? 'bg-white/20' : 'bg-lime-100'}`}>
+                  <ClipboardCheck className={`h-5 w-5 ${showInspectionTypes ? 'text-white' : 'text-lime-700'}`} />
                 </div>
                 <div>
-                  <p className="text-sm font-black">Inspections</p>
-                  <p className={`text-[11px] font-semibold leading-tight ${showInspectionTypes ? 'text-lime-100' : 'text-slate-500'}`}>
+                  <p className="text-base font-black">Inspections</p>
+                  <p className={`text-xs font-semibold leading-snug ${showInspectionTypes ? 'text-lime-100' : 'text-slate-500'}`}>
                     Seed • Fertilizer • Pesticide dealer inspection
                   </p>
                 </div>
@@ -138,18 +138,18 @@ export function InspectionsNoticesHub() {
               setShowNoticeTypes((current) => !current);
               setShowInspectionTypes(false);
             }}
-            className={`block w-full p-3 text-left transition ${
+            className={`block min-h-[76px] w-full p-4 text-left transition ${
               showNoticeTypes ? 'bg-purple-600 text-white' : 'text-slate-900'
             }`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5">
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${showNoticeTypes ? 'bg-white/20' : 'bg-purple-100'}`}>
-                  <FileText className={`h-4 w-4 ${showNoticeTypes ? 'text-white' : 'text-purple-700'}`} />
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showNoticeTypes ? 'bg-white/20' : 'bg-purple-100'}`}>
+                  <FileText className={`h-5 w-5 ${showNoticeTypes ? 'text-white' : 'text-purple-700'}`} />
                 </div>
                 <div>
-                  <p className="text-sm font-black">Notices / Memos</p>
-                  <p className={`text-[11px] font-semibold leading-tight ${showNoticeTypes ? 'text-purple-100' : 'text-slate-500'}`}>
+                  <p className="text-base font-black">Notices / Memos</p>
+                  <p className={`text-xs font-semibold leading-snug ${showNoticeTypes ? 'text-purple-100' : 'text-slate-500'}`}>
                     Seed • Fertilizer • Pesticide notices and memos
                   </p>
                 </div>

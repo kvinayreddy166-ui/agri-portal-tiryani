@@ -156,6 +156,18 @@ function getConfig(category: NoticeCategory) {
   return noticeCategoryConfigs.find((item) => item.category === category) || noticeCategoryConfigs[0];
 }
 
+function legalSourceBadge(actOrOrder: string) {
+  const source = actOrOrder.toLowerCase();
+  if (source.includes('fertiliser (control) order')) return 'FCO';
+  if (source.includes('essential commodities act')) return 'ECA';
+  if (source.includes('seed (control) order')) return 'SCO';
+  if (source.includes('seeds act')) return 'Seed Act';
+  if (source.includes('seeds rules')) return 'Seed Rules';
+  if (source.includes('insecticides act')) return 'IA';
+  if (source.includes('insecticides rules')) return 'IR';
+  return null;
+}
+
 function formatNoticeDate(value: string) {
   if (!value) return '-';
   const [year, month, day] = value.split('-');
@@ -189,7 +201,7 @@ type NoticeBlock =
   | { kind: 'para'; segments: NoticeSegment[]; indent?: number; firstLineIndent?: number }
   | { kind: 'labelPara'; label: string; segments: NoticeSegment[]; indent?: number }
   | { kind: 'heading'; text: string }
-  | { kind: 'lines'; items: NoticeSegment[][]; indent?: number; align?: 'right'; centerLines?: boolean }
+  | { kind: 'lines'; items: NoticeSegment[][]; indent?: number; align?: 'right'; centerLines?: boolean; offsetX?: number }
   | { kind: 'table'; header: [string, string]; rows: { label: string; value: string }[] }
   | { kind: 'gap'; mm?: number };
 
@@ -366,7 +378,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       ],
     },
     { kind: 'gap', mm: 8 },
-    { kind: 'lines', items: signatureItems, align: 'right', centerLines: true },
+    { kind: 'lines', items: signatureItems, align: 'right', centerLines: true, offsetX: 5 },
     { kind: 'gap', mm: 4 },
     { kind: 'lines', items: [[{ text: 'Copy To:', bold: true }]] },
     { kind: 'lines', items: copyLines.map((line) => [{ text: line }]) },
@@ -400,9 +412,9 @@ function noticeBlocksHtml(blocks: NoticeBlock[]) {
         case 'lines': {
           const inner = block.items.map((item) => `<div>${segmentsHtml(item)}</div>`).join('');
           if (block.centerLines) {
-            return `<div style="margin-left:${block.indent || 0}mm;text-align:right;"><div style="display:inline-block;text-align:center;">${inner}</div></div>`;
+            return `<div style="margin-left:${block.indent || 0}mm;text-align:right;transform:translateX(${block.offsetX || 0}mm);"><div style="display:inline-block;text-align:center;">${inner}</div></div>`;
           }
-          return `<div style="margin-left:${block.indent || 0}mm;${block.align === 'right' ? 'text-align:right;' : ''}">${inner}</div>`;
+          return `<div style="margin-left:${block.indent || 0}mm;${block.align === 'right' ? 'text-align:right;' : ''}transform:translateX(${block.offsetX || 0}mm);">${inner}</div>`;
         }
         case 'table':
           return `<table style="width:92%;border-collapse:collapse;margin:2pt 0 2pt 8mm;"><thead><tr>${block.header
@@ -561,22 +573,32 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     });
   };
 
-  const renderViolationCard = (violation: ShowCauseViolation) => (
-    <label key={violation.violationId} title={violation.shortDescription} className={`flex h-full cursor-pointer items-start gap-3 rounded-lg border p-3 shadow-sm transition ${config.theme.card}`}>
-      <input
-        type="checkbox"
-        checked={form.selectedViolationIds.includes(violation.violationId)}
-        onChange={() => toggleViolation(violation.violationId)}
-        className={`mt-0.5 h-4 w-4 shrink-0 rounded ${config.theme.checkbox}`}
-      />
-      <span className="min-w-0">
-        <span className={`mb-1 inline-flex rounded-full px-2 py-0.5 text-[11px] font-black leading-tight ${config.theme.badge}`}>
-          {violation.exactReference}
+  const renderViolationCard = (violation: ShowCauseViolation) => {
+    const sourceBadge = legalSourceBadge(violation.actOrOrder);
+    return (
+      <label key={violation.violationId} title={violation.shortDescription} className={`flex h-full cursor-pointer items-start gap-3 rounded-lg border p-4 shadow-sm transition ${config.theme.card}`}>
+        <input
+          type="checkbox"
+          checked={form.selectedViolationIds.includes(violation.violationId)}
+          onChange={() => toggleViolation(violation.violationId)}
+          className={`mt-0.5 h-[18px] w-[18px] min-h-[18px] min-w-[18px] shrink-0 rounded ${config.theme.checkbox}`}
+        />
+        <span className="min-w-0 flex-1">
+          <span className="mb-1 flex flex-wrap items-center gap-1.5">
+            {sourceBadge && (
+              <span className="inline-flex shrink-0 rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-black leading-tight text-white">
+                {sourceBadge}
+              </span>
+            )}
+            <span className={`inline-flex max-w-full whitespace-normal break-normal rounded-full px-2 py-0.5 text-[11px] font-black leading-tight [overflow-wrap:normal] [word-break:normal] ${config.theme.badge}`}>
+              {violation.exactReference}
+            </span>
+          </span>
+          <span className="block whitespace-normal break-normal text-sm font-bold leading-snug text-slate-900 [overflow-wrap:normal] [word-break:normal]">{violation.shortDescription}</span>
         </span>
-        <span className="block break-words text-sm font-bold leading-snug text-slate-900 line-clamp-2">{violation.shortDescription}</span>
-      </span>
-    </label>
-  );
+      </label>
+    );
+  };
 
   const saveNotice = () => {
     const id = `${form.memoNumber || 'draft'}-${Date.now()}`;
@@ -784,9 +806,9 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
             lines.forEach((runs) => {
               ensureSpace(LH);
               const w = runsWidth(runs);
-              const x = block.align === 'right'
+              const x = (block.align === 'right'
                 ? PAGE_W - MR - (block.centerLines ? blockWidth - (blockWidth - w) / 2 : w)
-                : ML + indent;
+                : ML + indent) + (block.offsetX || 0);
               drawRuns(runs, x, y);
               y += LH;
             });
@@ -974,18 +996,18 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                   const collapsed = !expandedGroups.has(groupKey);
                   const selectedCount = group.items.filter((item) => form.selectedViolationIds.includes(item.violationId)).length;
                   return (
-                    <div key={groupKey} className={`overflow-hidden rounded-lg border ${config.theme.panel}`}>
+                    <div key={groupKey} className={`overflow-hidden rounded-xl border shadow-sm ${config.theme.panel}`}>
                       <button
                         type="button"
                         onClick={() => toggleViolationGroup(group.label)}
-                        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left"
+                        className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left"
                       >
-                        <span className="text-xs font-black text-slate-800">{group.label || 'Violations'}</span>
+                        <span className="text-sm font-black leading-snug text-slate-800 sm:text-base">{group.label || 'Violations'}</span>
                         <span className="flex shrink-0 items-center gap-2">
                           {selectedCount > 0 && (
-                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${config.theme.badge}`}>{selectedCount} selected</span>
+                            <span className={`rounded-full px-2.5 py-1 text-xs font-black ${config.theme.badge}`}>{selectedCount} selected</span>
                           )}
-                          <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
+                          <ChevronDown className={`h-5 w-5 text-slate-600 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
                         </span>
                       </button>
                       {!collapsed && (
