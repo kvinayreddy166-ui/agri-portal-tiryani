@@ -20,7 +20,6 @@ interface InspectionForm {
   inspectionDate: string;
   dealerName: string;
   licenceNo: string;
-  licenceValidFrom: string;
   licenceValidUpTo: string;
   salePointAddress: string;
   storagePointAddress: string;
@@ -30,16 +29,19 @@ interface InspectionForm {
   qrCodeNo: string;
   paymentAggregator: string;
   vpa: string;
+  includeMfmsDetails: boolean;
   premisesSameAsLicence: StatusField;
   stockRows: StockRow[];
   groundBalance: StatusField;
   discrepancyRows: DiscrepancyRow[];
   stockRegisterInvoices: StatusField;
   stockRegisterDeficiency: string;
+  stockRegisterUpdated: StatusField;
   licenceNoOnInvoices: StatusField;
   purchasesFromApprovedSources: StatusField;
   purchaseInvoiceRows: PurchaseInvoiceRow[];
   priceListExhibited: StatusField;
+  certificateDisplayed: StatusField;
   billsIssuedWithBatch: StatusField;
   stocksStoredAsPerAct: StatusField;
   reportsSubmitted: StatusField;
@@ -94,7 +96,6 @@ const initialForm = (): InspectionForm => ({
   inspectionDate: new Date().toISOString().slice(0, 10),
   dealerName: '',
   licenceNo: '',
-  licenceValidFrom: '',
   licenceValidUpTo: '',
   salePointAddress: '',
   storagePointAddress: '',
@@ -104,16 +105,19 @@ const initialForm = (): InspectionForm => ({
   qrCodeNo: '',
   paymentAggregator: '',
   vpa: '',
+  includeMfmsDetails: true,
   premisesSameAsLicence: emptyStatus(),
   stockRows: [],
   groundBalance: emptyStatus(),
   discrepancyRows: [],
   stockRegisterInvoices: emptyStatus(),
   stockRegisterDeficiency: '',
+  stockRegisterUpdated: emptyStatus(),
   licenceNoOnInvoices: emptyStatus(),
   purchasesFromApprovedSources: emptyStatus(),
   purchaseInvoiceRows: [],
   priceListExhibited: emptyStatus(),
+  certificateDisplayed: emptyStatus(),
   billsIssuedWithBatch: emptyStatus(),
   stocksStoredAsPerAct: emptyStatus(),
   reportsSubmitted: emptyStatus(),
@@ -284,12 +288,15 @@ export function FertilizerDealerInspection() {
 
   const summary = useMemo(() => {
     const statusFields: StatusField[] = [
-      form.premisesSameAsLicence, form.groundBalance, form.stockRegisterInvoices, form.licenceNoOnInvoices,
-      form.purchasesFromApprovedSources, form.priceListExhibited, form.billsIssuedWithBatch,
+      form.premisesSameAsLicence, form.groundBalance, form.stockRegisterInvoices, form.stockRegisterUpdated, form.licenceNoOnInvoices,
+      form.purchasesFromApprovedSources, form.priceListExhibited, form.certificateDisplayed, form.billsIssuedWithBatch,
       form.stocksStoredAsPerAct, form.reportsSubmitted,
     ];
     const toggles: Status[] = [form.showCauseIssued, form.licenceSuspended];
-    const textDone = [form.inspectionDate, form.dealerName, form.licenceNo || form.salePointAddress || form.storagePointAddress, form.contactNumber, form.mfmsId, form.eCompanyName, form.qrCodeNo, form.paymentAggregator, form.vpa].filter((v) => v.trim()).length;
+    const textDone = [
+      form.inspectionDate, form.dealerName, form.licenceNo || form.salePointAddress || form.storagePointAddress, form.contactNumber,
+      ...(form.includeMfmsDetails ? [form.mfmsId, form.eCompanyName, form.qrCodeNo, form.paymentAggregator, form.vpa] : []),
+    ].filter((v) => v.trim()).length;
     const statusDone = statusFields.filter((f) => f.status !== '').length;
     const toggleDone = toggles.filter((s) => s !== '').length;
     const stockDone = form.stockRows.length ? 1 : 0;
@@ -298,7 +305,7 @@ export function FertilizerDealerInspection() {
     const reasonsDone = form.licenceSuspended !== 'yes' || form.suspensionReasons.trim() ? 1 : 0;
     const all = [...statusFields.map((f) => f.status), ...toggles];
     return {
-      total: 25,
+      total: form.includeMfmsDetails ? 27 : 22,
       completed: textDone + statusDone + toggleDone + stockDone + ureaDone + samplesDone + reasonsDone,
       yes: all.filter((s) => s === 'yes').length,
       no: all.filter((s) => s === 'no').length,
@@ -363,10 +370,9 @@ export function FertilizerDealerInspection() {
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
               <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">3. License Details</p>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Field label="3. License number" value={form.licenceNo} onChange={(v) => set('licenceNo', v)} placeholder="License number" />
-                <Field label="3(a). Valid from" type="date" value={form.licenceValidFrom} onChange={(v) => set('licenceValidFrom', v)} />
-                <Field label="3(b). Valid up to" type="date" value={form.licenceValidUpTo} onChange={(v) => set('licenceValidUpTo', v)} />
+                <Field label="3(a). Valid up to" type="date" value={form.licenceValidUpTo} onChange={(v) => set('licenceValidUpTo', v)} />
               </div>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
@@ -393,14 +399,27 @@ export function FertilizerDealerInspection() {
             <Field label="4. Contact number of the dealer" type="tel" value={form.contactNumber} onChange={(v) => set('contactNumber', v)} placeholder="Mobile / landline number" />
           </Section>
 
-          <Section id={2} title="mFMS and Digital Details" subtitle="Items 5 to 9" open={openSections[2]} onToggle={toggleSection}>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="5. mFMS ID number" value={form.mfmsId} onChange={(v) => set('mfmsId', v)} placeholder="mFMS ID" />
-              <Field label="6. e-Company name" value={form.eCompanyName} onChange={(v) => set('eCompanyName', v)} placeholder="e-Company name" />
-              <Field label="7. QR code number" value={form.qrCodeNo} onChange={(v) => set('qrCodeNo', v)} placeholder="QR code number" />
-              <Field label="8. Payment aggregator" value={form.paymentAggregator} onChange={(v) => set('paymentAggregator', v)} placeholder="Payment aggregator" />
-              <Field label="9. Virtual payment address (VPA)" value={form.vpa} onChange={(v) => set('vpa', v)} placeholder="VPA / UPI ID" />
-            </div>
+          <Section id={2} title="mFMS and Digital Details" subtitle={form.includeMfmsDetails ? 'Items 5 to 9 · Optional' : 'Items 5 to 9 · Disabled — excluded from report'} open={openSections[2]} onToggle={toggleSection}>
+            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-xs font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-100">
+              <input
+                type="checkbox"
+                checked={form.includeMfmsDetails}
+                onChange={(e) => set('includeMfmsDetails', e.target.checked)}
+                className="h-4 w-4 cursor-pointer accent-sky-600"
+              />
+              Include mFMS and digital details (items 5-9) in this inspection
+            </label>
+            {form.includeMfmsDetails ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="5. mFMS ID number" value={form.mfmsId} onChange={(v) => set('mfmsId', v)} placeholder="mFMS ID" />
+                <Field label="6. e-Company name" value={form.eCompanyName} onChange={(v) => set('eCompanyName', v)} placeholder="e-Company name" />
+                <Field label="7. QR code number" value={form.qrCodeNo} onChange={(v) => set('qrCodeNo', v)} placeholder="QR code number" />
+                <Field label="8. Payment aggregator" value={form.paymentAggregator} onChange={(v) => set('paymentAggregator', v)} placeholder="Payment aggregator" />
+                <Field label="9. Virtual payment address (VPA)" value={form.vpa} onChange={(v) => set('vpa', v)} placeholder="VPA / UPI ID" />
+              </div>
+            ) : (
+              <p className="text-[11px] font-semibold text-slate-500">Items 5-9 are disabled and will not appear in the preview or PDF.</p>
+            )}
           </Section>
 
           <Section id={3} title="Premises and stock verification" subtitle="Items 10 to 12" open={openSections[3]} onToggle={toggleSection}>
@@ -449,6 +468,7 @@ export function FertilizerDealerInspection() {
             {form.stockRegisterInvoices.status === 'no' && (
               <Field label="Details of deficiency" textarea value={form.stockRegisterDeficiency} onChange={(v) => set('stockRegisterDeficiency', v)} placeholder="Describe the deficiency" />
             )}
+            <StatusInput label="13(a). Whether the Stock Register is updated or not" field={form.stockRegisterUpdated} onChange={(p) => setStatus('stockRegisterUpdated', p)} remarksWhen="no" />
             <StatusInput label="14. Whether the selling license number is mentioned on sales invoices" field={form.licenceNoOnInvoices} onChange={(p) => setStatus('licenceNoOnInvoices', p)} remarksWhen="no" />
             <StatusInput label="15. Whether the dealer purchases stocks from approved and authorised sources. Verify the purchase invoices." field={form.purchasesFromApprovedSources} onChange={(p) => setStatus('purchasesFromApprovedSources', p)} remarksWhen="no" />
             <RowTable<PurchaseInvoiceRow>
@@ -467,11 +487,12 @@ export function FertilizerDealerInspection() {
               ]}
             />
             <StatusInput label="16. Whether the dealer has exhibited the price list as per the E.C. Act" field={form.priceListExhibited} onChange={(p) => setStatus('priceListExhibited', p)} remarksWhen="no" />
+            <StatusInput label="16(a). Whether the Certificate of Registration is displayed or not" field={form.certificateDisplayed} onChange={(p) => setStatus('certificateDisplayed', p)} remarksWhen="no" />
             <StatusInput label="17. Whether bills are being issued to consumers, duly mentioning the batch number and trade name of fertilizers" field={form.billsIssuedWithBatch} onChange={(p) => setStatus('billsIssuedWithBatch', p)} remarksWhen="no" />
           </Section>
 
           <Section id={5} title="Storage and statutory compliance" subtitle="Items 18 to 19" open={openSections[5]} onToggle={toggleSection}>
-            <StatusInput label="18. Whether the stocks are stored according to the provisions of the Act and rules" field={form.stocksStoredAsPerAct} onChange={(p) => setStatus('stocksStoredAsPerAct', p)} remarksWhen="no" />
+            <StatusInput label="18. Whether the Fertilizers are stored as per the provisions of FCO 1985" field={form.stocksStoredAsPerAct} onChange={(p) => setStatus('stocksStoredAsPerAct', p)} remarksWhen="no" />
             <StatusInput label="19. Whether the dealer / distributor / manufacturer is submitting reports regularly to the licensing officer" field={form.reportsSubmitted} onChange={(p) => setStatus('reportsSubmitted', p)} remarksWhen="no" />
           </Section>
 
@@ -843,24 +864,28 @@ function buildRows(form: InspectionForm, ureaDifference: { diff: number; status:
   const items: string[][] = [
     ['1', 'Date of inspection', formatDate(form.inspectionDate)],
     ['2', 'Name of the dealer', form.dealerName || '-'],
-    ['3', 'License number', [form.licenceNo, form.licenceValidFrom && `Valid from: ${formatDate(form.licenceValidFrom)}`, form.licenceValidUpTo && `Valid up to: ${formatDate(form.licenceValidUpTo)}`].filter(Boolean).join(' - ') || '-'],
+    ['3', 'License number', [form.licenceNo, form.licenceValidUpTo && `Valid up to: ${formatDate(form.licenceValidUpTo)}`].filter(Boolean).join(' - ') || '-'],
     ['3(a)', 'Sale point address', form.salePointAddress || '-'],
     ['3(b)', 'Storage point address', form.storagePointAddress || '-'],
     ['4', 'Contact number of the dealer', form.contactNumber || '-'],
-    ['5', 'mFMS ID number', form.mfmsId || '-'],
-    ['6', 'e-Company name', form.eCompanyName || '-'],
-    ['7', 'QR code number', form.qrCodeNo || '-'],
-    ['8', 'Payment aggregator', form.paymentAggregator || '-'],
-    ['9', 'Virtual payment address (VPA)', form.vpa || '-'],
+    ...(form.includeMfmsDetails ? [
+      ['5', 'mFMS ID number', form.mfmsId || '-'],
+      ['6', 'e-Company name', form.eCompanyName || '-'],
+      ['7', 'QR code number', form.qrCodeNo || '-'],
+      ['8', 'Payment aggregator', form.paymentAggregator || '-'],
+      ['9', 'Virtual payment address (VPA)', form.vpa || '-'],
+    ] : []),
     ['10', 'Whether the sale and stock premises are the same as those mentioned in the license', statusText(form.premisesSameAsLicence)],
     ['11', 'Stock position at the time of inspection. Details to be furnished.', listOrNil(form.stockRows, 'product(s)')],
     ['12', 'Whether the ground balance of stocks tallies with the stock register and ePOS, or whether there is any discrepancy', `${statusText(form.groundBalance)}${form.groundBalance.status === 'no' && form.discrepancyRows.length ? `\n${listOrNil(form.discrepancyRows, 'discrepancy/ies')}` : ''}`],
     ['13', 'Whether the stock register and sales invoices are maintained properly. If not, give details.', `${statusText(form.stockRegisterInvoices)}${form.stockRegisterInvoices.status === 'no' && form.stockRegisterDeficiency ? `\nDeficiency: ${form.stockRegisterDeficiency}` : ''}`],
+    ['13(a)', 'Whether the Stock Register is updated or not', statusText(form.stockRegisterUpdated)],
     ['14', 'Whether the selling license number is mentioned on sales invoices', statusText(form.licenceNoOnInvoices)],
     ['15', 'Whether the dealer purchases stocks from approved and authorised sources. Verify the purchase invoices.', `${statusText(form.purchasesFromApprovedSources)}${form.purchaseInvoiceRows.length ? `\n${listOrNil(form.purchaseInvoiceRows, 'invoice(s)')}` : ''}`],
     ['16', 'Whether the dealer has exhibited the price list as per the E.C. Act', statusText(form.priceListExhibited)],
+    ['16(a)', 'Whether the Certificate of Registration is displayed or not', statusText(form.certificateDisplayed)],
     ['17', 'Whether bills are being issued to consumers, duly mentioning the batch number and trade name of fertilizers', statusText(form.billsIssuedWithBatch)],
-    ['18', 'Whether the stocks are stored according to the provisions of the Act and rules', statusText(form.stocksStoredAsPerAct)],
+    ['18', 'Whether the Fertilizers are stored as per the provisions of FCO 1985', statusText(form.stocksStoredAsPerAct)],
     ['19', 'Whether the dealer / distributor / manufacturer is submitting reports regularly to the licensing officer', statusText(form.reportsSubmitted)],
     ['20', 'Urea stock as per ePOS machine', `${form.ureaEposQty || '-'} ${form.ureaEposUnit}`.trim()],
     ['21', 'Urea stock as per ground balance', `${form.ureaGroundQty || '-'} ${form.ureaGroundUnit}`.trim()],

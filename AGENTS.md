@@ -110,23 +110,3 @@ cd project
 npm run typecheck
 npm run build
 ```
-
-# CIB&RC Recommendations Module
-
-Officer Toolkit reference of CIB&RC-registered crop-protection uses (updated to 31.03.2026). Data is authoritative from the Agronix-ready Excel workbook — values are preserved verbatim; blanks stay null, nothing is invented.
-
-## Data path
-
-```
-Excel workbook → project/scripts/import-cibrc.mjs → project/public/data/cibrc-recommendations.json
-  → fetched at runtime by the module (client-side filtering, no Supabase table)
-```
-
-- Dataset: ~7,145 records, ~4.3 MB JSON (~1 MB gzipped), lazy-fetched once and cached in memory.
-- Each record has a deterministic `id` (SHA-256 of its values) — favorites store ids only.
-- Regenerate: `cd project && node scripts/import-cibrc.mjs <workbook.xlsx>`.
-
-## Frontend
-
-- `project/src/features/cibrc/` — types, `cibrcService.ts`, `useCibrcState.ts` (favorites + recent searches in localStorage, ha/ac unit in sessionStorage), `components/CibrcResultCard.tsx`, `components/CibrcDetailSheet.tsx`, `CibrcRecommendationsPage.tsx`.
-- Route: `/officer-toolkit/cibrc-recommendations` → page `cibrc-recommendations` (public, lazy-loaded).
