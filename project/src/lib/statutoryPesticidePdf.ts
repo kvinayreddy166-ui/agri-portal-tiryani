@@ -824,6 +824,8 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   ].filter(Boolean).join(' ');
   // Format dealer name with mandal
   const dealerWithMandal = resolvedMandal ? `${values.dealerName}, ${resolvedMandal}` : values.dealerName;
+  // Full dealer address (name + address + premises + mandal + district-pincode), as in the statutory forms
+  const dealerFullAddress = buildDealerAddress(values) || dealerWithMandal;
   
   cursor.y -= 6;
   centeredTitle(cursor, 'DOCKET SHEET');
@@ -865,7 +867,7 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   const mainFields: Array<[string, string, string?]> = [
     ['4. Guaranteed of % ai', guaranteedWithFormulation],
     ['5. Qty. of sample drawn for analysis', sampleQuantityAnalysis],
-    ['6. Name of the dealer from whom the sample drawn', dealerWithMandal],
+    ['6. Name of the dealer from whom the sample drawn', dealerFullAddress],
     ['7. Name of the Distributor', values.distributorName],
     ['8. Name of the Manufacturer', values.manufacturedBy],
     ['9. Batch Number', values.batchNumber],
@@ -893,12 +895,12 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
     cursor.y = PAGE.top;
   }
 
-  // Render fields 4-6: default spacing
-  fieldList(cursor, mainFields.slice(0, 3), 82);
+  // Render fields 4-5: default spacing
+  fieldList(cursor, mainFields.slice(0, 2), 82);
 
-  // Render fields 7-9: compact J Form spacing for multiline addresses
-  // Fields 7 & 8 render their values at 1.1 line spacing between wrapped lines
-  fieldList(cursor, mainFields.slice(3, 5), 82, 0, compactValueWideOptions);
+  // Render fields 6-9: compact J Form spacing for multiline addresses
+  // Fields 6, 7 & 8 render their values at 1.1 line spacing between wrapped lines
+  fieldList(cursor, mainFields.slice(2, 5), 82, 0, compactValueWideOptions);
   fieldList(cursor, mainFields.slice(5, 6), 82, 0, compactFieldOptions);
 
   // Render fields 10-12: default spacing

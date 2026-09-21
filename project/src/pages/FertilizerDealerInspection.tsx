@@ -9,11 +9,12 @@ import { ToastContainer, useToast } from '../components/ui/Toast';
 type Status = '' | 'yes' | 'no' | 'na';
 type StatusField = { status: Status; remarks: string };
 
-type StockRow = { fertilizer: string; company: string; grade: string; openingBalance: string; receipts: string; sales: string; closingBalance: string };
 type DiscrepancyRow = { product: string; registerBalance: string; eposBalance: string; physicalBalance: string; difference: string; remarks: string };
+type SampleRow = { product: string; company: string; batchNo: string; quantity: string; sampleDetails: string };
+type SeizureRow = { fertilizer: string; brand: string; batchLotNo: string; quantitySeized: string; reasonViolation: string; seizureMemo: string };
+type DetentionRow = { fertilizer: string; brand: string; batchLotNo: string; quantity: string; reasonDetention: string; detentionMemo: string };
 type PurchaseInvoiceRow = { supplierName: string; invoiceNo: string; invoiceDate: string; product: string; quantity: string; remarks: string };
-type SampleRow = { product: string; company: string; grade: string; batchNo: string; quantity: string; unit: string; sampleDetails: string };
-type ShowCauseRow = { noticeNo: string; date: string; reason: string; status: string; remarks: string };
+
 type SalesRow = { product: string; openingBalance: string; receipt: string; sales: string };
 
 interface InspectionForm {
@@ -23,7 +24,7 @@ interface InspectionForm {
   licenceValidUpTo: string;
   salePointAddress: string;
   storagePointAddress: string;
-  contactNumber: string;
+
   mfmsId: string;
   eCompanyName: string;
   qrCodeNo: string;
@@ -31,32 +32,27 @@ interface InspectionForm {
   vpa: string;
   includeMfmsDetails: boolean;
   premisesSameAsLicence: StatusField;
-  stockRows: StockRow[];
+
   groundBalance: StatusField;
   discrepancyRows: DiscrepancyRow[];
-  stockRegisterInvoices: StatusField;
-  stockRegisterDeficiency: string;
   stockRegisterUpdated: StatusField;
+  registerPagesCertificate: StatusField;
   licenceNoOnInvoices: StatusField;
+  biofertilizersAuthorized: StatusField;
   purchasesFromApprovedSources: StatusField;
   purchaseInvoiceRows: PurchaseInvoiceRow[];
   priceListExhibited: StatusField;
   certificateDisplayed: StatusField;
+  sellingOtherThanFormO: StatusField;
   billsIssuedWithBatch: StatusField;
+  purchaserSignatureOnBills: StatusField;
   stocksStoredAsPerAct: StatusField;
   reportsSubmitted: StatusField;
-  ureaEposQty: string;
-  ureaEposUnit: string;
-  ureaGroundQty: string;
-  ureaGroundUnit: string;
+  stockDetained: StatusField;
+  detentionRows: DetentionRow[];
+  seizureRows: SeizureRow[];
+  majorOffences: StatusField;
   sampleRows: SampleRow[];
-  showCauseIssued: Status;
-  showCauseRows: ShowCauseRow[];
-  licenceSuspended: Status;
-  suspensionDate: string;
-  suspensionOrderNo: string;
-  suspensionRemarks: string;
-  suspensionReasons: string;
   salesRows: SalesRow[];
   salesUnit: string;
   inspectorName: string;
@@ -75,7 +71,6 @@ const FORM_KEY = 'tiryani-fertilizer-inspection-form';
 const DRAFTS_KEY = 'tiryani-fertilizer-inspection-drafts';
 
 const UNIT_OPTIONS = ['Bags', 'MTs'];
-const FERTILIZER_PRODUCTS = ['Urea', 'DAP', 'MOP', 'SSP', 'Complex', 'Other'];
 const DESIGNATION_OPTIONS = [
   'Mandal Agriculture Officer & Fertilizer Inspector',
   'Asst. Director of Agriculture & Fertilizer Inspector',
@@ -83,11 +78,11 @@ const DESIGNATION_OPTIONS = [
 ];
 
 const emptyStatus = (): StatusField => ({ status: '', remarks: '' });
-const emptyStockRow = (): StockRow => ({ fertilizer: '', company: '', grade: '', openingBalance: '', receipts: '', sales: '', closingBalance: '' });
 const emptyDiscrepancy = (): DiscrepancyRow => ({ product: '', registerBalance: '', eposBalance: '', physicalBalance: '', difference: '', remarks: '' });
+const emptySample = (): SampleRow => ({ product: '', company: '', batchNo: '', quantity: '', sampleDetails: '' });
+const emptySeizure = (): SeizureRow => ({ fertilizer: '', brand: '', batchLotNo: '', quantitySeized: '', reasonViolation: '', seizureMemo: '' });
+const emptyDetention = (): DetentionRow => ({ fertilizer: '', brand: '', batchLotNo: '', quantity: '', reasonDetention: '', detentionMemo: '' });
 const emptyPurchaseInvoice = (): PurchaseInvoiceRow => ({ supplierName: '', invoiceNo: '', invoiceDate: '', product: '', quantity: '', remarks: '' });
-const emptySample = (): SampleRow => ({ product: '', company: '', grade: '', batchNo: '', quantity: '', unit: 'kg', sampleDetails: '' });
-const emptyShowCause = (): ShowCauseRow => ({ noticeNo: '', date: '', reason: '', status: '', remarks: '' });
 
 const SALES_PRODUCTS = ['Urea', 'DAP', 'MOP', 'SSP', 'Complex'];
 const emptySalesRow = (product: string): SalesRow => ({ product, openingBalance: '', receipt: '', sales: '' });
@@ -99,7 +94,6 @@ const initialForm = (): InspectionForm => ({
   licenceValidUpTo: '',
   salePointAddress: '',
   storagePointAddress: '',
-  contactNumber: '',
   mfmsId: '',
   eCompanyName: '',
   qrCodeNo: '',
@@ -107,32 +101,26 @@ const initialForm = (): InspectionForm => ({
   vpa: '',
   includeMfmsDetails: true,
   premisesSameAsLicence: emptyStatus(),
-  stockRows: [],
   groundBalance: emptyStatus(),
   discrepancyRows: [],
-  stockRegisterInvoices: emptyStatus(),
-  stockRegisterDeficiency: '',
   stockRegisterUpdated: emptyStatus(),
+  registerPagesCertificate: emptyStatus(),
   licenceNoOnInvoices: emptyStatus(),
+  biofertilizersAuthorized: emptyStatus(),
   purchasesFromApprovedSources: emptyStatus(),
   purchaseInvoiceRows: [],
   priceListExhibited: emptyStatus(),
   certificateDisplayed: emptyStatus(),
+  sellingOtherThanFormO: emptyStatus(),
   billsIssuedWithBatch: emptyStatus(),
+  purchaserSignatureOnBills: emptyStatus(),
   stocksStoredAsPerAct: emptyStatus(),
   reportsSubmitted: emptyStatus(),
-  ureaEposQty: '',
-  ureaEposUnit: 'Bags',
-  ureaGroundQty: '',
-  ureaGroundUnit: 'Bags',
+  stockDetained: emptyStatus(),
+  detentionRows: [],
+  seizureRows: [],
+  majorOffences: emptyStatus(),
   sampleRows: [],
-  showCauseIssued: '',
-  showCauseRows: [],
-  licenceSuspended: '',
-  suspensionDate: '',
-  suspensionOrderNo: '',
-  suspensionRemarks: '',
-  suspensionReasons: '',
   salesRows: SALES_PRODUCTS.map((p) => emptySalesRow(p)),
   salesUnit: 'Bags',
   inspectorName: '',
@@ -212,6 +200,7 @@ export function FertilizerDealerInspection() {
   const setStatus = (key: keyof InspectionForm, patch: Partial<StatusField>) =>
     setForm((current) => ({ ...current, [key]: { ...(current[key] as StatusField), ...patch } }));
   const toggleSection = (id: number) => setOpenSections((current) => ({ ...current, [id]: !current[id] }));
+  const itemNo = (n: number) => (form.includeMfmsDetails ? n : n - 5);
 
   const validate = () => {
     if (!form.inspectionDate) return 'Please enter the date of inspection.';
@@ -271,13 +260,6 @@ export function FertilizerDealerInspection() {
     showSuccess('PDF downloaded');
   };
 
-  const ureaDifference = useMemo(() => {
-    const epos = parseFloat(form.ureaEposQty) || 0;
-    const ground = parseFloat(form.ureaGroundQty) || 0;
-    const diff = epos - ground;
-    return { diff, status: diff === 0 ? 'No difference' : diff > 0 ? 'Shortage' : 'Excess' };
-  }, [form.ureaEposQty, form.ureaGroundQty]);
-
   const salesTotals = useMemo(() => {
     const sum = (key: keyof SalesRow) => form.salesRows.reduce((acc, r) => acc + (parseFloat(r[key]) || 0), 0);
     const opening = sum('openingBalance');
@@ -288,33 +270,28 @@ export function FertilizerDealerInspection() {
 
   const summary = useMemo(() => {
     const statusFields: StatusField[] = [
-      form.premisesSameAsLicence, form.groundBalance, form.stockRegisterInvoices, form.stockRegisterUpdated, form.licenceNoOnInvoices,
-      form.purchasesFromApprovedSources, form.priceListExhibited, form.certificateDisplayed, form.billsIssuedWithBatch,
-      form.stocksStoredAsPerAct, form.reportsSubmitted,
+      form.premisesSameAsLicence, form.groundBalance, form.stockRegisterUpdated, form.registerPagesCertificate, form.licenceNoOnInvoices, form.biofertilizersAuthorized,
+      form.purchasesFromApprovedSources, form.priceListExhibited, form.certificateDisplayed, form.sellingOtherThanFormO, form.billsIssuedWithBatch, form.purchaserSignatureOnBills,
+      form.stocksStoredAsPerAct, form.reportsSubmitted, form.stockDetained, form.majorOffences,
     ];
-    const toggles: Status[] = [form.showCauseIssued, form.licenceSuspended];
     const textDone = [
-      form.inspectionDate, form.dealerName, form.licenceNo || form.salePointAddress || form.storagePointAddress, form.contactNumber,
+      form.inspectionDate, form.dealerName, form.licenceNo || form.salePointAddress || form.storagePointAddress,
       ...(form.includeMfmsDetails ? [form.mfmsId, form.eCompanyName, form.qrCodeNo, form.paymentAggregator, form.vpa] : []),
     ].filter((v) => v.trim()).length;
     const statusDone = statusFields.filter((f) => f.status !== '').length;
-    const toggleDone = toggles.filter((s) => s !== '').length;
-    const stockDone = form.stockRows.length ? 1 : 0;
-    const ureaDone = [form.ureaEposQty, form.ureaGroundQty].filter((v) => v.trim()).length;
     const samplesDone = form.sampleRows.length ? 1 : 0;
-    const reasonsDone = form.licenceSuspended !== 'yes' || form.suspensionReasons.trim() ? 1 : 0;
-    const all = [...statusFields.map((f) => f.status), ...toggles];
+    const all = statusFields.map((f) => f.status);
     return {
-      total: form.includeMfmsDetails ? 27 : 22,
-      completed: textDone + statusDone + toggleDone + stockDone + ureaDone + samplesDone + reasonsDone,
+      total: form.includeMfmsDetails ? 25 : 20,
+      completed: textDone + statusDone + samplesDone,
       yes: all.filter((s) => s === 'yes').length,
       no: all.filter((s) => s === 'no').length,
       na: all.filter((s) => s === 'na').length,
-      stockItems: form.stockRows.length,
       discrepancies: form.discrepancyRows.length,
       invoices: form.purchaseInvoiceRows.length,
+      detained: form.detentionRows.length,
+      seized: form.seizureRows.length,
       samples: form.sampleRows.length,
-      notices: form.showCauseRows.length,
     };
   }, [form]);
 
@@ -363,10 +340,10 @@ export function FertilizerDealerInspection() {
         </div>
 
         <div className="space-y-4">
-          <Section id={1} title="Dealer and inspection details" subtitle="Items 1 to 4" open={openSections[1]} onToggle={toggleSection}>
+          <Section id={1} title="Dealer details and premises" subtitle="Items 1 to 4" open={openSections[1]} onToggle={toggleSection}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="1. Date of inspection" type="date" value={form.inspectionDate} onChange={(v) => set('inspectionDate', v)} />
-              <Field label="2. Name of the dealer" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Firm / dealer name" />
+              <Field label="2. Name of the Dealer/Distributor" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Firm / dealer name" />
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
               <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">3. License Details</p>
@@ -396,10 +373,10 @@ export function FertilizerDealerInspection() {
                 </div>
               </div>
             </div>
-            <Field label="4. Contact number of the dealer" type="tel" value={form.contactNumber} onChange={(v) => set('contactNumber', v)} placeholder="Mobile / landline number" />
+            <StatusInput label="4. Whether the sale and stock premises are the same as those mentioned in the license" field={form.premisesSameAsLicence} onChange={(p) => setStatus('premisesSameAsLicence', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={2} title="mFMS and Digital Details" subtitle={form.includeMfmsDetails ? 'Items 5 to 9 · Optional' : 'Items 5 to 9 · Disabled — excluded from report'} open={openSections[2]} onToggle={toggleSection}>
+          <Section id={2} title="mFMS and digital details" subtitle={form.includeMfmsDetails ? 'Items 5 to 9 · Optional' : 'Items 5 to 9 · Disabled — excluded from report'} open={openSections[2]} onToggle={toggleSection}>
             <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-xs font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-100">
               <input
                 type="checkbox"
@@ -422,33 +399,27 @@ export function FertilizerDealerInspection() {
             )}
           </Section>
 
-          <Section id={3} title="Premises and stock verification" subtitle="Items 10 to 12" open={openSections[3]} onToggle={toggleSection}>
-            <StatusInput label="10. Whether the sale and stock premises are the same as those mentioned in the license" field={form.premisesSameAsLicence} onChange={(p) => setStatus('premisesSameAsLicence', p)} remarksWhen="no" />
-            <div>
-              <p className="mb-1 text-xs font-bold text-slate-800 dark:text-slate-100">11. Stock position at the time of inspection. Details to be furnished.</p>
-              <RowTable<StockRow>
-                title="Stock position"
-                rows={form.stockRows}
-                onChange={(rows) => set('stockRows', rows)}
-                empty={emptyStockRow}
-                addLabel="Add stock details"
-                columns={[
-                  { key: 'fertilizer', label: 'Fertilizer', type: 'select', options: FERTILIZER_PRODUCTS, allowOther: true },
-                  { key: 'company', label: 'Company' },
-                  { key: 'grade', label: 'Grade' },
-                  { key: 'openingBalance', label: 'Opening balance' },
-                  { key: 'receipts', label: 'Receipts' },
-                  { key: 'sales', label: 'Sales' },
-                  { key: 'closingBalance', label: 'Closing balance' },
-                ]}
-              />
-            </div>
-            <StatusInput label="12. Whether the ground balance of stocks tallies with the stock register and ePOS, or whether there is any discrepancy" field={form.groundBalance} onChange={(p) => setStatus('groundBalance', p)} remarksWhen="no" />
+          <Section id={3} title="License compliance" subtitle={`Items ${itemNo(10)} to ${itemNo(14)}`} open={openSections[3]} onToggle={toggleSection}>
+            <StatusInput label={`${itemNo(10)}. Whether Certificate of Registration (License) displayed prominently or not`} field={form.certificateDisplayed} onChange={(p) => setStatus('certificateDisplayed', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(11)}. Whether the dealer has exhibited stock board and the price list`} field={form.priceListExhibited} onChange={(p) => setStatus('priceListExhibited', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(12)}. Whether the license number is mentioned on sales invoices/cash memo`} field={form.licenceNoOnInvoices} onChange={(p) => setStatus('licenceNoOnInvoices', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(13)}. Whether the dealer is selling fertilizer other than the fertilizers of Form "O" incorporated in CR`} field={form.sellingOtherThanFormO} onChange={(p) => setStatus('sellingOtherThanFormO', p)} remarksWhen="yes" />
+            <StatusInput label={`${itemNo(14)}. Whether biofertilizers, if stocked/sold, are from authorized sources and conform to prescribed specifications and labeling requirements`} field={form.biofertilizersAuthorized} onChange={(p) => setStatus('biofertilizersAuthorized', p)} remarksWhen="no" />
+          </Section>
+
+          <Section id={4} title="Registers, records and bills" subtitle={`Items ${itemNo(15)} to ${itemNo(20)}`} open={openSections[4]} onToggle={toggleSection}>
+            <StatusInput label={`${itemNo(15)}. Whether dealer has obtained a certificate confirming the pages in Stock Register and Sale Bill Books`} field={form.registerPagesCertificate} onChange={(p) => setStatus('registerPagesCertificate', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(16)}. Whether the Stock Register is updated or not`} field={form.stockRegisterUpdated} onChange={(p) => setStatus('stockRegisterUpdated', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(17)}. Whether the ground balance of stocks tallies with the stock register and ePOS, or whether there is any discrepancy`} field={form.groundBalance} onChange={(p) => setStatus('groundBalance', p)} remarksWhen="no" />
             {form.groundBalance.status === 'no' && (
               <RowTable<DiscrepancyRow>
                 title="Discrepancy details"
                 rows={form.discrepancyRows}
-                onChange={(rows) => set('discrepancyRows', rows)}
+                onChange={(rows) => set('discrepancyRows', rows.map((r) => {
+                  const epos = parseFloat(r.eposBalance);
+                  const physical = parseFloat(r.physicalBalance);
+                  return { ...r, difference: Number.isNaN(epos) || Number.isNaN(physical) ? '' : String(epos - physical) };
+                }))}
                 empty={emptyDiscrepancy}
                 addLabel="Add discrepancy"
                 columns={[
@@ -456,21 +427,12 @@ export function FertilizerDealerInspection() {
                   { key: 'registerBalance', label: 'Stock register balance' },
                   { key: 'eposBalance', label: 'ePOS balance' },
                   { key: 'physicalBalance', label: 'Physical balance' },
-                  { key: 'difference', label: 'Difference' },
+                  { key: 'difference', label: 'Variation', type: 'computed' },
                   { key: 'remarks', label: 'Remarks' },
                 ]}
               />
             )}
-          </Section>
-
-          <Section id={4} title="Registers, invoices and purchase verification" subtitle="Items 13 to 17" open={openSections[4]} onToggle={toggleSection}>
-            <StatusInput label="13. Whether the stock register and sales invoices are maintained properly. If not, give details." field={form.stockRegisterInvoices} onChange={(p) => setStatus('stockRegisterInvoices', p)} remarksWhen="no" />
-            {form.stockRegisterInvoices.status === 'no' && (
-              <Field label="Details of deficiency" textarea value={form.stockRegisterDeficiency} onChange={(v) => set('stockRegisterDeficiency', v)} placeholder="Describe the deficiency" />
-            )}
-            <StatusInput label="13(a). Whether the Stock Register is updated or not" field={form.stockRegisterUpdated} onChange={(p) => setStatus('stockRegisterUpdated', p)} remarksWhen="no" />
-            <StatusInput label="14. Whether the selling license number is mentioned on sales invoices" field={form.licenceNoOnInvoices} onChange={(p) => setStatus('licenceNoOnInvoices', p)} remarksWhen="no" />
-            <StatusInput label="15. Whether the dealer purchases stocks from approved and authorised sources. Verify the purchase invoices." field={form.purchasesFromApprovedSources} onChange={(p) => setStatus('purchasesFromApprovedSources', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(18)}. Whether the dealer purchases stocks from approved and authorised sources. Verify the purchase invoices.`} field={form.purchasesFromApprovedSources} onChange={(p) => setStatus('purchasesFromApprovedSources', p)} remarksWhen="no" />
             <RowTable<PurchaseInvoiceRow>
               title="Purchase invoice verification"
               rows={form.purchaseInvoiceRows}
@@ -486,41 +448,54 @@ export function FertilizerDealerInspection() {
                 { key: 'remarks', label: 'Remarks' },
               ]}
             />
-            <StatusInput label="16. Whether the dealer has exhibited the price list as per the E.C. Act" field={form.priceListExhibited} onChange={(p) => setStatus('priceListExhibited', p)} remarksWhen="no" />
-            <StatusInput label="16(a). Whether the Certificate of Registration is displayed or not" field={form.certificateDisplayed} onChange={(p) => setStatus('certificateDisplayed', p)} remarksWhen="no" />
-            <StatusInput label="17. Whether bills are being issued to consumers, duly mentioning the batch number and trade name of fertilizers" field={form.billsIssuedWithBatch} onChange={(p) => setStatus('billsIssuedWithBatch', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(19)}. Whether bills are being issued to consumers, duly mentioning the batch number and trade name of fertilizers`} field={form.billsIssuedWithBatch} onChange={(p) => setStatus('billsIssuedWithBatch', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(20)}. Whether signature of purchaser is obtained on Sale Bills or not`} field={form.purchaserSignatureOnBills} onChange={(p) => setStatus('purchaserSignatureOnBills', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={5} title="Storage and statutory compliance" subtitle="Items 18 to 19" open={openSections[5]} onToggle={toggleSection}>
-            <StatusInput label="18. Whether the Fertilizers are stored as per the provisions of FCO 1985" field={form.stocksStoredAsPerAct} onChange={(p) => setStatus('stocksStoredAsPerAct', p)} remarksWhen="no" />
-            <StatusInput label="19. Whether the dealer / distributor / manufacturer is submitting reports regularly to the licensing officer" field={form.reportsSubmitted} onChange={(p) => setStatus('reportsSubmitted', p)} remarksWhen="no" />
+          <Section id={5} title="Storage and reporting" subtitle={`Items ${itemNo(21)} to ${itemNo(22)}`} open={openSections[5]} onToggle={toggleSection}>
+            <StatusInput label={`${itemNo(21)}. Whether the Fertilizers are stored as per the provisions of FCO 1985`} field={form.stocksStoredAsPerAct} onChange={(p) => setStatus('stocksStoredAsPerAct', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(22)}. Whether the dealer / distributor / manufacturer is submitting reports regularly to the licensing officer`} field={form.reportsSubmitted} onChange={(p) => setStatus('reportsSubmitted', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={6} title="Urea stock and enforcement details" subtitle="Items 20 to 25" open={openSections[6]} onToggle={toggleSection}>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
-                <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">20. Urea stock as per ePOS machine</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Field label="Quantity" type="number" value={form.ureaEposQty} onChange={(v) => set('ureaEposQty', v)} placeholder="0" />
-                  <Field label="Unit" value={form.ureaEposUnit} onChange={(v) => set('ureaEposUnit', v)} options={UNIT_OPTIONS} />
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
-                <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">21. Urea stock as per ground balance</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Field label="Quantity" type="number" value={form.ureaGroundQty} onChange={(v) => set('ureaGroundQty', v)} placeholder="0" />
-                  <Field label="Unit" value={form.ureaGroundUnit} onChange={(v) => set('ureaGroundUnit', v)} options={UNIT_OPTIONS} />
-                </div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-3 dark:border-sky-900/50 dark:bg-sky-950/20">
-              <p className="mb-1 text-xs font-bold text-sky-800 dark:text-sky-200">Urea stock difference (ePOS − ground balance)</p>
-              <p className="text-sm font-black text-sky-900 dark:text-sky-100">
-                {ureaDifference.diff} {form.ureaEposUnit} — {ureaDifference.status}
-              </p>
-            </div>
+          <Section id={6} title="Detention, seizure and samples" subtitle={`Items ${itemNo(23)} to ${itemNo(25)}`} open={openSections[6]} onToggle={toggleSection}>
+            <StatusInput label={`${itemNo(23)}. Any stock is detained for rectifiable violation`} field={form.stockDetained} onChange={(p) => setStatus('stockDetained', p)} />
+            {form.stockDetained.status === 'yes' && (
+              <RowTable<DetentionRow>
+                title="Detention details"
+                rows={form.detentionRows}
+                onChange={(rows) => set('detentionRows', rows)}
+                empty={emptyDetention}
+                addLabel="Add detained stock"
+                columns={[
+                  { key: 'fertilizer', label: 'Fertilizer' },
+                  { key: 'brand', label: 'Brand' },
+                  { key: 'batchLotNo', label: 'Batch / Lot No.' },
+                  { key: 'quantity', label: 'Quantity' },
+                  { key: 'reasonDetention', label: 'Reason for Detention' },
+                  { key: 'detentionMemo', label: 'Detention Memo No. & Date' },
+                ]}
+              />
+            )}
+            <StatusInput label={`${itemNo(24)}. Major offences committed, if any (give details of seizure of stocks)`} field={form.majorOffences} onChange={(p) => setStatus('majorOffences', p)} />
+            {form.majorOffences.status === 'yes' && (
+              <RowTable<SeizureRow>
+                title="Stock seized details"
+                rows={form.seizureRows}
+                onChange={(rows) => set('seizureRows', rows)}
+                empty={emptySeizure}
+                addLabel="Add seized stock"
+                columns={[
+                  { key: 'fertilizer', label: 'Fertilizer' },
+                  { key: 'brand', label: 'Brand' },
+                  { key: 'batchLotNo', label: 'Batch / Lot No.' },
+                  { key: 'quantitySeized', label: 'Quantity Seized' },
+                  { key: 'reasonViolation', label: 'Reason / Violation' },
+                  { key: 'seizureMemo', label: 'Seizure Memo No. & Date' },
+                ]}
+              />
+            )}
             <div>
-              <p className="mb-1 text-xs font-bold text-slate-800 dark:text-slate-100">22. Details of samples drawn</p>
+              <p className="mb-1 text-xs font-bold text-slate-800 dark:text-slate-100">{itemNo(25)}. Details of fertilizer samples drawn</p>
               <RowTable<SampleRow>
                 title="Samples drawn"
                 rows={form.sampleRows}
@@ -528,53 +503,17 @@ export function FertilizerDealerInspection() {
                 empty={emptySample}
                 addLabel="Add sample"
                 columns={[
-                  { key: 'product', label: 'Fertilizer product', type: 'select', options: FERTILIZER_PRODUCTS, allowOther: true },
+                  { key: 'product', label: 'Fertilizer' },
                   { key: 'company', label: 'Company' },
-                  { key: 'grade', label: 'Grade' },
-                  { key: 'batchNo', label: 'Batch number' },
+                  { key: 'batchNo', label: 'Batch / Lot No.' },
                   { key: 'quantity', label: 'Quantity' },
-                  { key: 'unit', label: 'Unit', type: 'select', options: UNIT_OPTIONS },
                   { key: 'sampleDetails', label: 'Sample details' },
                 ]}
               />
             </div>
-            <div>
-              <p className="mb-1 text-xs font-bold text-slate-800 dark:text-slate-100">23. Any show-cause notices issued during this year</p>
-              <StatusButtons value={form.showCauseIssued} onChange={(v) => set('showCauseIssued', v)} />
-            </div>
-            {form.showCauseIssued === 'yes' && (
-              <RowTable<ShowCauseRow>
-                title="Show-cause notices"
-                rows={form.showCauseRows}
-                onChange={(rows) => set('showCauseRows', rows)}
-                empty={emptyShowCause}
-                addLabel="Add show-cause notice"
-                columns={[
-                  { key: 'noticeNo', label: 'Notice number' },
-                  { key: 'date', label: 'Date' },
-                  { key: 'reason', label: 'Reason' },
-                  { key: 'status', label: 'Current status' },
-                  { key: 'remarks', label: 'Remarks' },
-                ]}
-              />
-            )}
-            <div>
-              <p className="mb-1 text-xs font-bold text-slate-800 dark:text-slate-100">24. License suspension date</p>
-              <StatusButtons value={form.licenceSuspended} onChange={(v) => set('licenceSuspended', v)} />
-            </div>
-            {form.licenceSuspended === 'yes' && (
-              <div className="grid gap-3 sm:grid-cols-3">
-                <Field label="24(a). Suspension date" type="date" value={form.suspensionDate} onChange={(v) => set('suspensionDate', v)} />
-                <Field label="24(b). Suspension order number" value={form.suspensionOrderNo} onChange={(v) => set('suspensionOrderNo', v)} placeholder="Order number" />
-                <Field label="24(c). Remarks" value={form.suspensionRemarks} onChange={(v) => set('suspensionRemarks', v)} placeholder="Remarks" />
-              </div>
-            )}
-            {form.licenceSuspended === 'yes' && (
-              <Field label="25. Reasons for suspension" textarea value={form.suspensionReasons} onChange={(v) => set('suspensionReasons', v)} placeholder="Reasons for suspension" />
-            )}
           </Section>
 
-          <Section id={7} title="Fertilizer sales and stock statement" subtitle="Sales from 1 April to date" open={openSections[7]} onToggle={toggleSection}>
+          <Section id={7} title="Sales and stock statement" subtitle="Sales from 1 April to date" open={openSections[7]} onToggle={toggleSection}>
             <p className="text-xs font-bold text-slate-800 dark:text-slate-100">
               Fertilizer sales from 1 April {financialYearLabel(form.inspectionDate)} to {formatDate(form.inspectionDate)}
             </p>
@@ -635,11 +574,11 @@ export function FertilizerDealerInspection() {
             <SummaryChip label="Yes" value={summary.yes} />
             <SummaryChip label="No" value={summary.no} />
             <SummaryChip label="N/A" value={summary.na} />
-            <SummaryChip label="Stock items" value={summary.stockItems} />
             <SummaryChip label="Discrepancies" value={summary.discrepancies} />
             <SummaryChip label="Invoices" value={summary.invoices} />
+            <SummaryChip label="Detained" value={summary.detained} />
+            <SummaryChip label="Seized" value={summary.seized} />
             <SummaryChip label="Samples" value={summary.samples} />
-            <SummaryChip label="Notices" value={summary.notices} />
           </div>
         </div>
 
@@ -674,7 +613,7 @@ export function FertilizerDealerInspection() {
 
       {showPreview && (
         <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={generatePdf} icon={Download} tone="sky">Download PDF</ActionButton>}>
-          <Preview form={form} ureaDifference={ureaDifference} salesTotals={salesTotals} />
+          <Preview form={form} salesTotals={salesTotals} />
         </Modal>
       )}
     </div>
@@ -766,13 +705,14 @@ function SummaryChip({ label, value }: { label: string; value: number }) {
   );
 }
 
-function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarksWhen = 'answered' }: { label: string; field: StatusField; onChange: (patch: Partial<StatusField>) => void; remarksLabel?: string; remarksWhen?: 'answered' | 'no' }) {
-  const showRemarks = remarksWhen === 'no' ? field.status === 'no' : Boolean(field.status) && field.status !== 'na';
+function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarksWhen = 'answered' }: { label: string; field: StatusField; onChange: (patch: Partial<StatusField>) => void; remarksLabel?: string; remarksWhen?: 'answered' | 'no' | 'yes' }) {
+  const showRemarks = remarksWhen === 'answered' ? Boolean(field.status) && field.status !== 'na' : field.status === remarksWhen;
+  const clearRemarksOn = remarksWhen === 'answered' ? null : remarksWhen === 'no' ? 'yes' : 'no';
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
       <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">{label}</p>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-        <StatusButtons value={field.status} onChange={(status) => onChange(remarksWhen === 'no' && status !== 'no' ? { status, remarks: '' } : { status })} />
+        <StatusButtons value={field.status} onChange={(status) => onChange(clearRemarksOn && status !== remarksWhen ? { status, remarks: '' } : { status })} />
         {showRemarks && (
           <input value={field.remarks} onChange={(e) => onChange({ remarks: e.target.value })} placeholder={remarksLabel} className={`${inputClass} sm:flex-1`} />
         )}
@@ -781,7 +721,7 @@ function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarks
   );
 }
 
-type Column<T> = { key: keyof T; label: string; type?: 'text' | 'select' | 'status'; options?: string[]; allowOther?: boolean };
+type Column<T> = { key: keyof T; label: string; type?: 'text' | 'select' | 'status' | 'computed'; options?: string[]; allowOther?: boolean };
 
 function RowTable<T extends Record<string, string>>({ title, rows, onChange, empty, addLabel, columns }: { title: string; rows: T[]; onChange: (rows: T[]) => void; empty: () => T; addLabel: string; columns: Column<T>[] }) {
   const update = (index: number, key: keyof T, value: string) => onChange(rows.map((row, i) => (i === index ? { ...row, [key]: value } : row)));
@@ -825,6 +765,8 @@ function RowTable<T extends Record<string, string>>({ title, rows, onChange, emp
                       )
                     ) : column.type === 'status' ? (
                       <StatusButtons value={row[column.key] as Status} onChange={(v) => update(index, column.key, v)} />
+                    ) : column.type === 'computed' ? (
+                      <p className={`${inputClass} bg-slate-100 font-black text-sky-800 dark:bg-slate-800/60`}>{row[column.key] || '—'}</p>
                     ) : (
                       <input value={row[column.key]} onChange={(e) => update(index, column.key, e.target.value)} className={inputClass} />
                     )}
@@ -858,16 +800,17 @@ function Modal({ title, onClose, children, wide = false, footer, fullScreen = fa
 
 type PdfSubTable = { title: string; head: string[]; body: string[][] };
 
-function buildRows(form: InspectionForm, ureaDifference: { diff: number; status: string }, salesTotals: { opening: number; receipt: number; total: number; sales: number; closing: number }): { items: string[][]; subTables: PdfSubTable[] } {
+function buildRows(form: InspectionForm, salesTotals: { opening: number; receipt: number; total: number; sales: number; closing: number }): { items: string[][]; subTables: PdfSubTable[] } {
   const listOrNil = (rows: unknown[], label: string) => (rows.length ? `${rows.length} ${label} (see table below)` : 'Nil');
+  const itemNo = (n: number) => String(form.includeMfmsDetails ? n : n - 5);
 
   const items: string[][] = [
     ['1', 'Date of inspection', formatDate(form.inspectionDate)],
-    ['2', 'Name of the dealer', form.dealerName || '-'],
+    ['2', 'Name of the Dealer/Distributor', form.dealerName || '-'],
     ['3', 'License number', [form.licenceNo, form.licenceValidUpTo && `Valid up to: ${formatDate(form.licenceValidUpTo)}`].filter(Boolean).join(' - ') || '-'],
     ['3(a)', 'Sale point address', form.salePointAddress || '-'],
     ['3(b)', 'Storage point address', form.storagePointAddress || '-'],
-    ['4', 'Contact number of the dealer', form.contactNumber || '-'],
+    ['4', 'Whether the sale and stock premises are the same as those mentioned in the license', statusText(form.premisesSameAsLicence)],
     ...(form.includeMfmsDetails ? [
       ['5', 'mFMS ID number', form.mfmsId || '-'],
       ['6', 'e-Company name', form.eCompanyName || '-'],
@@ -875,33 +818,30 @@ function buildRows(form: InspectionForm, ureaDifference: { diff: number; status:
       ['8', 'Payment aggregator', form.paymentAggregator || '-'],
       ['9', 'Virtual payment address (VPA)', form.vpa || '-'],
     ] : []),
-    ['10', 'Whether the sale and stock premises are the same as those mentioned in the license', statusText(form.premisesSameAsLicence)],
-    ['11', 'Stock position at the time of inspection. Details to be furnished.', listOrNil(form.stockRows, 'product(s)')],
-    ['12', 'Whether the ground balance of stocks tallies with the stock register and ePOS, or whether there is any discrepancy', `${statusText(form.groundBalance)}${form.groundBalance.status === 'no' && form.discrepancyRows.length ? `\n${listOrNil(form.discrepancyRows, 'discrepancy/ies')}` : ''}`],
-    ['13', 'Whether the stock register and sales invoices are maintained properly. If not, give details.', `${statusText(form.stockRegisterInvoices)}${form.stockRegisterInvoices.status === 'no' && form.stockRegisterDeficiency ? `\nDeficiency: ${form.stockRegisterDeficiency}` : ''}`],
-    ['13(a)', 'Whether the Stock Register is updated or not', statusText(form.stockRegisterUpdated)],
-    ['14', 'Whether the selling license number is mentioned on sales invoices', statusText(form.licenceNoOnInvoices)],
-    ['15', 'Whether the dealer purchases stocks from approved and authorised sources. Verify the purchase invoices.', `${statusText(form.purchasesFromApprovedSources)}${form.purchaseInvoiceRows.length ? `\n${listOrNil(form.purchaseInvoiceRows, 'invoice(s)')}` : ''}`],
-    ['16', 'Whether the dealer has exhibited the price list as per the E.C. Act', statusText(form.priceListExhibited)],
-    ['16(a)', 'Whether the Certificate of Registration is displayed or not', statusText(form.certificateDisplayed)],
-    ['17', 'Whether bills are being issued to consumers, duly mentioning the batch number and trade name of fertilizers', statusText(form.billsIssuedWithBatch)],
-    ['18', 'Whether the Fertilizers are stored as per the provisions of FCO 1985', statusText(form.stocksStoredAsPerAct)],
-    ['19', 'Whether the dealer / distributor / manufacturer is submitting reports regularly to the licensing officer', statusText(form.reportsSubmitted)],
-    ['20', 'Urea stock as per ePOS machine', `${form.ureaEposQty || '-'} ${form.ureaEposUnit}`.trim()],
-    ['21', 'Urea stock as per ground balance', `${form.ureaGroundQty || '-'} ${form.ureaGroundUnit}`.trim()],
-    ['', 'Urea stock difference', `${ureaDifference.diff} ${form.ureaEposUnit} — ${ureaDifference.status}`],
-    ['22', 'Details of samples drawn', listOrNil(form.sampleRows, 'sample(s)')],
-    ['23', 'Any show-cause notices issued during this year', form.showCauseIssued === 'yes' ? listOrNil(form.showCauseRows, 'notice(s)') : form.showCauseIssued === 'no' ? 'No' : '-'],
-    ['24', 'License suspension date', form.licenceSuspended === 'yes' ? [form.suspensionDate && formatDate(form.suspensionDate), form.suspensionOrderNo && `Order: ${form.suspensionOrderNo}`, form.suspensionRemarks].filter(Boolean).join(' - ') || 'Yes' : form.licenceSuspended === 'no' ? 'No' : '-'],
-    ['25', 'Reasons for suspension', form.licenceSuspended === 'yes' ? form.suspensionReasons || '-' : '-'],
+    [itemNo(10), 'Whether Certificate of Registration (License) displayed prominently or not', statusText(form.certificateDisplayed)],
+    [itemNo(11), 'Whether the dealer has exhibited stock board and the price list', statusText(form.priceListExhibited)],
+    [itemNo(12), 'Whether the license number is mentioned on sales invoices/cash memo', statusText(form.licenceNoOnInvoices)],
+    [itemNo(13), 'Whether the dealer is selling fertilizer other than the fertilizers of Form "O" incorporated in CR', statusText(form.sellingOtherThanFormO)],
+    [itemNo(14), 'Whether biofertilizers, if stocked/sold, are from authorized sources and conform to prescribed specifications and labeling requirements', statusText(form.biofertilizersAuthorized)],
+    [itemNo(15), 'Whether dealer has obtained a certificate confirming the pages in Stock Register and Sale Bill Books', statusText(form.registerPagesCertificate)],
+    [itemNo(16), 'Whether the Stock Register is updated or not', statusText(form.stockRegisterUpdated)],
+    [itemNo(17), 'Whether the ground balance of stocks tallies with the stock register and ePOS, or whether there is any discrepancy', `${statusText(form.groundBalance)}${form.groundBalance.status === 'no' && form.discrepancyRows.length ? `\n${listOrNil(form.discrepancyRows, 'discrepancy/ies')}` : ''}`],
+    [itemNo(18), 'Whether the dealer purchases stocks from approved and authorised sources. Verify the purchase invoices.', `${statusText(form.purchasesFromApprovedSources)}${form.purchaseInvoiceRows.length ? `\n${listOrNil(form.purchaseInvoiceRows, 'invoice(s)')}` : ''}`],
+    [itemNo(19), 'Whether bills are being issued to consumers, duly mentioning the batch number and trade name of fertilizers', statusText(form.billsIssuedWithBatch)],
+    [itemNo(20), 'Whether signature of purchaser is obtained on Sale Bills or not', statusText(form.purchaserSignatureOnBills)],
+    [itemNo(21), 'Whether the Fertilizers are stored as per the provisions of FCO 1985', statusText(form.stocksStoredAsPerAct)],
+    [itemNo(22), 'Whether the dealer / distributor / manufacturer is submitting reports regularly to the licensing officer', statusText(form.reportsSubmitted)],
+    [itemNo(23), 'Any stock is detained for rectifiable violation', `${statusText(form.stockDetained)}${form.stockDetained.status === 'yes' && form.detentionRows.length ? `\n${listOrNil(form.detentionRows, 'stock(s) detained')}` : ''}`],
+    [itemNo(24), 'Major offences committed, if any (give details of seizure of stocks)', `${statusText(form.majorOffences)}${form.majorOffences.status === 'yes' && form.seizureRows.length ? `\n${listOrNil(form.seizureRows, 'stock(s) seized')}` : ''}`],
+    [itemNo(25), 'Details of fertilizer samples drawn', listOrNil(form.sampleRows, 'sample(s)')],
   ];
 
   const subTables: PdfSubTable[] = [];
-  if (form.stockRows.length) subTables.push({ title: 'Item 11 - Stock position at the time of inspection', head: ['Fertilizer', 'Company', 'Grade', 'Opening balance', 'Receipts', 'Sales', 'Closing balance'], body: form.stockRows.map((r) => [r.fertilizer, r.company, r.grade, r.openingBalance, r.receipts, r.sales, r.closingBalance]) });
-  if (form.groundBalance.status === 'no' && form.discrepancyRows.length) subTables.push({ title: 'Item 12 - Discrepancy details', head: ['Product', 'Stock register balance', 'ePOS balance', 'Physical balance', 'Difference', 'Remarks'], body: form.discrepancyRows.map((r) => [r.product, r.registerBalance, r.eposBalance, r.physicalBalance, r.difference, r.remarks]) });
-  if (form.purchaseInvoiceRows.length) subTables.push({ title: 'Item 15 - Purchase invoice verification', head: ['Supplier name', 'Invoice number', 'Invoice date', 'Fertilizer product', 'Quantity', 'Remarks'], body: form.purchaseInvoiceRows.map((r) => [r.supplierName, r.invoiceNo, r.invoiceDate, r.product, r.quantity, r.remarks]) });
-  if (form.sampleRows.length) subTables.push({ title: 'Item 22 - Samples drawn', head: ['Fertilizer product', 'Company', 'Grade', 'Batch number', 'Quantity', 'Unit', 'Sample details'], body: form.sampleRows.map((r) => [r.product, r.company, r.grade, r.batchNo, r.quantity, r.unit, r.sampleDetails]) });
-  if (form.showCauseIssued === 'yes' && form.showCauseRows.length) subTables.push({ title: 'Item 23 - Show-cause notices', head: ['Notice number', 'Date', 'Reason', 'Current status', 'Remarks'], body: form.showCauseRows.map((r) => [r.noticeNo, r.date, r.reason, r.status, r.remarks]) });
+  if (form.groundBalance.status === 'no' && form.discrepancyRows.length) subTables.push({ title: `Item ${itemNo(17)} - Discrepancy details`, head: ['Product', 'Stock register balance', 'ePOS balance', 'Physical balance', 'Variation', 'Remarks'], body: form.discrepancyRows.map((r) => { const e = parseFloat(r.eposBalance); const p = parseFloat(r.physicalBalance); return [r.product, r.registerBalance, r.eposBalance, r.physicalBalance, Number.isNaN(e) || Number.isNaN(p) ? '-' : String(e - p), r.remarks]; }) });
+  if (form.purchaseInvoiceRows.length) subTables.push({ title: `Item ${itemNo(18)} - Purchase invoice verification`, head: ['Supplier name', 'Invoice number', 'Invoice date', 'Fertilizer product', 'Quantity', 'Remarks'], body: form.purchaseInvoiceRows.map((r) => [r.supplierName, r.invoiceNo, r.invoiceDate, r.product, r.quantity, r.remarks]) });
+  if (form.stockDetained.status === 'yes' && form.detentionRows.length) subTables.push({ title: `Item ${itemNo(23)} - Detention details`, head: ['Fertilizer', 'Brand', 'Batch / Lot No.', 'Quantity', 'Reason for Detention', 'Detention Memo No. & Date'], body: form.detentionRows.map((r) => [r.fertilizer, r.brand, r.batchLotNo, r.quantity, r.reasonDetention, r.detentionMemo]) });
+  if (form.majorOffences.status === 'yes' && form.seizureRows.length) subTables.push({ title: `Item ${itemNo(24)} - Stock seized details`, head: ['Fertilizer', 'Brand', 'Batch / Lot No.', 'Quantity Seized', 'Reason / Violation', 'Seizure Memo No. & Date'], body: form.seizureRows.map((r) => [r.fertilizer, r.brand, r.batchLotNo, r.quantitySeized, r.reasonViolation, r.seizureMemo]) });
+  if (form.sampleRows.length) subTables.push({ title: `Item ${itemNo(25)} - Samples drawn`, head: ['Fertilizer', 'Company', 'Batch / Lot No.', 'Quantity', 'Sample details'], body: form.sampleRows.map((r) => [r.product, r.company, r.batchNo, r.quantity, r.sampleDetails]) });
   subTables.push({ title: `Fertilizer sales from 1 April ${financialYearLabel(form.inspectionDate)} to ${formatDate(form.inspectionDate)}`, head: ['Sl. no.', 'Product', 'Opening balance', 'Receipt', 'Total stock', 'Sales', 'Closing balance'], body: [...form.salesRows.map((r, i) => { const o = parseFloat(r.openingBalance) || 0; const rc = parseFloat(r.receipt) || 0; const s = parseFloat(r.sales) || 0; return [String(i + 1), r.product, r.openingBalance, r.receipt, String(o + rc), r.sales, String(o + rc - s)]; }), ['', 'Total', String(salesTotals.opening), String(salesTotals.receipt), String(salesTotals.total), String(salesTotals.sales), String(salesTotals.closing)]] });
   return { items, subTables };
 }
@@ -912,13 +852,9 @@ function buildPdf(form: InspectionForm) {
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 14;
   const bottom = pageHeight - 14;
-  const ureaEpos = parseFloat(form.ureaEposQty) || 0;
-  const ureaGround = parseFloat(form.ureaGroundQty) || 0;
-  const ureaDiff = ureaEpos - ureaGround;
-  const ureaStatus = ureaDiff === 0 ? 'No difference' : ureaDiff > 0 ? 'Shortage' : 'Excess';
   const salesTotals = { opening: 0, receipt: 0, total: 0, sales: 0, closing: 0 };
   form.salesRows.forEach((r) => { const o = parseFloat(r.openingBalance) || 0; const rc = parseFloat(r.receipt) || 0; const s = parseFloat(r.sales) || 0; salesTotals.opening += o; salesTotals.receipt += rc; salesTotals.total += o + rc; salesTotals.sales += s; salesTotals.closing += o + rc - s; });
-  const { items, subTables } = buildRows(form, { diff: ureaDiff, status: ureaStatus }, salesTotals);
+  const { items, subTables } = buildRows(form, salesTotals);
 
   doc.setFont('times', 'bold');
   doc.setFontSize(13);
@@ -1001,8 +937,8 @@ function buildPdf(form: InspectionForm) {
   return doc;
 }
 
-function Preview({ form, ureaDifference, salesTotals }: { form: InspectionForm; ureaDifference: { diff: number; status: string }; salesTotals: { opening: number; receipt: number; total: number; sales: number; closing: number } }) {
-  const { items, subTables } = buildRows(form, ureaDifference, salesTotals);
+function Preview({ form, salesTotals }: { form: InspectionForm; salesTotals: { opening: number; receipt: number; total: number; sales: number; closing: number } }) {
+  const { items, subTables } = buildRows(form, salesTotals);
   return (
     <div className="text-slate-900">
       <h3 className="mb-3 text-center text-base font-black">Fertilizer Dealer Inspection Report</h3>
