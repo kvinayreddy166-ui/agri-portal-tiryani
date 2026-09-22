@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Eye, FileText, Loader2, Plus, RotateCcw, Trash2, X } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
+import { Download, Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
 
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
@@ -156,10 +155,8 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
-  const [cottonPdfData, setCottonPdfData] = useState<string | null>(null);
   const [letterType, setLetterType] = useState<'PMG' | 'BT Protein'>('PMG');
   const [isMobile, setIsMobile] = useState(false);
-  const [isPreviewing, setIsPreviewing] = useState(false);
 
   // Auto-save Covering Letter Details to localStorage and sync with parent
   useEffect(() => {

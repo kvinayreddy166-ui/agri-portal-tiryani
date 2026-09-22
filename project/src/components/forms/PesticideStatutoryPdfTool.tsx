@@ -20,8 +20,6 @@ import {
   TELANGANA_DISTRICTS,
   DESIGNATION_OPTIONS,
   getMandalsForDistrict,
-  getDivisionsForDistrict,
-  getMandalsForDivision,
 } from '../../data/telanganaDistrictMandalData';
 import { effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, withOthersOption, getAssistantDirectorLocationError } from '../../data/assistantDirectorLocation';
 

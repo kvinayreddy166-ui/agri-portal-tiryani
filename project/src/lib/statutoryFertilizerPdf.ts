@@ -1,5 +1,4 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
-import { addGovernmentEmblemWatermark } from './pdfWatermark';
 import { isAssistantDirectorOfAgriculture } from '../data/assistantDirectorLocation';
 
 export type FertilizerStatutoryFormType = 'J' | 'K_ADA' | 'K_JDA' | 'P';
@@ -297,7 +296,7 @@ type PdfCursor = {
 export async function generateFertilizerStatutoryPdf(
   formType: FertilizerStatutoryFormType,
   values: FertilizerPdfValues,
-  watermarkEnabled: boolean = false
+  _watermarkEnabled: boolean = false
 ) {
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, `${fertilizerFormTitles[formType]} - Fertilizer Sampling`);
@@ -316,7 +315,7 @@ export async function generateFertilizerStatutoryPdf(
   return doc;
 }
 
-export async function generateAllFertilizerStatutoryPdf(values: FertilizerPdfValues, watermarkEnabled: boolean = false) {
+export async function generateAllFertilizerStatutoryPdf(values: FertilizerPdfValues, _watermarkEnabled: boolean = false) {
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, 'FORM J K P - Fertilizer Sampling');
 

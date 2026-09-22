@@ -4,16 +4,16 @@ import { ArrowLeft, ChevronDown, ClipboardCheck, Download, Eye, FolderOpen, Plus
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ToastContainer, useToast } from '../components/ui/Toast';
+import { addEmblemImageWatermark } from '../lib/pdfWatermark';
 
 
 type Status = '' | 'yes' | 'no' | 'na';
 type StatusField = { status: Status; remarks: string };
 
 type VariationRow = { productName: string; brandName: string; batchNumber: string; bookStock: string; physicalStock: string; variation: string; remarks: string };
-type DetainedRow = { productName: string; brandName: string; manufacturer: string; batchNumber: string; quantity: string; detentionReason: string; rectificationRequired: string };
-type MajorOffence = { nature: string; description: string; productName: string; brandName: string; manufacturer: string; batchNumber: string; quantity: string; remarks: string };
+type DetainedRow = { productName: string; brandName: string; manufacturer: string; batchNumber: string; quantity: string; detentionReason: string };
 type SeizureRow = { productName: string; brandName: string; manufacturer: string; batchNumber: string; quantity: string; value: string; reason: string };
-type SampleRow = { sampleNumber: string; productName: string; brandName: string; batchNumber: string; manufacturer: string; remarks: string };
+type SampleRow = { tradeName: string; technicalName: string; manufacturer: string; batchNumber: string; quantity: string; date: string };
 
 interface InspectionForm {
   inspectionDate: string;
@@ -22,6 +22,8 @@ interface InspectionForm {
   licenceNo: string;
   sellingPointDoorNo: string;
   storagePointDoorNo: string;
+  premisesSameAsLicence: StatusField;
+  licenceFormIII: StatusField;
   licenceDisplayed: StatusField;
   stockPriceBoard: StatusField;
   stockReportUpdated: StatusField;
@@ -33,16 +35,15 @@ interface InspectionForm {
   purchaseAuthorized: StatusField;
   registerCertificate: StatusField;
   storedAsPerAct: StatusField;
+  expiredSegregated: StatusField;
   stockReportsRegular: StatusField;
+  formDFailedSince: string;
   detained: Status;
   detentionRows: DetainedRow[];
   rectifiableNature: string;
-  recommendedRectification: string;
   majorOffenceCommitted: Status;
-  majorOffences: MajorOffence[];
   seizureRows: SeizureRow[];
   samplesDrawn: Status;
-  sampleCount: string;
   sampleRows: SampleRow[];
   remarks: string;
   inspectorName: string;
@@ -68,10 +69,9 @@ const DESIGNATION_OPTIONS = [
 
 const emptyStatus = (): StatusField => ({ status: '', remarks: '' });
 const emptyVariation = (): VariationRow => ({ productName: '', brandName: '', batchNumber: '', bookStock: '', physicalStock: '', variation: '', remarks: '' });
-const emptyDetained = (): DetainedRow => ({ productName: '', brandName: '', manufacturer: '', batchNumber: '', quantity: '', detentionReason: '', rectificationRequired: '' });
-const emptyOffence = (): MajorOffence => ({ nature: '', description: '', productName: '', brandName: '', manufacturer: '', batchNumber: '', quantity: '', remarks: '' });
+const emptyDetained = (): DetainedRow => ({ productName: '', brandName: '', manufacturer: '', batchNumber: '', quantity: '', detentionReason: '' });
 const emptySeizure = (): SeizureRow => ({ productName: '', brandName: '', manufacturer: '', batchNumber: '', quantity: '', value: '', reason: '' });
-const emptySample = (): SampleRow => ({ sampleNumber: '', productName: '', brandName: '', batchNumber: '', manufacturer: '', remarks: '' });
+const emptySample = (): SampleRow => ({ tradeName: '', technicalName: '', manufacturer: '', batchNumber: '', quantity: '', date: '' });
 
 const initialForm = (): InspectionForm => ({
   inspectionDate: new Date().toISOString().slice(0, 10),
@@ -80,6 +80,8 @@ const initialForm = (): InspectionForm => ({
   licenceNo: '',
   sellingPointDoorNo: '',
   storagePointDoorNo: '',
+  premisesSameAsLicence: emptyStatus(),
+  licenceFormIII: emptyStatus(),
   licenceDisplayed: emptyStatus(),
   stockPriceBoard: emptyStatus(),
   stockReportUpdated: emptyStatus(),
@@ -91,16 +93,15 @@ const initialForm = (): InspectionForm => ({
   purchaseAuthorized: emptyStatus(),
   registerCertificate: emptyStatus(),
   storedAsPerAct: emptyStatus(),
+  expiredSegregated: emptyStatus(),
   stockReportsRegular: emptyStatus(),
+  formDFailedSince: '',
   detained: '',
   detentionRows: [],
   rectifiableNature: '',
-  recommendedRectification: '',
   majorOffenceCommitted: '',
-  majorOffences: [],
   seizureRows: [],
   samplesDrawn: '',
-  sampleCount: '',
   sampleRows: [],
   remarks: '',
   inspectorName: '',
@@ -216,38 +217,39 @@ export function InsecticideDealerInspection() {
     showInfo('Preview ready');
   };
 
-  const generatePdf = () => {
+  const generatePdf = async () => {
     const message = validate();
     setError(message);
     if (message) return;
     const doc = buildPdf(form);
+    await addEmblemImageWatermark(doc);
     doc.save(`Insecticide_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
     showSuccess('PDF downloaded');
   };
 
   const summary = useMemo(() => {
     const statusFields: StatusField[] = [
-      form.licenceDisplayed, form.stockPriceBoard, form.stockReportUpdated, form.stockBalanceTallied,
+      form.premisesSameAsLicence, form.licenceFormIII, form.licenceDisplayed, form.stockPriceBoard, form.stockReportUpdated, form.stockBalanceTallied,
       form.sellingUnlicensed, form.licenceOnInvoices, form.purchaserSignature, form.purchaseAuthorized,
-      form.registerCertificate, form.storedAsPerAct, form.stockReportsRegular,
+      form.registerCertificate, form.storedAsPerAct, form.expiredSegregated, form.stockReportsRegular,
     ];
     const toggles: Status[] = [form.detained, form.majorOffenceCommitted, form.samplesDrawn];
-    const textDone = [form.inspectionDate, form.dealerName, form.licenceNo, form.sellingPointDoorNo, form.storagePointDoorNo].filter((v) => v.trim()).length;
+    const textDone = [form.inspectionDate, form.dealerName].filter((v) => v.trim()).length
+      + ([form.licenceNo, form.sellingPointDoorNo, form.storagePointDoorNo].every((v) => v.trim()) ? 1 : 0);
     const statusDone = statusFields.filter((f) => f.status !== '').length;
     const toggleDone = toggles.filter((s) => s !== '').length;
     const remarksDone = form.remarks.trim() ? 1 : 0;
     const all = [...statusFields.map((f) => f.status), ...toggles];
     return {
-      total: 20,
+      total: 21,
       completed: textDone + statusDone + toggleDone + remarksDone,
       yes: all.filter((s) => s === 'yes').length,
       no: all.filter((s) => s === 'no').length,
       na: all.filter((s) => s === 'na').length,
       variations: form.variationRows.length,
       detained: form.detentionRows.length,
-      offences: form.majorOffences.length,
       seized: form.seizureRows.length,
-      samples: form.samplesDrawn === 'yes' ? form.sampleRows.length || (parseInt(form.sampleCount) || 0) : 0,
+      samples: form.samplesDrawn === 'yes' ? form.sampleRows.length : 0,
     };
   }, [form]);
 
@@ -296,7 +298,7 @@ export function InsecticideDealerInspection() {
         </div>
 
         <div className="space-y-4">
-          <Section id={1} title="Dealer and premises" subtitle="Items 1 to 6" open={openSections[1]} onToggle={toggleSection}>
+          <Section id={1} title="Dealer, License and Premises" subtitle="Items 1 to 6" open={openSections[1]} onToggle={toggleSection}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="1. Date of inspection" type="date" value={form.inspectionDate} onChange={(v) => set('inspectionDate', v)} />
               <Field label="2. Name of the Dealer/Firm" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Dealer / firm name" />
@@ -304,31 +306,31 @@ export function InsecticideDealerInspection() {
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="3. License No" value={form.licenceNo} onChange={(v) => set('licenceNo', v)} placeholder="License number" />
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="4. Selling point door number" value={form.sellingPointDoorNo} onChange={(v) => { set('sellingPointDoorNo', v); if (sameStorageAsSale) set('storagePointDoorNo', v); }} placeholder="D.no, Village, Mandal" />
-              <div>
-                <Field label="5. Storage point door number" value={form.storagePointDoorNo} onChange={(v) => { set('storagePointDoorNo', v); if (sameStorageAsSale) setSameStorageAsSale(false); }} placeholder="D.no, Village, Mandal" />
-                <label className="mt-1.5 inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={sameStorageAsSale}
-                    onChange={(e) => {
-                      setSameStorageAsSale(e.target.checked);
-                      if (e.target.checked) set('storagePointDoorNo', form.sellingPointDoorNo);
-                    }}
-                    className="h-4 w-4 cursor-pointer accent-rose-600"
-                  />
-                  Same as sale point address
-                </label>
-              </div>
+            <div className="grid gap-3">
+              <Field label="3(a). Sale point address" textarea value={form.sellingPointDoorNo} onChange={(v) => { set('sellingPointDoorNo', v); if (sameStorageAsSale) set('storagePointDoorNo', v); }} placeholder="D.no, Village, Mandal" />
+              <label className="-my-1 inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={sameStorageAsSale}
+                  onChange={(e) => {
+                    setSameStorageAsSale(e.target.checked);
+                    if (e.target.checked) set('storagePointDoorNo', form.sellingPointDoorNo);
+                  }}
+                  className="h-4 w-4 shrink-0 cursor-pointer accent-rose-600"
+                />
+                Same as sale point address
+              </label>
+              <Field label="3(b). Storage point address" textarea value={form.storagePointDoorNo} onChange={(v) => { set('storagePointDoorNo', v); if (sameStorageAsSale) setSameStorageAsSale(false); }} placeholder="D.no, Village, Mandal" />
             </div>
-            <StatusInput label="6. Whether the licence is displayed or not" field={form.licenceDisplayed} onChange={(p) => setStatus('licenceDisplayed', p)} remarksWhen="no" />
+            <StatusInput label="4. Whether the sale and stock premises are the same as those mentioned in the license" field={form.premisesSameAsLicence} onChange={(p) => setStatus('premisesSameAsLicence', p)} remarksWhen="no" />
+            <StatusInput label="5. Whether the License is in Form III" field={form.licenceFormIII} onChange={(p) => setStatus('licenceFormIII', p)} remarksWhen="no" />
+            <StatusInput label="6. Whether the license is displayed or not" field={form.licenceDisplayed} onChange={(p) => setStatus('licenceDisplayed', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={2} title="Stock and register verification" subtitle="Items 7 to 9" open={openSections[2]} onToggle={toggleSection}>
-            <StatusInput label="7. Whether stock board and price are exhibited" field={form.stockPriceBoard} onChange={(p) => setStatus('stockPriceBoard', p)} remarksWhen="no" />
+          <Section id={2} title="Stock Verification" subtitle="Items 7 to 9" open={openSections[2]} onToggle={toggleSection}>
+            <StatusInput label="7. Whether stock board and price list are exhibited" field={form.stockPriceBoard} onChange={(p) => setStatus('stockPriceBoard', p)} remarksWhen="no" />
             <StatusInput label="8. Whether the stock report is updated or not" field={form.stockReportUpdated} onChange={(p) => setStatus('stockReportUpdated', p)} remarksWhen="no" />
-            <StatusInput label="9. Whether the stock balance is tallied with the stock register or not? If not, enclose the variation statement" field={form.stockBalanceTallied} onChange={(p) => setStatus('stockBalanceTallied', p)} remarksWhen="no" allowNa={false} />
+            <StatusInput label="9. Whether the stock balance is tallied with the stock register or not? If not, enclose the variation statement" field={form.stockBalanceTallied} onChange={(p) => setStatus('stockBalanceTallied', p)} remarksWhen="never" />
             {form.stockBalanceTallied.status === 'no' && (
               <RowTable<VariationRow>
                 title="Variation statement"
@@ -337,10 +339,10 @@ export function InsecticideDealerInspection() {
                 empty={emptyVariation}
                 addLabel="Add product"
                 columns={[
-                  { key: 'productName', label: 'Product name' },
-                  { key: 'brandName', label: 'Brand name' },
+                  { key: 'productName', label: 'Trade name' },
+                  { key: 'brandName', label: 'Technical name' },
                   { key: 'batchNumber', label: 'Batch number' },
-                  { key: 'bookStock', label: 'Book stock' },
+                  { key: 'bookStock', label: 'Register stock' },
                   { key: 'physicalStock', label: 'Physical stock' },
                   { key: 'variation', label: 'Variation', compute: (r) => {
                     const physical = parseFloat(r.physicalStock);
@@ -354,23 +356,29 @@ export function InsecticideDealerInspection() {
             )}
           </Section>
 
-          <Section id={3} title="Compliance verification" subtitle="Items 10 to 15" open={openSections[3]} onToggle={toggleSection}>
-            <StatusInput label="10. Whether the dealer is selling insecticides other than those included in the licence" field={form.sellingUnlicensed} onChange={(p) => setStatus('sellingUnlicensed', p)} remarksWhen="no" />
-            <StatusInput label="11. Whether the licence number is mentioned on the sales invoices/cash memos or not" field={form.licenceOnInvoices} onChange={(p) => setStatus('licenceOnInvoices', p)} remarksWhen="no" />
-            <StatusInput label="12. Whether the signature of the purchaser is obtained on the sale bill or not" field={form.purchaserSignature} onChange={(p) => setStatus('purchaserSignature', p)} remarksWhen="no" />
-            <StatusInput label="13. Whether the dealer is purchasing stocks from approved and authorized sources or not" field={form.purchaseAuthorized} onChange={(p) => setStatus('purchaseAuthorized', p)} remarksWhen="no" />
+          <Section id={3} title="Compliance Verification" subtitle="Items 10 to 13" open={openSections[3]} onToggle={toggleSection}>
+            <StatusInput label="10. Whether the dealer is selling insecticides other than those included in the license (PC's)" field={form.sellingUnlicensed} onChange={(p) => setStatus('sellingUnlicensed', p)} remarksWhen="yes" />
+            <StatusInput label="11. Whether the license number is mentioned on the sales invoices/cash memos or not" field={form.licenceOnInvoices} onChange={(p) => setStatus('licenceOnInvoices', p)} remarksWhen="no" />
+            <StatusInput label="12. Whether the bills are being issued to the farmer duly mentioning name of insecticide, batch number, expiry & farmer signature" field={form.purchaserSignature} onChange={(p) => setStatus('purchaserSignature', p)} remarksWhen="no" />
+            <StatusInput label="13. Whether the dealer is purchasing stocks from approved and authorized sources (PC) or not (Verify Purchase invoices)" field={form.purchaseAuthorized} onChange={(p) => setStatus('purchaseAuthorized', p)} remarksWhen="no" />
+          </Section>
+
+          <Section id={4} title="Records, Storage and Reporting" subtitle="Items 14 to 17" open={openSections[4]} onToggle={toggleSection}>
             <StatusInput label="14. Whether the dealer has obtained a certificate confirming the pages in the stock register and sale bill books or not" field={form.registerCertificate} onChange={(p) => setStatus('registerCertificate', p)} remarksWhen="no" />
             <StatusInput label="15. Whether the pesticides are stored according to the provisions of the Insecticides Act and the Insecticides Rules" field={form.storedAsPerAct} onChange={(p) => setStatus('storedAsPerAct', p)} remarksWhen="no" />
+            <StatusInput label="16. Whether expired chemicals are segregated or not" field={form.expiredSegregated} onChange={(p) => setStatus('expiredSegregated', p)} remarksWhen="no" />
+            <StatusInput label="17. Whether the dealer is sending stock reports regularly to the Licensing officer or not" field={form.stockReportsRegular} onChange={(p) => { setStatus('stockReportsRegular', p); if (p.status && p.status !== 'no') set('formDFailedSince', ''); }} remarksWhen="no" remarksLabel="Remarks" extra={form.stockReportsRegular.status === 'no' ? (
+              <label className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold tracking-wide text-slate-500 dark:text-slate-400">If no, since when has the dealer failed to submit Form D</span>
+                <input type="date" value={form.formDFailedSince} onChange={(e) => set('formDFailedSince', e.target.value)} className={`${inputClass} sm:w-44`} />
+              </label>
+            ) : null} />
           </Section>
 
-          <Section id={4} title="Reporting and compliance" subtitle="Item 16" open={openSections[4]} onToggle={toggleSection}>
-            <StatusInput label="16. Whether the dealer is sending stock reports regularly or not" field={form.stockReportsRegular} onChange={(p) => setStatus('stockReportsRegular', p)} remarksLabel="Observation" />
-          </Section>
-
-          <Section id={5} title="Detention and seizure" subtitle="Items 17 and 18" open={openSections[5]} onToggle={toggleSection}>
+          <Section id={5} title="Detention and Seizure" subtitle="Items 18 and 19" open={openSections[5]} onToggle={toggleSection}>
             <div>
-              <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">17. Whether any stocks are detained for rectifiable violations</p>
-              <StatusButtons value={form.detained} onChange={(v) => set('detained', v)} allowNa={false} />
+              <p className="mb-1 text-xs font-black tracking-wide text-slate-600 dark:text-slate-300">18. Whether any stocks are detained for rectifiable violations</p>
+              <StatusButtons value={form.detained} onChange={(v) => set('detained', v)} />
             </div>
             {form.detained === 'yes' && (
               <>
@@ -381,63 +389,25 @@ export function InsecticideDealerInspection() {
                   empty={emptyDetained}
                   addLabel="Add stock"
                   columns={[
-                    { key: 'productName', label: 'Product name' },
-                    { key: 'brandName', label: 'Brand name' },
+                    { key: 'productName', label: 'Trade name' },
+                    { key: 'brandName', label: 'Technical name' },
                     { key: 'manufacturer', label: 'Manufacturer' },
                     { key: 'batchNumber', label: 'Batch number' },
                     { key: 'quantity', label: 'Quantity' },
                     { key: 'detentionReason', label: 'Reason for detention' },
-                    { key: 'rectificationRequired', label: 'Rectification required' },
                   ]}
                 />
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field label="Nature of rectifiable violation" value={form.rectifiableNature} onChange={(v) => set('rectifiableNature', v)} placeholder="Nature of violation" />
-                  <Field label="Recommended rectification" value={form.recommendedRectification} onChange={(v) => set('recommendedRectification', v)} placeholder="Recommended rectification" />
                 </div>
               </>
             )}
             <div>
-              <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">18. Whether any major offences have been committed (give details of seizure of stocks)</p>
-              <StatusButtons value={form.majorOffenceCommitted} onChange={(v) => set('majorOffenceCommitted', v)} allowNa={false} />
+              <p className="mb-1 text-xs font-black tracking-wide text-slate-600 dark:text-slate-300">19. Whether any major offences have been committed (give details of seizure of stocks)</p>
+              <StatusButtons value={form.majorOffenceCommitted} onChange={(v) => set('majorOffenceCommitted', v)} />
             </div>
             {form.majorOffenceCommitted === 'yes' && (
               <>
-                <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <p className="text-xs font-bold text-slate-800 dark:text-slate-100">Major offence details</p>
-                    <button type="button" onClick={() => set('majorOffences', [...form.majorOffences, emptyOffence()])} className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1.5 text-xs font-black text-white hover:bg-rose-700">
-                      <Plus className="h-3.5 w-3.5" />
-                      Add offence
-                    </button>
-                  </div>
-                  {form.majorOffences.length === 0 ? (
-                    <p className="text-xs font-semibold text-slate-500">No entries added.</p>
-                  ) : (
-                    <div className="grid gap-2">
-                      {form.majorOffences.map((offence, index) => {
-                        const update = (patch: Partial<MajorOffence>) => set('majorOffences', form.majorOffences.map((o, i) => (i === index ? { ...o, ...patch } : o)));
-                        return (
-                          <div key={index} className="relative rounded-lg border border-slate-200 bg-white p-3 pr-10 dark:border-slate-700 dark:bg-slate-900">
-                            <span className="absolute left-2 top-2 text-[10px] font-black text-slate-400">#{index + 1}</span>
-                            <button type="button" onClick={() => set('majorOffences', form.majorOffences.filter((_, i) => i !== index))} className="absolute right-2 top-2 rounded-md p-1 text-red-500 hover:bg-red-50" aria-label="Remove offence">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                              <Field label="Nature of major offence" value={offence.nature} onChange={(v) => update({ nature: v })} />
-                              <Field label="Product name" value={offence.productName} onChange={(v) => update({ productName: v })} />
-                              <Field label="Detailed description" textarea value={offence.description} onChange={(v) => update({ description: v })} />
-                              <Field label="Brand name" value={offence.brandName} onChange={(v) => update({ brandName: v })} />
-                              <Field label="Manufacturer" value={offence.manufacturer} onChange={(v) => update({ manufacturer: v })} />
-                              <Field label="Batch number" value={offence.batchNumber} onChange={(v) => update({ batchNumber: v })} />
-                              <Field label="Quantity involved" value={offence.quantity} onChange={(v) => update({ quantity: v })} />
-                              <Field label="Remarks" value={offence.remarks} onChange={(v) => update({ remarks: v })} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
                 <RowTable<SeizureRow>
                   title="Details of seizure of stocks"
                   rows={form.seizureRows}
@@ -445,8 +415,8 @@ export function InsecticideDealerInspection() {
                   empty={emptySeizure}
                   addLabel="Add seized stock"
                   columns={[
-                    { key: 'productName', label: 'Product name' },
-                    { key: 'brandName', label: 'Brand name' },
+                    { key: 'productName', label: 'Trade name' },
+                    { key: 'brandName', label: 'Technical name' },
                     { key: 'manufacturer', label: 'Manufacturer' },
                     { key: 'batchNumber', label: 'Batch number' },
                     { key: 'quantity', label: 'Quantity' },
@@ -458,14 +428,13 @@ export function InsecticideDealerInspection() {
             )}
           </Section>
 
-          <Section id={6} title="Insecticide samples" subtitle="Items 19 and 20" open={openSections[6]} onToggle={toggleSection}>
+          <Section id={6} title="Samples and Remarks" subtitle="Items 20 and 21" open={openSections[6]} onToggle={toggleSection}>
             <div>
-              <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">19. Whether any insecticide samples have been drawn</p>
-              <StatusButtons value={form.samplesDrawn} onChange={(v) => set('samplesDrawn', v)} allowNa={false} />
+              <p className="mb-1 text-xs font-black tracking-wide text-slate-600 dark:text-slate-300">20. Details of sample drawn</p>
+              <StatusButtons value={form.samplesDrawn} onChange={(v) => set('samplesDrawn', v)} />
             </div>
             {form.samplesDrawn === 'yes' && (
               <>
-                <Field label="Number of samples drawn" type="number" value={form.sampleCount} onChange={(v) => set('sampleCount', v)} placeholder="e.g. 2" />
                 <RowTable<SampleRow>
                   title="Sample details"
                   rows={form.sampleRows}
@@ -473,17 +442,17 @@ export function InsecticideDealerInspection() {
                   empty={emptySample}
                   addLabel="Add sample"
                   columns={[
-                    { key: 'sampleNumber', label: 'Sample number' },
-                    { key: 'productName', label: 'Product name' },
-                    { key: 'brandName', label: 'Brand name' },
-                    { key: 'batchNumber', label: 'Batch number' },
+                    { key: 'tradeName', label: 'Trade name' },
+                    { key: 'technicalName', label: 'Technical name' },
                     { key: 'manufacturer', label: 'Manufacturer' },
-                    { key: 'remarks', label: 'Remarks' },
+                    { key: 'batchNumber', label: 'Batch no.' },
+                    { key: 'quantity', label: 'Quantity' },
+                    { key: 'date', label: 'Date' },
                   ]}
                 />
               </>
             )}
-            <Field label="20. Remarks" textarea value={form.remarks} onChange={(v) => set('remarks', v)} placeholder="Enter additional observations or remarks..." />
+            <Field label="21. Remarks" textarea value={form.remarks} onChange={(v) => set('remarks', v)} placeholder="Enter additional observations or remarks..." />
           </Section>
         </div>
 
@@ -497,15 +466,13 @@ export function InsecticideDealerInspection() {
             <SummaryChip label="N/A" value={summary.na} />
             <SummaryChip label="Variations" value={summary.variations} />
             <SummaryChip label="Detained" value={summary.detained} />
-            <SummaryChip label="Offences" value={summary.offences} />
             <SummaryChip label="Seized" value={summary.seized} />
             <SummaryChip label="Samples" value={summary.samples} />
           </div>
-        </div>
-
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
-          <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
-          <ActionButton onClick={generatePdf} icon={Download} tone="rose">PDF</ActionButton>
+          <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-rose-100 pt-3 dark:border-rose-900/40">
+            <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
+            <ActionButton onClick={generatePdf} icon={Download} tone="rose">PDF</ActionButton>
+          </div>
         </div>
       </div>
 
@@ -574,7 +541,7 @@ function Section({ id, title, subtitle, open, onToggle, children }: { id: number
 }
 
 const inputClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-rose-400 focus:bg-white focus:ring-4 focus:ring-rose-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white';
-const labelClass = 'mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300';
+const labelClass = 'mb-0.5 block text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300';
 
 function Field({ label, value, onChange, type = 'text', textarea = false, placeholder = '', options, helper = '' }: { label: string; value: string; onChange: (v: string) => void; type?: string; textarea?: boolean; placeholder?: string; options?: string[]; helper?: string }) {
   return (
@@ -617,13 +584,14 @@ function StatusButtons({ value, onChange, allowNa = true }: { value: Status; onC
   );
 }
 
-function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarksWhen = 'answered', allowNa = true }: { label: string; field: StatusField; onChange: (patch: Partial<StatusField>) => void; remarksLabel?: string; remarksWhen?: 'answered' | 'no'; allowNa?: boolean }) {
-  const showRemarks = remarksWhen === 'no' ? field.status === 'no' : Boolean(field.status) && field.status !== 'na';
+function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarksWhen = 'answered', allowNa = true, extra }: { label: string; field: StatusField; onChange: (patch: Partial<StatusField>) => void; remarksLabel?: string; remarksWhen?: 'answered' | 'yes' | 'no' | 'never'; allowNa?: boolean; extra?: React.ReactNode }) {
+  const showRemarks = remarksWhen === 'never' ? false : remarksWhen === 'answered' ? Boolean(field.status) && field.status !== 'na' : field.status === remarksWhen;
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
       <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">{label}</p>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-        <StatusButtons value={field.status} onChange={(status) => onChange(remarksWhen === 'no' && status !== 'no' ? { status, remarks: '' } : { status })} allowNa={allowNa} />
+        <StatusButtons value={field.status} onChange={(status) => onChange(remarksWhen !== 'answered' && status !== remarksWhen ? { status, remarks: '' } : { status })} allowNa={allowNa} />
+        {extra}
         {showRemarks && (
           <input value={field.remarks} onChange={(e) => onChange({ remarks: e.target.value })} placeholder={remarksLabel} className={`${inputClass} sm:flex-1`} />
         )}
@@ -724,59 +692,55 @@ function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSub
     ['1', 'Date of inspection', formatDate(form.inspectionDate)],
     ['2', 'Name of the Dealer/Firm', form.dealerName || '-'],
     ['3', 'License No', form.licenceNo || '-'],
-    ['4', 'Selling point door number', form.sellingPointDoorNo || '-'],
-    ['5', 'Storage point door number', form.storagePointDoorNo || '-'],
-    ['6', 'Whether the licence is displayed or not', statusText(form.licenceDisplayed)],
-    ['7', 'Whether stock board and price are exhibited', statusText(form.stockPriceBoard)],
+    ['3(a)', 'Sale point address', form.sellingPointDoorNo || '-'],
+    ['3(b)', 'Storage point address', form.storagePointDoorNo || '-'],
+    ['4', 'Whether the sale and stock premises are the same as those mentioned in the license', statusText(form.premisesSameAsLicence)],
+    ['5', 'Whether the License is in Form III', statusText(form.licenceFormIII)],
+    ['6', 'Whether the license is displayed or not', statusText(form.licenceDisplayed)],
+    ['7', 'Whether stock board and price list are exhibited', statusText(form.stockPriceBoard)],
     ['8', 'Whether the stock report is updated or not', statusText(form.stockReportUpdated)],
     ['9', 'Whether the stock balance is tallied with the stock register or not? If not, enclose the variation statement', `${statusText(form.stockBalanceTallied)}${form.stockBalanceTallied.status === 'no' && form.variationRows.length ? `\n${listOrNil(form.variationRows, 'variation(s)')}` : ''}`],
-    ['10', 'Whether the dealer is selling insecticides other than those included in the licence', statusText(form.sellingUnlicensed)],
-    ['11', 'Whether the licence number is mentioned on the sales invoices/cash memos or not', statusText(form.licenceOnInvoices)],
-    ['12', 'Whether the signature of the purchaser is obtained on the sale bill or not', statusText(form.purchaserSignature)],
-    ['13', 'Whether the dealer is purchasing stocks from approved and authorized sources or not', statusText(form.purchaseAuthorized)],
+    ['10', "Whether the dealer is selling insecticides other than those included in the license (PC's)", statusText(form.sellingUnlicensed)],
+    ['11', 'Whether the license number is mentioned on the sales invoices/cash memos or not', statusText(form.licenceOnInvoices)],
+    ['12', 'Whether the bills are being issued to the farmer duly mentioning name of insecticide, batch number, expiry & farmer signature', statusText(form.purchaserSignature)],
+    ['13', 'Whether the dealer is purchasing stocks from approved and authorized sources (PC) or not (Verify Purchase invoices)', statusText(form.purchaseAuthorized)],
     ['14', 'Whether the dealer has obtained a certificate confirming the pages in the stock register and sale bill books or not', statusText(form.registerCertificate)],
     ['15', 'Whether the pesticides are stored according to the provisions of the Insecticides Act and the Insecticides Rules', statusText(form.storedAsPerAct)],
-    ['16', 'Whether the dealer is sending stock reports regularly or not', statusText(form.stockReportsRegular)],
-    ['17', 'Whether any stocks are detained for rectifiable violations', `${toggleText(form.detained, form.detentionRows, 'stock(s) detained')}${form.detained === 'yes' && form.rectifiableNature.trim() ? `\nNature: ${form.rectifiableNature.trim()}` : ''}${form.detained === 'yes' && form.recommendedRectification.trim() ? `\nRectification: ${form.recommendedRectification.trim()}` : ''}`],
-    ['18', 'Whether any major offences have been committed (give details of seizure of stocks)', form.majorOffenceCommitted === 'yes' ? [form.majorOffences.length ? `${form.majorOffences.length} major offence(s)` : '', form.seizureRows.length ? `${form.seizureRows.length} seized stock(s)` : ''].filter(Boolean).join('; ') || 'Yes' : form.majorOffenceCommitted === 'no' ? 'No' : '-'],
-    ['19', 'Whether any insecticide samples have been drawn', toggleText(form.samplesDrawn, form.sampleRows, 'sample(s)')],
-    ['20', 'Remarks', form.remarks.trim() || '-'],
+    ['16', 'Whether expired chemicals are segregated or not', statusText(form.expiredSegregated)],
+    ['17', 'Whether the dealer is sending stock reports regularly to the Licensing officer or not', [statusText(form.stockReportsRegular), form.stockReportsRegular.status === 'no' && form.formDFailedSince ? `Failed to submit Form D since ${formatDate(form.formDFailedSince)}` : ''].filter(Boolean).join(' - ')],
+    ['18', 'Whether any stocks are detained for rectifiable violations', `${toggleText(form.detained, form.detentionRows, 'stock(s) detained')}${form.detained === 'yes' && form.rectifiableNature.trim() ? `\nNature: ${form.rectifiableNature.trim()}` : ''}`],
+    ['19', 'Whether any major offences have been committed (give details of seizure of stocks)', form.majorOffenceCommitted === 'yes' ? (form.seizureRows.length ? `${form.seizureRows.length} seized stock(s)` : 'Yes') : form.majorOffenceCommitted === 'no' ? 'No' : form.majorOffenceCommitted === 'na' ? 'N/A' : '-'],
+    ['20', 'Details of sample drawn', toggleText(form.samplesDrawn, form.sampleRows, 'sample(s)')],
+    ['21', 'Remarks', form.remarks.trim() || '-'],
   ];
 
   const subTables: PdfSubTable[] = [];
   if (form.stockBalanceTallied.status === 'no' && form.variationRows.length) {
     subTables.push({
       title: 'Annexure - Variation statement (Item 9)',
-      head: ['Sl. No.', 'Product name', 'Brand name', 'Batch number', 'Book stock', 'Physical stock', 'Variation', 'Remarks'],
+      head: ['Sl. No.', 'Trade name', 'Technical name', 'Batch number', 'Register stock', 'Physical stock', 'Variation', 'Remarks'],
       body: form.variationRows.map((r, i) => [String(i + 1), r.productName, r.brandName, r.batchNumber, r.bookStock, r.physicalStock, r.variation, r.remarks]),
     });
   }
   if (form.detained === 'yes' && form.detentionRows.length) {
     subTables.push({
-      title: 'Annexure - Details of stocks detained for rectifiable violations (Item 17)',
-      head: ['Sl. No.', 'Product name', 'Brand name', 'Manufacturer', 'Batch number', 'Quantity', 'Reason for detention', 'Rectification required'],
-      body: form.detentionRows.map((r, i) => [String(i + 1), r.productName, r.brandName, r.manufacturer, r.batchNumber, r.quantity, r.detentionReason, r.rectificationRequired]),
-    });
-  }
-  if (form.majorOffenceCommitted === 'yes' && form.majorOffences.length) {
-    subTables.push({
-      title: 'Annexure - Major offence details (Item 18)',
-      head: ['Sl. No.', 'Nature of offence', 'Description', 'Product name', 'Brand name', 'Manufacturer', 'Batch number', 'Quantity', 'Remarks'],
-      body: form.majorOffences.map((r, i) => [String(i + 1), r.nature, r.description, r.productName, r.brandName, r.manufacturer, r.batchNumber, r.quantity, r.remarks]),
+      title: 'Annexure - Details of stocks detained for rectifiable violations (Item 18)',
+      head: ['Sl. No.', 'Trade name', 'Technical name', 'Manufacturer', 'Batch number', 'Quantity', 'Reason for detention'],
+      body: form.detentionRows.map((r, i) => [String(i + 1), r.productName, r.brandName, r.manufacturer, r.batchNumber, r.quantity, r.detentionReason]),
     });
   }
   if (form.majorOffenceCommitted === 'yes' && form.seizureRows.length) {
     subTables.push({
-      title: 'Annexure - Details of seizure of stocks (Item 18)',
-      head: ['Sl. No.', 'Product name', 'Brand name', 'Manufacturer', 'Batch number', 'Quantity', 'Value', 'Reason for seizure'],
+      title: 'Annexure - Details of seizure of stocks (Item 19)',
+      head: ['Sl. No.', 'Trade name', 'Technical name', 'Manufacturer', 'Batch number', 'Quantity', 'Value', 'Reason for seizure'],
       body: form.seizureRows.map((r, i) => [String(i + 1), r.productName, r.brandName, r.manufacturer, r.batchNumber, r.quantity, r.value, r.reason]),
     });
   }
   if (form.samplesDrawn === 'yes' && form.sampleRows.length) {
     subTables.push({
-      title: 'Item 19 - Insecticide samples drawn',
-      head: ['Sl. No.', 'Sample number', 'Product name', 'Brand name', 'Batch number', 'Manufacturer', 'Remarks'],
-      body: form.sampleRows.map((r, i) => [String(i + 1), r.sampleNumber, r.productName, r.brandName, r.batchNumber, r.manufacturer, r.remarks]),
+      title: 'Item 20 - Insecticide samples drawn',
+      head: ['Sl. No.', 'Trade name', 'Technical name', 'Manufacturer', 'Batch no.', 'Quantity', 'Date'],
+      body: form.sampleRows.map((r, i) => [String(i + 1), r.tradeName, r.technicalName, r.manufacturer, r.batchNumber, r.quantity, r.date]),
     });
   }
   return { items, subTables };

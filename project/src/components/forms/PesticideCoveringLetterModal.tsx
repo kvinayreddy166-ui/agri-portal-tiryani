@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Download, Eye, FileText, Loader2, Plus, RotateCcw, Trash2, X } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
+import { Download, Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isCombinationProductFromActiveIngredient } from '../../lib/statutoryPesticidePdf';
 import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
 

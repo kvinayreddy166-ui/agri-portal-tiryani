@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, FileSpreadsheet, Plus, RefreshCw, Search, Trash2, Upload, Phone, User, Building2 } from 'lucide-react';
+import { CheckCircle2, Plus, RefreshCw, Search, Trash2, Upload, Phone, User, Building2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 type OfficerType = 'AEO' | 'MAO' | 'ADA' | 'DAO';
@@ -64,7 +64,7 @@ export function OfficerContactsAdmin() {
       if (error) throw error;
       setContacts(data || []);
     } catch (error) {
-      setErrorMessage(error.message || 'Failed to load contacts');
+      setErrorMessage((error instanceof Error ? error.message : "") || 'Failed to load contacts');
     } finally {
       setLoading(false);
     }
@@ -149,7 +149,7 @@ export function OfficerContactsAdmin() {
       setStatusMessage('Contact saved successfully');
       await loadContacts();
     } catch (error) {
-      setErrorMessage(error.message || 'Failed to save contact');
+      setErrorMessage((error instanceof Error ? error.message : "") || 'Failed to save contact');
     } finally {
       setBusy(false);
     }
@@ -166,7 +166,7 @@ export function OfficerContactsAdmin() {
       setStatusMessage('Contact deleted successfully');
       await loadContacts();
     } catch (error) {
-      setErrorMessage(error.message || 'Failed to delete contact');
+      setErrorMessage((error instanceof Error ? error.message : "") || 'Failed to delete contact');
     }
   };
 
@@ -228,7 +228,7 @@ export function OfficerContactsAdmin() {
       setShowImportModal(false);
       await loadContacts();
     } catch (error) {
-      setErrorMessage(error.message || 'Failed to import contacts');
+      setErrorMessage((error instanceof Error ? error.message : "") || 'Failed to import contacts');
     } finally {
       setBusy(false);
     }

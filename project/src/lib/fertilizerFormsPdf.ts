@@ -1,6 +1,5 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import type { FertilizerFormEntry } from '../data/fertilizerForms';
-import { addGovernmentEmblemWatermark } from './pdfWatermark';
 
 export type FertilizerFormPdfValues = {
   officerName: string;

@@ -115,7 +115,7 @@ export function DealerHistory() {
       console.error(error);
       setReceipts([]);
     } else {
-      setReceipts((data || []) as DealerReceipt[]);
+      setReceipts((data || []) as unknown as DealerReceipt[]);
     }
   }, [dealerId]);
 
@@ -326,6 +326,7 @@ export function DealerHistory() {
     }));
 
     const totalColumns = ['Opening Stock', 'Received Quantity', 'Sold Quantity', 'Closing Stock'];
+    const workbook = XLSX.utils.book_new();
     appendSheetWithTotals(workbook, 'Stock Receipts Sales', exportRows, totalColumns, 'Date');
     appendSummarySheet(workbook, 'Dealer Stock History Summary', [
       ['Firm Name', dealerProfile?.dealer_name || dealerName || ''],
@@ -344,7 +345,6 @@ export function DealerHistory() {
       ['Total Closing Stock', totalValue(exportRows, 'Closing Stock')],
       ['Generated On', new Date().toLocaleString('en-IN')],
     ]);
-    const workbook = XLSX.utils.book_new();
   };
 
   const handleSort = (field: 'date' | 'product_type' | 'quantity_mts') => {

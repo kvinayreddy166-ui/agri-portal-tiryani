@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FileChild } from 'docx';
-import { ChevronDown, Download, Edit3, FileText, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Download, Edit3, FileText, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear, financialYearForDate } from '../utils/financialYear';
 import { isAssistantDirectorOfAgriculture, statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../data/assistantDirectorLocation';
 import {
@@ -13,6 +13,7 @@ import {
   type NoticeCategory,
   type ShowCauseViolation,
 } from '../data/showCauseViolationData';
+import { addEmblemImageWatermark } from '../lib/pdfWatermark';
 
 type NoticeStatus = 'Draft' | 'Issued' | 'Explanation Received' | 'Closed' | 'Action Proposed';
 
@@ -850,6 +851,13 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const resetNotice = () => {
+    if (!window.confirm('Reset the form? Unsaved entries will be lost.')) return;
+    setForm(makeInitialForm(lockedCategory ?? form.category));
+    setShowProductDetails(false);
+    setShowNoticePreview(false);
+  };
+
   const deleteSavedNotice = (notice: SavedNotice) => {
     if (!window.confirm(`Delete saved notice "${notice.memoNumber || 'Untitled'}"?`)) return;
     setSavedNotices((current) => current.filter((item) => item.id !== notice.id));
@@ -1057,6 +1065,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
   const downloadPdf = async () => {
     const doc = await buildNoticePdfDoc();
+    await addEmblemImageWatermark(doc);
     doc.save(noticeFileName());
   };
 
@@ -1093,22 +1102,28 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
         </div>
       )}
 
-          {!lockedCategory && (
-          <div className="inline-flex flex-wrap rounded-lg border border-white bg-white p-1 shadow-sm">
-            {noticeCategoryConfigs.map((item) => (
-              <button
-                key={item.category}
-                type="button"
-                onClick={() => changeCategory(item.category)}
-                className={`rounded-md px-3 py-2 text-sm font-black transition ${
-                  form.category === item.category ? `${config.theme.button} text-white` : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                {item.tabLabel}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {!lockedCategory ? (
+            <div className="inline-flex flex-wrap rounded-lg border border-white bg-white p-1 shadow-sm">
+              {noticeCategoryConfigs.map((item) => (
+                <button
+                  key={item.category}
+                  type="button"
+                  onClick={() => changeCategory(item.category)}
+                  className={`rounded-md px-3 py-2 text-sm font-black transition ${
+                    form.category === item.category ? `${config.theme.button} text-white` : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {item.tabLabel}
+                </button>
+              ))}
+            </div>
+            ) : <span />}
+            <button type="button" onClick={resetNotice} className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-black text-red-700 hover:bg-red-50">
+              <RotateCcw className="h-4 w-4" />
+              Reset
+            </button>
           </div>
-          )}
 
           <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
             <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700">Officer Details</h3>
@@ -1279,11 +1294,11 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={previewNotice} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-black text-white shadow-sm ${config.theme.button}`}>
               <FileText className="h-4 w-4" />
-              {config.previewButtonLabel}
+              Preview
             </button>
             <button type="button" onClick={saveNotice} className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-black text-white shadow-sm hover:bg-slate-900">
               <Save className="h-4 w-4" />
-              Save Entry
+              Save
             </button>
             <button type="button" onClick={downloadPdf} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
               <Download className="h-4 w-4" />

@@ -1,5 +1,4 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
-import { addGovernmentEmblemWatermark } from './pdfWatermark';
 import { statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
 
 export type PesticideStatutoryFormType = 'VC' | 'VD' | 'VE' | 'DOCKET';
@@ -502,7 +501,7 @@ type PdfCursor = {
   contentWidth: number;
 };
 
-export async function generatePesticideStatutoryPdf(formType: PesticideStatutoryFormType, values: PesticidePdfValues, watermarkEnabled: boolean = false) {
+export async function generatePesticideStatutoryPdf(formType: PesticideStatutoryFormType, values: PesticidePdfValues, _watermarkEnabled: boolean = false) {
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, `${pesticideFormTitles[formType]} - Pesticide Sampling`);
   await drawWatermark(doc);
@@ -510,7 +509,7 @@ export async function generatePesticideStatutoryPdf(formType: PesticideStatutory
   return doc;
 }
 
-export async function generateAllPesticideStatutoryPdf(values: PesticidePdfValues, watermarkEnabled: boolean = false) {
+export async function generateAllPesticideStatutoryPdf(values: PesticidePdfValues, _watermarkEnabled: boolean = false) {
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, 'Form VC VD VE Docket - Pesticide Sampling');
   const normalized = normalizePesticideValues(values);

@@ -1,6 +1,5 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
-import { addGovernmentEmblemWatermark } from './pdfWatermark';
 import { isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
 import { drawJustifiedBodyText } from './pdfText';
 
@@ -79,7 +78,7 @@ export async function generateSeedCoveringLetterPdf(
   queue: SeedCoveringLetterQueueItem[],
   metadata: SeedCoveringLetterMetadata,
   officerDetails?: OfficerDetails,
-  watermarkEnabled: boolean = false,
+  _watermarkEnabled: boolean = false,
   laboratoryAddress?: string
 ) {
   const { jsPDF } = await import('jspdf');
@@ -392,7 +391,7 @@ function drawSalutation(cursor: PdfCursor) {
   doc.text('Sir/Madam,', PAGE.marginLeft, cursor.y);
 }
 
-function drawSubject(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata, queue?: SeedCoveringLetterQueueItem[]) {
+function drawSubject(cursor: PdfCursor, _metadata: SeedCoveringLetterMetadata, queue?: SeedCoveringLetterQueueItem[]) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');

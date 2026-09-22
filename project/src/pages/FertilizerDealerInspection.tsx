@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronDown, ClipboardCheck, Download, Eye, FolderOpen, Plus
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ToastContainer, useToast } from '../components/ui/Toast';
+import { addEmblemImageWatermark } from '../lib/pdfWatermark';
 
 
 type Status = '' | 'yes' | 'no' | 'na';
@@ -11,11 +12,11 @@ type StatusField = { status: Status; remarks: string };
 
 type DiscrepancyRow = { product: string; registerBalance: string; eposBalance: string; physicalBalance: string; difference: string; remarks: string };
 type SampleRow = { product: string; company: string; batchNo: string; quantity: string; sampleDetails: string };
-type SeizureRow = { fertilizer: string; brand: string; batchLotNo: string; quantitySeized: string; reasonViolation: string; seizureMemo: string };
-type DetentionRow = { fertilizer: string; brand: string; batchLotNo: string; quantity: string; reasonDetention: string; detentionMemo: string };
+type SeizureRow = { fertilizer: string; batchLotNo: string; quantitySeized: string; reasonViolation: string; seizureMemo: string };
+type DetentionRow = { fertilizer: string; batchLotNo: string; quantity: string; reasonDetention: string; detentionMemo: string };
 type PurchaseInvoiceRow = { supplierName: string; invoiceNo: string; invoiceDate: string; product: string; quantity: string; remarks: string };
 
-type SalesRow = { product: string; openingBalance: string; receipt: string; sales: string };
+type StockRow = { product: string; currentStock: string };
 
 interface InspectionForm {
   inspectionDate: string;
@@ -48,13 +49,15 @@ interface InspectionForm {
   purchaserSignatureOnBills: StatusField;
   stocksStoredAsPerAct: StatusField;
   reportsSubmitted: StatusField;
+  formDFailedSince: string;
   stockDetained: StatusField;
   detentionRows: DetentionRow[];
   seizureRows: SeizureRow[];
   majorOffences: StatusField;
   sampleRows: SampleRow[];
-  salesRows: SalesRow[];
-  salesUnit: string;
+  stockRows: StockRow[];
+  stockUnit: string;
+  remarks: string;
   inspectorName: string;
   inspectorDesignation: string;
   inspectorOffice: string;
@@ -80,12 +83,12 @@ const DESIGNATION_OPTIONS = [
 const emptyStatus = (): StatusField => ({ status: '', remarks: '' });
 const emptyDiscrepancy = (): DiscrepancyRow => ({ product: '', registerBalance: '', eposBalance: '', physicalBalance: '', difference: '', remarks: '' });
 const emptySample = (): SampleRow => ({ product: '', company: '', batchNo: '', quantity: '', sampleDetails: '' });
-const emptySeizure = (): SeizureRow => ({ fertilizer: '', brand: '', batchLotNo: '', quantitySeized: '', reasonViolation: '', seizureMemo: '' });
-const emptyDetention = (): DetentionRow => ({ fertilizer: '', brand: '', batchLotNo: '', quantity: '', reasonDetention: '', detentionMemo: '' });
+const emptySeizure = (): SeizureRow => ({ fertilizer: '', batchLotNo: '', quantitySeized: '', reasonViolation: '', seizureMemo: '' });
+const emptyDetention = (): DetentionRow => ({ fertilizer: '', batchLotNo: '', quantity: '', reasonDetention: '', detentionMemo: '' });
 const emptyPurchaseInvoice = (): PurchaseInvoiceRow => ({ supplierName: '', invoiceNo: '', invoiceDate: '', product: '', quantity: '', remarks: '' });
 
-const SALES_PRODUCTS = ['Urea', 'DAP', 'MOP', 'SSP', 'Complex'];
-const emptySalesRow = (product: string): SalesRow => ({ product, openingBalance: '', receipt: '', sales: '' });
+const STOCK_PRODUCTS = ['Urea', 'DAP', 'MOP', 'SSP', 'Complex'];
+const emptyStockRow = (product: string): StockRow => ({ product, currentStock: '' });
 
 const initialForm = (): InspectionForm => ({
   inspectionDate: new Date().toISOString().slice(0, 10),
@@ -116,13 +119,15 @@ const initialForm = (): InspectionForm => ({
   purchaserSignatureOnBills: emptyStatus(),
   stocksStoredAsPerAct: emptyStatus(),
   reportsSubmitted: emptyStatus(),
+  formDFailedSince: '',
   stockDetained: emptyStatus(),
   detentionRows: [],
   seizureRows: [],
   majorOffences: emptyStatus(),
   sampleRows: [],
-  salesRows: SALES_PRODUCTS.map((p) => emptySalesRow(p)),
-  salesUnit: 'Bags',
+  stockRows: STOCK_PRODUCTS.map((p) => emptyStockRow(p)),
+  stockUnit: 'Bags',
+  remarks: '',
   inspectorName: '',
   inspectorDesignation: '',
   inspectorOffice: '',
@@ -137,7 +142,7 @@ function loadForm(): InspectionForm {
     return {
       ...base,
       ...parsed,
-      salesRows: SALES_PRODUCTS.map((_, i) => parsed.salesRows?.[i] ?? base.salesRows[i]),
+      stockRows: STOCK_PRODUCTS.map((p, i) => ({ product: p, currentStock: parsed.stockRows?.[i]?.currentStock ?? '' })),
     };
   } catch {
     return initialForm();
@@ -170,14 +175,6 @@ function formatDate(value: string) {
 function statusText(field: StatusField) {
   const label = statusLabel(field.status);
   return [label, field.remarks.trim()].filter(Boolean).join(' - ') || '-';
-}
-
-function financialYearLabel(inspectionDate: string) {
-  if (!inspectionDate) return '';
-  const [y, m] = inspectionDate.split('-').map(Number);
-  if (!y || !m) return '';
-  const startYear = m >= 4 ? y : y - 1;
-  return `${startYear}`;
 }
 
 export function FertilizerDealerInspection() {
@@ -251,22 +248,17 @@ export function FertilizerDealerInspection() {
     showInfo('Preview ready');
   };
 
-  const generatePdf = () => {
+  const generatePdf = async () => {
     const message = validate();
     setError(message);
     if (message) return;
     const doc = buildPdf(form);
+    await addEmblemImageWatermark(doc);
     doc.save(`Fertilizer_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
     showSuccess('PDF downloaded');
   };
 
-  const salesTotals = useMemo(() => {
-    const sum = (key: keyof SalesRow) => form.salesRows.reduce((acc, r) => acc + (parseFloat(r[key]) || 0), 0);
-    const opening = sum('openingBalance');
-    const receipt = sum('receipt');
-    const sales = sum('sales');
-    return { opening, receipt, total: opening + receipt, sales, closing: opening + receipt - sales };
-  }, [form.salesRows]);
+  const stockTotal = useMemo(() => form.stockRows.reduce((acc, r) => acc + (parseFloat(r.currentStock) || 0), 0), [form.stockRows]);
 
   const summary = useMemo(() => {
     const statusFields: StatusField[] = [
@@ -280,10 +272,11 @@ export function FertilizerDealerInspection() {
     ].filter((v) => v.trim()).length;
     const statusDone = statusFields.filter((f) => f.status !== '').length;
     const samplesDone = form.sampleRows.length ? 1 : 0;
+    const remarksDone = form.remarks.trim() ? 1 : 0;
     const all = statusFields.map((f) => f.status);
     return {
-      total: form.includeMfmsDetails ? 25 : 20,
-      completed: textDone + statusDone + samplesDone,
+      total: form.includeMfmsDetails ? 26 : 21,
+      completed: textDone + statusDone + samplesDone + remarksDone,
       yes: all.filter((s) => s === 'yes').length,
       no: all.filter((s) => s === 'no').length,
       na: all.filter((s) => s === 'na').length,
@@ -340,7 +333,7 @@ export function FertilizerDealerInspection() {
         </div>
 
         <div className="space-y-4">
-          <Section id={1} title="Dealer details and premises" subtitle="Items 1 to 4" open={openSections[1]} onToggle={toggleSection}>
+          <Section id={1} title="Dealer Details and Premises" subtitle="Items 1 to 4" open={openSections[1]} onToggle={toggleSection}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="1. Date of inspection" type="date" value={form.inspectionDate} onChange={(v) => set('inspectionDate', v)} />
               <Field label="2. Name of the Dealer/Distributor" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Firm / dealer name" />
@@ -354,29 +347,27 @@ export function FertilizerDealerInspection() {
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
               <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">3. Address</p>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3">
                 <Field label="3(a). Sale point address" textarea value={form.salePointAddress} onChange={(v) => { set('salePointAddress', v); if (sameStorageAsSale) set('storagePointAddress', v); }} placeholder="D.no, Village, Mandal" />
-                <div>
-                  <Field label="3(b). Storage point address" textarea value={form.storagePointAddress} onChange={(v) => { set('storagePointAddress', v); if (sameStorageAsSale) setSameStorageAsSale(false); }} placeholder="D.no, Village, Mandal" />
-                  <label className="mt-1.5 inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={sameStorageAsSale}
-                      onChange={(e) => {
-                        setSameStorageAsSale(e.target.checked);
-                        if (e.target.checked) set('storagePointAddress', form.salePointAddress);
-                      }}
-                      className="h-4 w-4 cursor-pointer accent-sky-600"
-                    />
-                    Same as sale point address
-                  </label>
-                </div>
+                <label className="-my-1 inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={sameStorageAsSale}
+                    onChange={(e) => {
+                      setSameStorageAsSale(e.target.checked);
+                      if (e.target.checked) set('storagePointAddress', form.salePointAddress);
+                    }}
+                    className="h-4 w-4 shrink-0 cursor-pointer accent-sky-600"
+                  />
+                  Same as sale point address
+                </label>
+                <Field label="3(b). Storage point address" textarea value={form.storagePointAddress} onChange={(v) => { set('storagePointAddress', v); if (sameStorageAsSale) setSameStorageAsSale(false); }} placeholder="D.no, Village, Mandal" />
               </div>
             </div>
             <StatusInput label="4. Whether the sale and stock premises are the same as those mentioned in the license" field={form.premisesSameAsLicence} onChange={(p) => setStatus('premisesSameAsLicence', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={2} title="mFMS and digital details" subtitle={form.includeMfmsDetails ? 'Items 5 to 9 · Optional' : 'Items 5 to 9 · Disabled — excluded from report'} open={openSections[2]} onToggle={toggleSection}>
+          <Section id={2} title="mFMS and Digital Details" subtitle={form.includeMfmsDetails ? 'Items 5 to 9 · Optional' : 'Items 5 to 9 · Disabled — excluded from report'} open={openSections[2]} onToggle={toggleSection}>
             <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-xs font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-100">
               <input
                 type="checkbox"
@@ -399,7 +390,7 @@ export function FertilizerDealerInspection() {
             )}
           </Section>
 
-          <Section id={3} title="License compliance" subtitle={`Items ${itemNo(10)} to ${itemNo(14)}`} open={openSections[3]} onToggle={toggleSection}>
+          <Section id={3} title="License Compliance" subtitle={`Items ${itemNo(10)} to ${itemNo(14)}`} open={openSections[3]} onToggle={toggleSection}>
             <StatusInput label={`${itemNo(10)}. Whether Certificate of Registration (License) displayed prominently or not`} field={form.certificateDisplayed} onChange={(p) => setStatus('certificateDisplayed', p)} remarksWhen="no" />
             <StatusInput label={`${itemNo(11)}. Whether the dealer has exhibited stock board and the price list`} field={form.priceListExhibited} onChange={(p) => setStatus('priceListExhibited', p)} remarksWhen="no" />
             <StatusInput label={`${itemNo(12)}. Whether the license number is mentioned on sales invoices/cash memo`} field={form.licenceNoOnInvoices} onChange={(p) => setStatus('licenceNoOnInvoices', p)} remarksWhen="no" />
@@ -407,7 +398,7 @@ export function FertilizerDealerInspection() {
             <StatusInput label={`${itemNo(14)}. Whether biofertilizers, if stocked/sold, are from authorized sources and conform to prescribed specifications and labeling requirements`} field={form.biofertilizersAuthorized} onChange={(p) => setStatus('biofertilizersAuthorized', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={4} title="Registers, records and bills" subtitle={`Items ${itemNo(15)} to ${itemNo(20)}`} open={openSections[4]} onToggle={toggleSection}>
+          <Section id={4} title="Registers, Records and Bills" subtitle={`Items ${itemNo(15)} to ${itemNo(20)}`} open={openSections[4]} onToggle={toggleSection}>
             <StatusInput label={`${itemNo(15)}. Whether dealer has obtained a certificate confirming the pages in Stock Register and Sale Bill Books`} field={form.registerPagesCertificate} onChange={(p) => setStatus('registerPagesCertificate', p)} remarksWhen="no" />
             <StatusInput label={`${itemNo(16)}. Whether the Stock Register is updated or not`} field={form.stockRegisterUpdated} onChange={(p) => setStatus('stockRegisterUpdated', p)} remarksWhen="no" />
             <StatusInput label={`${itemNo(17)}. Whether the ground balance of stocks tallies with the stock register and ePOS, or whether there is any discrepancy`} field={form.groundBalance} onChange={(p) => setStatus('groundBalance', p)} remarksWhen="no" />
@@ -423,10 +414,10 @@ export function FertilizerDealerInspection() {
                 empty={emptyDiscrepancy}
                 addLabel="Add discrepancy"
                 columns={[
-                  { key: 'product', label: 'Product' },
-                  { key: 'registerBalance', label: 'Stock register balance' },
-                  { key: 'eposBalance', label: 'ePOS balance' },
-                  { key: 'physicalBalance', label: 'Physical balance' },
+                  { key: 'product', label: 'Fertilizer' },
+                  { key: 'registerBalance', label: 'Register Stock' },
+                  { key: 'eposBalance', label: 'ePOS Stock' },
+                  { key: 'physicalBalance', label: 'Physical Stock' },
                   { key: 'difference', label: 'Variation', type: 'computed' },
                   { key: 'remarks', label: 'Remarks' },
                 ]}
@@ -452,12 +443,17 @@ export function FertilizerDealerInspection() {
             <StatusInput label={`${itemNo(20)}. Whether signature of purchaser is obtained on Sale Bills or not`} field={form.purchaserSignatureOnBills} onChange={(p) => setStatus('purchaserSignatureOnBills', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={5} title="Storage and reporting" subtitle={`Items ${itemNo(21)} to ${itemNo(22)}`} open={openSections[5]} onToggle={toggleSection}>
+          <Section id={5} title="Storage and Reporting" subtitle={`Items ${itemNo(21)} to ${itemNo(22)}`} open={openSections[5]} onToggle={toggleSection}>
             <StatusInput label={`${itemNo(21)}. Whether the Fertilizers are stored as per the provisions of FCO 1985`} field={form.stocksStoredAsPerAct} onChange={(p) => setStatus('stocksStoredAsPerAct', p)} remarksWhen="no" />
-            <StatusInput label={`${itemNo(22)}. Whether the dealer / distributor / manufacturer is submitting reports regularly to the licensing officer`} field={form.reportsSubmitted} onChange={(p) => setStatus('reportsSubmitted', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(22)}. Whether the dealer / distributor / manufacturer is submitting reports regularly to the licensing officer`} field={form.reportsSubmitted} onChange={(p) => { setStatus('reportsSubmitted', p); if (p.status && p.status !== 'no') set('formDFailedSince', ''); }} remarksWhen="no" extra={form.reportsSubmitted.status === 'no' ? (
+              <label className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold tracking-wide text-slate-500 dark:text-slate-400">If no, since when has the dealer failed to submit Form D</span>
+                <input type="date" value={form.formDFailedSince} onChange={(e) => set('formDFailedSince', e.target.value)} className={`${inputClass} sm:w-44`} />
+              </label>
+            ) : null} />
           </Section>
 
-          <Section id={6} title="Detention, seizure and samples" subtitle={`Items ${itemNo(23)} to ${itemNo(25)}`} open={openSections[6]} onToggle={toggleSection}>
+          <Section id={6} title="Detention, Seizure and Samples" subtitle={`Items ${itemNo(23)} to ${itemNo(25)}`} open={openSections[6]} onToggle={toggleSection}>
             <StatusInput label={`${itemNo(23)}. Any stock is detained for rectifiable violation`} field={form.stockDetained} onChange={(p) => setStatus('stockDetained', p)} />
             {form.stockDetained.status === 'yes' && (
               <RowTable<DetentionRow>
@@ -468,7 +464,6 @@ export function FertilizerDealerInspection() {
                 addLabel="Add detained stock"
                 columns={[
                   { key: 'fertilizer', label: 'Fertilizer' },
-                  { key: 'brand', label: 'Brand' },
                   { key: 'batchLotNo', label: 'Batch / Lot No.' },
                   { key: 'quantity', label: 'Quantity' },
                   { key: 'reasonDetention', label: 'Reason for Detention' },
@@ -486,7 +481,6 @@ export function FertilizerDealerInspection() {
                 addLabel="Add seized stock"
                 columns={[
                   { key: 'fertilizer', label: 'Fertilizer' },
-                  { key: 'brand', label: 'Brand' },
                   { key: 'batchLotNo', label: 'Batch / Lot No.' },
                   { key: 'quantitySeized', label: 'Quantity Seized' },
                   { key: 'reasonViolation', label: 'Reason / Violation' },
@@ -513,55 +507,36 @@ export function FertilizerDealerInspection() {
             </div>
           </Section>
 
-          <Section id={7} title="Sales and stock statement" subtitle="Sales from 1 April to date" open={openSections[7]} onToggle={toggleSection}>
+          <Section id={7} title="Stock Position and Remarks" subtitle={`Current stock as on date of inspection · Item ${itemNo(26)}`} open={openSections[7]} onToggle={toggleSection}>
             <p className="text-xs font-bold text-slate-800 dark:text-slate-100">
-              Fertilizer sales from 1 April {financialYearLabel(form.inspectionDate)} to {formatDate(form.inspectionDate)}
+              Fertilizer stock position as on {formatDate(form.inspectionDate)}
             </p>
-            <Field label="Unit" value={form.salesUnit} onChange={(v) => set('salesUnit', v)} options={UNIT_OPTIONS} />
+            <Field label="Unit" value={form.stockUnit} onChange={(v) => set('stockUnit', v)} options={UNIT_OPTIONS} />
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border border-slate-300 text-xs">
                 <thead>
                   <tr className="bg-sky-50">
                     <th className="border border-slate-300 px-2 py-1 text-left font-bold">Sl. no.</th>
                     <th className="border border-slate-300 px-2 py-1 text-left font-bold">Product</th>
-                    <th className="border border-slate-300 px-2 py-1 text-left font-bold">Opening balance</th>
-                    <th className="border border-slate-300 px-2 py-1 text-left font-bold">Receipt</th>
-                    <th className="border border-slate-300 px-2 py-1 text-left font-bold">Total stock</th>
-                    <th className="border border-slate-300 px-2 py-1 text-left font-bold">Sales</th>
-                    <th className="border border-slate-300 px-2 py-1 text-left font-bold">Closing balance</th>
+                    <th className="border border-slate-300 px-2 py-1 text-left font-bold">Current stock</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {form.salesRows.map((row, index) => {
-                    const opening = parseFloat(row.openingBalance) || 0;
-                    const receipt = parseFloat(row.receipt) || 0;
-                    const sales = parseFloat(row.sales) || 0;
-                    const total = opening + receipt;
-                    const closing = total - sales;
-                    return (
-                      <tr key={index}>
-                        <td className="border border-slate-300 px-2 py-1 text-center font-semibold">{index + 1}</td>
-                        <td className="border border-slate-300 px-2 py-1 font-semibold">{row.product}</td>
-                        <td className="border border-slate-300 px-2 py-1"><input type="number" value={row.openingBalance} onChange={(e) => set('salesRows', form.salesRows.map((r, i) => (i === index ? { ...r, openingBalance: e.target.value } : r)))} className="w-full rounded border border-slate-200 px-1 py-0.5 text-xs" /></td>
-                        <td className="border border-slate-300 px-2 py-1"><input type="number" value={row.receipt} onChange={(e) => set('salesRows', form.salesRows.map((r, i) => (i === index ? { ...r, receipt: e.target.value } : r)))} className="w-full rounded border border-slate-200 px-1 py-0.5 text-xs" /></td>
-                        <td className="border border-slate-300 px-2 py-1 bg-slate-50 font-bold">{total || ''}</td>
-                        <td className="border border-slate-300 px-2 py-1"><input type="number" value={row.sales} onChange={(e) => set('salesRows', form.salesRows.map((r, i) => (i === index ? { ...r, sales: e.target.value } : r)))} className="w-full rounded border border-slate-200 px-1 py-0.5 text-xs" /></td>
-                        <td className="border border-slate-300 px-2 py-1 bg-slate-50 font-bold">{closing || ''}</td>
-                      </tr>
-                    );
-                  })}
+                  {form.stockRows.map((row, index) => (
+                    <tr key={index}>
+                      <td className="border border-slate-300 px-2 py-1 text-center font-semibold">{index + 1}</td>
+                      <td className="border border-slate-300 px-2 py-1 font-semibold">{row.product}</td>
+                      <td className="border border-slate-300 px-2 py-1"><input type="number" value={row.currentStock} onChange={(e) => set('stockRows', form.stockRows.map((r, i) => (i === index ? { ...r, currentStock: e.target.value } : r)))} className="w-full rounded border border-slate-200 px-1 py-0.5 text-xs" /></td>
+                    </tr>
+                  ))}
                   <tr className="bg-sky-100 font-black">
                     <td className="border border-slate-300 px-2 py-1 text-center" colSpan={2}>Total</td>
-                    <td className="border border-slate-300 px-2 py-1">{salesTotals.opening || ''}</td>
-                    <td className="border border-slate-300 px-2 py-1">{salesTotals.receipt || ''}</td>
-                    <td className="border border-slate-300 px-2 py-1">{salesTotals.total || ''}</td>
-                    <td className="border border-slate-300 px-2 py-1">{salesTotals.sales || ''}</td>
-                    <td className="border border-slate-300 px-2 py-1">{salesTotals.closing || ''}</td>
+                    <td className="border border-slate-300 px-2 py-1">{stockTotal || ''}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <p className="text-[10px] font-semibold text-slate-400">Total stock and closing balance are calculated automatically.</p>
+            <Field label={`${itemNo(26)}. Remarks`} textarea value={form.remarks} onChange={(v) => set('remarks', v)} placeholder="Enter overall observations or remarks..." />
           </Section>
 
         </div>
@@ -580,11 +555,10 @@ export function FertilizerDealerInspection() {
             <SummaryChip label="Seized" value={summary.seized} />
             <SummaryChip label="Samples" value={summary.samples} />
           </div>
-        </div>
-
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
-          <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
-          <ActionButton onClick={generatePdf} icon={Download} tone="sky">PDF</ActionButton>
+          <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-sky-100 pt-3 dark:border-sky-900/40">
+            <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
+            <ActionButton onClick={generatePdf} icon={Download} tone="sky">PDF</ActionButton>
+          </div>
         </div>
       </div>
 
@@ -613,7 +587,7 @@ export function FertilizerDealerInspection() {
 
       {showPreview && (
         <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={generatePdf} icon={Download} tone="sky">Download PDF</ActionButton>}>
-          <Preview form={form} salesTotals={salesTotals} />
+          <Preview form={form} stockTotal={stockTotal} />
         </Modal>
       )}
     </div>
@@ -653,7 +627,7 @@ function Section({ id, title, subtitle, open, onToggle, children }: { id: number
 }
 
 const inputClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white';
-const labelClass = 'mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300';
+const labelClass = 'mb-0.5 block text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300';
 
 function Field({ label, value, onChange, type = 'text', textarea = false, placeholder = '', options, helper = '' }: { label: string; value: string; onChange: (v: string) => void; type?: string; textarea?: boolean; placeholder?: string; options?: string[]; helper?: string }) {
   return (
@@ -705,7 +679,7 @@ function SummaryChip({ label, value }: { label: string; value: number }) {
   );
 }
 
-function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarksWhen = 'answered' }: { label: string; field: StatusField; onChange: (patch: Partial<StatusField>) => void; remarksLabel?: string; remarksWhen?: 'answered' | 'no' | 'yes' }) {
+function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarksWhen = 'answered', extra }: { label: string; field: StatusField; onChange: (patch: Partial<StatusField>) => void; remarksLabel?: string; remarksWhen?: 'answered' | 'no' | 'yes'; extra?: React.ReactNode }) {
   const showRemarks = remarksWhen === 'answered' ? Boolean(field.status) && field.status !== 'na' : field.status === remarksWhen;
   const clearRemarksOn = remarksWhen === 'answered' ? null : remarksWhen === 'no' ? 'yes' : 'no';
   return (
@@ -713,6 +687,7 @@ function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarks
       <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">{label}</p>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
         <StatusButtons value={field.status} onChange={(status) => onChange(clearRemarksOn && status !== remarksWhen ? { status, remarks: '' } : { status })} />
+        {extra}
         {showRemarks && (
           <input value={field.remarks} onChange={(e) => onChange({ remarks: e.target.value })} placeholder={remarksLabel} className={`${inputClass} sm:flex-1`} />
         )}
@@ -800,7 +775,7 @@ function Modal({ title, onClose, children, wide = false, footer, fullScreen = fa
 
 type PdfSubTable = { title: string; head: string[]; body: string[][] };
 
-function buildRows(form: InspectionForm, salesTotals: { opening: number; receipt: number; total: number; sales: number; closing: number }): { items: string[][]; subTables: PdfSubTable[] } {
+function buildRows(form: InspectionForm, stockTotal: number): { items: string[][]; subTables: PdfSubTable[] } {
   const listOrNil = (rows: unknown[], label: string) => (rows.length ? `${rows.length} ${label} (see table below)` : 'Nil');
   const itemNo = (n: number) => String(form.includeMfmsDetails ? n : n - 5);
 
@@ -830,19 +805,20 @@ function buildRows(form: InspectionForm, salesTotals: { opening: number; receipt
     [itemNo(19), 'Whether bills are being issued to consumers, duly mentioning the batch number and trade name of fertilizers', statusText(form.billsIssuedWithBatch)],
     [itemNo(20), 'Whether signature of purchaser is obtained on Sale Bills or not', statusText(form.purchaserSignatureOnBills)],
     [itemNo(21), 'Whether the Fertilizers are stored as per the provisions of FCO 1985', statusText(form.stocksStoredAsPerAct)],
-    [itemNo(22), 'Whether the dealer / distributor / manufacturer is submitting reports regularly to the licensing officer', statusText(form.reportsSubmitted)],
+    [itemNo(22), 'Whether the dealer / distributor / manufacturer is submitting reports regularly to the licensing officer', [statusText(form.reportsSubmitted), form.reportsSubmitted.status === 'no' && form.formDFailedSince ? `Failed to submit Form D since ${formatDate(form.formDFailedSince)}` : ''].filter(Boolean).join(' - ')],
     [itemNo(23), 'Any stock is detained for rectifiable violation', `${statusText(form.stockDetained)}${form.stockDetained.status === 'yes' && form.detentionRows.length ? `\n${listOrNil(form.detentionRows, 'stock(s) detained')}` : ''}`],
     [itemNo(24), 'Major offences committed, if any (give details of seizure of stocks)', `${statusText(form.majorOffences)}${form.majorOffences.status === 'yes' && form.seizureRows.length ? `\n${listOrNil(form.seizureRows, 'stock(s) seized')}` : ''}`],
     [itemNo(25), 'Details of fertilizer samples drawn', listOrNil(form.sampleRows, 'sample(s)')],
+    [itemNo(26), 'Remarks', form.remarks.trim() || '-'],
   ];
 
   const subTables: PdfSubTable[] = [];
-  if (form.groundBalance.status === 'no' && form.discrepancyRows.length) subTables.push({ title: `Item ${itemNo(17)} - Discrepancy details`, head: ['Product', 'Stock register balance', 'ePOS balance', 'Physical balance', 'Variation', 'Remarks'], body: form.discrepancyRows.map((r) => { const e = parseFloat(r.eposBalance); const p = parseFloat(r.physicalBalance); return [r.product, r.registerBalance, r.eposBalance, r.physicalBalance, Number.isNaN(e) || Number.isNaN(p) ? '-' : String(e - p), r.remarks]; }) });
+  if (form.groundBalance.status === 'no' && form.discrepancyRows.length) subTables.push({ title: `Item ${itemNo(17)} - Discrepancy details`, head: ['Fertilizer', 'Register Stock', 'ePOS Stock', 'Physical Stock', 'Variation', 'Remarks'], body: form.discrepancyRows.map((r) => { const e = parseFloat(r.eposBalance); const p = parseFloat(r.physicalBalance); return [r.product, r.registerBalance, r.eposBalance, r.physicalBalance, Number.isNaN(e) || Number.isNaN(p) ? '-' : String(e - p), r.remarks]; }) });
   if (form.purchaseInvoiceRows.length) subTables.push({ title: `Item ${itemNo(18)} - Purchase invoice verification`, head: ['Supplier name', 'Invoice number', 'Invoice date', 'Fertilizer product', 'Quantity', 'Remarks'], body: form.purchaseInvoiceRows.map((r) => [r.supplierName, r.invoiceNo, r.invoiceDate, r.product, r.quantity, r.remarks]) });
-  if (form.stockDetained.status === 'yes' && form.detentionRows.length) subTables.push({ title: `Item ${itemNo(23)} - Detention details`, head: ['Fertilizer', 'Brand', 'Batch / Lot No.', 'Quantity', 'Reason for Detention', 'Detention Memo No. & Date'], body: form.detentionRows.map((r) => [r.fertilizer, r.brand, r.batchLotNo, r.quantity, r.reasonDetention, r.detentionMemo]) });
-  if (form.majorOffences.status === 'yes' && form.seizureRows.length) subTables.push({ title: `Item ${itemNo(24)} - Stock seized details`, head: ['Fertilizer', 'Brand', 'Batch / Lot No.', 'Quantity Seized', 'Reason / Violation', 'Seizure Memo No. & Date'], body: form.seizureRows.map((r) => [r.fertilizer, r.brand, r.batchLotNo, r.quantitySeized, r.reasonViolation, r.seizureMemo]) });
+  if (form.stockDetained.status === 'yes' && form.detentionRows.length) subTables.push({ title: `Item ${itemNo(23)} - Detention details`, head: ['Fertilizer', 'Batch / Lot No.', 'Quantity', 'Reason for Detention', 'Detention Memo No. & Date'], body: form.detentionRows.map((r) => [r.fertilizer, r.batchLotNo, r.quantity, r.reasonDetention, r.detentionMemo]) });
+  if (form.majorOffences.status === 'yes' && form.seizureRows.length) subTables.push({ title: `Item ${itemNo(24)} - Stock seized details`, head: ['Fertilizer', 'Batch / Lot No.', 'Quantity Seized', 'Reason / Violation', 'Seizure Memo No. & Date'], body: form.seizureRows.map((r) => [r.fertilizer, r.batchLotNo, r.quantitySeized, r.reasonViolation, r.seizureMemo]) });
   if (form.sampleRows.length) subTables.push({ title: `Item ${itemNo(25)} - Samples drawn`, head: ['Fertilizer', 'Company', 'Batch / Lot No.', 'Quantity', 'Sample details'], body: form.sampleRows.map((r) => [r.product, r.company, r.batchNo, r.quantity, r.sampleDetails]) });
-  subTables.push({ title: `Fertilizer sales from 1 April ${financialYearLabel(form.inspectionDate)} to ${formatDate(form.inspectionDate)}`, head: ['Sl. no.', 'Product', 'Opening balance', 'Receipt', 'Total stock', 'Sales', 'Closing balance'], body: [...form.salesRows.map((r, i) => { const o = parseFloat(r.openingBalance) || 0; const rc = parseFloat(r.receipt) || 0; const s = parseFloat(r.sales) || 0; return [String(i + 1), r.product, r.openingBalance, r.receipt, String(o + rc), r.sales, String(o + rc - s)]; }), ['', 'Total', String(salesTotals.opening), String(salesTotals.receipt), String(salesTotals.total), String(salesTotals.sales), String(salesTotals.closing)]] });
+  subTables.push({ title: `Fertilizer stock position as on ${formatDate(form.inspectionDate)}`, head: ['Sl. no.', 'Product', `Current stock (${form.stockUnit || 'Bags'})`], body: [...form.stockRows.map((r, i) => [String(i + 1), r.product, r.currentStock]), ['', 'Total', String(stockTotal)]] });
   return { items, subTables };
 }
 
@@ -852,9 +828,8 @@ function buildPdf(form: InspectionForm) {
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 14;
   const bottom = pageHeight - 14;
-  const salesTotals = { opening: 0, receipt: 0, total: 0, sales: 0, closing: 0 };
-  form.salesRows.forEach((r) => { const o = parseFloat(r.openingBalance) || 0; const rc = parseFloat(r.receipt) || 0; const s = parseFloat(r.sales) || 0; salesTotals.opening += o; salesTotals.receipt += rc; salesTotals.total += o + rc; salesTotals.sales += s; salesTotals.closing += o + rc - s; });
-  const { items, subTables } = buildRows(form, salesTotals);
+  const stockTotal = form.stockRows.reduce((acc, r) => acc + (parseFloat(r.currentStock) || 0), 0);
+  const { items, subTables } = buildRows(form, stockTotal);
 
   doc.setFont('times', 'bold');
   doc.setFontSize(13);
@@ -937,8 +912,8 @@ function buildPdf(form: InspectionForm) {
   return doc;
 }
 
-function Preview({ form, salesTotals }: { form: InspectionForm; salesTotals: { opening: number; receipt: number; total: number; sales: number; closing: number } }) {
-  const { items, subTables } = buildRows(form, salesTotals);
+function Preview({ form, stockTotal }: { form: InspectionForm; stockTotal: number }) {
+  const { items, subTables } = buildRows(form, stockTotal);
   return (
     <div className="text-slate-900">
       <h3 className="mb-3 text-center text-base font-black">Fertilizer Dealer Inspection Report</h3>

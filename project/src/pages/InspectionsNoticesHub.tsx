@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bug, ClipboardCheck, FileText, FlaskConical, Sprout } from 'lucide-react';
+import { Bug, ClipboardCheck, FileText, FlaskConical, Sprout } from 'lucide-react';
+import { ToolkitPageHeader } from '../components/ui/ToolkitPageHeader';
 import { ShowCauseNoticeEntry } from '../components/ShowCauseNoticeEntry';
 import type { NoticeCategory } from '../data/showCauseViolationData';
 
@@ -17,10 +18,10 @@ const NOTICE_TYPES: { label: string; category: NoticeCategory; icon: typeof Spro
 ];
 
 const toneClasses: Record<string, string> = {
-  emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-100',
-  sky: 'border-sky-200 bg-sky-50 text-sky-800 hover:border-sky-400 hover:bg-sky-100',
-  rose: 'border-rose-200 bg-rose-50 text-rose-800 hover:border-rose-400 hover:bg-rose-100',
-  amber: 'border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-400 hover:bg-amber-100',
+  emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/70',
+  sky: 'border-sky-200 bg-sky-50 text-sky-800 hover:border-sky-400 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200 dark:hover:border-sky-600 dark:hover:bg-sky-950/70',
+  rose: 'border-rose-200 bg-rose-50 text-rose-800 hover:border-rose-400 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:border-rose-600 dark:hover:bg-rose-950/70',
+  amber: 'border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-400 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:border-amber-600 dark:hover:bg-amber-950/70',
 };
 
 const noticeModalThemes: Record<NoticeCategory, { header: string; icon: string; eyebrow: string }> = {
@@ -49,38 +50,21 @@ export function InspectionsNoticesHub() {
 
   return (
     <div className="mx-auto w-full max-w-4xl p-2 sm:p-3">
-      <div className="mb-4 rounded-2xl border border-lime-200/60 bg-gradient-to-r from-lime-50 to-green-50 p-4 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-lime-600 shadow-sm ring-1 ring-white/20">
-              <ClipboardCheck className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-lime-800">Officer Toolkit</p>
-              <h1 className="text-lg font-black text-lime-950 sm:text-xl">Inspections &amp; Notices</h1>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              const idx = (window.history.state as { idx?: number } | null)?.idx;
-              if (typeof idx === 'number' && idx > 0) navigate(-1);
-              else navigate('/officer-toolkit');
-            }}
-            className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-lime-300 bg-white/70 px-2 py-1.5 text-xs font-black text-lime-800 shadow-sm transition hover:bg-white hover:border-lime-500"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            Back
-          </button>
-        </div>
-      </div>
+      <ToolkitPageHeader
+        title="Inspections & Notices"
+        eyebrow="Officer Toolkit"
+        icon={ClipboardCheck}
+        tone="lime"
+        fallbackPath="/officer-toolkit"
+        className="mb-4"
+      />
 
       <div className="grid items-start gap-3 sm:grid-cols-2">
         <div
           className={`overflow-hidden rounded-xl border shadow-sm transition ${
             showInspectionTypes
-              ? 'border-lime-500 bg-white'
-              : 'border-lime-200 bg-white hover:border-lime-400 hover:bg-lime-50'
+              ? 'border-lime-500 bg-white dark:border-lime-600 dark:bg-slate-900'
+              : 'border-lime-200 bg-white hover:border-lime-400 hover:bg-lime-50 dark:border-lime-800 dark:bg-slate-900 dark:hover:border-lime-600 dark:hover:bg-slate-800'
           }`}
         >
           <button
@@ -90,17 +74,17 @@ export function InspectionsNoticesHub() {
               setShowNoticeTypes(false);
             }}
             className={`block min-h-[76px] w-full p-4 text-left transition ${
-              showInspectionTypes ? 'bg-lime-600 text-white' : 'text-slate-900'
+              showInspectionTypes ? 'bg-lime-600 text-white' : 'text-slate-900 dark:text-white'
             }`}
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showInspectionTypes ? 'bg-white/20' : 'bg-lime-100'}`}>
-                  <ClipboardCheck className={`h-5 w-5 ${showInspectionTypes ? 'text-white' : 'text-lime-700'}`} />
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showInspectionTypes ? 'bg-white/20' : 'bg-lime-100 dark:bg-lime-900/40'}`}>
+                  <ClipboardCheck className={`h-5 w-5 ${showInspectionTypes ? 'text-white' : 'text-lime-700 dark:text-lime-300'}`} />
                 </div>
                 <div>
                   <p className="text-base font-black">Inspections</p>
-                  <p className={`text-xs font-semibold leading-snug ${showInspectionTypes ? 'text-lime-100' : 'text-slate-500'}`}>
+                  <p className={`text-xs font-semibold leading-snug ${showInspectionTypes ? 'text-lime-100' : 'text-slate-500 dark:text-slate-400'}`}>
                     Seed • Fertilizer • Pesticide dealer inspection
                   </p>
                 </div>
@@ -109,7 +93,7 @@ export function InspectionsNoticesHub() {
             </div>
           </button>
           {showInspectionTypes && (
-            <div className="grid gap-2 border-t border-lime-200/70 bg-lime-50/50 p-3">
+            <div className="grid gap-2 border-t border-lime-200/70 bg-lime-50/50 p-3 dark:border-lime-800/50 dark:bg-slate-950/40">
               {INSPECTION_TYPES.map((item) => (
                 <button
                   key={item.label}
@@ -128,8 +112,8 @@ export function InspectionsNoticesHub() {
         <div
           className={`overflow-hidden rounded-xl border shadow-sm transition ${
             showNoticeTypes
-              ? 'border-purple-500 bg-white'
-              : 'border-purple-200 bg-white hover:border-purple-400 hover:bg-purple-50'
+              ? 'border-purple-500 bg-white dark:border-purple-600 dark:bg-slate-900'
+              : 'border-purple-200 bg-white hover:border-purple-400 hover:bg-purple-50 dark:border-purple-800 dark:bg-slate-900 dark:hover:border-purple-600 dark:hover:bg-slate-800'
           }`}
         >
           <button
@@ -139,17 +123,17 @@ export function InspectionsNoticesHub() {
               setShowInspectionTypes(false);
             }}
             className={`block min-h-[76px] w-full p-4 text-left transition ${
-              showNoticeTypes ? 'bg-purple-600 text-white' : 'text-slate-900'
+              showNoticeTypes ? 'bg-purple-600 text-white' : 'text-slate-900 dark:text-white'
             }`}
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showNoticeTypes ? 'bg-white/20' : 'bg-purple-100'}`}>
-                  <FileText className={`h-5 w-5 ${showNoticeTypes ? 'text-white' : 'text-purple-700'}`} />
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showNoticeTypes ? 'bg-white/20' : 'bg-purple-100 dark:bg-purple-900/40'}`}>
+                  <FileText className={`h-5 w-5 ${showNoticeTypes ? 'text-white' : 'text-purple-700 dark:text-purple-300'}`} />
                 </div>
                 <div>
                   <p className="text-base font-black">Notices / Memos</p>
-                  <p className={`text-xs font-semibold leading-snug ${showNoticeTypes ? 'text-purple-100' : 'text-slate-500'}`}>
+                  <p className={`text-xs font-semibold leading-snug ${showNoticeTypes ? 'text-purple-100' : 'text-slate-500 dark:text-slate-400'}`}>
                     Seed • Fertilizer • Pesticide notices and memos
                   </p>
                 </div>
@@ -158,7 +142,7 @@ export function InspectionsNoticesHub() {
             </div>
           </button>
           {showNoticeTypes && (
-            <div className="grid gap-2 border-t border-purple-200/70 bg-purple-50/50 p-3">
+            <div className="grid gap-2 border-t border-purple-200/70 bg-purple-50/50 p-3 dark:border-purple-800/50 dark:bg-slate-950/40">
               {NOTICE_TYPES.map((item) => (
                 <button
                   key={item.category}
@@ -167,7 +151,7 @@ export function InspectionsNoticesHub() {
                   className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
-                  <span className="text-sm font-black">{item.label} Notices / Memos</span>
+                  <span className="text-sm font-black">{item.label} Notice</span>
                 </button>
               ))}
             </div>
@@ -177,7 +161,7 @@ export function InspectionsNoticesHub() {
 
       {selectedNoticeCategory && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-0 backdrop-blur-sm sm:p-4">
-          <section className="flex h-full max-h-none w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[94vh] sm:rounded-2xl">
+          <section className="flex h-full max-h-none w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl dark:bg-slate-900 sm:h-auto sm:max-h-[94vh] sm:rounded-2xl">
             <header className={`relative flex shrink-0 items-start justify-between gap-3 border-b bg-gradient-to-r px-4 py-4 sm:px-6 ${noticeModalThemes[selectedNoticeCategory].header}`}>
               <div className="relative flex min-w-0 flex-1 items-start gap-3">
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg ${noticeModalThemes[selectedNoticeCategory].icon}`}>

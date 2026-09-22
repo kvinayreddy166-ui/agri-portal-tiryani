@@ -1,6 +1,5 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
-import { addGovernmentEmblemWatermark } from './pdfWatermark';
 import { isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
 import { drawJustifiedBodyText } from './pdfText';
 
@@ -80,7 +79,7 @@ export async function generateCoveringLetterPdf(
   metadata: CoveringLetterMetadata,
   officerDetails?: OfficerDetails,
   letterType: LetterType = 'quality-analysis',
-  watermarkEnabled: boolean = false
+  _watermarkEnabled: boolean = false
 ) {
   const { jsPDF } = await import('jspdf');
 
@@ -586,12 +585,12 @@ function drawSampleTable(cursor: PdfCursor, queue: CoveringLetterQueueItem[]) {
       lineColor: [0, 0, 0],
       valign: 'middle',
       overflow: 'linebreak',
-      fillColor: null, // Transparent background to show watermark
+      fillColor: undefined, // Transparent background to show watermark
     },
     headStyles: {
       fontStyle: 'bold',
       fontSize: FONT_SIZES.body,
-      fillColor: null, // Transparent background to show watermark
+      fillColor: undefined, // Transparent background to show watermark
       textColor: [0, 0, 0],
       halign: 'center',
       valign: 'middle',
@@ -599,7 +598,7 @@ function drawSampleTable(cursor: PdfCursor, queue: CoveringLetterQueueItem[]) {
     bodyStyles: {
       halign: 'center',
       textColor: [0, 0, 0],
-      fillColor: null, // Transparent background to show watermark
+      fillColor: undefined, // Transparent background to show watermark
     },
     columnStyles: {
       0: { cellWidth: columnWidths[0], halign: 'center' },

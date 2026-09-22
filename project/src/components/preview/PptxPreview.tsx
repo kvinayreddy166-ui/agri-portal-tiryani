@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Download, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PptxPreviewProps {
@@ -20,7 +20,6 @@ export function PptxPreview({ file, onClose, onDownload, className = '' }: PptxP
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     let mounted = true;
