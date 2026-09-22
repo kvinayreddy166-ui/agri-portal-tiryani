@@ -56,7 +56,7 @@ export const noticeCategoryConfigs: NoticeCategoryConfig[] = [
     memoPrefix: 'Frt/1',
     observationLabel: 'Specific Observation',
     observationPlaceholder: 'e.g. Stock mismatch noticed during inspection...',
-    previewButtonLabel: 'Preview Fertiliser Notice',
+    previewButtonLabel: 'Preview Notice',
     theme: {
       panel: 'border-blue-200 bg-blue-50/60',
       header: 'from-blue-700 to-sky-700',
@@ -75,7 +75,7 @@ export const noticeCategoryConfigs: NoticeCategoryConfig[] = [
     memoPrefix: 'Seed/1',
     observationLabel: 'Specific Observation (Inspection Findings)',
     observationPlaceholder: 'e.g. Found expired seed lots or missing labels...',
-    previewButtonLabel: 'Preview Seed Notice',
+    previewButtonLabel: 'Preview Notice',
     theme: {
       panel: 'border-green-200 bg-green-50/70',
       header: 'from-green-700 to-emerald-700',
@@ -94,7 +94,7 @@ export const noticeCategoryConfigs: NoticeCategoryConfig[] = [
     memoPrefix: 'Pest/1',
     observationLabel: 'Specific Observation',
     observationPlaceholder: 'e.g. Found expired pesticide stock or missing label details...',
-    previewButtonLabel: 'Preview Pesticide Notice',
+    previewButtonLabel: 'Preview Notice',
     theme: {
       panel: 'border-yellow-200 bg-yellow-50/70',
       header: 'from-yellow-500 to-amber-600',

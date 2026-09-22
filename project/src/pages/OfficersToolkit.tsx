@@ -67,7 +67,6 @@ const toolkitItems: ToolkitItem[] = [
     category: 'internal',
     gradient: 'from-lime-500 to-green-600',
     bgGradient: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
-    statusMessage: 'Under development',
   },
   {
     title: 'Farm Calculators',

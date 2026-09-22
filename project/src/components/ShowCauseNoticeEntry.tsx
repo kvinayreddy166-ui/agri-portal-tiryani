@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Download, Edit3, FileText, Plus, Printer, Save, Search, Trash2, X } from 'lucide-react';
+import type { FileChild } from 'docx';
+import { ChevronDown, Download, Edit3, FileText, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear, financialYearForDate } from '../utils/financialYear';
 import { isAssistantDirectorOfAgriculture, statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../data/assistantDirectorLocation';
 import {
@@ -211,7 +212,7 @@ function legalSourceBadge(actOrOrder: string) {
 }
 
 function formatNoticeDate(value: string) {
-  if (!value) return '-';
+  if (!value) return '';
   const [year, month, day] = value.split('-');
   return year && month && day ? `${day}-${month}-${year}` : value;
 }
@@ -357,7 +358,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'memoRow',
       left: [{ text: 'No. ' }, { text: form.memoNumber || 'Draft', bold: true }],
-      right: [{ text: 'Date: ' }, { text: noticeDate, bold: true }],
+      right: [{ text: 'Date: ' }, { text: form.inspectionDate ? noticeDate : ' '.repeat(11), bold: true }],
     },
     { kind: 'gap', mm: 4 },
     { kind: 'center', text: noticeTitle, bold: true, underline: true },
@@ -369,8 +370,8 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       kind: 'labelPara',
       label: 'Sub:',
       segments: [
-        { text: `${subjectLabel} – Inspection of dealer premises – Irregularities noticed during inspection on ` },
-        { text: inspectionDate, bold: true },
+        { text: `${subjectLabel} – Inspection of dealer premises – Irregularities noticed during inspection` },
+        ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
         { text: ` – ${noticeTitleText} – Explanation called for – Reg.` },
       ],
     },
@@ -378,8 +379,8 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       kind: 'labelPara',
       label: 'Ref:',
       segments: [
-        { text: 'Field inspection conducted on ' },
-        { text: inspectionDate, bold: true },
+        { text: 'Field inspection conducted' },
+        ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
         { text: '.' },
       ],
     },
@@ -389,13 +390,13 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       firstLineIndent: 10,
       segments: sectionBlocks.length > 0
         ? [
-            { text: 'It is informed that during the inspection of the above-mentioned dealer/firm premises on ' },
-            { text: inspectionDate, bold: true },
+            { text: 'It is informed that during the inspection of the above-mentioned dealer/firm premises' },
+            ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
             { text: ', the following irregularities were noticed:' },
           ]
         : [
-            { text: 'It is informed that during the inspection of the above-mentioned dealer/firm premises on ' },
-            { text: inspectionDate, bold: true },
+            { text: 'It is informed that during the inspection of the above-mentioned dealer/firm premises' },
+            ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
             { text: ', certain irregularities were noticed.' },
           ],
     },
@@ -480,6 +481,168 @@ function noticeDocumentHtml(blocks: NoticeBlock[]) {
   return `<html><head><style>@page{size:A4;margin:18mm 20mm;}body{font-family:${NOTICE_FONT_STACK};font-size:12pt;line-height:1.5;color:#000;}</style></head><body>${noticeBlocksHtml(blocks)}</body></html>`;
 }
 
+async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
+  const {
+    AlignmentType,
+    BorderStyle,
+    Document,
+    PageOrientation,
+    Packer,
+    Paragraph,
+    Table,
+    TableCell,
+    TableLayoutType,
+    TableRow,
+    TabStopType,
+    TextRun,
+    UnderlineType,
+    VerticalAlign,
+    WidthType,
+  } = await import('docx');
+
+  const font = 'Book Antiqua';
+  const fontSize = 24;
+  const mmToTwips = (mm: number) => Math.round(mm * 56.6929);
+  const runs = (segments: NoticeSegment[]) => segments.map((segment) => new TextRun({ text: segment.text, bold: segment.bold, font, size: fontSize }));
+  const children: FileChild[] = [];
+  const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+  const noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder, insideHorizontal: noBorder, insideVertical: noBorder };
+  const tableBorder = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
+  const tableBorders = { top: tableBorder, bottom: tableBorder, left: tableBorder, right: tableBorder, insideHorizontal: tableBorder, insideVertical: tableBorder };
+
+  blocks.forEach((block) => {
+    switch (block.kind) {
+      case 'center':
+        children.push(new Paragraph({
+          children: [new TextRun({ text: block.text, bold: block.bold, underline: block.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: fontSize })],
+          alignment: AlignmentType.CENTER,
+          spacing: { line: 360, after: 0 },
+        }));
+        break;
+      case 'memoRow':
+        children.push(new Paragraph({
+          children: [...runs(block.left), new TextRun({ text: '\t', font, size: fontSize }), ...runs(block.right)],
+          tabStops: [{ type: TabStopType.RIGHT, position: mmToTwips(165) }],
+          spacing: { line: 360, after: 0 },
+        }));
+        break;
+      case 'para':
+        children.push(new Paragraph({
+          children: runs(block.segments),
+          alignment: AlignmentType.JUSTIFIED,
+          indent: {
+            left: mmToTwips(block.indent || 0),
+            firstLine: mmToTwips(block.firstLineIndent || 0),
+          },
+          spacing: { line: 360, after: 80 },
+        }));
+        break;
+      case 'labelPara': {
+        const hanging = mmToTwips(7);
+        children.push(new Paragraph({
+          children: [new TextRun({ text: `${block.label} `, bold: true, font, size: fontSize }), ...runs(block.segments)],
+          alignment: AlignmentType.JUSTIFIED,
+          indent: { left: mmToTwips(block.indent || 0) + hanging, hanging },
+          spacing: { line: 360, after: 80 },
+        }));
+        break;
+      }
+      case 'heading':
+        children.push(new Paragraph({
+          children: [new TextRun({ text: block.text, bold: true, font, size: fontSize })],
+          spacing: { line: 360, before: 120, after: 40 },
+        }));
+        break;
+      case 'lines':
+        if (block.centerLines) {
+          children.push(new Table({
+            rows: [new TableRow({
+              children: [new TableCell({
+                children: block.items.map((item) => new Paragraph({
+                  children: runs(item),
+                  alignment: AlignmentType.CENTER,
+                  spacing: { line: 360, after: 0 },
+                })),
+                verticalAlign: VerticalAlign.CENTER,
+                borders: noBorders,
+              })],
+            })],
+            width: { size: 4400, type: WidthType.DXA },
+            columnWidths: [4400],
+            alignment: AlignmentType.RIGHT,
+            borders: noBorders,
+            margins: { top: 0, bottom: 0, left: 0, right: 0 },
+            layout: TableLayoutType.FIXED,
+          }));
+        } else {
+          block.items.forEach((item) => children.push(new Paragraph({
+            children: runs(item),
+            alignment: block.align === 'right' ? AlignmentType.RIGHT : AlignmentType.LEFT,
+            indent: { left: mmToTwips(block.indent || 0) },
+            spacing: { line: 360, after: 0 },
+          })));
+        }
+        break;
+      case 'table': {
+        const cellParagraph = (text: string, bold = false) => new Paragraph({
+          children: [new TextRun({ text, bold, font, size: fontSize })],
+          spacing: { line: 360, after: 0 },
+        });
+        children.push(new Table({
+          rows: [
+            new TableRow({
+              children: block.header.map((text) => new TableCell({
+                children: [cellParagraph(text, true)],
+                verticalAlign: VerticalAlign.CENTER,
+              })),
+            }),
+            ...block.rows.map((row) => new TableRow({
+              children: [
+                new TableCell({ children: [cellParagraph(row.label)] }),
+                new TableCell({ children: [cellParagraph(row.value || '______________________________', true)] }),
+              ],
+            })),
+          ],
+          width: { size: 92, type: WidthType.PERCENTAGE },
+          indent: { size: mmToTwips(8), type: WidthType.DXA },
+          columnWidths: [4300, 4300],
+          borders: tableBorders,
+          margins: { top: 80, bottom: 80, left: 120, right: 120 },
+          layout: TableLayoutType.FIXED,
+        }));
+        break;
+      }
+      case 'gap':
+        children.push(new Paragraph({ children: [], spacing: { after: mmToTwips(block.mm ?? 2) } }));
+        break;
+      default:
+        break;
+    }
+  });
+
+  const document = new Document({
+    styles: {
+      default: {
+        document: {
+          run: { font, size: fontSize, color: '000000' },
+          paragraph: { spacing: { line: 360 } },
+        },
+      },
+    },
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 11906, height: 16838, orientation: PageOrientation.PORTRAIT },
+          margin: { top: mmToTwips(18), right: mmToTwips(20), bottom: mmToTwips(18), left: mmToTwips(20) },
+        },
+      },
+      children,
+    }],
+  });
+
+  return Packer.toBlob(document);
+}
+
 function arrayBufferToBase64(buffer: ArrayBuffer) {
   let binary = '';
   const bytes = new Uint8Array(buffer);
@@ -507,6 +670,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const [savedNotices, setSavedNotices] = useState<SavedNotice[]>(() => readSavedNotices());
   const [savedSearch, setSavedSearch] = useState('');
   const [showProductDetails, setShowProductDetails] = useState(false);
+  const [showNoticePreview, setShowNoticePreview] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -597,6 +761,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       productRemarks: '',
     });
     setShowProductDetails(false);
+    setShowNoticePreview(false);
   };
 
   const toggleViolation = (violationId: string) => {
@@ -690,16 +855,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     setSavedNotices((current) => current.filter((item) => item.id !== notice.id));
   };
 
-  const printNotice = () => {
-    const popup = window.open('', '_blank', 'width=900,height=1000');
-    if (!popup) return;
-    popup.document.write(noticeDocumentHtml(noticeBlocks).replace('<head>', `<head><title>${form.memoNumber || 'notice'}</title>`));
-    popup.document.close();
-    popup.focus();
-    popup.print();
-  };
-
   const noticeFileName = () => `${form.memoNumber || 'show-cause-notice'}.pdf`.replace(/[\\/]/g, '-');
+  const noticeWordFileName = () => `${form.memoNumber || 'show-cause-notice'}.docx`.replace(/[\\/]/g, '-');
 
   const buildNoticePdfDoc = async () => {
     const { jsPDF } = await import('jspdf');
@@ -903,28 +1060,26 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     doc.save(noticeFileName());
   };
 
-  const previewPdf = async () => {
-    const targetWindow = window.open('', '_blank');
-    if (targetWindow) {
-      targetWindow.opener = null;
-      targetWindow.document.title = 'Preparing PDF...';
-      targetWindow.document.body.innerHTML = '<p style="font-family: system-ui; padding: 24px;">Preparing PDF...</p>';
-    }
+  const downloadWord = async () => {
     try {
-      const doc = await buildNoticePdfDoc();
-      const blob = new File([doc.output('blob')], noticeFileName(), { type: 'application/pdf' });
-      const blobUrl = URL.createObjectURL(blob);
-      if (targetWindow && !targetWindow.closed) {
-        targetWindow.location.href = blobUrl;
-      } else {
-        window.open(blobUrl, '_blank', 'noopener,noreferrer');
-      }
-      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+      const blob = await buildNoticeWordDocument(noticeBlocks);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = noticeWordFileName();
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Unable to preview notice PDF:', error);
-      targetWindow?.close();
-      window.alert('PDF preview could not be generated. Please try the download option.');
+      console.error('Unable to generate notice Word document:', error);
+      window.alert('Word document could not be generated. Please try again.');
     }
+  };
+
+  const previewNotice = () => {
+    setShowNoticePreview(true);
+    window.requestAnimationFrame(() => previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
 
   return (
@@ -1122,7 +1277,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={previewPdf} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-black text-white shadow-sm ${config.theme.button}`}>
+            <button type="button" onClick={previewNotice} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-black text-white shadow-sm ${config.theme.button}`}>
               <FileText className="h-4 w-4" />
               {config.previewButtonLabel}
             </button>
@@ -1130,24 +1285,37 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               <Save className="h-4 w-4" />
               Save Entry
             </button>
-            <button type="button" onClick={printNotice} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
-              <Printer className="h-4 w-4" />
-              Print
-            </button>
             <button type="button" onClick={downloadPdf} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
               <Download className="h-4 w-4" />
               PDF
             </button>
+            <button type="button" onClick={downloadWord} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-black text-blue-700 hover:bg-blue-50">
+              <FileText className="h-4 w-4" />
+              Word
+            </button>
           </div>
 
-      <section ref={previewRef} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="mb-3 text-base font-black text-slate-900">Notice Preview</h3>
-        <div
-          className="max-h-[520px] overflow-auto rounded-lg bg-white p-6 text-slate-900 shadow-inner ring-1 ring-slate-100"
-          style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', serif`, fontSize: '12pt', lineHeight: 1.5 }}
-          dangerouslySetInnerHTML={{ __html: noticeHtml }}
-        />
-      </section>
+      {showNoticePreview && (
+        <section ref={previewRef} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-base font-black text-slate-900">Notice Preview</h3>
+            <button
+              type="button"
+              onClick={() => setShowNoticePreview(false)}
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+              aria-label="Close notice preview"
+            >
+              <X className="h-4 w-4" />
+              Close Preview
+            </button>
+          </div>
+          <div
+            className="max-h-[520px] overflow-auto rounded-lg bg-white p-6 text-slate-900 shadow-inner ring-1 ring-slate-100"
+            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', serif`, fontSize: '12pt', lineHeight: 1.5 }}
+            dangerouslySetInnerHTML={{ __html: noticeHtml }}
+          />
+        </section>
+      )}
 
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">

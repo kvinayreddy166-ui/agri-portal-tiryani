@@ -154,6 +154,7 @@ export function InsecticideDealerInspection() {
   const [drafts, setDrafts] = useState<DraftRecord[]>(loadDrafts);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false });
+  const [sameStorageAsSale, setSameStorageAsSale] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
   const [error, setError] = useState('');
@@ -231,7 +232,7 @@ export function InsecticideDealerInspection() {
       form.registerCertificate, form.storedAsPerAct, form.stockReportsRegular,
     ];
     const toggles: Status[] = [form.detained, form.majorOffenceCommitted, form.samplesDrawn];
-    const textDone = [form.inspectionDate, form.dealerName, form.licenceHolderName || form.licenceNo, form.sellingPointDoorNo, form.storagePointDoorNo].filter((v) => v.trim()).length;
+    const textDone = [form.inspectionDate, form.dealerName, form.licenceNo, form.sellingPointDoorNo, form.storagePointDoorNo].filter((v) => v.trim()).length;
     const statusDone = statusFields.filter((f) => f.status !== '').length;
     const toggleDone = toggles.filter((s) => s !== '').length;
     const remarksDone = form.remarks.trim() ? 1 : 0;
@@ -298,15 +299,28 @@ export function InsecticideDealerInspection() {
           <Section id={1} title="Dealer and premises" subtitle="Items 1 to 6" open={openSections[1]} onToggle={toggleSection}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="1. Date of inspection" type="date" value={form.inspectionDate} onChange={(v) => set('inspectionDate', v)} />
-              <Field label="2. Name of the dealer" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Firm / dealer name" />
+              <Field label="2. Name of the Dealer/Firm" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Dealer / firm name" />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="3(a). Name of the licence holder" value={form.licenceHolderName} onChange={(v) => set('licenceHolderName', v)} placeholder="Licence holder name" />
-              <Field label="3(b). Licence number" value={form.licenceNo} onChange={(v) => set('licenceNo', v)} placeholder="Licence number" />
+              <Field label="3. License No" value={form.licenceNo} onChange={(v) => set('licenceNo', v)} placeholder="License number" />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="4. Selling point door number" value={form.sellingPointDoorNo} onChange={(v) => set('sellingPointDoorNo', v)} placeholder="D.no, Village, Mandal" />
-              <Field label="5. Storage point door number" value={form.storagePointDoorNo} onChange={(v) => set('storagePointDoorNo', v)} placeholder="D.no, Village, Mandal" />
+              <Field label="4. Selling point door number" value={form.sellingPointDoorNo} onChange={(v) => { set('sellingPointDoorNo', v); if (sameStorageAsSale) set('storagePointDoorNo', v); }} placeholder="D.no, Village, Mandal" />
+              <div>
+                <Field label="5. Storage point door number" value={form.storagePointDoorNo} onChange={(v) => { set('storagePointDoorNo', v); if (sameStorageAsSale) setSameStorageAsSale(false); }} placeholder="D.no, Village, Mandal" />
+                <label className="mt-1.5 inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={sameStorageAsSale}
+                    onChange={(e) => {
+                      setSameStorageAsSale(e.target.checked);
+                      if (e.target.checked) set('storagePointDoorNo', form.sellingPointDoorNo);
+                    }}
+                    className="h-4 w-4 cursor-pointer accent-rose-600"
+                  />
+                  Same as sale point address
+                </label>
+              </div>
             </div>
             <StatusInput label="6. Whether the licence is displayed or not" field={form.licenceDisplayed} onChange={(p) => setStatus('licenceDisplayed', p)} remarksWhen="no" />
           </Section>
@@ -708,8 +722,8 @@ function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSub
 
   const items: string[][] = [
     ['1', 'Date of inspection', formatDate(form.inspectionDate)],
-    ['2', 'Name of the dealer', form.dealerName || '-'],
-    ['3', 'Name of the licence holder and licence number', [form.licenceHolderName, form.licenceNo && `Licence No.: ${form.licenceNo}`].filter(Boolean).join(' - ') || '-'],
+    ['2', 'Name of the Dealer/Firm', form.dealerName || '-'],
+    ['3', 'License No', form.licenceNo || '-'],
     ['4', 'Selling point door number', form.sellingPointDoorNo || '-'],
     ['5', 'Storage point door number', form.storagePointDoorNo || '-'],
     ['6', 'Whether the licence is displayed or not', statusText(form.licenceDisplayed)],

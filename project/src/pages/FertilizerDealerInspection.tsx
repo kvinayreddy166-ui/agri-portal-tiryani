@@ -432,7 +432,7 @@ export function FertilizerDealerInspection() {
                 ]}
               />
             )}
-            <StatusInput label={`${itemNo(18)}. Whether the dealer purchases stocks from approved and authorised sources. Verify the purchase invoices.`} field={form.purchasesFromApprovedSources} onChange={(p) => setStatus('purchasesFromApprovedSources', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(18)}. Whether the dealer purchases stocks from approved and authorised sources. Verify the purchase invoices.`} field={form.purchasesFromApprovedSources} onChange={(p) => setStatus('purchasesFromApprovedSources', p)} />
             <RowTable<PurchaseInvoiceRow>
               title="Purchase invoice verification"
               rows={form.purchaseInvoiceRows}
@@ -448,7 +448,7 @@ export function FertilizerDealerInspection() {
                 { key: 'remarks', label: 'Remarks' },
               ]}
             />
-            <StatusInput label={`${itemNo(19)}. Whether bills are being issued to consumers, duly mentioning the batch number and trade name of fertilizers`} field={form.billsIssuedWithBatch} onChange={(p) => setStatus('billsIssuedWithBatch', p)} remarksWhen="no" />
+            <StatusInput label={`${itemNo(19)}. Whether bills are being issued to consumers, duly mentioning the batch number and trade name of fertilizers`} field={form.billsIssuedWithBatch} onChange={(p) => setStatus('billsIssuedWithBatch', p)} />
             <StatusInput label={`${itemNo(20)}. Whether signature of purchaser is obtained on Sale Bills or not`} field={form.purchaserSignatureOnBills} onChange={(p) => setStatus('purchaserSignatureOnBills', p)} remarksWhen="no" />
           </Section>
 
