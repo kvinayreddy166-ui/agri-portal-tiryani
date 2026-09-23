@@ -32,6 +32,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { downloadFileFromUrl } from '../lib/fileBlob';
+import { openExternalUrl } from '../lib/documentActions';
 import { recordSiteHit, fetchSiteHitSummary, SiteHitSummary } from '../lib/siteHits';
 import { FormDownload } from '../types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -310,16 +311,14 @@ export function Login() {
     // Check if it's an Excel file
     const isExcel = /\.(xlsx|xls|csv)$/i.test(form.file_url) || form.file_type?.includes('excel') || form.file_type?.includes('spreadsheet');
     if (isImage) {
-      window.open(form.file_url, '_blank', 'noopener,noreferrer');
+      openExternalUrl(form.file_url);
     } else if (isPdf) {
       // Open PDF directly in browser's native PDF viewer
-      window.open(form.file_url, '_blank', 'noopener,noreferrer');
+      openExternalUrl(form.file_url);
     } else if (isExcel) {
-      const viewerUrl = getOfficeViewerTabUrl(form.file_url);
-      window.open(viewerUrl, '_blank', 'noopener,noreferrer');
+      openExternalUrl(getOfficeViewerTabUrl(form.file_url));
     } else {
-      const viewerUrl = getGoogleViewerTabUrl(form.file_url);
-      window.open(viewerUrl, '_blank', 'noopener,noreferrer');
+      openExternalUrl(getGoogleViewerTabUrl(form.file_url));
     }
   };
 
@@ -331,7 +330,7 @@ export function Login() {
     } catch (error) {
       console.error('Download failed:', error);
       // Fallback: open in new tab
-      window.open(form.file_url, '_blank', 'noopener,noreferrer');
+      openExternalUrl(form.file_url);
       alert(t('Download started in new tab. If it does not download, try right-clicking and "Save as".', 'à°¡à±Œà°¨à±à°²à±‹à°¡à± à°•à±Šà°¤à±à°¤ à°Ÿà±à°¯à°¾à°¬à±â€Œà°²à±‹ à°ªà±à°°à°¾à°°à°‚à°­à°®à±ˆà°‚à°¦à°¿. à°¡à±Œà°¨à±à°²à±‹à°¡à± à°•à°¾à°•à°ªà±‹à°¤à±‡, à°•à±à°¡à°¿-à°•à±à°²à°¿à°•à± à°šà±‡à°¸à°¿ "à°¸à±‡à°µà± à°¯à°¾à°œà±" à°ªà±à°°à°¯à°¤à±à°¨à°¿à°‚à°šà°‚à°¡à°¿.'));
     } finally {
       setDownloadingFormId(null);

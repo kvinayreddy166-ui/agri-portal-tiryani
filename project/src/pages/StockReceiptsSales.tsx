@@ -8,6 +8,7 @@ import {
   financialYearForDate,
   financialYearRange,
 } from '../lib/stockInventory';
+import { guardedDocumentAction } from '../lib/documentActions';
 import { IconButton } from '../components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../utils/excelTotals';
 
@@ -209,7 +210,7 @@ export default function StockReceiptsSales() {
             <h1 className="text-2xl font-black text-slate-950 dark:text-white">Stock Receipts & Sales</h1>
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">All dealers, all categories, date-wise daily stock entries.</p>
           </div>
-          <IconButton label="Export all/filtered data to Excel" tone="excel" onClick={exportToExcel}>
+          <IconButton label="Export all/filtered data to Excel" tone="excel" onClick={guardedDocumentAction(exportToExcel)}>
             <FileSpreadsheet className="h-4 w-4" />
           </IconButton>
         </div>

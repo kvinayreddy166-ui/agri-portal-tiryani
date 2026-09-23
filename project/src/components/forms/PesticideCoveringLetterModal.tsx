@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isCombinationProductFromActiveIngredient } from '../../lib/statutoryPesticidePdf';
 import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
+import { openBlobPreview } from '../../lib/documentActions';
 
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
 const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';
@@ -333,9 +334,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
       
       if (isMobile) {
         const pdfBlob = doc.output('blob');
-        const pdfUrl = URL.createObjectURL(pdfBlob);
-        window.open(pdfUrl, '_blank');
-        window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 60_000);
+        openBlobPreview(pdfBlob, `Pesticide_Covering_Letter_${metadata.letterNumber || 'draft'}.pdf`);
       } else {
         const pdfData = doc.output('datauristring');
         setPreviewPdfUrl(pdfData);

@@ -285,7 +285,10 @@ export function ActsAndOrders() {
 
   const printFcoOffences = () => {
     const popup = window.open('', '_blank', 'width=1100,height=900');
-    if (!popup) return;
+    if (!popup) {
+      window.alert('Popup blocked. Please allow popups for this site to print, or use the Download button instead.');
+      return;
+    }
     popup.document.write(renderFcoOffencesPrintHtml(filteredFcoOffences));
     popup.document.close();
     popup.focus();

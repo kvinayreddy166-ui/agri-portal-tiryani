@@ -10,6 +10,7 @@ import * as XLSX from 'xlsx';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../data/telanganaDistrictMandalData';
 import { statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
 import { deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
+import { openBlobPreview } from '../lib/documentActions';
 import { getAllSavedDiaries, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft } from '../lib/diaryStorage';
 
 // Types
@@ -2512,10 +2513,14 @@ export function TourDiary() {
                                     <button
                                       role="menuitem"
                                       onClick={async () => {
-                                        const blob = await getDiaryPdf(item.id);
-                                        if (blob) {
-                                          const url = URL.createObjectURL(blob);
-                                          window.open(url, '_blank');
+                                        try {
+                                          const blob = await getDiaryPdf(item.id);
+                                          if (blob) {
+                                            openBlobPreview(blob, (item.data as DiaryPdfMetadata).fileName || 'tour-diary.pdf');
+                                          }
+                                        } catch (error) {
+                                          console.error('Failed to open PDF:', error);
+                                          showToast('Could not open the PDF. Please try again.', 'error');
                                         }
                                         setPdfMenuOpen(null);
                                       }}

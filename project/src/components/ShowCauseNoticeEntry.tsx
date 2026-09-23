@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FileChild } from 'docx';
-import { ChevronDown, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Edit3, FileText, FileType, Loader2, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear, financialYearForDate } from '../utils/financialYear';
 import { isAssistantDirectorOfAgriculture, statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../data/assistantDirectorLocation';
 import {
@@ -14,6 +14,7 @@ import {
   type ShowCauseViolation,
 } from '../data/showCauseViolationData';
 import { addEmblemImageWatermark } from '../lib/pdfWatermark';
+import { useDocumentAction } from '../hooks/useDocumentAction';
 
 type NoticeStatus = 'Draft' | 'Issued' | 'Explanation Received' | 'Closed' | 'Action Proposed';
 
@@ -672,6 +673,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const [savedSearch, setSavedSearch] = useState('');
   const [showProductDetails, setShowProductDetails] = useState(false);
   const [showNoticePreview, setShowNoticePreview] = useState(false);
+  const { busy: pdfBusy, run: runPdf } = useDocumentAction();
+  const { busy: wordBusy, run: runWord } = useDocumentAction();
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -1064,9 +1067,14 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   };
 
   const downloadPdf = async () => {
-    const doc = await buildNoticePdfDoc();
-    await addEmblemImageWatermark(doc);
-    doc.save(noticeFileName());
+    try {
+      const doc = await buildNoticePdfDoc();
+      await addEmblemImageWatermark(doc);
+      doc.save(noticeFileName());
+    } catch (error) {
+      console.error('Unable to generate notice PDF:', error);
+      window.alert('PDF could not be generated. Please check your connection and try again.');
+    }
   };
 
   const downloadWord = async () => {
@@ -1300,13 +1308,13 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               <Save className="h-4 w-4" />
               Save
             </button>
-            <button type="button" onClick={downloadPdf} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50">
-              <FileText className="h-4 w-4" />
-              PDF
+            <button type="button" onClick={() => runPdf(downloadPdf)} disabled={pdfBusy} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50 disabled:opacity-60">
+              {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+              {pdfBusy ? 'Generating…' : 'PDF'}
             </button>
-            <button type="button" onClick={downloadWord} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 dark:border-blue-800/50 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-black text-blue-700 dark:text-blue-300 hover:bg-blue-50">
-              <FileType className="h-4 w-4" />
-              DOC
+            <button type="button" onClick={() => runWord(downloadWord)} disabled={wordBusy} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 dark:border-blue-800/50 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-black text-blue-700 dark:text-blue-300 hover:bg-blue-50 disabled:opacity-60">
+              {wordBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileType className="h-4 w-4" />}
+              {wordBusy ? 'Generating…' : 'DOC'}
             </button>
           </div>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { resolveFileIdentity } from '../../lib/fileTypes';
 import { downloadFileFromUrl } from '../../lib/fileBlob';
+import { openExternalUrl } from '../../lib/documentActions';
 import { FilePreviewModal } from './FilePreviewModal';
 
 interface FileActionButtonsProps {
@@ -47,7 +48,7 @@ export function FileActionButtons({
     try {
       await downloadFileFromUrl(fileUrl, fileName);
     } catch {
-      window.open(fileUrl, '_blank', 'noopener,noreferrer');
+      openExternalUrl(fileUrl);
     } finally {
       setDownloading(false);
     }

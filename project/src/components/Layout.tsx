@@ -1,11 +1,12 @@
 import React, { useMemo, useState, ReactNode } from 'react';
 import {
   ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
-  Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
+  Archive, BarChart3, Settings, LogOut, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
 import { BackButton } from './ui/BackButton';
+import { LanguageToggle } from './ui/LanguageToggle';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -130,14 +131,12 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-            <button
-              type="button"
+            <LanguageToggle
+              language={language}
               onClick={toggleLanguage}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold transition hover:bg-white/25 sm:text-sm"
-            >
-              <Globe2 className="h-4 w-4" />
-              {language === 'en' ? 'తె' : 'EN'}
-            </button>
+              tone="solid"
+              label={t('Change language', 'భాష మార్చండి')}
+            />
             <span
               className={`hidden rounded-full px-2.5 py-1 text-[10px] font-bold sm:inline-block sm:text-xs ${
                 isAdminUser ? 'bg-amber-200 text-amber-950' : 'bg-cyan-200 text-cyan-950'

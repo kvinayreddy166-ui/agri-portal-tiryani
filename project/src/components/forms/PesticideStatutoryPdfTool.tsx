@@ -1259,7 +1259,10 @@ function openDocInTab(doc: { output: (type: 'blob') => Blob }, fileName: string,
       downloadDoc(doc, fileName);
     }
   } else {
-    window.open(blobUrl, '_blank', 'noopener,noreferrer');
+    // Placeholder tab was blocked (mobile/PWA popup blocker) — download instead.
+    URL.revokeObjectURL(blobUrl);
+    downloadDoc(doc, fileName);
+    return;
   }
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }

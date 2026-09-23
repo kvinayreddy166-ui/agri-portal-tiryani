@@ -9,6 +9,7 @@ import { emptyStatus, formatDate, listOrNil, statusText } from '../components/in
 import type { DraftRecord as DraftRecordBase, PdfSubTable, StatusField } from '../components/inspection/types';
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../components/inspection/persistence';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../components/inspection/useDirtyGuard';
+import { useDocumentAction } from '../hooks/useDocumentAction';
 
 type DiscrepancyRow = { product: string; registerBalance: string; eposBalance: string; physicalBalance: string; difference: string; remarks: string };
 type SampleRow = { product: string; company: string; batchNo: string; quantity: string; sampleDetails: string };
@@ -146,6 +147,7 @@ export function FertilizerDealerInspection() {
   const [showPreview, setShowPreview] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
   const [error, setError] = useState('');
+  const { busy: pdfBusy, run: runPdf } = useDocumentAction((message) => setError(message));
   const [dirty, setDirty] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
   const inputClass = useInputClass();
@@ -547,7 +549,7 @@ export function FertilizerDealerInspection() {
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-sky-100 pt-3 dark:border-sky-900/40">
             <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
-            <ActionButton onClick={generatePdf} icon={FileText} tone="sky">PDF</ActionButton>
+            <ActionButton onClick={() => runPdf(generatePdf)} icon={FileText} tone="sky" busy={pdfBusy}>{pdfBusy ? 'Generating…' : 'PDF'}</ActionButton>
           </div>
         </div>
       </div>
@@ -587,7 +589,7 @@ export function FertilizerDealerInspection() {
       )}
 
       {showPreview && (
-        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={generatePdf} icon={FileText} tone="sky">PDF</ActionButton>}>
+        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={() => runPdf(generatePdf)} icon={FileText} tone="sky" busy={pdfBusy}>{pdfBusy ? 'Generating…' : 'PDF'}</ActionButton>}>
           <Preview form={form} stockTotal={stockTotal} />
         </Modal>
       )}

@@ -15,6 +15,7 @@ import {
   fertilizerMtsToBags,
   formatReportDateLabel,
 } from '../lib/stockInventory';
+import { guardedDocumentAction } from '../lib/documentActions';
 
 const LazyStockChart = lazy(() => import('./LazyStockChart'));
 
@@ -354,7 +355,7 @@ export function StockInventory() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <IconButton label={t('Export to Excel', 'Export to Excel')} tone="excel" onClick={exportToExcel} disabled={!filteredRows.length}>
+          <IconButton label={t('Export to Excel', 'Export to Excel')} tone="excel" onClick={guardedDocumentAction(exportToExcel)} disabled={!filteredRows.length}>
             <FileSpreadsheet className="h-4 w-4" />
           </IconButton>
           <IconButton label={t('Refresh', 'Refresh')} tone="secondary" onClick={fetchData}>

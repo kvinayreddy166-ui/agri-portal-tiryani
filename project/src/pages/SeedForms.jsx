@@ -1650,10 +1650,12 @@ function openSeedDocInTab(doc, fileName, targetWindow) {
   const blobUrl = URL.createObjectURL(blob);
   if (targetWindow && !targetWindow.closed) {
     targetWindow.location.href = blobUrl;
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
   } else {
-    window.open(blobUrl, '_blank', 'noopener,noreferrer');
+    // Placeholder tab was blocked (mobile/PWA popup blocker) — download instead.
+    URL.revokeObjectURL(blobUrl);
+    downloadSeedDoc(doc, fileName);
   }
-  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 
 function downloadSeedDoc(doc, fileName) {
