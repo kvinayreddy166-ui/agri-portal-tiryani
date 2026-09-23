@@ -10,7 +10,7 @@ import * as XLSX from 'xlsx';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../data/telanganaDistrictMandalData';
 import { statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
 import { deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
-import { openBlobPreview, savePdfDocument, saveWorkbookFile } from '../lib/documentActions';
+import { deliverGeneratedFile, openBlobPreview, savePdfDocument, saveWorkbookFile } from '../lib/documentActions';
 import { getAllSavedDiaries, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft } from '../lib/diaryStorage';
 
 // Types
@@ -2531,14 +2531,16 @@ export function TourDiary() {
                                     <button
                                       role="menuitem"
                                       onClick={async () => {
-                                        const blob = await getDiaryPdf(item.id);
-                                        if (blob) {
-                                          const url = URL.createObjectURL(blob);
-                                          const a = document.createElement('a');
-                                          a.href = url;
-                                          a.download = (item.data as DiaryPdfMetadata).fileName;
-                                          a.click();
-                                          window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+                                        try {
+                                          const blob = await getDiaryPdf(item.id);
+                                          if (blob) {
+                                            await deliverGeneratedFile(blob, (item.data as DiaryPdfMetadata).fileName, '.pdf');
+                                          }
+                                        } catch (error) {
+                                          if (!(error instanceof DOMException && error.name === 'AbortError')) {
+                                            console.error('Failed to download PDF:', error);
+                                            showToast('Could not download the PDF. Please try again.', 'error');
+                                          }
                                         }
                                         setPdfMenuOpen(null);
                                       }}

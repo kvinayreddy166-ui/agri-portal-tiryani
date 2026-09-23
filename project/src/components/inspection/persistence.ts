@@ -1,4 +1,5 @@
 import type { DraftRecord } from './types';
+import { deliverGeneratedFile } from '../../lib/documentActions';
 
 export const INSPECTION_SCHEMA_VERSION = 1;
 
@@ -80,12 +81,11 @@ export function exportDraftsFile<T>(inspection: string, drafts: DraftRecord<T>[]
     drafts,
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  void deliverGeneratedFile(blob, filename).catch((error) => {
+    if (!(error instanceof DOMException && error.name === 'AbortError')) {
+      console.error('Draft export failed:', error);
+    }
+  });
 }
 
 /**

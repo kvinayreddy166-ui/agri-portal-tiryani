@@ -13,6 +13,34 @@
 
 const REVOKE_DELAY_MS = 60_000;
 
+const EXTENSION_BY_MIME: Record<string, string> = {
+  'application/pdf': '.pdf',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+  'application/msword': '.doc',
+  'application/json': '.json',
+  'text/csv': '.csv',
+  'image/png': '.png',
+  'image/jpeg': '.jpg',
+  'image/webp': '.webp',
+};
+
+/**
+ * Returns a valid, unique-ready filename: strips illegal characters and
+ * appends an extension derived from the content when the name lacks one.
+ */
+export function sanitizeFileName(filename: string, blobType?: string, fallbackExtension?: string): string {
+  const cleaned = (filename || 'download')
+    .trim()
+    .replace(/[<>:"/\\|?*]/g, '_')
+    .replace(/\p{Cc}/gu, '')
+    .replace(/\s+/g, ' ')
+    .replace(/^\.+/, '') || 'download';
+  if (/\.[A-Za-z0-9]{1,8}$/.test(cleaned)) return cleaned;
+  const ext = fallbackExtension || (blobType ? EXTENSION_BY_MIME[blobType] : undefined);
+  return ext ? `${cleaned}${ext}` : cleaned;
+}
+
 export function isIOSDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
   return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -74,17 +102,18 @@ function canShareFile(file: File): boolean {
  * Where file sharing is available, the user can choose an app or Save to Files;
  * the native download link remains available. Desktop uses an anchor download.
  */
-export async function deliverGeneratedFile(blob: Blob, filename: string): Promise<'shared' | 'downloaded'> {
+export async function deliverGeneratedFile(blob: Blob, filename: string, fallbackExtension?: string): Promise<'shared' | 'downloaded'> {
+  const safeName = sanitizeFileName(filename, blob.type, fallbackExtension);
   if (!isMobileDevice() && !isIOSDevice() && !isStandalonePwa()) {
-    downloadBlobFile(blob, filename);
+    downloadBlobFile(blob, safeName);
     return 'downloaded';
   }
 
-  const file = new File([blob], filename, { type: blob.type || 'application/octet-stream' });
+  const file = new File([blob], safeName, { type: blob.type || 'application/octet-stream' });
   const nav = navigator as ShareCapableNavigator;
   if (canShareFile(file) && navigator.userActivation?.isActive) {
     try {
-      await nav.share!({ files: [file], title: filename });
+      await nav.share!({ files: [file], title: safeName });
       return 'shared';
     } catch (error) {
       if ((error as Error)?.name === 'AbortError') throw new DOMException('File sharing was cancelled. No file was saved.', 'AbortError');
@@ -97,7 +126,7 @@ export async function deliverGeneratedFile(blob: Blob, filename: string): Promis
     overlay.className = 'fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/70 p-4';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', `Save ${filename}`);
+    overlay.setAttribute('aria-label', `Save ${safeName}`);
     const panel = document.createElement('div');
     panel.className = 'w-full max-w-sm space-y-4 rounded-xl bg-white p-5 text-slate-900 shadow-2xl';
     const title = document.createElement('h2');
@@ -105,7 +134,7 @@ export async function deliverGeneratedFile(blob: Blob, filename: string): Promis
     title.textContent = 'Your file is ready';
     const name = document.createElement('p');
     name.className = 'break-all text-sm';
-    name.textContent = filename;
+    name.textContent = safeName;
     const message = document.createElement('p');
     message.className = 'text-sm';
     message.textContent = 'Tap Save to Files, or use the download link below.';
@@ -122,7 +151,7 @@ export async function deliverGeneratedFile(blob: Blob, filename: string): Promis
       share.className = 'block w-full rounded-lg bg-emerald-700 px-4 py-3 font-bold text-white';
       share.textContent = 'Save to Files / Share';
       share.onclick = () => {
-        void nav.share!({ files: [file], title: filename })
+        void nav.share!({ files: [file], title: safeName })
           .then(() => finish('shared'))
           .catch((error: unknown) => {
             if ((error as Error)?.name !== 'AbortError') {
@@ -134,7 +163,7 @@ export async function deliverGeneratedFile(blob: Blob, filename: string): Promis
     }
     const download = document.createElement('a');
     download.href = url;
-    download.download = filename;
+    download.download = safeName;
     download.className = 'block w-full rounded-lg border border-emerald-700 px-4 py-3 text-center font-bold text-emerald-800';
     download.textContent = 'Download file';
     download.onclick = () => { window.setTimeout(() => finish('downloaded'), 0); };

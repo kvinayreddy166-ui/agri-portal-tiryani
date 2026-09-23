@@ -22,9 +22,13 @@ function mimeFromFileName(fileName?: string): string | undefined {
   return ct === 'application/octet-stream' ? undefined : ct;
 }
 
-function normalizeBlob(blob: Blob, fileName?: string): Blob {
+function normalizeBlob(blob: Blob, fileName?: string, fileUrl?: string): Blob {
   if (blob.type && blob.type !== 'application/octet-stream') return blob;
-  const mime = mimeFromFileName(fileName);
+  let mime = mimeFromFileName(fileName);
+  if (!mime && fileUrl) {
+    const ext = extensionFromUrl(fileUrl);
+    if (ext) mime = mimeFromFileName(`file${ext}`);
+  }
   if (!mime) return blob;
   return new Blob([blob], { type: mime });
 }
@@ -37,7 +41,7 @@ async function downloadBlob(fileUrl: string, fileName?: string): Promise<Blob> {
   try {
     const res = await fetch(fileUrl, { mode: 'cors', credentials: 'omit', signal: controller.signal });
     clearTimeout(timeoutId);
-    if (res.ok) return normalizeBlob(await res.blob(), fileName);
+    if (res.ok) return normalizeBlob(await res.blob(), fileName, fileUrl);
     errors.push(`fetch ${res.status}`);
   } catch (error) {
     clearTimeout(timeoutId);
@@ -53,7 +57,7 @@ async function downloadBlob(fileUrl: string, fileName?: string): Promise<Blob> {
     const { data, error } = await supabase.storage.from('uploads').download(storagePath);
     clearTimeout(storageTimeoutId);
     
-    if (!error && data) return normalizeBlob(data, fileName || storagePath);
+    if (!error && data) return normalizeBlob(data, fileName || storagePath, fileUrl);
 
     const { data: signed, error: signError } = await supabase.storage
       .from('uploads')
@@ -61,7 +65,7 @@ async function downloadBlob(fileUrl: string, fileName?: string): Promise<Blob> {
     if (!signError && signed?.signedUrl) {
       try {
         const res = await fetch(signed.signedUrl, { credentials: 'omit' });
-        if (res.ok) return normalizeBlob(await res.blob(), fileName || storagePath);
+        if (res.ok) return normalizeBlob(await res.blob(), fileName || storagePath, fileUrl);
         errors.push(`signed fetch ${res.status}`);
       } catch (error) {
         errors.push(error instanceof Error ? error.message : 'signed fetch failed');
@@ -88,11 +92,20 @@ export function revokeBlobUrl(url: string | null | undefined) {
   if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
 }
 
+function extensionFromUrl(fileUrl: string): string | undefined {
+  try {
+    const match = new URL(fileUrl).pathname.match(/\.([A-Za-z0-9]{1,8})$/);
+    return match ? `.${match[1].toLowerCase()}` : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Programmatic download that works for cross-origin Supabase public URLs. */
 export async function downloadFileFromUrl(fileUrl: string, fileName?: string) {
   try {
     const blob = await downloadBlob(fileUrl, fileName);
-    await deliverGeneratedFile(blob, fileName || 'download');
+    await deliverGeneratedFile(blob, fileName || 'download', extensionFromUrl(fileUrl));
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error;
     console.error('Blob download failed, falling back to direct URL:', error);

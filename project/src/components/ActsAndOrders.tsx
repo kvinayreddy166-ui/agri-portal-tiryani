@@ -37,6 +37,7 @@ import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory,
 import { fertilizerSchedules, type FertilizerScheduleEntry } from '../data/fertilizerSchedules';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { BackButton } from './ui/BackButton';
+import { deliverGeneratedFile } from '../lib/documentActions';
 import { FertilizerFormPdfGenerator } from './forms/FertilizerFormPdfGenerator';
 
 type ReckonerView = 'powers' | 'notice';
@@ -275,12 +276,11 @@ export function ActsAndOrders() {
     ];
     const csv = rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'fco-offences-penal-provisions.csv';
-    link.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    void deliverGeneratedFile(blob, 'fco-offences-penal-provisions.csv').catch((error) => {
+      if (!(error instanceof DOMException && error.name === 'AbortError')) {
+        console.error('CSV export failed:', error);
+      }
+    });
   };
 
   const printFcoOffences = () => {
