@@ -202,8 +202,8 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
     setDownloading(true);
     try {
       await downloadFileFromUrl(fileUrl, displayName);
-    } catch {
-      openExternalUrl(fileUrl);
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === 'AbortError')) openExternalUrl(fileUrl);
     } finally {
       setDownloading(false);
     }

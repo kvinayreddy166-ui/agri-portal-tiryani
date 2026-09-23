@@ -10,7 +10,7 @@ import * as XLSX from 'xlsx';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../data/telanganaDistrictMandalData';
 import { statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
 import { deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
-import { openBlobPreview } from '../lib/documentActions';
+import { openBlobPreview, savePdfDocument, saveWorkbookFile } from '../lib/documentActions';
 import { getAllSavedDiaries, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft } from '../lib/diaryStorage';
 
 // Types
@@ -2058,7 +2058,7 @@ export function TourDiary() {
       const fileName = `Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.pdf`;
       
       // PDFs are downloaded only; My Diaries stores drafts exclusively.
-      doc.save(fileName);
+      await savePdfDocument(doc, fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);
       showToast(`Failed to generate PDF. ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
@@ -2116,7 +2116,7 @@ export function TourDiary() {
 
       XLSX.utils.book_append_sheet(workbook, diarySheet, 'Tour Diary');
 
-      XLSX.writeFile(workbook, `Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.xlsx`);
+      await saveWorkbookFile(XLSX, workbook, `Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.xlsx`);
     } catch (error) {
       console.error('Error generating Excel:', error);
       showToast('Failed to generate Excel. Please try again later.', 'error');
@@ -2516,7 +2516,7 @@ export function TourDiary() {
                                         try {
                                           const blob = await getDiaryPdf(item.id);
                                           if (blob) {
-                                            openBlobPreview(blob, (item.data as DiaryPdfMetadata).fileName || 'tour-diary.pdf');
+                                            if (await openBlobPreview(blob, (item.data as DiaryPdfMetadata).fileName || 'tour-diary.pdf') === 'failed') throw new Error('PDF preview could not be opened');
                                           }
                                         } catch (error) {
                                           console.error('Failed to open PDF:', error);

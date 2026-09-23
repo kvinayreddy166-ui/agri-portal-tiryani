@@ -14,6 +14,7 @@ import {
   productTypesForCategory,
 } from '../lib/stockInventory';
 import { supabase } from '../lib/supabase';
+import { saveWorkbookFile } from '../lib/documentActions';
 import { bagsToMt, formatBags, formatMt, mtToBags } from '../utils/fertilizerUnits';
 import { currentFinancialYear } from '../utils/financialYear';
 import { IconButton } from '../components/ui/DesignSystem';
@@ -1305,7 +1306,7 @@ async function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryL
     ...totalColumns.map((column): [string, number] => [`Total ${column}`, totalValue(excelRows, column)]),
     ['Generated On', new Date().toLocaleString('en-IN')],
   ]);
-  XLSX.writeFile(workbook, `${CATEGORY_LABELS[category].toLowerCase()}-${type}-${Date.now()}.xlsx`);
+  await saveWorkbookFile(XLSX, workbook, `${CATEGORY_LABELS[category].toLowerCase()}-${type}-${Date.now()}.xlsx`);
   } catch (error) {
     console.error('Excel export failed:', error);
     alert('Excel export failed. Please check your connection and try again.');

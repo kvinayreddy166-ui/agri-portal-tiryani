@@ -2,6 +2,7 @@
  * File cleanup utilities for PDF Tools
  * Ensures privacy-first processing by clearing all temporary data
  */
+import { deliverGeneratedFile } from '../lib/documentActions';
 
 export function cleanupObjectUrl(url?: string) {
   if (url) {
@@ -45,17 +46,8 @@ export function makeSafeFileName(originalName: string, suffix: string, ext: stri
   return `${base}_${suffix}.${ext}`.slice(0, 40);
 }
 
-export function downloadBlob(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-
-  document.body.removeChild(link);
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+export async function downloadBlob(blob: Blob, fileName: string) {
+  await deliverGeneratedFile(blob, fileName);
 }
 
 export function validateFileSize(file: File, maxSizeMB: number = 20): { valid: boolean; error?: string } {

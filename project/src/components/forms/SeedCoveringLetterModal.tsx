@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
-import { openBlobPreview } from '../../lib/documentActions';
+import { openBlobPreview, savePdfDocument } from '../../lib/documentActions';
 
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 const SEED_COVERING_LETTER_DETAILS_KEY = 'tiryani-seed-covering-letter-details';
@@ -353,7 +353,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
       
       if (isMobile) {
         const pdfBlob = doc.output('blob');
-        openBlobPreview(pdfBlob, `Seed_Covering_Letter_${letterType || 'draft'}.pdf`);
+        if (await openBlobPreview(pdfBlob, `Seed_Covering_Letter_${letterType || 'draft'}.pdf`) === 'failed') throw new Error('PDF preview could not be opened');
       } else {
         const pdfData = doc.output('datauristring');
         setPreviewPdfUrl(pdfData);
@@ -421,7 +421,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
       const fileName = letterType === 'BT Protein' 
         ? `Seed_Covering_Letter_BT_${metadataForPdf.letterNumber || 'Draft'}.pdf`
         : `Seed_Covering_Letter_PMG_${metadata.letterNumber || 'Draft'}.pdf`;
-      doc.save(fileName);
+      await savePdfDocument(doc, fileName);
       
       setMessage(`Covering letter downloaded successfully for ${letterType}.`);
     } catch (error) {

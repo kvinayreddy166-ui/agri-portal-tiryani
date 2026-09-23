@@ -13,6 +13,7 @@ import {
   Save,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { saveWorkbookFile } from '../lib/documentActions';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -438,7 +439,7 @@ export function FarmerDatabase() {
     const worksheet = XLSX.utils.json_to_sheet(exportRows);
     worksheet['!cols'] = Object.keys(exportRows[0]).map((key) => ({ wch: Math.max(12, Math.min(34, key.length + 2)) }));
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Farmer Database');
-    XLSX.writeFile(workbook, 'farmer_database_filtered.xlsx');
+    await saveWorkbookFile(XLSX, workbook, 'farmer_database_filtered.xlsx');
     } catch (error) {
       console.error('Excel export failed:', error);
       alert('Excel export failed. Please check your connection and try again.');
@@ -450,7 +451,7 @@ export function FarmerDatabase() {
     const XLSX = await import('xlsx');
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(farmerTemplateRows()), 'Farmer_Database_Template');
-    XLSX.writeFile(workbook, 'farmer_database_template.xlsx');
+    await saveWorkbookFile(XLSX, workbook, 'farmer_database_template.xlsx');
     } catch (error) {
       console.error('Template download failed:', error);
       alert('Template download failed. Please check your connection and try again.');

@@ -10,6 +10,7 @@ import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField }
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../components/inspection/persistence';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../components/inspection/useDirtyGuard';
 import { useDocumentAction } from '../hooks/useDocumentAction';
+import { savePdfDocument } from '../lib/documentActions';
 
 type VariationRow = { productName: string; brandName: string; batchNumber: string; bookStock: string; physicalStock: string; variation: string; remarks: string };
 type DetainedRow = { productName: string; brandName: string; manufacturer: string; batchNumber: string; quantity: string; detentionReason: string };
@@ -226,7 +227,7 @@ export function InsecticideDealerInspection() {
     try {
       const doc = await buildPdf(form);
       await addEmblemImageWatermark(doc);
-      doc.save(`Insecticide_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
+      await savePdfDocument(doc, `Insecticide_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
       showSuccess('PDF downloaded');
     } catch (error) {
       console.error('PDF generation failed:', error);

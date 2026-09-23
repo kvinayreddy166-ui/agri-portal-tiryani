@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { savePdfDocument } from '../lib/documentActions';
 import { useAuth } from '../context/AuthContext';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
@@ -1738,7 +1739,7 @@ export function FertilizerCalculator() {
       lastDoc = doc;
       if (fits) break;
     }
-    lastDoc?.save(generatePdfFilename(farmerDetails));
+    if (lastDoc) await savePdfDocument(lastDoc, generatePdfFilename(farmerDetails));
   };
 
   const shareWhatsApp = () => {

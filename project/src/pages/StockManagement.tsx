@@ -9,7 +9,7 @@ import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
 import { useVirtualRows } from '../hooks/useVirtualRows';
 import { IconButton } from '../components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue, type ExcelRow } from '../utils/excelTotals';
-import { guardedDocumentAction } from '../lib/documentActions';
+import { guardedDocumentAction, saveWorkbookFile } from '../lib/documentActions';
 
 const LazyFertilizerChart = lazy(() => import('./LazyFertilizerChart'));
 
@@ -748,5 +748,5 @@ async function downloadWorkbook(
     ...totalColumns.map((column): [string, number] => [`Total ${column}`, totalValue(rows, column)]),
     ['Generated On', new Date().toLocaleString('en-IN')],
   ]);
-  XLSX.writeFile(workbook, fileName);
+  await saveWorkbookFile(XLSX, workbook, fileName);
 }

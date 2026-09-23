@@ -111,16 +111,16 @@ export function PdfSplitTool() {
     }
   };
 
-  const handleDownloadAll = () => {
-    results.forEach((blob, index) => {
+  const handleDownloadAll = async () => {
+    for (const [index, blob] of results.entries()) {
       const fileName = makeSafeFileName(file?.name || 'document', `part_${index + 1}`, 'pdf');
-      downloadBlob(blob, fileName);
-    });
+      await downloadBlob(blob, fileName);
+    }
   };
 
-  const handleDownloadSingle = (blob: Blob, index: number) => {
+  const handleDownloadSingle = async (blob: Blob, index: number) => {
     const fileName = makeSafeFileName(file?.name || 'document', `part_${index + 1}`, 'pdf');
-    downloadBlob(blob, fileName);
+    await downloadBlob(blob, fileName);
   };
 
   const handleReset = () => {

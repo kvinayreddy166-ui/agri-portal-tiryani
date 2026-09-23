@@ -87,9 +87,9 @@ export function PdfCompressionTool() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!result || !file) return;
-    downloadBlob(result.blob, makeSafeFileName(file.name, result.level.replace(/\s+/g, '_').toLowerCase(), 'pdf'));
+    await downloadBlob(result.blob, makeSafeFileName(file.name, result.level.replace(/\s+/g, '_').toLowerCase(), 'pdf'));
   };
 
   const handleResetResult = () => {

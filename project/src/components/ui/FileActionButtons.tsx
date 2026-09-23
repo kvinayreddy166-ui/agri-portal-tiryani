@@ -47,8 +47,8 @@ export function FileActionButtons({
     setDownloading(true);
     try {
       await downloadFileFromUrl(fileUrl, fileName);
-    } catch {
-      openExternalUrl(fileUrl);
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === 'AbortError')) openExternalUrl(fileUrl);
     } finally {
       setDownloading(false);
     }

@@ -51,21 +51,143 @@ export function downloadBlobFile(blob: Blob, filename: string): void {
   window.setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
 }
 
-export type BlobPreviewResult = 'opened' | 'downloaded' | 'failed';
+export type BlobPreviewResult = 'opened' | 'downloaded' | 'shared' | 'failed';
+
+type ShareCapableNavigator = Navigator & {
+  canShare?: (data?: ShareData) => boolean;
+  share?: (data?: ShareData) => Promise<void>;
+};
+
+function canShareFile(file: File): boolean {
+  const nav = navigator as ShareCapableNavigator;
+  try {
+    return typeof nav.share === 'function' && typeof nav.canShare === 'function' && nav.canShare({ files: [file] });
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Delivers a generated file to the user.
+ *
+ * Mobile and installed PWAs show a real-tap save action after async generation.
+ * Where file sharing is available, the user can choose an app or Save to Files;
+ * the native download link remains available. Desktop uses an anchor download.
+ */
+export async function deliverGeneratedFile(blob: Blob, filename: string): Promise<'shared' | 'downloaded'> {
+  if (!isMobileDevice() && !isIOSDevice() && !isStandalonePwa()) {
+    downloadBlobFile(blob, filename);
+    return 'downloaded';
+  }
+
+  const file = new File([blob], filename, { type: blob.type || 'application/octet-stream' });
+  const nav = navigator as ShareCapableNavigator;
+  if (canShareFile(file) && navigator.userActivation?.isActive) {
+    try {
+      await nav.share!({ files: [file], title: filename });
+      return 'shared';
+    } catch (error) {
+      if ((error as Error)?.name === 'AbortError') throw new DOMException('File sharing was cancelled. No file was saved.', 'AbortError');
+    }
+  }
+
+  return new Promise<'shared' | 'downloaded'>((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/70 p-4';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', `Save ${filename}`);
+    const panel = document.createElement('div');
+    panel.className = 'w-full max-w-sm space-y-4 rounded-xl bg-white p-5 text-slate-900 shadow-2xl';
+    const title = document.createElement('h2');
+    title.className = 'text-lg font-bold';
+    title.textContent = 'Your file is ready';
+    const name = document.createElement('p');
+    name.className = 'break-all text-sm';
+    name.textContent = filename;
+    const message = document.createElement('p');
+    message.className = 'text-sm';
+    message.textContent = 'Tap Save to Files, or use the download link below.';
+    const finish = (result?: 'shared' | 'downloaded') => {
+      overlay.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
+      if (result) resolve(result);
+      else reject(new DOMException('File save cancelled. No file was downloaded.', 'AbortError'));
+    };
+    panel.append(title, name, message);
+    if (canShareFile(file)) {
+      const share = document.createElement('button');
+      share.type = 'button';
+      share.className = 'block w-full rounded-lg bg-emerald-700 px-4 py-3 font-bold text-white';
+      share.textContent = 'Save to Files / Share';
+      share.onclick = () => {
+        void nav.share!({ files: [file], title: filename })
+          .then(() => finish('shared'))
+          .catch((error: unknown) => {
+            if ((error as Error)?.name !== 'AbortError') {
+              message.textContent = 'Sharing failed. Try the download link below.';
+            }
+          });
+      };
+      panel.appendChild(share);
+    }
+    const download = document.createElement('a');
+    download.href = url;
+    download.download = filename;
+    download.className = 'block w-full rounded-lg border border-emerald-700 px-4 py-3 text-center font-bold text-emerald-800';
+    download.textContent = 'Download file';
+    download.onclick = () => { window.setTimeout(() => finish('downloaded'), 0); };
+    panel.appendChild(download);
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'block w-full px-4 py-2 text-sm';
+    cancel.textContent = 'Cancel';
+    cancel.onclick = () => finish();
+    panel.appendChild(cancel);
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
+    (panel.querySelector('button, a') as HTMLElement).focus();
+  });
+}
+
+/**
+ * Replacement for jsPDF `doc.save(filename)`. `doc.save()` internally uses a
+ * blob anchor click, which silently fails on iOS standalone PWA. This routes
+ * the identical bytes through `deliverGeneratedFile` instead.
+ */
+export function savePdfDocument(doc: { output: (type: 'blob') => Blob }, filename: string) {
+  return deliverGeneratedFile(doc.output('blob'), filename);
+}
+
+const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+type XlsxWriter = typeof import('xlsx');
+type XlsxWorkbook = import('xlsx').WorkBook;
+
+/**
+ * Replacement for `XLSX.writeFile(workbook, filename)` — produces the same
+ * .xlsx file but delivers it via `deliverGeneratedFile` so it works on
+ * mobile/PWA where the library's internal anchor click does nothing.
+ */
+export function saveWorkbookFile(XLSX: XlsxWriter, workbook: XlsxWorkbook, filename: string) {
+  const data = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  return deliverGeneratedFile(new Blob([data as ArrayBuffer], { type: XLSX_MIME }), filename);
+}
 
 /**
  * Opens a generated Blob (e.g. PDF) for preview.
  *
  * Desktop: opens the blob in a new tab via `window.open` (sync callers only —
  * after an `await`, popup blockers may reject it, so we fall back).
- * Mobile / installed PWA / popup blocked: downloads the file instead — the OS
- * viewer opens it, which is the only reliable "preview" on those platforms.
+ * Mobile / installed PWA / popup blocked: delivers the file instead (native
+ * share sheet on iOS, download elsewhere) — the OS viewer opens it, which is
+ * the only reliable "preview" on those platforms.
  */
-export function openBlobPreview(blob: Blob, filename: string): BlobPreviewResult {
+export async function openBlobPreview(blob: Blob, filename: string): Promise<BlobPreviewResult> {
   if (isMobileDevice() || isStandalonePwa()) {
     try {
-      downloadBlobFile(blob, filename);
-      return 'downloaded';
+      return await deliverGeneratedFile(blob, filename);
     } catch (error) {
       console.error('Blob download fallback failed:', error);
       return 'failed';
@@ -81,13 +203,11 @@ export function openBlobPreview(blob: Blob, filename: string): BlobPreviewResult
     }
     // Popup blocked — fall back to a real download.
     URL.revokeObjectURL(url);
-    downloadBlobFile(blob, filename);
-    return 'downloaded';
+    return await deliverGeneratedFile(blob, filename);
   } catch (error) {
     console.error('Blob preview failed, falling back to download:', error);
     try {
-      downloadBlobFile(blob, filename);
-      return 'downloaded';
+      return await deliverGeneratedFile(blob, filename);
     } catch (fallbackError) {
       console.error('Download fallback also failed:', fallbackError);
       return 'failed';

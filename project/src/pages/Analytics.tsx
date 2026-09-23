@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Eye, FileSpreadsheet, FileText, Filter, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { savePdfDocument, saveWorkbookFile } from '../lib/documentActions';
 import { useAuth } from '../context/AuthContext';
 import { StockCategory, currentReportDate, shiftReportDate } from '../lib/stockInventory';
 
@@ -207,7 +208,7 @@ export function Analytics() {
       const worksheet = XLSX.utils.aoa_to_sheet([...meta, [], Object.keys(reportRows[0]), ...reportRows.map((row) => Object.values(row))]);
       worksheet['!cols'] = Object.keys(reportRows[0]).map((key) => ({ wch: Math.min(38, Math.max(12, key.length + 2)) }));
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
-      XLSX.writeFile(workbook, `${safeFileName(currentReport.title)}_${fromDate || 'all'}_${toDate || 'all'}.xlsx`);
+      await saveWorkbookFile(XLSX, workbook, `${safeFileName(currentReport.title)}_${fromDate || 'all'}_${toDate || 'all'}.xlsx`);
     } catch (error) {
       console.error('Excel export failed:', error);
       alert('Excel export failed. Please check your connection and try again.');
@@ -250,7 +251,7 @@ export function Analytics() {
       y += 14;
     });
     addFooter(doc, user?.email || 'MAO/Admin');
-    doc.save(`${safeFileName(currentReport.title)}_${fromDate || 'all'}_${toDate || 'all'}.pdf`);
+    await savePdfDocument(doc, `${safeFileName(currentReport.title)}_${fromDate || 'all'}_${toDate || 'all'}.pdf`);
     } catch (error) {
       console.error('PDF export failed:', error);
       alert('PDF export failed. Please check your connection and try again.');

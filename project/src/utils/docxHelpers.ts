@@ -3,6 +3,7 @@
  */
 
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
+import { deliverGeneratedFile } from '../lib/documentActions';
 
 export async function createDocxFromText(text: string, title?: string): Promise<Blob> {
   const paragraphs: Paragraph[] = [];
@@ -153,15 +154,6 @@ export async function createDocxFromStructuredText(
   return Packer.toBlob(doc);
 }
 
-export function downloadDocx(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-
-  document.body.removeChild(link);
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+export async function downloadDocx(blob: Blob, fileName: string) {
+  await deliverGeneratedFile(blob, fileName);
 }

@@ -328,6 +328,7 @@ export function Login() {
     try {
       await downloadFileFromUrl(form.file_url, form.title);
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
       console.error('Download failed:', error);
       // Fallback: open in new tab
       openExternalUrl(form.file_url);

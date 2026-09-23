@@ -15,6 +15,7 @@ import {
 } from '../data/showCauseViolationData';
 import { addEmblemImageWatermark } from '../lib/pdfWatermark';
 import { useDocumentAction } from '../hooks/useDocumentAction';
+import { deliverGeneratedFile, savePdfDocument } from '../lib/documentActions';
 
 type NoticeStatus = 'Draft' | 'Issued' | 'Explanation Received' | 'Closed' | 'Action Proposed';
 
@@ -1070,7 +1071,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     try {
       const doc = await buildNoticePdfDoc();
       await addEmblemImageWatermark(doc);
-      doc.save(noticeFileName());
+      await savePdfDocument(doc, noticeFileName());
     } catch (error) {
       console.error('Unable to generate notice PDF:', error);
       window.alert('PDF could not be generated. Please check your connection and try again.');
@@ -1080,14 +1081,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const downloadWord = async () => {
     try {
       const blob = await buildNoticeWordDocument(noticeBlocks);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = noticeWordFileName();
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      await deliverGeneratedFile(blob, noticeWordFileName());
     } catch (error) {
       console.error('Unable to generate notice Word document:', error);
       window.alert('Word document could not be generated. Please try again.');

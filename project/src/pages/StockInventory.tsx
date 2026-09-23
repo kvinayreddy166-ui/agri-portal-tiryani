@@ -15,7 +15,7 @@ import {
   fertilizerMtsToBags,
   formatReportDateLabel,
 } from '../lib/stockInventory';
-import { guardedDocumentAction } from '../lib/documentActions';
+import { guardedDocumentAction, saveWorkbookFile } from '../lib/documentActions';
 
 const LazyStockChart = lazy(() => import('./LazyStockChart'));
 
@@ -339,7 +339,7 @@ export function StockInventory() {
     XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
 
     const safePeriod = (viewMode === 'day' ? reportDate : reportMonth).replace(/[^0-9-]/g, '');
-    XLSX.writeFile(workbook, `dealer_daily_stock_${category}_${safePeriod}.xlsx`);
+    await saveWorkbookFile(XLSX, workbook, `dealer_daily_stock_${category}_${safePeriod}.xlsx`);
   };
 
   return (

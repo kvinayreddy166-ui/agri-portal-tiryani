@@ -1,4 +1,5 @@
 import { StockCategory } from '../lib/stockInventory';
+import { saveWorkbookFile } from '../lib/documentActions';
 
 type Metadata = {
   firmName: string;
@@ -40,5 +41,5 @@ export async function writeProfessionalWorkbook(filename: string, sheetName: str
   worksheet['!cols'] = header.map((key) => ({ wch: Math.max(14, key.length + 2) }));
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.slice(0, 31));
-  XLSX.writeFile(workbook, filename);
+  await saveWorkbookFile(XLSX, workbook, filename);
 }

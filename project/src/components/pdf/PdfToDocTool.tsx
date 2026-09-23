@@ -78,15 +78,15 @@ export function PdfToDocTool() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!result || !file) return;
     const fileName = makeSafeFileName(file.name, 'converted', 'docx');
-    downloadDocx(result.docxBlob, fileName);
+    await downloadDocx(result.docxBlob, fileName);
   };
 
-  const handleSourceDownload = () => {
+  const handleSourceDownload = async () => {
     if (!file) return;
-    downloadBlob(file, makeSafeFileName(file.name, 'source', 'pdf'));
+    await downloadBlob(file, makeSafeFileName(file.name, 'source', 'pdf'));
   };
 
   const handleReset = () => {

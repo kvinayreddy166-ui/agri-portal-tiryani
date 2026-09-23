@@ -1,5 +1,6 @@
 import type { CropProtectionCrop, CropProtectionItem, LanguageCode } from './cropProtectionService';
 import { advisoryText } from './cropProtectionService';
+import { savePdfDocument } from '../lib/documentActions';
 
 export async function downloadAdvisoryPdf(
   crop: CropProtectionCrop,
@@ -20,5 +21,5 @@ export async function downloadAdvisoryPdf(
   doc.text(lines, 20, 32);
   doc.setFont('times', 'bold');
   doc.text('Credit: Agriculture Department', 20, 282);
-  doc.save(`${crop.crop_key}_${item.category}_advisory.pdf`);
+  await savePdfDocument(doc, `${crop.crop_key}_${item.category}_advisory.pdf`);
 }

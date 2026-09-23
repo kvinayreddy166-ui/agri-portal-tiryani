@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Bug, Eye, FileText, RotateCcw, Save } from 'lucide-react';
 import { PesticideCoveringLetterModal } from './PesticideCoveringLetterModal';
+import { isMobileDevice, isStandalonePwa, savePdfDocument } from '../../lib/documentActions';
 import {
   generateAllPesticideStatutoryPdf,
   generatePesticideStatutoryPdf,
@@ -548,8 +549,8 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     setBusy(true);
     try {
       const doc = await generatePesticideStatutoryPdf(formType, documentValues, watermarkEnabled);
-      openDocInTab(doc, getPesticidePdfFileName(formType, documentValues), targetWindow);
-      showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
+      await openDocInTab(doc, getPesticidePdfFileName(formType, documentValues), targetWindow);
+      showInfo('Preview Ready', isMobileDevice() || isStandalonePwa() ? 'PDF ready to save or open on your device.' : 'PDF preview opened in a new tab.', 4000);
     } catch (error) {
       console.error('Unable to preview pesticide PDF:', error);
       targetWindow?.close();
@@ -589,7 +590,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     try {
       const doc = await generatePesticideStatutoryPdf(formType, documentValues, watermarkEnabled);
       const fileName = getPesticidePdfFileName(formType, documentValues);
-      downloadDoc(doc, fileName);
+      await downloadDoc(doc, fileName);
       showSuccess('PDF Downloaded Successfully', fileName, 4000);
     } catch (error) {
       console.error('Unable to download pesticide PDF:', error);
@@ -629,8 +630,8 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     setBusy(true);
     try {
       const doc = await generateAllPesticideStatutoryPdf(values, watermarkEnabled);
-      openDocInTab(doc, getAllPesticidePdfFileName(values), targetWindow);
-      showInfo('All Forms Previewed', 'All pesticide forms preview opened in a new tab.', 4000);
+      await openDocInTab(doc, getAllPesticidePdfFileName(values), targetWindow);
+      showInfo('All Forms Previewed', isMobileDevice() || isStandalonePwa() ? 'All forms PDF ready to save or open on your device.' : 'All pesticide forms preview opened in a new tab.', 4000);
     } catch (error) {
       console.error('Unable to preview all pesticide PDFs:', error);
       targetWindow?.close();
@@ -670,7 +671,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     try {
       const doc = await generateAllPesticideStatutoryPdf(values, watermarkEnabled);
       const fileName = getAllPesticidePdfFileName(values);
-      downloadDoc(doc, fileName);
+      await downloadDoc(doc, fileName);
       showSuccess('All Forms PDF Downloaded Successfully', fileName, 4000);
     } catch (error) {
       console.error('Unable to download all pesticide PDFs:', error);
@@ -1231,6 +1232,7 @@ function upsertDraft(drafts: SavedPesticideDraft[], draft: SavedPesticideDraft) 
 }
 
 function openBlankPdfTab() {
+  if (isMobileDevice() || isStandalonePwa()) return null;
   const targetWindow = window.open('', '_blank');
   if (targetWindow) {
     targetWindow.opener = null;
@@ -1240,7 +1242,12 @@ function openBlankPdfTab() {
   return targetWindow;
 }
 
-function openDocInTab(doc: { output: (type: 'blob') => Blob }, fileName: string, targetWindow: Window | null) {
+async function openDocInTab(doc: { output: (type: 'blob') => Blob }, fileName: string, targetWindow: Window | null) {
+  if (isMobileDevice() || isStandalonePwa()) {
+    targetWindow?.close();
+    await savePdfDocument(doc, fileName);
+    return;
+  }
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   
@@ -1251,23 +1258,24 @@ function openDocInTab(doc: { output: (type: 'blob') => Blob }, fileName: string,
       targetWindow.onerror = () => {
         console.warn('PDF preview failed, falling back to download');
         targetWindow.close();
-        downloadDoc(doc, fileName);
+        void downloadDoc(doc, fileName).catch(console.error);
       };
     } catch (error) {
       console.warn('Failed to open PDF in tab, falling back to download:', error);
       targetWindow.close();
-      downloadDoc(doc, fileName);
+      await downloadDoc(doc, fileName);
     }
   } else {
     // Placeholder tab was blocked (mobile/PWA popup blocker) — download instead.
     URL.revokeObjectURL(blobUrl);
-    downloadDoc(doc, fileName);
+    await downloadDoc(doc, fileName);
     return;
   }
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 
-function downloadDoc(doc: { output: (type: 'blob') => Blob }, fileName: string) {
+async function downloadDoc(doc: { output: (type: 'blob') => Blob }, fileName: string) {
+  if (isMobileDevice() || isStandalonePwa()) return savePdfDocument(doc, fileName);
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement('a');

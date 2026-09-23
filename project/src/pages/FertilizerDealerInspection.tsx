@@ -10,6 +10,7 @@ import type { DraftRecord as DraftRecordBase, PdfSubTable, StatusField } from '.
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../components/inspection/persistence';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../components/inspection/useDirtyGuard';
 import { useDocumentAction } from '../hooks/useDocumentAction';
+import { savePdfDocument } from '../lib/documentActions';
 
 type DiscrepancyRow = { product: string; registerBalance: string; eposBalance: string; physicalBalance: string; difference: string; remarks: string };
 type SampleRow = { product: string; company: string; batchNo: string; quantity: string; sampleDetails: string };
@@ -243,7 +244,7 @@ export function FertilizerDealerInspection() {
     try {
       const doc = await buildPdf(form);
       await addEmblemImageWatermark(doc);
-      doc.save(`Fertilizer_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
+      await savePdfDocument(doc, `Fertilizer_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
       showSuccess('PDF downloaded');
     } catch (error) {
       console.error('PDF generation failed:', error);

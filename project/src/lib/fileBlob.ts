@@ -1,6 +1,7 @@
 /** Fetch remote file as blob URL for inline preview (avoids cross-origin download behavior). */
 import { supabase } from './supabase';
 import { getContentType } from './fileTypes';
+import { deliverGeneratedFile } from './documentActions';
 
 function extractSupabaseStoragePath(fileUrl: string): string | null {
   try {
@@ -91,16 +92,9 @@ export function revokeBlobUrl(url: string | null | undefined) {
 export async function downloadFileFromUrl(fileUrl: string, fileName?: string) {
   try {
     const blob = await downloadBlob(fileUrl, fileName);
-    const blobUrl = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = blobUrl;
-    anchor.download = fileName || 'download';
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    // Delay revoke so the browser has time to start the download
-    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    await deliverGeneratedFile(blob, fileName || 'download');
   } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error;
     console.error('Blob download failed, falling back to direct URL:', error);
     // Fallback: open in new tab if blob download fails
     const anchor = document.createElement('a');
