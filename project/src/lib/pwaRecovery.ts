@@ -11,6 +11,9 @@ const CHUNK_ERROR_PATTERNS = [
 
 export function installPwaRecovery() {
   if (typeof window === 'undefined') return;
+  // In dev, Vite handles module errors itself — the SW/reload recovery would
+  // interfere with lazy imports used by downloads (jspdf/docx/xlsx).
+  if (import.meta.env.DEV) return;
 
   window.addEventListener('error', (event) => {
     const target = event.target as HTMLElement | null;

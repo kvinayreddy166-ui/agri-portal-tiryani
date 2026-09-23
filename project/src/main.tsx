@@ -75,6 +75,15 @@ createRoot(rootEl).render(
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    // In dev, the SW's fetch interception breaks Vite module loading and lazy
+    // imports (jspdf/docx/xlsx). Unregister any existing SW and skip registering.
+    if (import.meta.env.DEV) {
+      void navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => void registration.unregister());
+      });
+      return;
+    }
+
     const installRescueServiceWorker = async () => {
       try {
         const registrations = await navigator.serviceWorker.getRegistrations();
@@ -98,7 +107,7 @@ if ('serviceWorker' in navigator) {
           // Drop stale static caches so an older offline.html banner cannot survive refresh
           await Promise.all(
             keys
-              .filter((key) => key !== 'agronix-static-v10' && key !== 'agronix-runtime-v10')
+              .filter((key) => key !== 'agronix-static-v15' && key !== 'agronix-runtime-v15')
               .map((key) => caches.delete(key))
           );
         }

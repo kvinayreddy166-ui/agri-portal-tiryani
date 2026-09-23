@@ -1,7 +1,7 @@
-const RESCUE_SW_VERSION = 'agronix-rescue-sw-v14';
+const RESCUE_SW_VERSION = 'agronix-rescue-sw-v15';
 const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
-const STATIC_CACHE_NAME = 'agronix-static-v14';
-const RUNTIME_CACHE_NAME = 'agronix-runtime-v14';
+const STATIC_CACHE_NAME = 'agronix-static-v15';
+const RUNTIME_CACHE_NAME = 'agronix-runtime-v15';
 
 // Get recovery URL that preserves current path for public routes
 function getRecoveryUrl(request) {
@@ -86,7 +86,10 @@ self.addEventListener('fetch', (event) => {
 
   // Build assets (/assets/*-hash.js|css) are content-hashed, so cache-first is always correct
   // and lets previously visited pages (incl. lazy chunks) load fully offline.
-  if (request.destination === 'script' || request.destination === 'style' || url.pathname.startsWith('/assets/')) {
+  // IMPORTANT: only intercept the /assets/ path. In dev, Vite serves every module
+  // (/src/*, /node_modules/.vite/deps/*) with destination 'script' — intercepting
+  // those breaks dynamic imports (jspdf/docx/xlsx) used by download buttons.
+  if (url.pathname.startsWith('/assets/')) {
     event.respondWith(cacheFirstBuildAsset(request));
   }
 });

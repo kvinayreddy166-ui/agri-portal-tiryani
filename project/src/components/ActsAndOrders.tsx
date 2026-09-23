@@ -476,7 +476,7 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
               key={card.id}
               type="button"
               onClick={() => onOpenSection(card.id)}
-              className="group relative min-h-[7rem] overflow-hidden rounded-lg border border-slate-200 bg-white p-2.5 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md dark:border-slate-700 dark:bg-slate-950"
+              className="group relative min-h-[7rem] overflow-hidden rounded-lg border border-emerald-200 bg-white p-2.5 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md dark:border-emerald-800/50 dark:bg-slate-950"
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${card.tone} opacity-15 transition group-hover:opacity-25`} />
               <div className="relative flex h-full flex-col justify-between gap-2">
@@ -618,7 +618,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange, onBack }: { search: 
       </div>
       <div className="grid gap-2 md:grid-cols-2">
         {visibleSchedules.map((schedule) => (
-          <details key={schedule.id} className="group rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm transition hover:border-emerald-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+          <details key={schedule.id} className="group rounded-lg border border-sky-200 bg-white p-2.5 shadow-sm transition hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:bg-slate-900">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{schedule.scheduleNo}</p>
@@ -725,7 +725,7 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
               type="button"
               onClick={() => onOpen(card.id)}
               style={{ animationDelay: card.delay }}
-              className={`agri-legal-round-card group relative mx-auto flex aspect-square w-full max-w-[10.4rem] flex-col items-center justify-center overflow-hidden rounded-full border border-white/80 bg-gradient-to-br from-white via-lime-50 to-emerald-50 p-[0.9rem] text-center shadow-lg ${card.glow} ring-1 ring-emerald-900/5 transition duration-300 hover:-translate-y-2 hover:scale-[1.06] hover:rotate-[1deg] hover:shadow-2xl focus-visible:outline-emerald-700 active:scale-[0.97] dark:border-slate-700 dark:bg-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950`}
+              className={`agri-legal-round-card group relative mx-auto flex aspect-square w-full max-w-[10.4rem] flex-col items-center justify-center overflow-hidden rounded-full border border-emerald-300/70 bg-gradient-to-br from-white via-lime-50 to-emerald-50 p-[0.9rem] text-center shadow-lg ${card.glow} ring-1 ring-emerald-900/5 transition duration-300 hover:-translate-y-2 hover:scale-[1.06] hover:rotate-[1deg] hover:shadow-2xl focus-visible:outline-emerald-700 active:scale-[0.97] dark:border-slate-700 dark:bg-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950`}
             >
               <span className={`absolute inset-2 rounded-full bg-gradient-to-br ${card.color} opacity-[0.18] transition group-hover:opacity-[0.28]`} />
               <span className="agri-card-field-lines absolute inset-4 rounded-full" />
@@ -777,7 +777,7 @@ function LegalTopicScreen({
               type="button"
               onClick={() => onOpenTopic(topic)}
               style={{ animationDelay: `${index * 70}ms` }}
-              className="agri-topic-card group rounded-lg border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 active:scale-[0.99] dark:border-slate-700 dark:bg-slate-950 dark:hover:bg-emerald-950/20"
+              className="agri-topic-card group rounded-lg border border-emerald-200 bg-slate-50 p-4 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 active:scale-[0.99] dark:border-emerald-800/50 dark:bg-slate-950 dark:hover:bg-emerald-950/20"
             >
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-emerald-700 shadow-sm ring-1 ring-emerald-100 transition group-hover:scale-105 dark:bg-slate-900 dark:text-emerald-300 dark:ring-slate-700">
                 <Icon className="h-4 w-4" />
@@ -948,7 +948,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
   };
 
   return (
-    <details id={`fco-clause-${clause.id}`} className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" open>
+    <details id={`fco-clause-${clause.id}`} className="group overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm dark:border-amber-800/50 dark:bg-slate-900" open>
       <summary className="flex cursor-pointer list-none flex-col gap-2 border-b border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-950 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Clause {clause.clauseNo} - {clause.category}</p>
@@ -1278,7 +1278,7 @@ function FertilizerFormsPanel({
 
       <div className="grid auto-rows-fr gap-2 p-2 md:grid-cols-2 xl:grid-cols-3">
         {visibleForms.map((form) => (
-          <article key={form.id} className="flex min-h-[9rem] min-w-0 flex-col rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm transition hover:border-amber-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+          <article key={form.id} className="flex min-h-[9rem] min-w-0 flex-col rounded-lg border border-amber-200 bg-white p-2.5 shadow-sm transition hover:border-amber-300 hover:shadow-md dark:border-amber-800/50 dark:bg-slate-900">
             <div className="flex min-w-0 flex-1 flex-col gap-2 text-left">
               <div className="flex min-w-0 items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">

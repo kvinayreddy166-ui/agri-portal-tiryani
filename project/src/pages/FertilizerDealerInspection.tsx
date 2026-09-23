@@ -4,7 +4,7 @@ import { ClipboardCheck, Eye, FileText, FileDown, FileUp, FolderOpen, RotateCcw,
 import { ToastContainer, useToast } from '../components/ui/Toast';
 import { ToolkitPageHeader } from '../components/ui/ToolkitPageHeader';
 import { addEmblemImageWatermark } from '../lib/pdfWatermark';
-import { ActionButton, Field, InspectionTheme, Modal, RowTable, Section, StatusInput, StickyActionBar, SummaryChip, useInputClass } from '../components/inspection/ui';
+import { ActionButton, Field, InspectionTheme, Modal, RowTable, Section, StatusInput, SummaryChip, useInputClass } from '../components/inspection/ui';
 import { emptyStatus, formatDate, listOrNil, statusText } from '../components/inspection/types';
 import type { DraftRecord as DraftRecordBase, PdfSubTable, StatusField } from '../components/inspection/types';
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../components/inspection/persistence';
@@ -587,11 +587,6 @@ export function FertilizerDealerInspection() {
         </Modal>
       )}
 
-      <StickyActionBar>
-        <ActionButton onClick={saveDraft} icon={Save} tone="white">Save Draft</ActionButton>
-        <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
-        <ActionButton onClick={generatePdf} icon={FileText} tone="sky">PDF</ActionButton>
-      </StickyActionBar>
     </div>
     </InspectionTheme>
   );

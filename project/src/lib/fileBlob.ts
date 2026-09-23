@@ -98,7 +98,8 @@ export async function downloadFileFromUrl(fileUrl: string, fileName?: string) {
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(blobUrl);
+    // Delay revoke so the browser has time to start the download
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
   } catch (error) {
     console.error('Blob download failed, falling back to direct URL:', error);
     // Fallback: open in new tab if blob download fails

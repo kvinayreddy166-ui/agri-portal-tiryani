@@ -71,18 +71,22 @@ export function FarmCalculators() {
   return (
     <div className="space-y-4">
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-        <ToolkitPageHeader
-          icon={FlaskConical}
-          tone="emerald"
-          variant="solid"
-          eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
-          title={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
-          subtitle={t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
-          fallbackPath="/officer-toolkit"
-          onBack={() => navigate('/officer-toolkit')}
-          actions={<LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />}
-          className="mb-0"
-        />
+        <div className="relative">
+          <ToolkitPageHeader
+            icon={FlaskConical}
+            tone="emerald"
+            variant="solid"
+            eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+            title={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+            subtitle={t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
+            fallbackPath="/officer-toolkit"
+            onBack={() => navigate('/officer-toolkit')}
+            className="mb-0"
+          />
+          <div className="absolute bottom-4 right-4">
+            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
+          </div>
+        </div>
       </div>
 
       <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">

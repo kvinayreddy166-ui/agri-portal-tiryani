@@ -1306,7 +1306,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
             </button>
             <button type="button" onClick={downloadWord} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 dark:border-blue-800/50 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-black text-blue-700 dark:text-blue-300 hover:bg-blue-50">
               <FileType className="h-4 w-4" />
-              WORD
+              DOC
             </button>
           </div>
 
