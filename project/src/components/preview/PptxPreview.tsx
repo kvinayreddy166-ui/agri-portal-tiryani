@@ -80,7 +80,7 @@ export function PptxPreview({ file, onClose, onDownload, className = '' }: PptxP
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(downloadUrl);
+    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 60_000);
     if (onDownload) onDownload();
   };
 

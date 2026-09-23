@@ -2533,7 +2533,7 @@ export function TourDiary() {
                                           a.href = url;
                                           a.download = (item.data as DiaryPdfMetadata).fileName;
                                           a.click();
-                                          URL.revokeObjectURL(url);
+                                          window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
                                         }
                                         setPdfMenuOpen(null);
                                       }}

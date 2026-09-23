@@ -200,13 +200,18 @@ export function Analytics() {
       alert('No data available for selected filters');
       return;
     }
-    const XLSX = await import('xlsx');
-    const workbook = XLSX.utils.book_new();
-    const meta = reportMetadataRows(currentReport.title, fromDate, toDate, user?.email || 'MAO/Admin');
-    const worksheet = XLSX.utils.aoa_to_sheet([...meta, [], Object.keys(reportRows[0]), ...reportRows.map((row) => Object.values(row))]);
-    worksheet['!cols'] = Object.keys(reportRows[0]).map((key) => ({ wch: Math.min(38, Math.max(12, key.length + 2)) }));
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
-    XLSX.writeFile(workbook, `${safeFileName(currentReport.title)}_${fromDate || 'all'}_${toDate || 'all'}.xlsx`);
+    try {
+      const XLSX = await import('xlsx');
+      const workbook = XLSX.utils.book_new();
+      const meta = reportMetadataRows(currentReport.title, fromDate, toDate, user?.email || 'MAO/Admin');
+      const worksheet = XLSX.utils.aoa_to_sheet([...meta, [], Object.keys(reportRows[0]), ...reportRows.map((row) => Object.values(row))]);
+      worksheet['!cols'] = Object.keys(reportRows[0]).map((key) => ({ wch: Math.min(38, Math.max(12, key.length + 2)) }));
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+      XLSX.writeFile(workbook, `${safeFileName(currentReport.title)}_${fromDate || 'all'}_${toDate || 'all'}.xlsx`);
+    } catch (error) {
+      console.error('Excel export failed:', error);
+      alert('Excel export failed. Please check your connection and try again.');
+    }
   };
 
   const downloadPdf = async () => {
@@ -214,6 +219,7 @@ export function Analytics() {
       alert('No data available for selected filters');
       return;
     }
+    try {
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -245,6 +251,10 @@ export function Analytics() {
     });
     addFooter(doc, user?.email || 'MAO/Admin');
     doc.save(`${safeFileName(currentReport.title)}_${fromDate || 'all'}_${toDate || 'all'}.pdf`);
+    } catch (error) {
+      console.error('PDF export failed:', error);
+      alert('PDF export failed. Please check your connection and try again.');
+    }
   };
 
   return (

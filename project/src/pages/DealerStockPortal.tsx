@@ -1265,6 +1265,7 @@ function buildProductStats(dailyRows: StockInventoryLine[], receiptRows: StockIn
 }
 
 async function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[], category: StockCategory, unit: string, firmName: string, ifmsId: string) {
+  try {
   if (!rows.length) {
     alert('No records to export.');
     return;
@@ -1305,6 +1306,10 @@ async function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryL
     ['Generated On', new Date().toLocaleString('en-IN')],
   ]);
   XLSX.writeFile(workbook, `${CATEGORY_LABELS[category].toLowerCase()}-${type}-${Date.now()}.xlsx`);
+  } catch (error) {
+    console.error('Excel export failed:', error);
+    alert('Excel export failed. Please check your connection and try again.');
+  }
 }
 
 function receiptExcelRow(row: StockInventoryLine, index: number, category: StockCategory, unit: string): Record<string, string | number> {

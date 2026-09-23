@@ -354,7 +354,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
         const pdfBlob = doc.output('blob');
         const pdfUrl = URL.createObjectURL(pdfBlob);
         window.open(pdfUrl, '_blank');
-        URL.revokeObjectURL(pdfUrl);
+        window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 60_000);
       } else {
         const pdfData = doc.output('datauristring');
         setPreviewPdfUrl(pdfData);

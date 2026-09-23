@@ -55,7 +55,7 @@ export function downloadBlob(blob: Blob, fileName: string) {
   link.click();
 
   document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 export function validateFileSize(file: File, maxSizeMB: number = 20): { valid: boolean; error?: string } {

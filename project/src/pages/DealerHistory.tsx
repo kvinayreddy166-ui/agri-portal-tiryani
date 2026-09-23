@@ -302,6 +302,7 @@ export function DealerHistory() {
   };
 
   const exportToExcel = async () => {
+    try {
     const XLSX = await import('xlsx');
     if (sortedRecords.length === 0) {
       alert('No data to export');
@@ -345,6 +346,10 @@ export function DealerHistory() {
       ['Total Closing Stock', totalValue(exportRows, 'Closing Stock')],
       ['Generated On', new Date().toLocaleString('en-IN')],
     ]);
+    } catch (error) {
+      console.error('Excel export failed:', error);
+      alert('Excel export failed. Please check your connection and try again.');
+    }
   };
 
   const handleSort = (field: 'date' | 'product_type' | 'quantity_mts') => {

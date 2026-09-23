@@ -221,10 +221,15 @@ export function InsecticideDealerInspection() {
     const message = validate();
     setError(message);
     if (message) return;
-    const doc = await buildPdf(form);
-    await addEmblemImageWatermark(doc);
-    doc.save(`Insecticide_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
-    showSuccess('PDF downloaded');
+    try {
+      const doc = await buildPdf(form);
+      await addEmblemImageWatermark(doc);
+      doc.save(`Insecticide_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
+      showSuccess('PDF downloaded');
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      setError('PDF could not be generated. Please check your connection and try again.');
+    }
   };
 
   const summary = useMemo(() => {

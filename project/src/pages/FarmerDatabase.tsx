@@ -389,6 +389,7 @@ export function FarmerDatabase() {
       alert(emptyStateText);
       return;
     }
+    try {
     const XLSX = await import('xlsx');
     const exportRows = analyticsRows.map((row, index) => ({
       'S.No': index + 1,
@@ -438,13 +439,22 @@ export function FarmerDatabase() {
     worksheet['!cols'] = Object.keys(exportRows[0]).map((key) => ({ wch: Math.max(12, Math.min(34, key.length + 2)) }));
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Farmer Database');
     XLSX.writeFile(workbook, 'farmer_database_filtered.xlsx');
+    } catch (error) {
+      console.error('Excel export failed:', error);
+      alert('Excel export failed. Please check your connection and try again.');
+    }
   };
 
   const downloadTemplate = async () => {
+    try {
     const XLSX = await import('xlsx');
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(farmerTemplateRows()), 'Farmer_Database_Template');
     XLSX.writeFile(workbook, 'farmer_database_template.xlsx');
+    } catch (error) {
+      console.error('Template download failed:', error);
+      alert('Template download failed. Please check your connection and try again.');
+    }
   };
 
   return (

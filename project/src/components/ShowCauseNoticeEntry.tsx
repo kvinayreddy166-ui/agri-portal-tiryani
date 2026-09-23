@@ -1079,7 +1079,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (error) {
       console.error('Unable to generate notice Word document:', error);
       window.alert('Word document could not be generated. Please try again.');

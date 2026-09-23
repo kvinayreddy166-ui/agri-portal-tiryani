@@ -280,7 +280,7 @@ export function ActsAndOrders() {
     link.href = url;
     link.download = 'fco-offences-penal-provisions.csv';
     link.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
 
   const printFcoOffences = () => {

@@ -70,7 +70,10 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
           canvas.style.boxShadow = '0 1px 3px rgba(0,0,0,0.12)';
           canvas.style.background = '#ffffff';
 
-          await page.render({ canvas, viewport, background: '#ffffff' }).promise;
+          const canvasContext = canvas.getContext('2d');
+          if (!canvasContext) break;
+
+          await page.render({ canvasContext, canvas, viewport, background: '#ffffff' }).promise;
           if (cancelled) break;
 
           container.appendChild(canvas);
