@@ -93,15 +93,11 @@ export function ActionButton({
   onClick,
   icon: Icon,
   tone,
-  disabled = false,
-  busy = false,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   icon: React.ElementType;
   tone: InspectionTone | 'purple' | 'white';
-  disabled?: boolean;
-  busy?: boolean;
 }) {
   const styles = useToneStyles();
   const solid: Record<InspectionTone, string> = {
@@ -116,8 +112,8 @@ export function ActionButton({
         ? `border bg-white/80 hover:bg-white ${styles.actionWhite}`
         : solid[tone];
   return (
-    <button type="button" onClick={onClick} disabled={disabled || busy} aria-busy={busy} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black shadow-sm transition disabled:opacity-60 sm:text-sm ${toneClass}`}>
-      <Icon className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} aria-hidden="true" />
+    <button type="button" onClick={onClick} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black shadow-sm transition sm:text-sm ${toneClass}`}>
+      <Icon className="h-4 w-4" aria-hidden="true" />
       {children}
     </button>
   );

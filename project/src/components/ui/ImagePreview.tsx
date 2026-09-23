@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ZoomIn, ZoomOut, RotateCw, X, Download } from 'lucide-react';
-import { downloadFileFromUrl } from '../../lib/fileBlob';
-import { openExternalUrl } from '../../lib/documentActions';
 
 interface ImagePreviewProps {
   fileUrl: string;
@@ -35,12 +33,11 @@ export function ImagePreview({ fileUrl, fileName, onClose, onDownload, className
     setRotation(0);
   };
 
-  const handleDownload = async () => {
-    try {
-      await downloadFileFromUrl(fileUrl, fileName || 'image');
-    } catch {
-      openExternalUrl(fileUrl);
-    }
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = fileName || 'image';
+    link.click();
     if (onDownload) onDownload();
   };
 

@@ -9,7 +9,6 @@ import {
   isGoogleDriveUrl,
 } from '../../lib/filePreviewUrls';
 import { downloadFileFromUrl, fetchBlobUrl, revokeBlobUrl } from '../../lib/fileBlob';
-import { openExternalUrl } from '../../lib/documentActions';
 import { PdfPreview } from '../pdf/PdfPreview';
 import { DocxPreview } from '../preview/DocxPreview';
 import { ExcelPreview } from '../preview/ExcelPreview';
@@ -203,7 +202,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
     try {
       await downloadFileFromUrl(fileUrl, displayName);
     } catch {
-      openExternalUrl(fileUrl);
+      window.open(fileUrl, '_blank', 'noopener,noreferrer');
     } finally {
       setDownloading(false);
     }

@@ -2419,10 +2419,7 @@ function openFertilizerDocInTab(
       downloadFertilizerDoc(doc, fileName);
     }
   } else {
-    // Placeholder tab was blocked (mobile/PWA popup blocker) — download instead.
-    URL.revokeObjectURL(blobUrl);
-    downloadFertilizerDoc(doc, fileName);
-    return;
+    window.open(blobUrl, '_blank', 'noopener,noreferrer');
   }
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }

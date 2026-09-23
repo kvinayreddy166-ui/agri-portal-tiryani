@@ -9,7 +9,6 @@ import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
 import { useVirtualRows } from '../hooks/useVirtualRows';
 import { IconButton } from '../components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue, type ExcelRow } from '../utils/excelTotals';
-import { guardedDocumentAction } from '../lib/documentActions';
 
 const LazyFertilizerChart = lazy(() => import('./LazyFertilizerChart'));
 
@@ -335,7 +334,7 @@ export function StockManagement() {
                 <IconButton label="Refresh fertilizer tracking" tone="secondary" onClick={fetchData}>
                   <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 </IconButton>
-                <IconButton label="Export filtered Excel" tone="excel" onClick={guardedDocumentAction(exportFilteredReceipts)} disabled={filteredStock.length === 0}>
+                <IconButton label="Export filtered Excel" tone="excel" onClick={exportFilteredReceipts} disabled={filteredStock.length === 0}>
                   <FileSpreadsheet className="h-4 w-4" />
                 </IconButton>
                 {isAdminUser && (

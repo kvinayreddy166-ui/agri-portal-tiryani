@@ -1,10 +1,9 @@
 import React from 'react';
-import { Copy, ImageOff, Loader2, MessageCircle, ShieldCheck, FileText } from 'lucide-react';
+import { Copy, ImageOff, MessageCircle, ShieldCheck, FileText } from 'lucide-react';
 import type { CropProtectionCrop, CropProtectionItem, LanguageCode } from '../../services/cropProtectionService';
 import { advisoryText, hasTelugu, pickLang } from '../../services/cropProtectionService';
 import { label } from '../../services/translationService';
 import { downloadAdvisoryPdf } from '../../services/pdfAdvisoryService';
-import { useDocumentAction } from '../../hooks/useDocumentAction';
 import { RecommendationPanel } from './RecommendationPanel';
 
 export function ProtectionItemCard({
@@ -16,7 +15,6 @@ export function ProtectionItemCard({
   item: CropProtectionItem;
   language: LanguageCode;
 }) {
-  const { busy: pdfBusy, run: runPdf } = useDocumentAction();
   const showTeluguBadge =
     language === 'te' &&
     (!hasTelugu(item.name_te) || !hasTelugu(item.symptoms_te) || !hasTelugu(item.damage_te));
@@ -111,8 +109,8 @@ export function ProtectionItemCard({
             <button type="button" onClick={shareWhatsApp} className="action-button bg-green-600 text-white">
               <MessageCircle className="h-4 w-4" /> {label('WhatsApp', language)}
             </button>
-            <button type="button" disabled={pdfBusy} onClick={() => runPdf(() => downloadAdvisoryPdf(crop, item, language))} className="action-button bg-emerald-700 text-white">
-              {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} {pdfBusy ? label('Generating…', language) : label('Download PDF', language)}
+            <button type="button" onClick={() => downloadAdvisoryPdf(crop, item, language)} className="action-button bg-emerald-700 text-white">
+              <FileText className="h-4 w-4" /> {label('Download PDF', language)}
             </button>
           </div>
         </div>

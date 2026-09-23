@@ -7,7 +7,6 @@ import { BackButton } from '../../../components/ui/BackButton';
 import { useAuth } from '../../../context/AuthContext';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import { fetchDocument, getDocumentSignedUrl } from '../services/knowledgeService';
-import { openExternalUrl } from '../../../lib/documentActions';
 import type { KnowledgeDocument } from '../types';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -149,7 +148,7 @@ export function KnowledgeDocumentViewer() {
               e.preventDefault();
               if (doc) {
                 const url = await getDocumentSignedUrl(doc.file_path);
-                openExternalUrl(url);
+                window.open(url, '_blank');
               }
             }}
             className="mt-3 inline-block rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white"

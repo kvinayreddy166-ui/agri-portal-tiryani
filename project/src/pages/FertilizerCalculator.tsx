@@ -3,7 +3,6 @@ import {
   Check,
   FileText,
   Leaf,
-  Loader2,
   Plus,
   RefreshCw,
   Save,
@@ -14,7 +13,6 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { savePdfDocument } from '../lib/documentActions';
 import { useAuth } from '../context/AuthContext';
 import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
@@ -37,7 +35,6 @@ import {
   type Nutrients,
 } from '../features/fertilizerCalculator/fertilizerEngine';
 import { loadFertilizerGrades } from '../features/fertilizerCalculator/useFertilizerGrades';
-import { useDocumentAction } from '../hooks/useDocumentAction';
 
 type FertilizerResult = {
   grade: FertilizerGrade;
@@ -1318,7 +1315,6 @@ export function FertilizerCalculator() {
   const [grades, setGrades] = useState<FertilizerGrade[]>(DEFAULT_GRADES);
   const [recommendations, setRecommendations] = useState<CropRecommendation[]>(DEFAULT_RECOMMENDATIONS);
   const [loadingData, setLoadingData] = useState(false);
-  const { busy: pdfExporting, run: runPdfExport } = useDocumentAction();
   const [required, setRequired] = useState<Nutrients>({ n: 48, p: 24, k: 24 });
   const [selectedKeys, setSelectedKeys] = useState<string[]>(() => getInitialSelected(DEFAULT_GRADES));
   const [reverseBags, setReverseBags] = useState<Record<string, number>>({});
@@ -1679,10 +1675,8 @@ export function FertilizerCalculator() {
     const { jsPDF } = await import('jspdf');
     const html2canvas = (await import('html2canvas')).default;
     
-    // Function to generate PDF with auto-fit level.
-    // Returns the generated doc + whether content fits — the caller saves ONCE,
-    // so failed fit attempts no longer trigger duplicate downloads.
-    const generatePdfWithAutoFit = async (autoFitLevel: AutoFitLevel): Promise<{ doc: InstanceType<typeof jsPDF>; fits: boolean }> => {
+    // Function to generate PDF with auto-fit level
+    const generatePdfWithAutoFit = async (autoFitLevel: AutoFitLevel): Promise<boolean> => {
       const reportElement = createFertilizerReportElement(buildFertilizerReportHtml({
         language,
         mode,
@@ -1728,18 +1722,17 @@ export function FertilizerCalculator() {
       doc.setFontSize(7);
       doc.setTextColor(71, 85, 105);
       doc.text('Page 1 of 1', pageWidth / 2, pageHeight - 7, { align: 'center' });
+      doc.save(generatePdfFilename(farmerDetails));
+      
       // Return true if content fits on one page (fitScale >= 0.95 to allow small margin)
-      return { doc, fits: fitScale >= 0.95 };
+      return fitScale >= 0.95;
     };
 
-    // Try auto-fit levels incrementally until content fits; save only the last attempt.
-    let lastDoc: InstanceType<typeof jsPDF> | null = null;
+    // Try auto-fit levels incrementally until content fits
     for (let level = 0; level <= 4; level++) {
-      const { doc, fits } = await generatePdfWithAutoFit(level as AutoFitLevel);
-      lastDoc = doc;
+      const fits = await generatePdfWithAutoFit(level as AutoFitLevel);
       if (fits) break;
     }
-    if (lastDoc) await savePdfDocument(lastDoc, generatePdfFilename(farmerDetails));
   };
 
   const shareWhatsApp = () => {
@@ -1836,8 +1829,8 @@ export function FertilizerCalculator() {
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
             <LanguageToggle language={language} onClick={toggleLanguage} />
             <div className="flex gap-1">
-              <button type="button" onClick={() => runPdfExport(exportPdf)} disabled={pdfExporting} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-600 px-2 py-1 text-white disabled:opacity-60" aria-label="Export PDF" title="PDF">
-                {pdfExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileText className="h-3.5 w-3.5" />}
+              <button type="button" onClick={exportPdf} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-600 px-2 py-1 text-white" aria-label="Export PDF" title="PDF">
+                <FileText className="h-3.5 w-3.5" />
               </button>
               <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-green-600 px-2 py-1 text-white" aria-label="Share on WhatsApp" title="WhatsApp">
                 <WhatsAppIcon className="h-3.5 w-3.5" />

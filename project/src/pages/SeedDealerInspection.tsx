@@ -9,7 +9,6 @@ import { emptyStatus, formatDate, listOrNil, statusText } from '../components/in
 import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../components/inspection/types';
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../components/inspection/persistence';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../components/inspection/useDirtyGuard';
-import { useDocumentAction } from '../hooks/useDocumentAction';
 
 
 type GroundBalanceRow = { crop: string; variety: string; lotNo: string; registerQuantity: string; groundStock: string; difference: string; unit: string };
@@ -145,7 +144,6 @@ export function SeedDealerInspection() {
   const [showPreview, setShowPreview] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
   const [error, setError] = useState('');
-  const { busy: pdfBusy, run: runPdf } = useDocumentAction((message) => setError(message));
   const [dirty, setDirty] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
   const inputClass = useInputClass();
@@ -519,7 +517,7 @@ export function SeedDealerInspection() {
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-emerald-100 pt-3 dark:border-emerald-900/40">
             <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
-            <ActionButton onClick={() => runPdf(generatePdf)} icon={FileText} tone="emerald" busy={pdfBusy}>{pdfBusy ? 'Generating…' : 'PDF'}</ActionButton>
+            <ActionButton onClick={generatePdf} icon={FileText} tone="emerald">PDF</ActionButton>
           </div>
         </div>
       </div>
@@ -559,7 +557,7 @@ export function SeedDealerInspection() {
       )}
 
       {showPreview && (
-        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={() => runPdf(generatePdf)} icon={FileText} tone="emerald" busy={pdfBusy}>{pdfBusy ? 'Generating…' : 'PDF'}</ActionButton>}>
+        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={generatePdf} icon={FileText} tone="emerald">PDF</ActionButton>}>
           <Preview form={form} />
         </Modal>
       )}

@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
-import { openBlobPreview } from '../../lib/documentActions';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 const COVERING_LETTER_DETAILS_KEY = 'tiryani-covering-letter-details';
@@ -368,9 +367,9 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       
       // On mobile, open in new tab instead of preview dialog
       if (isMobile) {
-        const fileName = `Covering_Letter_${metadata.letterNumber || 'draft'}.pdf`;
-        const result = openBlobPreview(blob, fileName);
-        setMessage(result === 'downloaded' ? 'Covering Letter downloaded — open it from Downloads.' : 'Covering Letter opened in new tab.');
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+        setMessage('Covering Letter opened in new tab.');
       } else {
         const blobUrl = URL.createObjectURL(blob);
         setPreviewPdfUrl(blobUrl);
