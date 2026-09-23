@@ -155,7 +155,7 @@ export function FarmMechanization() {
             <select
               value={financialYear}
               onChange={(e) => setFinancialYear(e.target.value)}
-              className="w-full rounded-lg border border-white/20 bg-white px-3 py-2 font-bold text-gray-950 outline-none"
+              className="w-full rounded-lg border border-white/20 bg-white dark:bg-slate-900 px-3 py-2 font-bold text-gray-950 dark:text-white outline-none"
             >
               {financialYears.map((year) => (
                 <option key={year} value={year}>{year}</option>
@@ -170,11 +170,11 @@ export function FarmMechanization() {
         <SummaryCard label="Proceedings Generated" count={counts.proceedings} />
       </div>
 
-      <section className="rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
+      <section className="rounded-lg border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-lg font-black text-gray-950">Documents</h2>
-            <p className="text-xs text-gray-500">Farm mechanization records for {financialYear}</p>
+            <h2 className="text-lg font-black text-gray-950 dark:text-white">Documents</h2>
+            <p className="text-xs text-gray-500 dark:text-slate-400">Farm mechanization records for {financialYear}</p>
           </div>
           {isAdminUser && (
             <button
@@ -188,23 +188,23 @@ export function FarmMechanization() {
         </div>
 
         {documents.length > 0 ? (
-          <div className="overflow-hidden rounded-lg border border-gray-100">
+          <div className="overflow-hidden rounded-lg border border-gray-100 dark:border-slate-800">
             <div className="divide-y divide-gray-100">
               {documents.map((document) => (
                 <div key={document.id} className="grid grid-cols-[1fr_auto] gap-2 p-2 transition hover:bg-gray-50 lg:grid-cols-[1fr_1fr_auto] lg:items-center">
                   <div className="flex min-w-0 items-center gap-2">
                     <FileTypeIcon fileName={document.file_name || document.title} fileUrl={document.file_url} size="sm" />
                     <div className="min-w-0">
-                      <p className="truncate text-sm text-gray-950">{document.title}</p>
-                      <p className="truncate text-xs text-gray-500">{document.file_name}</p>
+                      <p className="truncate text-sm text-gray-950 dark:text-white">{document.title}</p>
+                      <p className="truncate text-xs text-gray-500 dark:text-slate-400">{document.file_name}</p>
                     </div>
                   </div>
-                  <div className="col-start-1 space-y-1 text-xs text-gray-600 lg:col-start-auto lg:text-sm">
+                  <div className="col-start-1 space-y-1 text-xs text-gray-600 dark:text-slate-300 lg:col-start-auto lg:text-sm">
                     <p className="font-semibold">
                       {documentTypes.find((type) => type.id === document.document_type)?.label}
                     </p>
                     <p className="flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 text-emerald-600" />
+                      <CalendarDays className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
                       {new Date(document.created_at).toLocaleString()}
                     </p>
                   </div>
@@ -228,33 +228,33 @@ export function FarmMechanization() {
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center">
+          <div className="rounded-xl border border-dashed border-gray-200 dark:border-slate-700 p-8 text-center">
             <FileText className="mx-auto mb-3 h-10 w-10 text-gray-300" />
-            <p className="font-semibold text-gray-600">No farm mechanization documents uploaded for this year yet.</p>
+            <p className="font-semibold text-gray-600 dark:text-slate-300">No farm mechanization documents uploaded for this year yet.</p>
           </div>
         )}
       </section>
 
       {showUpload && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-xl rounded-xl bg-white p-4 shadow-2xl">
+          <div className="w-full max-w-xl rounded-xl bg-white dark:bg-slate-900 p-4 shadow-2xl">
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-black text-gray-950">Upload Farm Mechanization Document</h2>
-                <p className="text-xs text-gray-500">{financialYear}</p>
+                <h2 className="text-xl font-black text-gray-950 dark:text-white">Upload Farm Mechanization Document</h2>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{financialYear}</p>
               </div>
-              <button onClick={() => setShowUpload(false)} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
+              <button onClick={() => setShowUpload(false)} className="rounded-lg p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700">Document Type</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">Document Type</label>
                 <select
                   value={documentType}
                   onChange={(e) => setDocumentType(e.target.value as FarmMechanizationDocument['document_type'])}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 >
                   {documentTypes.map((type) => (
                     <option key={type.id} value={type.id}>{type.label}</option>
@@ -262,20 +262,20 @@ export function FarmMechanization() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700">Title</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">Title</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                   placeholder="Enter document title"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700">File</label>
-                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2 hover:border-emerald-400 hover:bg-emerald-50">
-                  <FileUp className="h-5 w-5 text-emerald-700" />
-                  <span className="truncate text-sm font-semibold text-gray-700">
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">File</label>
+                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/60 px-3 py-2 hover:border-emerald-400 hover:bg-emerald-50">
+                  <FileUp className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
+                  <span className="truncate text-sm font-semibold text-gray-700 dark:text-slate-200">
                     {file ? file.name : 'Upload application or proceeding file'}
                   </span>
                   <input
@@ -291,7 +291,7 @@ export function FarmMechanization() {
             <div className="mt-4 flex gap-2">
               <button
                 onClick={() => setShowUpload(false)}
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-50"
               >
                 Cancel
               </button>
@@ -312,12 +312,12 @@ export function FarmMechanization() {
 
 function SummaryCard({ label, count }: { label: string; count: number }) {
   return (
-    <div className="rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
-      <div className="mb-2 w-fit rounded-lg bg-emerald-50 p-2 text-emerald-700">
+    <div className="rounded-lg border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-sm">
+      <div className="mb-2 w-fit rounded-lg bg-emerald-50 dark:bg-emerald-950/40 p-2 text-emerald-700 dark:text-emerald-300">
         <FileText className="h-5 w-5" />
       </div>
-      <p className="text-xs font-bold uppercase tracking-wide text-gray-500">{label}</p>
-      <p className="mt-1 text-2xl font-black text-gray-950">{count}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">{label}</p>
+      <p className="mt-1 text-2xl font-black text-gray-950 dark:text-white">{count}</p>
     </div>
   );
 }

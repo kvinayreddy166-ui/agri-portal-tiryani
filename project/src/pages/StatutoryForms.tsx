@@ -270,7 +270,7 @@ export function StatutoryForms() {
       </div>
 
       {fetchError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {fetchError}
         </div>
       )}
@@ -304,46 +304,46 @@ export function StatutoryForms() {
 
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-black text-gray-950">
+                <h2 className="text-2xl font-black text-gray-950 dark:text-white">
                   {editingFormId ? t('Edit Statutory Form', 'Edit Statutory Form') : t('Upload Statutory Form', 'Upload Statutory Form')}
                 </h2>
-                <p className="text-sm text-gray-500">{t('This will be visible to the public on the login page.', 'This will be visible to the public on the login page.')}</p>
+                <p className="text-sm text-gray-500 dark:text-slate-400">{t('This will be visible to the public on the login page.', 'This will be visible to the public on the login page.')}</p>
               </div>
-              <button onClick={resetForm} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
+              <button onClick={resetForm} className="rounded-lg p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="md:col-span-2">
-                <label className="mb-1 block text-sm font-bold text-gray-700">{t('Title', 'శీర్షిక')}</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('Title', 'శీర్షిక')}</label>
                 <input
                   type="text"
                   value={newForm.title}
                   onChange={(e) => setNewForm({ ...newForm, title: e.target.value })}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="w-full rounded-xl border border-gray-300 dark:border-slate-600 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="mb-1 block text-sm font-bold text-gray-700">{t('Description', 'వివరణ')}</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('Description', 'వివరణ')}</label>
                 <textarea
                   value={newForm.description}
                   onChange={(e) => setNewForm({ ...newForm, description: e.target.value })}
                   rows={3}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="w-full rounded-xl border border-gray-300 dark:border-slate-600 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700">{t('Statutory section', 'Statutory section')}</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('Statutory section', 'Statutory section')}</label>
                 <select
                   value={newForm.category}
                   onChange={(e) => setNewForm({ ...newForm, category: e.target.value })}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="w-full rounded-xl border border-gray-300 dark:border-slate-600 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 >
                   {folders.map((folder) => (
                     <option key={folder.id} value={folder.id}>{t(folder.label, folder.telugu)}</option>
@@ -352,35 +352,35 @@ export function StatutoryForms() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700">{t('File URL', 'ఫైల్ లింక్')}</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('File URL', 'ఫైల్ లింక్')}</label>
                 <div className="relative">
-                  <Link className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                  <Link className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
                   <input
                     type="url"
                     value={newForm.file_url}
                     onChange={(e) => setNewForm({ ...newForm, file_url: e.target.value })}
-                    className="w-full rounded-xl border border-gray-300 py-3 pl-12 pr-4 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    className="w-full rounded-xl border border-gray-300 dark:border-slate-600 py-3 pl-12 pr-4 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                     placeholder="https://..."
                   />
                 </div>
               </div>
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-bold text-gray-700">
+                <label className="mb-2 block text-sm font-bold text-gray-700 dark:text-slate-200">
                   {t('Upload image or document', 'చిత్రం లేదా పత్రం అప్లోడ్ చేయండి')}
                 </label>
-                <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition hover:border-emerald-400 hover:bg-emerald-50">
+                <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/60 p-6 text-center transition hover:border-emerald-400 hover:bg-emerald-50">
                   <input
                     type="file"
                     className="hidden"
                     accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv"
                     onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                   />
-                  <Upload className="mb-3 h-8 w-8 text-emerald-700" />
-                  <p className="font-bold text-gray-900">
+                  <Upload className="mb-3 h-8 w-8 text-emerald-700 dark:text-emerald-300" />
+                  <p className="font-bold text-gray-900 dark:text-white">
                     {selectedFile ? selectedFile.name : t('Choose a file', 'ఫైల్ ఎంచుకోండి')}
                   </p>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                     {t('Images, PDF, Word, and Excel files are supported.', 'చిత్రాలు, PDF, Word, Excel ఫైళ్లు సపోర్ట్ చేస్తుంది.')}
                   </p>
                 </label>
@@ -388,7 +388,7 @@ export function StatutoryForms() {
             </div>
 
             <div className="mt-6 flex gap-3">
-              <button onClick={resetForm} className="flex-1 rounded-xl border border-gray-300 px-4 py-3 font-bold text-gray-700 hover:bg-gray-50">
+              <button onClick={resetForm} className="flex-1 rounded-xl border border-gray-300 dark:border-slate-600 px-4 py-3 font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-50">
                 {t('Cancel', 'రద్దు')}
               </button>
               <button onClick={handleSave} disabled={uploading} className="flex-1 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
@@ -438,7 +438,7 @@ export function StatutoryForms() {
                         )}
                         {isAdminUser && (
                           <>
-                            <button onClick={() => openEditForm(form)} className="rounded-md p-1 text-blue-600 transition hover:bg-blue-50" aria-label="Edit item">
+                            <button onClick={() => openEditForm(form)} className="rounded-md p-1 text-blue-600 dark:text-blue-300 transition hover:bg-blue-50" aria-label="Edit item">
                               <Edit2 className="h-4 w-4" />
                             </button>
                             <button onClick={() => handleDelete(form.id)} className="rounded-md p-1 text-red-500 transition hover:bg-red-50" aria-label="Delete item">
@@ -454,9 +454,9 @@ export function StatutoryForms() {
             </table>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-gray-200 p-12 text-center">
+          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-700 p-12 text-center">
             <Folder className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-            <p className="font-semibold text-gray-600">{t('No items in this folder yet', 'ఈ ఫోల్డర్‌లో ఇంకా ఐటమ్లు లేవు')}</p>
+            <p className="font-semibold text-gray-600 dark:text-slate-300">{t('No items in this folder yet', 'ఈ ఫోల్డర్‌లో ఇంకా ఐటమ్లు లేవు')}</p>
           </div>
         )}
       </section>

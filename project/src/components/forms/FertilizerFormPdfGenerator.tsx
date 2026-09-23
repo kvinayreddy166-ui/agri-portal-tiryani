@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Download, X, Loader2 } from 'lucide-react';
-import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist';
+import { X, Loader2, FileText } from 'lucide-react';
+import type { PDFDocumentLoadingTask } from 'pdfjs-dist';
 import type { FertilizerFormEntry } from '../../data/fertilizerForms';
 
 export function FertilizerFormPdfGenerator({ form, onClose }: { form: FertilizerFormEntry; onClose: () => void }) {
@@ -13,7 +13,6 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
   useEffect(() => {
     let cancelled = false;
     let loadingTask: PDFDocumentLoadingTask | null = null;
-    let pdfDoc: PDFDocumentProxy | null = null;
 
     const renderPdf = async () => {
       try {
@@ -21,12 +20,12 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
         setError(null);
         setRenderedPages(0);
 
-        const pdfjs = await import('pdfjs-dist/legacy/build/pdf.min.mjs');
+        const pdfjs = await import('pdfjs-dist');
         if (cancelled) return;
 
         if (!pdfjs.GlobalWorkerOptions.workerSrc) {
           pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-            'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+            'pdfjs-dist/build/pdf.worker.min.mjs',
             import.meta.url
           ).toString();
         }
@@ -36,11 +35,12 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
         const arrayBuffer = await response.arrayBuffer();
         if (cancelled) return;
 
-        loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer), useWorkerFetch: false });
-        pdfDoc = await loadingTask.promise;
+        const task = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer), useWorkerFetch: false });
+        loadingTask = task;
+        const loadedDoc = await task.promise;
         if (cancelled) return;
 
-        const numPages = pdfDoc.numPages;
+        const numPages = loadedDoc.numPages;
         setTotalPages(numPages);
 
         const container = containerRef.current;
@@ -51,7 +51,7 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
         for (let pageNum = 1; pageNum <= numPages; pageNum += 1) {
           if (cancelled) break;
 
-          const page = await pdfDoc.getPage(pageNum);
+          const page = await loadedDoc.getPage(pageNum);
           if (cancelled) break;
 
           const baseViewport = page.getViewport({ scale: 1 });
@@ -122,7 +122,7 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
               download
               className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-2.5 py-2 text-xs font-black text-white hover:bg-emerald-800"
             >
-              <Download className="h-4 w-4" />
+              <FileText className="h-4 w-4" />
               <span>Download PDF</span>
             </a>
             <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900" aria-label="Close">
@@ -151,7 +151,7 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
                 download
                 className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white hover:bg-emerald-800"
               >
-                <Download className="h-4 w-4" />
+                <FileText className="h-4 w-4" />
                 <span>Download PDF</span>
               </a>
             </div>

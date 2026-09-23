@@ -8,6 +8,8 @@ type LanguageToggleProps = {
   onClick: () => void;
   tone?: LanguageToggleTone;
   className?: string;
+  /** Accessible label + tooltip. */
+  label?: string;
 };
 
 const toneClass: Record<LanguageToggleTone, string> = {
@@ -17,11 +19,13 @@ const toneClass: Record<LanguageToggleTone, string> = {
     'border-white/25 bg-white/15 text-white hover:bg-white/25',
 };
 
-export function LanguageToggle({ language, onClick, tone = 'light', className = '' }: LanguageToggleProps) {
+export function LanguageToggle({ language, onClick, tone = 'light', className = '', label }: LanguageToggleProps) {
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-label={label}
+      title={label}
       className={[
         'inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-black shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900/40',
         toneClass[tone],

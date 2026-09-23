@@ -23,18 +23,18 @@ export function CropCard({
           : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50'
       }`}
     >
-      <div className="aspect-[4/2.4] bg-slate-100">
+      <div className="aspect-[4/2.4] bg-slate-100 dark:bg-slate-800">
         {crop.image_url ? (
           <img src={crop.image_url} alt={crop.name_en} className="h-full w-full object-cover" loading="lazy" />
         ) : (
-          <div className="flex h-full items-center justify-center px-3 text-center text-[11px] font-bold text-slate-500">
+          <div className="flex h-full items-center justify-center px-3 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400">
             No official image available
           </div>
         )}
       </div>
       <div className="p-2">
-        <p className="truncate text-sm font-black text-slate-950">{pickLang(crop.name_en, crop.name_te, language)}</p>
-        <p className="text-[11px] font-semibold text-slate-500">{crop.items?.length || 0} records</p>
+        <p className="truncate text-sm font-black text-slate-950 dark:text-white">{pickLang(crop.name_en, crop.name_te, language)}</p>
+        <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{crop.items?.length || 0} records</p>
       </div>
     </button>
   );

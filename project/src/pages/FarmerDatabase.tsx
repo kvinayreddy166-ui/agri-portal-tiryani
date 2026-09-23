@@ -449,12 +449,12 @@ export function FarmerDatabase() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
+      <section className="rounded-2xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">{uiLabel('Farmer Database', showTelugu)}</p>
-            <h1 className="text-xl font-black text-slate-950">{uiLabel('Farmer Search Database', showTelugu)}</h1>
-            <p className="text-xs font-semibold text-slate-500">{uiLabel('Search by farmer, family name, phone, PPB, Aadhaar, survey number, or village.', showTelugu)}</p>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{uiLabel('Farmer Database', showTelugu)}</p>
+            <h1 className="text-xl font-black text-slate-950 dark:text-white">{uiLabel('Farmer Search Database', showTelugu)}</h1>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{uiLabel('Search by farmer, family name, phone, PPB, Aadhaar, survey number, or village.', showTelugu)}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <LanguageToggle language={showTelugu ? 'te' : 'en'} onClick={() => setShowTelugu((value) => !value)} />
@@ -464,11 +464,11 @@ export function FarmerDatabase() {
         </div>
         <div className="mt-3 grid gap-2 lg:grid-cols-[1.5fr_0.8fr_0.8fr_0.8fr]">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 py-2.5 pl-9 pr-3 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               placeholder={uiLabel('Search by farmer name, phone, PPB, Aadhaar, survey no or village', showTelugu)}
             />
           </div>
@@ -485,11 +485,11 @@ export function FarmerDatabase() {
       </section>
 
       {isAdminUser && (
-        <section className="rounded-xl border border-amber-200 bg-amber-50 p-3 shadow-sm">
+        <section className="rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 p-3 shadow-sm">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-sm font-black text-slate-950">{uiLabel('Admin Import Tools', showTelugu)}</h2>
-              <p className="text-xs font-semibold text-slate-600">{uiLabel('Upload CSV/XLSX, preview, then replace the farmer database.', showTelugu)}</p>
+              <h2 className="text-sm font-black text-slate-950 dark:text-white">{uiLabel('Admin Import Tools', showTelugu)}</h2>
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{uiLabel('Upload CSV/XLSX, preview, then replace the farmer database.', showTelugu)}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={downloadTemplate} className="action-button"><Download className="h-4 w-4" /> {uiLabel('Template', showTelugu)}</button>
@@ -504,14 +504,14 @@ export function FarmerDatabase() {
             </div>
           </div>
           {previewRows.length > 0 && (
-            <div className="mt-3 grid gap-2 text-xs font-bold text-slate-700 sm:grid-cols-4">
+            <div className="mt-3 grid gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 sm:grid-cols-4">
               <PreviewMetric label={uiLabel('Records', showTelugu)} value={previewRows.length} />
               <PreviewMetric label={uiLabel('Villages', showTelugu)} value={previewStats.villages} />
               <PreviewMetric label={uiLabel('Crops', showTelugu)} value={previewStats.crops} />
               <PreviewMetric label={uiLabel('Unique Farmers', showTelugu)} value={previewStats.farmers} />
             </div>
           )}
-          {importMessage && <p className="mt-2 text-xs font-bold text-slate-700">{importMessage}</p>}
+          {importMessage && <p className="mt-2 text-xs font-bold text-slate-700 dark:text-slate-200">{importMessage}</p>}
         </section>
       )}
 
@@ -559,27 +559,27 @@ export function FarmerDatabase() {
         </ChartCard>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
         {loading ? (
           <LoadingSkeleton />
         ) : groups.length ? (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {groups.map((group) => (
               <div key={group.key} className="grid gap-2 px-3 py-2 text-xs sm:grid-cols-[1.3fr_1fr_1.4fr_auto] sm:items-center">
                 <button type="button" onClick={() => openDetails(group)} className="min-w-0 text-left">
-                  <p className="truncate text-sm font-black text-slate-950">{farmerDisplay(group.farmerNameEnglish, group.farmerNameTelugu, showTelugu)}</p>
-                  <p className="truncate font-bold text-slate-500">{farmerDisplay(group.fatherEnglish, group.fatherTelugu, showTelugu)}</p>
+                  <p className="truncate text-sm font-black text-slate-950 dark:text-white">{farmerDisplay(group.farmerNameEnglish, group.farmerNameTelugu, showTelugu)}</p>
+                  <p className="truncate font-bold text-slate-500 dark:text-slate-400">{farmerDisplay(group.fatherEnglish, group.fatherTelugu, showTelugu)}</p>
                 </button>
-                <div className="min-w-0 font-bold text-slate-700">
+                <div className="min-w-0 font-bold text-slate-700 dark:text-slate-200">
                   <p className="truncate">{farmerDisplay(group.villageEnglish, group.villageTelugu, showTelugu)}</p>
-                  <p className="truncate text-slate-500">{uiLabel('Survey', showTelugu)}: {group.surveyNo || '-'}</p>
+                  <p className="truncate text-slate-500 dark:text-slate-400">{uiLabel('Survey', showTelugu)}: {group.surveyNo || '-'}</p>
                 </div>
-                <div className="min-w-0 text-slate-600">
+                <div className="min-w-0 text-slate-600 dark:text-slate-300">
                   <p className="truncate">{uiLabel('Phone', showTelugu)}: {group.phoneNumber || '-'} | {uiLabel('Aadhaar', showTelugu)}: {group.aadhaarNo || '-'}</p>
                   <p className="truncate">{uiLabel('PPB', showTelugu)}: {group.ppbNo || '-'} | {group.cropRows.map((item) => `${cropDisplay(item.crop, showTelugu)}: ${formatExtent(guntasToExtent(item.extent))}`).join(', ')}</p>
                 </div>
                 <div className="flex items-center justify-between gap-2 sm:justify-end">
-                  <span className="rounded-full bg-emerald-50 px-2 py-1 font-black text-emerald-700">{formatExtent(guntasToExtent(group.totalExtent))} {uiLabel('ac', showTelugu)}</span>
+                  <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 font-black text-emerald-700 dark:text-emerald-300">{formatExtent(guntasToExtent(group.totalExtent))} {uiLabel('ac', showTelugu)}</span>
                   <button type="button" onClick={() => openDetails(group)} className="icon-action" aria-label={uiLabel('View details', showTelugu)}><Eye className="h-4 w-4" /></button>
                   {phoneLink(group.phoneNumber) && (
                     <a href={phoneLink(group.phoneNumber)} className="icon-action" aria-label={uiLabel('Call farmer', showTelugu)} title={uiLabel('Call farmer', showTelugu)}>
@@ -587,7 +587,7 @@ export function FarmerDatabase() {
                     </a>
                   )}
                   {whatsappLink(group.phoneNumber) && (
-                    <a href={whatsappLink(group.phoneNumber)} target="_blank" rel="noreferrer" className="icon-action text-emerald-700" aria-label={uiLabel('WhatsApp farmer', showTelugu)} title={uiLabel('WhatsApp farmer', showTelugu)}>
+                    <a href={whatsappLink(group.phoneNumber)} target="_blank" rel="noreferrer" className="icon-action text-emerald-700 dark:text-emerald-300" aria-label={uiLabel('WhatsApp farmer', showTelugu)} title={uiLabel('WhatsApp farmer', showTelugu)}>
                       <WhatsAppIcon className="h-4 w-4" />
                     </a>
                   )}
@@ -596,9 +596,9 @@ export function FarmerDatabase() {
             ))}
           </div>
         ) : (
-          <div className="p-10 text-center text-sm font-bold text-slate-500">{uiLabel(emptyStateText, showTelugu)}</div>
+          <div className="p-10 text-center text-sm font-bold text-slate-500 dark:text-slate-400">{uiLabel(emptyStateText, showTelugu)}</div>
         )}
-        <div className="flex items-center justify-between border-t border-slate-100 px-3 py-2 text-xs font-black">
+        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 px-3 py-2 text-xs font-black">
           <button type="button" onClick={() => setPage((value) => Math.max(0, value - 1))} disabled={page === 0} className="rounded-md border px-3 py-1.5 disabled:opacity-50">{uiLabel('Previous', showTelugu)}</button>
           <span>{uiLabel('Page', showTelugu)} {Math.min(page + 1, totalPages)}/{totalPages}</span>
           <button type="button" onClick={() => setPage((value) => value + 1)} disabled={!hasMore} className="rounded-md border px-3 py-1.5 disabled:opacity-50">{uiLabel('Next', showTelugu)}</button>
@@ -607,11 +607,11 @@ export function FarmerDatabase() {
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-4 shadow-2xl">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white dark:bg-slate-900 p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-2">
               <div>
-                <h2 className="text-lg font-black text-slate-950">{farmerDisplay(selected.farmerNameEnglish, selected.farmerNameTelugu, showTelugu)}</h2>
-                <p className="text-sm font-bold text-slate-500">{showTelugu ? selected.farmerNameEnglish : selected.farmerNameTelugu}</p>
+                <h2 className="text-lg font-black text-slate-950 dark:text-white">{farmerDisplay(selected.farmerNameEnglish, selected.farmerNameTelugu, showTelugu)}</h2>
+                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">{showTelugu ? selected.farmerNameEnglish : selected.farmerNameTelugu}</p>
               </div>
               <button type="button" onClick={() => setSelected(null)} className="icon-action"><X className="h-4 w-4" /></button>
             </div>
@@ -623,13 +623,13 @@ export function FarmerDatabase() {
               <Detail label={uiLabel('PPB Number', showTelugu)} value={selected.ppbNo || '-'} />
               <Detail label={uiLabel('Survey Number', showTelugu)} value={selected.surveyNo || '-'} />
             </div>
-            <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
+            <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
               <div className="table-scroll">
               <table className="w-full min-w-[360px] text-xs">
                 <thead className="bg-slate-900 text-white"><tr><th className="px-3 py-2 text-left">{uiLabel('Crop', showTelugu)}</th><th className="px-3 py-2 text-right">{uiLabel('Extent', showTelugu)}</th></tr></thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {selected.cropRows.map((row) => <tr key={row.crop}><td className="px-3 py-2 font-bold">{cropDisplay(row.crop, showTelugu)}</td><td className="px-3 py-2 text-right font-black">{formatExtent(guntasToExtent(row.extent))} {uiLabel('acres', showTelugu)}</td></tr>)}
-                  <tr><td className="px-3 py-2 font-black">{uiLabel('Total', showTelugu)}</td><td className="px-3 py-2 text-right font-black text-emerald-700">{formatExtent(guntasToExtent(selected.totalExtent))} {uiLabel('acres', showTelugu)}</td></tr>
+                  <tr><td className="px-3 py-2 font-black">{uiLabel('Total', showTelugu)}</td><td className="px-3 py-2 text-right font-black text-emerald-700 dark:text-emerald-300">{formatExtent(guntasToExtent(selected.totalExtent))} {uiLabel('acres', showTelugu)}</td></tr>
                 </tbody>
               </table>
               </div>
@@ -637,12 +637,12 @@ export function FarmerDatabase() {
             {isAdminUser && (
               <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1.5fr_auto]">
                 <label className="relative">
-                  <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input value={editPhone} onChange={(event) => setEditPhone(event.target.value)} className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm font-bold" placeholder={uiLabel('Update phone number', showTelugu)} />
+                  <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                  <input value={editPhone} onChange={(event) => setEditPhone(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 py-2 pl-9 pr-3 text-sm font-bold" placeholder={uiLabel('Update phone number', showTelugu)} />
                 </label>
                 <label className="relative">
-                  <MessageSquare className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  <input value={editRemarks} onChange={(event) => setEditRemarks(event.target.value)} className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm font-bold" placeholder={uiLabel('Add remarks', showTelugu)} />
+                  <MessageSquare className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                  <input value={editRemarks} onChange={(event) => setEditRemarks(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 py-2 pl-9 pr-3 text-sm font-bold" placeholder={uiLabel('Add remarks', showTelugu)} />
                 </label>
                 <button type="button" onClick={saveFarmerNotes} className="action-button bg-emerald-700 text-white"><Save className="h-4 w-4" /> {uiLabel('Save', showTelugu)}</button>
               </div>
@@ -811,11 +811,11 @@ function DeferredBarChart({ data, dataKey, nameKey }: { data: Record<string, str
   return (
     <div ref={ref} className="min-h-60">
       {isVisible ? (
-        <Suspense fallback={<div className="h-60 animate-pulse rounded-lg bg-slate-100" />}>
+        <Suspense fallback={<div className="h-60 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
           <LazySimpleBarChart data={data} dataKey={dataKey} nameKey={nameKey} />
         </Suspense>
       ) : (
-        <div className="h-60 animate-pulse rounded-lg bg-slate-100" />
+        <div className="h-60 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
       )}
     </div>
   );
@@ -849,7 +849,7 @@ function useNearViewport<T extends Element>() {
 }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm"><h2 className="mb-2 text-sm font-black text-slate-950">{title}</h2>{children}</section>;
+  return <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm"><h2 className="mb-2 text-sm font-black text-slate-950 dark:text-white">{title}</h2>{children}</section>;
 }
 
 function RequirementTable({
@@ -862,7 +862,7 @@ function RequirementTable({
   nameLabel: string;
 }) {
   return (
-    <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
+    <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
       <div className="table-scroll">
         <table className="w-full min-w-[420px] text-xs">
           <thead className="bg-slate-900 text-white">
@@ -873,19 +873,19 @@ function RequirementTable({
               <th className="px-3 py-2 text-right">MT</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {rows.map((row) => (
               <tr key={String(row.name)}>
-                <td className="px-3 py-2 font-bold text-slate-800">{row.name}</td>
-                <td className="px-3 py-2 text-right font-semibold text-slate-700">{formatNumber(Number(row.acres || 0))}</td>
-                <td className="px-3 py-2 text-right font-semibold text-slate-700">{formatNumber(Number(row.bags || 0))}</td>
-                <td className="px-3 py-2 text-right font-black text-emerald-700">{formatNumber(Number(row.mt || 0))}</td>
+                <td className="px-3 py-2 font-bold text-slate-800 dark:text-slate-100">{row.name}</td>
+                <td className="px-3 py-2 text-right font-semibold text-slate-700 dark:text-slate-200">{formatNumber(Number(row.acres || 0))}</td>
+                <td className="px-3 py-2 text-right font-semibold text-slate-700 dark:text-slate-200">{formatNumber(Number(row.bags || 0))}</td>
+                <td className="px-3 py-2 text-right font-black text-emerald-700 dark:text-emerald-300">{formatNumber(Number(row.mt || 0))}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p className="border-t border-slate-100 px-3 py-2 text-[11px] font-semibold text-slate-500">
+      <p className="border-t border-slate-100 dark:border-slate-800 px-3 py-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
         {uiLabel('Calculation: Cotton 2 bags/ac, Maize 4 bags/ac, Paddy 3 bags/ac, other crops 1 bag/ac. 1 bag = 45 kg.', showTelugu)}
       </p>
     </div>
@@ -893,25 +893,25 @@ function RequirementTable({
 }
 
 function PreviewMetric({ label, value }: { label: string; value: number }) {
-  return <div className="rounded-lg bg-white/80 p-2"><p className="text-[10px] uppercase text-slate-500">{label}</p><p className="text-lg font-black">{value.toLocaleString('en-IN')}</p></div>;
+  return <div className="rounded-lg bg-white/80 dark:bg-slate-900/80 p-2"><p className="text-[10px] uppercase text-slate-500 dark:text-slate-400">{label}</p><p className="text-lg font-black">{value.toLocaleString('en-IN')}</p></div>;
 }
 
 function SummaryCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <div className="rounded-xl border border-emerald-100 bg-white p-3 shadow-sm">
-      <p className="text-[11px] font-black uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-black text-emerald-700">{value}</p>
-      <p className="mt-0.5 text-xs font-semibold text-slate-500">{hint}</p>
+    <div className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 p-3 shadow-sm">
+      <p className="text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="mt-1 text-2xl font-black text-emerald-700 dark:text-emerald-300">{value}</p>
+      <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">{hint}</p>
     </div>
   );
 }
 
 function LoadingSkeleton() {
-  return <div className="space-y-2 p-3">{Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-14 animate-pulse rounded-lg bg-slate-100" />)}</div>;
+  return <div className="space-y-2 p-3">{Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-14 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />)}</div>;
 }
 
 function Detail({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-lg bg-slate-50 p-2"><p className="text-[10px] font-black uppercase tracking-wide text-slate-500">{label}</p><p className="mt-1 font-bold text-slate-900">{value}</p></div>;
+  return <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 p-2"><p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{value}</p></div>;
 }
 
 function addSet(map: Map<string, Set<string>>, key: string, value: string) {

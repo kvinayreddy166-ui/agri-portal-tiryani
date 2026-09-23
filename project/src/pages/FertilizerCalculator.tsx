@@ -14,6 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
 import { repairTeluguRecord, repairTeluguText } from '../utils/textRepair';
 import {
@@ -495,7 +496,7 @@ function stripWhatsAppMarkdown(value: string) {
     .trim();
 }
 
-function isWhatsAppSafeCharacter(character: string) {
+export function isWhatsAppSafeCharacter(character: string) {
   const code = character.codePointAt(0) || 0;
   return code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126) || (code >= 0x0c00 && code <= 0x0c7f);
 }
@@ -1812,15 +1813,18 @@ export function FertilizerCalculator() {
   return (
     <div className="space-y-2 sm:space-y-3">
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-        <section className="overflow-hidden rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 text-white shadow-lg dark:border-emerald-800/50 sm:p-5">
-          <div>
-            <h1 className="flex items-center gap-2 text-xl font-black text-white">
+        <section className="overflow-hidden rounded-2xl border-2 border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 text-white shadow-lg dark:border-emerald-800/50 sm:p-5">
+          <div className="flex items-start gap-3">
+            <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-0.5" />
+            <div>
+              <h1 className="flex items-center gap-2 text-xl font-black text-white">
                 <FileText className="h-6 w-6" aria-label="Fertilizer Calculator" />
                 {language === 'te' ? '\u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C15\u0C3E\u0C32\u0C3F\u0C15\u0C4D\u0C2F\u0C41\u0C32\u0C47\u0C1F\u0C30\u0C4D' : 'Fertilizer Calculator'}
               </h1>
               <p className="text-sm font-semibold text-white/90">
                 {language === 'te' ? '\u0C2A\u0C02\u0C1F\u0C15\u0C01 \u0C05\u0C35\u0C38\u0C30\u0C2E\u0C48\u0C28 \u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C32\u0C46\u0C15\u0C4D\u0C15\u0C3F\u0C02\u0C2A\u0C01' : 'Calculate crop fertilizer requirements'}
               </p>
+            </div>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
             <LanguageToggle language={language} onClick={toggleLanguage} />
@@ -1831,23 +1835,16 @@ export function FertilizerCalculator() {
               <button type="button" onClick={shareWhatsApp} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-green-600 px-2 py-1 text-white" aria-label="Share on WhatsApp" title="WhatsApp">
                 <WhatsAppIcon className="h-3.5 w-3.5" />
               </button>
-              <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/15 px-2 py-1 text-[10px] font-black text-white shadow-sm disabled:opacity-50">
+              <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/15 dark:bg-slate-900/15 px-2 py-1 text-[10px] font-black text-white shadow-sm disabled:opacity-50">
                 <RefreshCw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
               </button>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate('/officer-toolkit/farm-calculators')}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
-            >
-              Back
-            </button>
           </div>
         </section>
       </div>
 
       <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-        <section className="rounded-xl border border-lime-200 bg-gradient-to-br from-lime-100 to-emerald-100 p-4 text-sm font-semibold text-emerald-950 shadow-md">
+        <section className="rounded-xl border-2 border-lime-300 dark:border-lime-800/50 bg-gradient-to-br from-lime-100 dark:from-lime-900 to-emerald-100 dark:to-emerald-900 p-4 text-sm font-semibold text-emerald-950 dark:text-emerald-100 shadow-md">
           <div className="grid gap-2 sm:grid-cols-3">
             <p><span className="font-black">1.</span> Select crop recommendation or enter nutrients manually.</p>
             <p><span className="font-black">2.</span> Enter area and choose available fertilizers.</p>
@@ -1856,12 +1853,12 @@ export function FertilizerCalculator() {
         </section>
 
         {/* Farmer Details Section */}
-        <section className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-100 via-lime-50 to-cyan-100 p-3 shadow-md sm:p-4">
+        <section className="rounded-xl border-2 border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-100 dark:from-emerald-900 via-lime-50 dark:via-lime-950/60 to-cyan-100 dark:to-cyan-900 p-3 shadow-md sm:p-4">
           <div className="flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={() => setShowFarmerDetails(!showFarmerDetails)}
-            className="flex flex-1 items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-sm font-black text-emerald-800"
+            className="flex flex-1 items-center justify-between rounded-lg bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 text-sm font-black text-emerald-800 dark:text-emerald-300"
           >
             <span className="flex items-center gap-2">
               <User className="h-4 w-4" />
@@ -1874,7 +1871,7 @@ export function FertilizerCalculator() {
               type="button"
               onClick={resetFarmerDetails}
               disabled={isResettingFarmer}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-black text-slate-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-black text-slate-700 dark:text-slate-200 disabled:opacity-50"
               title={language === 'te' ? 'రైతు వివరాలను రీసెట్ చేయండి' : 'Reset Farmer Details'}
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isResettingFarmer ? 'animate-spin' : ''}`} />
@@ -1883,63 +1880,63 @@ export function FertilizerCalculator() {
         </div>
         {showFarmerDetails && (
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            <label className="block rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600">{uiLabels.farmerName}</span>
+            <label className="block rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
+              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.farmerName}</span>
               <input
                 type="text"
                 value={farmerDetails.farmerName}
                 onChange={(e) => setFarmerDetails(prev => ({ ...prev, farmerName: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 placeholder={uiLabels.optional}
               />
             </label>
-            <label className="block rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600">{uiLabels.village}</span>
+            <label className="block rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
+              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.village}</span>
               <input
                 type="text"
                 value={farmerDetails.village}
                 onChange={(e) => setFarmerDetails(prev => ({ ...prev, village: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 placeholder={uiLabels.optional}
               />
             </label>
-            <label className="block rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600">{uiLabels.ppbNumber}</span>
+            <label className="block rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
+              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.ppbNumber}</span>
               <input
                 type="text"
                 value={farmerDetails.ppbNumber}
                 onChange={(e) => setFarmerDetails(prev => ({ ...prev, ppbNumber: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 placeholder={uiLabels.optional}
               />
             </label>
-            <label className="block rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600">{uiLabels.surveyNumber}</span>
+            <label className="block rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
+              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.surveyNumber}</span>
               <input
                 type="text"
                 value={farmerDetails.surveyNumber}
                 onChange={(e) => setFarmerDetails(prev => ({ ...prev, surveyNumber: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 placeholder={uiLabels.optional}
               />
             </label>
-            <label className="block rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600">{uiLabels.mobileNumber}</span>
+            <label className="block rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
+              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.mobileNumber}</span>
               <input
                 type="tel"
                 value={farmerDetails.mobileNumber}
                 onChange={(e) => handleMobileNumberChange(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 placeholder={uiLabels.optional}
               />
             </label>
-            <label className="block rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600">{uiLabels.acreage}</span>
+            <label className="block rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
+              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.acreage}</span>
               <input
                 type="number"
                 value={farmerDetails.acreage}
                 onChange={(e) => handleFarmerAcreageChange(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 placeholder={uiLabels.syncsWithCalculator}
               />
             </label>
@@ -1948,8 +1945,8 @@ export function FertilizerCalculator() {
       </section>
 
       <section className="grid gap-2 sm:gap-3 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-3 shadow-md sm:p-4">
-          <div className="mb-2 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-xs font-black sm:mb-3 sm:text-sm">
+        <div className="rounded-xl border-2 border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white via-emerald-50 dark:via-emerald-950/60 to-lime-100 dark:to-lime-900 p-3 shadow-md sm:p-4">
+          <div className="mb-2 grid grid-cols-2 rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-xs font-black sm:mb-3 sm:text-sm">
             <button type="button" onClick={() => setMode('simple')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${mode === 'simple' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}>
               <span className="inline-flex items-center justify-center gap-1">
                 {mode === 'simple' && <Check className="h-3.5 w-3.5" />}
@@ -1966,7 +1963,7 @@ export function FertilizerCalculator() {
 
           {mode === 'simple' ? (
             <div className="space-y-2 sm:space-y-3">
-              <div className="grid grid-cols-2 rounded-xl bg-emerald-50 p-1 text-xs font-black sm:text-sm">
+              <div className="grid grid-cols-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 p-1 text-xs font-black sm:text-sm">
                 <button type="button" onClick={() => setSimpleTab('forward')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${simpleTab === 'forward' ? 'bg-white text-emerald-800 shadow-sm' : 'text-emerald-700'}`}>
                   <span className="inline-flex items-center justify-center gap-1">
                     {simpleTab === 'forward' && <Check className="h-3.5 w-3.5" />}
@@ -1985,20 +1982,20 @@ export function FertilizerCalculator() {
                 <>
                   <div className="grid gap-1.5 sm:grid-cols-3 sm:gap-2">
                     {(['n', 'p', 'k'] as const).map((key) => (
-                      <label key={key} className="block rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm sm:p-3">
-                        <span className="text-xs font-black uppercase text-slate-600">{key === 'n' ? uiLabels.nitrogen : key === 'p' ? uiLabels.phosphorus : uiLabels.potash}</span>
+                      <label key={key} className="block rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
+                        <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{key === 'n' ? uiLabels.nitrogen : key === 'p' ? uiLabels.phosphorus : uiLabels.potash}</span>
                         <input
                           type="number"
                           value={required[key]}
                           onChange={(event) => setRequired((current) => ({ ...current, [key]: numberValue(event.target.value) }))}
-                          className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-2 py-1.5 text-base font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 sm:px-3 sm:py-2 sm:text-lg"
+                          className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-base font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 sm:px-3 sm:py-2 sm:text-lg"
                         />
                       </label>
                     ))}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {PRESETS.map((preset) => (
-                      <button key={preset.label} type="button" onClick={() => applyPreset(preset)} className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-800">
+                      <button key={preset.label} type="button" onClick={() => applyPreset(preset)} className="rounded-full border-2 border-emerald-300 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 text-xs font-black text-emerald-800 dark:text-emerald-300">
                         {preset.label}
                       </button>
                     ))}
@@ -2007,10 +2004,10 @@ export function FertilizerCalculator() {
               ) : (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {grades.map((grade) => (
-                    <label key={gradeKey(grade)} className="flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-white/80 p-3 shadow-sm">
+                    <label key={gradeKey(grade)} className="flex items-center justify-between gap-3 rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-3 shadow-sm">
                       <span className="min-w-0">
                         <span className="block text-sm font-black">{grade.name}</span>
-                        <span className="text-xs font-bold text-slate-500">{grade.bag_kg} {uiLabels.kgBag}</span>
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{grade.bag_kg} {uiLabels.kgBag}</span>
                       </span>
                       <input
                         type="number"
@@ -2018,7 +2015,7 @@ export function FertilizerCalculator() {
                         value={reverseBags[gradeKey(grade)] || ''}
                         onChange={(event) => setReverseBags((current) => ({ ...current, [gradeKey(grade)]: numberValue(event.target.value) }))}
                         placeholder={uiLabels.bags}
-                        className="w-24 rounded-lg border border-emerald-200 bg-white/90 px-3 py-2 text-right font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                        className="w-24 rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-right font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                       />
                     </label>
                   ))}
@@ -2028,58 +2025,58 @@ export function FertilizerCalculator() {
           ) : (
             <div className="space-y-2 sm:space-y-3">
               <div className="flex gap-2 overflow-x-auto pb-2">
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600">{uiLabels.crop}</span>
+                <label className="flex-shrink-0 block w-36 rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
+                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.crop}</span>
                   <select
                     value={selectedCrop}
                     onChange={(event) => setSelectedCrop(event.target.value)}
-                    className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                   >
                     {cropOptions.map((crop) => <option key={crop} value={crop}>{crop}</option>)}
                   </select>
                 </label>
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600">{uiLabels.zone}</span>
-                  <select value={selectedZone} onChange={(event) => setSelectedZone(event.target.value)} className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+                <label className="flex-shrink-0 block w-36 rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
+                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.zone}</span>
+                  <select value={selectedZone} onChange={(event) => setSelectedZone(event.target.value)} className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
                     {zoneOptions.map((zone) => <option key={zone} value={zone}>{zone}</option>)}
                   </select>
                 </label>
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600">{uiLabels.season}</span>
-                  <select value={selectedSeason} onChange={(event) => setSelectedSeason(event.target.value)} className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+                <label className="flex-shrink-0 block w-36 rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
+                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.season}</span>
+                  <select value={selectedSeason} onChange={(event) => setSelectedSeason(event.target.value)} className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
                     {seasonOptions.map((season) => <option key={season} value={season}>{season}</option>)}
                   </select>
                 </label>
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600">{uiLabels.variety}</span>
-                  <select value={selectedVariety} onChange={(event) => setSelectedVariety(event.target.value)} className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+                <label className="flex-shrink-0 block w-36 rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
+                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.variety}</span>
+                  <select value={selectedVariety} onChange={(event) => setSelectedVariety(event.target.value)} className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
                     {varietyOptions.map((variety) => <option key={variety} value={variety}>{variety}</option>)}
                   </select>
                 </label>
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600">{uiLabels.area}</span>
-                  <input type="number" value={area.value} onChange={(event) => setArea((current) => ({ ...current, value: numberValue(event.target.value) }))} className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" />
+                <label className="flex-shrink-0 block w-36 rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
+                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.area}</span>
+                  <input type="number" value={area.value} onChange={(event) => setArea((current) => ({ ...current, value: numberValue(event.target.value) }))} className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" />
                 </label>
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600">{uiLabels.unit}</span>
-                  <select value={area.unit} onChange={(event) => setArea((current) => ({ ...current, unit: event.target.value }))} className="mt-1 w-full rounded-lg border border-emerald-200 bg-white/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+                <label className="flex-shrink-0 block w-36 rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
+                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.unit}</span>
+                  <select value={area.unit} onChange={(event) => setArea((current) => ({ ...current, unit: event.target.value }))} className="mt-1 w-full rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
                     <option value="acres">{uiLabels.acres}</option>
                     <option value="hectares">{uiLabels.hectares}</option>
                     <option value="guntas">{uiLabels.guntas}</option>
                   </select>
                 </label>
               </div>
-              <div className="rounded-lg border border-lime-200 bg-gradient-to-br from-lime-100 to-emerald-100 p-3 text-sm font-bold text-emerald-950 shadow-sm">
+              <div className="rounded-lg border-2 border-lime-300 dark:border-lime-800/50 bg-gradient-to-br from-lime-100 dark:from-lime-900 to-emerald-100 dark:to-emerald-900 p-3 text-sm font-bold text-emerald-950 dark:text-emerald-100 shadow-sm">
                 {uiLabels.agricultureUniversityRecommendation} {recommendationLabel(selectedRecommendation)}: {recommendationNpkLabel(selectedRecommendation)} {uiLabels.perAcre} {formatNutrients(recommendationNutrients)}.
               </div>
             </div>
           )}
         </div>
 
-        <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-3 shadow-md sm:p-4">
+        <div className="rounded-xl border-2 border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white via-emerald-50 dark:via-emerald-950/60 to-lime-100 dark:to-lime-900 p-3 shadow-md sm:p-4">
           <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
             <h2 className="text-base font-black">{uiLabels.availableFertilizers}</h2>
-            <button type="button" onClick={() => setSelectedKeys(getInitialSelected(grades))} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-black text-slate-600">
+            <button type="button" onClick={() => setSelectedKeys(getInitialSelected(grades))} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 text-xs font-black text-slate-600 dark:text-slate-300">
               <RefreshCw className="h-3.5 w-3.5" /> {uiLabels.default}
             </button>
           </div>
@@ -2091,7 +2088,7 @@ export function FertilizerCalculator() {
                 onClick={() => toggleGrade(gradeKey(grade))}
                 className={`relative rounded-lg border p-2.5 text-left transition ${selectedKeys.includes(gradeKey(grade)) ? 'border-emerald-600 bg-emerald-50 text-emerald-950' : 'border-slate-200 bg-slate-50 text-slate-700'}`}
               >
-                {selectedKeys.includes(gradeKey(grade)) && <Check className="absolute right-1.5 top-1.5 h-4 w-4 text-emerald-600" />}
+                {selectedKeys.includes(gradeKey(grade)) && <Check className="absolute right-1.5 top-1.5 h-4 w-4 text-emerald-600 dark:text-emerald-300" />}
                 <span className="block text-sm font-black">{grade.name}</span>
                 <span className="text-xs font-bold">{getGradeLabel(grade)} | {grade.bag_kg} {uiLabels.kgBag}</span>
               </button>
@@ -2101,7 +2098,7 @@ export function FertilizerCalculator() {
       </section>
 
       <section className="grid gap-2 sm:gap-3 lg:grid-cols-[0.8fr_1.2fr]">
-        <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-3 shadow-md sm:p-4">
+        <div className="rounded-xl border-2 border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white via-emerald-50 dark:via-emerald-950/60 to-lime-100 dark:to-lime-900 p-3 shadow-md sm:p-4">
           <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">{simpleTab === 'reverse' && mode === 'simple' ? uiLabels.reverseCalculation : uiLabels.liveCalculation}</h2>
           {simpleTab === 'reverse' && mode === 'simple' ? (
             <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
@@ -2118,9 +2115,9 @@ export function FertilizerCalculator() {
           )}
         </div>
 
-        <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-3 shadow-md sm:p-4">
+        <div className="rounded-xl border-2 border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white via-emerald-50 dark:via-emerald-950/60 to-lime-100 dark:to-lime-900 p-3 shadow-md sm:p-4">
           <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">{uiLabels.fertilizerQuantityBreakdown}</h2>
-          <div className="table-scroll overflow-x-auto rounded-lg border border-emerald-200 bg-white/80 shadow-sm">
+          <div className="table-scroll overflow-x-auto rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 shadow-sm">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="bg-slate-900 text-xs font-black text-white">
                 <tr>
@@ -2132,7 +2129,7 @@ export function FertilizerCalculator() {
                   <th className="px-3 py-2 text-right">K</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {activeCalculation.results.map((row) => (
                   <tr key={gradeKey(row.grade)} className="hover:bg-emerald-50/60">
                     <td className="px-3 py-2 font-black">{row.grade.name}</td>
@@ -2152,7 +2149,7 @@ export function FertilizerCalculator() {
             <SummaryTile title={uiLabels.supplied} values={activeCalculation.supplied} tone="bg-emerald-50 text-emerald-900 border-emerald-100" />
           </div>
           {activeCalculation.remarks.length > 0 && (
-            <div className="mt-2 rounded-lg border border-amber-200 bg-gradient-to-br from-amber-100 to-orange-100 p-2 text-xs font-bold text-amber-950 shadow-sm">
+            <div className="mt-2 rounded-lg border-2 border-amber-300 dark:border-amber-800/50 bg-gradient-to-br from-amber-100 dark:from-amber-900 to-orange-100 dark:to-orange-900 p-2 text-xs font-bold text-amber-950 dark:text-amber-100 shadow-sm">
               {activeCalculation.remarks.map((remark) => <p key={remark}>{remark}</p>)}
             </div>
           )}
@@ -2160,34 +2157,34 @@ export function FertilizerCalculator() {
       </section>
 
       {mode === 'crop' && (
-        <section className="rounded-xl border border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-3 shadow-md sm:p-4">
+        <section className="rounded-xl border-2 border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white via-emerald-50 dark:via-emerald-950/60 to-lime-100 dark:to-lime-900 p-3 shadow-md sm:p-4">
           <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">{uiLabels.smartSplitDosePlanner}</h2>
           <div className="grid gap-1.5 sm:gap-2 md:grid-cols-2 xl:grid-cols-4">
             {splitFertilizerPlan.map(({ dose, nutrients, calculation: doseCalculation }) => (
-              <div key={dose.stage} className="rounded-lg border border-emerald-200 bg-gradient-to-br from-white to-emerald-50 p-2 shadow-sm sm:p-3">
-                <p className="text-sm font-black text-slate-950">{dose.stage}</p>
-                <p className="mt-1 text-[11px] font-bold text-slate-500">
+              <div key={dose.stage} className="rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white to-emerald-50 dark:to-emerald-950 p-2 shadow-sm sm:p-3">
+                <p className="text-sm font-black text-slate-950 dark:text-white">{dose.stage}</p>
+                <p className="mt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
                   {uiLabels.target}: N {round(nutrients.n)} | P {round(nutrients.p)} | K {round(nutrients.k)}
                 </p>
                 {dose.notes && (
-                  <p className="mt-1 text-[10px] font-semibold text-amber-700">{dose.notes}</p>
+                  <p className="mt-1 text-[10px] font-semibold text-amber-700 dark:text-amber-300">{dose.notes}</p>
                 )}
                 {dose.top_dressing_n_kg && (
-                  <p className="mt-1 text-[10px] font-semibold text-blue-700">Top dressing: {dose.top_dressing_n_kg} kg N</p>
+                  <p className="mt-1 text-[10px] font-semibold text-blue-700 dark:text-blue-300">Top dressing: {dose.top_dressing_n_kg} kg N</p>
                 )}
                 {dose.gypsum_kg && (
-                  <p className="mt-1 text-[10px] font-semibold text-purple-700">Gypsum: {dose.gypsum_kg} kg</p>
+                  <p className="mt-1 text-[10px] font-semibold text-purple-700 dark:text-purple-300">Gypsum: {dose.gypsum_kg} kg</p>
                 )}
                 <div className="mt-2 space-y-1.5">
                   {doseCalculation.results.filter((row) => row.kg > 0.01).length > 0 ? (
                     doseCalculation.results.filter((row) => row.kg > 0.01).map((row) => (
-                      <div key={gradeKey(row.grade)} className="flex items-center justify-between gap-2 rounded-md bg-white/85 px-2 py-1 text-xs font-black shadow-sm">
+                      <div key={gradeKey(row.grade)} className="flex items-center justify-between gap-2 rounded-md bg-white/85 dark:bg-slate-900/85 px-2 py-1 text-xs font-black shadow-sm">
                         <span className="truncate">{row.grade.name}</span>
-                        <span className="shrink-0 text-emerald-800">{round(row.kg)} {uiLabels.kg} / {round(row.bags)} {uiLabels.bags}</span>
+                        <span className="shrink-0 text-emerald-800 dark:text-emerald-300">{round(row.kg)} {uiLabels.kg} / {round(row.bags)} {uiLabels.bags}</span>
                       </div>
                     ))
                   ) : (
-                    <p className="rounded-md bg-white/85 px-2 py-1 text-xs font-bold text-slate-500 shadow-sm">{uiLabels.noFertilizerRequired}</p>
+                    <p className="rounded-md bg-white/85 dark:bg-slate-900/85 px-2 py-1 text-xs font-bold text-slate-500 dark:text-slate-400 shadow-sm">{uiLabels.noFertilizerRequired}</p>
                   )}
                 </div>
               </div>
@@ -2196,7 +2193,7 @@ export function FertilizerCalculator() {
         </section>
       )}
 
-      <section className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-100 to-orange-100 p-3 text-amber-950 shadow-md sm:p-4">
+      <section className="rounded-xl border-2 border-amber-300 dark:border-amber-800/50 bg-gradient-to-br from-amber-100 dark:from-amber-900 to-orange-100 dark:to-orange-900 p-3 text-amber-950 dark:text-amber-100 shadow-md sm:p-4">
         <h2 className="mb-2 flex items-center gap-2 text-sm font-black sm:text-base"><Leaf className="h-5 w-5" /> {uiLabels.importantAgronomicNote}</h2>
         <ul className="space-y-1 text-sm font-bold">
           {visibleAgronomicNotes.map((note) => (
@@ -2206,20 +2203,20 @@ export function FertilizerCalculator() {
       </section>
 
       {isAdminUser && (
-        <section className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-100 to-cyan-100 p-4 shadow-md sm:p-5">
-          <h2 className="mb-3 text-base font-black text-emerald-950">{uiLabels.adminPanel}</h2>
+        <section className="rounded-xl border-2 border-sky-300 dark:border-sky-800/50 bg-gradient-to-br from-sky-100 dark:from-sky-900 to-cyan-100 dark:to-cyan-900 p-4 shadow-md sm:p-5">
+          <h2 className="mb-3 text-base font-black text-emerald-950 dark:text-emerald-100">{uiLabels.adminPanel}</h2>
           {saveNotice && (
-            <div className="mb-3 rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50 to-lime-100 p-3 text-emerald-950 shadow-sm">
+            <div className="mb-3 rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-50 dark:from-emerald-950 to-lime-100 dark:to-lime-900 p-3 text-emerald-950 dark:text-emerald-100 shadow-sm">
               <p className="text-sm font-black">{uiLabels.savedSuccessfully}</p>
               <p className="mt-1 text-sm font-bold">{saveNotice.label}</p>
-              <p className="text-xs font-semibold text-emerald-800">{saveNotice.details}</p>
+              <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">{saveNotice.details}</p>
             </div>
           )}
-          <div className="mb-3 rounded-lg border border-cyan-200 bg-gradient-to-br from-cyan-50 to-sky-100 p-3 shadow-sm">
+          <div className="mb-3 rounded-lg border-2 border-cyan-300 dark:border-cyan-800/50 bg-gradient-to-br from-cyan-50 dark:from-cyan-950 to-sky-100 dark:to-sky-900 p-3 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-sm font-black text-slate-950">{uiLabels.saveCurrentCalculation}</p>
-                <p className="text-xs font-semibold text-slate-500">{uiLabels.storesCompleteInput}</p>
+                <p className="text-sm font-black text-slate-950 dark:text-white">{uiLabels.saveCurrentCalculation}</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{uiLabels.storesCompleteInput}</p>
               </div>
               <button type="button" onClick={saveCalculation} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white">
                 <Save className="h-4 w-4" /> {uiLabels.saveCalculation}
@@ -2228,7 +2225,7 @@ export function FertilizerCalculator() {
             {savedCalculations.length > 0 && (
               <div className="mt-3 grid gap-2">
                 {savedCalculations.map((entry) => (
-                  <div key={entry.id} className="rounded-md border border-slate-200 bg-slate-50 p-2 text-xs font-bold text-slate-700">
+                  <div key={entry.id} className="rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-2 text-xs font-bold text-slate-700 dark:text-slate-200">
                     {uiLabels.saved} {new Date(entry.created_at).toLocaleString()}
                   </div>
                 ))}
@@ -2257,12 +2254,12 @@ function NutrientGauge({ label, value, max, color }: { label: string; value: num
   const width = Math.min(100, Math.max(0, (value / max) * 100));
   const colorClass = color === 'emerald' ? 'bg-emerald-600 text-emerald-900' : color === 'sky' ? 'bg-sky-600 text-sky-900' : 'bg-amber-500 text-amber-900';
   return (
-    <div className="rounded-lg border border-emerald-200 bg-gradient-to-br from-white to-emerald-50 p-3 shadow-sm">
+    <div className="rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white to-emerald-50 dark:to-emerald-950 p-3 shadow-sm">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-xs font-black uppercase text-slate-600">{label}</span>
+        <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{label}</span>
         <span className={`rounded-full bg-white px-2 py-0.5 text-xs font-black ${colorClass.split(' ')[1]}`}>{round(value)} kg</span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-white">
+      <div className="h-3 overflow-hidden rounded-full bg-white dark:bg-slate-900">
         <div className={`h-full rounded-full ${colorClass.split(' ')[0]}`} style={{ width: `${width}%` }} />
       </div>
     </div>
@@ -2299,7 +2296,7 @@ function AdminGradeEditor({
   loading: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-cyan-200 bg-gradient-to-br from-white via-cyan-50 to-sky-100 p-3 shadow-md">
+    <div className="rounded-xl border-2 border-cyan-300 dark:border-cyan-800/50 bg-gradient-to-br from-white via-cyan-50 dark:via-cyan-950/60 to-sky-100 dark:to-sky-900 p-3 shadow-md">
       <h3 className="mb-2 text-sm font-black">Fertilizer Grades</h3>
       <div className="grid gap-2">
         <EditorInputs value={draft} onChange={onDraftChange} />
@@ -2319,7 +2316,7 @@ function AdminGradeEditor({
 function EditableGradeRow({ grade, onSave, onDelete }: { grade: FertilizerGrade; onSave: (grade: FertilizerGrade) => void; onDelete: (grade: FertilizerGrade) => void }) {
   const [value, setValue] = useState(grade);
   return (
-    <div className="rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm">
+    <div className="rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
       <EditorInputs value={value} onChange={setValue} />
       <div className="mt-2 flex flex-wrap gap-2">
         <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-black text-white">
@@ -2336,16 +2333,16 @@ function EditableGradeRow({ grade, onSave, onDelete }: { grade: FertilizerGrade;
 function EditorInputs({ value, onChange }: { value: FertilizerGrade; onChange: (grade: FertilizerGrade) => void }) {
   return (
     <div className="grid grid-cols-6 gap-1.5">
-      <input value={value.name} onChange={(event) => onChange({ ...value, name: event.target.value })} placeholder="Name" className="col-span-2 rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
+      <input value={value.name} onChange={(event) => onChange({ ...value, name: event.target.value })} placeholder="Name" className="col-span-2 rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold" />
       {(['n', 'p', 'k', 's'] as const).map((key) => (
-        <input key={key} type="number" value={value[key]} onChange={(event) => onChange({ ...value, [key]: numberValue(event.target.value) })} placeholder={key.toUpperCase()} className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
+        <input key={key} type="number" value={value[key]} onChange={(event) => onChange({ ...value, [key]: numberValue(event.target.value) })} placeholder={key.toUpperCase()} className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold" />
       ))}
-      <input type="number" value={value.bag_kg} onChange={(event) => onChange({ ...value, bag_kg: numberValue(event.target.value) })} placeholder="Bag" className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
+      <input type="number" value={value.bag_kg} onChange={(event) => onChange({ ...value, bag_kg: numberValue(event.target.value) })} placeholder="Bag" className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold" />
       <input
         defaultValue={compositionToText(value.composition)}
         onChange={(event) => onChange({ ...value, composition: parseCompositionText(event.target.value) })}
         placeholder="Extra nutrients Zn:1, B:0.5"
-        className="col-span-6 rounded-md border border-slate-200 px-2 py-1 text-xs font-bold"
+        className="col-span-6 rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold"
       />
     </div>
   );
@@ -2367,7 +2364,7 @@ function AdminCropEditor({
   options: CropInputOptions;
 }) {
   return (
-    <div className="rounded-xl border border-cyan-200 bg-gradient-to-br from-white via-cyan-50 to-sky-100 p-3 shadow-md">
+    <div className="rounded-xl border-2 border-cyan-300 dark:border-cyan-800/50 bg-gradient-to-br from-white via-cyan-50 dark:via-cyan-950/60 to-sky-100 dark:to-sky-900 p-3 shadow-md">
       <h3 className="mb-2 text-sm font-black">Crop Recommendations</h3>
       <CropInputs value={draft} onChange={onDraftChange} options={options} />
       <button type="button" onClick={() => onSave(draft)} className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white">
@@ -2385,7 +2382,7 @@ function AdminCropEditor({
 function EditableCropRow({ crop, onSave, onDelete, options }: { crop: CropRecommendation; onSave: (crop: CropRecommendation) => void; onDelete: (crop: CropRecommendation) => void; options: CropInputOptions }) {
   const [value, setValue] = useState(crop);
   return (
-    <div className="rounded-lg border border-emerald-200 bg-white/80 p-2 shadow-sm">
+    <div className="rounded-lg border-2 border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
       <CropInputs value={value} onChange={setValue} options={options} />
       <div className="mt-2 flex flex-wrap gap-2">
         <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-black text-white">
@@ -2409,13 +2406,13 @@ type CropInputOptions = {
 function CropInputs({ value, onChange, options }: { value: CropRecommendation; onChange: (crop: CropRecommendation) => void; options: CropInputOptions }) {
   return (
     <div className="grid grid-cols-6 gap-1.5">
-      <input value={value.crop_name} onChange={(event) => onChange({ ...value, crop_name: event.target.value })} placeholder="Title" className="col-span-2 rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
+      <input value={value.crop_name} onChange={(event) => onChange({ ...value, crop_name: event.target.value })} placeholder="Title" className="col-span-2 rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold" />
       <AdminSelect value={value.crop || ''} options={options.crops} placeholder="Crop" onChange={(crop) => onChange({ ...value, crop })} />
       <AdminSelect value={value.zone || ''} options={options.zones} placeholder="Zone" onChange={(zone) => onChange({ ...value, zone })} />
       <AdminSelect value={value.season || ''} options={options.seasons} placeholder="Season" onChange={(season) => onChange({ ...value, season })} />
       <AdminSelect value={value.variety || ''} options={options.varieties} placeholder="Variety" onChange={(variety) => onChange({ ...value, variety })} />
       {(['n', 'p', 'k'] as const).map((key) => (
-        <input key={key} type="number" value={value[key]} onChange={(event) => onChange({ ...value, [key]: numberValue(event.target.value) })} placeholder={key.toUpperCase()} className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold" />
+        <input key={key} type="number" value={value[key]} onChange={(event) => onChange({ ...value, [key]: numberValue(event.target.value) })} placeholder={key.toUpperCase()} className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold" />
       ))}
     </div>
   );
@@ -2424,7 +2421,7 @@ function CropInputs({ value, onChange, options }: { value: CropRecommendation; o
 function AdminSelect({ value, options, placeholder, onChange }: { value: string; options: string[]; placeholder: string; onChange: (value: string) => void }) {
   const selectOptions = value && !options.includes(value) ? [value, ...options] : options;
   return (
-    <select value={value} onChange={(event) => onChange(event.target.value)} className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-bold">
+    <select value={value} onChange={(event) => onChange(event.target.value)} className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-xs font-bold">
       <option value="">{placeholder}</option>
       {selectOptions.map((option) => <option key={option} value={option}>{option}</option>)}
     </select>

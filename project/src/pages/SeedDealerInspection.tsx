@@ -1,14 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ClipboardCheck, Download, Eye, FolderOpen, Plus, RotateCcw, Save, Trash2 } from 'lucide-react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { ClipboardCheck, Eye, FileText, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
 import { ToastContainer, useToast } from '../components/ui/Toast';
+import { ToolkitPageHeader } from '../components/ui/ToolkitPageHeader';
 import { addEmblemImageWatermark } from '../lib/pdfWatermark';
+import { ActionButton, CheckRow, Field, InspectionTheme, Modal, RowTable, Section, StatusButtons, StatusInput, StickyActionBar, SummaryChip, useInputClass } from '../components/inspection/ui';
+import { emptyStatus, formatDate, listOrNil, statusText } from '../components/inspection/types';
+import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../components/inspection/types';
+import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../components/inspection/persistence';
+import { confirmDiscardIfDirty, useDirtyGuard } from '../components/inspection/useDirtyGuard';
 
-
-type Status = '' | 'yes' | 'no' | 'na';
-type StatusField = { status: Status; remarks: string };
 
 type GroundBalanceRow = { crop: string; variety: string; lotNo: string; registerQuantity: string; groundStock: string; difference: string; unit: string };
 type DetentionRow = { crop: string; variety: string; lotNo: string; quantity: string; unit: string; remarks: string };
@@ -50,12 +51,7 @@ interface InspectionForm {
   inspectorOffice: string;
 }
 
-interface DraftRecord {
-  id: string;
-  name: string;
-  savedAt: string;
-  form: InspectionForm;
-}
+type DraftRecord = DraftRecordBase<InspectionForm>;
 
 const FORM_KEY = 'tiryani-seed-inspection-form';
 const DRAFTS_KEY = 'tiryani-seed-inspection-drafts';
@@ -89,7 +85,6 @@ const DESIGNATION_OPTIONS = [
   'District Agriculture Officer & Seed Inspector',
 ];
 
-const emptyStatus = (): StatusField => ({ status: '', remarks: '' });
 const emptyGroundRow = (): GroundBalanceRow => ({ crop: '', variety: '', lotNo: '', registerQuantity: '', groundStock: '', difference: '', unit: 'kg' });
 const emptyDetention = (): DetentionRow => ({ crop: '', variety: '', lotNo: '', quantity: '', unit: 'kg', remarks: '' });
 const emptySeizure = (): SeizureRow => ({ crop: '', variety: '', lotNo: '', quantity: '', unit: 'kg', value: '', reason: '' });
@@ -128,70 +123,42 @@ const initialForm = (): InspectionForm => ({
   inspectorOffice: '',
 });
 
-function loadForm(): InspectionForm {
-  try {
-    const saved = window.localStorage.getItem(FORM_KEY);
-    if (!saved) return initialForm();
-    const parsed = JSON.parse(saved) as Partial<InspectionForm>;
-    const base = initialForm();
-    return {
-      ...base,
-      ...parsed,
-      rectifiableDefects: RECTIFIABLE_DEFECT_LABELS.map((_, i) => parsed.rectifiableDefects?.[i] ?? base.rectifiableDefects[i]),
-      majorDefects: MAJOR_DEFECT_LABELS.map((_, i) => parsed.majorDefects?.[i] ?? base.majorDefects[i]),
-    };
-  } catch {
-    return initialForm();
-  }
-}
-
-function loadDrafts(): DraftRecord[] {
-  try {
-    const saved = window.localStorage.getItem(DRAFTS_KEY);
-    return saved ? (JSON.parse(saved) as DraftRecord[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function persistDrafts(drafts: DraftRecord[]) {
-  window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
-}
-
-function statusLabel(status: Status) {
-  return status === 'yes' ? 'Yes' : status === 'no' ? 'No' : status === 'na' ? 'N/A' : '';
-}
-
-function formatDate(value: string) {
-  if (!value) return '';
-  const [y, m, d] = value.split('-');
-  return y && m && d ? `${d}-${m}-${y}` : value;
-}
-
-function statusText(field: StatusField) {
-  const label = statusLabel(field.status);
-  return [label, field.remarks.trim()].filter(Boolean).join(' - ') || '-';
+/** Normalizes persisted data — fixed-length checklist arrays stay aligned with their label lists. */
+function migrateForm(parsed: Partial<InspectionForm>): Partial<InspectionForm> {
+  const base = initialForm();
+  return {
+    ...parsed,
+    rectifiableDefects: RECTIFIABLE_DEFECT_LABELS.map((_, i) => parsed.rectifiableDefects?.[i] ?? base.rectifiableDefects[i]),
+    majorDefects: MAJOR_DEFECT_LABELS.map((_, i) => parsed.majorDefects?.[i] ?? base.majorDefects[i]),
+  };
 }
 
 export function SeedDealerInspection() {
   const navigate = useNavigate();
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo } = useToast();
-  const [form, setForm] = useState<InspectionForm>(loadForm);
-  const [drafts, setDrafts] = useState<DraftRecord[]>(loadDrafts);
+  const [form, setForm] = useState<InspectionForm>(() => loadPersistedForm(FORM_KEY, initialForm, migrateForm));
+  const [drafts, setDrafts] = useState<DraftRecord[]>(() => loadPersistedDrafts(DRAFTS_KEY, migrateForm));
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
   const [sameSaleAsStorage, setSameSaleAsStorage] = useState(false);
   const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false });
   const [showPreview, setShowPreview] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
   const [error, setError] = useState('');
+  const [dirty, setDirty] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const inputClass = useInputClass();
+
+  useDirtyGuard(dirty);
 
   useEffect(() => {
-    window.localStorage.setItem(FORM_KEY, JSON.stringify(form));
+    savePersistedForm(FORM_KEY, form);
   }, [form]);
 
-  const set = <K extends keyof InspectionForm>(key: K, value: InspectionForm[K]) => setForm((current) => ({ ...current, [key]: value }));
-  const setStatus = (key: keyof InspectionForm, patch: Partial<StatusField>) =>
+  const set = <K extends keyof InspectionForm>(key: K, value: InspectionForm[K]) => { setDirty(true); setForm((current) => ({ ...current, [key]: value })); };
+  const setStatus = (key: keyof InspectionForm, patch: Partial<StatusField>) => {
+    setDirty(true);
     setForm((current) => ({ ...current, [key]: { ...(current[key] as StatusField), ...patch } }));
+  };
   const toggleSection = (id: number) => setOpenSections((current) => ({ ...current, [id]: !current[id] }));
 
   const validate = () => {
@@ -205,15 +172,17 @@ export function SeedDealerInspection() {
     const record: DraftRecord = { id: activeDraftId ?? `${Date.now()}`, name, savedAt: new Date().toISOString(), form };
     const next = activeDraftId ? drafts.map((d) => (d.id === activeDraftId ? record : d)) : [record, ...drafts];
     setDrafts(next);
-    persistDrafts(next);
+    persistDraftRecords(DRAFTS_KEY, next);
     setActiveDraftId(record.id);
+    setDirty(false);
     showSaved('Draft saved', name);
   };
 
   const loadDraft = (draft: DraftRecord) => {
-    setForm({ ...initialForm(), ...draft.form });
+    setForm({ ...initialForm(), ...migrateForm(draft.form) });
     setActiveDraftId(draft.id);
     setShowDrafts(false);
+    setDirty(false);
     showLoaded('Draft loaded', draft.name);
   };
 
@@ -221,9 +190,27 @@ export function SeedDealerInspection() {
     if (!window.confirm('Delete this draft?')) return;
     const next = drafts.filter((d) => d.id !== id);
     setDrafts(next);
-    persistDrafts(next);
+    persistDraftRecords(DRAFTS_KEY, next);
     if (activeDraftId === id) setActiveDraftId(null);
     showDeleted('Draft deleted');
+  };
+
+  const exportDrafts = () => {
+    exportDraftsFile('seed', drafts, `seed-inspection-drafts-${new Date().toISOString().slice(0, 10)}.json`);
+    showInfo('Drafts exported');
+  };
+
+  const importDrafts = async (file: File) => {
+    try {
+      const imported = await importDraftsFile<InspectionForm>(file);
+      const incoming = imported.drafts.map((draft) => ({ ...draft, form: migrateForm(draft.form) as InspectionForm }));
+      const next = [...incoming.filter((d) => !drafts.some((existing) => existing.id === d.id)), ...drafts];
+      setDrafts(next);
+      persistDraftRecords(DRAFTS_KEY, next);
+      showSuccess(`${incoming.length} draft(s) imported`);
+    } catch {
+      setError('Could not import drafts — invalid file.');
+    }
   };
 
   const resetForm = () => {
@@ -231,6 +218,7 @@ export function SeedDealerInspection() {
     setForm(initialForm());
     setActiveDraftId(null);
     setError('');
+    setDirty(false);
     showReset('Form reset');
   };
 
@@ -246,7 +234,7 @@ export function SeedDealerInspection() {
     const message = validate();
     setError(message);
     if (message) return;
-    const doc = buildPdf(form);
+    const doc = await buildPdf(form);
     await addEmblemImageWatermark(doc);
     doc.save(`Seed_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
     showSuccess('PDF downloaded');
@@ -283,40 +271,38 @@ export function SeedDealerInspection() {
     };
   }, [form, checkedMajorDefects]);
 
+  const sectionProgress = useMemo(() => ({
+    1: { done: [form.inspectionDate, form.dealerName, form.storagePlace || form.salePlace, form.licenceNo].filter((v) => v.trim()).length + [form.premisesSameAsLicence, form.premisesSuitable].filter((f) => f.status !== '').length, total: 6 },
+    2: { done: [form.stockPriceBoard, form.stockRegisterMaintained, form.groundBalance, form.containersLabelled].filter((f) => f.status !== '').length, total: 4 },
+    3: { done: [form.arrivalInformed, form.formDSubmitted, form.licenceOnInvoices, form.billsIssued, form.purchaseAuthorized].filter((f) => f.status !== '').length, total: 5 },
+    4: { done: (form.rectifiableDefects.some((d) => d.checked) ? 1 : 0) + (checkedMajorDefects ? 1 : 0), total: 2 },
+    5: { done: [form.detentionMade, form.stockSeized].filter((s) => s !== '').length, total: 2 },
+    6: { done: (form.samples.length ? 1 : 0) + (form.remarks.trim() ? 1 : 0), total: 2 },
+  }), [form, checkedMajorDefects]);
+
   return (
+    <InspectionTheme tone="emerald">
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="relative mx-auto max-w-5xl p-4 pb-28 sm:p-6 lg:p-8">
-        <div className="mb-5 rounded-2xl border border-[#BBF7D0] bg-gradient-to-br from-[#F0FDF4] via-[#DCFCE7] to-[#BBF7D0] p-4 shadow-lg">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#15803D] shadow-sm ring-1 ring-white/20">
-                <ClipboardCheck className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#166534]">Seed inspection</p>
-                <h1 className="text-lg font-black text-[#14532D] sm:text-xl">Seed dealer inspection form</h1>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                const idx = (window.history.state as { idx?: number } | null)?.idx;
-                if (typeof idx === 'number' && idx > 0) navigate(-1);
-                else navigate('/officer-toolkit/inspections-notices');
-              }}
-              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#86EFAC] bg-white/70 px-2 py-1.5 text-xs font-black text-[#166534] shadow-sm transition hover:bg-white hover:border-[#4ADE80]"
-            >
-              <ArrowLeft className="h-3 w-3" />
-              Back
-            </button>
-          </div>
-        </div>
+        <ToolkitPageHeader
+          icon={ClipboardCheck}
+          tone="emerald"
+          eyebrow="Seed inspection"
+          title="Seed dealer inspection form"
+          fallbackPath="/officer-toolkit/inspections-notices"
+          onBack={() => {
+            if (!confirmDiscardIfDirty(dirty)) return;
+            const idx = (window.history.state as { idx?: number } | null)?.idx;
+            if (typeof idx === 'number' && idx > 0) navigate(-1);
+            else navigate('/officer-toolkit/inspections-notices');
+          }}
+        />
 
-        {error && <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</div>}
+        {error && <div className="mb-4 rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm font-bold text-red-700 dark:text-red-300">{error}</div>}
 
         <div className="mb-3 flex flex-wrap gap-2">
-          <ActionButton onClick={saveDraft} icon={Save} tone="emerald">Save draft</ActionButton>
+          <ActionButton onClick={saveDraft} icon={Save} tone="emerald">Save Draft</ActionButton>
           <ActionButton onClick={() => setShowDrafts(true)} icon={FolderOpen} tone="white">Drafts{drafts.length ? ` (${drafts.length})` : ''}</ActionButton>
           <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">Reset</ActionButton>
         </div>
@@ -328,7 +314,7 @@ export function SeedDealerInspection() {
         </div>
 
         <div className="space-y-4">
-          <Section id={1} title="Dealer and Premises" subtitle="Items 1 to 6" open={openSections[1]} onToggle={toggleSection}>
+          <Section id={1} title="Dealer and Premises" subtitle="Items 1 to 6" open={openSections[1]} onToggle={toggleSection} progress={sectionProgress[1]}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="1. Date of inspection" type="date" value={form.inspectionDate} onChange={(v) => set('inspectionDate', v)} />
               <Field label="2. Name of the dealer" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Firm / dealer name" />
@@ -360,7 +346,7 @@ export function SeedDealerInspection() {
             <StatusInput label="6. Whether the premises are suitable for stocking and sale as per provisions of the Act and Rules" field={form.premisesSuitable} onChange={(p) => setStatus('premisesSuitable', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={2} title="Stock and Register Verification" subtitle="Items 7 to 10" open={openSections[2]} onToggle={toggleSection}>
+          <Section id={2} title="Stock and Register Verification" subtitle="Items 7 to 10" open={openSections[2]} onToggle={toggleSection} progress={sectionProgress[2]}>
             <StatusInput label="7. Whether stock and price board exhibited as per the SCO, 1983" field={form.stockPriceBoard} onChange={(p) => setStatus('stockPriceBoard', p)} remarksWhen="no" />
             <StatusInput label="8. Whether stock register & sale invoices are maintained properly" field={form.stockRegisterMaintained} onChange={(p) => setStatus('stockRegisterMaintained', p)} remarksWhen="no" />
             <StatusInput label="9. Whether ground balance is tallying with the stock register (if not give lot-wise details separately)" field={form.groundBalance} onChange={(p) => setStatus('groundBalance', p)} remarksWhen="no" />
@@ -390,7 +376,7 @@ export function SeedDealerInspection() {
             <StatusInput label="10. Whether containers/packets/bags are labelled as per the provisions of the Seeds Act" field={form.containersLabelled} onChange={(p) => setStatus('containersLabelled', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={3} title="Compliance Verification" subtitle="Items 11 to 15" open={openSections[3]} onToggle={toggleSection}>
+          <Section id={3} title="Compliance Verification" subtitle="Items 11 to 15" open={openSections[3]} onToggle={toggleSection} progress={sectionProgress[3]}>
             <StatusInput label="11. Whether the dealer is informing arrivals of seeds before commencement of sale" field={form.arrivalInformed} onChange={(p) => setStatus('arrivalInformed', p)} remarksWhen="no" />
             <StatusInput label="12. Whether the dealer is submitting Form D regularly" field={form.formDSubmitted} onChange={(p) => setStatus('formDSubmitted', p)} remarksWhen="no" />
             {form.formDSubmitted.status === 'no' && (
@@ -401,7 +387,7 @@ export function SeedDealerInspection() {
             <StatusInput label="15. Whether the dealer is purchasing stocks from approved and authorized sources or not (verify purchase invoices)" field={form.purchaseAuthorized} onChange={(p) => setStatus('purchaseAuthorized', p)} remarksWhen="no" />
           </Section>
 
-          <Section id={4} title="Defects and Violations" subtitle="Items 16 and 18" open={openSections[4]} onToggle={toggleSection}>
+          <Section id={4} title="Defects and Violations" subtitle="Items 16 and 18" open={openSections[4]} onToggle={toggleSection} progress={sectionProgress[4]}>
             <p className="text-xs font-black tracking-wide text-slate-600 dark:text-slate-300">16. Defects noticed which are rectifiable</p>
             <div className="grid gap-2">
               {RECTIFIABLE_DEFECT_LABELS.map((label, index) => {
@@ -445,7 +431,7 @@ export function SeedDealerInspection() {
             </div>
           </Section>
 
-          <Section id={5} title="Detention and Seizure" subtitle="Items 17 and 19" open={openSections[5]} onToggle={toggleSection}>
+          <Section id={5} title="Detention and Seizure" subtitle="Items 17 and 19" open={openSections[5]} onToggle={toggleSection} progress={sectionProgress[5]}>
             <div>
               <p className="mb-1 text-xs font-black tracking-wide text-slate-600 dark:text-slate-300">17. Whether any stocks are detained</p>
               <StatusButtons value={form.detentionMade} onChange={(v) => set('detentionMade', v)} />
@@ -491,7 +477,7 @@ export function SeedDealerInspection() {
             )}
           </Section>
 
-          <Section id={6} title="Seed Samples and Remarks" subtitle="Items 20 and 21" open={openSections[6]} onToggle={toggleSection}>
+          <Section id={6} title="Seed Samples and Remarks" subtitle="Items 20 and 21" open={openSections[6]} onToggle={toggleSection} progress={sectionProgress[6]}>
             <RowTable<SampleRow>
               title="20. Details of seed samples drawn (crop / variety / lot no.)"
               rows={form.samples}
@@ -511,7 +497,7 @@ export function SeedDealerInspection() {
         </div>
 
         <div className="mt-5 rounded-2xl border border-emerald-200/60 bg-white/90 p-3 shadow-md dark:border-emerald-800/50 dark:bg-slate-900/80">
-          <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-emerald-800">Inspection summary</p>
+          <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-emerald-800 dark:text-emerald-300">Inspection summary</p>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
             <SummaryChip label="Total items" value={summary.total} />
             <SummaryChip label="Completed" value={summary.completed} />
@@ -526,26 +512,37 @@ export function SeedDealerInspection() {
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-emerald-100 pt-3 dark:border-emerald-900/40">
             <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
-            <ActionButton onClick={generatePdf} icon={Download} tone="emerald">PDF</ActionButton>
+            <ActionButton onClick={generatePdf} icon={FileText} tone="emerald">PDF</ActionButton>
           </div>
         </div>
       </div>
 
       {showDrafts && (
         <Modal title="Saved drafts" onClose={() => setShowDrafts(false)}>
+          <div className="mb-3 flex flex-wrap gap-2">
+            <button type="button" onClick={exportDrafts} disabled={!drafts.length} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-black text-white hover:bg-emerald-700 disabled:opacity-50">
+              <FileDown className="h-4 w-4" />
+              Export drafts
+            </button>
+            <button type="button" onClick={() => importInputRef.current?.click()} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-black text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50">
+              <FileUp className="h-4 w-4" />
+              Import drafts
+            </button>
+            <input ref={importInputRef} type="file" accept="application/json" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importDrafts(file); e.target.value = ''; }} />
+          </div>
           {drafts.length === 0 ? (
-            <p className="text-sm font-semibold text-slate-500">No drafts saved yet.</p>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No drafts saved yet.</p>
           ) : (
             <ul className="divide-y divide-slate-200 dark:divide-slate-700">
               {drafts.map((draft) => (
                 <li key={draft.id} className="flex items-center justify-between gap-3 py-2">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold text-slate-900 dark:text-white">{draft.name}</p>
-                    <p className="text-xs text-slate-500">Saved {new Date(draft.savedAt).toLocaleString()}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Saved {new Date(draft.savedAt).toLocaleString()}</p>
                   </div>
                   <div className="flex shrink-0 gap-2">
                     <button type="button" onClick={() => loadDraft(draft)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-black text-white hover:bg-emerald-700">Edit</button>
-                    <button type="button" onClick={() => deleteDraft(draft.id)} className="rounded-lg border border-red-200 bg-white px-2 py-1.5 text-red-600 hover:bg-red-50" aria-label="Delete draft"><Trash2 className="h-4 w-4" /></button>
+                    <button type="button" onClick={() => deleteDraft(draft.id)} className="rounded-lg border border-red-200 dark:border-red-800/50 bg-white dark:bg-slate-900 px-2 py-1.5 text-red-600 dark:text-red-300 hover:bg-red-50" aria-label="Delete draft"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </li>
               ))}
@@ -555,212 +552,20 @@ export function SeedDealerInspection() {
       )}
 
       {showPreview && (
-        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={generatePdf} icon={Download} tone="emerald">Download PDF</ActionButton>}>
+        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={generatePdf} icon={FileText} tone="emerald">PDF</ActionButton>}>
           <Preview form={form} />
         </Modal>
       )}
+
+      <StickyActionBar>
+        <ActionButton onClick={saveDraft} icon={Save} tone="white">Save Draft</ActionButton>
+        <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
+        <ActionButton onClick={generatePdf} icon={FileText} tone="emerald">PDF</ActionButton>
+      </StickyActionBar>
     </div>
+    </InspectionTheme>
   );
 }
-
-function ActionButton({ children, onClick, icon: Icon, tone }: { children: React.ReactNode; onClick: () => void; icon: React.ElementType; tone: 'emerald' | 'purple' | 'white' }) {
-  const toneClass = {
-    emerald: 'bg-emerald-600 text-white hover:bg-emerald-700',
-    purple: 'bg-purple-600 text-white hover:bg-purple-700',
-    white: 'border border-[#86EFAC] bg-white/80 text-[#166534] hover:bg-white',
-  }[tone];
-  return (
-    <button type="button" onClick={onClick} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black shadow-sm transition sm:text-sm ${toneClass}`}>
-      <Icon className="h-4 w-4" />
-      {children}
-    </button>
-  );
-}
-
-function Section({ id, title, subtitle, open, onToggle, children }: { id: number; title: string; subtitle: string; open: boolean; onToggle: (id: number) => void; children: React.ReactNode }) {
-  return (
-    <div className="overflow-hidden rounded-2xl border border-emerald-200/60 bg-white/90 shadow-md backdrop-blur-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
-      <button type="button" onClick={() => onToggle(id)} className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left">
-        <div className="flex items-center gap-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-black text-white">{id}</span>
-          <div>
-            <h2 className="text-sm font-black text-slate-900 dark:text-white sm:text-base">{title}</h2>
-            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{subtitle}</p>
-          </div>
-        </div>
-        <ChevronDown className={`h-5 w-5 text-emerald-700 transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-      {open && <div className="grid gap-3 border-t border-emerald-100 px-4 py-4 dark:border-emerald-900">{children}</div>}
-    </div>
-  );
-}
-
-const inputClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white';
-const labelClass = 'mb-0.5 block text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300';
-
-function Field({ label, value, onChange, type = 'text', textarea = false, placeholder = '', options, helper = '' }: { label: string; value: string; onChange: (v: string) => void; type?: string; textarea?: boolean; placeholder?: string; options?: string[]; helper?: string }) {
-  return (
-    <label className="block">
-      <span className={labelClass}>{label}</span>
-      {textarea ? (
-        <textarea rows={2} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />
-      ) : options ? (
-        <select value={value} onChange={(e) => onChange(e.target.value)} className={inputClass}>
-          <option value="">Select…</option>
-          {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-        </select>
-      ) : (
-        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />
-      )}
-      {helper && <span className="mt-0.5 block text-[10px] font-semibold text-slate-400 dark:text-slate-500">{helper}</span>}
-    </label>
-  );
-}
-
-function StatusButtons({ value, onChange }: { value: Status; onChange: (v: Status) => void }) {
-  const options: { value: Status; label: string; active: string }[] = [
-    { value: 'yes', label: 'Yes', active: 'bg-emerald-600 text-white border-emerald-600' },
-    { value: 'no', label: 'No', active: 'bg-red-600 text-white border-red-600' },
-    { value: 'na', label: 'N/A', active: 'bg-slate-600 text-white border-slate-600' },
-  ];
-  return (
-    <div className="flex gap-2">
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => onChange(value === option.value ? '' : option.value)}
-          className={`min-w-[64px] rounded-lg border px-3 py-1.5 text-xs font-black transition ${value === option.value ? option.active : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function StatusInput({ label, field, onChange, remarksLabel = 'Remarks', remarksWhen = 'answered' }: { label: string; field: StatusField; onChange: (patch: Partial<StatusField>) => void; remarksLabel?: string; remarksWhen?: 'answered' | 'no' }) {
-  const showRemarks = remarksWhen === 'no' ? field.status === 'no' : Boolean(field.status) && field.status !== 'na';
-  return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
-      <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">{label}</p>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-        <StatusButtons value={field.status} onChange={(status) => onChange(remarksWhen === 'no' && status !== 'no' ? { status, remarks: '' } : { status })} />
-        {showRemarks && (
-          <input value={field.remarks} onChange={(e) => onChange({ remarks: e.target.value })} placeholder={remarksLabel} className={`${inputClass} sm:flex-1`} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function SummaryChip({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-2 py-1.5 text-center dark:border-emerald-900/50 dark:bg-emerald-950/20">
-      <p className="text-sm font-black text-emerald-700 dark:text-emerald-300">{value}</p>
-      <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
-    </div>
-  );
-}
-
-function CheckRow({ label, checked, onToggle, children }: { label: string; checked: boolean; onToggle: (checked: boolean) => void; children: React.ReactNode }) {
-  const toneClass = 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/50 dark:bg-emerald-950/20';
-  return (
-    <div className={`rounded-xl border p-3 ${checked ? toneClass : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800/40'}`}>
-      <label className="flex cursor-pointer items-start gap-3">
-        <input type="checkbox" checked={checked} onChange={(e) => onToggle(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 rounded border border-slate-300 text-emerald-600 accent-emerald-600" />
-        <span className="min-w-0 flex-1 break-normal text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</span>
-      </label>
-      {checked && <div className="mt-3 grid gap-2">{children}</div>}
-    </div>
-  );
-}
-
-type Column<T> = { key: keyof T; label: string; type?: 'text' | 'select' | 'status'; options?: string[]; allowOther?: boolean; compute?: (row: T) => string; dependsOn?: (keyof T)[] };
-
-function RowTable<T extends Record<string, string>>({ title, rows, onChange, empty, addLabel, columns }: { title: string; rows: T[]; onChange: (rows: T[]) => void; empty: () => T; addLabel: string; columns: Column<T>[] }) {
-  const update = (index: number, key: keyof T, value: string) => {
-    const updated = rows.map((row, i) => (i === index ? { ...row, [key]: value } : row));
-    const computeCols = columns.filter((c) => c.compute && (!c.dependsOn || c.dependsOn.includes(key)));
-    if (computeCols.length) {
-      updated[index] = computeCols.reduce((row, c) => ({ ...row, [c.key]: c.compute!(row) }), updated[index]);
-    }
-    onChange(updated);
-  };
-  return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{title}</p>
-        <button type="button" onClick={() => onChange([...rows, empty()])} className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-black text-white hover:bg-emerald-700">
-          <Plus className="h-3.5 w-3.5" />
-          {addLabel}
-        </button>
-      </div>
-      {rows.length === 0 ? (
-        <p className="text-xs font-semibold text-slate-500">No entries added.</p>
-      ) : (
-        <div className="grid gap-2">
-          {rows.map((row, index) => (
-            <div key={index} className="relative rounded-lg border border-slate-200 bg-white p-3 pr-10 dark:border-slate-700 dark:bg-slate-900">
-              <span className="absolute left-2 top-2 text-[10px] font-black text-slate-400">#{index + 1}</span>
-              <button type="button" onClick={() => onChange(rows.filter((_, i) => i !== index))} className="absolute right-2 top-2 rounded-md p-1 text-red-500 hover:bg-red-50" aria-label="Remove row">
-                <Trash2 className="h-4 w-4" />
-              </button>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {columns.map((column) => (
-                  <label key={String(column.key)} className="block">
-                    <span className={labelClass}>{column.label}</span>
-                    {column.type === 'select' ? (
-                      column.allowOther && row[column.key] === '__other__' ? (
-                        <input value='' onChange={(e) => update(index, column.key, e.target.value)} placeholder='Enter crop' autoFocus className={inputClass} />
-                      ) : column.allowOther && row[column.key] && !(column.options ?? []).includes(row[column.key]) && row[column.key] !== '__other__' ? (
-                        <div className="flex gap-1">
-                          <input value={row[column.key]} onChange={(e) => update(index, column.key, e.target.value)} className={inputClass} />
-                          <button type="button" onClick={() => update(index, column.key, '')} className="shrink-0 rounded-lg border border-slate-200 px-2 text-xs font-bold text-slate-500 hover:bg-slate-50">List</button>
-                        </div>
-                      ) : (
-                        <select value={row[column.key]} onChange={(e) => update(index, column.key, e.target.value)} className={inputClass}>
-                          <option value="">Select…</option>
-                          {(column.options ?? []).map((option) => <option key={option} value={option}>{option}</option>)}
-                          {column.allowOther && <option value="__other__">Others</option>}
-                        </select>
-                      )
-                    ) : column.type === 'status' ? (
-                      <StatusButtons value={row[column.key] as Status} onChange={(v) => update(index, column.key, v)} />
-                    ) : column.compute ? (
-                      <input value={row[column.key]} readOnly placeholder="Auto" className={`${inputClass} cursor-not-allowed bg-slate-100 dark:bg-slate-700/60`} />
-                    ) : (
-                      <input value={row[column.key]} onChange={(e) => update(index, column.key, e.target.value)} className={inputClass} />
-                    )}
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Modal({ title, onClose, children, wide = false, footer, fullScreen = false }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean; footer?: React.ReactNode; fullScreen?: boolean }) {
-  return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 ${fullScreen ? 'sm:p-4' : 'p-4'}`}>
-      <div className={`flex w-full flex-col bg-white shadow-2xl dark:bg-slate-900 ${wide ? 'max-w-4xl' : 'max-w-lg'} ${fullScreen ? 'h-full max-h-none sm:h-auto sm:max-h-[90vh] sm:rounded-2xl sm:border sm:border-emerald-200/50 dark:sm:border-emerald-800/50' : 'max-h-[90vh] rounded-2xl border border-emerald-200/50 dark:border-emerald-800/50'}`}>
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-slate-700">
-          <h2 className="flex-1 text-center text-lg font-bold text-slate-900 dark:text-white">{title}</h2>
-          <button type="button" onClick={onClose} className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-red-700">
-            Close
-          </button>
-        </div>
-        <div className="overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-3 dark:border-slate-700">{footer}</div>}
-      </div>
-    </div>
-  );
-}
-
-type PdfSubTable = { title: string; head: string[]; body: string[][] };
 
 function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSubTable[] } {
   const rectifiable = form.rectifiableDefects
@@ -774,7 +579,6 @@ function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSub
       return `${i + 1}. ${MAJOR_DEFECT_LABELS[i]}${parts.length ? `\n   ${parts.join('; ')}` : ''}`;
     })
     .filter(Boolean);
-  const listOrNil = (rows: unknown[], label: string) => (rows.length ? `${rows.length} ${label} (see table below)` : 'Nil');
 
   const items: string[][] = [
     ['1', 'Date of inspection', formatDate(form.inspectionDate)],
@@ -810,7 +614,9 @@ function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSub
   return { items, subTables };
 }
 
-function buildPdf(form: InspectionForm) {
+async function buildPdf(form: InspectionForm) {
+  const { jsPDF } = await import('jspdf');
+  const { default: autoTable } = await import('jspdf-autotable');
   const doc = new jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -902,12 +708,12 @@ function buildPdf(form: InspectionForm) {
 function Preview({ form }: { form: InspectionForm }) {
   const { items, subTables } = buildRows(form);
   return (
-    <div className="text-slate-900">
+    <div className="text-slate-900 dark:text-white">
       <h3 className="mb-3 text-center text-base font-black">Seed Dealer Inspection Report</h3>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse border border-slate-400 text-xs">
           <thead>
-            <tr className="bg-emerald-50">
+            <tr className="bg-emerald-50 dark:bg-emerald-950/40">
               <th className="border border-slate-400 px-2 py-1 text-left font-bold">No.</th>
               <th className="border border-slate-400 px-2 py-1 text-left font-bold">Particulars</th>
               <th className="border border-slate-400 px-2 py-1 text-left font-bold">Observation / Remarks</th>
@@ -930,7 +736,7 @@ function Preview({ form }: { form: InspectionForm }) {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-slate-400 text-xs">
               <thead>
-                <tr className="bg-slate-100">{table.head.map((h) => <th key={h} className="border border-slate-400 px-2 py-1 text-left font-bold">{h}</th>)}</tr>
+                <tr className="bg-slate-100 dark:bg-slate-800">{table.head.map((h) => <th key={h} className="border border-slate-400 px-2 py-1 text-left font-bold">{h}</th>)}</tr>
               </thead>
               <tbody>
                 {table.body.map((row, i) => (

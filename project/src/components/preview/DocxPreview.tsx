@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Download, ExternalLink } from 'lucide-react';
+import { X, ExternalLink, FileType } from 'lucide-react';
 import mammoth from 'mammoth';
 
 interface DocxPreviewProps {
@@ -87,7 +87,7 @@ export function DocxPreview({ file, onClose, onDownload, className = '' }: DocxP
               className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
               title="Download"
             >
-              <Download className="h-4 w-4" />
+              <FileType className="h-4 w-4" />
             </button>
           )}
           {onClose && (

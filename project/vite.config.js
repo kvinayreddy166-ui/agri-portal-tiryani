@@ -56,12 +56,15 @@ export default defineConfig({
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
         manualChunks(id) {
-          if (id.includes('commonjsHelpers')) {
+          if (id.includes('commonjsHelpers') || id.includes('preload-helper')) {
             return 'vendor-commonjs';
           }
-          // Group PDF libraries together for better mobile loading
-          if (id.includes('jspdf') || id.includes('pdfjs-dist') || id.includes('pdf-lib')) {
-            return 'vendor-pdf';
+          // Split PDF libraries: generation (jsPDF) vs viewing (pdfjs/pdf-lib)
+          if (id.includes('pdfjs-dist') || id.includes('pdf-lib')) {
+            return 'vendor-pdfview';
+          }
+          if (id.includes('jspdf')) {
+            return 'vendor-pdfgen';
           }
           // Group Excel library separately
           if (id.includes('xlsx')) {

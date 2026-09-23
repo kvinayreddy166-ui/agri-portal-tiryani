@@ -202,12 +202,12 @@ export default function StockReceiptsSales() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Admin stock module</p>
-            <h1 className="text-2xl font-black text-slate-950">Stock Receipts & Sales</h1>
-            <p className="text-sm font-semibold text-slate-500">All dealers, all categories, date-wise daily stock entries.</p>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Admin stock module</p>
+            <h1 className="text-2xl font-black text-slate-950 dark:text-white">Stock Receipts & Sales</h1>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">All dealers, all categories, date-wise daily stock entries.</p>
           </div>
           <IconButton label="Export all/filtered data to Excel" tone="excel" onClick={exportToExcel}>
             <FileSpreadsheet className="h-4 w-4" />
@@ -232,40 +232,40 @@ export default function StockReceiptsSales() {
         <AdminChartCard title="Dealer Stock Ranking" data={dealerChart} tone="red" />
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <div className="mb-3 flex items-center gap-2">
-          <Filter className="h-5 w-5 text-emerald-700" />
-          <h2 className="text-base font-black text-slate-950">Filters</h2>
+          <Filter className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
+          <h2 className="text-base font-black text-slate-950 dark:text-white">Filters</h2>
         </div>
         <div className="grid gap-2 md:grid-cols-7">
-          <select value={financialYear} onChange={(event) => setFinancialYear(event.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">
+          <select value={financialYear} onChange={(event) => setFinancialYear(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold">
             {FINANCIAL_YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
-          <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold" aria-label="From Date" />
-          <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold" aria-label="To Date" />
-          <select value={category} onChange={(event) => setCategory(event.target.value as 'all' | StockCategory)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">
+          <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold" aria-label="From Date" />
+          <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold" aria-label="To Date" />
+          <select value={category} onChange={(event) => setCategory(event.target.value as 'all' | StockCategory)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold">
             <option value="all">All categories</option>
             <option value="fertilizer">Fertilizer</option>
             <option value="seed">Seed</option>
             <option value="pesticide">Pesticide</option>
           </select>
-          <select value={entryType} onChange={(event) => setEntryType(event.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">
+          <select value={entryType} onChange={(event) => setEntryType(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold">
             <option value="all">All entry types</option>
             <option value="daily_stock">Daily Stock</option>
             <option value="receipt">Receipt</option>
             <option value="sale">Sale</option>
           </select>
           <label className="relative md:col-span-2">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search dealer, IFMS, product, batch, lot, remarks" className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm font-bold" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search dealer, IFMS, product, batch, lot, remarks" className="w-full rounded-lg border border-slate-300 dark:border-slate-600 py-2 pl-9 pr-3 text-sm font-bold" />
           </label>
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 p-4">
-          <h2 className="text-base font-black text-slate-950">Daily Stock History | Receipts History | Sales History</h2>
-          <p className="text-xs font-semibold text-slate-500">Sorted by entry date descending.</p>
+      <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+        <div className="border-b border-slate-100 dark:border-slate-800 p-4">
+          <h2 className="text-base font-black text-slate-950 dark:text-white">Daily Stock History | Receipts History | Sales History</h2>
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Sorted by entry date descending.</p>
         </div>
         {loading ? (
           <div className="flex h-48 items-center justify-center">
@@ -281,7 +281,7 @@ export default function StockReceiptsSales() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredRecords.map((record) => (
                   <tr key={record.id}>
                     <td className="px-3 py-2 font-bold">{record.financial_year || financialYearForDate(record.report_date)}</td>
@@ -301,7 +301,7 @@ export default function StockReceiptsSales() {
                 ))}
                 {!filteredRecords.length && (
                   <tr>
-                    <td colSpan={13} className="px-3 py-10 text-center text-sm font-semibold text-slate-500">No stock records match the selected filters.</td>
+                    <td colSpan={13} className="px-3 py-10 text-center text-sm font-semibold text-slate-500 dark:text-slate-400">No stock records match the selected filters.</td>
                   </tr>
                 )}
               </tbody>
@@ -315,7 +315,7 @@ export default function StockReceiptsSales() {
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-emerald-900 shadow-sm">
+    <div className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-emerald-900 dark:text-emerald-200 shadow-sm">
       <p className="text-[10px] font-black uppercase tracking-wide opacity-75">{label}</p>
       <p className="mt-1 text-xl font-black">{value}</p>
     </div>
@@ -327,24 +327,24 @@ function AdminChartCard({ title, data, tone }: { title: string; data: { label: s
   const color = tone === 'emerald' ? 'bg-emerald-600' : tone === 'amber' ? 'bg-amber-500' : tone === 'red' ? 'bg-red-600' : 'bg-slate-800';
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-      <h3 className="mb-2 text-sm font-black text-slate-950">{title}</h3>
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
+      <h3 className="mb-2 text-sm font-black text-slate-950 dark:text-white">{title}</h3>
       {data.length ? (
         <div className="space-y-2">
           {data.map((item) => (
             <div key={item.label}>
               <div className="mb-1 flex items-center justify-between gap-2 text-[11px] font-black">
-                <span className="truncate text-slate-700">{item.label}</span>
-                <span className="shrink-0 text-slate-500">{item.value.toFixed(2)}</span>
+                <span className="truncate text-slate-700 dark:text-slate-200">{item.label}</span>
+                <span className="shrink-0 text-slate-500 dark:text-slate-400">{item.value.toFixed(2)}</span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+              <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                 <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.max(4, Math.min(100, (Math.abs(item.value) / max) * 100))}%` }} />
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="rounded-lg bg-slate-50 p-3 text-center text-xs font-bold text-slate-500">No chart data.</div>
+        <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-center text-xs font-bold text-slate-500 dark:text-slate-400">No chart data.</div>
       )}
     </div>
   );

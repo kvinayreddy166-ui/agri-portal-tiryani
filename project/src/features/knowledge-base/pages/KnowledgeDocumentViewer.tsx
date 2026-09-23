@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import * as pdfjsLib from 'pdfjs-dist';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Loader2, FileText, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { BackButton } from '../../../components/ui/BackButton';
 import { useAuth } from '../../../context/AuthContext';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import { fetchDocument, getDocumentSignedUrl } from '../services/knowledgeService';
@@ -97,7 +98,9 @@ export function KnowledgeDocumentViewer() {
       <div className="portal-card modern-card p-6 text-center">
         <AlertTriangle className="mx-auto h-10 w-10 text-amber-500" />
         <p className="mt-2 font-bold text-slate-700 dark:text-slate-200">{error}</p>
-        <button onClick={() => go('library')} className="mt-3 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white">Back to Library</button>
+        <div className="mt-3 flex justify-center">
+          <BackButton onClick={() => go('library')} label="Back to Library" />
+        </div>
       </div>
     );
   }
@@ -107,9 +110,7 @@ export function KnowledgeDocumentViewer() {
   return (
     <div>
       <PageHeader eyebrow="Knowledge Base" title={doc?.title ?? 'Document'} description={doc?.description ?? undefined} />
-      <button onClick={() => go(isAdminUser ? 'library' : 'search')} className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-emerald-700 hover:underline">
-        <ChevronLeft className="h-4 w-4" /> Back
-      </button>
+      <BackButton onClick={() => go(isAdminUser ? 'library' : 'search')} className="mb-3" />
 
       {isPdf ? (
         <div className="portal-card modern-card p-3">

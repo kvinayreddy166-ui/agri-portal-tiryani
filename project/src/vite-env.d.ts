@@ -16,3 +16,4 @@ interface SpeechRecognition extends EventTarget {
   onend: (() => void) | null;
 }
 
+

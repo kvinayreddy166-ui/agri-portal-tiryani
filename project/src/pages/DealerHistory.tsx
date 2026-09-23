@@ -132,7 +132,7 @@ export function DealerHistory() {
       console.error(error);
       setStockLines([]);
     } else {
-      setStockLines((data || []) as StockInventoryLine[]);
+      setStockLines((data || []) as unknown as StockInventoryLine[]);
     }
   }, [dealerId]);
 

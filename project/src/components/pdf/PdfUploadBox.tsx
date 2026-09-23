@@ -115,24 +115,24 @@ export function PdfUploadBox({
   if (currentFile) {
     const isImage = currentFile.type.startsWith('image/');
     return (
-      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+      <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
-            <div className="rounded-lg bg-emerald-100 p-2">
+            <div className="rounded-lg bg-emerald-100 dark:bg-emerald-900/40 p-2">
               {isImage ? (
-                <ImageIcon className="h-5 w-5 text-emerald-700" />
+                <ImageIcon className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
               ) : (
-                <FileText className="h-5 w-5 text-emerald-700" />
+                <FileText className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-slate-900">{currentFile.name}</p>
-              <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-bold text-slate-700">
-                <span className="rounded bg-white/80 px-2 py-1">{formatFileSize(currentFile.size)}</span>
-                {pdfInfo && <span className="rounded bg-white/80 px-2 py-1">{pdfInfo.pageCount} pages</span>}
-                {pdfInfo && <span className="rounded bg-white/80 px-2 py-1">{pdfInfo.hasText ? 'Text PDF' : 'Image PDF'}</span>}
+              <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{currentFile.name}</p>
+              <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-bold text-slate-700 dark:text-slate-200">
+                <span className="rounded bg-white/80 dark:bg-slate-900/80 px-2 py-1">{formatFileSize(currentFile.size)}</span>
+                {pdfInfo && <span className="rounded bg-white/80 dark:bg-slate-900/80 px-2 py-1">{pdfInfo.pageCount} pages</span>}
+                {pdfInfo && <span className="rounded bg-white/80 dark:bg-slate-900/80 px-2 py-1">{pdfInfo.hasText ? 'Text PDF' : 'Image PDF'}</span>}
               </div>
-              <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-slate-600">
+              <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
                 <CalendarDays className="h-3 w-3" />
                 Last modified {formatPdfDate(currentFile)}
               </p>
@@ -140,14 +140,14 @@ export function PdfUploadBox({
           </div>
           {onClear && (
             <div className="flex shrink-0 gap-1">
-              <label className="rounded-lg p-2 text-slate-600 hover:bg-slate-200 has-[:disabled]:opacity-50" title="Replace file">
+              <label className="rounded-lg p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-200 has-[:disabled]:opacity-50" title="Replace file">
                 <RotateCcw className="h-4 w-4" />
                 <input type="file" accept={accept} className="hidden" disabled={disabled} onChange={handleFileInput} />
               </label>
               <button
                 type="button"
                 onClick={handleClear}
-                className="rounded-lg p-2 text-slate-600 hover:bg-slate-200 disabled:opacity-50"
+                className="rounded-lg p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-200 disabled:opacity-50"
                 disabled={disabled}
                 title="Remove file"
               >
@@ -181,26 +181,26 @@ export function PdfUploadBox({
           className="absolute inset-0 cursor-pointer opacity-0"
         />
         <div className="flex flex-col items-center gap-2">
-          <div className="rounded-full bg-emerald-100 p-3">
-            <Upload className="h-6 w-6 text-emerald-700" />
+          <div className="rounded-full bg-emerald-100 dark:bg-emerald-900/40 p-3">
+            <Upload className="h-6 w-6 text-emerald-700 dark:text-emerald-300" />
           </div>
-          <p className="text-sm font-semibold text-slate-900">
+          <p className="text-sm font-semibold text-slate-900 dark:text-white">
             {validating ? 'Checking PDF...' : 'Drop file here or click to upload'}
           </p>
-          <p className="text-xs font-semibold text-slate-600">
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
             PDF, JPG, JPEG, PNG (max {maxSizeMB} MB)
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
+        <div className="mt-2 rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-xs font-bold text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
 
-      <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
-        <p className="font-black text-emerald-800">Privacy Note:</p>
+      <div className="mt-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+        <p className="font-black text-emerald-800 dark:text-emerald-300">Privacy Note:</p>
         <p>Files are processed temporarily and are not stored.</p>
       </div>
     </div>

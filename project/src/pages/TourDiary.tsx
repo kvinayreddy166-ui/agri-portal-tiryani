@@ -3,15 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { BackButton } from '../components/ui/BackButton';
-import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, Car, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, FolderOpen, Clock, ChevronRight as ArrowRight, Copy, Check, X, ClipboardList } from 'lucide-react';
+import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, Clock, ChevronRight as ArrowRight, X, ClipboardList } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../data/telanganaDistrictMandalData';
 import { statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
-import { saveDiaryPdf, hasDiaryPdf, getAllDiaryPdfs, deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, formatFileSize, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
-import { saveDiary, getAllSavedDiaries, getSavedDiary, deleteSavedDiary, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, getDraft as getDraftFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft, DraftRecord } from '../lib/diaryStorage';
+import { deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
+import { getAllSavedDiaries, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft } from '../lib/diaryStorage';
 
 // Types
 interface TourDiary {
@@ -48,6 +47,7 @@ interface TourDiaryDraft {
   openingMeter: number;
   closingMeter: number | null;
   totalKm: number;
+  displayName?: string;
   createdAt: string;
   updatedAt: string;
   dateRemarks?: Record<string, string>;
@@ -112,7 +112,7 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-const DRAFT_STORAGE_KEY = 'tourDiaryDrafts';
+
 const RECOVERY_STORAGE_KEY = 'tourDiaryRecovery';
 const DRAFT_VERSION = 1;
 const TOUR_DIARY_COLUMN_COUNT = 10;
@@ -196,10 +196,6 @@ const HOLIDAYS_2026: Omit<Holiday, 'id'>[] = [
   { year: 2026, date: '26-12-2026', holiday_name: 'Birthday of Hazrath Ali', holiday_type: 'OPTIONAL' }
 ];
 
-const holidayCalendars: Record<number, Omit<Holiday, 'id'>[]> = {
-  2026: HOLIDAYS_2026
-};
-
 // Helper Functions
 function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
@@ -230,10 +226,6 @@ function isSecondSaturday(year: number, month: number, day: number): boolean {
 
 function formatDate(year: number, month: number, day: number): string {
   return `${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}-${year}`;
-}
-
-function formatHolidayDate(year: number, month: number, day: number): string {
-  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 function displayDateToHolidayDate(date: string): string {
@@ -279,28 +271,6 @@ function generateDraftId(officerName: string, year: number, month: number): stri
   return `${normalizeOfficerName(officerName)}__${year}-${String(month).padStart(2, '0')}`;
 }
 
-function getDrafts(): TourDiaryDraft[] {
-  try {
-    const stored = localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (!stored) return [];
-    const drafts = JSON.parse(stored);
-    return Array.isArray(drafts) ? drafts : [];
-  } catch (error) {
-    console.error('Error reading drafts from localStorage:', error);
-    return [];
-  }
-}
-
-function saveDrafts(drafts: TourDiaryDraft[]): boolean {
-  try {
-    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
-    return true;
-  } catch (error) {
-    console.error('Error saving drafts到 localStorage:', error);
-    return false;
-  }
-}
-
 function getRecoveryState(): TourDiaryDraft | null {
   try {
     const stored = localStorage.getItem(RECOVERY_STORAGE_KEY);
@@ -322,13 +292,6 @@ function saveRecoveryState(draft: TourDiaryDraft): boolean {
   }
 }
 
-function clearRecoveryState(): void {
-  try {
-    localStorage.removeItem(RECOVERY_STORAGE_KEY);
-  } catch (error) {
-    console.error('Error clearing recovery state:', error);
-  }
-}
 
 // Accessible UI primitives
 type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -557,18 +520,14 @@ export function TourDiary() {
   const [editablePreviewData, setEditablePreviewData] = useState<any[]>([]);
   
   // Draft state
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [, setLastSaved] = useState<Date | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
-  const [showNewDiaryModal, setShowNewDiaryModal] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedState, setLastSavedState] = useState<string>('');
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
   const [recoveryDraft, setRecoveryDraft] = useState<TourDiaryDraft | null>(null);
   const [autosaveTimeout, setAutosaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
-  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
-  const [showOptionalHolidayConfirm, setShowOptionalHolidayConfirm] = useState(false);
-  const [pendingLeaveDate, setPendingLeaveDate] = useState<string | null>(null);
   const [remarksDialogOpen, setRemarksDialogOpen] = useState<string | null>(null);
   const [dateRemarks, setDateRemarks] = useState<Record<string, string>>({});
 
@@ -582,11 +541,10 @@ export function TourDiary() {
   // Landing page state
   const [showLandingPage, setShowLandingPage] = useState(true);
   const [draftMenuOpen, setDraftMenuOpen] = useState<string | null>(null);
-  const [showDraftPicker, setShowDraftPicker] = useState(false);
+  const [, setShowDraftPicker] = useState(false);
   const [allDrafts, setAllDrafts] = useState<TourDiaryDraft[]>([]);
-  const [savedDiaries, setSavedDiaries] = useState<SavedDiaryRecord[]>([]);
-  const [completedDiaries, setCompletedDiaries] = useState<TourDiary[]>([]);
-  const [storedPdfs, setStoredPdfs] = useState<DiaryPdfMetadata[]>([]);
+  const [, setSavedDiaries] = useState<SavedDiaryRecord[]>([]);
+  const [, setCompletedDiaries] = useState<TourDiary[]>([]);
   const [pdfMenuOpen, setPdfMenuOpen] = useState<string | null>(null);
   const [pdfPreview, setPdfPreview] = useState<{ blob: Blob; fileName: string } | null>(null);
   const [showMyDiariesDropdown, setShowMyDiariesDropdown] = useState(false);
@@ -626,13 +584,13 @@ export function TourDiary() {
   // Dialog helpers (styled replacements for confirm()/prompt())
   const askConfirm = useCallback((options: DialogOptions): Promise<boolean> => {
     return new Promise(resolve => {
-      setDialogState({ kind: 'confirm', ...options, resolve });
+      setDialogState({ kind: 'confirm', ...options, resolve: (v) => resolve(v === true) });
     });
   }, []);
 
   const askPrompt = useCallback((options: DialogOptions & { defaultValue?: string; inputLabel?: string }): Promise<string | null> => {
     return new Promise(resolve => {
-      setDialogState({ kind: 'prompt', ...options, resolve });
+      setDialogState({ kind: 'prompt', ...options, resolve: (v) => resolve(typeof v === 'string' ? v : null) });
     });
   }, []);
 
@@ -702,12 +660,17 @@ export function TourDiary() {
         designation: draft.designation || '',
         district: draft.district || '',
         mandal: draft.mandal || '',
+        division: '',
         year: draft.year,
         month: draft.month,
         openingMeter: draft.opening_meter,
+        closingMeter: null,
+        totalKm: (draft.journeys || []).reduce((sum: number, j: { distance_km?: number }) => sum + (j.distance_km || 0), 0),
         journeys: draft.journeys,
         dateStatusOverrides: draft.dateStatusOverrides || {},
         dateRemarks: draft.dateRemarks || {},
+        displayName: draft.displayName,
+        createdAt: draft.createdAt,
         updatedAt: draft.updatedAt
       }));
       setAllDrafts(tourDrafts);
@@ -727,13 +690,13 @@ export function TourDiary() {
   const getGroupedMyDiaries = useCallback(() => {
     const items: Array<{
       id: string;
-      type: 'draft';
+      type: 'draft' | 'pdf';
       month: number;
       year: number;
       title: string;
       subtitle: string;
       date: string;
-      data: TourDiaryDraft;
+      data: TourDiaryDraft | DiaryPdfMetadata;
     }> = [];
 
     allDrafts.forEach(draft => {
@@ -1066,158 +1029,6 @@ export function TourDiary() {
     }
   }
 
-  // Delete draft from localStorage
-  async function deleteDraftFromLocal(draftId: string, month: number, year: number) {
-    const proceed = await askConfirm({
-      title: 'Delete draft?',
-      message: `Delete ${MONTHS[month - 1]} ${year} draft? This action cannot be undone.`,
-      confirmLabel: 'Delete',
-      destructive: true
-    });
-    if (!proceed) return;
-    try {
-      const drafts = getDrafts();
-      const filteredDrafts = drafts.filter(d => d.id !== draftId);
-      if (!saveDrafts(filteredDrafts)) {
-        throw new Error('Failed to delete draft');
-      }
-      showToast('Draft deleted', 'success');
-    } catch (error) {
-      console.error('Error deleting draft:', error);
-      showToast('Failed to delete draft. Please try again.', 'error');
-    }
-  }
-
-  // Save completed diary to database
-  async function saveCompletedDiary() {
-    if (!user) {
-      showToast('You must be logged in to save a diary.', 'error');
-      return;
-    }
-
-    if (!officerName) {
-      showToast('Please enter Officer Name before saving.', 'error');
-      return;
-    }
-
-    try {
-      const summary = calculateMonthlySummary();
-      
-      const diaryData = {
-        officer_id: user.id,
-        year: currentYear,
-        month: currentMonth,
-        opening_meter: summary.openingMeter,
-        closing_meter: summary.closingMeter,
-        total_km: summary.totalDistance,
-        status: 'Completed',
-        officer_name: officerName,
-        designation: getHeaderDesignation(),
-        district: getHeaderDistrict(),
-        mandal: getHeaderMandal(),
-        division: getHeaderDivision()
-      };
-
-      // Check if diary already exists for this month/year
-      const { data: existingDiary } = await supabase
-        .from('tour_diaries')
-        .select('id')
-        .eq('officer_id', user.id)
-        .eq('year', currentYear)
-        .eq('month', currentMonth)
-        .single();
-
-      let savedDiary;
-
-      if (existingDiary) {
-        // Update existing diary
-        const { data, error } = await supabase
-          .from('tour_diaries')
-          .update(diaryData)
-          .eq('id', existingDiary.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        savedDiary = data;
-      } else {
-        // Insert new diary
-        const { data, error } = await supabase
-          .from('tour_diaries')
-          .insert(diaryData)
-          .select()
-          .single();
-
-        if (error) throw error;
-        savedDiary = data;
-      }
-
-      // Save journeys to database
-      if (savedDiary) {
-        // Delete existing journeys for this diary
-        await supabase
-          .from('tour_journeys')
-          .delete()
-          .eq('tour_diary_id', savedDiary.id);
-
-        // Insert all journeys
-        const journeysToSave = journeys.map(journey => ({
-          tour_diary_id: savedDiary.id,
-          officer_id: user.id,
-          journey_date: journey.journey_date,
-          from_place: journey.from_place,
-          to_place: journey.to_place,
-          time_from: journey.time_from,
-          time_to: journey.time_to,
-          mode: journey.mode,
-          custom_mode_of_journey: journey.custom_mode_of_journey,
-          meter_from: journey.meter_from,
-          distance_km: journey.distance_km,
-          meter_to: journey.meter_to,
-          purpose: journey.purposes && journey.purposes.length > 0 ? journey.purposes.join(', ') : '',
-          custom_purpose: journey.custom_purpose,
-          remarks: journey.remarks
-        }));
-
-        if (journeysToSave.length > 0) {
-          const { error: journeyError } = await supabase
-            .from('tour_journeys')
-            .insert(journeysToSave);
-
-          if (journeyError) throw journeyError;
-        }
-      }
-
-      // Remove draft from localStorage since it's now saved
-      const draftId = generateDraftId(officerName, currentYear, currentMonth);
-      const drafts = getDrafts();
-      const filteredDrafts = drafts.filter(d => d.id !== draftId);
-      saveDrafts(filteredDrafts);
-      loadAllDrafts();
-
-      // Reload completed diaries
-      await loadCompletedDiaries();
-
-      showToast(`${MONTHS[currentMonth - 1]} ${currentYear} diary saved successfully!`, 'success');
-      
-      // Clear unsaved changes
-      setHasUnsavedChanges(false);
-      setLastSavedState(JSON.stringify({
-        officerName,
-        designation,
-        district,
-        mandal,
-        division,
-        journeys,
-        dateStatusOverrides
-      }));
-
-    } catch (error) {
-      console.error('Error saving completed diary:', error);
-      showToast('Failed to save diary. Please try again.', 'error');
-    }
-  }
-
   // Load journeys for current month
   async function loadJourneys() {
     // Journeys are now managed locally through the draft system
@@ -1251,15 +1062,6 @@ export function TourDiary() {
       holiday_name: override.holiday_name || getHolidayTypeLabel(override.holiday_type),
       holiday_type: override.holiday_type
     }];
-  }
-
-  function getDateStatusLabels(date: string, day: number): string[] {
-    const labels = [];
-    if (isSunday(currentYear, currentMonth, day)) labels.push('SUNDAY');
-    getDisplayedHolidaysForDate(date).forEach((holiday) => {
-      labels.push(`${holiday.holiday_name.toUpperCase()} - ${getHolidayTypeLabel(holiday.holiday_type).toUpperCase()}`);
-    });
-    return labels;
   }
 
   function getSpecialDateStatus(date: string, day: number): SpecialDateStatus | null {
@@ -1301,25 +1103,6 @@ export function TourDiary() {
     if (!match) return null;
 
     return getSpecialDateStatus(date, parseInt(match[1], 10));
-  }
-
-  function updateDateStatusOverride(date: string, status: 'DEFAULT' | DateStatusOverrideType) {
-    setDateStatusOverrides((previous) => {
-      const next = { ...previous };
-      if (status === 'DEFAULT') {
-        delete next[date];
-        return next;
-      }
-
-      const defaultHoliday = getDefaultHolidaysForDate(date).find(h => h.holiday_type === status) || getDefaultHolidaysForDate(date)[0];
-      const holidayType: HolidayType = status === 'OPTIONAL' ? 'OPTIONAL' : 'GENERAL';
-      next[date] = {
-        status,
-        holiday_type: holidayType,
-        holiday_name: status === 'WORKING' ? '' : (defaultHoliday?.holiday_name || getHolidayTypeLabel(holidayType))
-      };
-      return next;
-    });
   }
 
   function updateDateStatusOverrideName(date: string, holidayName: string) {
@@ -1677,7 +1460,7 @@ export function TourDiary() {
     // Calculate total distance from journeys - filter by selected month/year
     const journeysInMonth = journeys.filter(j => {
       const journeyDate = j.journey_date; // Format: DD-MM-YYYY
-      const [day, month, year] = journeyDate.split('-').map(Number);
+      const [, month, year] = journeyDate.split('-').map(Number);
       return year === currentYear && month === currentMonth;
     });
     const totalDistance = journeysInMonth.reduce((sum, j) => sum + (j.distance_km || 0), 0);
@@ -1687,8 +1470,7 @@ export function TourDiary() {
     const uniqueJourneyDates = new Set<string>();
     journeysInMonth.forEach(journey => {
       const journeyDate = journey.journey_date;
-      const [day, month, year] = journeyDate.split('-').map(Number);
-      
+
       // Check if this date is valid for tour activity (not a leave or optional holiday availed)
       const leaveType = getDateLeaveType(journeyDate);
       const isLeave = leaveType === 'NORMAL_LEAVE';
@@ -2272,8 +2054,6 @@ export function TourDiary() {
         doc.text('Asst.Director of Agriculture', 200, signatureY);
       }
 
-      // Generate PDF blob for storage
-      const pdfBlob = doc.output('blob');
       const fileName = `Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.pdf`;
       
       // PDFs are downloaded only; My Diaries stores drafts exclusively.
@@ -2383,70 +2163,6 @@ export function TourDiary() {
     setShowLandingPage(false);
   };
 
-  // Handle opening a completed diary
-  const openCompletedDiary = async (diary: TourDiary) => {
-    setCurrentYear(diary.year);
-    setCurrentMonth(diary.month);
-    setOfficerName(diary.officer_name || '');
-    setDesignation(diary.designation || '');
-    setDistrict(diary.district || '');
-    setMandal(diary.mandal || '');
-    setDivision('');
-    setTourDiary(diary);
-
-    // Load journeys from database for completed diary
-    try {
-      const { data: journeyData, error } = await supabase
-        .from('tour_journeys')
-        .select('*')
-        .eq('tour_diary_id', diary.id);
-
-      if (error) throw error;
-
-      // Convert database purpose string back to purposes array for backward compatibility
-      const convertedJourneys = (journeyData || []).map(journey => ({
-        ...journey,
-        purposes: journey.purpose ? journey.purpose.split(', ').map(p => p.trim()) : []
-      }));
-
-      setJourneys(convertedJourneys);
-    } catch (error) {
-      console.error('Error loading journeys for completed diary:', error);
-      setJourneys([]);
-    }
-
-    setShowLandingPage(false);
-  };
-
-  // Handle opening a saved diary from IndexedDB
-  const openSavedDiary = (diary: SavedDiaryRecord) => {
-    setCurrentYear(diary.year);
-    setCurrentMonth(diary.month);
-    setOfficerName(diary.officer_name || '');
-    setDesignation(diary.designation || '');
-    setDistrict(diary.district || '');
-    setMandal(diary.mandal || '');
-    setDivision('');
-    setTourDiary({
-      id: diary.id,
-      officer_id: diary.officer_id,
-      year: diary.year,
-      month: diary.month,
-      opening_meter: diary.opening_meter,
-      closing_meter: diary.closing_meter,
-      total_km: diary.total_km,
-      status: diary.status,
-      officer_name: diary.officer_name,
-      designation: diary.designation,
-      district: diary.district,
-      mandal: diary.mandal
-    });
-    setJourneys(diary.journeys);
-    setDateStatusOverrides(diary.dateStatusOverrides || {});
-    setDateRemarks(diary.dateRemarks || {});
-    setShowLandingPage(false);
-  };
-
   // Handle My Diaries - toggle dropdown
   const handleMyDiaries = () => {
     setShowMyDiariesDropdown(!showMyDiariesDropdown);
@@ -2512,7 +2228,8 @@ export function TourDiary() {
           <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex-1">
               <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" />
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100">Officer Toolkit</p>
                     <h1 className="flex items-center gap-2 text-xl font-black text-white">
@@ -2523,7 +2240,6 @@ export function TourDiary() {
                       Manage your monthly tour diaries
                     </p>
                   </div>
-                  <BackButton onClick={() => navigate('/officer-toolkit')}>Back</BackButton>
                 </div>
               </div>
             </div>
@@ -2898,7 +2614,8 @@ export function TourDiary() {
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex-1">
             <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <BackButton onClick={() => setShowLandingPage(true)} tone="solid" />
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100">Officer Toolkit</p>
                   <h1 className="flex items-center gap-2 text-xl font-black text-white">
@@ -2909,7 +2626,6 @@ export function TourDiary() {
                     Monthly Tour Diary with Journey Tracking
                   </p>
                 </div>
-                <BackButton onClick={() => setShowLandingPage(true)}>Back</BackButton>
               </div>
             </div>
           </div>
@@ -3993,8 +3709,9 @@ export function TourDiary() {
                     generatePDF();
                   }
                 }}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
               >
+                <FileText className="h-4 w-4" />
                 Download PDF
               </button>
             </div>

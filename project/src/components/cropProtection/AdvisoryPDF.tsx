@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import type { CropProtectionCrop, CropProtectionItem, LanguageCode } from '../../services/cropProtectionService';
 import { downloadAdvisoryPdf } from '../../services/pdfAdvisoryService';
 
@@ -14,7 +14,7 @@ export function AdvisoryPDF({
 }) {
   return (
     <button type="button" onClick={() => downloadAdvisoryPdf(crop, item, language)} className="action-button">
-      <Download className="h-4 w-4" /> Download PDF
+      <FileText className="h-4 w-4" /> Download PDF
     </button>
   );
 }

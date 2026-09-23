@@ -169,7 +169,7 @@ export function InspectionsNoticesHub() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes[selectedNoticeCategory].eyebrow}`}>Notices &amp; memos</p>
-                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 sm:text-lg">
+                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
                     {NOTICE_TYPES.find((item) => item.category === selectedNoticeCategory)?.label} Show Cause Notice / Memo Entry
                   </h2>
                 </div>

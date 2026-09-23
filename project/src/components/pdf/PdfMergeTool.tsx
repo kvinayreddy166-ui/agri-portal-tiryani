@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Eye, RefreshCw, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
+import { Eye, RefreshCw, ArrowUp, ArrowDown, Trash2, FileText } from 'lucide-react';
 import { mergePdfs } from '../../utils/pdfHelpers';
 import { cleanupObjectUrl, downloadBlob, formatFileSize, validateFileSize, validateFileType } from '../../utils/fileCleanup';
 
@@ -91,13 +91,13 @@ export function PdfMergeTool() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="mb-2 text-sm font-black text-slate-900">Merge PDF</h3>
-        <p className="mb-3 text-xs font-semibold text-slate-600">
+        <h3 className="mb-2 text-sm font-black text-slate-900 dark:text-white">Merge PDF</h3>
+        <p className="mb-3 text-xs font-semibold text-slate-600 dark:text-slate-300">
           Combine multiple PDF files into a single document
         </p>
       </div>
 
-      <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
+      <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 p-4">
         <input
           type="file"
           accept="application/pdf"
@@ -108,30 +108,30 @@ export function PdfMergeTool() {
             e.target.value = '';
           }}
           disabled={merging}
-          className="w-full text-xs font-semibold text-slate-700 file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1 file:text-xs file:font-black file:text-emerald-800 hover:file:bg-emerald-100 disabled:opacity-50"
+          className="w-full text-xs font-semibold text-slate-700 dark:text-slate-200 file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1 file:text-xs file:font-black file:text-emerald-800 hover:file:bg-emerald-100 disabled:opacity-50"
         />
-        <p className="mt-2 text-xs font-semibold text-slate-600">
+        <p className="mt-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
           Select multiple PDF files to merge (max 20 MB each)
         </p>
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
+        <div className="rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-xs font-bold text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
 
       {files.length > 0 && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-xs font-black uppercase tracking-wide text-slate-600">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
               Selected Files ({files.length})
             </p>
             <button
               type="button"
               onClick={handleReset}
               disabled={merging}
-              className="rounded-lg border border-red-200 px-2 py-1 text-xs font-black text-red-700 hover:bg-red-50 disabled:opacity-50"
+              className="rounded-lg border border-red-200 dark:border-red-800/50 px-2 py-1 text-xs font-black text-red-700 dark:text-red-300 hover:bg-red-50 disabled:opacity-50"
             >
               Clear All
             </button>
@@ -141,21 +141,21 @@ export function PdfMergeTool() {
             {files.map((file, index) => (
               <div
                 key={index}
-                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2"
+                className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2"
               >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-xs font-black text-emerald-800">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-xs font-black text-emerald-800 dark:text-emerald-300">
                   {index + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-semibold text-slate-900">{file.name}</p>
-                  <p className="text-[10px] font-semibold text-slate-600">{formatFileSize(file.size)}</p>
+                  <p className="truncate text-xs font-semibold text-slate-900 dark:text-white">{file.name}</p>
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{formatFileSize(file.size)}</p>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => handleMoveUp(index)}
                     disabled={index === 0 || merging}
-                    className="rounded p-1 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+                    className="rounded p-1 text-slate-600 dark:text-slate-300 hover:bg-slate-100 disabled:opacity-50"
                   >
                     <ArrowUp className="h-3 w-3" />
                   </button>
@@ -163,7 +163,7 @@ export function PdfMergeTool() {
                     type="button"
                     onClick={() => handleMoveDown(index)}
                     disabled={index === files.length - 1 || merging}
-                    className="rounded p-1 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+                    className="rounded p-1 text-slate-600 dark:text-slate-300 hover:bg-slate-100 disabled:opacity-50"
                   >
                     <ArrowDown className="h-3 w-3" />
                   </button>
@@ -171,7 +171,7 @@ export function PdfMergeTool() {
                     type="button"
                     onClick={() => handleRemoveFile(index)}
                     disabled={merging}
-                    className="rounded p-1 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    className="rounded p-1 text-red-600 dark:text-red-300 hover:bg-red-50 disabled:opacity-50"
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -199,20 +199,20 @@ export function PdfMergeTool() {
       )}
 
       {result && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+        <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-4">
           <div className="mb-3">
-            <p className="text-xs font-black uppercase tracking-wide text-slate-600">Merge Complete</p>
-            <p className="text-sm font-black text-emerald-800">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">Merge Complete</p>
+            <p className="text-sm font-black text-emerald-800 dark:text-emerald-300">
               Successfully merged {files.length} PDF files
             </p>
           </div>
 
           {previewUrl && (
             <div className="mb-3">
-              <p className="mb-1 flex items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-600">
+              <p className="mb-1 flex items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
                 <Eye className="h-3 w-3" /> Preview
               </p>
-              <iframe title="Merged PDF preview" src={previewUrl} className="h-72 w-full rounded-lg border border-emerald-200 bg-white" />
+              <iframe title="Merged PDF preview" src={previewUrl} className="h-72 w-full rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900" />
             </div>
           )}
 
@@ -222,13 +222,13 @@ export function PdfMergeTool() {
               onClick={handleDownload}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-xs font-black text-white hover:bg-emerald-800"
             >
-              <Download className="h-4 w-4" />
+              <FileText className="h-4 w-4" />
               Download Merged PDF
             </button>
             <button
               type="button"
               onClick={handleReset}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2 text-xs font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50"
             >
               <RefreshCw className="h-4 w-4" />
               Reset

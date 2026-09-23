@@ -93,7 +93,7 @@ export function CropProtectionDashboard({
 
   if (!selectedCrop) {
     return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">
+      <div className="rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 p-4 text-sm font-bold text-amber-900 dark:text-amber-200">
         {label('No information available currently', language)}
       </div>
     );
@@ -101,49 +101,51 @@ export function CropProtectionDashboard({
 
   return (
     <div className="space-y-4">
-      <section className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-800 via-green-700 to-teal-800 p-4 text-white shadow-sm sm:p-5">
+      <section className="overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-800 via-green-700 to-teal-800 p-4 text-white shadow-sm sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-100">{label('Officer Toolkit', language)}</p>
-            <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
-              {label('Crop Doctor', language)}
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm font-semibold text-emerald-50">
-              {label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
-            </p>
+          <div className="flex min-w-0 items-start gap-3">
+            <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="mt-0.5" />
+            <div className="min-w-0">
+              <p className="text-xs font-black uppercase tracking-wide text-emerald-100">{label('Officer Toolkit', language)}</p>
+              <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
+                {label('Crop Doctor', language)}
+              </h1>
+              <p className="mt-1 max-w-2xl text-sm font-semibold text-emerald-50">
+                {label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
+              </p>
+            </div>
           </div>
-          <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
+          <div className="flex w-full flex-wrap items-center gap-2 self-end lg:w-auto">
             <LanguageToggle language={language} onClick={() => setLanguage((value) => (value === 'en' ? 'te' : 'en'))} tone="solid" />
             <button
               type="button"
               onClick={onRefresh}
-              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 text-xs font-black text-white transition hover:bg-white/25"
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/25 bg-white/15 dark:bg-slate-900/15 px-3 text-xs font-black text-white transition hover:bg-white/25"
             >
               <RefreshCw className="h-4 w-4" /> {label('Refresh', language)}
             </button>
-            <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="ml-auto">Back</BackButton>
           </div>
         </div>
         <div className="relative mt-4">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-700" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-700 dark:text-emerald-300" />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder={label('Search crop, pest, disease, weed or symptom', language)}
-            className="h-11 w-full rounded-xl border border-white/20 bg-white py-2 pl-10 pr-3 text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-white/25"
+            className="h-11 w-full rounded-xl border border-white/20 bg-white dark:bg-slate-900 py-2 pl-10 pr-3 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-white/25"
           />
         </div>
       </section>
-      <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">{label('Quick Crop Selection', language)}</p>
-            <h2 className="text-base font-black text-slate-950">{pickLang(selectedCrop.name_en, selectedCrop.name_te, language)}</h2>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{label('Quick Crop Selection', language)}</p>
+            <h2 className="text-base font-black text-slate-950 dark:text-white">{pickLang(selectedCrop.name_en, selectedCrop.name_te, language)}</h2>
           </div>
           <button
             type="button"
             disabled
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-dashed border-emerald-300 bg-emerald-50 px-2.5 text-[11px] font-black text-emerald-800 disabled:opacity-80"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-dashed border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 text-[11px] font-black text-emerald-800 dark:text-emerald-300 disabled:opacity-80"
             title={label('AI photo diagnosis coming soon', language)}
           >
             <Camera className="h-3.5 w-3.5" /> {label('Identify from Photo', language)}
@@ -163,19 +165,19 @@ export function CropProtectionDashboard({
                   {crop.image_url ? (
                     <img src={crop.image_url} alt={crop.name_en} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
-                    <span className="flex h-full w-full items-center justify-center bg-emerald-100 text-emerald-700">
+                    <span className="flex h-full w-full items-center justify-center bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
                       <Sprout className="h-5 w-5" />
                     </span>
                   )}
                 </span>
-                <span className="w-full truncate text-[11px] font-black text-slate-700">{pickLang(crop.name_en, crop.name_te, language)}</span>
+                <span className="w-full truncate text-[11px] font-black text-slate-700 dark:text-slate-200">{pickLang(crop.name_en, crop.name_te, language)}</span>
               </button>
             );
           })}
         </div>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap gap-2">
             <TabButton active={activeTab === 'guidance'} onClick={() => setActiveTab('guidance')}>{label('Guidance', language)}</TabButton>
@@ -191,23 +193,23 @@ export function CropProtectionDashboard({
 
       {activeTab === 'guidance' && (
         <section className="space-y-3">
-          <div className="rounded-xl border border-emerald-200 bg-white p-3 shadow-sm">
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
+          <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 p-3 shadow-sm">
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
               {query ? label('Search guidance', language) : label(selectedCategory.label, language)}
             </p>
-            <p className="mt-1 text-xs font-semibold text-slate-500">
+            <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
               {query ? search : label(selectedCategory.description, language)}
             </p>
           </div>
 
           {!filteredItems.length && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">
+            <div className="rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 p-4 text-sm font-bold text-amber-900 dark:text-amber-200">
               {label('No information available currently', language)}
             </div>
           )}
 
           {filteredItems.length > 0 && !filteredItems.some(({ item }) => item.is_verified) && (
-            <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-bold text-amber-900">
+            <div className="flex items-start gap-2 rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 p-3 text-xs font-bold text-amber-900 dark:text-amber-200">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               <p>More official recommendations will be updated soon. General IPM is shown so officers never see an empty card.</p>
             </div>
@@ -240,10 +242,10 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
 function LoadingSkeleton() {
   return (
     <div className="space-y-3">
-      <div className="h-36 animate-pulse rounded-2xl bg-slate-100" />
+      <div className="h-36 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="h-28 animate-pulse rounded-xl bg-slate-100" />
+          <div key={index} className="h-28 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
         ))}
       </div>
     </div>

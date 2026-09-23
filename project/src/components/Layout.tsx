@@ -1,10 +1,11 @@
 import React, { useMemo, useState, ReactNode } from 'react';
 import {
-  ArrowLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
+  ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
   Archive, BarChart3, Settings, LogOut, Globe2, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen,
 } from 'lucide-react';
 import { PortalLogo } from './ui/PortalLogo';
+import { BackButton } from './ui/BackButton';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -100,16 +101,11 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
             </button>
 
             {showPageBackButton && (
-              <button
-                type="button"
+              <BackButton
                 onClick={onBack}
-                className="group relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-white shadow-sm transition hover:border-white/35 hover:bg-white/25 focus:outline-none focus:ring-4 focus:ring-white/25"
-                aria-label={t('Back', 'వెనుకకు')}
-                title={t('Back', 'వెనుకకు')}
-              >
-                <span className="absolute inset-1 rounded-xl bg-white/10 opacity-0 transition group-hover:opacity-100" />
-                <ArrowLeft className="relative h-5 w-5" />
-              </button>
+                tone="solid"
+                label={t('Back', 'వెనుకకు')}
+              />
             )}
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               {!hidePortalLogo && <PortalLogo size="sm" />}
@@ -140,7 +136,7 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
               className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold transition hover:bg-white/25 sm:text-sm"
             >
               <Globe2 className="h-4 w-4" />
-              {language === 'en' ? '\u0C24\u0C46' : 'EN'}
+              {language === 'en' ? 'తె' : 'EN'}
             </button>
             <span
               className={`hidden rounded-full px-2.5 py-1 text-[10px] font-bold sm:inline-block sm:text-xs ${

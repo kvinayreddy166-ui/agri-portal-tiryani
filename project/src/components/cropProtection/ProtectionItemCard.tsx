@@ -1,5 +1,5 @@
 import React from 'react';
-import { Copy, Download, ImageOff, MessageCircle, ShieldCheck } from 'lucide-react';
+import { Copy, ImageOff, MessageCircle, ShieldCheck, FileText } from 'lucide-react';
 import type { CropProtectionCrop, CropProtectionItem, LanguageCode } from '../../services/cropProtectionService';
 import { advisoryText, hasTelugu, pickLang } from '../../services/cropProtectionService';
 import { label } from '../../services/translationService';
@@ -34,9 +34,9 @@ export function ProtectionItemCard({
   };
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+    <article className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="flex w-full items-center justify-center overflow-hidden rounded-lg border border-slate-100 bg-slate-50 p-2 sm:w-40">
+        <div className="flex w-full items-center justify-center overflow-hidden rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-2 sm:w-40">
           {imageUrls.length ? (
             <div className="grid w-full grid-cols-3 gap-1.5">
               {imageUrls.slice(0, 6).map((url, index) => (
@@ -60,7 +60,7 @@ export function ProtectionItemCard({
               ))}
             </div>
           ) : (
-            <div className="flex h-28 items-center justify-center gap-2 px-3 text-center text-[11px] font-bold text-slate-500">
+            <div className="flex h-28 items-center justify-center gap-2 px-3 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400">
               <ImageOff className="h-4 w-4" />
               No official image available - identify by symptoms.
             </div>
@@ -69,26 +69,26 @@ export function ProtectionItemCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">
+              <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
                 {pickLang(crop.name_en, crop.name_te, language)}
               </p>
-              <h3 className="text-base font-black text-slate-950">{pickLang(item.name_en, item.name_te, language)}</h3>
-              <p className="text-xs font-semibold italic text-slate-500">{item.scientific_name || 'Scientific name will be updated soon'}</p>
+              <h3 className="text-base font-black text-slate-950 dark:text-white">{pickLang(item.name_en, item.name_te, language)}</h3>
+              <p className="text-xs font-semibold italic text-slate-500 dark:text-slate-400">{item.scientific_name || 'Scientific name will be updated soon'}</p>
             </div>
             <div className="flex flex-wrap gap-1">
-              <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase text-slate-600">
+              <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-1 text-[10px] font-black uppercase text-slate-600 dark:text-slate-300">
                 {label(categoryLabel(item.category), language)}
               </span>
 
               {item.is_verified && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase text-emerald-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 px-2 py-1 text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-300">
                   <ShieldCheck className="h-3 w-3" /> Verified
                 </span>
               )}
             </div>
           </div>
           {showTeluguBadge && (
-            <p className="mt-2 rounded-md bg-yellow-50 px-2 py-1 text-[11px] font-bold text-yellow-800">
+            <p className="mt-2 rounded-md bg-yellow-50 dark:bg-yellow-950/40 px-2 py-1 text-[11px] font-bold text-yellow-800 dark:text-yellow-300">
               {label('Telugu information will be updated soon', language)}
             </p>
           )}
@@ -97,7 +97,7 @@ export function ProtectionItemCard({
             <InfoBlock title={label('Damage', language)} value={pickLang(item.damage_en, item.damage_te, language)} />
 
           </div>
-          <div className="mt-2 rounded-lg bg-slate-50 p-2 text-xs font-semibold text-slate-700">
+          <div className="mt-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 p-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
             <span className="font-black">Favourable conditions: </span>
             {pickLang(item.favourable_conditions_en, item.favourable_conditions_te, language)}
           </div>
@@ -110,7 +110,7 @@ export function ProtectionItemCard({
               <MessageCircle className="h-4 w-4" /> {label('WhatsApp', language)}
             </button>
             <button type="button" onClick={() => downloadAdvisoryPdf(crop, item, language)} className="action-button bg-emerald-700 text-white">
-              <Download className="h-4 w-4" /> {label('Download PDF', language)}
+              <FileText className="h-4 w-4" /> {label('Download PDF', language)}
             </button>
           </div>
         </div>
@@ -121,9 +121,9 @@ export function ProtectionItemCard({
 
 function InfoBlock({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-100 bg-slate-50 p-2">
-      <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">{title}</p>
-      <p className="mt-1 font-semibold leading-5 text-slate-800">{value}</p>
+    <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-2">
+      <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{title}</p>
+      <p className="mt-1 font-semibold leading-5 text-slate-800 dark:text-slate-100">{value}</p>
     </div>
   );
 }

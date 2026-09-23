@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FileChild } from 'docx';
-import { ChevronDown, Download, Edit3, FileText, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear, financialYearForDate } from '../utils/financialYear';
 import { isAssistantDirectorOfAgriculture, statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../data/assistantDirectorLocation';
 import {
@@ -478,7 +478,7 @@ function noticeBlocksHtml(blocks: NoticeBlock[]) {
     .join('');
 }
 
-function noticeDocumentHtml(blocks: NoticeBlock[]) {
+export function noticeDocumentHtml(blocks: NoticeBlock[]) {
   return `<html><head><style>@page{size:A4;margin:18mm 20mm;}body{font-family:${NOTICE_FONT_STACK};font-size:12pt;line-height:1.5;color:#000;}</style></head><body>${noticeBlocksHtml(blocks)}</body></html>`;
 }
 
@@ -805,7 +805,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               {violation.exactReference}
             </span>
           </span>
-          <span className="block whitespace-normal break-normal text-sm font-bold leading-snug text-slate-900 [overflow-wrap:normal] [word-break:normal]">{violation.shortDescription}</span>
+          <span className="block whitespace-normal break-normal text-sm font-bold leading-snug text-slate-900 dark:text-white [overflow-wrap:normal] [word-break:normal]">{violation.shortDescription}</span>
         </span>
       </label>
     );
@@ -1104,7 +1104,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
           <div className="flex flex-wrap items-center justify-between gap-2">
             {!lockedCategory ? (
-            <div className="inline-flex flex-wrap rounded-lg border border-white bg-white p-1 shadow-sm">
+            <div className="inline-flex flex-wrap rounded-lg border border-white bg-white dark:bg-slate-900 p-1 shadow-sm">
               {noticeCategoryConfigs.map((item) => (
                 <button
                   key={item.category}
@@ -1119,14 +1119,14 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               ))}
             </div>
             ) : <span />}
-            <button type="button" onClick={resetNotice} className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-black text-red-700 hover:bg-red-50">
+            <button type="button" onClick={resetNotice} className="inline-flex items-center gap-2 rounded-lg border border-red-200 dark:border-red-800/50 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-black text-red-700 dark:text-red-300 hover:bg-red-50">
               <RotateCcw className="h-4 w-4" />
               Reset
             </button>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-            <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700">Officer Details</h3>
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
+            <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Officer Details</h3>
             <div className="grid gap-3 md:grid-cols-3">
               <TextInput label="Inspecting Officer" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
               <SelectInput label="Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
@@ -1172,18 +1172,18 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-            <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700">Dealer Details</h3>
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
+            <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Dealer Details</h3>
             <div className="grid gap-3 md:grid-cols-4">
             <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value, dealerName: value })} />
             <label className="block md:col-span-2">
-              <span className="mb-1 block text-xs font-black text-slate-600">Firm Address</span>
+              <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
               <textarea
                 value={form.dealerAddress}
                 onChange={(event) => updateForm({ dealerAddress: event.target.value })}
                 placeholder="D.No, Road, Village"
                 rows={2}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
             </label>
             <TextInput label="Licence Number" value={form.licenceNumber} onChange={(value) => updateForm({ licenceNumber: value })} optional />
@@ -1217,7 +1217,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                         onClick={() => toggleViolationGroup(group.label)}
                         className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left"
                       >
-                        <span className="text-sm font-black leading-snug text-slate-800 sm:text-base">{group.label || 'Violations'}</span>
+                        <span className="text-sm font-black leading-snug text-slate-800 dark:text-slate-100 sm:text-base">{group.label || 'Violations'}</span>
                         <span className="flex shrink-0 items-center gap-2">
                           {selectedCount > 0 && (
                             <span className={`rounded-full px-2.5 py-1 text-xs font-black ${config.theme.badge}`}>{selectedCount} selected</span>
@@ -1243,7 +1243,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
           <div className="space-y-3">
             <label className="block">
-              <span className="mb-1 flex items-center justify-between gap-3 text-xs font-black text-slate-600">
+              <span className="mb-1 flex items-center justify-between gap-3 text-xs font-black text-slate-600 dark:text-slate-300">
                 <span>{config.observationLabel}</span>
                 {!showProductDetails && (
                   <button
@@ -1261,21 +1261,21 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                 onChange={(event) => updateForm({ observation: event.target.value })}
                 placeholder={config.observationPlaceholder}
                 rows={4}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
             </label>
 
             {showProductDetails && (
-              <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <h3 className="text-sm font-black uppercase tracking-wide text-slate-700">Product Details</h3>
+                  <h3 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Product Details</h3>
                   <button
                     type="button"
                     onClick={() => {
                       setShowProductDetails(false);
                       updateForm({ productName: '', batchLotNumber: '', quantityInvolved: '', productRemarks: '', invoiceDetails: '' });
                     }}
-                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-50"
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 text-xs font-black text-slate-600 dark:text-slate-300 hover:bg-slate-50"
                   >
                     <X className="h-3.5 w-3.5" />
                     Remove
@@ -1300,24 +1300,24 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               <Save className="h-4 w-4" />
               Save
             </button>
-            <button type="button" onClick={downloadPdf} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
-              <Download className="h-4 w-4" />
+            <button type="button" onClick={downloadPdf} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50">
+              <FileText className="h-4 w-4" />
               PDF
             </button>
-            <button type="button" onClick={downloadWord} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-black text-blue-700 hover:bg-blue-50">
-              <FileText className="h-4 w-4" />
-              Word
+            <button type="button" onClick={downloadWord} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 dark:border-blue-800/50 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-black text-blue-700 dark:text-blue-300 hover:bg-blue-50">
+              <FileType className="h-4 w-4" />
+              WORD
             </button>
           </div>
 
       {showNoticePreview && (
-        <section ref={previewRef} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <section ref={previewRef} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-base font-black text-slate-900">Notice Preview</h3>
+            <h3 className="text-base font-black text-slate-900 dark:text-white">Notice Preview</h3>
             <button
               type="button"
               onClick={() => setShowNoticePreview(false)}
-              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-black text-slate-700 dark:text-slate-200 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
               aria-label="Close notice preview"
             >
               <X className="h-4 w-4" />
@@ -1325,29 +1325,29 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
             </button>
           </div>
           <div
-            className="max-h-[520px] overflow-auto rounded-lg bg-white p-6 text-slate-900 shadow-inner ring-1 ring-slate-100"
+            className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
             style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', serif`, fontSize: '12pt', lineHeight: 1.5 }}
             dangerouslySetInnerHTML={{ __html: noticeHtml }}
           />
         </section>
       )}
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <section className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <h3 className="text-base font-black text-slate-900">Saved Notices</h3>
+          <h3 className="text-base font-black text-slate-900 dark:text-white">Saved Notices</h3>
           <div className="relative max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               value={savedSearch}
               onChange={(event) => setSavedSearch(event.target.value)}
               placeholder="Search saved notices"
-              className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
             />
           </div>
         </div>
-        <div className="overflow-x-auto rounded-lg border border-slate-100">
+        <div className="overflow-x-auto rounded-lg border border-slate-100 dark:border-slate-800">
           <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-slate-50 text-xs font-black uppercase text-slate-500">
+            <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-black uppercase text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-3 py-2">Memo</th>
                 <th className="px-3 py-2">Dealer</th>
@@ -1357,7 +1357,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                 <th className="px-3 py-2 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredSaved.map((notice) => (
                 <tr key={notice.id}>
                   <td className="px-3 py-2 font-black">{notice.memoNumber}</td>
@@ -1367,11 +1367,11 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                   <td className="px-3 py-2">{notice.status}</td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex items-center gap-1">
-                      <button type="button" onClick={() => editSavedNotice(notice)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-emerald-700 hover:bg-emerald-50">
+                      <button type="button" onClick={() => editSavedNotice(notice)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50">
                         <Edit3 className="h-3.5 w-3.5" />
                         Edit
                       </button>
-                      <button type="button" onClick={() => deleteSavedNotice(notice)} aria-label="Delete saved notice" className="inline-flex items-center justify-center rounded-md p-1.5 text-red-600 hover:bg-red-50">
+                      <button type="button" onClick={() => deleteSavedNotice(notice)} aria-label="Delete saved notice" className="inline-flex items-center justify-center rounded-md p-1.5 text-red-600 dark:text-red-300 hover:bg-red-50">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -1380,7 +1380,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               ))}
               {filteredSaved.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center font-semibold text-slate-500">No saved notices yet.</td>
+                  <td colSpan={6} className="px-3 py-8 text-center font-semibold text-slate-500 dark:text-slate-400">No saved notices yet.</td>
                 </tr>
               )}
             </tbody>
@@ -1394,11 +1394,11 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 function SelectInput({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: { label: string; value: string }[] }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-black text-slate-600">{label}</span>
+      <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
       >
         <option value="">Select</option>
         {options.map((option) => (
@@ -1412,15 +1412,15 @@ function SelectInput({ label, value, onChange, options }: { label: string; value
 function TextInput({ label, value, onChange, type = 'text', optional = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; optional?: boolean }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-black text-slate-600">
+      <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">
         {label}
-        {optional && <span className="ml-1 text-[11px] font-bold text-slate-400">(Optional)</span>}
+        {optional && <span className="ml-1 text-[11px] font-bold text-slate-400 dark:text-slate-500">(Optional)</span>}
       </span>
       <input
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
       />
     </label>
   );

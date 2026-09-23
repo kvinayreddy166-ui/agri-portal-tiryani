@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Copy, RotateCcw, Scale, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { BackButton } from '../components/ui/BackButton';
 import { LanguageToggle } from '../components/ui/LanguageToggle';
 import { ToastContainer, useToast } from '../components/ui/Toast';
 
@@ -76,8 +77,9 @@ export function SeedRateCalculator() {
     <div className="space-y-3">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-        <section className="rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-800/50 sm:p-4">
-          <div className="flex items-center justify-between gap-4">
+        <section className="relative rounded-2xl border-2 border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-700/60 sm:p-4">
+          <div className="flex items-center gap-4">
+            <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
             <div>
               <h1 className="flex items-center gap-2 text-xl font-black text-white">
                 <Scale className="h-6 w-6" aria-label="Seed Rate Calculator" />
@@ -87,19 +89,15 @@ export function SeedRateCalculator() {
                 {t('Calculate seed requirement from population, germination and test weight.', 'జనాభా, మొలక శాతం మరియు టెస్ట్ వెయిట్ ఆధారంగా విత్తన అవసరాన్ని లెక్కించండి.')}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate('/officer-toolkit/farm-calculators')}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
-            >
-              Back
-            </button>
+          </div>
+          <div className="absolute bottom-3 right-4">
+            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
           </div>
         </section>
       </div>
 
       <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-        <section className="rounded-xl border border-lime-200 bg-gradient-to-br from-lime-100 to-emerald-100 p-4 text-sm font-semibold text-emerald-950 shadow-md dark:border-emerald-900 dark:from-emerald-950/50 dark:to-lime-950/30 dark:text-emerald-100">
+        <section className="rounded-xl border-2 border-lime-300 bg-gradient-to-br from-lime-100 to-emerald-100 p-4 text-sm font-semibold text-emerald-950 shadow-md dark:border-emerald-900 dark:from-emerald-950/50 dark:to-lime-950/30 dark:text-emerald-100">
           <div className="grid gap-2 sm:grid-cols-3">
             <p><span className="font-black">1.</span> Enter crop area and required population.</p>
             <p><span className="font-black">2.</span> Add germination and test weight from seed label.</p>
@@ -107,7 +105,7 @@ export function SeedRateCalculator() {
           </div>
         </section>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-3 shadow-md dark:border-emerald-900/60 dark:from-slate-900 dark:via-emerald-950/30 dark:to-lime-950/20">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-3 shadow-md dark:border-emerald-900/60 dark:from-slate-900 dark:via-emerald-950/30 dark:to-lime-950/20">
           <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
             <Copy className="h-4 w-4" />
             {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'టెక్స్ట్ కాపీ')}
@@ -115,7 +113,6 @@ export function SeedRateCalculator() {
           <button type="button" onClick={shareWhatsApp} disabled={!calculation.result} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-green-600 text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700" aria-label="WhatsApp" title="WhatsApp">
             <WhatsAppIcon className="h-4 w-4" />
           </button>
-          <LanguageToggle language={language} onClick={toggleLanguage} />
           <button type="button" onClick={reset} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
             <RotateCcw className="h-4 w-4" />
             {t('Reset', 'రీసెట్')}
@@ -173,7 +170,7 @@ export function SeedRateCalculator() {
           {calculation.result && (
             <>
               <ResultGrid areaUnit={form.areaUnit} result={calculation.result} t={t} />
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
+              <div className="rounded-lg border-2 border-amber-300 bg-amber-50 p-4 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
                 <div className="flex gap-3">
                   <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-300" />
                   <p className="text-sm font-bold text-amber-900 dark:text-amber-100">
@@ -206,7 +203,7 @@ const resultCardPalette = [
 
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-4 shadow-md dark:border-emerald-900/60 dark:from-slate-900 dark:via-emerald-950/30 dark:to-lime-950/20">
+    <section className="rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-4 shadow-md dark:border-emerald-900/60 dark:from-slate-900 dark:via-emerald-950/30 dark:to-lime-950/20">
       <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">{title}</h2>
       {children}
     </section>
@@ -241,7 +238,7 @@ function ResultGrid({ areaUnit, result, t }: { areaUnit: AreaUnit; result: SeedR
   return (
     <div className="grid gap-3">
       {cards.map((card, index) => (
-        <article key={card.label} className={`rounded-xl border bg-gradient-to-br ${resultCardPalette[index % resultCardPalette.length]} p-4 shadow-md dark:border-slate-700 dark:from-slate-900 dark:to-slate-800`}>
+        <article key={card.label} className={`rounded-xl border-2 bg-gradient-to-br ${resultCardPalette[index % resultCardPalette.length]} p-4 shadow-md dark:border-slate-700 dark:from-slate-900 dark:to-slate-800`}>
           <p className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{card.label}</p>
           <p className="mt-1 break-words text-2xl font-black text-slate-950 dark:text-white">{card.value}</p>
           <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-300">{card.note}</p>
@@ -251,7 +248,7 @@ function ResultGrid({ areaUnit, result, t }: { areaUnit: AreaUnit; result: SeedR
   );
 }
 
-const inputClass = 'min-h-11 w-full rounded-lg border border-emerald-200 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:border-emerald-900 dark:bg-slate-950 dark:text-white dark:focus:ring-emerald-900/40';
+const inputClass = 'min-h-11 w-full rounded-lg border-2 border-emerald-300 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:border-emerald-900 dark:bg-slate-950 dark:text-white dark:focus:ring-emerald-900/40';
 
 interface SeedRateResult {
   totalAcres: number;

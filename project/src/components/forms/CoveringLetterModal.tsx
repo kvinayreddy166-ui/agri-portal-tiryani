@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Download, Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
+import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
@@ -767,7 +767,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   </>
                 ) : (
                   <>
-                    <Download className="w-4 h-4" />
+                    <FileText className="w-4 h-4" />
                     Download
                   </>
                 )}
@@ -828,7 +828,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4" />
+                  <FileText className="w-4 h-4" />
                   Download
                 </>
               )}

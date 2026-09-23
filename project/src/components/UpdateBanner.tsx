@@ -68,7 +68,7 @@ export function UpdateBanner() {
       // Show loading overlay to prevent flickering
       const overlay = document.createElement('div');
       overlay.id = 'update-loading-overlay';
-      overlay.className = 'fixed inset-0 z-[10000] flex items-center justify-center bg-white';
+      overlay.className = 'fixed inset-0 z-[10000] flex items-center justify-center bg-white dark:bg-slate-900';
       overlay.innerHTML = `
         <div class="flex flex-col items-center gap-4">
           <div class="h-12 w-12 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
@@ -120,19 +120,19 @@ export function UpdateBanner() {
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
-      <div className="rounded-2xl bg-white/90 backdrop-blur-md shadow-2xl border border-white/20">
+      <div className="rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-2xl border border-white/20">
         <div className="p-5">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-500/25">
               <Download className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-base font-bold text-slate-900 mb-1">New Update Available</h4>
-              <p className="text-sm text-slate-600 leading-snug">A newer version of AGRONIX is ready to install.</p>
+              <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1">New Update Available</h4>
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-snug">A newer version of AGRONIX is ready to install.</p>
             </div>
             <button
               onClick={handleLater}
-              className="flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
+              className="flex-shrink-0 text-slate-400 dark:text-slate-500 hover:text-slate-600 transition-colors"
               aria-label="Close"
             >
               <X className="h-5 w-5" />
@@ -142,7 +142,7 @@ export function UpdateBanner() {
             <button
               type="button"
               onClick={handleLater}
-              className="flex-1 px-4 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              className="flex-1 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl transition-colors"
             >
               Later
             </button>

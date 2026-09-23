@@ -564,7 +564,7 @@ export function DealerStockPortal() {
   };
 
   if (!dealerId) {
-    return <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-900">{t('Dealer account not linked. Please sign in with your registered phone number.', 'డీలర్ ఖాతా లింక్ కాలేదు. దయచేసి మీ నమోదిత ఫోన్ నంబర్‌తో సైన్ ఇన్ చేయండి.')}</div>;
+    return <div className="rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 p-3 text-sm font-bold text-amber-900 dark:text-amber-200">{t('Dealer account not linked. Please sign in with your registered phone number.', 'డీలర్ ఖాతా లింక్ కాలేదు. దయచేసి మీ నమోదిత ఫోన్ నంబర్‌తో సైన్ ఇన్ చేయండి.')}</div>;
   }
 
   return (
@@ -572,7 +572,7 @@ export function DealerStockPortal() {
       <div className="sticky top-0 z-30 border-b border-emerald-900/10 bg-[#F4F8F5]/95 px-2 py-2 backdrop-blur sm:px-3">
         <div className="mb-1.5 flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">{t('Welcome', 'స్వాగతం')}</p>
+            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Welcome', 'స్వాగతం')}</p>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="truncate text-base font-black uppercase sm:text-lg">{firmName}</h1>
               {category === 'fertilizer' && ifmsId && <span className="rounded-md bg-slate-950 px-2.5 py-1 text-xs font-black text-white">IFMS ID: {ifmsId}</span>}
@@ -580,11 +580,11 @@ export function DealerStockPortal() {
             <p className="mt-0.5 text-xs font-semibold" style={{ color: COLORS.muted }}>{licenseNumber || t('License No. Not Updated', 'లైసెన్స్ నంబర్ నవీకరించబడలేదు')}</p>
           </div>
           <div className="relative">
-            <button type="button" onClick={() => setMenuOpen((value) => !value)} className="rounded-xl border border-emerald-200 bg-white p-2 text-emerald-900 shadow-sm">
+            <button type="button" onClick={() => setMenuOpen((value) => !value)} className="rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 p-2 text-emerald-900 dark:text-emerald-200 shadow-sm">
               {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
             {menuOpen && (
-              <div className="absolute right-0 top-11 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+              <div className="absolute right-0 top-11 w-48 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg">
                 <MenuButton icon={<Truck className="h-4 w-4" />} label={t('Receipts & Daily Stock', 'రసీదులు & రోజువారీ స్టాక్')} active={section === 'entry'} onClick={() => { setSection('entry'); setMenuOpen(false); }} />
                 <MenuButton icon={<Table2 className="h-4 w-4" />} label={t('Saved Entries', 'సేవ్ చేసిన ఎంట్రీలు')} active={section === 'saved'} onClick={() => { setSection('saved'); setMenuOpen(false); void loadRecords(); }} />
               </div>
@@ -597,7 +597,7 @@ export function DealerStockPortal() {
       <main className="w-full max-w-full space-y-2 overflow-hidden px-1.5 py-2 sm:px-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-black">{section === 'entry' ? t('Receipts & Daily Stock', 'రసీదులు & రోజువారీ స్టాక్') : t('Saved Entries', 'సేవ్ చేసిన ఎంట్రీలు')}</h2>
-          <label className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-black shadow-sm">
+          <label className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-black shadow-sm">
             Unit
             <select value={unit} onChange={(event) => setUnit(event.target.value)} className="bg-transparent outline-none">
               {CATEGORY_UNITS[category].map((item) => <option key={item} value={item}>{item}</option>)}
@@ -605,7 +605,7 @@ export function DealerStockPortal() {
           </label>
         </div>
 
-        {message && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">{message}</div>}
+        {message && <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 text-sm font-bold text-emerald-800 dark:text-emerald-300">{message}</div>}
 
         {section === 'entry' ? (
           <DealerEntryWorkArea
@@ -705,8 +705,8 @@ function ReceiptEntryCard({ category, unit, form, setForm, saving, onSave }: { c
   }, [category]);
 
   return (
-    <section className="rounded-[14px] border border-red-100 bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
-      <button type="button" onClick={() => setOpen((value) => !value)} className="flex w-full items-center justify-between gap-2 text-left text-sm font-black text-red-800">
+    <section className="rounded-[14px] border border-red-100 dark:border-red-900 bg-white dark:bg-slate-900 p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
+      <button type="button" onClick={() => setOpen((value) => !value)} className="flex w-full items-center justify-between gap-2 text-left text-sm font-black text-red-800 dark:text-red-300">
         <span className="flex items-center gap-2"><Truck className="h-4 w-4" /> {t('Receipts Entry', translateDealerUi('Receipts Entry'))}</span>
         <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -770,10 +770,10 @@ function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave
   }, [category, records]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <section className="rounded-[14px] border border-emerald-100 bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
+    <section className="rounded-[14px] border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-sm font-black text-emerald-900"><Calendar className="h-4 w-4" /> {t('Daily Stock / Sales Entry', translateDealerUi('Daily Stock / Sales Entry'))}</h3>
-        <button type="button" onClick={addRow} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-800">
+        <h3 className="flex items-center gap-2 text-sm font-black text-emerald-900 dark:text-emerald-200"><Calendar className="h-4 w-4" /> {t('Daily Stock / Sales Entry', translateDealerUi('Daily Stock / Sales Entry'))}</h3>
+        <button type="button" onClick={addRow} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 text-xs font-black text-emerald-800 dark:text-emerald-300">
           <Plus className="h-3.5 w-3.5" /> Add row
         </button>
       </div>
@@ -783,10 +783,10 @@ function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave
             ? computeStockRow(row.openingMt, row.receiptsMt, row.salesMt)
             : computeStockRow(row.opening, row.receipts, row.sales);
           return (
-            <div key={row.id} className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2.5">
+            <div key={row.id} className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-emerald-50/60 dark:bg-emerald-950/60 p-2.5">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <input type="date" value={row.date} onChange={(event) => updateRow(row.id, { date: event.target.value })} className="min-w-0 rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-bold" />
-                <button type="button" onClick={() => removeRow(row.id)} disabled={rows.length === 1} className="shrink-0 rounded-lg border border-red-200 bg-white p-2 text-red-600 disabled:opacity-40">
+                <input type="date" value={row.date} onChange={(event) => updateRow(row.id, { date: event.target.value })} className="min-w-0 rounded-lg border border-slate-300 dark:border-slate-600 px-2 py-1.5 text-xs font-bold" />
+                <button type="button" onClick={() => removeRow(row.id)} disabled={rows.length === 1} className="shrink-0 rounded-lg border border-red-200 dark:border-red-800/50 bg-white dark:bg-slate-900 p-2 text-red-600 dark:text-red-300 disabled:opacity-40">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -816,17 +816,17 @@ function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave
                 ? computeStockRow(row.openingMt, row.receiptsMt, row.salesMt)
                 : computeStockRow(row.opening, row.receipts, row.sales);
               return (
-                <tr key={row.id} className="border-b border-slate-100">
-                  <td className="px-2 py-2"><input type="date" value={row.date} onChange={(event) => updateRow(row.id, { date: event.target.value })} className="h-9 rounded-lg border border-slate-300 px-2 text-xs font-bold" /></td>
+                <tr key={row.id} className="border-b border-slate-100 dark:border-slate-800">
+                  <td className="px-2 py-2"><input type="date" value={row.date} onChange={(event) => updateRow(row.id, { date: event.target.value })} className="h-9 rounded-lg border border-slate-300 dark:border-slate-600 px-2 text-xs font-bold" /></td>
                   <td className="px-2 py-2"><ProductInput category={category} label="" value={row.product} onChange={(value) => updateRow(row.id, { product: value })} /></td>
-                  {category === 'seed' && <td className="px-2 py-2"><input value={row.variety} onChange={(event) => updateRow(row.id, { variety: event.target.value })} className="h-9 w-36 rounded-lg border border-slate-300 px-2 text-xs font-bold outline-none focus:border-emerald-600" placeholder="Variety" /></td>}
+                  {category === 'seed' && <td className="px-2 py-2"><input value={row.variety} onChange={(event) => updateRow(row.id, { variety: event.target.value })} className="h-9 w-36 rounded-lg border border-slate-300 dark:border-slate-600 px-2 text-xs font-bold outline-none focus:border-emerald-600" placeholder="Variety" /></td>}
                   <td className="px-2 py-2"><NumberInput value={category === 'fertilizer' ? display(row.openingMt, row.product) : row.opening} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { openingMt: parse(value, row.product) }) : updateRow(row.id, { opening: value })} /></td>
                   <td className="px-2 py-2"><NumberInput value={category === 'fertilizer' ? display(row.receiptsMt, row.product) : row.receipts} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { receiptsMt: parse(value, row.product) }) : updateRow(row.id, { receipts: value })} /></td>
-                  <td className="px-2 py-2 font-black text-emerald-800">{category === 'fertilizer' ? display(computed.total, row.product) : computed.total}</td>
+                  <td className="px-2 py-2 font-black text-emerald-800 dark:text-emerald-300">{category === 'fertilizer' ? display(computed.total, row.product) : computed.total}</td>
                   <td className="px-2 py-2"><NumberInput value={category === 'fertilizer' ? display(row.salesMt, row.product) : row.sales} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { salesMt: parse(value, row.product) }) : updateRow(row.id, { sales: value })} /></td>
                   <td className="px-2 py-2 font-black">{category === 'fertilizer' ? display(computed.closing_balance, row.product) : computed.closing_balance}</td>
                   <td className="px-2 py-2">
-                    <button type="button" onClick={() => removeRow(row.id)} disabled={rows.length === 1} className="rounded-lg border border-red-200 bg-white p-2 text-red-600 disabled:opacity-40">
+                    <button type="button" onClick={() => removeRow(row.id)} disabled={rows.length === 1} className="rounded-lg border border-red-200 dark:border-red-800/50 bg-white dark:bg-slate-900 p-2 text-red-600 dark:text-red-300 disabled:opacity-40">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </td>
@@ -836,7 +836,7 @@ function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave
           </tbody>
         </table>
       </div>
-      {category === 'fertilizer' && <p className="mt-2 text-xs font-bold text-slate-500">Fertilizer values are saved in MT. Display follows selected unit.</p>}
+      {category === 'fertilizer' && <p className="mt-2 text-xs font-bold text-slate-500 dark:text-slate-400">Fertilizer values are saved in MT. Display follows selected unit.</p>}
       <button type="button" onClick={onSave} disabled={saving} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-black text-white disabled:opacity-60" style={{ background: COLORS.primary }}>
         <Save className="h-4 w-4" /> {t('Save Daily Entry', translateDealerUi('Save Daily Entry'))}
       </button>
@@ -874,7 +874,7 @@ function SavedEntries(props: {
 
   return (
     <div className="space-y-3">
-      {loading && <div className="rounded-xl bg-white p-3 text-sm font-bold text-slate-500">Loading saved entries...</div>}
+      {loading && <div className="rounded-xl bg-white dark:bg-slate-900 p-3 text-sm font-bold text-slate-500 dark:text-slate-400">Loading saved entries...</div>}
       <SummaryCards summary={summary} category={category} unit={unit} />
       <ProductWiseBars stats={productStats} category={category} unit={unit} />
       <SavedTableSection
@@ -932,14 +932,14 @@ function SavedTableSection(props: {
   const { t } = useLanguage();
 
   return (
-    <section className="border border-slate-200 bg-white">
+    <section className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div className="px-2 pt-2">
           <h3 className="text-sm font-black">{props.title}</h3>
-          <p className="text-xs font-bold text-slate-500">{props.rows.length} records</p>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{props.rows.length} records</p>
         </div>
         <div className="flex flex-wrap gap-2 px-2 pt-2">
-          <button type="button" onClick={() => props.setFiltersOpen(!props.filtersOpen)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black">
+          <button type="button" onClick={() => props.setFiltersOpen(!props.filtersOpen)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-black">
             Filters <ChevronDown className={`h-3 w-3 transition ${props.filtersOpen ? 'rotate-180' : ''}`} />
           </button>
           <IconButton label={t('Export Excel', translateDealerUi('Export Excel'))} tone="excel" onClick={props.onExport} className="h-9 w-9">
@@ -962,7 +962,7 @@ function SavedTableSection(props: {
 
 function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows: StockInventoryLine[]; category: StockCategory; unit: string; type: 'receipt' | 'daily_stock'; deletingId: string; onDelete: (row: StockInventoryLine) => void }) {
   if (!rows.length) {
-    return <div className="border-t border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm font-bold text-slate-500">No saved entries found.</div>;
+    return <div className="border-t border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 p-4 text-center text-sm font-bold text-slate-500 dark:text-slate-400">No saved entries found.</div>;
   }
 
   const headers = type === 'receipt'
@@ -970,7 +970,7 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
     : ['S.No', 'Date', 'Product', `Opening (${unit})`, `Receipts (${unit})`, `Total (${unit})`, `Sales (${unit})`, `Closing (${unit})`, 'Delete'];
 
   return (
-    <div className="table-scroll border-t border-slate-200">
+    <div className="table-scroll border-t border-slate-200 dark:border-slate-700">
       <table className={`w-full text-xs ${type === 'receipt' ? 'min-w-[1080px]' : 'min-w-[900px]'}`}>
         <thead className={type === 'receipt' ? 'bg-red-800 text-white' : 'bg-emerald-900 text-white'}>
           <tr>
@@ -981,11 +981,11 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
           {rows.map((row, index) => (
             <tr key={row.id || `${row.report_date}-${row.product_type}-${index}`} className={type === 'receipt' ? 'hover:bg-red-50/70' : 'hover:bg-emerald-50/70'}>
               {savedTableCells(row, index, category, unit, type).map((cell, cellIndex) => (
-                <td key={`${row.id || index}-${cellIndex}`} className="whitespace-nowrap px-2.5 py-2 align-top font-bold text-slate-700">
+                <td key={`${row.id || index}-${cellIndex}`} className="whitespace-nowrap px-2.5 py-2 align-top font-bold text-slate-700 dark:text-slate-200">
                   {cell}
                 </td>
               ))}
@@ -994,7 +994,7 @@ function SavedTable({ rows, category, unit, type, deletingId, onDelete }: { rows
                   type="button"
                   onClick={() => onDelete(row)}
                   disabled={!row.id || deletingId === row.id}
-                  className="inline-flex items-center justify-center rounded-lg border border-red-200 bg-white p-2 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  className="inline-flex items-center justify-center rounded-lg border border-red-200 dark:border-red-800/50 bg-white dark:bg-slate-900 p-2 text-red-600 dark:text-red-300 hover:bg-red-50 disabled:opacity-50"
                   title="Delete entry"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -1070,12 +1070,12 @@ function ProductWiseBars({ stats, category, unit }: { stats: ProductStat[]; cate
       ? `${formatMt(value)} MT`
       : `${Number(value || 0).toFixed(2)} ${unit}`;
   return (
-    <section className="rounded-[14px] bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
-      <h3 className="mb-2 text-sm font-black text-slate-950">{t('Product-wise Receipts, Sales & Stock', translateDealerUi('Product-wise Receipts, Sales & Stock'))}</h3>
+    <section className="rounded-[14px] bg-white dark:bg-slate-900 p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]">
+      <h3 className="mb-2 text-sm font-black text-slate-950 dark:text-white">{t('Product-wise Receipts, Sales & Stock', translateDealerUi('Product-wise Receipts, Sales & Stock'))}</h3>
       <div className="grid gap-2 lg:grid-cols-2">
         {stats.map((item) => (
-          <div key={item.product} className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
-            <p className="mb-2 truncate text-xs font-black text-slate-900">{item.product}</p>
+          <div key={item.product} className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-2.5">
+            <p className="mb-2 truncate text-xs font-black text-slate-900 dark:text-white">{item.product}</p>
             <BarLine label={t('Receipts', translateDealerUi('Receipts'))} color="bg-emerald-600" width={(item.receipts / max) * 100} value={display(item.receipts, item.receiptBags)} />
             <BarLine label={t('Sales', translateDealerUi('Sales'))} color="bg-red-600" width={(item.sales / max) * 100} value={display(item.sales, item.salesBags)} />
             <BarLine label={t('Stock', translateDealerUi('Stock'))} color="bg-slate-800" width={(Math.abs(item.stock) / max) * 100} value={display(item.stock, item.stockBags)} />
@@ -1089,17 +1089,17 @@ function ProductWiseBars({ stats, category, unit }: { stats: ProductStat[]; cate
 function BarLine({ label, value, color, width }: { label: string; value: string; color: string; width: number }) {
   return (
     <div className="mb-2 grid min-w-0 grid-cols-[4.25rem_1fr] items-center gap-2 text-[11px] font-bold sm:grid-cols-[4.5rem_1fr_auto]">
-      <span className="text-slate-500">{label}</span>
-      <span className="h-2 overflow-hidden rounded-full bg-white">
+      <span className="text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="h-2 overflow-hidden rounded-full bg-white dark:bg-slate-900">
         <span className={`block h-full rounded-full ${color}`} style={{ width: `${Math.max(4, Math.min(100, width))}%` }} />
       </span>
-      <span className="col-start-2 break-words text-slate-800 sm:col-start-auto">{value}</span>
+      <span className="col-start-2 break-words text-slate-800 dark:text-slate-100 sm:col-start-auto">{value}</span>
     </div>
   );
 }
 
 function Summary({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-[14px] bg-white p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]"><p className="text-xs font-black uppercase text-slate-500">{label}</p><p className="mt-1 text-lg font-black text-slate-950">{value}</p></div>;
+  return <div className="rounded-[14px] bg-white dark:bg-slate-900 p-3 shadow-[0_2px_10px_rgba(15,23,42,0.08)]"><p className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">{label}</p><p className="mt-1 text-lg font-black text-slate-950 dark:text-white">{value}</p></div>;
 }
 
 function ProductInput({ category, label, value, onChange }: { category: StockCategory; label: string; value: string; onChange: (value: string) => void }) {
@@ -1119,8 +1119,8 @@ function ProductInput({ category, label, value, onChange }: { category: StockCat
 function Field({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (value: string) => void; type?: string }) {
   return (
     <label className="block min-w-0">
-      {label && <span className="mb-1 block text-[10px] font-black uppercase text-slate-500">{label}</span>}
-      <input type={type} value={value} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.001' : undefined} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600" />
+      {label && <span className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>}
+      <input type={type} value={value} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.001' : undefined} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600" />
     </label>
   );
 }
@@ -1128,21 +1128,21 @@ function Field({ label, value, onChange, type = 'text' }: { label: string; value
 function MobileNumber({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-1 block text-[10px] font-black uppercase text-slate-500">{label}</span>
-      <input type="number" min={0} step="0.001" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value) || 0)} className="h-9 w-full rounded-lg border border-slate-300 bg-white px-2 text-xs font-bold outline-none focus:border-emerald-600" />
+      <span className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>
+      <input type="number" min={0} step="0.001" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value) || 0)} className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 text-xs font-bold outline-none focus:border-emerald-600" />
     </label>
   );
 }
 
 function Readonly({ label, value }: { label: string; value: string }) {
-  return <div><span className="mb-1 block text-[10px] font-black uppercase text-slate-500">{label}</span><div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm font-black text-slate-900">{value}</div></div>;
+  return <div><span className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span><div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2 text-sm font-black text-slate-900 dark:text-white">{value}</div></div>;
 }
 
 function SelectField({ label, value, onChange, options, display }: { label: string; value: string; onChange: (value: string) => void; options: readonly string[]; display?: (value: string) => string }) {
   return (
     <label className="block min-w-0">
-      {label && <span className="mb-1 block text-[10px] font-black uppercase text-slate-500">{label}</span>}
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600">
+      {label && <span className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>}
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600">
         {options.map((option) => <option key={option} value={option}>{display ? display(option) : option}</option>)}
       </select>
     </label>
@@ -1150,7 +1150,7 @@ function SelectField({ label, value, onChange, options, display }: { label: stri
 }
 
 function NumberInput({ value, onChange }: { value: number; onChange: (value: number) => void }) {
-  return <input type="number" min={0} step="0.001" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value) || 0)} className="h-9 w-24 rounded-lg border border-slate-300 px-2 text-xs font-bold outline-none focus:border-emerald-600" />;
+  return <input type="number" min={0} step="0.001" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value) || 0)} className="h-9 w-24 rounded-lg border border-slate-300 dark:border-slate-600 px-2 text-xs font-bold outline-none focus:border-emerald-600" />;
 }
 
 function useFilteredRows(rows: StockInventoryLine[], category: StockCategory, filter: SavedFilter, type: 'receipt' | 'daily_stock') {

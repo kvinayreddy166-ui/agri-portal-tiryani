@@ -98,9 +98,9 @@ export function Toast({ type, title, subtitle, duration = 4000, onClose }: Toast
     >
       <div className="relative p-4">
         {/* Progress bar */}
-        <div className="absolute top-0 left-0 h-1 bg-white/30 rounded-full overflow-hidden">
+        <div className="absolute top-0 left-0 h-1 bg-white/30 dark:bg-slate-900/30 rounded-full overflow-hidden">
           <div
-            className="h-full bg-white/80 transition-all duration-50 ease-linear"
+            className="h-full bg-white/80 dark:bg-slate-900/80 transition-all duration-50 ease-linear"
             style={{ width: `${progress}%` }}
           />
         </div>

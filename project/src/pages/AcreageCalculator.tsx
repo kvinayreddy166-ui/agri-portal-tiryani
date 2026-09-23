@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Calculator, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { BackButton } from '../components/ui/BackButton';
 
 const STORAGE_KEY = 'tiryani-acreage-calculator-input';
 const MODE_STORAGE_KEY = 'tiryani-acreage-calculator-mode';
@@ -78,8 +79,9 @@ export function AcreageCalculator() {
   return (
     <div className="space-y-4">
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-        <section className="rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-800/50">
-          <div className="flex items-center justify-between gap-4">
+        <section className="rounded-2xl border-2 border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-700/60">
+          <div className="flex items-center gap-4">
+            <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
             <div>
               <h1 className="flex items-center gap-2 text-xl font-black text-white">
                 <Calculator className="h-6 w-6" aria-label="Area Calculator" />
@@ -87,19 +89,12 @@ export function AcreageCalculator() {
               </h1>
               <p className="text-sm font-semibold text-white/90">Convert land area between acres, hectares, cents and guntas for field reports.</p>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate('/officer-toolkit/farm-calculators')}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
-            >
-              Back
-            </button>
           </div>
         </section>
       </div>
 
       <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-        <section className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-100 to-cyan-100 p-4 text-sm font-semibold text-sky-950 shadow-md dark:border-sky-900 dark:from-sky-950/50 dark:to-cyan-950/40 dark:text-sky-100">
+        <section className="rounded-xl border-2 border-sky-300 bg-gradient-to-br from-sky-100 to-cyan-100 p-4 text-sm font-semibold text-sky-950 shadow-md dark:border-sky-800 dark:from-sky-950/50 dark:to-cyan-950/40 dark:text-sky-100">
           <div className="grid gap-2 sm:grid-cols-3">
             {guideItems.map((item, index) => (
               <p key={item}><span className="font-black">{index + 1}.</span> {item}</p>
@@ -110,14 +105,14 @@ export function AcreageCalculator() {
 
       <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
-          <div className="space-y-3 rounded-xl border border-sky-200 bg-gradient-to-br from-white via-sky-50 to-cyan-100 p-4 shadow-md dark:border-sky-900/60 dark:from-slate-900 dark:via-sky-950/30 dark:to-cyan-950/30">
+          <div className="space-y-3 rounded-xl border-2 border-sky-300 bg-gradient-to-br from-white via-sky-50 to-cyan-100 p-4 shadow-md dark:border-sky-800/60 dark:from-slate-900 dark:via-sky-950/30 dark:to-cyan-950/30">
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
               <label className="block">
                 <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Input type</span>
                 <select
                   value={mode}
                   onChange={(event) => setMode(event.target.value as AcreageMode)}
-                  className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-lg border-2 border-sky-300 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
                 >
                   {modeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
@@ -240,7 +235,7 @@ function PasteTextarea({ value, onChange, placeholder }: { value: string; onChan
       rows={12}
       wrap="soft"
       spellCheck={false}
-      className="min-h-[18rem] max-h-[32rem] w-full resize-y overflow-auto rounded-lg border border-sky-200 bg-white/95 px-3 py-2 font-mono text-sm font-semibold leading-6 text-slate-950 outline-none transition placeholder:font-sans focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
+      className="min-h-[18rem] max-h-[32rem] w-full resize-y overflow-auto rounded-lg border-2 border-sky-300 bg-white/95 px-3 py-2 font-mono text-sm font-semibold leading-6 text-slate-950 outline-none transition placeholder:font-sans focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
       placeholder={placeholder}
     />
   );
@@ -255,7 +250,7 @@ function NumberInput({ label, value, onChange, placeholder }: { label: string; v
         step="0.01"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-sky-200 bg-white/85 px-3 py-2 text-sm font-semibold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
+        className="w-full rounded-lg border-2 border-sky-300 bg-white/85 px-3 py-2 text-sm font-semibold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
         placeholder={placeholder}
       />
     </label>
@@ -264,7 +259,7 @@ function NumberInput({ label, value, onChange, placeholder }: { label: string; v
 
 function ResultCard({ label, value, note, tone }: { label: string; value: string; note: string; tone: string }) {
   return (
-    <article className={`rounded-xl border bg-gradient-to-br ${tone} p-4 shadow-md dark:border-slate-700 dark:from-slate-900 dark:to-slate-800`}>
+    <article className={`rounded-xl border-2 bg-gradient-to-br ${tone} p-4 shadow-md dark:border-slate-700 dark:from-slate-900 dark:to-slate-800`}>
       <p className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
       <p className="mt-1 text-3xl font-black text-slate-950 dark:text-white">{value}</p>
       <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-300">{note}</p>

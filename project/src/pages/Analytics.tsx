@@ -249,51 +249,51 @@ export function Analytics() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-emerald-100 bg-white p-4 shadow-sm">
+      <section className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Reports</p>
-            <h1 className="text-xl font-black text-slate-950">Reports</h1>
-            <p className="text-xs font-semibold text-slate-500">Official report preview, Excel, PDF, and live charts from existing app data.</p>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Reports</p>
+            <h1 className="text-xl font-black text-slate-950 dark:text-white">Reports</h1>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Official report preview, Excel, PDF, and live charts from existing app data.</p>
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={() => setFiltersOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50" aria-label="Filters">
+            <button type="button" onClick={() => setFiltersOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50" aria-label="Filters">
               <Filter className="h-4 w-4" />
             </button>
-            <button type="button" onClick={loadData} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50" aria-label="Refresh">
+            <button type="button" onClick={loadData} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50" aria-label="Refresh">
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
         {filtersOpen && (
           <div className="mt-3 space-y-3">
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
-              <p className="text-[10px] font-black uppercase tracking-wide text-emerald-700">Selected Report</p>
-              <p className="mt-1 text-sm font-black text-slate-950">{currentReport.title}</p>
-              <p className="mt-0.5 text-xs font-semibold text-slate-600">{currentReport.description}</p>
+            <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-3">
+              <p className="text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Selected Report</p>
+              <p className="mt-1 text-sm font-black text-slate-950 dark:text-white">{currentReport.title}</p>
+              <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300">{currentReport.description}</p>
             </div>
             <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-6">
-              <FilterField label="From Date"><input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-bold" /></FilterField>
-              <FilterField label="To Date"><input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-bold" /></FilterField>
+              <FilterField label="From Date"><input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" /></FilterField>
+              <FilterField label="To Date"><input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" /></FilterField>
               <FilterField label="Dealer">
-                <select value={dealerId} onChange={(event) => setDealerId(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-bold">
+                <select value={dealerId} onChange={(event) => setDealerId(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold">
                   <option value="all">All dealers</option>
                   {dealers.map((dealer) => <option key={dealer.id} value={dealer.id}>{titleCase(dealer.dealer_name)}</option>)}
                 </select>
               </FilterField>
               <FilterField label="Category">
-                <select value={category} onChange={(event) => setCategory(event.target.value as typeof category)} className="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-bold">
+                <select value={category} onChange={(event) => setCategory(event.target.value as typeof category)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold">
                   {CATEGORY_OPTIONS.map((item) => <option key={item} value={item}>{item === 'all' ? 'All' : titleCase(item)}</option>)}
                 </select>
               </FilterField>
               <FilterField label="Product/Fertilizer Type">
-                <select value={product} onChange={(event) => setProduct(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-bold">
+                <select value={product} onChange={(event) => setProduct(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold">
                   <option value="all">All products</option>
                   {productOptions.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               </FilterField>
               <FilterField label="Report Type">
-                <select value={reportType} onChange={(event) => setReportType(event.target.value as ReportKey)} className="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-bold">
+                <select value={reportType} onChange={(event) => setReportType(event.target.value as ReportKey)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold">
                   {REPORTS.map((report) => <option key={report.key} value={report.key}>{report.title}</option>)}
                 </select>
               </FilterField>
@@ -309,15 +309,15 @@ export function Analytics() {
         <Metric title="Quality Samples" value={filteredQuality.length} />
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 p-3">
+      <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 p-3">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Preview</p>
-            <h2 className="text-base font-black text-slate-950">{currentReport.title}</h2>
-            <p className="text-xs font-semibold text-slate-500">Date range: {fromDate || 'All'} to {toDate || 'All'} | Generated: {new Date().toLocaleString('en-IN')}</p>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Preview</p>
+            <h2 className="text-base font-black text-slate-950 dark:text-white">{currentReport.title}</h2>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Date range: {fromDate || 'All'} to {toDate || 'All'} | Generated: {new Date().toLocaleString('en-IN')}</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700">
+            <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-black text-slate-700 dark:text-slate-200">
               <Eye className="h-4 w-4" /> Preview
             </button>
             <button type="button" onClick={downloadPdf} className="inline-flex items-center gap-2 rounded-lg bg-red-700 px-3 py-2 text-xs font-black text-white">
@@ -334,19 +334,19 @@ export function Analytics() {
               <thead className="bg-slate-900 text-white">
                 <tr>{Object.keys(previewRows[0]).map((key) => <th key={key} className="whitespace-nowrap px-3 py-2 text-left font-black">{key}</th>)}</tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {previewRows.map((row, index) => (
                   <tr key={index} className="hover:bg-emerald-50/40">
-                    {Object.keys(previewRows[0]).map((key) => <td key={key} className="whitespace-nowrap px-3 py-2 font-semibold text-slate-700">{row[key]}</td>)}
+                    {Object.keys(previewRows[0]).map((key) => <td key={key} className="whitespace-nowrap px-3 py-2 font-semibold text-slate-700 dark:text-slate-200">{row[key]}</td>)}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <div className="p-8 text-center text-sm font-bold text-slate-500">No data available for selected filters</div>
+          <div className="p-8 text-center text-sm font-bold text-slate-500 dark:text-slate-400">No data available for selected filters</div>
         )}
-        <div className="border-t border-slate-100 px-3 py-2 text-xs font-bold text-slate-500">MAO/Admin Footer: AGRONIX | Generated by {user?.email || 'MAO/Admin'}</div>
+        <div className="border-t border-slate-100 dark:border-slate-800 px-3 py-2 text-xs font-bold text-slate-500 dark:text-slate-400">MAO/Admin Footer: AGRONIX | Generated by {user?.email || 'MAO/Admin'}</div>
       </section>
     </div>
   );
@@ -593,7 +593,7 @@ function isReceiptRow(row: StockRow) {
 function FilterField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-slate-500">{label}</span>
+      <span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</span>
       {children}
     </label>
   );
@@ -601,9 +601,9 @@ function FilterField({ label, children }: { label: string; children: React.React
 
 function Metric({ title, value }: { title: string; value: number }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-      <p className="text-xs font-black uppercase tracking-wide text-slate-500">{title}</p>
-      <p className="mt-1 text-2xl font-black text-slate-950">{value.toLocaleString('en-IN')}</p>
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
+      <p className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{title}</p>
+      <p className="mt-1 text-2xl font-black text-slate-950 dark:text-white">{value.toLocaleString('en-IN')}</p>
     </div>
   );
 }

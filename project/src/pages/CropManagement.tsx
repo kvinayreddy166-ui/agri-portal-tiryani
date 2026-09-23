@@ -24,7 +24,7 @@ export function CropManagement() {
       <aside className="space-y-2">
         <div className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="flex items-center gap-2">
-            <BrainCircuit className="h-5 w-5 text-emerald-700" />
+            <BrainCircuit className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
             <h1 className="text-base font-black text-slate-950 dark:text-white">
               {t('Crop Intelligence', 'పంట సమాచారం')}
             </h1>

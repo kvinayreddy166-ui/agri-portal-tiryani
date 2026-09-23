@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, RefreshCw, Sparkles } from 'lucide-react';
+import { RefreshCw, Sparkles, FileText } from 'lucide-react';
 import { PdfUploadBox } from './PdfUploadBox';
 import { PdfPreview } from './PdfPreview';
 import { ColorMode, CompressionStats, enhanceScannedPdf } from '../../utils/pdfHelpers';
@@ -65,8 +65,8 @@ export function AiDocumentEnhancer() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="mb-1 text-base font-black text-slate-900">PDF Enhancement</h3>
-        <p className="text-xs font-semibold text-slate-600">
+        <h3 className="mb-1 text-base font-black text-slate-900 dark:text-white">PDF Enhancement</h3>
+        <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
           Improve low-quality scans with contrast, denoise-style cleanup, grayscale, and black-and-white rebuilds.
         </p>
       </div>
@@ -81,7 +81,7 @@ export function AiDocumentEnhancer() {
       />
 
       {file && !result && (
-        <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div className="space-y-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
           <div className="grid gap-2 sm:grid-cols-3">
             {modes.map((item) => (
               <button
@@ -93,19 +93,19 @@ export function AiDocumentEnhancer() {
                   mode === item.value ? 'border-emerald-600 bg-emerald-50' : 'border-slate-300 bg-white'
                 } disabled:opacity-50`}
               >
-                <p className="text-xs font-black text-slate-900">{item.label}</p>
-                <p className="text-[10px] font-semibold text-slate-600">{item.detail}</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white">{item.label}</p>
+                <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{item.detail}</p>
               </button>
             ))}
           </div>
 
           {processing && (
-            <div className="rounded-lg border border-emerald-200 bg-white p-3">
-              <div className="mb-2 flex items-center justify-between text-xs font-black text-emerald-900">
+            <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 p-3">
+              <div className="mb-2 flex items-center justify-between text-xs font-black text-emerald-900 dark:text-emerald-200">
                 <span>{progress.message}</span>
                 <span>{progress.percent}%</span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-emerald-100">
+              <div className="h-2 overflow-hidden rounded-full bg-emerald-100 dark:bg-emerald-900/40">
                 <div className="h-full bg-emerald-700 transition-all" style={{ width: `${progress.percent}%` }} />
               </div>
             </div>
@@ -124,13 +124,13 @@ export function AiDocumentEnhancer() {
       )}
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
+        <div className="rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-xs font-bold text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
 
       {result && file && (
-        <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+        <div className="space-y-3 rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-4">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Stat label="Original" value={formatFileSize(result.originalSize)} />
             <Stat label="Enhanced" value={formatFileSize(result.compressedSize)} />
@@ -144,13 +144,13 @@ export function AiDocumentEnhancer() {
               onClick={handleDownload}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-xs font-black text-white hover:bg-emerald-800"
             >
-              <Download className="h-4 w-4" />
+              <FileText className="h-4 w-4" />
               Download PDF
             </button>
             <button
               type="button"
               onClick={() => setResult(null)}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2 text-xs font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50"
             >
               <RefreshCw className="h-4 w-4" />
               Reset
@@ -164,9 +164,9 @@ export function AiDocumentEnhancer() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/80 bg-white/80 px-3 py-2">
-      <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="text-xs font-black text-slate-900">{value}</p>
+    <div className="rounded-lg border border-white/80 bg-white/80 dark:bg-slate-900/80 px-3 py-2">
+      <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="text-xs font-black text-slate-900 dark:text-white">{value}</p>
     </div>
   );
 }

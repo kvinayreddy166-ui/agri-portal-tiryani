@@ -1,7 +1,7 @@
-const RESCUE_SW_VERSION = 'agronix-rescue-sw-v13';
+const RESCUE_SW_VERSION = 'agronix-rescue-sw-v14';
 const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
-const STATIC_CACHE_NAME = 'agronix-static-v13';
-const RUNTIME_CACHE_NAME = 'agronix-runtime-v13';
+const STATIC_CACHE_NAME = 'agronix-static-v14';
+const RUNTIME_CACHE_NAME = 'agronix-runtime-v14';
 
 // Get recovery URL that preserves current path for public routes
 function getRecoveryUrl(request) {
@@ -84,8 +84,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (request.destination === 'script' || request.destination === 'style') {
-    event.respondWith(fetchOrRecoverMissingBuildAsset(request));
+  // Build assets (/assets/*-hash.js|css) are content-hashed, so cache-first is always correct
+  // and lets previously visited pages (incl. lazy chunks) load fully offline.
+  if (request.destination === 'script' || request.destination === 'style' || url.pathname.startsWith('/assets/')) {
+    event.respondWith(cacheFirstBuildAsset(request));
   }
 });
 
@@ -93,12 +95,13 @@ async function networkOnlyNavigation(request) {
   try {
     return await fetch(new Request(request, { cache: 'no-store' }));
   } catch (error) {
-    // Prefer branded offline page so refresh keeps the animated logo screen
-    const offline = await caches.match('/offline.html');
-    if (offline) return offline;
-
+    // Offline: open the cached app shell so the PWA still launches
     const shell = (await caches.match('/')) || (await caches.match('/index.html'));
     if (shell) return shell;
+
+    // Branded offline page if nothing was cached yet
+    const offline = await caches.match('/offline.html');
+    if (offline) return offline;
 
     return new Response(offlineFallbackHtml(), {
       status: 503,
@@ -150,10 +153,16 @@ async function networkFirstStatic(request) {
   }
 }
 
-async function fetchOrRecoverMissingBuildAsset(request) {
+async function cacheFirstBuildAsset(request) {
+  const cache = await caches.open(RUNTIME_CACHE_NAME);
+  const cached = await cache.match(request);
+  if (cached) return cached;
   try {
     const response = await fetch(new Request(request, { cache: 'no-store' }));
-    if (response.ok || response.type === 'opaque') return response;
+    if (response.ok || response.type === 'opaque') {
+      if (response.ok) await cache.put(request, response.clone());
+      return response;
+    }
     if (response.status === 404 || response.status === 410) {
       return missingAssetRecoveryResponse(request);
     }

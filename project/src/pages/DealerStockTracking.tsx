@@ -167,7 +167,7 @@ export function DealerStockTracking() {
         <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
           Dealer Stock Tracking
         </h1>
-        <p className="text-gray-600 mt-1">Manage fertilizer allocation to dealers (in MT)</p>
+        <p className="text-gray-600 dark:text-slate-300 mt-1">Manage fertilizer allocation to dealers (in MT)</p>
       </div>
 
       {/* Summary Cards */}
@@ -193,13 +193,13 @@ export function DealerStockTracking() {
       {/* Controls */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="w-full md:w-96 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-slate-500" />
           <input
             type="text"
             placeholder="Search dealer or fertilizer..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -221,15 +221,15 @@ export function DealerStockTracking() {
       {/* Add Form Modal */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Add Stock Allocation</h2>
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Add Stock Allocation</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Dealer</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">Dealer</label>
                 <select
                   value={formData.dealer_id}
                   onChange={(e) => setFormData({ ...formData, dealer_id: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Select Dealer</option>
                   {dealers.map(dealer => (
@@ -240,11 +240,11 @@ export function DealerStockTracking() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Fertilizer Type</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">Fertilizer Type</label>
                 <select
                   value={formData.fertilizer_type}
                   onChange={(e) => setFormData({ ...formData, fertilizer_type: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500"
                 >
                   {fertilizers.map(fert => (
                     <option key={fert} value={fert}>{fert}</option>
@@ -252,12 +252,12 @@ export function DealerStockTracking() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Quantity (MT)</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">Quantity (MT)</label>
                 <input
                   type="number"
                   value={formData.quantity_mts}
                   onChange={(e) => setFormData({ ...formData, quantity_mts: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500"
                   placeholder="0.00"
                   step="0.1"
                   min="0"
@@ -267,7 +267,7 @@ export function DealerStockTracking() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowAddForm(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-700 dark:text-slate-200 hover:bg-gray-50 font-medium"
               >
                 Cancel
               </button>
@@ -283,7 +283,7 @@ export function DealerStockTracking() {
       )}
 
       {/* Stock Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-slate-800">
         <div className="table-scroll">
           <table className="w-full">
             <thead className="bg-gradient-to-r from-slate-900 to-slate-800 text-white">
@@ -295,7 +295,7 @@ export function DealerStockTracking() {
                 {isAdminUser && <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
               {filteredStock.map((item) => {
                 const dealer = dealers.find(d => d.id === item.dealer_id);
                 return (
@@ -324,18 +324,18 @@ export function DealerStockTracking() {
                             min="0"
                           />
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">{new Date(item.last_updated).toLocaleDateString()}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-slate-400">{new Date(item.last_updated).toLocaleDateString()}</td>
                         <td className="px-6 py-4">
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleUpdate(item.id)}
-                              className="p-2 text-green-600 hover:bg-green-50 rounded"
+                              className="p-2 text-green-600 dark:text-green-300 hover:bg-green-50 rounded"
                             >
                               <Save className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => setEditingId(null)}
-                              className="p-2 text-gray-600 hover:bg-gray-100 rounded"
+                              className="p-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 rounded"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -344,32 +344,32 @@ export function DealerStockTracking() {
                       </>
                     ) : (
                       <>
-                        <td className="px-6 py-4 font-medium text-gray-900">{dealer?.dealer_name}</td>
+                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{dealer?.dealer_name}</td>
                         <td className="px-6 py-4">
-                          <span className="inline-block bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium">
+                          <span className="inline-block bg-gradient-to-r from-emerald-100 dark:from-emerald-900 to-teal-100 dark:to-teal-900 text-emerald-700 dark:text-emerald-300 px-3 py-1 rounded-full text-sm font-medium">
                             {item.fertilizer_type}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4 text-emerald-600" />
-                            <span className="font-bold text-lg text-gray-900">{item.quantity_mts.toFixed(2)}</span>
-                            <span className="text-sm text-gray-500">MT</span>
+                            <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-300" />
+                            <span className="font-bold text-lg text-gray-900 dark:text-white">{item.quantity_mts.toFixed(2)}</span>
+                            <span className="text-sm text-gray-500 dark:text-slate-400">MT</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">{new Date(item.last_updated).toLocaleDateString()}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-slate-400">{new Date(item.last_updated).toLocaleDateString()}</td>
                         {isAdminUser && (
                           <td className="px-6 py-4">
                             <div className="flex gap-2">
                               <button
                                 onClick={() => setEditingId(item.id)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                className="p-2 text-blue-600 dark:text-blue-300 hover:bg-blue-50 rounded transition-colors"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDelete(item.id)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                className="p-2 text-red-600 dark:text-red-300 hover:bg-red-50 rounded transition-colors"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -388,12 +388,12 @@ export function DealerStockTracking() {
         {filteredStock.length === 0 && (
           <div className="text-center py-12">
             <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No stock allocations found</p>
+            <p className="text-gray-500 dark:text-slate-400">No stock allocations found</p>
           </div>
         )}
       </div>
 
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-gray-500 dark:text-slate-400">
         Showing {filteredStock.length} of {stockData.length} allocations
       </div>
     </div>

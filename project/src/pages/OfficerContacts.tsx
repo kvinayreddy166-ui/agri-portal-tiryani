@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle, Loader2, Users, ArrowLeft } from 'lucide-react';
+import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle, Loader2, Users } from 'lucide-react';
+import { ToolkitPageHeader } from '../components/ui/ToolkitPageHeader';
 import { AEO_DISTRICTS } from '../data/aeoDistricts';
 import { supabase } from '../lib/supabase';
 
@@ -498,7 +499,7 @@ export function OfficerContacts() {
       <div className="mb-6 space-y-4">
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             placeholder="Search contacts..."
@@ -614,34 +615,16 @@ export function OfficerContacts() {
       <div className="relative mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
         <div className={`mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="rounded-2xl border border-[#BBF7D0] bg-gradient-to-br from-[#F0FDF4] via-[#DCFCE7] to-[#BBF7D0] p-4 shadow-lg">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#15803D] shadow-sm ring-1 ring-white/20">
-                  <Users className="h-6 w-6 text-white" aria-label="Officer Contacts" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[#166534]">
-                    OFFICER DIRECTORY
-                  </p>
-                  <h1 className="text-xl font-black text-[#14532D]">
-                    Officer Contacts
-                  </h1>
-                  <p className="text-sm font-semibold text-[#3F6212]">
-                    Telangana Agriculture Department
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/officer-toolkit')}
-                className="inline-flex items-center gap-2 rounded-lg border border-[#86EFAC] bg-white/70 px-3 py-2 text-sm font-black text-[#166534] shadow-sm transition hover:bg-white hover:border-[#4ADE80]"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </button>
-            </div>
-          </div>
+          <ToolkitPageHeader
+            icon={Users}
+            tone="emerald"
+            eyebrow="Officer Directory"
+            title="Officer Contacts"
+            subtitle="Telangana Agriculture Department"
+            fallbackPath="/officer-toolkit"
+            onBack={() => navigate('/officer-toolkit')}
+            className="mb-0"
+          />
         </div>
 
         {/* Tabs */}

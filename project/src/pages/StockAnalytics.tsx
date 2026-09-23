@@ -77,56 +77,56 @@ export default function StockAnalytics() {
 
   return (
     <div className="max-w-full space-y-4 overflow-hidden" style={{ background: THEME.bg }}>
-      <section className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-2xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 shadow-sm">
         <button
           type="button"
           onClick={() => setCommandOpen((value) => !value)}
           className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
         >
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Command Center</p>
-            <h2 className="text-lg font-black text-slate-950">Officer Command Center</h2>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Command Center</p>
+            <h2 className="text-lg font-black text-slate-950 dark:text-white">Officer Command Center</h2>
           </div>
           <ChevronDown className={`h-5 w-5 text-emerald-800 transition ${commandOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {commandOpen && (
           <div className="space-y-3 border-t border-emerald-50 p-2 sm:p-3">
-            <section className="overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 shadow-sm">
               <button
                 type="button"
                 onClick={() => setDealerMonitoringOpen((value) => !value)}
-                className="flex w-full items-center justify-between gap-3 bg-gradient-to-r from-white to-emerald-50/70 px-3 py-3 text-left"
+                className="flex w-full items-center justify-between gap-3 bg-gradient-to-r from-white to-emerald-50/70 dark:to-emerald-950/70 px-3 py-3 text-left"
               >
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Dealer Monitoring</p>
-                  <h3 className="text-base font-black text-slate-950">Dealer Monitoring</h3>
+                  <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Dealer Monitoring</p>
+                  <h3 className="text-base font-black text-slate-950 dark:text-white">Dealer Monitoring</h3>
                 </div>
                 <ChevronDown className={`h-5 w-5 text-emerald-800 transition ${dealerMonitoringOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {dealerMonitoringOpen && (
-                <div className="border-t border-emerald-100 bg-[#fbfdfb] p-2 sm:p-3">
+                <div className="border-t border-emerald-100 dark:border-emerald-900 bg-[#fbfdfb] p-2 sm:p-3">
                   <CommandCenter />
                 </div>
               )}
             </section>
 
-            <section className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70">
+            <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/70">
               <button
                 type="button"
                 onClick={() => setStockToolsOpen((value) => !value)}
                 className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
               >
                 <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700">Stock Analytics</p>
-                  <h3 className="text-base font-black text-slate-950">Fertilizer Tracking & Stock Inventory</h3>
+                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Stock Analytics</p>
+                  <h3 className="text-base font-black text-slate-950 dark:text-white">Fertilizer Tracking & Stock Inventory</h3>
                 </div>
                 <ChevronDown className={`h-5 w-5 text-slate-700 transition ${stockToolsOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {stockToolsOpen && (
-                <div className="space-y-3 border-t border-slate-200 p-2 sm:p-3">
+                <div className="space-y-3 border-t border-slate-200 dark:border-slate-700 p-2 sm:p-3">
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     <StockSwitch
                       title="Fertilizer Tracking"
@@ -273,11 +273,11 @@ function CommandCenter() {
 
   return (
     <div className="space-y-3">
-      <section className="rounded-xl border border-emerald-100 bg-white p-3 shadow-sm shadow-emerald-100/50">
+      <section className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 p-3 shadow-sm shadow-emerald-100/50">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700">Filters</p>
-            <h1 className="text-base font-black text-slate-950">Monitoring Filters</h1>
+            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Filters</p>
+            <h1 className="text-base font-black text-slate-950 dark:text-white">Monitoring Filters</h1>
           </div>
           <div className="flex items-center gap-2">
             <IconButton label="Refresh command center" tone="secondary" onClick={loadData} className="h-9 w-9">
@@ -300,16 +300,16 @@ function CommandCenter() {
         </div>
       </section>
 
-      {loading && <div className="rounded-xl border border-emerald-100 bg-white p-4 text-sm font-bold text-slate-500 shadow-sm">Loading command center...</div>}
+      {loading && <div className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 p-4 text-sm font-bold text-slate-500 dark:text-slate-400 shadow-sm">Loading command center...</div>}
 
       <section className="grid gap-3 xl:grid-cols-2">
-        <section className="overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-sm shadow-emerald-100/40">
-          <div className="flex items-center justify-between border-b border-emerald-50 bg-emerald-50/50 px-3 py-2">
+        <section className="overflow-hidden rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 shadow-sm shadow-emerald-100/40">
+          <div className="flex items-center justify-between border-b border-emerald-50 bg-emerald-50/50 dark:bg-emerald-950/50 px-3 py-2">
             <div>
-              <h2 className="text-sm font-black text-slate-950">Dealer Submission List</h2>
-              <p className="text-xs font-bold text-slate-500">Today: {today()}</p>
+              <h2 className="text-sm font-black text-slate-950 dark:text-white">Dealer Submission List</h2>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Today: {today()}</p>
             </div>
-            <div className="grid grid-cols-2 rounded-lg border border-slate-200 p-1 text-xs font-black">
+            <div className="grid grid-cols-2 rounded-lg border border-slate-200 dark:border-slate-700 p-1 text-xs font-black">
               <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'updated' ? 'bg-emerald-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('updated')}>Updated</button>
               <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'pending' ? 'bg-red-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('pending')}>Pending</button>
             </div>
@@ -386,7 +386,7 @@ function StockSwitch({ title, description, active, tone, icon, onClick }: { titl
       <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconClass}`}>{icon}</div>
       <div className="min-w-0">
         <h3 className={`truncate text-sm font-black ${titleClass}`}>{title}</h3>
-        <p className="truncate text-xs font-semibold text-slate-500">{description}</p>
+        <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{description}</p>
       </div>
     </button>
   );
@@ -394,13 +394,13 @@ function StockSwitch({ title, description, active, tone, icon, onClick }: { titl
 
 function LicenseCounterCard({ counters }: { counters: { label: string; value: number }[] }) {
   return (
-    <section className="rounded-xl border border-emerald-50 bg-white p-3 shadow-sm shadow-slate-100/70">
-      <h2 className="mb-2 border-b border-emerald-50 pb-2 text-sm font-black text-slate-950">License Counter</h2>
+    <section className="rounded-xl border border-emerald-50 bg-white dark:bg-slate-900 p-3 shadow-sm shadow-slate-100/70">
+      <h2 className="mb-2 border-b border-emerald-50 pb-2 text-sm font-black text-slate-950 dark:text-white">License Counter</h2>
       <div className="space-y-2">
         {counters.map((item) => (
-          <div key={item.label} className="flex items-center justify-between rounded-lg border border-emerald-50 bg-emerald-50/30 px-3 py-1.5 text-xs font-bold text-slate-700">
+          <div key={item.label} className="flex items-center justify-between rounded-lg border border-emerald-50 bg-emerald-50/30 dark:bg-emerald-950/30 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200">
             <span className="truncate">{item.label}</span>
-            <span className="rounded-md bg-white px-2 py-0.5 text-sm font-black text-emerald-700 shadow-sm">{item.value}</span>
+            <span className="rounded-md bg-white dark:bg-slate-900 px-2 py-0.5 text-sm font-black text-emerald-700 dark:text-emerald-300 shadow-sm">{item.value}</span>
           </div>
         ))}
       </div>
@@ -412,15 +412,15 @@ function DashboardListCard({ title, tone, headers, rows }: { title: string; tone
   const toneClass = cardTone(tone);
   return (
     <section className={`overflow-hidden rounded-xl border bg-white p-3 shadow-sm shadow-slate-100/70 ${toneClass.card}`}>
-      <div className="mb-2 flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+      <div className="mb-2 flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
         <div className="min-w-0">
           <p className={`text-[10px] font-black uppercase tracking-wide ${toneClass.eyebrow}`}>Dealer Monitoring</p>
-          <h2 className="truncate text-sm font-black text-slate-950">{title}</h2>
+          <h2 className="truncate text-sm font-black text-slate-950 dark:text-white">{title}</h2>
         </div>
         {rows.length > 0 && <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${toneClass.badge}`}>{rows.length}</span>}
       </div>
       {headers && (
-        <div className="mb-1.5 grid grid-cols-[1fr_auto] gap-3 rounded-md bg-slate-50 px-2 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500">
+        <div className="mb-1.5 grid grid-cols-[1fr_auto] gap-3 rounded-md bg-slate-50 dark:bg-slate-800/60 px-2 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
           <span>{headers[0]}</span>
           <span className="text-right">{headers[1]}</span>
         </div>
@@ -428,11 +428,11 @@ function DashboardListCard({ title, tone, headers, rows }: { title: string; tone
       <div className="max-h-72 overflow-y-auto pr-1">
         {rows.length ? rows.map((row, index) => (
           <div key={index} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-xs hover:border-emerald-50 hover:bg-emerald-50/30">
-            <div className="min-w-0 break-words font-extrabold leading-snug text-slate-900">
+            <div className="min-w-0 break-words font-extrabold leading-snug text-slate-900 dark:text-white">
               {row[0]}
-              {row[2] && <div className="mt-0.5 break-words text-[11px] font-bold text-slate-500">{row[1]}</div>}
+              {row[2] && <div className="mt-0.5 break-words text-[11px] font-bold text-slate-500 dark:text-slate-400">{row[1]}</div>}
             </div>
-            <div className="shrink-0 text-right font-black text-slate-800">{row[2] || row[1]}</div>
+            <div className="shrink-0 text-right font-black text-slate-800 dark:text-slate-100">{row[2] || row[1]}</div>
           </div>
         )) : <EmptyCardMessage />}
       </div>
@@ -442,15 +442,15 @@ function DashboardListCard({ title, tone, headers, rows }: { title: string; tone
 
 function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRows> }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-rose-50 bg-white p-3 shadow-sm shadow-slate-100/70">
-      <div className="mb-2 flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+    <section className="overflow-hidden rounded-xl border border-rose-50 bg-white dark:bg-slate-900 p-3 shadow-sm shadow-slate-100/70">
+      <div className="mb-2 flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-wide text-rose-600">Dealer Monitoring</p>
-          <h2 className="text-sm font-black text-slate-950">Urea: No Sales Alert</h2>
+          <p className="text-[10px] font-black uppercase tracking-wide text-rose-600 dark:text-rose-300">Dealer Monitoring</p>
+          <h2 className="text-sm font-black text-slate-950 dark:text-white">Urea: No Sales Alert</h2>
         </div>
-        <span className="rounded-full bg-rose-50/70 px-2.5 py-1 text-[11px] font-black text-rose-600">{rows.length}</span>
+        <span className="rounded-full bg-rose-50/70 dark:bg-rose-950/70 px-2.5 py-1 text-[11px] font-black text-rose-600 dark:text-rose-300">{rows.length}</span>
       </div>
-      <div className="grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] gap-2 rounded-md bg-slate-50 px-2 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500">
+      <div className="grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] gap-2 rounded-md bg-slate-50 dark:bg-slate-800/60 px-2 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
         <span>Dealer Name</span>
         <span className="text-right">Current Stock</span>
         <span className="text-center">Last Sale Date</span>
@@ -460,11 +460,11 @@ function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRow
         {rows.length ? rows.map((row) => (
           <div key={row.id} className="grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-xs hover:border-emerald-50 hover:bg-emerald-50/30">
             <div className="min-w-0">
-              <p className="break-words font-extrabold leading-snug text-slate-950">{row.name}</p>
-              <p className="text-[11px] font-bold text-slate-500">{row.mobile || '-'}</p>
+              <p className="break-words font-extrabold leading-snug text-slate-950 dark:text-white">{row.name}</p>
+              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{row.mobile || '-'}</p>
             </div>
             <BlueNumber value={row.stock} />
-            <span className="text-center font-bold text-slate-900">{formatShortDate(row.lastSale)}</span>
+            <span className="text-center font-bold text-slate-900 dark:text-white">{formatShortDate(row.lastSale)}</span>
             <div className="text-right"><DayPill days={row.daysIdle} tone="red" /></div>
           </div>
         )) : <EmptyCardMessage />}
@@ -475,23 +475,23 @@ function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRow
 
 function WeeklyTopSellersCard({ rows }: { rows: ReturnType<typeof buildWeeklyTopSellers> }) {
   return (
-    <section className="rounded-xl border border-emerald-50 bg-white p-3 shadow-sm shadow-slate-100/70">
-      <div className="mb-2 border-b border-slate-100 pb-2">
-        <p className="text-[10px] font-black uppercase tracking-wide text-emerald-700">Dealer Monitoring</p>
-        <h2 className="text-sm font-black text-slate-950">Week&apos;s Top Sellers By Category</h2>
+    <section className="rounded-xl border border-emerald-50 bg-white dark:bg-slate-900 p-3 shadow-sm shadow-slate-100/70">
+      <div className="mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+        <p className="text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Dealer Monitoring</p>
+        <h2 className="text-sm font-black text-slate-950 dark:text-white">Week&apos;s Top Sellers By Category</h2>
       </div>
       <div className="space-y-1.5">
         {rows.length ? rows.map((row, index) => (
           <div key={`${row.category}-${row.product}`} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-emerald-50/30">
-            <div className="flex min-w-0 items-center gap-2 font-extrabold text-slate-900">
+            <div className="flex min-w-0 items-center gap-2 font-extrabold text-slate-900 dark:text-white">
               <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${['bg-emerald-600', 'bg-teal-600', 'bg-lime-600', 'bg-cyan-600', 'bg-slate-500'][index % 5]}`} />
               <span className="break-words">
               {CATEGORY_LABELS[row.category]}: {row.product}
               </span>
             </div>
             <div className="text-right">
-              <p className="break-words font-black text-emerald-700">{row.name}</p>
-              <p className="text-[11px] font-bold text-slate-500">{formatWhole(row.sales)} Sales</p>
+              <p className="break-words font-black text-emerald-700 dark:text-emerald-300">{row.name}</p>
+              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{formatWhole(row.sales)} Sales</p>
             </div>
           </div>
         )) : <EmptyCardMessage />}
@@ -501,7 +501,7 @@ function WeeklyTopSellersCard({ rows }: { rows: ReturnType<typeof buildWeeklyTop
 }
 
 function BlueNumber({ value }: { value: number }) {
-  return <span className="inline-flex justify-end rounded-md bg-sky-50/70 px-2 py-0.5 text-right text-sm font-black text-sky-700">{formatWhole(value)}</span>;
+  return <span className="inline-flex justify-end rounded-md bg-sky-50/70 dark:bg-sky-950/70 px-2 py-0.5 text-right text-sm font-black text-sky-700 dark:text-sky-300">{formatWhole(value)}</span>;
 }
 
 function DayPill({ days, tone }: { days: number; tone: 'red' | 'redSoft' | 'blue' }) {
@@ -510,7 +510,7 @@ function DayPill({ days, tone }: { days: number; tone: 'red' | 'redSoft' | 'blue
 }
 
 function EmptyCardMessage() {
-  return <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 text-center text-xs font-bold text-slate-500">No records found.</div>;
+  return <div className="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-center text-xs font-bold text-slate-500 dark:text-slate-400">No records found.</div>;
 }
 
 function cardTone(tone: 'red' | 'green' | 'blue') {
@@ -526,13 +526,13 @@ function SimpleTable({ headers, rows }: { headers: string[]; rows: React.ReactNo
         <thead className="bg-slate-900 text-white">
           <tr>{headers.map((header) => <th key={header} className="whitespace-nowrap px-2.5 py-2 text-left font-black">{header}</th>)}</tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {rows.map((row, index) => (
             <tr key={index} className="hover:bg-emerald-50/40">
-              {row.map((cell, cellIndex) => <td key={cellIndex} className="whitespace-nowrap px-2.5 py-2 font-bold text-slate-700">{cell}</td>)}
+              {row.map((cell, cellIndex) => <td key={cellIndex} className="whitespace-nowrap px-2.5 py-2 font-bold text-slate-700 dark:text-slate-200">{cell}</td>)}
             </tr>
           ))}
-          {!rows.length && <tr><td colSpan={headers.length} className="px-3 py-8 text-center text-sm font-bold text-slate-500">No records found.</td></tr>}
+          {!rows.length && <tr><td colSpan={headers.length} className="px-3 py-8 text-center text-sm font-bold text-slate-500 dark:text-slate-400">No records found.</td></tr>}
         </tbody>
       </table>
     </div>
@@ -542,8 +542,8 @@ function SimpleTable({ headers, rows }: { headers: string[]; rows: React.ReactNo
 function Select({ label, value, onChange, options, display }: { label: string; value: string; onChange: (value: string) => void; options: string[]; display?: (value: string) => string }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-1 block text-[10px] font-black uppercase text-slate-500">{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-bold">
+      <span className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold">
         {options.map((option) => <option key={option} value={option}>{display ? display(option) : option === 'all' ? 'All' : option}</option>)}
       </select>
     </label>
@@ -553,8 +553,8 @@ function Select({ label, value, onChange, options, display }: { label: string; v
 function Input({ label, type, value, onChange }: { label: string; type: string; value: string; onChange: (value: string) => void }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-1 block text-[10px] font-black uppercase text-slate-500">{label}</span>
-      <input type={type} value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-bold" />
+      <span className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>
+      <input type={type} value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" />
     </label>
   );
 }

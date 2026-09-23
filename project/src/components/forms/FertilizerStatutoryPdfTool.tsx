@@ -3,7 +3,7 @@
 // Enable by running the app locally (npm run dev).
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Eye, FlaskConical, RotateCcw, Save, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Eye, FlaskConical, RotateCcw, Save, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   FertilizerPdfValues,
   FertilizerStatutoryFormType,
@@ -85,9 +85,15 @@ type CoveringLetterQueueItem = {
   dateOfSampling: string;
 };
 
+/** Drafts intentionally exclude the independently-persisted covering-letter fields. */
+type FertilizerDraftValues = Omit<
+  FertilizerPdfValues,
+  'financialYear' | 'letterNumber' | 'letterDate' | 'authorityType' | 'memoNumber' | 'memoDate' | 'division' | 'officerPhone'
+>;
+
 type SavedFertilizerDraft = {
   name: string;
-  values: FertilizerPdfValues;
+  values: FertilizerDraftValues;
   updatedAt: string;
 };
 
@@ -681,9 +687,9 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     console.error('FertilizerStatutoryPdfTool error:', error);
     return (
       <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4">
-        <div className="max-w-md rounded-lg bg-white p-6 shadow-xl">
-          <h3 className="text-lg font-bold text-red-600 mb-2">Error Loading Fertilizer Form</h3>
-          <p className="text-sm text-slate-700 mb-4">{error}</p>
+        <div className="max-w-md rounded-lg bg-white dark:bg-slate-900 p-6 shadow-xl">
+          <h3 className="text-lg font-bold text-red-600 dark:text-red-300 mb-2">Error Loading Fertilizer Form</h3>
+          <p className="text-sm text-slate-700 dark:text-slate-200 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
@@ -692,7 +698,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
           </button>
           <button
             onClick={onClose}
-            className="ml-2 rounded-lg bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-300"
+            className="ml-2 rounded-lg bg-slate-200 dark:bg-slate-700 px-4 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300"
           >
             Close
           </button>
@@ -1392,16 +1398,16 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="fixed inset-0 z-[50] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-        <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-          <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-amber-100/50 bg-gradient-to-r from-amber-50 via-white to-orange-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
+        <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
+          <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-amber-100/50 dark:border-amber-900/50 bg-gradient-to-r from-amber-50 dark:from-amber-950 via-white to-orange-50 dark:to-orange-950 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
             <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-orange-500/5 to-amber-500/5 opacity-50" />
             <div className="relative flex min-w-0 flex-1 items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25">
                 <FlaskConical className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/80">Fertilizer sampling</p>
-                <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 sm:text-lg">Generate FORM J / FORM K / FORM P</h2>
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/80 dark:text-amber-300/80">Fertilizer sampling</p>
+                <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">Generate FORM J / FORM K / FORM P</h2>
               </div>
             </div>
             <div className="relative flex shrink-0 items-center gap-1">
@@ -1438,12 +1444,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               </button>
             </div>
 
-            <div className="mb-2 rounded-xl border border-violet-200/50 bg-gradient-to-br from-violet-50/80 to-purple-50/80 p-3 shadow-sm backdrop-blur-sm">
+            <div className="mb-2 rounded-xl border border-violet-200/50 dark:border-violet-800/50 bg-gradient-to-br from-violet-50/80 dark:from-violet-950/80 to-purple-50/80 dark:to-purple-950/80 p-3 shadow-sm backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-500/10">
-                  <Save className="h-3.5 w-3.5 text-violet-600" />
+                  <Save className="h-3.5 w-3.5 text-violet-600 dark:text-violet-300" />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-violet-700">SAVED DRAFTS</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-violet-700 dark:text-violet-300">SAVED DRAFTS</p>
               </div>
               <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
                 <select
@@ -1466,7 +1472,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                 <button
                   type="button"
                   onClick={deleteDraft}
-                  className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition-all backdrop-blur-sm"
+                  className="rounded-lg border border-red-200 dark:border-red-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-xs font-black text-red-600 dark:text-red-300 hover:bg-red-50 hover:border-red-300 transition-all backdrop-blur-sm"
                 >
                   Delete
                 </button>
@@ -1474,13 +1480,13 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
             </div>
 
             {previewError && (
-              <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
+              <div className="mb-2 rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-xs font-bold text-red-700 dark:text-red-300">
                 {previewError}
               </div>
             )}
 
             {message && (
-              <div className="mb-2 rounded-lg border border-red-600 bg-white px-3 py-2 text-xs font-bold text-red-600">
+              <div className="mb-2 rounded-lg border border-red-600 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold text-red-600 dark:text-red-300">
                 {message}
               </div>
             )}
@@ -1742,12 +1748,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               })}
             </div>
 
-            <div className="mt-3 rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50/80 to-orange-50/80 p-3 shadow-sm backdrop-blur-sm">
+            <div className="mt-3 rounded-xl border-2 border-amber-200 dark:border-amber-800/50 bg-gradient-to-br from-amber-50/80 dark:from-amber-950/80 to-orange-50/80 dark:to-orange-950/80 p-3 shadow-sm backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-500/10">
-                  <Download className="h-3.5 w-3.5 text-amber-600" />
+                  <FileText className="h-3.5 w-3.5 text-amber-600 dark:text-amber-300" />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-amber-700">PDF Generation</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300">PDF Generation</p>
               </div>
               <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 <FertilizerPdfAction label="Form J" busy={busyAction !== null} onPreview={() => previewPdf('J')} onDownload={() => downloadPdf('J')} />
@@ -1770,7 +1776,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                   </button>
                 </div>
               )}
-              <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-bold leading-4 text-red-700">
+              <p className="mt-3 rounded-md border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-[11px] font-bold leading-4 text-red-700 dark:text-red-300">
                 Note: Please update sample details and dealer details before generating a new file.
               </p>
             </div>
@@ -1784,17 +1790,17 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       />
       {showDownloadAllDialog && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl border border-emerald-200 bg-white p-6 shadow-2xl">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Download All Forms</h3>
+          <div className="w-full max-w-md rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 p-6 shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Download All Forms</h3>
             
             <label className="flex items-start gap-3 mb-6 cursor-pointer">
               <input
                 type="checkbox"
                 checked={addToCoveringLetterChecked}
                 onChange={(e) => setAddToCoveringLetterChecked(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-slate-600 text-emerald-600 dark:text-emerald-300 focus:ring-emerald-500"
               />
-              <span className="text-sm text-gray-700">Add sample details to Covering Letter</span>
+              <span className="text-sm text-gray-700 dark:text-slate-200">Add sample details to Covering Letter</span>
             </label>
             
             <div className="flex gap-2">
@@ -1808,7 +1814,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               <button
                 type="button"
                 onClick={() => setShowDownloadAllDialog(false)}
-                className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 font-bold"
+                className="px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 font-bold"
               >
                 Cancel
               </button>
@@ -2094,7 +2100,7 @@ function FieldSection({ title, children, color = 'slate', onReset, isCollapsible
               )}
               <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
             </div>
-            {subtitle && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
+            {subtitle && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>}
           </div>
           {onReset && (
             <button
@@ -2129,7 +2135,7 @@ function FieldSection({ title, children, color = 'slate', onReset, isCollapsible
             )}
             <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
           </div>
-          {subtitle && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
+          {subtitle && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>}
         </div>
         {onReset && (
           <button
@@ -2163,15 +2169,15 @@ function FertilizerPdfAction({
   return (
     <div className={`rounded-lg border p-2 ${primary ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <p className="truncate text-xs font-black text-slate-800">{label}</p>
-        {primary && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black uppercase text-emerald-800">All</span>}
+        <p className="truncate text-xs font-black text-slate-800 dark:text-slate-100">{label}</p>
+        {primary && <span className="rounded bg-emerald-100 dark:bg-emerald-900/40 px-1.5 py-0.5 text-[10px] font-black uppercase text-emerald-800 dark:text-emerald-300">All</span>}
       </div>
       <div className="grid grid-cols-2 gap-1.5">
         <button
           type="button"
           onClick={onPreview}
           disabled={busy}
-          className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-xs font-black text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 px-2 py-1.5 text-xs font-black text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 disabled:opacity-60"
         >
           <Eye className="h-3.5 w-3.5" />
           Preview
@@ -2184,7 +2190,7 @@ function FertilizerPdfAction({
             primary ? 'bg-emerald-700 text-white hover:bg-emerald-800' : 'bg-slate-900 text-white hover:bg-slate-800'
           }`}
         >
-          <Download className="h-3.5 w-3.5" />
+          <FileText className="h-3.5 w-3.5" />
           Download
         </button>
       </div>
@@ -2203,7 +2209,7 @@ function PdfInput({
   value: string;
   onChange: (value: string) => void;
   options?: { label: string; value: string }[];
-  values?: FertilizerPdfValues;
+  values: FertilizerPdfValues;
 }) {
   const commonClass =
     'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
@@ -2224,18 +2230,18 @@ function PdfInput({
 
     return (
       <label className="sm:col-span-2">
-        <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700">{field.label}</span>
+        <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700 dark:text-emerald-300">{field.label}</span>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {compositionDisplayOptions.map((option) => (
             <label
               key={option.key}
-              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"
             >
               <input
                 type="checkbox"
                 checked={selectedFlags.includes(option.key)}
                 onChange={() => toggleFlag(option.key)}
-                className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-600 text-emerald-600 dark:text-emerald-300 focus:ring-emerald-500"
               />
               <span>{option.label}</span>
             </label>
@@ -2257,18 +2263,18 @@ function PdfInput({
 
     return (
       <label className="sm:col-span-2">
-        <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700">{field.label}</span>
+        <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700 dark:text-emerald-300">{field.label}</span>
         <div className="flex gap-2 overflow-x-auto whitespace-nowrap pb-2">
           {microNutrientCheckboxOptions.map((option) => (
             <label
               key={option.key}
-              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"
             >
               <input
                 type="checkbox"
                 checked={selectedFlags.includes(option.key)}
                 onChange={() => toggleFlag(option.key)}
-                className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-600 text-emerald-600 dark:text-emerald-300 focus:ring-emerald-500"
               />
               <span>{option.label}</span>
             </label>
@@ -2290,18 +2296,18 @@ function PdfInput({
 
     return (
       <label className="sm:col-span-2">
-        <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700">{field.label}</span>
+        <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700 dark:text-emerald-300">{field.label}</span>
         <div className="flex gap-2 overflow-x-auto whitespace-nowrap pb-2">
           {waterSolubleCheckboxOptions.map((option) => (
             <label
               key={option.key}
-              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"
             >
               <input
                 type="checkbox"
                 checked={selectedFlags.includes(option.key)}
                 onChange={() => toggleFlag(option.key)}
-                className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-600 text-emerald-600 dark:text-emerald-300 focus:ring-emerald-500"
               />
               <span>{option.label}</span>
             </label>
@@ -2317,7 +2323,7 @@ function PdfInput({
     : (options || field.options || []);
 
   // Check if composition field should be disabled based on checkbox state
-  const isCompositionFieldDisabled = field.displayFlag && (() => {
+  const isCompositionFieldDisabled = Boolean(field.displayFlag) && (() => {
     // Determine which checkbox string to check
     let checkboxString = '';
     if (values.fertilizerCategory === 'Micro Nutrient Fertilizers') {
@@ -2329,7 +2335,7 @@ function PdfInput({
     }
     
     const selectedFlags = checkboxString.split(',').map(f => f.trim());
-    return !selectedFlags.includes(field.displayFlag);
+    return !selectedFlags.includes(field.displayFlag ?? '');
   })();
 
   const inputElement = field.type === 'textarea' ? (
@@ -2368,7 +2374,7 @@ function PdfInput({
 
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
-      <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{displayLabel}</span>
+      <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300">{displayLabel}</span>
       {field.key === 'dealerAddress' ? (
         <PopupHintWrapper message="Enter only D.NO, Village/Town ;Mandal & District will be autopopulated from Inspector Details">
           {inputElement}

@@ -59,7 +59,7 @@ export default function FertilizerChart({ data }: FertilizerChartProps) {
           <LabelList
             dataKey="Receipts"
             position="right"
-            formatter={(value: number) => `${Number(value || 0).toFixed(2)}`}
+            formatter={(value: unknown) => `${Number(value || 0).toFixed(2)}`}
             style={{ fill: '#0f172a', fontSize: 11, fontWeight: 900 }}
           />
         </Bar>

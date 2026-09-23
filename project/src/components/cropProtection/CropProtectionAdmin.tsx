@@ -60,7 +60,7 @@ export function CropProtectionAdmin({
 
   if (!isAdmin) {
     return (
-      <section className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600">
+      <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-sm font-bold text-slate-600 dark:text-slate-300">
         Admin Data Editor is available only for administrator login.
       </section>
     );
@@ -121,14 +121,14 @@ export function CropProtectionAdmin({
   };
 
   return (
-    <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
-      <h2 className="text-sm font-black text-slate-950">Admin Data Editor</h2>
-      <p className="mt-1 text-xs font-semibold text-slate-600">
+    <section className="rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 p-4 shadow-sm">
+      <h2 className="text-sm font-black text-slate-950 dark:text-white">Admin Data Editor</h2>
+      <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
         Edit public Crop Doctor crop labels and images, or add official weed, pest, disease and nutrient deficiency records.
       </p>
 
-      <div className="mt-4 rounded-lg border border-amber-200 bg-white p-3">
-        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-amber-800">
+      <div className="mt-4 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-white dark:bg-slate-900 p-3">
+        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-amber-800 dark:text-amber-300">
           <ImageIcon className="h-4 w-4" /> Public crop labels and images
         </div>
         <div className="mt-3 grid gap-2 lg:grid-cols-[1fr_1fr_1fr_1.4fr]">
@@ -140,7 +140,7 @@ export function CropProtectionAdmin({
           <input value={cropImageUrl} onChange={(event) => setCropImageUrl(event.target.value)} className="filter-select" placeholder="Image URL" />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <label className="action-button cursor-pointer bg-white">
+          <label className="action-button cursor-pointer bg-white dark:bg-slate-900">
             <Upload className="h-4 w-4" /> Upload image
             <input
               type="file"
@@ -153,14 +153,14 @@ export function CropProtectionAdmin({
             <Save className="h-4 w-4" /> {savingCrop ? 'Saving' : 'Save labels'}
           </button>
           {cropPreviewUrl && (
-            <img src={cropPreviewUrl} alt="Crop preview" className="h-16 w-24 rounded-lg border border-slate-200 object-cover" />
+            <img src={cropPreviewUrl} alt="Crop preview" className="h-16 w-24 rounded-lg border border-slate-200 dark:border-slate-700 object-cover" />
           )}
         </div>
-        {cropMessage && <p className="mt-2 text-xs font-bold text-slate-700">{cropMessage}</p>}
+        {cropMessage && <p className="mt-2 text-xs font-bold text-slate-700 dark:text-slate-200">{cropMessage}</p>}
       </div>
 
-      <div className="mt-4 border-t border-amber-200 pt-4">
-        <div className="text-xs font-black uppercase tracking-wide text-amber-800">Add crop doctor record</div>
+      <div className="mt-4 border-t border-amber-200 dark:border-amber-800/50 pt-4">
+        <div className="text-xs font-black uppercase tracking-wide text-amber-800 dark:text-amber-300">Add crop doctor record</div>
         <div className="mt-3 grid gap-2 sm:grid-cols-4">
           <select value={cropId} onChange={(event) => setCropId(event.target.value)} className="filter-select">
             {crops.map((crop) => <option key={crop.id} value={crop.id}>{crop.name_en}</option>)}
@@ -182,7 +182,7 @@ export function CropProtectionAdmin({
             <Upload className="h-4 w-4" /> Bulk import
           </button>
         </div>
-        {message && <p className="mt-2 text-xs font-bold text-slate-700">{message}</p>}
+        {message && <p className="mt-2 text-xs font-bold text-slate-700 dark:text-slate-200">{message}</p>}
       </div>
     </section>
   );

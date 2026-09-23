@@ -48,7 +48,7 @@ export async function addEmblemImageWatermark(doc: JsPdfInstance, enabled = true
     doc.setPage(i);
     doc.saveGraphicsState();
     try {
-      doc.setGState(new doc.GState({ opacity: 0.14 }));
+      doc.setGState(doc.GState({ opacity: 0.14 }));
     } catch {
       // GState not supported; draw without opacity
     }
@@ -91,7 +91,7 @@ export function addGovernmentEmblemWatermark(doc: JsPdfInstance, enabled: boolea
     const centerY = pageHeight / 2;
 
     // Rotate text for better watermark effect
-    doc.setGState(new doc.GState({ opacity: 0.15 }));
+    doc.setGState(doc.GState({ opacity: 0.15 }));
 
     // Draw main emblem text centered
     doc.text(emblemText, centerX, centerY - 15, {

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bug, Download, Eye, FileText, RotateCcw, Save } from 'lucide-react';
+import { Bug, Eye, FileText, RotateCcw, Save } from 'lucide-react';
 import { PesticideCoveringLetterModal } from './PesticideCoveringLetterModal';
 import {
   generateAllPesticideStatutoryPdf,
@@ -1014,7 +1014,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
           <div className="mt-3 rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50/80 to-rose-50/80 p-3 shadow-sm backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-2">
               <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-500/10">
-                <Download className="h-3.5 w-3.5 text-red-600" />
+                <FileText className="h-3.5 w-3.5 text-red-600" />
               </div>
               <p className="text-[10px] font-black uppercase tracking-widest text-red-700">PDF Generation</p>
             </div>
@@ -1207,7 +1207,7 @@ function PesticidePdfAction({ label, onPreview, onDownload, busy, primary = fals
           Preview
         </button>
         <button type="button" onClick={onDownload} disabled={busy} className={`inline-flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs font-black disabled:opacity-60 ${primary ? 'bg-emerald-700 text-white hover:bg-emerald-800' : 'bg-slate-900 text-white hover:bg-slate-800'}`}>
-          <Download className="h-3.5 w-3.5" />
+          <FileText className="h-3.5 w-3.5" />
           Download
         </button>
       </div>

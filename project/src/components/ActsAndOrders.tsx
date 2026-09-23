@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Clock,
   Copy,
-  Download,
   FileSearch,
   FileText,
   ClipboardList,
@@ -29,6 +28,7 @@ import {
   Sprout,
   Store,
   Truck,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData';
 import { type LegalCategory } from '../data/legalReadyReckonerData';
@@ -336,7 +336,8 @@ export function ActsAndOrders() {
     <div className="space-y-4">
       {!selectedFcoCardId && (
       <section className="overflow-hidden rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-700 via-green-700 to-teal-800 p-4 text-white shadow-sm dark:border-emerald-900 sm:p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <BackButton onClick={handleBack} tone="solid" className="mt-0.5" />
             <div className="flex min-w-0 items-start gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
                 <Scale className="h-6 w-6" />
@@ -348,9 +349,6 @@ export function ActsAndOrders() {
                   Search Acts, Rules, Orders, clauses, penal provisions, stop sale, seizure, sampling and notice workflows.
                 </p>
               </div>
-            </div>
-            <div className="mt-3 flex justify-end">
-              <BackButton onClick={handleBack} tone="solid">Back</BackButton>
             </div>
           </div>
         </section>
@@ -504,7 +502,8 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
 
 function FertilizerSectionHeader({ title, subtitle, icon: Icon, onBack }: { title: string; subtitle: string; icon: React.ElementType; onBack: () => void }) {
   return (
-    <div className="flex flex-col gap-2.5 rounded-lg border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-3 shadow-sm dark:border-slate-700 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex items-center gap-2.5 rounded-lg border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-3 shadow-sm dark:border-slate-700 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950">
+      <BackButton onClick={onBack} />
       <div className="flex items-center gap-2.5">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-white shadow-sm">
           <Icon className="h-4 w-4" />
@@ -515,9 +514,6 @@ function FertilizerSectionHeader({ title, subtitle, icon: Icon, onBack }: { titl
           <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{subtitle}</p>
         </div>
       </div>
-      <button type="button" onClick={onBack} className="w-fit rounded-lg border border-emerald-200 bg-white px-2.5 py-1.5 text-xs font-black text-emerald-800 shadow-sm hover:bg-emerald-50 dark:border-emerald-900 dark:bg-slate-950 dark:text-emerald-200">
-        Back
-      </button>
     </div>
   );
 }
@@ -868,7 +864,8 @@ function FcoCardDetailPage({
   return (
     <section className="overflow-hidden rounded-lg border border-amber-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
       <div className={`bg-gradient-to-br ${card.gradient} p-3 text-white`}>
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="flex items-start gap-2.5">
+          <BackButton onClick={onBack} tone="solid" label="Back to cards" className="mt-0.5" />
           <div className="flex items-start gap-2.5">
             <div className="rounded-lg bg-white/20 p-2 ring-1 ring-white/25">
               <Icon className="h-5 w-5" />
@@ -879,9 +876,6 @@ function FcoCardDetailPage({
               <p className="mt-1 max-w-3xl text-xs font-bold leading-5 text-white/90">{card.summary}</p>
             </div>
           </div>
-          <button type="button" onClick={onBack} className="w-fit rounded-lg border border-white/30 bg-white/10 px-2.5 py-1.5 text-xs font-black text-white hover:bg-white/20">
-            Back to cards
-          </button>
         </div>
       </div>
 
@@ -1245,7 +1239,8 @@ function FertilizerFormsPanel({
   return (
     <section className="overflow-hidden rounded-lg border border-amber-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
       <div className="border-b border-amber-100 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-3 dark:border-slate-800 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950">
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-2.5">
+          <BackButton onClick={onBack} colors="text-amber-800 hover:text-amber-950 dark:text-amber-200 dark:hover:text-amber-100" />
           <div className="flex min-w-0 items-start gap-2.5">
             <div className="shrink-0 rounded-lg bg-white p-2 text-amber-800 shadow-sm ring-1 ring-amber-100 dark:bg-slate-900 dark:text-amber-200 dark:ring-amber-900">
               <FileText className="h-5 w-5" />
@@ -1255,9 +1250,6 @@ function FertilizerFormsPanel({
               <h2 className="mt-0.5 text-lg font-black text-slate-950 dark:text-white">Forms</h2>
             </div>
           </div>
-          <button type="button" onClick={onBack} className="w-fit rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-xs font-black text-amber-800 shadow-sm hover:bg-amber-50 dark:border-amber-900 dark:bg-slate-950 dark:text-amber-200">
-            Back
-          </button>
         </div>
         <div className="mt-3 grid gap-2 lg:grid-cols-[minmax(0,1fr)_auto]">
           <div className="relative min-w-0">
@@ -1302,7 +1294,7 @@ function FertilizerFormsPanel({
                 <FileSearch className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">View</span>
               </button>
               <a href={form.pdfPath} download className="inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
-                <Download className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">PDF</span>
+                <FileText className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">PDF</span>
               </a>
             </div>
           </article>
@@ -1335,7 +1327,7 @@ function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffe
             Print
           </button>
           <button type="button" onClick={onDownload} className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-800 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-200">
-            <Download className="h-4 w-4" />
+            <FileSpreadsheet className="h-4 w-4" />
             CSV
           </button>
         </div>

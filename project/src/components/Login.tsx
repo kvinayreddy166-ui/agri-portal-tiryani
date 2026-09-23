@@ -1,7 +1,6 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
-  ArrowLeft,
   Calculator,
   Download,
   Eye,
@@ -21,6 +20,7 @@ import {
   Store,
   X,
 } from 'lucide-react';
+import { BackButton } from './ui/BackButton';
 import { FileTypeIcon } from './ui/FileTypeIcon';
 import { PortalLogo } from './ui/PortalLogo';
 import { LanguageToggle } from './ui/LanguageToggle';
@@ -465,9 +465,10 @@ export function Login() {
           {showStatutoryForms ? (
             <div className="mb-4">
               <div className="rounded-2xl bg-gradient-to-r from-emerald-700 via-green-700 to-teal-700 p-4 shadow-lg border border-emerald-800/60">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <BackButton onClick={closeToolPage} tone="solid" label={t('Back', 'వెనుకకు')} className="mt-0.5" />
                   <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/25">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 dark:bg-slate-900/15 shadow-sm ring-1 ring-white/25">
                       <FileText className="h-6 w-6 text-white" aria-label="Statutory Forms" />
                     </div>
                     <div>
@@ -482,30 +483,19 @@ export function Login() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={closeToolPage}
-                    className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/25"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    {t('Back', 'వెనుకకు')}
-                  </button>
                 </div>
               </div>
             </div>
           ) : (
             <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
+                <BackButton
                   onClick={closeToolPage}
-                  className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  {t('Back', 'వెనుకకు')}
-                </button>
+                  colors="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                  label={t('Back', 'వెనుకకు')}
+                />
                 <div>
-                  <h1 className="text-xl font-black text-slate-950 sm:text-2xl">
+                  <h1 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
                     {fertilizerCalculatorOpen
                       ? t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')
                       : t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్')}
@@ -564,10 +554,10 @@ export function Login() {
                   <FileText className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1 text-left">
-                  <h3 className="text-sm font-black text-slate-900">
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
                     {t('Generate Forms', 'ఫారాలను సృష్టించండి')}
                   </h3>
-                  <p className="mt-0.5 text-[11px] font-semibold text-slate-600 line-clamp-2">
+                  <p className="mt-0.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 line-clamp-2">
                     {t('Create statutory forms automatically for sample drawal.', 'నమూనా డ్రాయింగ్ కోసం చట్టబద్ధ ఫారాలను స్వయంచాలకంగా సృష్టించండి.')}
                   </p>
                 </div>
@@ -587,10 +577,10 @@ export function Login() {
                   <Download className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1 text-left">
-                  <h3 className="text-sm font-black text-slate-900">
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
                     {t('Forms Library', 'ఫారాలు లైబ్రరీ')}
                   </h3>
-                  <p className="mt-0.5 text-[11px] font-semibold text-slate-600 line-clamp-2">
+                  <p className="mt-0.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 line-clamp-2">
                     {t('View and download uploaded statutory forms and documents.', 'అప్‌లోడ్ చేసిన చట్టబద్ధ ఫారాలు మరియు పత్రాలను చూడండి మరియు డౌన్‌లోడ్ చేయండి.')}
                   </p>
                 </div>
@@ -598,9 +588,9 @@ export function Login() {
             </button>
           </div>
 
-          <section className="mt-4 rounded-xl border border-white/70 bg-gradient-to-br from-emerald-100 via-lime-50 to-cyan-100 p-4 shadow-md">
+          <section className="mt-4 rounded-xl border border-white/70 bg-gradient-to-br from-emerald-100 dark:from-emerald-900 via-lime-50 dark:via-lime-950/60 to-cyan-100 dark:to-cyan-900 p-4 shadow-md">
               <div className="mb-4">
-                <h2 className="text-sm font-black uppercase tracking-wide text-slate-700">
+                <h2 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">
                   {t('Select Category', 'వర్గాన్ని ఎంచుకోండి')}
                 </h2>
               </div>
@@ -637,7 +627,7 @@ export function Login() {
                     <FileText className="h-5 w-5" />
                     {t('Start New Sample Drawal', 'కొత్త నమూనా డ్రాయింగ్‌ను ప్రారంభించండి')}
                   </button>
-                  <p className="mt-2 text-xs font-semibold text-slate-600 text-center">
+                  <p className="mt-2 text-xs font-semibold text-slate-600 dark:text-slate-300 text-center">
                     {t('Create sample details and generate required statutory forms.', 'నమూనా వివరాలను సృష్టించండి మరియు అవసరమైన చట్టబద్ధ ఫారాలను సృష్టించండి.')}
                   </p>
                 </div>
@@ -652,43 +642,43 @@ export function Login() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('🔍 Search forms...', '🔍 ఫారాలను వెతకండి...')}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-950 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 />
               </div>
               
               <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-sm font-black uppercase tracking-wide text-slate-700">
+                <h2 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">
                   {t('Available Forms', 'అందుబాటులో ఉన్న ఫారాలు')}
                 </h2>
-                <span className="text-xs font-bold text-slate-500">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                   {filteredStatutoryForms.length} {t('Forms', 'ఫారాలు')}
                 </span>
               </div>
 
               {formsLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+                  <Loader2 className="h-6 w-6 animate-spin text-emerald-600 dark:text-emerald-300" />
                 </div>
               ) : filteredStatutoryForms.length > 0 ? (
                 <div className="grid gap-2">
                   {paginatedStatutoryForms.map((form) => (
                     <div
                       key={form.id}
-                      className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-emerald-300 hover:bg-emerald-50"
+                      className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 transition hover:border-emerald-300 hover:bg-emerald-50"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
                         <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-sm font-black text-slate-900 truncate">{form.label || form.title}</h3>
-                        <p className="text-xs font-semibold text-slate-500 truncate">{form.description || ''}</p>
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">{form.label || form.title}</h3>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">{form.description || ''}</p>
                       </div>
                       {form.file_url && (
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             type="button"
                             onClick={() => openPublicPreview(form)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-emerald-700 transition hover:bg-emerald-100"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-emerald-700 dark:text-emerald-300 transition hover:bg-emerald-100"
                             aria-label={t('Preview file', 'ఫైల్‌ను ప్రివ్యూ చేయండి')}
                             title={t('Preview', 'ప్రివ్యూ')}
                           >
@@ -698,7 +688,7 @@ export function Login() {
                             type="button"
                             onClick={() => handlePublicDownload(form)}
                             disabled={downloadingFormId === form.id}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-sky-700 transition hover:bg-sky-100 disabled:opacity-50"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-sky-700 dark:text-sky-300 transition hover:bg-sky-100 disabled:opacity-50"
                             aria-label={t('Download file', 'ఫైల్‌ను డౌన్‌లోడ్ చేయండి')}
                             title={t('Download', 'డౌన్‌లోడ్')}
                           >
@@ -714,9 +704,9 @@ export function Login() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-lg border border-dashed border-slate-200 p-8 text-center">
+                <div className="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 p-8 text-center">
                   <FileText className="mx-auto h-12 w-12 text-slate-300" />
-                  <p className="mt-2 text-sm font-semibold text-slate-500">
+                  <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
                     {t('No statutory forms uploaded yet.', 'ఇంకా చట్టబద్ధ ఫారాలు అప్‌లోడ్ చేయబడలేదు.')}
                   </p>
                 </div>
@@ -732,41 +722,41 @@ export function Login() {
           )}
           </div>
           {calculatorOpen && (
-            <div className="rounded-xl border border-sky-100 bg-white p-4">
+            <div className="rounded-xl border border-sky-100 dark:border-sky-900 bg-white dark:bg-slate-900 p-4">
               <label className="block">
-                <span className="mb-1.5 block text-sm font-bold text-slate-700">{t('Type or paste acre values', 'à°Žà°•à°°à°¾à°² à°µà°¿à°²à±à°µà°²à°¨à± à°Ÿà±ˆà°ªà± à°šà±‡à°¯à°‚à°¡à°¿ à°²à±‡à°¦à°¾ à°…à°¤à°¿à°•à°¿à°‚à°šà°‚à°¡à°¿')}</span>
+                <span className="mb-1.5 block text-sm font-bold text-slate-700 dark:text-slate-200">{t('Type or paste acre values', 'à°Žà°•à°°à°¾à°² à°µà°¿à°²à±à°µà°²à°¨à± à°Ÿà±ˆà°ªà± à°šà±‡à°¯à°‚à°¡à°¿ à°²à±‡à°¦à°¾ à°…à°¤à°¿à°•à°¿à°‚à°šà°‚à°¡à°¿')}</span>
                 <textarea
                   value={acreInput}
                   onChange={(event) => setAcreInput(event.target.value)}
                   rows={6}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-950 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 font-semibold text-slate-950 dark:text-white outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
                   placeholder={'Example:\n2.10\n2.36\n0.15'}
                 />
               </label>
-              <p className="mt-2 text-xs font-semibold text-slate-500">
+              <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                 Paste one Excel column or type values with + signs. Format uses acres.guntas; one acre is 40 guntas.
               </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700">{t('Total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°²à±')}</p>
-                  <p className="mt-1 text-3xl font-black text-emerald-950">{acreCalculation.formatted}</p>
-                  <p className="mt-1 text-xs font-semibold text-emerald-800">
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-4">
+                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°²à±')}</p>
+                  <p className="mt-1 text-3xl font-black text-emerald-950 dark:text-emerald-100">{acreCalculation.formatted}</p>
+                  <p className="mt-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
                     {acreCalculation.acres} acres {acreCalculation.guntas} guntas
                   </p>
                 </div>
-                <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
-                  <p className="text-xs font-black uppercase tracking-wide text-sky-700">{t('Hectares', 'à°¹à±†à°•à±à°Ÿà°¾à°°à±à°²à±')}</p>
-                  <p className="mt-1 text-3xl font-black text-sky-950">{acreCalculation.hectares}</p>
-                  <p className="mt-1 text-xs font-semibold text-sky-800">{t('Converted from total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°² à°¨à±à°‚à°¡à°¿ à°®à°¾à°°à±à°šà°¬à°¡à°¿à°‚à°¦à°¿')}</p>
+                <div className="rounded-xl border border-sky-200 dark:border-sky-800/50 bg-sky-50 dark:bg-sky-950/40 p-4">
+                  <p className="text-xs font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">{t('Hectares', 'à°¹à±†à°•à±à°Ÿà°¾à°°à±à°²à±')}</p>
+                  <p className="mt-1 text-3xl font-black text-sky-950 dark:text-sky-100">{acreCalculation.hectares}</p>
+                  <p className="mt-1 text-xs font-semibold text-sky-800 dark:text-sky-300">{t('Converted from total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°² à°¨à±à°‚à°¡à°¿ à°®à°¾à°°à±à°šà°¬à°¡à°¿à°‚à°¦à°¿')}</p>
                 </div>
               </div>
-              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700">
+              <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
                 {t('Read values', 'à°šà°¦à°¿à°µà°¿à°¨ à°µà°¿à°²à±à°µà°²à±')}: {acreCalculation.count} {t(acreCalculation.count === 1 ? 'item' : 'items', acreCalculation.count === 1 ? 'à°…à°‚à°¶à°‚' : 'à°…à°‚à°¶à°¾à°²à±')}
               </div>
             </div>
           )}
           {fertilizerCalculatorOpen && (
-            <Suspense fallback={<div className="flex h-40 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-emerald-700" /></div>}>
+            <Suspense fallback={<div className="flex h-40 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-emerald-700 dark:text-emerald-300" /></div>}>
               <FertilizerCalculator />
             </Suspense>
           )}
@@ -782,16 +772,16 @@ export function Login() {
             >
             {statutoryFolder === 'seed' ? (
               <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-                <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-                  <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-green-100/50 bg-gradient-to-r from-green-50 via-white to-emerald-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
+                <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
+                  <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-green-100/50 dark:border-green-900/50 bg-gradient-to-r from-green-50 dark:from-green-950 via-white to-emerald-50 dark:to-emerald-950 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
                     <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-emerald-500/5 to-green-500/5 opacity-50" />
                     <div className="relative flex min-w-0 flex-1 items-start gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25">
                         <Sprout className="h-5 w-5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-green-600/80">Seed sampling</p>
-                        <h2 className="max-w-full whitespace-normal text-base leading-tight text-slate-900 sm:text-lg">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-green-600/80 dark:text-green-300/80">Seed sampling</p>
+                        <h2 className="max-w-full whitespace-normal text-base leading-tight text-slate-900 dark:text-white sm:text-lg">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
                       </div>
                     </div>
                     <button
@@ -825,7 +815,7 @@ export function Login() {
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(4,120,87,0.08),rgba(14,165,233,0.08)_48%,rgba(250,204,21,0.08))]" />
       <UpdateBanner />
 
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/60 bg-white/90 dark:bg-slate-900/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm animate-fadeIn">
         <section className="flex flex-col justify-start p-6 sm:p-8 lg:p-10">
           <div className="mx-auto w-full max-w-md">
             <div className="mb-6 flex flex-col items-center gap-4 text-center animate-slide-up">
@@ -833,10 +823,10 @@ export function Login() {
                 <PortalLogo size="xl" />
               </div>
               <div>
-                <h2 className="whitespace-nowrap text-xl font-black tracking-tight text-slate-950 sm:text-2xl font-[var(--font-stylish)]">
+                <h2 className="whitespace-nowrap text-xl font-black tracking-tight text-slate-950 dark:text-white sm:text-2xl font-[var(--font-stylish)]">
                   {t('AGRONIX', 'AGRONIX')}
                 </h2>
-                <p className="mt-1 text-sm font-bold text-emerald-700">
+                <p className="mt-1 text-sm font-bold text-emerald-700 dark:text-emerald-300">
                   {t('Information Management System', 'à°¸à°®à°¾à°šà°¾à°° à°¨à°¿à°°à±à°µà°¹à°£ à°µà±à°¯à°µà°¸à±à°¥')}
                 </p>
               </div>
@@ -852,13 +842,13 @@ export function Login() {
             <button
               type="button"
               onClick={openOfficerToolkit}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-800 shadow-lg shadow-emerald-300/50 transition hover:bg-emerald-100 hover:border-emerald-600 animate-slide-up delay-200 pulse-border-animation"
+              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2.5 text-sm font-black text-emerald-800 dark:text-emerald-300 shadow-lg shadow-emerald-300/50 transition hover:bg-emerald-100 hover:border-emerald-600 animate-slide-up delay-200 pulse-border-animation"
             >
               <ShieldCheck className="h-4 w-4" />
               <span>{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
             </button>
 
-            <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-bold animate-slide-up delay-300">
+            <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-sm font-bold animate-slide-up delay-300">
               <button
                 type="button"
                 onClick={() => setLoginMode('staff')}
@@ -876,14 +866,14 @@ export function Login() {
             </div>
 
             <div className="mb-3 animate-slide-up delay-400">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">
                 {loginMode === 'dealer' ? t('Dealer login', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Secure sign in', 'à°¸à±à°°à°•à±à°·à°¿à°¤ à°²à°¾à°—à°¿à°¨à±')}
               </p>
-              <h3 className="mt-1 text-2xl font-black text-slate-950">{t('Welcome', 'à°¸à±à°µà°¾à°—à°¤à°‚')}</h3>
+              <h3 className="mt-1 text-2xl font-black text-slate-950 dark:text-white">{t('Welcome', 'à°¸à±à°µà°¾à°—à°¤à°‚')}</h3>
             </div>
 
             {error && (
-              <div className="mb-4 flex gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-slide-up">
+              <div className="mb-4 flex gap-3 rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-700 dark:text-red-300 animate-slide-up">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -894,7 +884,7 @@ export function Login() {
                 <>
                   <LoginField label={t('Registered phone (Dealers Directory)', 'à°¨à°®à±‹à°¦à±ˆà°¨ à°«à±‹à°¨à± (à°¡à±€à°²à°°à±à°² à°¡à±ˆà°°à±†à°•à±à°Ÿà°°à±€)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
                   <LoginField label={t('Guest Password', 'à°—à±†à°¸à±à°Ÿà± à°ªà°¾à°¸à±à°µà°°à±à°¡à±')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
-                  <p className="-mt-1 text-[10px] text-slate-500">
+                  <p className="-mt-1 text-[10px] text-slate-500 dark:text-slate-400">
                     {t(`Guest password: ${DEALER_DEFAULT_PASSWORD}`, `à°—à±†à°¸à±à°Ÿà± à°ªà°¾à°¸à±à°µà°°à±à°¡à±: ${DEALER_DEFAULT_PASSWORD}`)}
                   </p>
                 </>
@@ -915,15 +905,15 @@ export function Login() {
             </form>
 
             {siteHitSummary && (
-              <div className="mt-3 flex items-center gap-2 text-sm text-emerald-700 animate-slide-up delay-700">
+              <div className="mt-3 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300 animate-slide-up delay-700">
                 <UsersRound className="h-4 w-4" />
                 <span className="font-semibold">{t('Total Visitors', '\u0C2E\u0C4A\u0C24\u0C4D\u0C24\u0C02 \u0C38\u0C02\u0C26\u0C30\u0C4D\u0C36\u0C15\u0C41\u0C32\u0C41')}:</span>
                 <span className="font-black">{siteHitSummary.totalViews.toLocaleString()}</span>
               </div>
             )}
 
-            <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 sm:mb-16 animate-slide-up delay-600">
-              <p className="font-black text-emerald-700">version-1.0.1</p>
+            <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 dark:text-slate-300 sm:mb-16 animate-slide-up delay-600">
+              <p className="font-black text-emerald-700 dark:text-emerald-300">version-1.0.1</p>
               <p>&copy; 2026 Agronix - Information Management System</p>
               <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
             </div>
@@ -940,7 +930,7 @@ export function Login() {
         Install App
       </button>
       {installMessage && (
-        <div className="fixed bottom-20 left-4 z-50 max-w-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xl shadow-slate-950/15">
+        <div className="fixed bottom-20 left-4 z-50 max-w-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-950/15">
           {installMessage}
         </div>
       )}
@@ -956,45 +946,45 @@ export function Login() {
 
       {calculatorOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h3 className="flex items-center gap-2 text-lg font-black text-slate-950">
-                <Calculator className="h-5 w-5 text-sky-700" />
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-2xl">
+            <div className="mb-4 flex items-center gap-3">
+              <BackButton
+                onClick={closeAcreageCalculator}
+                colors="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+              />
+              <h3 className="flex items-center gap-2 text-lg font-black text-slate-950 dark:text-white">
+                <Calculator className="h-5 w-5 text-sky-700 dark:text-sky-300" />
                 {t('Area Calculator', 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
               </h3>
-              <button type="button" onClick={closeAcreageCalculator} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100">
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </button>
             </div>
             <label className="block">
-              <span className="mb-1.5 block text-sm font-bold text-slate-700">{t('Type or paste acre values', 'à°Žà°•à°°à°¾à°² à°µà°¿à°²à±à°µà°²à°¨à± à°Ÿà±ˆà°ªà± à°šà±‡à°¯à°‚à°¡à°¿ à°²à±‡à°¦à°¾ à°…à°¤à°¿à°•à°¿à°‚à°šà°‚à°¡à°¿')}</span>
+              <span className="mb-1.5 block text-sm font-bold text-slate-700 dark:text-slate-200">{t('Type or paste acre values', 'à°Žà°•à°°à°¾à°² à°µà°¿à°²à±à°µà°²à°¨à± à°Ÿà±ˆà°ªà± à°šà±‡à°¯à°‚à°¡à°¿ à°²à±‡à°¦à°¾ à°…à°¤à°¿à°•à°¿à°‚à°šà°‚à°¡à°¿')}</span>
               <textarea
                 value={acreInput}
                 onChange={(event) => setAcreInput(event.target.value)}
                 rows={5}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-950 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 font-semibold text-slate-950 dark:text-white outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
                 placeholder={'Example:\n2.10\n2.36\n0.15'}
               />
             </label>
-            <p className="mt-2 text-xs font-semibold text-slate-500">
+            <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
               Paste one Excel column or type values with + signs. Format uses acres.guntas; one acre is 40 guntas.
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-xs font-black uppercase tracking-wide text-emerald-700">{t('Total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°²à±')}</p>
-                <p className="mt-1 text-3xl font-black text-emerald-950">{acreCalculation.formatted}</p>
-                <p className="mt-1 text-xs font-semibold text-emerald-800">
+              <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°²à±')}</p>
+                <p className="mt-1 text-3xl font-black text-emerald-950 dark:text-emerald-100">{acreCalculation.formatted}</p>
+                <p className="mt-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
                   {acreCalculation.acres} acres {acreCalculation.guntas} guntas
                 </p>
               </div>
-              <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
-                <p className="text-xs font-black uppercase tracking-wide text-sky-700">{t('Hectares', 'à°¹à±†à°•à±à°Ÿà°¾à°°à±à°²à±')}</p>
-                <p className="mt-1 text-3xl font-black text-sky-950">{acreCalculation.hectares}</p>
-                <p className="mt-1 text-xs font-semibold text-sky-800">{t('Converted from total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°² à°¨à±à°‚à°¡à°¿ à°®à°¾à°°à±à°šà°¬à°¡à°¿à°‚à°¦à°¿')}</p>
+              <div className="rounded-xl border border-sky-200 dark:border-sky-800/50 bg-sky-50 dark:bg-sky-950/40 p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">{t('Hectares', 'à°¹à±†à°•à±à°Ÿà°¾à°°à±à°²à±')}</p>
+                <p className="mt-1 text-3xl font-black text-sky-950 dark:text-sky-100">{acreCalculation.hectares}</p>
+                <p className="mt-1 text-xs font-semibold text-sky-800 dark:text-sky-300">{t('Converted from total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°² à°¨à±à°‚à°¡à°¿ à°®à°¾à°°à±à°šà°¬à°¡à°¿à°‚à°¦à°¿')}</p>
               </div>
             </div>
-            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700">
+            <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
               {t('Read values', 'à°šà°¦à°¿à°µà°¿à°¨ à°µà°¿à°²à±à°µà°²à±')}: {acreCalculation.count} {t(acreCalculation.count === 1 ? 'item' : 'items', acreCalculation.count === 1 ? 'à°…à°‚à°¶à°‚' : 'à°…à°‚à°¶à°¾à°²à±')}
             </div>
           </div>
@@ -1003,49 +993,49 @@ export function Login() {
 
       {grievanceOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-lg font-black text-emerald-900">
+              <h3 className="flex items-center gap-2 text-lg font-black text-emerald-900 dark:text-emerald-200">
                 <MessageSquareText className="h-5 w-5" />
                 {t('Farmer Grievance', 'à°°à±ˆà°¤à± à°«à°¿à°°à±à°¯à°¾à°¦à±')}
               </h3>
-              <button type="button" onClick={grievanceOverlay.closeOverlay} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
+              <button type="button" onClick={grievanceOverlay.closeOverlay} className="rounded-lg p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <form onSubmit={handleGrievanceSubmit} className="space-y-4">
-              <p className="text-sm font-black text-slate-900">{t('Farmer details', 'à°°à±ˆà°¤à± à°µà°¿à°µà°°à°¾à°²à±')}</p>
+              <p className="text-sm font-black text-slate-900 dark:text-white">{t('Farmer details', 'à°°à±ˆà°¤à± à°µà°¿à°µà°°à°¾à°²à±')}</p>
               <div className="grid gap-4 sm:grid-cols-2">
-                <input value={grievance.farmer_name} onChange={(e) => setGrievance({ ...grievance, farmer_name: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Farmer name', 'à°°à±ˆà°¤à± à°ªà±‡à°°à±')} required />
-                <input value={grievance.mobile} onChange={(e) => setGrievance({ ...grievance, mobile: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Mobile number', 'à°®à±Šà°¬à±ˆà°²à± à°¨à°‚à°¬à°°à±')} required />
+                <input value={grievance.farmer_name} onChange={(e) => setGrievance({ ...grievance, farmer_name: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Farmer name', 'à°°à±ˆà°¤à± à°ªà±‡à°°à±')} required />
+                <input value={grievance.mobile} onChange={(e) => setGrievance({ ...grievance, mobile: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Mobile number', 'à°®à±Šà°¬à±ˆà°²à± à°¨à°‚à°¬à°°à±')} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <input type="email" value={grievance.email} onChange={(e) => setGrievance({ ...grievance, email: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Email (optional)', 'à°‡à°®à±†à°¯à°¿à°²à± (à°à°šà±à°šà°¿à°•à°‚)')} />
-                <select value={grievance.district} onChange={(e) => setGrievance({ ...grievance, district: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                <input type="email" value={grievance.email} onChange={(e) => setGrievance({ ...grievance, email: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Email (optional)', 'à°‡à°®à±†à°¯à°¿à°²à± (à°à°šà±à°šà°¿à°•à°‚)')} />
+                <select value={grievance.district} onChange={(e) => setGrievance({ ...grievance, district: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
                   {TELANGANA_DISTRICTS.map((district) => (
                     <option key={district} value={district}>{district}</option>
                   ))}
                 </select>
               </div>
-              <input value={grievance.mandal} onChange={(e) => setGrievance({ ...grievance, mandal: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Mandal', 'à°®à°‚à°¡à°²à°‚')} required />
+              <input value={grievance.mandal} onChange={(e) => setGrievance({ ...grievance, mandal: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Mandal', 'à°®à°‚à°¡à°²à°‚')} required />
 
-              <p className="pt-2 text-sm font-black text-slate-900">{t('Complaint details', 'à°«à°¿à°°à±à°¯à°¾à°¦à± à°µà°¿à°µà°°à°¾à°²à±')}</p>
+              <p className="pt-2 text-sm font-black text-slate-900 dark:text-white">{t('Complaint details', 'à°«à°¿à°°à±à°¯à°¾à°¦à± à°µà°¿à°µà°°à°¾à°²à±')}</p>
               <div className="grid gap-4 sm:grid-cols-2">
-                <select value={grievance.issue_type} onChange={(e) => setGrievance({ ...grievance, issue_type: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                <select value={grievance.issue_type} onChange={(e) => setGrievance({ ...grievance, issue_type: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
                   <option value="fertilizer">{t('Fertilizer', 'à°Žà°°à±à°µà±à°²à±')}</option>
                   <option value="seed">{t('Seed', 'à°µà°¿à°¤à±à°¤à°¨à°¾à°²à±')}</option>
                   <option value="pesticide">{t('Pesticide', 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à±à°²à±')}</option>
                   <option value="govt_schemes">{t('Govt schemes', 'à°ªà±à°°à°­à±à°¤à±à°µ à°ªà°¥à°•à°¾à°²à±')}</option>
                   <option value="others">{t('Others', 'à°‡à°¤à°°à±à°²à±')}</option>
                 </select>
-                <input value={grievance.subject} onChange={(e) => setGrievance({ ...grievance, subject: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Subject', 'à°µà°¿à°·à°¯à°‚')} required />
+                <input value={grievance.subject} onChange={(e) => setGrievance({ ...grievance, subject: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Subject', 'à°µà°¿à°·à°¯à°‚')} required />
               </div>
-              <textarea value={grievance.description} onChange={(e) => setGrievance({ ...grievance, description: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Description', 'à°µà°¿à°µà°°à°£')} required />
+              <textarea value={grievance.description} onChange={(e) => setGrievance({ ...grievance, description: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Description', 'à°µà°¿à°µà°°à°£')} required />
               <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3.5 font-bold text-white shadow-lg">
                 <Send className="h-5 w-5" />
                 {t('Submit Complaint', 'à°«à°¿à°°à±à°¯à°¾à°¦à± à°ªà°‚à°ªà°‚à°¡à°¿')}
               </button>
-              {grievanceStatus && <p className="text-sm font-semibold text-emerald-700">{grievanceStatus}</p>}
+              {grievanceStatus && <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{grievanceStatus}</p>}
             </form>
           </div>
         </div>
@@ -1096,12 +1086,12 @@ function PublicFormsPagination({
   const { t } = useLanguage();
 
   return (
-    <div className="mt-2 flex items-center justify-end gap-2 text-xs font-black text-slate-600">
+    <div className="mt-2 flex items-center justify-end gap-2 text-xs font-black text-slate-600 dark:text-slate-300">
       <button
         type="button"
         onClick={() => onPageChange(Math.max(0, currentPage - 1))}
         disabled={currentPage === 0}
-        className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 disabled:opacity-50"
+        className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 disabled:opacity-50"
       >
         Previous
       </button>
@@ -1112,7 +1102,7 @@ function PublicFormsPagination({
         type="button"
         onClick={() => onPageChange(Math.min(pageCount - 1, currentPage + 1))}
         disabled={currentPage >= pageCount - 1}
-        className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 disabled:opacity-50"
+        className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 disabled:opacity-50"
       >
         Next
       </button>
@@ -1137,7 +1127,7 @@ function LoginField({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-semibold text-slate-700">{label}</label>
+      <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">{label}</label>
       <div className="relative">
         {React.cloneElement(icon, {
           className: 'pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400',
@@ -1146,7 +1136,7 @@ function LoginField({
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-12 pr-4 text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+          className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 py-2 pl-12 pr-4 text-slate-950 dark:text-white outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
           placeholder={placeholder}
           required
         />

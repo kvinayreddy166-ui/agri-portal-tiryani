@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Eye, RefreshCw, FileText } from 'lucide-react';
+import { Eye, RefreshCw, FileText } from 'lucide-react';
 import { PdfUploadBox } from './PdfUploadBox';
 import { splitPdf, getPdfInfo } from '../../utils/pdfHelpers';
 import { cleanupObjectUrl, downloadBlob, makeSafeFileName, formatFileSize } from '../../utils/fileCleanup';
@@ -137,8 +137,8 @@ export function PdfSplitTool() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="mb-2 text-sm font-black text-slate-900">Split PDF</h3>
-        <p className="mb-3 text-xs font-semibold text-slate-600">
+        <h3 className="mb-2 text-sm font-black text-slate-900 dark:text-white">Split PDF</h3>
+        <p className="mb-3 text-xs font-semibold text-slate-600 dark:text-slate-300">
           Split PDF into multiple documents by page range or extract specific pages
         </p>
       </div>
@@ -152,15 +152,15 @@ export function PdfSplitTool() {
       />
 
       {file && !results.length && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
           <div className="mb-3">
-            <p className="text-xs font-black uppercase tracking-wide text-slate-600">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
               Total Pages: {pageCount}
             </p>
           </div>
 
           <div className="mb-3">
-            <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600">
+            <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
               Split Mode
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -206,7 +206,7 @@ export function PdfSplitTool() {
           {mode === 'range' && (
             <div className="mb-3 grid grid-cols-2 gap-2">
               <div>
-                <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600">
+                <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
                   Start Page
                 </label>
                 <input
@@ -216,12 +216,12 @@ export function PdfSplitTool() {
                   value={rangeStart}
                   onChange={(e) => setRangeStart(e.target.value)}
                   disabled={splitting}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:border-emerald-500 focus:outline-none disabled:opacity-50"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none disabled:opacity-50"
                   placeholder="1"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600">
+                <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
                   End Page
                 </label>
                 <input
@@ -231,7 +231,7 @@ export function PdfSplitTool() {
                   value={rangeEnd}
                   onChange={(e) => setRangeEnd(e.target.value)}
                   disabled={splitting}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:border-emerald-500 focus:outline-none disabled:opacity-50"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none disabled:opacity-50"
                   placeholder={pageCount.toString()}
                 />
               </div>
@@ -240,7 +240,7 @@ export function PdfSplitTool() {
 
           {mode === 'extract' && (
             <div className="mb-3">
-              <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600">
+              <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
                 Page Numbers (comma-separated)
               </label>
               <input
@@ -248,10 +248,10 @@ export function PdfSplitTool() {
                 value={extractPages}
                 onChange={(e) => setExtractPages(e.target.value)}
                 disabled={splitting}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:border-emerald-500 focus:outline-none disabled:opacity-50"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none disabled:opacity-50"
                 placeholder="1,3,5,7-9"
               />
-              <p className="mt-1 text-[10px] font-semibold text-slate-600">
+              <p className="mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-300">
                 Example: 1,3,5 or 1-5,7,9
               </p>
             </div>
@@ -276,18 +276,18 @@ export function PdfSplitTool() {
       )}
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
+        <div className="rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-xs font-bold text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
 
       {results.length > 0 && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+        <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-4">
           <div className="mb-3">
-            <p className="text-xs font-black uppercase tracking-wide text-slate-600">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
               Split Complete
             </p>
-            <p className="text-sm font-black text-emerald-800">
+            <p className="text-sm font-black text-emerald-800 dark:text-emerald-300">
               Created {results.length} PDF file{results.length > 1 ? 's' : ''}
             </p>
           </div>
@@ -296,14 +296,14 @@ export function PdfSplitTool() {
             {results.map((blob, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-2"
+                className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2"
               >
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-slate-600" />
-                  <span className="text-xs font-semibold text-slate-900">
+                  <FileText className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                  <span className="text-xs font-semibold text-slate-900 dark:text-white">
                     Part {index + 1}
                   </span>
-                  <span className="text-[10px] font-semibold text-slate-600">
+                  <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">
                     ({formatFileSize(blob.size)})
                   </span>
                 </div>
@@ -311,14 +311,14 @@ export function PdfSplitTool() {
                   <button
                     type="button"
                     onClick={() => setPreviewIndex(index)}
-                    className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-50"
+                    className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-1 text-xs font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50"
                   >
                     Preview
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDownloadSingle(blob, index)}
-                    className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-black text-slate-700 hover:bg-slate-50"
+                    className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-1 text-xs font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50"
                   >
                     Download
                   </button>
@@ -329,10 +329,10 @@ export function PdfSplitTool() {
 
           {previewUrls[previewIndex] && (
             <div className="mb-3">
-              <p className="mb-1 flex items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-600">
+              <p className="mb-1 flex items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
                 <Eye className="h-3 w-3" /> Preview Part {previewIndex + 1}
               </p>
-              <iframe title={`Split PDF preview part ${previewIndex + 1}`} src={previewUrls[previewIndex]} className="h-72 w-full rounded-lg border border-emerald-200 bg-white" />
+              <iframe title={`Split PDF preview part ${previewIndex + 1}`} src={previewUrls[previewIndex]} className="h-72 w-full rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900" />
             </div>
           )}
 
@@ -342,13 +342,13 @@ export function PdfSplitTool() {
               onClick={handleDownloadAll}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-xs font-black text-white hover:bg-emerald-800"
             >
-              <Download className="h-4 w-4" />
+              <FileText className="h-4 w-4" />
               Download All
             </button>
             <button
               type="button"
               onClick={handleReset}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2 text-xs font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50"
             >
               <RefreshCw className="h-4 w-4" />
               Reset

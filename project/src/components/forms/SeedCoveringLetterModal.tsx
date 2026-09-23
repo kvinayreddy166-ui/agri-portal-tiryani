@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
+import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
 
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
@@ -153,6 +153,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   const [message, setMessage] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<number, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [, setIsPreviewing] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [letterType, setLetterType] = useState<'PMG' | 'BT Protein'>('PMG');
@@ -299,18 +300,6 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     const updatedQueue = [...editedQueue, newSample];
     setEditedQueue(updatedQueue);
     window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
-  };
-
-  const handleSaveQueue = () => {
-    if (!validateSampleCodes()) {
-      setMessage('Please fix validation errors before saving.');
-      setTimeout(() => setMessage(null), 3000);
-      return;
-    }
-    
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(editedQueue));
-    setMessage('Queue saved successfully.');
-    setTimeout(() => setMessage(null), 3000);
   };
 
   const handlePreview = async () => {
@@ -758,7 +747,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   </>
                 ) : (
                   <>
-                    <Download className="w-4 h-4" />
+                    <FileText className="w-4 h-4" />
                     Download
                   </>
                 )}

@@ -493,7 +493,7 @@ function drawSampleTable(cursor: PdfCursor, queue: PesticideCoveringLetterQueueI
     return [
       String(index + 1),
       item.tradeName || '-',
-      pesticideNameWithoutTrade(item),
+      pesticideNameWithoutTrade({ ...item, insecticideCommonName: item.technicalName }),
       item.sampleCode || '-',
       formatDate(item.dateOfSampling) || '-'
     ];

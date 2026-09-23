@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Eye, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Download, Eye, RefreshCw, AlertTriangle, FileType } from 'lucide-react';
 import { PdfUploadBox } from './PdfUploadBox';
 import { PdfPreview } from './PdfPreview';
 import { extractTextFromPdf, getPdfInfo } from '../../utils/pdfHelpers';
@@ -97,8 +97,8 @@ export function PdfToDocTool() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="mb-2 text-sm font-black text-slate-900">PDF to Word/DOCX</h3>
-        <p className="mb-3 text-xs font-semibold text-slate-600">
+        <h3 className="mb-2 text-sm font-black text-slate-900 dark:text-white">PDF to Word/DOCX</h3>
+        <p className="mb-3 text-xs font-semibold text-slate-600 dark:text-slate-300">
           Convert selectable text PDF to editable DOCX document
         </p>
       </div>
@@ -112,12 +112,12 @@ export function PdfToDocTool() {
       />
 
       {file && (
-        <div className="flex flex-wrap gap-2 rounded-lg border border-slate-200 bg-white p-2">
+        <div className="flex flex-wrap gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2">
           <button
             type="button"
             onClick={() => setShowPreview((value) => !value)}
             disabled={converting}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-xs font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50 disabled:opacity-50"
           >
             <Eye className="h-4 w-4" />
             {showPreview ? 'Hide Preview' : 'Preview PDF'}
@@ -126,7 +126,7 @@ export function PdfToDocTool() {
             type="button"
             onClick={handleSourceDownload}
             disabled={converting}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-xs font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50 disabled:opacity-50"
           >
             <Download className="h-4 w-4" />
             Download Source
@@ -139,13 +139,13 @@ export function PdfToDocTool() {
       )}
 
       {file && !result && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
           {isScanned && (
-            <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-              <AlertTriangle className="h-4 w-4 flex-shrink-0 text-amber-700" />
+            <div className="flex items-start gap-2 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 px-3 py-2">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0 text-amber-700 dark:text-amber-300" />
               <div>
-                <p className="text-xs font-bold text-amber-800">No Selectable Text Detected</p>
-                <p className="text-xs font-semibold text-amber-700">
+                <p className="text-xs font-bold text-amber-800 dark:text-amber-300">No Selectable Text Detected</p>
+                <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">
                   This tool converts text-based PDFs only.
                 </p>
               </div>
@@ -170,17 +170,17 @@ export function PdfToDocTool() {
       )}
 
       {result && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+        <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-4">
           <div className="mb-3">
-            <p className="text-xs font-black uppercase tracking-wide text-slate-600">Original File</p>
-            <p className="text-sm font-black text-slate-900">{file?.name}</p>
-            <p className="text-xs font-semibold text-slate-600">{formatFileSize(file?.size || 0)}</p>
+            <p className="text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">Original File</p>
+            <p className="text-sm font-black text-slate-900 dark:text-white">{file?.name}</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{formatFileSize(file?.size || 0)}</p>
           </div>
 
           <div className="mb-3">
-            <p className="text-xs font-black uppercase tracking-wide text-slate-600">Extracted Text</p>
-            <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2">
-              <p className="text-xs font-semibold text-slate-700 whitespace-pre-wrap">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">Extracted Text</p>
+            <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2">
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 whitespace-pre-wrap">
                 {result.text.substring(0, 500)}
                 {result.text.length > 500 && '...'}
               </p>
@@ -188,9 +188,9 @@ export function PdfToDocTool() {
           </div>
 
           {error && (
-            <div className="mb-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
-              <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-700" />
-              <p className="text-xs font-semibold text-red-800">{error}</p>
+            <div className="mb-3 flex items-start gap-2 rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-3 py-2">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-700 dark:text-red-300" />
+              <p className="text-xs font-semibold text-red-800 dark:text-red-300">{error}</p>
             </div>
           )}
 
@@ -200,13 +200,13 @@ export function PdfToDocTool() {
               onClick={handleDownload}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-xs font-black text-white hover:bg-emerald-800"
             >
-              <Download className="h-4 w-4" />
+              <FileType className="h-4 w-4" />
               Download DOCX
             </button>
             <button
               type="button"
               onClick={handleReset}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2 text-xs font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50"
             >
               <RefreshCw className="h-4 w-4" />
               Reset

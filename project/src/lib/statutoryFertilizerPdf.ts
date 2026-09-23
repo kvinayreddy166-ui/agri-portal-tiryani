@@ -676,7 +676,7 @@ function field(
   cursor.y += rowHeight;
 }
 
-function heading(cursor: PdfCursor, value: string, noPageBreak = false) {
+export function heading(cursor: PdfCursor, value: string, noPageBreak = false) {
   cursor.doc.setFont(PDF_FONT, 'bold');
   text(cursor, value, ROW_LINE_HEIGHT + 1, noPageBreak);
   cursor.doc.setFont(PDF_FONT, 'normal');

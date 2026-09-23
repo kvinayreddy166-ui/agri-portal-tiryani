@@ -75,28 +75,28 @@ export function Settings() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600">Configure portal settings and preferences</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+        <p className="text-gray-600 dark:text-slate-300">Configure portal settings and preferences</p>
       </div>
 
       {/* User Info Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
         <div className="flex items-center gap-2 mb-6">
-          <User className="w-5 h-5 text-emerald-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Current User</h2>
+          <User className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Current User</h2>
         </div>
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
-            <span className="text-2xl font-bold text-emerald-600">
+          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center">
+            <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">
               {user?.email?.charAt(0).toUpperCase()}
             </span>
           </div>
           <div>
-            <p className="font-medium text-gray-900">{user?.email}</p>
-            <p className="text-sm text-gray-500">
+            <p className="font-medium text-gray-900 dark:text-white">{user?.email}</p>
+            <p className="text-sm text-gray-500 dark:text-slate-400">
               Role: {isAdminUser ? 'Administrator' : 'Guest User'}
             </p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
               Permissions: {isAdminUser ? 'Full access (read, write, delete)' : 'Read-only access'}
             </p>
           </div>
@@ -105,54 +105,54 @@ export function Settings() {
 
       {/* Admin Settings */}
       {isAdminUser ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
           <div className="flex items-center gap-2 mb-6">
-            <SettingsIcon className="w-5 h-5 text-emerald-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Portal Configuration</h2>
+            <SettingsIcon className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Portal Configuration</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                 Site Name
               </label>
               <input
                 type="text"
                 value={getSetting('site_name')}
                 onChange={(e) => setSettingValue('site_name', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                 District
               </label>
               <input
                 type="text"
                 value={getSetting('district')}
                 onChange={(e) => setSettingValue('district', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                 Division
               </label>
               <input
                 type="text"
                 value={getSetting('division')}
                 onChange={(e) => setSettingValue('division', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                 Mandal
               </label>
               <input
                 type="text"
                 value={getSetting('mandal')}
                 onChange={(e) => setSettingValue('mandal', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
           </div>
@@ -166,43 +166,43 @@ export function Settings() {
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
           <div className="flex items-center gap-2 mb-6">
-            <SettingsIcon className="w-5 h-5 text-emerald-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Portal Configuration</h2>
+            <SettingsIcon className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Portal Configuration</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {settings.map((setting) => (
-              <div key={setting.id} className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-600">{setting.setting_key.replace(/_/g, ' ')}</p>
-                <p className="font-medium text-gray-900">{setting.setting_value}</p>
+              <div key={setting.id} className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-4">
+                <p className="text-sm text-gray-600 dark:text-slate-300">{setting.setting_key.replace(/_/g, ' ')}</p>
+                <p className="font-medium text-gray-900 dark:text-white">{setting.setting_value}</p>
               </div>
             ))}
           </div>
-          <p className="text-sm text-gray-500 mt-4">
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-4">
             Only administrators can modify these settings.
           </p>
         </div>
       )}
 
       {/* Database Info */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
         <div className="flex items-center gap-2 mb-6">
-          <Database className="w-5 h-5 text-emerald-600" />
-          <h2 className="text-lg font-semibold text-gray-900">System Information</h2>
+          <Database className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">System Information</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600">Database</p>
-            <p className="font-medium text-gray-900">Supabase PostgreSQL</p>
+          <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-4">
+            <p className="text-sm text-gray-600 dark:text-slate-300">Database</p>
+            <p className="font-medium text-gray-900 dark:text-white">Supabase PostgreSQL</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600">Authentication</p>
-            <p className="font-medium text-gray-900">Supabase Auth</p>
+          <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-4">
+            <p className="text-sm text-gray-600 dark:text-slate-300">Authentication</p>
+            <p className="font-medium text-gray-900 dark:text-white">Supabase Auth</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600">Storage</p>
-            <p className="font-medium text-gray-900">Supabase Storage</p>
+          <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-4">
+            <p className="text-sm text-gray-600 dark:text-slate-300">Storage</p>
+            <p className="font-medium text-gray-900 dark:text-white">Supabase Storage</p>
           </div>
         </div>
       </div>

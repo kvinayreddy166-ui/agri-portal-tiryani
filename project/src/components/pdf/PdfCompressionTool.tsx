@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, Download, RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { AlertTriangle, RefreshCw, SlidersHorizontal, FileText } from 'lucide-react';
 import { PdfUploadBox } from './PdfUploadBox';
 import {
   ColorMode,
@@ -103,8 +103,8 @@ export function PdfCompressionTool() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="mb-1 text-base font-black text-slate-900">Compress PDF</h3>
-        <p className="text-xs font-semibold text-slate-600">
+        <h3 className="mb-1 text-base font-black text-slate-900 dark:text-white">Compress PDF</h3>
+        <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
           Text PDFs are cleaned without rasterizing. Scanned and extreme modes are rebuilt page by page.
         </p>
       </div>
@@ -120,15 +120,15 @@ export function PdfCompressionTool() {
       />
 
       {file && !result && (
-        <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div className="space-y-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
           {pdfInfo && (
-            <div className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-bold text-slate-700">
+            <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200">
               Detected: {pdfInfo.kind === 'text' ? 'Text PDF, searchable text can be preserved.' : 'Scanned/image PDF, raster compression recommended.'}
             </div>
           )}
 
           <div>
-            <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600">
+            <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
               Compression Level
             </label>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -162,7 +162,7 @@ export function PdfCompressionTool() {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600">
+            <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
               Color
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -185,8 +185,8 @@ export function PdfCompressionTool() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-3">
-            <label className="flex items-center gap-2 text-xs font-black text-slate-800">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3">
+            <label className="flex items-center gap-2 text-xs font-black text-slate-800 dark:text-slate-100">
               <input
                 type="checkbox"
                 checked={targetMode}
@@ -211,8 +211,8 @@ export function PdfCompressionTool() {
                     </button>
                   ))}
                 </div>
-                <label className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-2">
-                  <SlidersHorizontal className="h-4 w-4 text-slate-500" />
+                <label className="flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2">
+                  <SlidersHorizontal className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                   <input
                     type="number"
                     min={50}
@@ -221,13 +221,13 @@ export function PdfCompressionTool() {
                     onChange={(event) => setTargetSizeKB(Math.max(50, Number(event.target.value) || 50))}
                     className="w-24 bg-transparent py-2 text-xs font-black outline-none"
                   />
-                  <span className="text-xs font-bold text-slate-500">KB</span>
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">KB</span>
                 </label>
               </div>
             )}
           </div>
 
-          <label className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
+          <label className="flex items-center gap-2 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 px-3 py-2 text-xs font-bold text-amber-900 dark:text-amber-200">
             <input
               type="checkbox"
               checked={forceRasterize}
@@ -238,12 +238,12 @@ export function PdfCompressionTool() {
           </label>
 
           {compressing && (
-            <div className="rounded-lg border border-emerald-200 bg-white p-3">
-              <div className="mb-2 flex items-center justify-between text-xs font-black text-emerald-900">
+            <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 p-3">
+              <div className="mb-2 flex items-center justify-between text-xs font-black text-emerald-900 dark:text-emerald-200">
                 <span>{progress.message}</span>
                 <span>{progress.percent}%</span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-emerald-100">
+              <div className="h-2 overflow-hidden rounded-full bg-emerald-100 dark:bg-emerald-900/40">
                 <div className="h-full bg-emerald-700 transition-all" style={{ width: `${progress.percent}%` }} />
               </div>
             </div>
@@ -268,14 +268,14 @@ export function PdfCompressionTool() {
       )}
 
       {error && (
-        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-          <AlertTriangle className="h-4 w-4 flex-shrink-0 text-amber-700" />
-          <p className="text-xs font-semibold text-amber-800">{error}</p>
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 px-3 py-2">
+          <AlertTriangle className="h-4 w-4 flex-shrink-0 text-amber-700 dark:text-amber-300" />
+          <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">{error}</p>
         </div>
       )}
 
       {result && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+        <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-4">
           <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Stat label="Original Size" value={formatFileSize(result.originalSize)} />
             <Stat label="Compressed Size" value={formatFileSize(result.compressedSize)} strong />
@@ -291,7 +291,7 @@ export function PdfCompressionTool() {
           </div>
 
           {previewUrl && (
-            <iframe title="Compressed PDF preview" src={previewUrl} className="mb-3 h-72 w-full rounded-lg border border-emerald-200 bg-white" />
+            <iframe title="Compressed PDF preview" src={previewUrl} className="mb-3 h-72 w-full rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900" />
           )}
 
           <div className="flex flex-wrap gap-2">
@@ -300,13 +300,13 @@ export function PdfCompressionTool() {
               onClick={handleDownload}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-xs font-black text-white hover:bg-emerald-800"
             >
-              <Download className="h-4 w-4" />
+              <FileText className="h-4 w-4" />
               Download PDF
             </button>
             <button
               type="button"
               onClick={handleResetResult}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2 text-xs font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50"
             >
               <RefreshCw className="h-4 w-4" />
               Reset
@@ -320,8 +320,8 @@ export function PdfCompressionTool() {
 
 function Stat({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className="rounded-lg border border-white/80 bg-white/80 px-3 py-2">
-      <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">{label}</p>
+    <div className="rounded-lg border border-white/80 bg-white/80 dark:bg-slate-900/80 px-3 py-2">
+      <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
       <p className={`mt-0.5 text-xs font-black ${strong ? 'text-emerald-800' : 'text-slate-900'}`}>{value}</p>
     </div>
   );

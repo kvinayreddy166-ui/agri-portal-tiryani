@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { FileText, ChevronRight, CheckCircle, ExternalLink, Copy, ArrowLeft, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, ReceiptText, Store, ClipboardList, Sprout, ArrowUpRight } from 'lucide-react';
+import { FileText, ChevronRight, CheckCircle, ExternalLink, Copy, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, ReceiptText, Store, ClipboardList, Sprout, ArrowUpRight } from 'lucide-react';
+import { ToolkitPageHeader } from '../components/ui/ToolkitPageHeader';
 import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
 
 // District to Division mapping
@@ -432,34 +433,17 @@ export function LicenseServices() {
       <div className="mx-auto w-full max-w-5xl">
         {/* Hero / Title Card */}
         <div className="mb-6">
-          <div className="rounded-2xl p-4 shadow-lg" style={{ background: 'linear-gradient(135deg, #4F6FBF 0%, #5B6FC7 45%, #7B61C9 100%)', boxShadow: '0 4px 12px rgba(70, 80, 150, 0.15)' }}>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/20 shadow-sm ring-1 ring-white/30">
-                  <ReceiptText className="h-6 w-6 text-white" aria-label="License Services" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-100">
-                    {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
-                  </p>
-                  <h1 className="text-xl font-black text-white">
-                    {t('License Services', 'లైసెన్స్ సేవలు')}
-                  </h1>
-                  <p className="text-sm font-semibold text-white/90">
-                    {t('Challan Details', 'చలాన్ వివరాలు')}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/officer-toolkit')}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/20 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/30"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                {t('Back', 'వెనుకకు')}
-              </button>
-            </div>
-          </div>
+          <ToolkitPageHeader
+            icon={ReceiptText}
+            tone="indigo"
+            variant="solid"
+            eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+            title={t('License Services', 'లైసెన్స్ సేవలు')}
+            subtitle={t('Challan Details', 'చలాన్ వివరాలు')}
+            fallbackPath="/officer-toolkit"
+            onBack={() => navigate('/officer-toolkit')}
+            className="mb-0"
+          />
         </div>
 
         {/* Toast Notification */}
@@ -505,10 +489,10 @@ export function LicenseServices() {
                   <option value="seed">Seed</option>
                   <option value="insecticide">Pesticide</option>
                 </select>
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
                   <Sprout className="h-5 w-5" />
                 </div>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500">
                   <ChevronRight className="h-4 w-4 rotate-90" />
                 </div>
               </div>
@@ -630,10 +614,10 @@ export function LicenseServices() {
                       <option key={dist} value={dist}>{dist}</option>
                     ))}
                   </select>
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
                     <MapPin className="h-5 w-5" />
                   </div>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500">
                     <ChevronRight className="h-4 w-4 rotate-90" />
                   </div>
                 </div>
@@ -657,10 +641,10 @@ export function LicenseServices() {
                       <option key={div} value={div}>{div}</option>
                     ))}
                   </select>
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
                     <MapPin className="h-5 w-5" />
                   </div>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500">
                     <ChevronRight className="h-4 w-4 rotate-90" />
                   </div>
                 </div>

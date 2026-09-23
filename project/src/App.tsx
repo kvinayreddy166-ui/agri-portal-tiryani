@@ -7,6 +7,7 @@ import { AgronixBrandMark } from './components/ui/AgronixBrandMark';
 import { OfflineScreen } from './components/ui/OfflineScreen';
 import { APP_BUILD_LABEL, clearAppCacheAndReload } from './lib/appVersion';
 import { isRecoverableChunkError, recoverFromStaleAssets } from './lib/pwaRecovery';
+import { confirmDiscardIfDirty } from './components/inspection/useDirtyGuard';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { SEO, OrganizationSchema } from './components/seo/SEO';
@@ -503,6 +504,7 @@ function AppVersionBadge() {
     </div>
   );
 }
+
 function AppContent() {
   const { user, loading, authChecked, appReady, isAdminUser, isTestUser, isDealerUser, signOut } = useAuth();
   const location = useLocation();
@@ -685,6 +687,7 @@ function AppContent() {
   const navigateToPage = useCallback(
     (page: string, options: { replace?: boolean } = {}) => {
       if (!validPages.has(page)) return;
+      if (page !== pageRef.current && !confirmDiscardIfDirty()) return;
       setCurrentPage(page);
       navigate(pageToPath(page), {
         replace: options.replace,
@@ -700,6 +703,7 @@ function AppContent() {
   }, [currentPage]);
 
   const handleBack = useCallback(() => {
+    if (!confirmDiscardIfDirty()) return;
     const fallbackPage = getPageBackFallback(currentPage, isDealerUser);
     navigate(pageToPath(fallbackPage), { replace: true });
   }, [currentPage, isDealerUser, navigate]);

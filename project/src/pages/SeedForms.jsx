@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Download, Eye, FileText, RotateCcw, Save } from 'lucide-react';
+import { Eye, FileText, RotateCcw, Save } from 'lucide-react';
 import { SeedInstructionModal } from '../components/ui/SeedInstructionModal';
 import { ToastContainer, useToast } from '../components/ui/Toast';
 import { SeedCoveringLetterModal } from '../components/forms/SeedCoveringLetterModal';
@@ -659,12 +659,12 @@ export function SeedForms() {
         </button>
       </div>
 
-      <div className="mb-2 rounded-xl border border-orange-200/50 bg-gradient-to-br from-orange-50/80 to-rose-50/80 p-3 shadow-sm backdrop-blur-sm">
+      <div className="mb-2 rounded-xl border border-orange-200/50 dark:border-orange-800/50 bg-gradient-to-br from-orange-50/80 dark:from-orange-950/80 to-rose-50/80 dark:to-rose-950/80 p-3 shadow-sm backdrop-blur-sm">
         <div className="flex items-center gap-2 mb-2">
           <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-500/10">
-            <Save className="h-3.5 w-3.5 text-orange-600" />
+            <Save className="h-3.5 w-3.5 text-orange-600 dark:text-orange-300" />
           </div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-orange-700">SAVED DRAFTS</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-orange-700 dark:text-orange-300">SAVED DRAFTS</p>
         </div>
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <select
@@ -687,7 +687,7 @@ export function SeedForms() {
           <button
             type="button"
             onClick={deleteDraft}
-            className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition-all backdrop-blur-sm"
+            className="rounded-lg border border-red-200 dark:border-red-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-xs font-black text-red-600 dark:text-red-300 hover:bg-red-50 hover:border-red-300 transition-all backdrop-blur-sm"
           >
             Delete
           </button>
@@ -695,7 +695,7 @@ export function SeedForms() {
       </div>
 
       {message && (
-        <div className="mb-3 rounded-lg border border-red-600 bg-white px-3 py-2 text-sm font-bold text-red-600">
+        <div className="mb-3 rounded-lg border border-red-600 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-bold text-red-600 dark:text-red-300">
           {message}
         </div>
       )}
@@ -734,7 +734,7 @@ export function SeedForms() {
           {form.labId === 'other' ? (
             <Input label="Custom laboratory address" value={form.customLabAddress} onChange={(value) => setField('customLabAddress', value)} textarea />
           ) : (
-            <p className="whitespace-pre-line rounded-lg bg-slate-50 p-2 text-xs font-semibold text-slate-600">{resolved.labAddress}</p>
+            <p className="whitespace-pre-line rounded-lg bg-slate-50 dark:bg-slate-800/60 p-2 text-xs font-semibold text-slate-600 dark:text-slate-300">{resolved.labAddress}</p>
           )}
           <PreviewCard title="Information Slip Logic" lines={resolved.crop === 'Cotton' ? ['Cotton selected: two slips will be generated.', '1. Purity, Moisture & Germination Test', '2. BT Protein Test'] : [`One slip: ${resolved.testRequired}`]} />
         </Card>
@@ -768,9 +768,9 @@ export function SeedForms() {
         <Card title="DEALER DETAILS" color="maroon" onReset={resetDealerDetails}>
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
           <label>
-            <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600">Dealer / Party address</span>
+            <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">Dealer / Party address</span>
             <PopupHintWrapper message="Enter D.No, Road and Village; Mandal and District will be auto-populated">
-              <textarea rows={2} value={form.dealerAddress} onChange={(event) => setField('dealerAddress', event.target.value)} placeholder="D.No, Road, Village" className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" />
+              <textarea rows={2} value={form.dealerAddress} onChange={(event) => setField('dealerAddress', event.target.value)} placeholder="D.No, Road, Village" className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" />
             </PopupHintWrapper>
           </label>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -781,12 +781,12 @@ export function SeedForms() {
         </div>
       </div>
 
-      <div className="mt-3 rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50/80 to-emerald-50/80 p-3 shadow-sm backdrop-blur-sm">
+      <div className="mt-3 rounded-xl border-2 border-green-200 dark:border-green-800/50 bg-gradient-to-br from-green-50/80 dark:from-green-950/80 to-emerald-50/80 dark:to-emerald-950/80 p-3 shadow-sm backdrop-blur-sm">
         <div className="flex items-center gap-2 mb-2">
           <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-green-500/10">
-            <Download className="h-3.5 w-3.5 text-green-600" />
+            <FileText className="h-3.5 w-3.5 text-green-600 dark:text-green-300" />
           </div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-green-700">PDF Generation</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-green-700 dark:text-green-300">PDF Generation</p>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {isCottonCrop && <PdfAction label="Form I" onPreview={() => preview('I')} onDownload={() => generate('I')} />}
@@ -807,24 +807,24 @@ export function SeedForms() {
             <span>Generate Official Covering Letter</span>
           </button>
         </div>
-        <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-bold leading-4 text-red-700">
+        <p className="mt-3 rounded-md border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-[11px] font-bold leading-4 text-red-700 dark:text-red-300">
           Note: Please update sample details and dealer details before generating a new file.
         </p>
       </div>
 
       {showDownloadAllDialog && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl border border-emerald-200 bg-white p-6 shadow-2xl">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Download All Forms</h3>
+          <div className="w-full max-w-md rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 p-6 shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Download All Forms</h3>
             
             <label className="flex items-start gap-3 mb-6 cursor-pointer">
               <input
                 type="checkbox"
                 checked={addToCoveringLetterChecked}
                 onChange={(e) => setAddToCoveringLetterChecked(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-slate-600 text-emerald-600 dark:text-emerald-300 focus:ring-emerald-500"
               />
-              <span className="text-sm text-gray-700">Add sample details to Covering Letter</span>
+              <span className="text-sm text-gray-700 dark:text-slate-200">Add sample details to Covering Letter</span>
             </label>
             
             <div className="flex gap-2">
@@ -838,7 +838,7 @@ export function SeedForms() {
               <button
                 type="button"
                 onClick={() => setShowDownloadAllDialog(false)}
-                className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 font-bold"
+                className="px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 font-bold"
               >
                 Cancel
               </button>
@@ -936,20 +936,20 @@ function Card({ title, children, color = 'slate', onReset }) {
 
 function PreviewCard({ title, lines }) {
   return (
-    <div className="rounded-lg border border-dashed border-emerald-200 bg-emerald-50 p-2.5">
-      <p className="text-xs font-black text-emerald-900">{title}</p>
+    <div className="rounded-lg border border-dashed border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-2.5">
+      <p className="text-xs font-black text-emerald-900 dark:text-emerald-200">{title}</p>
       {lines.map((line) => (
-        <p key={line} className="text-xs font-semibold text-emerald-800">{line}</p>
+        <p key={line} className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">{line}</p>
       ))}
     </div>
   );
 }
 
 function Input({ label, value, onChange, type = 'text', textarea = false, placeholder = '' }) {
-  const className = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+  const className = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
   return (
     <label>
-      <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600">{label}</span>
+      <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">{label}</span>
       {textarea ? (
         <textarea rows={2} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
       ) : (
@@ -962,8 +962,8 @@ function Input({ label, value, onChange, type = 'text', textarea = false, placeh
 function Select({ label, value, onChange, options }) {
   return (
     <label>
-      <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600">{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+      <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
         <option value="">Select...</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>{option.label}</option>
@@ -988,14 +988,14 @@ function PdfAction({ label, onPreview, onDownload, primary = false }) {
   return (
     <div className={`rounded-lg border p-2 ${primary ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <p className="truncate text-xs font-black text-slate-800">{label}</p>
-        {primary && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black uppercase text-emerald-800">All</span>}
+        <p className="truncate text-xs font-black text-slate-800 dark:text-slate-100">{label}</p>
+        {primary && <span className="rounded bg-emerald-100 dark:bg-emerald-900/40 px-1.5 py-0.5 text-[10px] font-black uppercase text-emerald-800 dark:text-emerald-300">All</span>}
       </div>
       <div className="grid grid-cols-2 gap-1.5">
         <button
           type="button"
           onClick={onPreview}
-          className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-xs font-black text-emerald-800 hover:bg-emerald-50"
+          className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 px-2 py-1.5 text-xs font-black text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50"
         >
           <Eye className="h-3.5 w-3.5" />
           Preview
@@ -1007,7 +1007,7 @@ function PdfAction({ label, onPreview, onDownload, primary = false }) {
             primary ? 'bg-emerald-700 text-white hover:bg-emerald-800' : 'bg-slate-900 text-white hover:bg-slate-800'
           }`}
         >
-          <Download className="h-3.5 w-3.5" />
+          <FileText className="h-3.5 w-3.5" />
           PDF
         </button>
       </div>
@@ -1745,11 +1745,11 @@ function stableSeedString(value) {
 function DuplicateDownloadModal({ onReview, onContinue, onClose }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-xl border border-amber-200 bg-white p-5 shadow-2xl">
-        <p className="text-sm font-black uppercase tracking-wide text-amber-700">Duplicate details warning</p>
-        <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">{DUPLICATE_WARNING_MESSAGE}</p>
+      <div className="w-full max-w-md rounded-xl border border-amber-200 dark:border-amber-800/50 bg-white dark:bg-slate-900 p-5 shadow-2xl">
+        <p className="text-sm font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Duplicate details warning</p>
+        <p className="mt-3 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-200">{DUPLICATE_WARNING_MESSAGE}</p>
         <div className="mt-5 grid gap-2 sm:grid-cols-2">
-          <button type="button" onClick={onReview} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">
+          <button type="button" onClick={onReview} className="rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50">
             Review/Edit Details
           </button>
           <button type="button" onClick={onContinue} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
