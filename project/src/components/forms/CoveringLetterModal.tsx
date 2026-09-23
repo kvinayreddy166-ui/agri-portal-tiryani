@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
-import { openBlobPreview, savePdfDocument } from '../../lib/documentActions';
+import { openBlobPreview } from '../../lib/documentActions';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 const COVERING_LETTER_DETAILS_KEY = 'tiryani-covering-letter-details';
@@ -369,17 +369,14 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       // On mobile, open in new tab instead of preview dialog
       if (isMobile) {
         const fileName = `Covering_Letter_${metadata.letterNumber || 'draft'}.pdf`;
-        const result = await openBlobPreview(blob, fileName);
-        if (result === 'downloaded') setMessage('Covering Letter downloaded — open it from Downloads.');
-        else if (result === 'shared') setMessage('Covering Letter ready — use "Save to Files" to keep it.');
-        else if (result === 'failed') setMessage('Failed to open Covering Letter. Please try again.');
-        else setMessage('');
+        const result = openBlobPreview(blob, fileName);
+        setMessage(result === 'downloaded' ? 'Covering Letter downloaded — open it from Downloads.' : 'Covering Letter opened in new tab.');
       } else {
         const blobUrl = URL.createObjectURL(blob);
         setPreviewPdfUrl(blobUrl);
         setShowPreviewDialog(true);
-        setMessage('');
       }
+      setMessage('');
     } catch (error) {
       console.error('Error generating covering letter PDF:', error);
       setMessage('Failed to generate Covering Letter. Please try again.');
@@ -422,10 +419,20 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       const fileName = letterType === 'safe-custody'
         ? `Covering_Letter_Safe_Custody_${letterNumber || 'draft'}.pdf`
         : `Covering_Letter_Quality_Analysis_${letterNumber || 'draft'}.pdf`;
-      await savePdfDocument(doc, fileName);
+      const blob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+      
       setMessage('Covering Letter downloaded successfully.');
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
       console.error('Error downloading covering letter PDF:', error);
       setMessage('Failed to download Covering Letter. Please try again.');
     } finally {

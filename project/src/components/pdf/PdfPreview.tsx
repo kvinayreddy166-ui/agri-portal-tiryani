@@ -106,9 +106,9 @@ export function PdfPreview({ file, onClose, onDownload, className = '' }: PdfPre
     await renderPage(currentPage, newScale);
   };
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     const fileName = makeSafeFileName(file.name, 'preview', 'pdf');
-    await downloadBlob(file, fileName);
+    downloadBlob(file, fileName);
     if (onDownload) onDownload();
   };
 

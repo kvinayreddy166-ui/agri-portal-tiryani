@@ -13,7 +13,6 @@ import {
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../data/assistantDirectorLocation';
 import { PopupHintWrapper } from '../components/PopupHint';
 import { supabase } from '../lib/supabase';
-import { isMobileDevice, isStandalonePwa, savePdfDocument } from '../lib/documentActions';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
@@ -462,14 +461,13 @@ export function SeedForms() {
     const doc = await buildValidatedPdf(kind);
     if (!doc) return;
     try {
-      await downloadSeedDoc(doc, seedFileName(kind, form));
+      downloadSeedDoc(doc, seedFileName(kind, form));
       rememberSeedGeneratedData(form);
       showSuccess('PDF Downloaded Successfully', seedFileName(kind, form), 4000);
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
       console.error('Download failed, opening in new tab:', error);
       const targetWindow = openBlankSeedPdfTab();
-      await openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
+      openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
       rememberSeedGeneratedData(form);
       showInfo('Preview Opened', 'PDF opened in a new tab (download failed).', 4000);
     }
@@ -479,14 +477,13 @@ export function SeedForms() {
     const doc = await buildValidatedPdf(kind);
     if (!doc) return;
     try {
-      await downloadSeedDoc(doc, seedFileName(kind, form));
+      downloadSeedDoc(doc, seedFileName(kind, form));
       rememberSeedGeneratedData(form);
       showSuccess('PDF Downloaded Successfully', seedFileName(kind, form), 4000);
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
       console.error('Download failed, opening in new tab:', error);
       const targetWindow = openBlankSeedPdfTab();
-      await openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
+      openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
       rememberSeedGeneratedData(form);
       showInfo('Preview Opened', 'PDF opened in a new tab (download failed).', 4000);
     }
@@ -574,9 +571,9 @@ export function SeedForms() {
       targetWindow?.close();
       return;
     }
-    await openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
+    openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
     rememberSeedGeneratedData(form);
-    showInfo('Preview Ready', isMobileDevice() || isStandalonePwa() ? 'PDF ready to save or open on your device.' : 'PDF preview opened in a new tab.', 4000);
+    showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
   };
 
   const preview = async (kind) => {
@@ -1639,7 +1636,6 @@ async function drawWatermark(doc) {
 }
 
 function openBlankSeedPdfTab() {
-  if (isMobileDevice() || isStandalonePwa()) return null;
   const targetWindow = window.open('', '_blank');
   if (targetWindow) {
     targetWindow.opener = null;
@@ -1649,12 +1645,7 @@ function openBlankSeedPdfTab() {
   return targetWindow;
 }
 
-async function openSeedDocInTab(doc, fileName, targetWindow) {
-  if (isMobileDevice() || isStandalonePwa()) {
-    targetWindow?.close();
-    await savePdfDocument(doc, fileName);
-    return;
-  }
+function openSeedDocInTab(doc, fileName, targetWindow) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   if (targetWindow && !targetWindow.closed) {
@@ -1663,12 +1654,11 @@ async function openSeedDocInTab(doc, fileName, targetWindow) {
   } else {
     // Placeholder tab was blocked (mobile/PWA popup blocker) — download instead.
     URL.revokeObjectURL(blobUrl);
-    await downloadSeedDoc(doc, fileName);
+    downloadSeedDoc(doc, fileName);
   }
 }
 
-async function downloadSeedDoc(doc, fileName) {
-  if (isMobileDevice() || isStandalonePwa()) return savePdfDocument(doc, fileName);
+function downloadSeedDoc(doc, fileName) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement('a');

@@ -38,8 +38,7 @@ export function ImagePreview({ fileUrl, fileName, onClose, onDownload, className
   const handleDownload = async () => {
     try {
       await downloadFileFromUrl(fileUrl, fileName || 'image');
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
+    } catch {
       openExternalUrl(fileUrl);
     }
     if (onDownload) onDownload();

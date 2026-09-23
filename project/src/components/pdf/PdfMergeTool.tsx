@@ -75,9 +75,9 @@ export function PdfMergeTool() {
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     if (!result) return;
-    await downloadBlob(result, 'Merged.pdf');
+    downloadBlob(result, 'Merged.pdf');
   };
 
   const handleReset = () => {

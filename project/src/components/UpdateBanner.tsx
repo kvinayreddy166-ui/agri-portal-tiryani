@@ -20,7 +20,7 @@ export function UpdateBanner() {
       try {
         const currentBuildVersion = (import.meta.env.VITE_APP_VERSION as string) || (import.meta.env.VITE_APP_BUILD_TIMESTAMP as string) || 'unknown';
         const lastProcessedUpdate = localStorage.getItem('tiryani-last-processed-update');
-        if (currentBuildVersion !== 'unknown' && lastProcessedUpdate === currentBuildVersion) {
+        if (lastProcessedUpdate === currentBuildVersion) {
           return; // Already showed and processed this update
         }
       } catch {}

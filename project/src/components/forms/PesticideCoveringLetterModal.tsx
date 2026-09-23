@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isCombinationProductFromActiveIngredient } from '../../lib/statutoryPesticidePdf';
 import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
-import { openBlobPreview, savePdfDocument } from '../../lib/documentActions';
+import { openBlobPreview } from '../../lib/documentActions';
 
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
 const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';
@@ -334,7 +334,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
       
       if (isMobile) {
         const pdfBlob = doc.output('blob');
-        if (await openBlobPreview(pdfBlob, `Pesticide_Covering_Letter_${metadata.letterNumber || 'draft'}.pdf`) === 'failed') throw new Error('PDF preview could not be opened');
+        openBlobPreview(pdfBlob, `Pesticide_Covering_Letter_${metadata.letterNumber || 'draft'}.pdf`);
       } else {
         const pdfData = doc.output('datauristring');
         setPreviewPdfUrl(pdfData);
@@ -368,7 +368,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
       const doc = await generatePesticideCoveringLetterPdf(editedQueue, metadata, officerDetails, watermarkEnabled);
       
       const fileName = `Pesticide_Covering_Letter_${metadata.letterNumber || 'Draft'}.pdf`;
-      await savePdfDocument(doc, fileName);
+      doc.save(fileName);
       
       showMessage('Covering letter downloaded successfully.');
     } catch (error) {

@@ -8,7 +8,7 @@ import {
   financialYearForDate,
   financialYearRange,
 } from '../lib/stockInventory';
-import { guardedDocumentAction, saveWorkbookFile } from '../lib/documentActions';
+import { guardedDocumentAction } from '../lib/documentActions';
 import { IconButton } from '../components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../utils/excelTotals';
 
@@ -198,7 +198,7 @@ export default function StockReceiptsSales() {
       ['Total Closing Stock', totalValue(rows, 'Closing Stock')],
       ['Generated On', new Date().toLocaleString('en-IN')],
     ]);
-    await saveWorkbookFile(XLSX, workbook, `stock-receipts-sales-${financialYear}.xlsx`);
+    XLSX.writeFile(workbook, `stock-receipts-sales-${financialYear}.xlsx`);
   };
 
   return (

@@ -10,7 +10,6 @@ import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField }
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../components/inspection/persistence';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../components/inspection/useDirtyGuard';
 import { useDocumentAction } from '../hooks/useDocumentAction';
-import { savePdfDocument } from '../lib/documentActions';
 
 
 type GroundBalanceRow = { crop: string; variety: string; lotNo: string; registerQuantity: string; groundStock: string; difference: string; unit: string };
@@ -240,7 +239,7 @@ export function SeedDealerInspection() {
     try {
       const doc = await buildPdf(form);
       await addEmblemImageWatermark(doc);
-      await savePdfDocument(doc, `Seed_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
+      doc.save(`Seed_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
       showSuccess('PDF downloaded');
     } catch (error) {
       console.error('PDF generation failed:', error);

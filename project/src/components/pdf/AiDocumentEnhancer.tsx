@@ -57,9 +57,9 @@ export function AiDocumentEnhancer() {
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     if (!result || !file) return;
-    await downloadBlob(result.blob, makeSafeFileName(file.name, `enhanced_${mode}`, 'pdf'));
+    downloadBlob(result.blob, makeSafeFileName(file.name, `enhanced_${mode}`, 'pdf'));
   };
 
   return (
