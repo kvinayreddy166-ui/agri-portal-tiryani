@@ -16,6 +16,7 @@ import {
   IndianRupee,
   ListOrdered,
   Microscope,
+  Network,
   PackageCheck,
   Printer,
   Scale,
@@ -36,14 +37,14 @@ import { fcoClauseCards, fcoMemoryMnemonic, importantFcoMnemonics, validateFcoCl
 import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory, type FertilizerFormEntry } from '../data/fertilizerForms';
 import { fertilizerSchedules, type FertilizerScheduleEntry } from '../data/fertilizerSchedules';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
+import { enforcementDeadlines, enforcementMindMap, type MindMapNode } from '../data/fcoEnforcementMindMap';
 import { BackButton } from './ui/BackButton';
 import { FertilizerFormPdfGenerator } from './forms/FertilizerFormPdfGenerator';
 import { FcoImplementationModal } from './ui/FcoImplementationModal';
 
 type ReckonerView = 'powers' | 'notice';
 type MainLegalArea = 'fertilizer' | 'seed' | 'insecticide';
-type FertilizerSection = 'clauses' | 'forms' | 'schedules' | 'officer';
-type OfficerCornerAction = 'offences' | 'stop-sale';
+type FertilizerSection = 'clauses' | 'forms' | 'schedules' | 'duties';
 
 const BOOKMARK_KEY = 'agri-legal-reckoner-bookmarks';
 
@@ -219,7 +220,7 @@ export function ActsAndOrders() {
   const [view, setView] = useState<ReckonerView>('powers');
   const [selectedLegalArea, setSelectedLegalArea] = useState<MainLegalArea | null>(null);
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<LegalCategory>('Fertiliser');
+  const [, setCategory] = useState<LegalCategory>('Fertiliser');
   const [selectedFcoCardId, setSelectedFcoCardId] = useState<string | null>(null);
   const [fcoActiveTab, setFcoActiveTab] = useState<FcoTabId>('plainEnglish');
   const [bookmarks, setBookmarks] = useState<string[]>(() => readBookmarks());
@@ -227,7 +228,6 @@ export function ActsAndOrders() {
   const [formSearch, setFormSearch] = useState('');
   const [formCategory, setFormCategory] = useState<'All' | FertilizerFormCategory>('All');
   const [fertilizerSection, setFertilizerSection] = useState<FertilizerSection | null>(null);
-  const [officerCornerAction, setOfficerCornerAction] = useState<OfficerCornerAction | null>(null);
   const [scheduleSearch, setScheduleSearch] = useState('');
   const [showFcoStructureModal, setShowFcoStructureModal] = useState(false);
   const fcoStructureShownRef = useRef(false);
@@ -253,49 +253,8 @@ export function ActsAndOrders() {
     return filterFcoCardForQuery(card, query.trim().toLowerCase()) || card;
   }, [query, selectedFcoCardId]);
 
-  const filteredFcoOffences = useMemo(() => {
-    const term = query.trim().toLowerCase();
-    if (category !== 'Fertiliser') return [];
-    if (!term) return fcoOffenceEntries;
-    return fcoOffenceEntries.filter((entry) =>
-      [entry.serialNumber, entry.offenceType, entry.contraventionProvision, entry.punishmentProvision, entry.useInField]
-        .join(' ')
-        .toLowerCase()
-        .includes(term)
-    );
-  }, [category, query]);
-
   const toggleBookmark = (entryId: string) => {
     setBookmarks((current) => current.includes(entryId) ? current.filter((id) => id !== entryId) : [...current, entryId]);
-  };
-
-  const downloadFcoOffencesCsv = () => {
-    const rows = [
-      ['Sl.No', 'Type of offence', 'Contravention provision', 'Punishment provision under ECA'],
-      ...filteredFcoOffences.map((entry) => [
-        String(entry.serialNumber),
-        entry.offenceType,
-        entry.contraventionProvision,
-        entry.punishmentProvision,
-      ]),
-    ];
-    const csv = rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'fco-offences-penal-provisions.csv';
-    link.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  };
-
-  const printFcoOffences = () => {
-    const popup = window.open('', '_blank', 'width=1100,height=900');
-    if (!popup) return;
-    popup.document.write(renderFcoOffencesPrintHtml(filteredFcoOffences));
-    popup.document.close();
-    popup.focus();
-    popup.print();
   };
 
   const openLegalArea = (area: MainLegalArea) => {
@@ -329,7 +288,6 @@ export function ActsAndOrders() {
   const handleBack = () => {
     if (selectedLegalArea === 'fertilizer' && fertilizerSection) {
       setFertilizerSection(null);
-      setOfficerCornerAction(null);
       setSelectedFcoCardId(null);
       setSelectedFertilizerForm(null);
       setQuery('');
@@ -417,22 +375,8 @@ export function ActsAndOrders() {
         />
       )}
 
-      {selectedLegalArea === 'fertilizer' && fertilizerSection === 'officer' && (
-        <OfficerCornerPanel
-          action={officerCornerAction}
-          offences={filteredFcoOffences}
-          onActionChange={setOfficerCornerAction}
-          onSearchChange={setQuery}
-          search={query}
-          onBack={() => {
-            setFertilizerSection(null);
-            setOfficerCornerAction(null);
-            setQuery('');
-          }}
-          onBackToActions={() => setOfficerCornerAction(null)}
-          onDownloadOffences={downloadFcoOffencesCsv}
-          onPrintOffences={printFcoOffences}
-        />
+      {selectedLegalArea === 'fertilizer' && fertilizerSection === 'duties' && (
+        <EnforcementDutiesPanel onBack={() => setFertilizerSection(null)} />
       )}
 
       {selectedLegalArea && selectedLegalArea !== 'fertilizer' && legalTopicCards[selectedLegalArea].length > 0 && (
@@ -465,7 +409,7 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
     { id: 'clauses', title: 'Clauses', subtitle: '39 Clauses', description: 'FCO clause cards, sub-clauses, officer action and timelines.', icon: BookOpen, tone: 'from-emerald-500 via-green-500 to-teal-700' },
     { id: 'forms', title: 'Forms', subtitle: '28 Forms', description: 'Registration, manufacturing, sampling and business record forms.', icon: FileText, tone: 'from-amber-500 via-orange-400 to-emerald-600' },
     { id: 'schedules', title: 'Schedules', subtitle: '8 Schedules', description: 'Specifications, sampling procedures, tolerance limits and analysis methods.', icon: ClipboardList, tone: 'from-sky-500 via-cyan-500 to-emerald-600' },
-    { id: 'officer', title: 'Officer Corner', subtitle: 'Field actions & notices', description: 'Offences and stop sale references.', icon: ShieldAlert, tone: 'from-rose-500 via-orange-500 to-amber-500' },
+    { id: 'duties', title: 'Enforcement Mind Map', subtitle: 'Duties & powers', description: 'Duties of enforcement officers — authorities, sampling, seizure and prosecution.', icon: Network, tone: 'from-violet-500 via-purple-500 to-fuchsia-600' },
   ];
 
   return (
@@ -653,72 +597,44 @@ function FertilizerSchedulesPanel({ search, onSearchChange, onBack }: { search: 
   );
 }
 
-function OfficerCornerPanel({
-  action,
-  offences,
-  search,
-  onSearchChange,
-  onActionChange,
-  onBack,
-  onBackToActions,
-  onDownloadOffences,
-  onPrintOffences,
-}: {
-  action: OfficerCornerAction | null;
-  offences: FcoOffenceEntry[];
-  search: string;
-  onSearchChange: (value: string) => void;
-  onActionChange: (action: OfficerCornerAction) => void;
-  onBack: () => void;
-  onBackToActions: () => void;
-  onDownloadOffences: () => void;
-  onPrintOffences: () => void;
-}) {
-  const actions: Array<{ id: OfficerCornerAction; title: string; subtitle: string; icon: React.ElementType }> = [
-    { id: 'offences', title: 'Offences', subtitle: 'FCO/ECA offence references', icon: Scale },
-    { id: 'stop-sale', title: 'Issue Stop Sale / Seizure Notice', subtitle: 'Stop sale, seizure and workflow table', icon: ShieldAlert },
-  ];
-
-  if (!action) {
-    return (
-      <section className="space-y-3">
-        <FertilizerSectionHeader title="Officer Corner" subtitle="Field actions & notices" icon={ShieldAlert} onBack={onBack} />
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {actions.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button key={item.id} type="button" onClick={() => onActionChange(item.id)} className="group min-h-[8rem] rounded-lg border border-amber-200 bg-white p-3 text-left shadow-sm transition hover:-translate-y-1 hover:border-amber-300 hover:shadow-md dark:border-amber-800/50 dark:bg-slate-900">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-700 ring-1 ring-amber-100 transition group-hover:scale-105 dark:bg-amber-950/30 dark:text-amber-300 dark:ring-amber-900">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span className="mt-3 block text-sm font-black text-slate-950 dark:text-white">{item.title}</span>
-                <span className="mt-1 block text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{item.subtitle}</span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="space-y-3">
-      <FertilizerSectionHeader title={actions.find((item) => item.id === action)?.title || 'Officer Corner'} subtitle="Field actions & notices" icon={ShieldAlert} onBack={onBackToActions} />
-      {action === 'offences' && (
-        <div className="space-y-3">
-          <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search offence, FCO provision, ECA punishment..." className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
-            </div>
-          </div>
-          <FcoOffencesSection entries={offences} onDownload={onDownloadOffences} onPrint={onPrintOffences} />
-        </div>
-      )}
-      {action === 'stop-sale' && <PowersSection area="fertilizer" />}
-
-    </section>
+function filterFcoOffences(entries: FcoOffenceEntry[], search: string) {
+  const term = search.trim().toLowerCase();
+  if (!term) return entries;
+  return entries.filter((entry) =>
+    [entry.serialNumber, entry.offenceType, entry.contraventionProvision, entry.punishmentProvision, entry.useInField]
+      .join(' ')
+      .toLowerCase()
+      .includes(term)
   );
+}
+
+function downloadFcoOffencesCsv(entries: FcoOffenceEntry[]) {
+  const rows = [
+    ['Sl.No', 'Type of offence', 'Contravention provision', 'Punishment provision under ECA'],
+    ...entries.map((entry) => [
+      String(entry.serialNumber),
+      entry.offenceType,
+      entry.contraventionProvision,
+      entry.punishmentProvision,
+    ]),
+  ];
+  const csv = rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'fco-offences-penal-provisions.csv';
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+function printFcoOffences(entries: FcoOffenceEntry[]) {
+  const popup = window.open('', '_blank', 'width=1100,height=900');
+  if (!popup) return;
+  popup.document.write(renderFcoOffencesPrintHtml(entries));
+  popup.document.close();
+  popup.focus();
+  popup.print();
 }
 
 function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => void }) {
@@ -1318,17 +1234,8 @@ function FertilizerFormsPanel({
 }
 function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffenceEntry[]; onDownload: () => void; onPrint: () => void }) {
   return (
-    <details className="group overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm dark:border-amber-800/50 dark:bg-slate-950">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-amber-100 bg-amber-50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/30">
-        <div>
-          <h2 className="text-base font-black text-slate-950 dark:text-white">FCO Offences With Relevant FCO/ECA Provisions</h2>
-          <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Dropdown list for offence search and penal provision reference.</p>
-        </div>
-        <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-amber-800 shadow-sm transition group-open:bg-amber-700 group-open:text-white dark:bg-slate-950 dark:text-amber-200">
-          {entries.length} offences
-        </span>
-      </summary>
-      <div className="border-b border-amber-100 bg-white px-4 py-3 dark:border-amber-900/50 dark:bg-slate-950">
+    <div className="overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm dark:border-amber-800/50 dark:bg-slate-950">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-100 bg-white px-4 py-3 dark:border-amber-900/50 dark:bg-slate-950">
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={onPrint} className="inline-flex items-center gap-2 rounded-lg bg-amber-700 px-3 py-2 text-sm font-black text-white hover:bg-amber-800">
             <Printer className="h-4 w-4" />
@@ -1339,35 +1246,39 @@ function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffe
             CSV
           </button>
         </div>
+        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-800 ring-1 ring-amber-100 dark:bg-amber-950/30 dark:text-amber-200 dark:ring-amber-900">
+          {entries.length} offences
+        </span>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[980px] text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-black uppercase text-slate-500 dark:bg-slate-900 dark:text-slate-400">
-            <tr>
-              <th className="w-16 px-3 py-2">Sl.No</th>
-              <th className="px-3 py-2">Type of offence</th>
-              <th className="w-48 px-3 py-2">Contravention provision</th>
-              <th className="w-44 px-3 py-2">Punishment under ECA</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {entries.map((entry) => (
-              <tr key={entry.serialNumber} className="align-top">
-                <td className="px-3 py-2 font-black text-slate-700 dark:text-slate-200">{entry.serialNumber}</td>
-                <td className="px-3 py-2 font-bold text-slate-900 dark:text-white">{entry.offenceType}</td>
-                <td className="px-3 py-2 font-black text-blue-700 dark:text-blue-300">{entry.contraventionProvision}</td>
-                <td className="px-3 py-2 font-black text-red-700 dark:text-red-300">{entry.punishmentProvision}</td>
-              </tr>
-            ))}
-            {entries.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-3 py-8 text-center font-semibold text-slate-500">No FCO offence entry matches the current search.</td>
-              </tr>
+      <div className="grid gap-2 p-3 sm:grid-cols-2 xl:grid-cols-3">
+        {entries.map((entry) => (
+          <article key={entry.serialNumber} className="flex flex-col rounded-lg border border-amber-100 bg-gradient-to-br from-amber-50/70 via-white to-emerald-50/50 p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-md dark:border-amber-900/50 dark:from-amber-950/20 dark:via-slate-950 dark:to-emerald-950/20">
+            <div className="flex items-start gap-2">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-[11px] font-black text-white shadow-sm">
+                {entry.serialNumber}
+              </span>
+              <p className="min-w-0 flex-1 text-xs font-black leading-4 text-slate-900 dark:text-white">{entry.offenceType}</p>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800/60">
+                {entry.contraventionProvision}
+              </span>
+              <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-black text-red-700 ring-1 ring-red-200 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-800/60">
+                {entry.punishmentProvision}
+              </span>
+            </div>
+            {entry.useInField && (
+              <p className="mt-1.5 text-[10px] font-semibold leading-4 text-slate-500 dark:text-slate-400">{entry.useInField}</p>
             )}
-          </tbody>
-        </table>
+          </article>
+        ))}
+        {entries.length === 0 && (
+          <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 sm:col-span-2 xl:col-span-3 dark:border-slate-700">
+            No FCO offence entry matches the current search.
+          </p>
+        )}
       </div>
-    </details>
+    </div>
   );
 }
 
@@ -1432,6 +1343,188 @@ function PowersSection({ area }: { area: MainLegalArea }) {
         ))}
       </section>
     </div>
+  );
+}
+
+function collectMindMapNodeIds(nodes: MindMapNode[], bucket: Set<string> = new Set()) {
+  nodes.forEach((node) => {
+    bucket.add(node.id);
+    if (node.children?.length) collectMindMapNodeIds(node.children, bucket);
+  });
+  return bucket;
+}
+
+function EnforcementDutiesPanel({ onBack }: { onBack: () => void }) {
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  const [offenceSearch, setOffenceSearch] = useState('');
+  const [offencesOpen, setOffencesOpen] = useState(false);
+  const allNodeIds = useMemo(() => collectMindMapNodeIds(enforcementMindMap), []);
+  const filteredOffences = useMemo(() => filterFcoOffences(fcoOffenceEntries, offenceSearch), [offenceSearch]);
+  const allExpanded = collapsed.size === 0;
+
+  const toggleNode = (id: string) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  return (
+    <div className="space-y-3">
+      <FertilizerSectionHeader
+        title="Enforcement Mind Map"
+        subtitle="Duties & responsibilities of enforcement officers under FCO 1985 / ECA 1955."
+        icon={Network}
+        onBack={onBack}
+      />
+
+      <section className="rounded-lg border border-amber-200 bg-white p-3 shadow-sm dark:border-amber-800/50 dark:bg-slate-900">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Key deadlines</p>
+          <button
+            type="button"
+            onClick={() => setCollapsed(allExpanded ? new Set(allNodeIds) : new Set())}
+            className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-black text-amber-800 transition hover:bg-amber-100 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-200 dark:hover:bg-amber-950/50"
+          >
+            {allExpanded ? 'Collapse all' : 'Expand all'}
+          </button>
+        </div>
+        <div className="mt-2 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
+          {enforcementDeadlines.map((item) => (
+            <div key={item.action} className="flex items-start gap-2 rounded-lg border border-amber-100 bg-gradient-to-br from-amber-50 to-emerald-50 px-2.5 py-2 dark:border-amber-900/50 dark:from-amber-950/30 dark:to-emerald-950/30">
+              <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
+              <div>
+                <p className="text-[11px] font-black leading-4 text-slate-800 dark:text-slate-100">{item.limit}</p>
+                <p className="text-[10px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{item.action}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        {enforcementMindMap.map((branch) => (
+          <MindMapBranchCard key={branch.id} node={branch} collapsed={collapsed} onToggle={toggleNode} />
+        ))}
+
+        <section className="overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm dark:border-amber-800/50 dark:bg-slate-900 lg:col-span-2">
+          <button
+            type="button"
+            onClick={() => setOffencesOpen((open) => !open)}
+            className="flex w-full items-start gap-2.5 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-3 text-left transition hover:from-amber-100 dark:from-amber-950/40 dark:via-slate-900 dark:to-emerald-950 dark:hover:from-amber-950/60"
+          >
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-white shadow-sm">
+              <Scale className="h-3.5 w-3.5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-black text-slate-950 dark:text-white">FCO Offences & Penal Provisions</span>
+              <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">Searchable offence reference with FCO contravention and ECA punishment provisions.</span>
+            </span>
+            <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-amber-700 transition-transform duration-200 dark:text-amber-300 ${offencesOpen ? '' : '-rotate-90'}`} />
+          </button>
+          {offencesOpen && (
+            <div className="space-y-3 border-t border-amber-100 p-3 dark:border-amber-900/40">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={offenceSearch}
+                  onChange={(event) => setOffenceSearch(event.target.value)}
+                  placeholder="Search offence, FCO provision, ECA punishment..."
+                  className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                />
+              </div>
+              <FcoOffencesSection
+                entries={filteredOffences}
+                onDownload={() => downloadFcoOffencesCsv(filteredOffences)}
+                onPrint={() => printFcoOffences(filteredOffences)}
+              />
+            </div>
+          )}
+        </section>
+      </div>
+
+      <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+        Source: Central Fertilizer Quality Control & Training Institute (CFQCTI), Faridabad — Duties and Responsibilities of Enforcement Officers.
+      </p>
+    </div>
+  );
+}
+
+function MindMapBranchCard({ node, collapsed, onToggle }: { node: MindMapNode; collapsed: Set<string>; onToggle: (id: string) => void }) {
+  const hasChildren = Boolean(node.children?.length);
+  const isCollapsed = collapsed.has(node.id);
+
+  return (
+    <section className="overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm dark:border-amber-800/50 dark:bg-slate-900">
+      <button
+        type="button"
+        onClick={() => hasChildren && onToggle(node.id)}
+        className="flex w-full items-start gap-2.5 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-3 text-left transition hover:from-amber-100 dark:from-amber-950/40 dark:via-slate-900 dark:to-emerald-950 dark:hover:from-amber-950/60"
+      >
+        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-white shadow-sm">
+          <Network className="h-3.5 w-3.5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-black text-slate-950 dark:text-white">{node.label}</span>
+          {node.detail && <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{node.detail}</span>}
+        </span>
+        {hasChildren && (
+          <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-amber-700 transition-transform duration-200 dark:text-amber-300 ${isCollapsed ? '-rotate-90' : ''}`} />
+        )}
+      </button>
+      {hasChildren && !isCollapsed && (
+        <ul className="space-y-1 border-t border-amber-100 p-3 dark:border-amber-900/40">
+          {node.children!.map((child) => (
+            <MindMapNodeRow key={child.id} node={child} depth={0} collapsed={collapsed} onToggle={onToggle} />
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function MindMapNodeRow({ node, depth, collapsed, onToggle }: { node: MindMapNode; depth: number; collapsed: Set<string>; onToggle: (id: string) => void }) {
+  const hasChildren = Boolean(node.children?.length);
+  const isCollapsed = collapsed.has(node.id);
+
+  return (
+    <li>
+      <div className="flex items-start gap-1.5 rounded-md px-1 py-1 transition hover:bg-amber-50/70 dark:hover:bg-amber-950/20">
+        {hasChildren ? (
+          <button
+            type="button"
+            onClick={() => onToggle(node.id)}
+            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-amber-700 transition hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-950/40"
+            aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+          >
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`} />
+          </button>
+        ) : (
+          <span className="mt-1.5 ml-0.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+        )}
+        <button
+          type="button"
+          onClick={() => hasChildren && onToggle(node.id)}
+          className="min-w-0 flex-1 text-left"
+        >
+          <span className={`block leading-5 ${depth === 0 ? 'text-[13px] font-black text-slate-900 dark:text-white' : 'text-xs font-bold text-slate-800 dark:text-slate-100'}`}>
+            {node.label}
+          </span>
+          {node.detail && (
+            <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{node.detail}</span>
+          )}
+        </button>
+      </div>
+      {hasChildren && !isCollapsed && (
+        <ul className="ml-2.5 space-y-0.5 border-l border-amber-200 pl-2.5 dark:border-amber-800/50">
+          {node.children!.map((child) => (
+            <MindMapNodeRow key={child.id} node={child} depth={depth + 1} collapsed={collapsed} onToggle={onToggle} />
+          ))}
+        </ul>
+      )}
+    </li>
   );
 }
 
