@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -38,6 +38,7 @@ import { fertilizerSchedules, type FertilizerScheduleEntry } from '../data/ferti
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { BackButton } from './ui/BackButton';
 import { FertilizerFormPdfGenerator } from './forms/FertilizerFormPdfGenerator';
+import { FcoImplementationModal } from './ui/FcoImplementationModal';
 
 type ReckonerView = 'powers' | 'notice';
 type MainLegalArea = 'fertilizer' | 'seed' | 'insecticide';
@@ -225,6 +226,8 @@ export function ActsAndOrders() {
   const [fertilizerSection, setFertilizerSection] = useState<FertilizerSection | null>(null);
   const [officerCornerAction, setOfficerCornerAction] = useState<OfficerCornerAction | null>(null);
   const [scheduleSearch, setScheduleSearch] = useState('');
+  const [showFcoStructureModal, setShowFcoStructureModal] = useState(false);
+  const fcoStructureShownRef = useRef(false);
 
   useEffect(() => {
     window.localStorage.setItem(BOOKMARK_KEY, JSON.stringify(bookmarks));
@@ -294,6 +297,10 @@ export function ActsAndOrders() {
 
   const openLegalArea = (area: MainLegalArea) => {
     const areaCard = legalAreaCards.find((item) => item.id === area);
+    if (area === 'fertilizer' && !fcoStructureShownRef.current) {
+      fcoStructureShownRef.current = true;
+      setShowFcoStructureModal(true);
+    }
     setSelectedLegalArea(area);
     setView('powers');
     setQuery('');
@@ -444,6 +451,7 @@ export function ActsAndOrders() {
       {selectedFertilizerForm && (
         <FertilizerFormPdfGenerator form={selectedFertilizerForm} onClose={() => setSelectedFertilizerForm(null)} />
       )}
+      <FcoImplementationModal isOpen={showFcoStructureModal} onClose={() => setShowFcoStructureModal(false)} />
     </div>
   );
 }
