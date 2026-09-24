@@ -1827,7 +1827,7 @@ export function FertilizerCalculator() {
             </div>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-            <LanguageToggle language={language} onClick={toggleLanguage} />
+            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
             <div className="flex gap-1">
               <button type="button" onClick={exportPdf} className="inline-flex min-h-7 items-center justify-center rounded-lg bg-red-600 px-2 py-1 text-white" aria-label="Export PDF" title="PDF">
                 <FileText className="h-3.5 w-3.5" />
@@ -1843,7 +1843,7 @@ export function FertilizerCalculator() {
         </section>
       </div>
 
-      <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <section className="rounded-xl border-2 border-lime-300 dark:border-lime-800/50 bg-gradient-to-br from-lime-100 dark:from-lime-900 to-emerald-100 dark:to-emerald-900 p-4 text-sm font-semibold text-emerald-950 dark:text-emerald-100 shadow-md">
           <div className="grid gap-2 sm:grid-cols-3">
             <p><span className="font-black">1.</span> Select crop recommendation or enter nutrients manually.</p>

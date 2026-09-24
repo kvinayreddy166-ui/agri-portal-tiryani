@@ -1119,8 +1119,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               ))}
             </div>
             ) : <span />}
-            <button type="button" onClick={resetNotice} className="inline-flex items-center gap-2 rounded-lg border border-red-200 dark:border-red-800/50 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-black text-red-700 dark:text-red-300 hover:bg-red-50">
-              <RotateCcw className="h-4 w-4" />
+            <button type="button" onClick={resetNotice} className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 shadow-sm transition hover:bg-red-50 dark:border-red-800/50 dark:bg-slate-900 dark:text-red-300 sm:text-sm">
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
               Reset
             </button>
           </div>
@@ -1292,21 +1292,21 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={previewNotice} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-black text-white shadow-sm ${config.theme.button}`}>
-              <FileText className="h-4 w-4" />
+            <button type="button" onClick={previewNotice} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black text-white shadow-sm transition sm:text-sm ${config.theme.button}`}>
+              <FileText className="h-4 w-4" aria-hidden="true" />
               Preview
             </button>
-            <button type="button" onClick={saveNotice} className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-black text-white shadow-sm hover:bg-slate-900">
-              <Save className="h-4 w-4" />
-              Save
+            <button type="button" onClick={saveNotice} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-slate-900 sm:text-sm">
+              <Save className="h-4 w-4" aria-hidden="true" />
+              Save Draft
             </button>
-            <button type="button" onClick={downloadPdf} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50">
-              <FileText className="h-4 w-4" />
+            <button type="button" onClick={downloadPdf} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 sm:text-sm">
+              <FileText className="h-4 w-4" aria-hidden="true" />
               PDF
             </button>
-            <button type="button" onClick={downloadWord} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 dark:border-blue-800/50 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-black text-blue-700 dark:text-blue-300 hover:bg-blue-50">
-              <FileType className="h-4 w-4" />
-              DOC
+            <button type="button" onClick={downloadWord} className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs font-black text-blue-700 shadow-sm transition hover:bg-blue-50 dark:border-blue-800/50 dark:bg-slate-900 dark:text-blue-300 sm:text-sm">
+              <FileType className="h-4 w-4" aria-hidden="true" />
+              WORD
             </button>
           </div>
 

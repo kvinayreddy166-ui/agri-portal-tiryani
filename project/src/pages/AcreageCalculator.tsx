@@ -79,7 +79,7 @@ export function AcreageCalculator() {
   return (
     <div className="space-y-4">
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-        <section className="rounded-2xl border-2 border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-700/60">
+        <section className="rounded-2xl border-2 border-sky-300/60 bg-gradient-to-br from-sky-600 via-cyan-600 to-teal-700 p-4 shadow-lg dark:border-sky-700/60">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
             <div>
@@ -93,7 +93,7 @@ export function AcreageCalculator() {
         </section>
       </div>
 
-      <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <section className="rounded-xl border-2 border-sky-300 bg-gradient-to-br from-sky-100 to-cyan-100 p-4 text-sm font-semibold text-sky-950 shadow-md dark:border-sky-800 dark:from-sky-950/50 dark:to-cyan-950/40 dark:text-sky-100">
           <div className="grid gap-2 sm:grid-cols-3">
             {guideItems.map((item, index) => (
@@ -103,7 +103,7 @@ export function AcreageCalculator() {
         </section>
       </div>
 
-      <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
           <div className="space-y-3 rounded-xl border-2 border-sky-300 bg-gradient-to-br from-white via-sky-50 to-cyan-100 p-4 shadow-md dark:border-sky-800/60 dark:from-slate-900 dark:via-sky-950/30 dark:to-cyan-950/30">
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">

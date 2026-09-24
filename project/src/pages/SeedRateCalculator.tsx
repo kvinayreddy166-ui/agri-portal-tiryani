@@ -77,7 +77,7 @@ export function SeedRateCalculator() {
     <div className="space-y-3">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-        <section className="relative rounded-2xl border-2 border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-700/60 sm:p-4">
+        <section className="relative rounded-2xl border-2 border-lime-300/60 bg-gradient-to-br from-lime-600 via-green-600 to-emerald-700 p-4 shadow-lg dark:border-lime-700/60 sm:p-4">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
             <div>
@@ -96,7 +96,7 @@ export function SeedRateCalculator() {
         </section>
       </div>
 
-      <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <section className="rounded-xl border-2 border-lime-300 bg-gradient-to-br from-lime-100 to-emerald-100 p-4 text-sm font-semibold text-emerald-950 shadow-md dark:border-emerald-900 dark:from-emerald-950/50 dark:to-lime-950/30 dark:text-emerald-100">
           <div className="grid gap-2 sm:grid-cols-3">
             <p><span className="font-black">1.</span> Enter crop area and required population.</p>

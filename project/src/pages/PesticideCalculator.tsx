@@ -90,7 +90,7 @@ export function PesticideCalculator() {
     <div className="space-y-3">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-        <section className="relative rounded-2xl border-2 border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 shadow-lg dark:border-emerald-700/60 sm:p-4">
+        <section className="relative rounded-2xl border-2 border-amber-300/60 bg-gradient-to-br from-red-600 via-amber-600 to-orange-700 p-4 shadow-lg dark:border-amber-700/60 sm:p-4">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
             <div>
@@ -109,7 +109,7 @@ export function PesticideCalculator() {
         </section>
       </div>
 
-      <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <section className="rounded-xl border-2 border-amber-300 bg-gradient-to-br from-amber-100 to-orange-100 p-4 text-sm font-semibold text-amber-950 shadow-md dark:border-amber-900 dark:from-amber-950/50 dark:to-orange-950/30 dark:text-amber-100">
           <div className="grid gap-2 sm:grid-cols-3">
             <p><span className="font-black">1.</span> Choose active ingredient or direct dose mode.</p>
@@ -119,7 +119,7 @@ export function PesticideCalculator() {
         </section>
 
         <div className="flex flex-wrap items-center gap-2 rounded-xl border-2 border-amber-300 bg-gradient-to-br from-white via-amber-50 to-orange-100 p-3 shadow-md dark:border-amber-900/60 dark:from-slate-900 dark:via-amber-950/30 dark:to-orange-950/20">
-          <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
+          <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-amber-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
             <Copy className="h-4 w-4" />
             {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'టెక్స్ట్ కాపీ')}
           </button>
@@ -150,13 +150,13 @@ export function PesticideCalculator() {
                   <div className="grid grid-cols-2 gap-2">
                     <label className={radioCardClass(form.unitType === 'liquid')}>
                       <input type="radio" className="sr-only" checked={form.unitType === 'liquid'} onChange={() => updateForm('unitType', 'liquid')} />
-                      {form.unitType === 'liquid' && <Check className="absolute right-2 top-2 h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
+                      {form.unitType === 'liquid' && <Check className="absolute right-2 top-2 h-4 w-4 text-amber-600 dark:text-amber-400" />}
                       <span className="text-sm font-black">{t('Liquid', 'ద్రవం')}</span>
                       <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">mL, mL/L</span>
                     </label>
                     <label className={radioCardClass(form.unitType === 'solid')}>
                       <input type="radio" className="sr-only" checked={form.unitType === 'solid'} onChange={() => updateForm('unitType', 'solid')} />
-                      {form.unitType === 'solid' && <Check className="absolute right-2 top-2 h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
+                      {form.unitType === 'solid' && <Check className="absolute right-2 top-2 h-4 w-4 text-amber-600 dark:text-amber-400" />}
                       <span className="text-sm font-black">{t('Solid', 'ఘన పదార్థం')}</span>
                       <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">g, g/L</span>
                     </label>
@@ -255,7 +255,7 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 
 function ModeButton({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className={`min-h-10 rounded-md px-3 py-2 text-sm font-black transition ${active ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-950 dark:text-emerald-300' : 'text-slate-600 hover:bg-white/70 dark:text-slate-300 dark:hover:bg-slate-950/70'}`}>
+    <button type="button" onClick={onClick} className={`min-h-10 rounded-md px-3 py-2 text-sm font-black transition ${active ? 'bg-white text-amber-800 shadow-sm dark:bg-slate-950 dark:text-amber-300' : 'text-slate-600 hover:bg-white/70 dark:text-slate-300 dark:hover:bg-slate-950/70'}`}>
       <span className="inline-flex items-center justify-center gap-1.5">
         {active && <Check className="h-4 w-4" />}
         {label}
@@ -317,7 +317,7 @@ function ResultGrid({ result, unitLabels, t }: { result: PesticideResult; unitLa
 const inputClass = 'min-h-11 w-full rounded-lg border-2 border-amber-300 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-100 dark:border-amber-900 dark:bg-slate-950 dark:text-white dark:focus:ring-amber-900/40';
 
 function radioCardClass(active: boolean) {
-  return `relative flex min-h-16 cursor-pointer flex-col justify-center rounded-lg border p-3 transition ${active ? 'border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100' : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'}`;
+  return `relative flex min-h-16 cursor-pointer flex-col justify-center rounded-lg border p-3 transition ${active ? 'border-amber-500 bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-100' : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'}`;
 }
 
 interface PesticideResult {

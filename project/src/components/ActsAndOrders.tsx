@@ -68,12 +68,15 @@ const legalAreaCards: Array<{
   icon: typeof Scale;
   category: LegalCategory;
   color: string;
-  glow: string;
-  delay: string;
+  panel: string;
+  border: string;
+  accent: string;
+  chip: string;
+  hover: string;
 }> = [
-  { id: 'fertilizer', title: 'Fertilizer', description: 'FCO 1985, ECA, seizure, samples and prosecution references.', icon: PackageCheck, category: 'Fertiliser', color: 'from-amber-500 via-emerald-500 to-teal-700', glow: 'shadow-amber-500/25', delay: '0ms' },
-  { id: 'seed', title: 'Seed', description: 'Seed Act, Rules, labelling, sampling and penalty actions.', icon: Sprout, category: 'Seeds', color: 'from-lime-500 via-green-500 to-emerald-700', glow: 'shadow-lime-500/25', delay: '120ms' },
-  { id: 'insecticide', title: 'Insecticide', description: 'Insecticides Act, Rules, stop-sale, seizure and records.', icon: SprayCan, category: 'Insecticides', color: 'from-cyan-500 via-sky-500 to-blue-700', glow: 'shadow-sky-500/25', delay: '240ms' },
+  { id: 'fertilizer', title: 'Fertilizer', description: 'FCO 1985, ECA, seizure, samples and prosecution references.', icon: PackageCheck, category: 'Fertiliser', color: 'from-amber-500 via-emerald-500 to-teal-700', panel: 'from-amber-50 to-emerald-50 dark:from-amber-950/30 dark:to-emerald-950/30', border: 'border-amber-200 dark:border-amber-800/50', accent: 'text-amber-700 dark:text-amber-300', chip: 'bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-950/30 dark:text-amber-300 dark:ring-amber-900', hover: 'hover:border-amber-300 hover:bg-amber-50/60 dark:hover:bg-amber-950/20' },
+  { id: 'seed', title: 'Seed', description: 'Seed Act, Rules, labelling, sampling and penalty actions.', icon: Sprout, category: 'Seeds', color: 'from-lime-500 via-green-500 to-emerald-700', panel: 'from-lime-50 to-emerald-50 dark:from-lime-950/30 dark:to-emerald-950/30', border: 'border-lime-200 dark:border-lime-800/50', accent: 'text-lime-700 dark:text-lime-300', chip: 'bg-lime-50 text-lime-700 ring-lime-100 dark:bg-lime-950/30 dark:text-lime-300 dark:ring-lime-900', hover: 'hover:border-lime-300 hover:bg-lime-50/60 dark:hover:bg-lime-950/20' },
+  { id: 'insecticide', title: 'Insecticide', description: 'Insecticides Act, Rules, stop-sale, seizure and records.', icon: SprayCan, category: 'Insecticides', color: 'from-cyan-500 via-sky-500 to-blue-700', panel: 'from-sky-50 to-cyan-50 dark:from-sky-950/30 dark:to-cyan-950/30', border: 'border-sky-200 dark:border-sky-800/50', accent: 'text-sky-700 dark:text-sky-300', chip: 'bg-sky-50 text-sky-700 ring-sky-100 dark:bg-sky-950/30 dark:text-sky-300 dark:ring-sky-900', hover: 'hover:border-sky-300 hover:bg-sky-50/60 dark:hover:bg-sky-950/20' },
 ];
 
 const legalTopicCards: Record<MainLegalArea, Array<{
@@ -442,7 +445,7 @@ export function ActsAndOrders() {
       {selectedLegalArea && selectedLegalArea !== 'fertilizer' && (
         <>
       <div className="grid gap-3 sm:grid-cols-2">
-        <ViewButton active={view === 'powers'} icon={ShieldAlert} label="Stop Sale & Seizure" onClick={() => setView('powers')} />
+        <ViewButton active={view === 'powers'} icon={ShieldAlert} label="Stop Sale & Seizure" onClick={() => setView('powers')} area={selectedLegalArea || undefined} />
       </div>
 
       {view === 'powers' && selectedLegalArea && <PowersSection area={selectedLegalArea} />}
@@ -466,7 +469,7 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
   ];
 
   return (
-    <section className="space-y-2.5 rounded-lg border border-emerald-100 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <section className="space-y-2.5 rounded-lg border border-amber-200 bg-white p-3 shadow-sm dark:border-amber-800/50 dark:bg-slate-900">
       <div className="flex items-center gap-2.5">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-white shadow-lg shadow-amber-500/20">
           <PackageCheck className="h-5 w-5" />
@@ -484,7 +487,7 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
               key={card.id}
               type="button"
               onClick={() => onOpenSection(card.id)}
-              className="group relative min-h-[7rem] overflow-hidden rounded-lg border border-emerald-200 bg-white p-2.5 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md dark:border-emerald-800/50 dark:bg-slate-950"
+              className="group relative min-h-[7rem] overflow-hidden rounded-lg border border-amber-200 bg-white p-2.5 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-md dark:border-amber-800/50 dark:bg-slate-950"
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${card.tone} opacity-15 transition group-hover:opacity-25`} />
               <div className="relative flex h-full flex-col justify-between gap-2">
@@ -510,10 +513,10 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
 
 function FertilizerSectionHeader({ title, subtitle, icon: Icon, onBack }: { title: string; subtitle: string; icon: React.ElementType; onBack: () => void }) {
   return (
-    <div className="flex items-center gap-2.5 rounded-lg border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-3 shadow-sm dark:border-slate-700 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950">
+    <div className="flex items-center gap-2.5 rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-3 shadow-sm dark:border-amber-800/50 dark:from-amber-950/40 dark:via-slate-900 dark:to-emerald-950">
       <BackButton onClick={onBack} />
       <div className="flex items-center gap-2.5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-white shadow-sm">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-white shadow-sm">
           <Icon className="h-4 w-4" />
         </span>
         <div>
@@ -684,8 +687,8 @@ function OfficerCornerPanel({
           {actions.map((item) => {
             const Icon = item.icon;
             return (
-              <button key={item.id} type="button" onClick={() => onActionChange(item.id)} className="group min-h-[8rem] rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 transition group-hover:scale-105 dark:bg-emerald-950/30 dark:text-emerald-300 dark:ring-emerald-900">
+              <button key={item.id} type="button" onClick={() => onActionChange(item.id)} className="group min-h-[8rem] rounded-lg border border-amber-200 bg-white p-3 text-left shadow-sm transition hover:-translate-y-1 hover:border-amber-300 hover:shadow-md dark:border-amber-800/50 dark:bg-slate-900">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-700 ring-1 ring-amber-100 transition group-hover:scale-105 dark:bg-amber-950/30 dark:text-amber-300 dark:ring-amber-900">
                   <Icon className="h-5 w-5" />
                 </span>
                 <span className="mt-3 block text-sm font-black text-slate-950 dark:text-white">{item.title}</span>
@@ -732,18 +735,15 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
               key={card.id}
               type="button"
               onClick={() => onOpen(card.id)}
-              style={{ animationDelay: card.delay }}
-              className={`agri-legal-round-card group relative mx-auto flex aspect-square w-full max-w-[10.4rem] flex-col items-center justify-center overflow-hidden rounded-full border border-emerald-300/70 bg-gradient-to-br from-white via-lime-50 to-emerald-50 p-[0.9rem] text-center shadow-lg ${card.glow} ring-1 ring-emerald-900/5 transition duration-300 hover:-translate-y-2 hover:scale-[1.06] hover:rotate-[1deg] hover:shadow-2xl focus-visible:outline-emerald-700 active:scale-[0.97] dark:border-slate-700 dark:bg-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950`}
+              className={`group flex min-h-[7rem] w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 ${card.border} bg-gradient-to-br ${card.panel} p-3 text-center shadow-md transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl focus-visible:outline-emerald-700 active:scale-[0.98]`}
             >
-              <span className={`absolute inset-2 rounded-full bg-gradient-to-br ${card.color} opacity-[0.18] transition group-hover:opacity-[0.28]`} />
-              <span className="agri-card-field-lines absolute inset-4 rounded-full" />
-              <span className="agri-card-shine absolute inset-0 rounded-full" />
-              <span className="agri-legal-ripple absolute inset-0 rounded-full" />
-              <span className={`relative flex h-[3.15rem] w-[3.15rem] items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-lg ${card.glow} ring-4 ring-white/80 transition duration-300 group-hover:scale-110 group-hover:rotate-3 sm:h-[3.6rem] sm:w-[3.6rem]`}>
-                <Icon className="h-[1.57rem] w-[1.57rem] sm:h-[1.8rem] sm:w-[1.8rem]" strokeWidth={1.9} />
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-lg`}>
+                <Icon className="h-5 w-5" />
               </span>
-              <span className="relative mt-2.5 text-[0.9rem] font-black sm:text-[1.02rem] text-emerald-950 dark:text-white">{card.title}</span>
-              <span className="relative mt-1 max-w-[8.5rem] text-[10px] font-bold leading-4 text-emerald-900/75 dark:text-slate-300">{card.description}</span>
+              <span className="min-w-0">
+                <span className="block text-sm font-black leading-snug text-slate-950 dark:text-white">{card.title}</span>
+                <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-700 dark:text-slate-300">{card.description}</span>
+              </span>
             </button>
           );
         })}
@@ -764,7 +764,7 @@ function LegalTopicScreen({
   const topics = legalTopicCards[area];
 
   return (
-    <section className="rounded-lg border border-emerald-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <section className={`rounded-lg border ${areaCard.border} bg-white p-4 shadow-sm dark:bg-slate-900`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div className={`flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br ${areaCard.color} text-white shadow-sm`}>
@@ -777,17 +777,16 @@ function LegalTopicScreen({
         </div>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {topics.map((topic, index) => {
+        {topics.map((topic) => {
           const Icon = topic.icon;
           return (
             <button
               key={topic.title}
               type="button"
               onClick={() => onOpenTopic(topic)}
-              style={{ animationDelay: `${index * 70}ms` }}
-              className="agri-topic-card group rounded-lg border border-emerald-200 bg-slate-50 p-4 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 active:scale-[0.99] dark:border-emerald-800/50 dark:bg-slate-950 dark:hover:bg-emerald-950/20"
+              className={`group rounded-lg border ${areaCard.border} bg-gradient-to-br ${areaCard.panel} p-4 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 ${areaCard.hover} hover:shadow-md active:scale-[0.99]`}
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-emerald-700 shadow-sm ring-1 ring-emerald-100 transition group-hover:scale-105 dark:bg-slate-900 dark:text-emerald-300 dark:ring-slate-700">
+              <span className={`flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br ${areaCard.color} text-white shadow-sm transition group-hover:scale-105`}>
                 <Icon className="h-4 w-4" />
               </span>
               <span className="mt-3 block text-sm font-black text-slate-950 dark:text-white">{topic.title}</span>
@@ -800,21 +799,22 @@ function LegalTopicScreen({
   );
 }
 
-function ViewButton({ active, icon: Icon, label, onClick }: { active: boolean; icon: React.ElementType; label: string; onClick: () => void }) {
+function ViewButton({ active, icon: Icon, label, onClick, area }: { active: boolean; icon: React.ElementType; label: string; onClick: () => void; area?: MainLegalArea }) {
+  const theme = legalAreaCards.find((item) => item.id === area) || legalAreaCards[0];
   return (
     <button
       type="button"
       onClick={onClick}
       className={`agri-input-topic-card group flex min-h-[4.25rem] items-center gap-2.5 rounded-xl border p-2.5 text-left text-sm font-black shadow-sm transition duration-300 hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.98] ${
         active
-          ? 'border-transparent bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 text-white shadow-lg shadow-emerald-900/20'
-          : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'
+          ? `border-transparent bg-gradient-to-br ${theme.color} text-white shadow-lg`
+          : `${theme.border} bg-gradient-to-br ${theme.panel} text-slate-800 ${theme.hover} hover:shadow-md dark:text-slate-200`
       }`}
     >
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm ring-1 transition group-hover:scale-105 ${
         active
           ? 'bg-white/20 text-white ring-white/30'
-          : 'bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-300 dark:ring-emerald-900'
+          : theme.chip
       }`}>
         <Icon className="h-4 w-4" />
       </span>
@@ -825,16 +825,16 @@ function ViewButton({ active, icon: Icon, label, onClick }: { active: boolean; i
 
 function FcoMasterMnemonicCard() {
   return (
-    <section className="overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950">
+    <section className="overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-3 shadow-sm dark:border-amber-800/50 dark:bg-slate-950 dark:from-amber-950/40 dark:via-slate-900 dark:to-emerald-950">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Master Mnemonic</p>
+          <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Master Mnemonic</p>
           <h3 className="mt-1 text-lg font-black tracking-wide text-slate-950 dark:text-white">{fcoMemoryMnemonic.code}</h3>
           <p className="mt-1 text-xs font-bold leading-5 text-slate-700 dark:text-slate-200">{fcoMemoryMnemonic.sentence}</p>
         </div>
         <div className="flex max-w-xl flex-wrap gap-1.5">
           {fcoMemoryMnemonic.lines.map(([letter, word]) => (
-            <span key={`${letter}-${word}`} className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-emerald-900 shadow-sm ring-1 ring-emerald-100 dark:bg-emerald-950 dark:text-emerald-100 dark:ring-emerald-900">
+            <span key={`${letter}-${word}`} className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-amber-900 shadow-sm ring-1 ring-amber-100 dark:bg-amber-950 dark:text-amber-100 dark:ring-amber-900">
               {letter}: {word}
             </span>
           ))}
@@ -1297,12 +1297,12 @@ function FertilizerFormsPanel({
               </div>
               <p className="text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.description}</p>
             </div>
-            <div className="mt-2 grid grid-cols-2 gap-1.5 border-t border-amber-100 pt-2 dark:border-slate-800">
-              <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-lg bg-amber-700 px-2 py-1.5 text-[11px] font-black text-white hover:bg-amber-800">
-                <FileSearch className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">View</span>
+            <div className="mt-1.5 grid grid-cols-2 gap-1 border-t border-amber-100 pt-1.5 dark:border-slate-800">
+              <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-7 min-w-0 items-center justify-center gap-1 rounded-md bg-amber-700 px-1.5 py-1 text-[10px] font-black text-white hover:bg-amber-800">
+                <FileSearch className="h-3 w-3 shrink-0" /> <span className="truncate">View</span>
               </button>
-              <a href={form.pdfPath} download className="inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
-                <FileText className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">PDF</span>
+              <a href={form.pdfPath} download className="inline-flex min-h-7 min-w-0 items-center justify-center gap-1 rounded-md border border-slate-200 bg-white px-1.5 py-1 text-[10px] font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+                <FileText className="h-3 w-3 shrink-0" /> <span className="truncate">PDF</span>
               </a>
             </div>
           </article>
@@ -1318,19 +1318,19 @@ function FertilizerFormsPanel({
 }
 function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffenceEntry[]; onDownload: () => void; onPrint: () => void }) {
   return (
-    <details className="group overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-blue-100 bg-blue-50 px-4 py-3 dark:border-slate-700 dark:bg-blue-950/30">
+    <details className="group overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm dark:border-amber-800/50 dark:bg-slate-950">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-amber-100 bg-amber-50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/30">
         <div>
           <h2 className="text-base font-black text-slate-950 dark:text-white">FCO Offences With Relevant FCO/ECA Provisions</h2>
           <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">Dropdown list for offence search and penal provision reference.</p>
         </div>
-        <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-blue-800 shadow-sm transition group-open:bg-blue-700 group-open:text-white dark:bg-slate-950 dark:text-blue-200">
+        <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-amber-800 shadow-sm transition group-open:bg-amber-700 group-open:text-white dark:bg-slate-950 dark:text-amber-200">
           {entries.length} offences
         </span>
       </summary>
-      <div className="border-b border-blue-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
+      <div className="border-b border-amber-100 bg-white px-4 py-3 dark:border-amber-900/50 dark:bg-slate-950">
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onPrint} className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-3 py-2 text-sm font-black text-white hover:bg-blue-800">
+          <button type="button" onClick={onPrint} className="inline-flex items-center gap-2 rounded-lg bg-amber-700 px-3 py-2 text-sm font-black text-white hover:bg-amber-800">
             <Printer className="h-4 w-4" />
             Print
           </button>
@@ -1377,6 +1377,7 @@ function renderFcoOffencesPrintHtml(entries: FcoOffenceEntry[]) {
 }
 
 function PowersSection({ area }: { area: MainLegalArea }) {
+  const theme = legalAreaCards.find((item) => item.id === area) || legalAreaCards[0];
   const visibleMappings = stopSaleSeizureMappings.filter((item) => {
     if (area === 'fertilizer') return item.group === 'Fertiliser cases under FCO 1985' || item.group === 'Fertiliser Movement Control Order cases';
     if (area === 'seed') return item.group === 'Seed cases under Seeds Act, 1966';
@@ -1386,11 +1387,11 @@ function PowersSection({ area }: { area: MainLegalArea }) {
   return (
     <div className="space-y-4">
       {groups.map((group) => (
-        <section key={group} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-lg font-black text-slate-950 dark:text-white">{group}</h2>
-          <div className="mt-3 overflow-x-auto rounded-lg border border-slate-100 dark:border-slate-700">
+        <section key={group} className={`rounded-lg border ${theme.border} bg-white p-4 shadow-sm dark:bg-slate-900`}>
+          <h2 className={`text-lg font-black ${theme.accent}`}>{group}</h2>
+          <div className={`mt-3 overflow-x-auto rounded-lg border ${theme.border}`}>
             <table className="w-full min-w-[980px] text-left text-sm">
-              <thead className="bg-slate-50 text-xs font-black uppercase text-slate-500 dark:bg-slate-800">
+              <thead className={`bg-gradient-to-br ${theme.panel} text-xs font-black uppercase ${theme.accent}`}>
                 <tr>
                   <th className="px-3 py-2">Situation / violation</th>
                   <th className="px-3 py-2">Act / Order</th>
@@ -1422,8 +1423,8 @@ function PowersSection({ area }: { area: MainLegalArea }) {
       ))}
       <section className="grid gap-3 md:grid-cols-3">
         {officerWorkflows.map((workflow) => (
-          <div key={workflow.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-            <h3 className="font-black text-slate-950 dark:text-white">{workflow.title}</h3>
+          <div key={workflow.id} className={`rounded-lg border ${theme.border} bg-gradient-to-br ${theme.panel} p-4 shadow-sm`}>
+            <h3 className={`font-black ${theme.accent}`}>{workflow.title}</h3>
             <ol className="mt-3 space-y-2">
               {workflow.steps.map((step, index) => <li key={step} className="text-sm font-semibold text-slate-600 dark:text-slate-300">{index + 1}. {step}</li>)}
             </ol>

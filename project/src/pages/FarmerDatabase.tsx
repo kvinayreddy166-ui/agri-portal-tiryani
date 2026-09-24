@@ -468,7 +468,7 @@ export function FarmerDatabase() {
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{uiLabel('Search by farmer, family name, phone, PPB, Aadhaar, survey number, or village.', showTelugu)}</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <LanguageToggle language={showTelugu ? 'te' : 'en'} onClick={() => setShowTelugu((value) => !value)} />
+            <LanguageToggle language={showTelugu ? 'te' : 'en'} onClick={() => setShowTelugu((value) => !value)} accent="emerald" />
             <button type="button" onClick={loadRows} className="icon-action" aria-label="Refresh"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <button type="button" onClick={exportFiltered} className="icon-action bg-emerald-700 text-white" aria-label="Export Excel"><FileSpreadsheet className="h-4 w-4" /></button>
           </div>
