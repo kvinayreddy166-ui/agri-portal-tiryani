@@ -156,39 +156,67 @@ if ('serviceWorker' in navigator) {
     window.location.reload();
   });
 
-  // Listen for SW_READY messages from service worker
+  // SW_READY fires on every activation (first install and after an update has
+  // already been applied), so it is NOT used to trigger the update banner.
   navigator.serviceWorker.addEventListener('message', (event) => {
-    if (event.data?.type === 'SW_READY') {
-      if (import.meta.env.DEV) console.log('[PWA] SW_READY message received:', event.data.version);
-      window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
-        detail: { version: event.data.version } 
-      }));
+    if (event.data?.type === 'SW_READY' && import.meta.env.DEV) {
+      console.log('[PWA] SW_READY message received:', event.data.version);
     }
   });
 
-  // Check for waiting service worker (new version available)
-  const checkForWaitingServiceWorker = async () => {
+  const notifyUpdateAvailable = () => {
+    window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', {
+      detail: { version: 'waiting' }
+    }));
+  };
+
+  const watchRegistrationForUpdates = (registration: ServiceWorkerRegistration) => {
+    const watchInstalling = () => {
+      const worker = registration.installing;
+      if (!worker) return;
+      worker.addEventListener('statechange', () => {
+        // A finished install while a controller exists = new version waiting
+        // for explicit user approval.
+        if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+          notifyUpdateAvailable();
+        }
+      });
+    };
+    registration.addEventListener('updatefound', watchInstalling);
+    if (registration.installing) watchInstalling();
+    if (registration.waiting && navigator.serviceWorker.controller) {
+      notifyUpdateAvailable();
+    }
+  };
+
+  // Check for updates: update() only downloads and installs a newer service
+  // worker — it still waits for explicit user approval before activating.
+  const checkForUpdates = async () => {
     try {
       const registration = await navigator.serviceWorker.getRegistration();
-      if (registration?.waiting) {
+      if (!registration) return;
+      watchRegistrationForUpdates(registration);
+      try { await registration.update(); } catch {}
+      if (registration.waiting && navigator.serviceWorker.controller) {
         if (import.meta.env.DEV) console.log('[PWA] Waiting service worker detected, showing update banner');
-        window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', { 
-          detail: { version: 'waiting' } 
-        }));
+        notifyUpdateAvailable();
       }
     } catch (error) {
       if (import.meta.env.DEV) console.warn('[PWA] Service worker check failed:', error);
     }
   };
 
-  // Check immediately on load
+  // Check immediately and after the rescue-registration setup inside 'load'
   if (import.meta.env.DEV) console.log('[PWA] Initial check for waiting service worker');
-  void checkForWaitingServiceWorker();
+  void checkForUpdates();
+  window.addEventListener('load', () => {
+    if (!import.meta.env.DEV) void checkForUpdates();
+  });
 
   // Periodically check for updates (every 5 minutes) - detection only, no activation
   const updateCheckInterval = setInterval(() => {
     if (import.meta.env.DEV) console.log('[PWA] Periodic check for waiting service worker');
-    void checkForWaitingServiceWorker();
+    void checkForUpdates();
   }, 5 * 60 * 1000);
 
   // Cleanup interval on page unload

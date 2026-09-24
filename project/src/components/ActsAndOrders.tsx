@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData';
 import { type LegalCategory } from '../data/legalReadyReckonerData';
-import { fcoClauseCards, fcoMemoryMnemonic, importantFcoMnemonics, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
+import { fcoClauseCards, importantFcoMnemonics, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
 import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory, type FertilizerFormEntry } from '../data/fertilizerForms';
 import { fertilizerSchedules, type FertilizerScheduleEntry } from '../data/fertilizerSchedules';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
@@ -75,9 +75,9 @@ const legalAreaCards: Array<{
   chip: string;
   hover: string;
 }> = [
-  { id: 'fertilizer', title: 'Fertilizer', description: 'FCO 1985, ECA, seizure, samples and prosecution references.', icon: PackageCheck, category: 'Fertiliser', color: 'from-amber-500 via-emerald-500 to-teal-700', panel: 'from-amber-50 to-emerald-50 dark:from-amber-950/30 dark:to-emerald-950/30', border: 'border-amber-200 dark:border-amber-800/50', accent: 'text-amber-700 dark:text-amber-300', chip: 'bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-950/30 dark:text-amber-300 dark:ring-amber-900', hover: 'hover:border-amber-300 hover:bg-amber-50/60 dark:hover:bg-amber-950/20' },
+  { id: 'fertilizer', title: 'Fertilizer', description: 'FCO 1985, ECA, seizure, samples and prosecution references.', icon: PackageCheck, category: 'Fertiliser', color: 'from-sky-500 via-blue-500 to-indigo-700', panel: 'from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30', border: 'border-sky-200 dark:border-sky-800/50', accent: 'text-sky-700 dark:text-sky-300', chip: 'bg-sky-50 text-sky-700 ring-sky-100 dark:bg-sky-950/30 dark:text-sky-300 dark:ring-sky-900', hover: 'hover:border-sky-300 hover:bg-sky-50/60 dark:hover:bg-sky-950/20' },
   { id: 'seed', title: 'Seed', description: 'Seed Act, Rules, labelling, sampling and penalty actions.', icon: Sprout, category: 'Seeds', color: 'from-lime-500 via-green-500 to-emerald-700', panel: 'from-lime-50 to-emerald-50 dark:from-lime-950/30 dark:to-emerald-950/30', border: 'border-lime-200 dark:border-lime-800/50', accent: 'text-lime-700 dark:text-lime-300', chip: 'bg-lime-50 text-lime-700 ring-lime-100 dark:bg-lime-950/30 dark:text-lime-300 dark:ring-lime-900', hover: 'hover:border-lime-300 hover:bg-lime-50/60 dark:hover:bg-lime-950/20' },
-  { id: 'insecticide', title: 'Insecticide', description: 'Insecticides Act, Rules, stop-sale, seizure and records.', icon: SprayCan, category: 'Insecticides', color: 'from-cyan-500 via-sky-500 to-blue-700', panel: 'from-sky-50 to-cyan-50 dark:from-sky-950/30 dark:to-cyan-950/30', border: 'border-sky-200 dark:border-sky-800/50', accent: 'text-sky-700 dark:text-sky-300', chip: 'bg-sky-50 text-sky-700 ring-sky-100 dark:bg-sky-950/30 dark:text-sky-300 dark:ring-sky-900', hover: 'hover:border-sky-300 hover:bg-sky-50/60 dark:hover:bg-sky-950/20' },
+  { id: 'insecticide', title: 'Insecticide', description: 'Insecticides Act, Rules, stop-sale, seizure and records.', icon: SprayCan, category: 'Insecticides', color: 'from-red-400 via-rose-500 to-red-700', panel: 'from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30', border: 'border-red-200 dark:border-red-800/50', accent: 'text-red-700 dark:text-red-300', chip: 'bg-red-50 text-red-700 ring-red-100 dark:bg-red-950/30 dark:text-red-300 dark:ring-red-900', hover: 'hover:border-red-300 hover:bg-red-50/60 dark:hover:bg-red-950/20' },
 ];
 
 const legalTopicCards: Record<MainLegalArea, Array<{
@@ -300,21 +300,28 @@ export function ActsAndOrders() {
     navigate('/officer-toolkit');
   };
 
+  const activeAreaCard = selectedLegalArea ? legalAreaCards.find((item) => item.id === selectedLegalArea) : null;
+  const ActiveAreaIcon = activeAreaCard?.icon || Scale;
+
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-7xl space-y-4 px-4 pb-6 pt-4 sm:px-6 sm:pb-8 lg:px-8">
       {!selectedFcoCardId && (
-      <section className="overflow-hidden rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-700 via-green-700 to-teal-800 p-4 text-white shadow-sm dark:border-emerald-900 sm:p-5">
-          <div className="flex items-start gap-3">
-            <BackButton onClick={handleBack} tone="solid" className="mt-0.5" />
-            <div className="flex min-w-0 items-start gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/20">
-                <Scale className="h-6 w-6" />
+      <section className={`overflow-hidden rounded-2xl border px-4 py-3 text-white shadow-md ${
+          activeAreaCard
+            ? `border-white/20 bg-gradient-to-br ${activeAreaCard.color}`
+            : 'border-emerald-700/40 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 dark:border-emerald-800/50'
+        }`}>
+          <div className="flex items-center gap-3">
+            <BackButton onClick={handleBack} tone="solid" className="self-center" />
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/20 shadow-sm ring-1 ring-white/30">
+                <ActiveAreaIcon className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-black uppercase tracking-wide text-emerald-100">Officer Toolkit</p>
-                <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Acts & Orders</h1>
-                <p className="mt-1 max-w-3xl text-sm font-semibold text-emerald-50">
-                  Search Acts, Rules, Orders, clauses, penal provisions, stop sale, seizure, sampling and notice workflows.
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/80">{activeAreaCard ? 'Acts & Orders' : 'Officer Toolkit'}</p>
+                <h1 className="text-lg font-black leading-tight sm:text-xl">{activeAreaCard?.title || 'Acts & Orders'}</h1>
+                <p className="text-xs font-semibold text-white/90">
+                  {activeAreaCard?.description || 'Search Acts, Rules, Orders, clauses, penal provisions, stop sale, seizure, sampling and notice workflows.'}
                 </p>
               </div>
             </div>
@@ -342,11 +349,6 @@ export function ActsAndOrders() {
             setQuery(value);
             setSelectedFcoCardId(null);
           }}
-          onBack={() => {
-            setFertilizerSection(null);
-            setSelectedFcoCardId(null);
-            setQuery('');
-          }}
           onBackToCards={() => setSelectedFcoCardId(null)}
           onSelectCard={(cardId) => {
             setSelectedFcoCardId(cardId);
@@ -362,7 +364,6 @@ export function ActsAndOrders() {
           category={formCategory}
           onSearchChange={setFormSearch}
           onCategoryChange={setFormCategory}
-          onBack={() => setFertilizerSection(null)}
           onViewForm={setSelectedFertilizerForm}
         />
       )}
@@ -371,12 +372,11 @@ export function ActsAndOrders() {
         <FertilizerSchedulesPanel
           search={scheduleSearch}
           onSearchChange={setScheduleSearch}
-          onBack={() => setFertilizerSection(null)}
         />
       )}
 
       {selectedLegalArea === 'fertilizer' && fertilizerSection === 'duties' && (
-        <EnforcementDutiesPanel onBack={() => setFertilizerSection(null)} />
+        <EnforcementDutiesPanel />
       )}
 
       {selectedLegalArea && selectedLegalArea !== 'fertilizer' && legalTopicCards[selectedLegalArea].length > 0 && (
@@ -405,24 +405,15 @@ export function ActsAndOrders() {
 
 
 function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: FertilizerSection) => void }) {
-  const cards: Array<{ id: FertilizerSection; title: string; subtitle: string; description: string; icon: React.ElementType; tone: string }> = [
-    { id: 'clauses', title: 'Clauses', subtitle: '39 Clauses', description: 'FCO clause cards, sub-clauses, officer action and timelines.', icon: BookOpen, tone: 'from-emerald-500 via-green-500 to-teal-700' },
-    { id: 'forms', title: 'Forms', subtitle: '28 Forms', description: 'Registration, manufacturing, sampling and business record forms.', icon: FileText, tone: 'from-amber-500 via-orange-400 to-emerald-600' },
-    { id: 'schedules', title: 'Schedules', subtitle: '8 Schedules', description: 'Specifications, sampling procedures, tolerance limits and analysis methods.', icon: ClipboardList, tone: 'from-sky-500 via-cyan-500 to-emerald-600' },
-    { id: 'duties', title: 'Enforcement Mind Map', subtitle: 'Duties & powers', description: 'Duties of enforcement officers — authorities, sampling, seizure and prosecution.', icon: Network, tone: 'from-violet-500 via-purple-500 to-fuchsia-600' },
+  const cards: Array<{ id: FertilizerSection; title: string; subtitle: string; description: string; icon: React.ElementType }> = [
+    { id: 'clauses', title: 'Clauses', subtitle: '39 Clauses', description: 'FCO clause cards, sub-clauses, officer action and timelines.', icon: BookOpen },
+    { id: 'forms', title: 'Forms', subtitle: '28 Forms', description: 'Registration, manufacturing, sampling and business record forms.', icon: FileText },
+    { id: 'schedules', title: 'Schedules', subtitle: '8 Schedules', description: 'Specifications, sampling procedures, tolerance limits and analysis methods.', icon: ClipboardList },
+    { id: 'duties', title: 'Enforcement Mind Map', subtitle: 'Duties & powers', description: 'Duties of enforcement officers — authorities, sampling, seizure and prosecution.', icon: Network },
   ];
 
   return (
-    <section className="space-y-2.5 rounded-lg border border-amber-200 bg-white p-3 shadow-sm dark:border-amber-800/50 dark:bg-slate-900">
-      <div className="flex items-center gap-2.5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-white shadow-lg shadow-amber-500/20">
-          <PackageCheck className="h-5 w-5" />
-        </div>
-        <div>
-          <h2 className="text-base font-black text-slate-950 dark:text-white">Fertilizer</h2>
-          <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300">Open clauses, forms, schedules, or officer field actions.</p>
-        </div>
-      </div>
+    <section className="space-y-2.5 rounded-lg border border-sky-200 bg-white p-3 shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -431,45 +422,40 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
               key={card.id}
               type="button"
               onClick={() => onOpenSection(card.id)}
-              className="group relative min-h-[7rem] overflow-hidden rounded-lg border border-amber-200 bg-white p-2.5 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-md dark:border-amber-800/50 dark:bg-slate-950"
+              className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.tone} opacity-15 transition group-hover:opacity-25`} />
-              <div className="relative flex h-full flex-col justify-between gap-2">
-                <div className="flex items-start justify-between gap-2">
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${card.tone} text-white shadow-sm transition group-hover:scale-105`}>
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <span className="rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-black text-slate-800 ring-1 ring-slate-200 dark:bg-slate-900/85 dark:text-slate-100 dark:ring-slate-700">{card.subtitle}</span>
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-950 dark:text-white">{card.title}</h3>
-                  <p className="mt-0.5 line-clamp-2 text-[11px] font-bold leading-4 text-slate-600 dark:text-slate-300">{card.description}</p>
-                </div>
+              <div className="flex items-start justify-between gap-2">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm transition group-hover:scale-105">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800/60">{card.subtitle}</span>
               </div>
+              <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.title}</h3>
+              <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.description}</p>
+              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-sky-700 transition group-hover:gap-1.5 dark:text-sky-300">
+                Open <ArrowRight className="h-3 w-3" />
+              </span>
             </button>
           );
         })}
       </div>
-      
     </section>
   );
 }
 
-function FertilizerSectionHeader({ title, subtitle, icon: Icon, onBack }: { title: string; subtitle: string; icon: React.ElementType; onBack: () => void }) {
+
+
+function FertilizerSectionBadge({ icon: Icon, label, meta, tone = 'gradient' }: { icon: React.ElementType; label: string; meta?: string; tone?: 'gradient' | 'onGradient' }) {
   return (
-    <div className="flex items-center gap-2.5 rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-3 shadow-sm dark:border-amber-800/50 dark:from-amber-950/40 dark:via-slate-900 dark:to-emerald-950">
-      <BackButton onClick={onBack} />
-      <div className="flex items-center gap-2.5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-white shadow-sm">
-          <Icon className="h-4 w-4" />
-        </span>
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Fertilizer</p>
-          <h2 className="text-lg font-black text-slate-950 dark:text-white">{title}</h2>
-          <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{subtitle}</p>
-        </div>
-      </div>
-    </div>
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide shadow-md ${
+      tone === 'gradient'
+        ? 'bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 text-white shadow-sky-500/25'
+        : 'bg-white/20 text-white ring-1 ring-white/30 shadow-none'
+    }`}>
+      <Icon className="h-3.5 w-3.5" />
+      {label}
+      {meta && <span className="rounded-full bg-white/25 px-1.5 py-px text-[9px] normal-case tracking-normal">{meta}</span>}
+    </span>
   );
 }
 
@@ -482,7 +468,6 @@ function FertilizerClausesPanel({
   bookmarks,
   onSearchChange,
   onTabChange,
-  onBack,
   onBackToCards,
   onSelectCard,
   onToggleBookmark,
@@ -495,7 +480,6 @@ function FertilizerClausesPanel({
   bookmarks: string[];
   onSearchChange: (value: string) => void;
   onTabChange: (tab: FcoTabId) => void;
-  onBack: () => void;
   onBackToCards: () => void;
   onSelectCard: (cardId: string) => void;
   onToggleBookmark: (id: string) => void;
@@ -521,16 +505,15 @@ function FertilizerClausesPanel({
 
   return (
     <section className="space-y-3">
-      <FertilizerSectionHeader title="Clauses" subtitle="39 Clauses" icon={BookOpen} onBack={onBack} />
-      <FcoMasterMnemonicCard />
-      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <FertilizerSectionBadge icon={BookOpen} label="Clauses" />
+      <div className="rounded-lg border border-sky-200 bg-white p-3 shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search Clause 28, 28(2), stop sale, Form J, Schedule II..."
-            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           />
         </div>
       </div>
@@ -543,7 +526,7 @@ function FertilizerClausesPanel({
           onSelect={onSelectCard}
         />
       ) : (
-        <p className="rounded-lg border border-dashed border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-900">No clauses found</p>
+        <p className="rounded-lg border border-dashed border-sky-200 p-8 text-center text-sm font-semibold text-slate-500 dark:border-sky-800/50">No clauses found</p>
       )}
     </section>
   );
@@ -553,44 +536,55 @@ function scheduleSearchText(schedule: FertilizerScheduleEntry) {
   return [schedule.scheduleNo, schedule.title, schedule.subtitle, schedule.parts.map((part) => part.label).join(' '), schedule.keywords.join(' ')].join(' ').toLowerCase();
 }
 
-function FertilizerSchedulesPanel({ search, onSearchChange, onBack }: { search: string; onSearchChange: (value: string) => void; onBack: () => void }) {
+function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; onSearchChange: (value: string) => void }) {
   const term = search.trim().toLowerCase();
   const visibleSchedules = fertilizerSchedules.filter((schedule) => !term || scheduleSearchText(schedule).includes(term));
 
   return (
     <section className="space-y-3">
-      <FertilizerSectionHeader title="Schedules" subtitle="8 Schedules" icon={ClipboardList} onBack={onBack} />
-      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <FertilizerSectionBadge icon={ClipboardList} label="Schedules" />
+      <div className="rounded-lg border border-sky-200 bg-white p-3 shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search schedule, part, sampling, tolerance, biofertiliser..."
-            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           />
+        </div>
+        <div className="mt-2.5 flex justify-end">
+          <span className="rounded-full bg-sky-50 px-3 py-1 text-[11px] font-black text-sky-800 ring-1 ring-sky-100 dark:bg-sky-950/30 dark:text-sky-200 dark:ring-sky-900">
+            {visibleSchedules.length} schedules
+          </span>
         </div>
       </div>
       <div className="grid gap-2 md:grid-cols-2">
         {visibleSchedules.map((schedule) => (
-          <details key={schedule.id} className="group rounded-lg border border-sky-200 bg-white p-2.5 shadow-sm transition hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:bg-slate-900">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{schedule.scheduleNo}</p>
-                <h3 className="mt-0.5 text-sm font-black text-slate-950 dark:text-white">{schedule.title}</h3>
-                <p className="mt-0.5 line-clamp-2 text-[11px] font-bold leading-4 text-slate-600 dark:text-slate-300">{schedule.subtitle}</p>
+          <details key={schedule.id} className="group overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20">
+            <summary className="flex cursor-pointer list-none items-start gap-2.5 p-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm transition group-hover:scale-105">
+                <ClipboardList className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">{schedule.scheduleNo}</p>
+                <h3 className="mt-0.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{schedule.title}</h3>
+                <p className="mt-0.5 line-clamp-2 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{schedule.subtitle}</p>
               </div>
-              <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
+              <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-sky-700 transition-transform group-open:rotate-180 dark:text-sky-300" />
             </summary>
-            <ul className="mt-2 space-y-1.5 border-t border-slate-100 pt-2 dark:border-slate-800">
+            <ul className="space-y-1.5 border-t border-sky-100 px-3 pb-3 pt-2.5 dark:border-sky-900/40">
               {schedule.parts.map((part) => (
-                <li key={part.id} className="rounded-md bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:bg-slate-950 dark:text-slate-200">{part.label}</li>
+                <li key={part.id} className="flex items-start gap-2 rounded-md border border-sky-100 bg-white/70 px-2.5 py-1.5 text-[11px] font-semibold leading-4 text-slate-700 dark:border-sky-900/40 dark:bg-slate-900/60 dark:text-slate-200">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-sky-500 to-blue-500" />
+                  {part.label}
+                </li>
               ))}
             </ul>
           </details>
         ))}
         {visibleSchedules.length === 0 && (
-          <p className="rounded-lg border border-dashed border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 dark:border-slate-700 dark:bg-slate-900">No schedules found</p>
+          <p className="rounded-lg border border-dashed border-sky-200 p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 dark:border-sky-800/50">No schedules found</p>
         )}
       </div>
     </section>
@@ -639,9 +633,9 @@ function printFcoOffences(entries: FcoOffenceEntry[]) {
 
 function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => void }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-emerald-100 bg-[linear-gradient(135deg,#f7fee7_0%,#ecfdf5_48%,#eff6ff_100%)] p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-5">
+    <section className="overflow-hidden rounded-lg border border-blue-100 bg-[linear-gradient(135deg,#f7fee7_0%,#ecfdf5_48%,#eff6ff_100%)] p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-5">
       <div className="mx-auto max-w-4xl text-center">
-        <h2 className="text-xl font-black text-emerald-950 dark:text-white sm:text-2xl">Select input category</h2>
+        <h2 className="text-xl font-black text-blue-950 dark:text-white sm:text-2xl">Select input category</h2>
       </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
         {legalAreaCards.map((card) => {
@@ -651,7 +645,7 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
               key={card.id}
               type="button"
               onClick={() => onOpen(card.id)}
-              className={`group flex min-h-[7rem] w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 ${card.border} bg-gradient-to-br ${card.panel} p-3 text-center shadow-md transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl focus-visible:outline-emerald-700 active:scale-[0.98]`}
+              className={`group flex min-h-[7rem] w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 ${card.border} bg-gradient-to-br ${card.panel} p-3 text-center shadow-md transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl focus-visible:outline-blue-700 active:scale-[0.98]`}
             >
               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-lg`}>
                 <Icon className="h-5 w-5" />
@@ -739,26 +733,6 @@ function ViewButton({ active, icon: Icon, label, onClick, area }: { active: bool
   );
 }
 
-function FcoMasterMnemonicCard() {
-  return (
-    <section className="overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-3 shadow-sm dark:border-amber-800/50 dark:bg-slate-950 dark:from-amber-950/40 dark:via-slate-900 dark:to-emerald-950">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Master Mnemonic</p>
-          <h3 className="mt-1 text-lg font-black tracking-wide text-slate-950 dark:text-white">{fcoMemoryMnemonic.code}</h3>
-          <p className="mt-1 text-xs font-bold leading-5 text-slate-700 dark:text-slate-200">{fcoMemoryMnemonic.sentence}</p>
-        </div>
-        <div className="flex max-w-xl flex-wrap gap-1.5">
-          {fcoMemoryMnemonic.lines.map(([letter, word]) => (
-            <span key={`${letter}-${word}`} className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-amber-900 shadow-sm ring-1 ring-amber-100 dark:bg-amber-950 dark:text-amber-100 dark:ring-amber-900">
-              {letter}: {word}
-            </span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 function escapeHtml(value: string) {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
@@ -786,8 +760,11 @@ function FcoCardDetailPage({
   const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
 
   return (
-    <section className="overflow-hidden rounded-lg border border-amber-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
-      <div className={`bg-gradient-to-br ${card.gradient} p-3 text-white`}>
+    <section className="overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-md dark:border-slate-700 dark:bg-slate-950">
+      <div className="bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 p-3 text-white">
+        <div className="mb-2">
+          <FertilizerSectionBadge icon={BookOpen} label="Clauses" tone="onGradient" />
+        </div>
         <div className="flex items-start gap-2.5">
           <BackButton onClick={onBack} tone="solid" label="Back to cards" className="mt-0.5" />
           <div className="flex items-start gap-2.5">
@@ -813,10 +790,10 @@ function FcoCardDetailPage({
               key={tab.id}
               type="button"
               onClick={() => onTabChange(tab.id)}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-black ring-1 transition ${
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-black transition ${
                 selected
-                  ? 'bg-emerald-600 text-white ring-emerald-600 shadow-sm'
-                  : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-800'
+                  ? 'bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 text-white shadow-md shadow-sky-500/25'
+                  : 'border border-sky-200 bg-sky-50/60 text-sky-900 hover:border-sky-300 hover:bg-sky-100 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200 dark:hover:bg-sky-950/50'
               }`}
             >
               <TabIcon className="h-3.5 w-3.5" />
@@ -843,9 +820,9 @@ function FcoCardDetailPage({
 
 const fcoGlanceChipTones = {
   slate: 'bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
-  amber: 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900',
+  amber: 'bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-900',
   blue: 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900',
-  emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900',
+  emerald: 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900',
 } as const;
 
 function FcoGlanceChip({ icon: Icon, label, tone = 'slate' }: { icon: typeof Clock; label: string; tone?: keyof typeof fcoGlanceChipTones }) {
@@ -872,21 +849,21 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
   };
 
   return (
-    <details id={`fco-clause-${clause.id}`} className="group overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm dark:border-amber-800/50 dark:bg-slate-900" open>
-      <summary className="flex cursor-pointer list-none flex-col gap-2 border-b border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-950 sm:flex-row sm:items-start sm:justify-between">
+    <details id={`fco-clause-${clause.id}`} className="group overflow-hidden rounded-lg border border-sky-200 bg-white shadow-sm transition duration-300 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:bg-slate-900" open>
+      <summary className="flex cursor-pointer list-none flex-col gap-2 border-b border-sky-100 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-2.5 dark:border-sky-900/40 dark:from-sky-950/30 dark:via-slate-900 dark:to-blue-950/30 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Clause {clause.clauseNo} - {clause.category}</p>
+          <p className="text-[10px] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">Clause {clause.clauseNo} - {clause.category}</p>
           <h3 className="mt-0.5 text-sm font-black text-slate-950 dark:text-white">{clause.title}</h3>
           <p className="mt-0.5 text-xs font-bold text-slate-600 dark:text-slate-300">{clause.summary}</p>
         </div>
         <div className="flex gap-1.5">
-          <button type="button" onClick={(event) => { event.preventDefault(); onToggleBookmark(); }} className="rounded-lg border border-slate-200 bg-white p-1.5 text-emerald-700 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900" aria-label="Bookmark clause">
+          <button type="button" onClick={(event) => { event.preventDefault(); onToggleBookmark(); }} className="rounded-md border border-sky-200 bg-white/80 p-1.5 text-blue-700 transition hover:bg-sky-50 dark:border-sky-800/50 dark:bg-slate-900" aria-label="Bookmark clause">
             {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
           </button>
-          <button type="button" onClick={(event) => { event.preventDefault(); copyClause(); }} className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" aria-label="Copy clause">
+          <button type="button" onClick={(event) => { event.preventDefault(); copyClause(); }} className="rounded-md border border-sky-200 bg-white/80 p-1.5 text-sky-800 transition hover:bg-sky-50 dark:border-sky-800/50 dark:bg-slate-900 dark:text-sky-200" aria-label="Copy clause">
             <Copy className="h-3.5 w-3.5" />
           </button>
-          <button type="button" onClick={(event) => { event.preventDefault(); void shareClause(); }} className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" aria-label="Share clause">
+          <button type="button" onClick={(event) => { event.preventDefault(); void shareClause(); }} className="rounded-md border border-sky-200 bg-white/80 p-1.5 text-sky-800 transition hover:bg-sky-50 dark:border-sky-800/50 dark:bg-slate-900 dark:text-sky-200" aria-label="Share clause">
             <Share2 className="h-3.5 w-3.5" />
           </button>
         </div>
@@ -904,12 +881,12 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
         {clause.provisos.length > 0 && (
           <div className="space-y-1.5">
             {clause.provisos.map((proviso) => (
-              <div key={proviso.title} className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 dark:border-amber-900/60 dark:bg-amber-950/30">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <div key={proviso.title} className="flex gap-2 rounded-lg border border-sky-200 bg-sky-50 p-2.5 dark:border-sky-900/60 dark:bg-sky-950/30">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
                 <div className="min-w-0">
-                  <p className="text-[11px] font-black uppercase tracking-wide text-amber-800 dark:text-amber-300">{proviso.title}</p>
-                  <p className="mt-0.5 text-[12px] font-semibold leading-5 text-amber-900 dark:text-amber-100">{proviso.plainEnglish}</p>
-                  <p className="mt-0.5 text-[11px] font-medium leading-4 text-amber-700/80 dark:text-amber-200/70">{proviso.legalText}</p>
+                  <p className="text-[11px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">{proviso.title}</p>
+                  <p className="mt-0.5 text-[12px] font-semibold leading-5 text-sky-900 dark:text-sky-100">{proviso.plainEnglish}</p>
+                  <p className="mt-0.5 text-[11px] font-medium leading-4 text-sky-700/80 dark:text-sky-200/70">{proviso.legalText}</p>
                 </div>
               </div>
             ))}
@@ -918,16 +895,16 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
         {subClauses.length > 0 && (
           <div className="grid gap-1.5 sm:grid-cols-2">
             {subClauses.map((subClause) => (
-              <details key={subClause.no} className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+              <details key={subClause.no} className="overflow-hidden rounded-lg border border-sky-100 bg-white dark:border-sky-900/40 dark:bg-slate-900">
                 <summary className="flex cursor-pointer list-none items-center gap-2 p-2">
-                  <span className="flex h-7 min-w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-amber-500 to-orange-500 px-1.5 text-[10px] font-black text-white shadow-sm">{subClause.no}</span>
+                  <span className="flex h-7 min-w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 px-1.5 text-[10px] font-black text-white shadow-sm">{subClause.no}</span>
                   <span className="text-[12px] font-bold leading-4 text-slate-800 dark:text-slate-100">{subClause.plainEnglish}</span>
                 </summary>
-                <div className="space-y-1.5 border-t border-slate-100 px-2.5 py-2 text-[12px] font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200">
+                <div className="space-y-1.5 border-t border-sky-100 px-2.5 py-2 text-[12px] font-semibold text-slate-700 dark:border-sky-900/40 dark:text-slate-200">
                   <p className="text-slate-500 dark:text-slate-400">{subClause.legalText}</p>
-                  {subClause.officerAction && <p><span className="font-black text-amber-700 dark:text-amber-300">Officer:</span> {subClause.officerAction.join('; ')}</p>}
+                  {subClause.officerAction && <p><span className="font-black text-sky-700 dark:text-sky-300">Officer:</span> {subClause.officerAction.join('; ')}</p>}
                   {subClause.dealerObligation && <p><span className="font-black text-blue-700 dark:text-blue-300">Dealer:</span> {subClause.dealerObligation.join('; ')}</p>}
-                  <button type="button" onClick={() => navigator.clipboard?.writeText(`${subClause.no}: ${subClause.legalText}\n${subClause.plainEnglish}`)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  <button type="button" onClick={() => navigator.clipboard?.writeText(`${subClause.no}: ${subClause.legalText}\n${subClause.plainEnglish}`)} className="inline-flex items-center gap-1.5 rounded-md border border-sky-200 bg-white px-2 py-1 text-[11px] font-black text-sky-800 hover:bg-sky-50 dark:border-sky-800/50 dark:bg-slate-900 dark:text-sky-200">
                     <Copy className="h-3 w-3" /> Copy sub-clause
                   </button>
                 </div>
@@ -936,8 +913,8 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
           </div>
         )}
         {clause.related.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-800">
-            <span className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Related</span>
+          <div className="flex flex-wrap items-center gap-1.5 border-t border-sky-100 pt-2 dark:border-sky-900/40">
+            <span className="text-[10px] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">Related</span>
             {clause.related.map((item) => {
               const match = /^clause\s+(.+)$/i.exec(item.trim());
               const target = match ? fcoClauseLocationByNo.get(match[1].toLowerCase()) : undefined;
@@ -947,7 +924,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
                 );
               }
               return (
-                <button key={item} type="button" onClick={() => onOpenRelated(target)} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 ring-1 ring-emerald-200 transition hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900 dark:hover:bg-emerald-950">
+                <button key={item} type="button" onClick={() => onOpenRelated(target)} className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-700 ring-1 ring-blue-200 transition hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900 dark:hover:bg-blue-950">
                   {item} <ArrowRight className="h-3 w-3" />
                 </button>
               );
@@ -981,22 +958,22 @@ function parseTimelineDuration(text: string): { value: number; unit: string; lab
 
 function FcoTimelineStepper({ timelines }: { timelines: string[] }) {
   return (
-    <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-2.5 dark:border-emerald-900/50 dark:bg-emerald-950/20">
-      <p className="text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Deadline track</p>
+    <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-2.5 dark:border-blue-900/50 dark:bg-blue-950/20">
+      <p className="text-[10px] font-black uppercase tracking-wide text-blue-700 dark:text-blue-300">Deadline track</p>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {timelines.map((timeline, index) => {
           const parsed = parseTimelineDuration(timeline);
           return (
             <React.Fragment key={timeline}>
-              {index > 0 && <ArrowRight className="h-3.5 w-3.5 shrink-0 text-emerald-400 dark:text-emerald-600" />}
-              <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-2 py-1.5 shadow-sm dark:border-emerald-900 dark:bg-slate-900">
+              {index > 0 && <ArrowRight className="h-3.5 w-3.5 shrink-0 text-blue-400 dark:text-blue-600" />}
+              <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-2 py-1.5 shadow-sm dark:border-blue-900 dark:bg-slate-900">
                 {parsed ? (
-                  <span className="flex h-8 min-w-8 shrink-0 flex-col items-center justify-center rounded-md bg-gradient-to-br from-emerald-600 to-teal-500 px-1 leading-none text-white">
+                  <span className="flex h-8 min-w-8 shrink-0 flex-col items-center justify-center rounded-md bg-gradient-to-br from-blue-600 to-indigo-500 px-1 leading-none text-white">
                     <span className="text-[13px] font-black">{parsed.value}</span>
                     <span className="text-[7px] font-black uppercase">{parsed.unit.replace('working ', 'work ')}</span>
                   </span>
                 ) : (
-                  <Clock className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <Clock className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
                 )}
                 <span className="text-[11px] font-bold leading-4 text-slate-700 dark:text-slate-200">{parsed ? parsed.label : timeline}</span>
               </div>
@@ -1065,72 +1042,63 @@ function FcoDashboardCards({
   onSelect: (cardId: string) => void;
 }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-amber-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">      <div className="grid gap-2 p-2 sm:grid-cols-2 xl:grid-cols-3">
-        {showFormsCard && (
+    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+      {showFormsCard && (
+        <button
+          type="button"
+          onClick={onOpenForms}
+          className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm transition group-hover:scale-105">
+              <FileText className="h-4 w-4" />
+            </span>
+            <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800/60">27 statutory forms</span>
+          </div>
+          <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">Forms</h3>
+          <p className="mt-0.5 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">FCO statutory forms grouped for registration, manufacturing, sampling and records.</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {['Search', 'Preview', 'Download'].map((item) => (
+              <span key={item} className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-800 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-800/60">
+                {item}
+              </span>
+            ))}
+          </div>
+        </button>
+      )}
+      {cards.map((card) => {
+        const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
+        const active = activeCardId === card.id;
+        return (
           <button
+            key={card.id}
             type="button"
-            onClick={onOpenForms}
-            className="group relative min-h-[10rem] overflow-hidden rounded-lg border border-amber-200 bg-white p-3 text-left text-slate-900 shadow-sm transition duration-300 motion-safe:hover:-translate-y-1 hover:border-amber-300 hover:bg-amber-50/70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-amber-950/20"
+            onClick={() => onSelect(card.id)}
+            className={`group relative flex flex-col overflow-hidden rounded-lg border p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md ${
+              active
+                ? 'border-sky-400 bg-gradient-to-br from-sky-100/80 via-white to-blue-100/60 shadow-md dark:border-sky-600 dark:from-sky-950/40 dark:via-slate-950 dark:to-blue-950/30'
+                : 'border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20'
+            }`}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-400 to-emerald-500 opacity-15 transition group-hover:opacity-20" />
-            <div className="relative flex h-full flex-col justify-between gap-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="rounded-lg bg-white/85 p-2 text-amber-800 shadow-sm ring-1 ring-amber-100 motion-safe:transition motion-safe:group-hover:scale-105 dark:bg-slate-950/80 dark:text-amber-200 dark:ring-amber-900">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <span className="rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-black text-slate-800 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950/80 dark:text-slate-100 dark:ring-slate-700">27 statutory forms</span>
-              </div>
-              <div>
-                <h3 className="text-base font-black leading-tight text-slate-950 dark:text-white">Forms</h3>
-                <p className="mt-1 text-xs font-bold leading-4 text-slate-700 dark:text-slate-200">FCO statutory forms grouped for registration, manufacturing, sampling and records.</p>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {['Search', 'Preview', 'Download'].map((item) => (
-                  <span key={item} className="rounded-full bg-white/75 px-1.5 py-0.5 text-[10px] font-black text-slate-700 ring-1 ring-slate-200 dark:bg-slate-950/75 dark:text-slate-200 dark:ring-slate-700">
-                    {item}
-                  </span>
-                ))}
-              </div>
+            <div className="flex items-start justify-between gap-2">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm transition group-hover:scale-105">
+                <Icon className="h-4 w-4" />
+              </span>
+              <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800/60">{card.clauseRange}</span>
+            </div>
+            <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.cardTitle}</h3>
+            <p className="mt-0.5 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.summary}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {card.contains.slice(0, 5).map((item) => (
+                <span key={item} className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-800 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-800/60">
+                  {item}
+                </span>
+              ))}
             </div>
           </button>
-        )}
-        {cards.map((card) => {
-          const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
-          const active = activeCardId === card.id;
-          return (
-            <button
-              key={card.id}
-              type="button"
-              onClick={() => onSelect(card.id)}
-              className={`group relative min-h-[10rem] overflow-hidden rounded-lg border p-3 text-left shadow-sm transition duration-300 motion-safe:hover:-translate-y-1 ${
-                active ? 'border-amber-300 bg-amber-50 text-slate-950 shadow-md' : 'border-slate-200 bg-white text-slate-900 hover:border-amber-200 hover:bg-amber-50/60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-amber-950/20'
-              }`}
-            >
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-15 transition group-hover:opacity-20`} />
-              <div className="relative flex h-full flex-col justify-between gap-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="rounded-lg bg-white/80 p-2 text-amber-800 shadow-sm ring-1 ring-amber-100 motion-safe:transition motion-safe:group-hover:scale-105 dark:bg-slate-950/80 dark:text-amber-200 dark:ring-amber-900">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <span className="rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-black text-slate-800 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950/80 dark:text-slate-100 dark:ring-slate-700">{card.clauseRange}</span>
-                </div>
-                <div>
-                  <h3 className="text-base font-black leading-tight text-slate-950 dark:text-white">{card.cardTitle}</h3>
-                  <p className="mt-1 text-xs font-bold leading-4 text-slate-700 dark:text-slate-200">{card.summary}</p>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {card.contains.slice(0, 5).map((item) => (
-                    <span key={item} className="rounded-full bg-white/75 px-1.5 py-0.5 text-[10px] font-black text-slate-700 ring-1 ring-slate-200 dark:bg-slate-950/75 dark:text-slate-200 dark:ring-slate-700">
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </section>
+        );
+      })}
+    </div>
   );
 }
 
@@ -1143,14 +1111,12 @@ function FertilizerFormsPanel({
   category,
   onSearchChange,
   onCategoryChange,
-  onBack,
   onViewForm,
 }: {
   search: string;
   category: 'All' | FertilizerFormCategory;
   onSearchChange: (value: string) => void;
   onCategoryChange: (value: 'All' | FertilizerFormCategory) => void;
-  onBack: () => void;
   onViewForm: (form: FertilizerFormEntry) => void;
 }) {
   const term = search.trim().toLowerCase();
@@ -1161,70 +1127,74 @@ function FertilizerFormsPanel({
   });
 
   return (
-    <section className="overflow-hidden rounded-lg border border-amber-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
-      <div className="border-b border-amber-100 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-3 dark:border-slate-800 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950">
-        <div className="flex items-start gap-2.5">
-          <BackButton onClick={onBack} colors="text-amber-800 hover:text-amber-950 dark:text-amber-200 dark:hover:text-amber-100" />
-          <div className="flex min-w-0 items-start gap-2.5">
-            <div className="shrink-0 rounded-lg bg-white p-2 text-amber-800 shadow-sm ring-1 ring-amber-100 dark:bg-slate-900 dark:text-amber-200 dark:ring-amber-900">
-              <FileText className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">FCO Forms</p>
-              <h2 className="mt-0.5 text-lg font-black text-slate-950 dark:text-white">Forms</h2>
-            </div>
-          </div>
+    <section className="space-y-3">
+      <FertilizerSectionBadge icon={FileText} label="Forms" />
+      <div className="rounded-lg border border-sky-200 bg-white p-3 shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Search form number, title, clause, category..."
+            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+          />
         </div>
-        <div className="mt-3 grid gap-2 lg:grid-cols-[minmax(0,1fr)_auto]">
-          <div className="relative min-w-0">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              value={search}
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Search form number, title, clause, category..."
-              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm font-semibold outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:max-w-3xl lg:justify-end">
-            {fertilizerFormCategories.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => onCategoryChange(item)}
-                className={`min-h-9 rounded-lg px-2.5 py-2 text-center text-[11px] font-black leading-4 transition sm:whitespace-nowrap sm:text-xs ${category === item ? 'bg-amber-700 text-white shadow-sm' : 'border border-slate-200 bg-white text-slate-700 hover:bg-amber-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'}`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+          {fertilizerFormCategories.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => onCategoryChange(item)}
+              className={`rounded-full px-3 py-1.5 text-[11px] font-black transition sm:text-xs ${
+                category === item
+                  ? 'bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 text-white shadow-md shadow-sky-500/25'
+                  : 'border border-sky-200 bg-sky-50/60 text-sky-900 hover:border-sky-300 hover:bg-sky-100 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200 dark:hover:bg-sky-950/50'
+              }`}
+            >
+              {item}
+            </button>
+          ))}
+          <span className="ml-auto rounded-full bg-sky-50 px-3 py-1 text-[11px] font-black text-sky-800 ring-1 ring-sky-100 dark:bg-sky-950/30 dark:text-sky-200 dark:ring-sky-900">
+            {visibleForms.length} forms
+          </span>
         </div>
       </div>
 
-      <div className="grid auto-rows-fr gap-2 p-2 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
         {visibleForms.map((form) => (
-          <article key={form.id} className="flex min-h-[9rem] min-w-0 flex-col rounded-lg border border-amber-200 bg-white p-2.5 shadow-sm transition hover:border-amber-300 hover:shadow-md dark:border-amber-800/50 dark:bg-slate-900">
-            <div className="flex min-w-0 flex-1 flex-col gap-2 text-left">
-              <div className="flex min-w-0 items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.formNo} - {form.category}</p>
-                  <h3 className="mt-0.5 text-[13px] leading-4 text-slate-950 dark:text-white">{form.title}</h3>
-                </div>
-                <span className="max-w-[7rem] shrink-0 rounded-lg bg-amber-100 px-1.5 py-0.5 text-center text-[10px] font-black leading-3 text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:ring-amber-900">{form.clause || 'PDF'}</span>
+          <article key={form.id} className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20">
+            <div className="flex items-start gap-2.5">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm transition group-hover:scale-105">
+                <FileText className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">{form.formNo}</p>
+                <h3 className="mt-0.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{form.title}</h3>
               </div>
-              <p className="text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.description}</p>
             </div>
-            <div className="mt-1.5 grid grid-cols-2 gap-1 border-t border-amber-100 pt-1.5 dark:border-slate-800">
-              <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-7 min-w-0 items-center justify-center gap-1 rounded-md bg-amber-700 px-1.5 py-1 text-[10px] font-black text-white hover:bg-amber-800">
-                <FileSearch className="h-3 w-3 shrink-0" /> <span className="truncate">View</span>
+            <p className="mt-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.description}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-800 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-800/60">
+                {form.category}
+              </span>
+              {form.clause && (
+                <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800/60">
+                  {form.clause}
+                </span>
+              )}
+            </div>
+            <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-sky-100 pt-2 dark:border-sky-900/50">
+              <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
+                <FileSearch className="h-3 w-3" /> View
               </button>
-              <a href={form.pdfPath} download className="inline-flex min-h-7 min-w-0 items-center justify-center gap-1 rounded-md border border-slate-200 bg-white px-1.5 py-1 text-[10px] font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
-                <FileText className="h-3 w-3 shrink-0" /> <span className="truncate">PDF</span>
+              <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-sky-200 bg-white px-2.5 py-1 text-[10px] font-black text-sky-800 transition hover:bg-sky-50 dark:border-sky-800/50 dark:bg-slate-900 dark:text-sky-200 dark:hover:bg-sky-950/30">
+                <FileText className="h-3 w-3" /> PDF
               </a>
             </div>
           </article>
         ))}
         {visibleForms.length === 0 && (
-          <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 xl:col-span-3 dark:border-slate-700">
+          <p className="rounded-lg border border-dashed border-sky-200 p-8 text-center text-sm font-semibold text-slate-500 sm:col-span-2 xl:col-span-3 dark:border-sky-800/50">
             No forms found
           </p>
         )}
@@ -1234,33 +1204,33 @@ function FertilizerFormsPanel({
 }
 function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffenceEntry[]; onDownload: () => void; onPrint: () => void }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm dark:border-amber-800/50 dark:bg-slate-950">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-100 bg-white px-4 py-3 dark:border-amber-900/50 dark:bg-slate-950">
+    <div className="overflow-hidden rounded-lg border border-sky-200 bg-white shadow-sm dark:border-sky-800/50 dark:bg-slate-950">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sky-100 bg-white px-4 py-3 dark:border-sky-900/50 dark:bg-slate-950">
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onPrint} className="inline-flex items-center gap-2 rounded-lg bg-amber-700 px-3 py-2 text-sm font-black text-white hover:bg-amber-800">
+          <button type="button" onClick={onPrint} className="inline-flex items-center gap-2 rounded-lg bg-sky-700 px-3 py-2 text-sm font-black text-white hover:bg-sky-800">
             <Printer className="h-4 w-4" />
             Print
           </button>
-          <button type="button" onClick={onDownload} className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-emerald-800 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-200">
+          <button type="button" onClick={onDownload} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-black text-blue-800 hover:bg-blue-50 dark:border-blue-800 dark:bg-slate-950 dark:text-blue-200">
             <FileSpreadsheet className="h-4 w-4" />
             CSV
           </button>
         </div>
-        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-800 ring-1 ring-amber-100 dark:bg-amber-950/30 dark:text-amber-200 dark:ring-amber-900">
+        <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-800 ring-1 ring-sky-100 dark:bg-sky-950/30 dark:text-sky-200 dark:ring-sky-900">
           {entries.length} offences
         </span>
       </div>
       <div className="grid gap-2 p-3 sm:grid-cols-2 xl:grid-cols-3">
         {entries.map((entry) => (
-          <article key={entry.serialNumber} className="flex flex-col rounded-lg border border-amber-100 bg-gradient-to-br from-amber-50/70 via-white to-emerald-50/50 p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-md dark:border-amber-900/50 dark:from-amber-950/20 dark:via-slate-950 dark:to-emerald-950/20">
+          <article key={entry.serialNumber} className="flex flex-col rounded-lg border border-sky-100 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-900/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20">
             <div className="flex items-start gap-2">
-              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-[11px] font-black text-white shadow-sm">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-[11px] font-black text-white shadow-sm">
                 {entry.serialNumber}
               </span>
               <p className="min-w-0 flex-1 text-xs font-black leading-4 text-slate-900 dark:text-white">{entry.offenceType}</p>
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800/60">
+              <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800/60">
                 {entry.contraventionProvision}
               </span>
               <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-black text-red-700 ring-1 ring-red-200 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-800/60">
@@ -1354,7 +1324,7 @@ function collectMindMapNodeIds(nodes: MindMapNode[], bucket: Set<string> = new S
   return bucket;
 }
 
-function EnforcementDutiesPanel({ onBack }: { onBack: () => void }) {
+function EnforcementDutiesPanel() {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [offenceSearch, setOffenceSearch] = useState('');
   const [offencesOpen, setOffencesOpen] = useState(false);
@@ -1373,28 +1343,22 @@ function EnforcementDutiesPanel({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="space-y-3">
-      <FertilizerSectionHeader
-        title="Enforcement Mind Map"
-        subtitle="Duties & responsibilities of enforcement officers under FCO 1985 / ECA 1955."
-        icon={Network}
-        onBack={onBack}
-      />
-
-      <section className="rounded-lg border border-amber-200 bg-white p-3 shadow-sm dark:border-amber-800/50 dark:bg-slate-900">
+      <FertilizerSectionBadge icon={Network} label="Enforcement Mind Map" />
+      <section className="rounded-lg border border-sky-200 bg-white p-3 shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Key deadlines</p>
+          <p className="text-[11px] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">Key deadlines</p>
           <button
             type="button"
             onClick={() => setCollapsed(allExpanded ? new Set(allNodeIds) : new Set())}
-            className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-black text-amber-800 transition hover:bg-amber-100 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-200 dark:hover:bg-amber-950/50"
+            className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[11px] font-black text-sky-800 transition hover:bg-sky-100 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200 dark:hover:bg-sky-950/50"
           >
             {allExpanded ? 'Collapse all' : 'Expand all'}
           </button>
         </div>
         <div className="mt-2 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
           {enforcementDeadlines.map((item) => (
-            <div key={item.action} className="flex items-start gap-2 rounded-lg border border-amber-100 bg-gradient-to-br from-amber-50 to-emerald-50 px-2.5 py-2 dark:border-amber-900/50 dark:from-amber-950/30 dark:to-emerald-950/30">
-              <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
+            <div key={item.action} className="flex items-start gap-2 rounded-lg border border-sky-100 bg-gradient-to-br from-sky-50 to-blue-50 px-2.5 py-2 dark:border-sky-900/50 dark:from-sky-950/30 dark:to-blue-950/30">
+              <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-600 dark:text-sky-300" />
               <div>
                 <p className="text-[11px] font-black leading-4 text-slate-800 dark:text-slate-100">{item.limit}</p>
                 <p className="text-[10px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{item.action}</p>
@@ -1409,30 +1373,30 @@ function EnforcementDutiesPanel({ onBack }: { onBack: () => void }) {
           <MindMapBranchCard key={branch.id} node={branch} collapsed={collapsed} onToggle={toggleNode} />
         ))}
 
-        <section className="overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm dark:border-amber-800/50 dark:bg-slate-900 lg:col-span-2">
+        <section className="overflow-hidden rounded-lg border border-sky-200 bg-white shadow-sm dark:border-sky-800/50 dark:bg-slate-900 lg:col-span-2">
           <button
             type="button"
             onClick={() => setOffencesOpen((open) => !open)}
-            className="flex w-full items-start gap-2.5 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-3 text-left transition hover:from-amber-100 dark:from-amber-950/40 dark:via-slate-900 dark:to-emerald-950 dark:hover:from-amber-950/60"
+            className="flex w-full items-start gap-2.5 bg-gradient-to-br from-sky-50 via-white to-blue-50 p-3 text-left transition hover:from-sky-100 dark:from-sky-950/40 dark:via-slate-900 dark:to-blue-950 dark:hover:from-sky-950/60"
           >
-            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-white shadow-sm">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm">
               <Scale className="h-3.5 w-3.5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-black text-slate-950 dark:text-white">FCO Offences & Penal Provisions</span>
               <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">Searchable offence reference with FCO contravention and ECA punishment provisions.</span>
             </span>
-            <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-amber-700 transition-transform duration-200 dark:text-amber-300 ${offencesOpen ? '' : '-rotate-90'}`} />
+            <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-sky-700 transition-transform duration-200 dark:text-sky-300 ${offencesOpen ? '' : '-rotate-90'}`} />
           </button>
           {offencesOpen && (
-            <div className="space-y-3 border-t border-amber-100 p-3 dark:border-amber-900/40">
+            <div className="space-y-3 border-t border-sky-100 p-3 dark:border-sky-900/40">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   value={offenceSearch}
                   onChange={(event) => setOffenceSearch(event.target.value)}
                   placeholder="Search offence, FCO provision, ECA punishment..."
-                  className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                 />
               </div>
               <FcoOffencesSection
@@ -1457,13 +1421,13 @@ function MindMapBranchCard({ node, collapsed, onToggle }: { node: MindMapNode; c
   const isCollapsed = collapsed.has(node.id);
 
   return (
-    <section className="overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm dark:border-amber-800/50 dark:bg-slate-900">
+    <section className="overflow-hidden rounded-lg border border-sky-200 bg-white shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
       <button
         type="button"
         onClick={() => hasChildren && onToggle(node.id)}
-        className="flex w-full items-start gap-2.5 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-3 text-left transition hover:from-amber-100 dark:from-amber-950/40 dark:via-slate-900 dark:to-emerald-950 dark:hover:from-amber-950/60"
+        className="flex w-full items-start gap-2.5 bg-gradient-to-br from-sky-50 via-white to-blue-50 p-3 text-left transition hover:from-sky-100 dark:from-sky-950/40 dark:via-slate-900 dark:to-blue-950 dark:hover:from-sky-950/60"
       >
-        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 via-emerald-500 to-teal-700 text-white shadow-sm">
+        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm">
           <Network className="h-3.5 w-3.5" />
         </span>
         <span className="min-w-0 flex-1">
@@ -1471,11 +1435,11 @@ function MindMapBranchCard({ node, collapsed, onToggle }: { node: MindMapNode; c
           {node.detail && <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{node.detail}</span>}
         </span>
         {hasChildren && (
-          <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-amber-700 transition-transform duration-200 dark:text-amber-300 ${isCollapsed ? '-rotate-90' : ''}`} />
+          <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-sky-700 transition-transform duration-200 dark:text-sky-300 ${isCollapsed ? '-rotate-90' : ''}`} />
         )}
       </button>
       {hasChildren && !isCollapsed && (
-        <ul className="space-y-1 border-t border-amber-100 p-3 dark:border-amber-900/40">
+        <ul className="space-y-1 border-t border-sky-100 p-3 dark:border-sky-900/40">
           {node.children!.map((child) => (
             <MindMapNodeRow key={child.id} node={child} depth={0} collapsed={collapsed} onToggle={onToggle} />
           ))}
@@ -1491,18 +1455,18 @@ function MindMapNodeRow({ node, depth, collapsed, onToggle }: { node: MindMapNod
 
   return (
     <li>
-      <div className="flex items-start gap-1.5 rounded-md px-1 py-1 transition hover:bg-amber-50/70 dark:hover:bg-amber-950/20">
+      <div className="flex items-start gap-1.5 rounded-md px-1 py-1 transition hover:bg-sky-50/70 dark:hover:bg-sky-950/20">
         {hasChildren ? (
           <button
             type="button"
             onClick={() => onToggle(node.id)}
-            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-amber-700 transition hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-950/40"
+            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-sky-700 transition hover:bg-sky-100 dark:text-sky-300 dark:hover:bg-sky-950/40"
             aria-label={isCollapsed ? 'Expand' : 'Collapse'}
           >
             <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`} />
           </button>
         ) : (
-          <span className="mt-1.5 ml-0.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+          <span className="mt-1.5 ml-0.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
         )}
         <button
           type="button"
@@ -1518,7 +1482,7 @@ function MindMapNodeRow({ node, depth, collapsed, onToggle }: { node: MindMapNod
         </button>
       </div>
       {hasChildren && !isCollapsed && (
-        <ul className="ml-2.5 space-y-0.5 border-l border-amber-200 pl-2.5 dark:border-amber-800/50">
+        <ul className="ml-2.5 space-y-0.5 border-l border-sky-200 pl-2.5 dark:border-sky-800/50">
           {node.children!.map((child) => (
             <MindMapNodeRow key={child.id} node={child} depth={depth + 1} collapsed={collapsed} onToggle={onToggle} />
           ))}

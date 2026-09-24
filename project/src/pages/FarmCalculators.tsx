@@ -95,15 +95,15 @@ export function FarmCalculators() {
             <article
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`min-h-[140px] cursor-pointer rounded-xl border-2 ${item.border} bg-gradient-to-br ${item.panel} p-4 text-center shadow-md transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl`}
+              className={`min-h-[104px] cursor-pointer rounded-lg border ${item.border} bg-gradient-to-br ${item.panel} p-3 text-center shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md`}
             >
-              <div className="flex h-full flex-col items-center justify-center gap-2">
-                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${item.accent} text-white shadow-lg`}>
-                  <item.icon className="h-6 w-6" />
+              <div className="flex h-full flex-col items-center justify-center gap-1.5">
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.accent} text-white shadow-md`}>
+                  <item.icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-sm font-black leading-snug text-slate-950 dark:text-white">{t(item.title, item.titleTe)}</h2>
-                  <p className="mt-1 text-[11px] font-semibold leading-4 text-slate-700 dark:text-slate-300">{t(item.description, item.descriptionTe)}</p>
+                  <h2 className="text-[13px] font-black leading-4 text-slate-950 dark:text-white">{t(item.title, item.titleTe)}</h2>
+                  <p className="mt-0.5 text-[10px] font-semibold leading-4 text-slate-700 dark:text-slate-300">{t(item.description, item.descriptionTe)}</p>
                 </div>
               </div>
             </article>

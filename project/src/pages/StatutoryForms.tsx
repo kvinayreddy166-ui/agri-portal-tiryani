@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Edit2, Folder, Link, Plus, Trash2, Upload, X, Shield } from 'lucide-react';
+import { Edit2, Folder, Link, Plus, Trash2, Upload, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -28,14 +28,6 @@ const STATE_KEY = 'tiryani-statutory-forms-state';
 export function StatutoryForms() {
   const { isAdminUser } = useAuth();
   const { t } = useLanguage();
-  const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
-    try {
-      const stored = window.localStorage.getItem('tiryani-watermark-enabled');
-      return stored === 'true';
-    } catch {
-      return false;
-    }
-  });
   const [forms, setForms] = useState<FormDownload[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -65,14 +57,6 @@ export function StatutoryForms() {
       window.localStorage.setItem(STATE_KEY, JSON.stringify({ selectedFolder }));
     }
   }, [selectedFolder]);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem('tiryani-watermark-enabled', String(watermarkEnabled));
-    } catch {
-      // Ignore localStorage errors
-    }
-  }, [watermarkEnabled]);
 
   useEffect(() => {
     let restoreTimer: number | undefined;
@@ -238,25 +222,6 @@ export function StatutoryForms() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-900">
-            <Shield className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              {t('Government Emblem Watermark', 'ప్రభుత్వ చిహ్నం వాటర్‌మార్క్')}
-            </span>
-            <button
-              type="button"
-              onClick={() => setWatermarkEnabled(!watermarkEnabled)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                watermarkEnabled ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-600'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                  watermarkEnabled ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
           {isAdminUser && (
             <button
               onClick={openAddForm}

@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ChevronDown,
   Download,
   Eye,
   FileSpreadsheet,
@@ -103,6 +104,83 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+function MultiSelectFilter({
+  allLabel,
+  options,
+  selected,
+  onChange,
+  renderLabel,
+}: {
+  allLabel: string;
+  options: string[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+  renderLabel: (value: string) => string;
+}) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [open]);
+
+  const toggle = (value: string) => {
+    onChange(selected.includes(value) ? selected.filter((item) => item !== value) : [...selected, value]);
+  };
+
+  const display = selected.length === 0
+    ? allLabel
+    : selected.length === 1
+      ? renderLabel(selected[0])
+      : `${selected.length} selected`;
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="filter-select flex w-full items-center justify-between gap-2 text-left"
+      >
+        <span className="truncate">{display}</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-30 mt-1 max-h-64 w-full min-w-[12rem] overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+          <button
+            type="button"
+            onClick={() => onChange([])}
+            className={`flex w-full items-center rounded-lg px-2 py-1.5 text-left text-xs font-black ${selected.length === 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'}`}
+          >
+            {allLabel}
+          </button>
+          {options.map((option) => {
+            const checked = selected.includes(option);
+            return (
+              <label
+                key={option}
+                className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-bold ${checked ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200' : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggle(option)}
+                  className="h-3.5 w-3.5 shrink-0 accent-emerald-600"
+                />
+                <span className="truncate">{renderLabel(option)}</span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function FarmerDatabase() {
   const { isAdminUser, user } = useAuth();
   const [rows, setRows] = useState<FarmerRow[]>([]);
@@ -114,8 +192,8 @@ export function FarmerDatabase() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [villageFilter, setVillageFilter] = useState('all');
-  const [cropFilter, setCropFilter] = useState('all');
+  const [villageFilters, setVillageFilters] = useState<string[]>([]);
+  const [cropFilters, setCropFilters] = useState<string[]>([]);
   const [surveyFilter, setSurveyFilter] = useState('');
   const [showTelugu, setShowTelugu] = useState(false);
   const [selected, setSelected] = useState<FarmerGroup | null>(null);
@@ -158,8 +236,8 @@ export function FarmerDatabase() {
         .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 
       query = applyFarmerSearch(query, debouncedSearch);
-      if (villageFilter !== 'all') query = query.eq('village_english', villageFilter);
-      if (cropFilter !== 'all') query = query.eq('crop', cropFilter);
+      if (villageFilters.length) query = query.in('village_english', villageFilters);
+      if (cropFilters.length) query = query.in('crop', cropFilters);
       if (surveyFilter.trim()) query = query.ilike('survey_no', `%${normalizeCode(surveyFilter)}%`);
 
       let { data, error, count } = await query;
@@ -171,8 +249,8 @@ export function FarmerDatabase() {
           .order('farmer_name_english')
           .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
         query = applyFarmerSearch(query, debouncedSearch);
-        if (villageFilter !== 'all') query = query.eq('village_english', villageFilter);
-        if (cropFilter !== 'all') query = query.eq('crop', cropFilter);
+        if (villageFilters.length) query = query.in('village_english', villageFilters);
+        if (cropFilters.length) query = query.in('crop', cropFilters);
         if (surveyFilter.trim()) query = query.ilike('survey_no', `%${normalizeCode(surveyFilter)}%`);
         const fallback = await query;
         data = fallback.data;
@@ -185,8 +263,8 @@ export function FarmerDatabase() {
         const localRows = await loadLocalFarmerSeed();
         const localFiltered = filterLocalFarmerRows(localRows, {
           search: debouncedSearch,
-          village: villageFilter,
-          crop: cropFilter,
+          villages: villageFilters,
+          crops: cropFilters,
           survey: surveyFilter,
         });
         nextRows = localFiltered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
@@ -207,8 +285,8 @@ export function FarmerDatabase() {
       const localRows = await loadLocalFarmerSeed();
       const localFiltered = filterLocalFarmerRows(localRows, {
         search: debouncedSearch,
-        village: villageFilter,
-        crop: cropFilter,
+        villages: villageFilters,
+        crops: cropFilters,
         survey: surveyFilter,
       });
       setRows(localFiltered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE));
@@ -217,7 +295,7 @@ export function FarmerDatabase() {
     } finally {
       setLoading(false);
     }
-  }, [cropFilter, debouncedSearch, page, showTelugu, surveyFilter, villageFilter]);
+  }, [cropFilters, debouncedSearch, page, showTelugu, surveyFilter, villageFilters]);
 
   const loadAnalyticsRows = useCallback(async () => {
     const collected: FarmerRow[] = [];
@@ -227,8 +305,8 @@ export function FarmerDatabase() {
         .select(farmerSelectColumns(false, true))
         .order('village_english')
         .range(from, from + ANALYTICS_BATCH_SIZE - 1);
-      if (villageFilter !== 'all') query = query.eq('village_english', villageFilter);
-      if (cropFilter !== 'all') query = query.eq('crop', cropFilter);
+      if (villageFilters.length) query = query.in('village_english', villageFilters);
+      if (cropFilters.length) query = query.in('crop', cropFilters);
       if (surveyFilter.trim()) query = query.ilike('survey_no', `%${normalizeCode(surveyFilter)}%`);
       let { data, error } = await query;
       if (error && isMissingColumnError(error)) {
@@ -237,8 +315,8 @@ export function FarmerDatabase() {
           .select(farmerSelectColumns(false, false))
           .order('village_english')
           .range(from, from + ANALYTICS_BATCH_SIZE - 1);
-        if (villageFilter !== 'all') query = query.eq('village_english', villageFilter);
-        if (cropFilter !== 'all') query = query.eq('crop', cropFilter);
+        if (villageFilters.length) query = query.in('village_english', villageFilters);
+        if (cropFilters.length) query = query.in('crop', cropFilters);
         if (surveyFilter.trim()) query = query.ilike('survey_no', `%${normalizeCode(surveyFilter)}%`);
         const fallback = await query;
         data = fallback.data;
@@ -253,8 +331,8 @@ export function FarmerDatabase() {
       const localRows = await loadLocalFarmerSeed();
       setAnalyticsRows(filterLocalFarmerRows(localRows, {
         search: '',
-        village: villageFilter,
-        crop: cropFilter,
+        villages: villageFilters,
+        crops: cropFilters,
         survey: surveyFilter,
       }));
       return;
@@ -265,7 +343,7 @@ export function FarmerDatabase() {
       return;
     }
     setAnalyticsRows(collected);
-  }, [cropFilter, showTelugu, surveyFilter, villageFilter]);
+  }, [cropFilters, showTelugu, surveyFilter, villageFilters]);
 
   useEffect(() => {
     void loadRows();
@@ -284,7 +362,7 @@ export function FarmerDatabase() {
 
   useEffect(() => {
     setPage(0);
-  }, [cropFilter, debouncedSearch, surveyFilter, villageFilter]);
+  }, [cropFilters, debouncedSearch, surveyFilter, villageFilters]);
 
   const optionRows = filterOptionRows.length ? filterOptionRows : analyticsRows.length ? analyticsRows : rows;
   const villageOptions = useMemo(() => unique(optionRows.map((row) => row.village_english).filter(Boolean)), [optionRows]);
@@ -420,8 +498,8 @@ export function FarmerDatabase() {
       ['Report', 'Farmer Database'],
       [],
       ['Search', debouncedSearch || 'All'],
-      ['Village Filter', villageFilter === 'all' ? 'All villages' : villageFilter],
-      ['Crop Filter', cropFilter === 'all' ? 'All crops' : cropFilter],
+      ['Village Filter', villageFilters.length ? villageFilters.join(', ') : 'All villages'],
+      ['Crop Filter', cropFilters.length ? cropFilters.join(', ') : 'All crops'],
       ['Survey Filter', surveyFilter.trim() || 'All'],
       [],
       ['Total Records', analyticsRows.length],
@@ -483,14 +561,20 @@ export function FarmerDatabase() {
               placeholder={uiLabel('Search by farmer name, phone, PPB, Aadhaar, survey no or village', showTelugu)}
             />
           </div>
-          <select value={villageFilter} onChange={(event) => setVillageFilter(event.target.value)} className="filter-select">
-            <option value="all">{uiLabel('All villages', showTelugu)}</option>
-            {villageOptions.map((village) => <option key={village} value={village}>{showTelugu ? villageLabelMap.get(village) || village : village}</option>)}
-          </select>
-          <select value={cropFilter} onChange={(event) => setCropFilter(event.target.value)} className="filter-select">
-            <option value="all">{uiLabel('All crops', showTelugu)}</option>
-            {cropOptions.map((crop) => <option key={crop} value={crop}>{cropDisplay(crop, showTelugu)}</option>)}
-          </select>
+          <MultiSelectFilter
+            allLabel={uiLabel('All villages', showTelugu)}
+            options={villageOptions}
+            selected={villageFilters}
+            onChange={setVillageFilters}
+            renderLabel={(village) => (showTelugu ? villageLabelMap.get(village) || village : village)}
+          />
+          <MultiSelectFilter
+            allLabel={uiLabel('All crops', showTelugu)}
+            options={cropOptions}
+            selected={cropFilters}
+            onChange={setCropFilters}
+            renderLabel={(crop) => cropDisplay(crop, showTelugu)}
+          />
           <input value={surveyFilter} onChange={(event) => setSurveyFilter(event.target.value)} className="filter-select" placeholder={uiLabel('Survey Number', showTelugu)} />
         </div>
       </section>
@@ -1122,15 +1206,15 @@ async function loadLocalFarmerSeed() {
 
 function filterLocalFarmerRows(
   rows: FarmerRow[],
-  filters: { search: string; village: string; crop: string; survey: string }
+  filters: { search: string; villages: string[]; crops: string[]; survey: string }
 ) {
   const search = searchableText(filters.search);
   const digits = normalizeDigits(filters.search);
   const code = normalizeCode(filters.search);
   const survey = normalizeCode(filters.survey);
   return rows.filter((row) => {
-    if (filters.village !== 'all' && row.village_english !== filters.village) return false;
-    if (filters.crop !== 'all' && row.crop !== filters.crop) return false;
+    if (filters.villages.length && !filters.villages.includes(row.village_english)) return false;
+    if (filters.crops.length && !filters.crops.includes(row.crop)) return false;
     if (survey && !normalizeCode(row.survey_no).includes(survey)) return false;
     if (!search && !digits && !code) return true;
     const textHaystack = [

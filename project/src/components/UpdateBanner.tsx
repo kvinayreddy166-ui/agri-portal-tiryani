@@ -1,6 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { Download, RefreshCw, X } from 'lucide-react';
 
+function waitForWaitingWorker(registration: ServiceWorkerRegistration, timeoutMs = 15000) {
+  return new Promise<ServiceWorker | null>((resolve) => {
+    if (registration.waiting) return resolve(registration.waiting);
+
+    let settled = false;
+    const finish = (worker: ServiceWorker | null) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      registration.removeEventListener('updatefound', onUpdateFound);
+      resolve(worker);
+    };
+    const onStateChange = (event: Event) => {
+      if ((event.target as ServiceWorker).state === 'installed') finish(registration.waiting);
+    };
+    const onUpdateFound = () => {
+      registration.installing?.addEventListener('statechange', onStateChange);
+    };
+    const timer = window.setTimeout(() => finish(registration.waiting), timeoutMs);
+
+    registration.addEventListener('updatefound', onUpdateFound);
+    if (registration.installing) onUpdateFound();
+  });
+}
+
 export function UpdateBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -16,15 +41,6 @@ export function UpdateBanner() {
         }
       } catch {}
 
-      // Check if we've already processed this update
-      try {
-        const currentBuildVersion = (import.meta.env.VITE_APP_VERSION as string) || (import.meta.env.VITE_APP_BUILD_TIMESTAMP as string) || 'unknown';
-        const lastProcessedUpdate = localStorage.getItem('tiryani-last-processed-update');
-        if (lastProcessedUpdate === currentBuildVersion) {
-          return; // Already showed and processed this update
-        }
-      } catch {}
-      
       setShowBanner(true);
       // Trigger slide-in animation immediately
       requestAnimationFrame(() => setIsVisible(true));
@@ -37,9 +53,6 @@ export function UpdateBanner() {
       // Clear the dismissed flag after successful update
       try {
         sessionStorage.removeItem('update-banner-dismissed');
-        // Mark this version as processed to prevent repeated prompts
-        const currentBuildVersion = (import.meta.env.VITE_APP_VERSION as string) || (import.meta.env.VITE_APP_BUILD_TIMESTAMP as string) || 'unknown';
-        localStorage.setItem('tiryani-last-processed-update', currentBuildVersion);
       } catch {}
     };
 
@@ -76,23 +89,36 @@ export function UpdateBanner() {
         </div>
       `;
       document.body.appendChild(overlay);
-      
-      if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (registration?.waiting) {
-          if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Sending SKIP_WAITING message to service worker');
-          // Tell the waiting service worker to skip waiting and become active
-          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-        } else {
-          if (import.meta.env.DEV) console.warn('[PWA UpdateBanner] No waiting service worker found');
-          // No waiting worker - might need to trigger an update check
-          if (registration) {
-            await registration.update();
-          }
-        }
+
+      if (!('serviceWorker' in navigator)) {
+        window.location.reload();
+        return;
       }
-      // The controllerchange event will trigger reload
-      // Don't reload immediately - wait for service worker activation
+
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        window.location.reload();
+        return;
+      }
+
+      let worker = registration.waiting;
+      if (!worker) {
+        // The banner may have fired before the new worker finished installing.
+        // Trigger an update check, then wait for it to reach the waiting state.
+        if (import.meta.env.DEV) console.warn('[PWA UpdateBanner] No waiting worker yet, running update check');
+        try { await registration.update(); } catch {}
+        worker = await waitForWaitingWorker(registration, 15000);
+      }
+
+      if (worker) {
+        if (import.meta.env.DEV) console.log('[PWA UpdateBanner] Sending SKIP_WAITING message to service worker');
+        worker.postMessage({ type: 'SKIP_WAITING' });
+        // controllerchange reloads the page; this is a safety net if activation stalls
+        window.setTimeout(() => window.location.reload(), 8000);
+      } else {
+        // Nothing waiting — reload to pick up whatever is current
+        window.location.reload();
+      }
     } catch (error) {
       console.error('[PWA UpdateBanner] Update failed:', error);
       setIsUpdating(false);
