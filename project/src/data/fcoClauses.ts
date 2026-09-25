@@ -1,4 +1,4 @@
-export type FcoTabId = 'fullText' | 'plainEnglish' | 'officerAction' | 'formsTimelines' | 'mnemonics';
+export type FcoTabId = 'fullText' | 'plainEnglish' | 'officerAction' | 'formsTimelines';
 
 export interface FcoSubClause {
   no: string;

@@ -54,7 +54,7 @@ export function InspectionsNoticesHub() {
         title="Inspections & Notices"
         eyebrow="Officer Toolkit"
         icon={ClipboardCheck}
-        tone="lime"
+        tone="teal-indigo"
         fallbackPath="/officer-toolkit"
         className="mb-4"
       />
@@ -63,8 +63,8 @@ export function InspectionsNoticesHub() {
         <div
           className={`overflow-hidden rounded-xl border shadow-sm transition ${
             showInspectionTypes
-              ? 'border-lime-500 bg-white dark:border-lime-600 dark:bg-slate-900'
-              : 'border-lime-200 bg-white hover:border-lime-400 hover:bg-lime-50 dark:border-lime-800 dark:bg-slate-900 dark:hover:border-lime-600 dark:hover:bg-slate-800'
+              ? 'border-teal-500 bg-white dark:border-teal-600 dark:bg-slate-900'
+              : 'border-teal-200 bg-white hover:border-teal-400 hover:bg-teal-50 dark:border-teal-800 dark:bg-slate-900 dark:hover:border-teal-600 dark:hover:bg-slate-800'
           }`}
         >
           <button
@@ -74,26 +74,26 @@ export function InspectionsNoticesHub() {
               setShowNoticeTypes(false);
             }}
             className={`block min-h-[76px] w-full p-4 text-left transition ${
-              showInspectionTypes ? 'bg-lime-600 text-white' : 'text-slate-900 dark:text-white'
+              showInspectionTypes ? 'bg-teal-600 text-white' : 'text-slate-900 dark:text-white'
             }`}
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showInspectionTypes ? 'bg-white/20' : 'bg-lime-100 dark:bg-lime-900/40'}`}>
-                  <ClipboardCheck className={`h-5 w-5 ${showInspectionTypes ? 'text-white' : 'text-lime-700 dark:text-lime-300'}`} />
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showInspectionTypes ? 'bg-white/20' : 'bg-teal-100 dark:bg-teal-900/40'}`}>
+                  <ClipboardCheck className={`h-5 w-5 ${showInspectionTypes ? 'text-white' : 'text-teal-700 dark:text-teal-300'}`} />
                 </div>
                 <div>
                   <p className="text-base font-black">Inspections</p>
-                  <p className={`text-xs font-semibold leading-snug ${showInspectionTypes ? 'text-lime-100' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <p className={`text-xs font-semibold leading-snug ${showInspectionTypes ? 'text-teal-100' : 'text-slate-500 dark:text-slate-400'}`}>
                     Seed • Fertilizer • Pesticide dealer inspection
                   </p>
                 </div>
               </div>
-              {showInspectionTypes && <span className="text-lime-200">✓</span>}
+              {showInspectionTypes && <span className="text-teal-200">✓</span>}
             </div>
           </button>
           {showInspectionTypes && (
-            <div className="grid gap-2 border-t border-lime-200/70 bg-lime-50/50 p-3 dark:border-lime-800/50 dark:bg-slate-950/40">
+            <div className="grid gap-2 border-t border-teal-200/70 bg-teal-50/50 p-3 dark:border-teal-800/50 dark:bg-slate-950/40">
               {INSPECTION_TYPES.map((item) => (
                 <button
                   key={item.label}
@@ -112,8 +112,8 @@ export function InspectionsNoticesHub() {
         <div
           className={`overflow-hidden rounded-xl border shadow-sm transition ${
             showNoticeTypes
-              ? 'border-purple-500 bg-white dark:border-purple-600 dark:bg-slate-900'
-              : 'border-purple-200 bg-white hover:border-purple-400 hover:bg-purple-50 dark:border-purple-800 dark:bg-slate-900 dark:hover:border-purple-600 dark:hover:bg-slate-800'
+              ? 'border-indigo-500 bg-white dark:border-indigo-600 dark:bg-slate-900'
+              : 'border-indigo-200 bg-white hover:border-indigo-400 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-900 dark:hover:border-indigo-600 dark:hover:bg-slate-800'
           }`}
         >
           <button
@@ -123,26 +123,26 @@ export function InspectionsNoticesHub() {
               setShowInspectionTypes(false);
             }}
             className={`block min-h-[76px] w-full p-4 text-left transition ${
-              showNoticeTypes ? 'bg-purple-600 text-white' : 'text-slate-900 dark:text-white'
+              showNoticeTypes ? 'bg-indigo-600 text-white' : 'text-slate-900 dark:text-white'
             }`}
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showNoticeTypes ? 'bg-white/20' : 'bg-purple-100 dark:bg-purple-900/40'}`}>
-                  <FileText className={`h-5 w-5 ${showNoticeTypes ? 'text-white' : 'text-purple-700 dark:text-purple-300'}`} />
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showNoticeTypes ? 'bg-white/20' : 'bg-indigo-100 dark:bg-indigo-900/40'}`}>
+                  <FileText className={`h-5 w-5 ${showNoticeTypes ? 'text-white' : 'text-indigo-700 dark:text-indigo-300'}`} />
                 </div>
                 <div>
                   <p className="text-base font-black">Notices / Memos</p>
-                  <p className={`text-xs font-semibold leading-snug ${showNoticeTypes ? 'text-purple-100' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <p className={`text-xs font-semibold leading-snug ${showNoticeTypes ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'}`}>
                     Seed • Fertilizer • Pesticide notices and memos
                   </p>
                 </div>
               </div>
-              {showNoticeTypes && <span className="text-purple-200">✓</span>}
+              {showNoticeTypes && <span className="text-indigo-200">✓</span>}
             </div>
           </button>
           {showNoticeTypes && (
-            <div className="grid gap-2 border-t border-purple-200/70 bg-purple-50/50 p-3 dark:border-purple-800/50 dark:bg-slate-950/40">
+            <div className="grid gap-2 border-t border-indigo-200/70 bg-indigo-50/50 p-3 dark:border-indigo-800/50 dark:bg-slate-950/40">
               {NOTICE_TYPES.map((item) => (
                 <button
                   key={item.category}

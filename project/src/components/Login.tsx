@@ -4,7 +4,6 @@ import {
   Calculator,
   Download,
   Eye,
-  UsersRound,
   FileText,
   FlaskConical,
   Loader2,
@@ -32,7 +31,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { downloadFileFromUrl } from '../lib/fileBlob';
-import { recordSiteHit, fetchSiteHitSummary, SiteHitSummary } from '../lib/siteHits';
+import { recordSiteHit } from '../lib/siteHits';
 import { FormDownload } from '../types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
@@ -148,7 +147,7 @@ export function Login() {
   const [appInstalled, setAppInstalled] = useState(
     () => window.matchMedia?.('(display-mode: standalone)').matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
   );
-  const [siteHitSummary, setSiteHitSummary] = useState<SiteHitSummary | null>(null);
+
   const [grievance, setGrievance] = useState({
     farmer_name: '',
     mobile: '',
@@ -235,9 +234,6 @@ export function Login() {
     };
   }, [t]);
 
-  useEffect(() => {
-    void fetchSiteHitSummary().then(setSiteHitSummary).catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (!showStatutoryForms) return;
@@ -904,13 +900,6 @@ export function Login() {
               </button>
             </form>
 
-            {siteHitSummary && (
-              <div className="mt-3 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300 animate-slide-up delay-700">
-                <UsersRound className="h-4 w-4" />
-                <span className="font-semibold">{t('Total Visitors', '\u0C2E\u0C4A\u0C24\u0C4D\u0C24\u0C02 \u0C38\u0C02\u0C26\u0C30\u0C4D\u0C36\u0C15\u0C41\u0C32\u0C41')}:</span>
-                <span className="font-black">{siteHitSummary.totalViews.toLocaleString()}</span>
-              </div>
-            )}
 
             <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 dark:text-slate-300 sm:mb-16 animate-slide-up delay-600">
               <p className="font-black text-emerald-700 dark:text-emerald-300">version-1.0.1</p>

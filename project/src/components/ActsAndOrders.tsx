@@ -24,7 +24,6 @@ import {
   Share2,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   SprayCan,
   Sprout,
   Store,
@@ -33,7 +32,7 @@ import {
 } from 'lucide-react';
 import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData';
 import { type LegalCategory } from '../data/legalReadyReckonerData';
-import { fcoClauseCards, importantFcoMnemonics, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
+import { fcoClauseCards, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
 import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory, type FertilizerFormEntry } from '../data/fertilizerForms';
 import { fertilizerSchedules, type FertilizerScheduleEntry } from '../data/fertilizerSchedules';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
@@ -60,7 +59,6 @@ const fcoTabs: Array<{ id: FcoTabId; label: string; icon: typeof Clock }> = [
   { id: 'fullText', label: 'Full Text', icon: FileText },
   { id: 'officerAction', label: 'Officer Action', icon: ClipboardList },
   { id: 'formsTimelines', label: 'Forms & Timelines', icon: Clock },
-  { id: 'mnemonics', label: 'Memory', icon: Sparkles },
 ];
 const legalAreaCards: Array<{
   id: MainLegalArea;
@@ -635,7 +633,7 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
   return (
     <section className="overflow-hidden rounded-lg border border-blue-100 bg-[linear-gradient(135deg,#f7fee7_0%,#ecfdf5_48%,#eff6ff_100%)] p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-5">
       <div className="mx-auto max-w-4xl text-center">
-        <h2 className="text-xl font-black text-blue-950 dark:text-white sm:text-2xl">Select input category</h2>
+        <h2 className="text-lg font-black text-blue-950 dark:text-white sm:text-xl">Select input category</h2>
       </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
         {legalAreaCards.map((card) => {
@@ -942,7 +940,7 @@ function FcoClauseTabContent({ clause, activeTab }: { clause: FcoClause; activeT
   if (activeTab === 'plainEnglish') return <FcoTextBlock items={[clause.plainEnglish, clause.summary]} />;
   if (activeTab === 'officerAction') return <FcoTextBlock items={clause.subClauses.flatMap((item) => item.officerAction || []).concat(clause.subClauses.flatMap((item) => item.dealerObligation?.map((obligationText) => `Dealer obligation: ${obligationText}`) || []))} empty="No specific officer action listed for this clause." />;
   if (activeTab === 'formsTimelines') return <FcoFormsTimelines clause={clause} />;
-  return <FcoTextBlock items={[clause.mnemonic || '', ...importantFcoMnemonics.filter((item) => clause.clauseNo === item.label.replace('Clause ', '') || clause.keywords.join(' ').toLowerCase().includes(item.code.toLowerCase())).map((item) => `${item.label}: ${item.code} - ${item.meaning}`)]} empty="No mnemonic listed for this clause." />;
+  return null;
 }
 
 function parseTimelineDuration(text: string): { value: number; unit: string; label: string } | null {
@@ -1025,7 +1023,7 @@ function fcoClauseToText(clause: FcoClause) {
     clause.legalText,
     clause.plainEnglish,
     ...fcoRealSubClauses(clause).map((item) => `${item.no}: ${item.legalText} - ${item.plainEnglish}`),
-    clause.mnemonic ? `Mnemonic: ${clause.mnemonic}` : '',
+
   ].filter(Boolean).join('\n');
 }
 function FcoDashboardCards({

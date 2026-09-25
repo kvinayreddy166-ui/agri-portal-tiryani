@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { type LucideIcon } from 'lucide-react';
 import { BackButton } from './BackButton';
 
-export type ToolkitHeaderTone = 'emerald' | 'sky' | 'rose' | 'lime' | 'indigo' | 'amber';
+export type ToolkitHeaderTone = 'emerald' | 'sky' | 'rose' | 'lime' | 'indigo' | 'amber' | 'teal-indigo';
 
 interface ToolkitPageHeaderProps {
   title: string | ReactNode;
@@ -70,6 +70,13 @@ const TONE_STYLES: Record<
     title: 'text-amber-950 dark:text-amber-50',
     backBtn: 'text-amber-800 hover:text-amber-950 dark:text-amber-200 dark:hover:text-white',
   },
+  'teal-indigo': {
+    container: 'border-indigo-300 bg-gradient-to-r from-teal-200 via-cyan-200 to-indigo-200 shadow-md dark:border-indigo-800/50 dark:from-teal-950/40 dark:via-slate-900 dark:to-indigo-950/40',
+    iconBg: 'bg-gradient-to-br from-teal-600 to-indigo-600 text-white',
+    eyebrow: 'text-teal-800 dark:text-teal-300',
+    title: 'text-indigo-950 dark:text-indigo-50',
+    backBtn: 'text-teal-800 hover:text-indigo-950 dark:text-teal-200 dark:hover:text-white',
+  },
 };
 
 const SOLID_STYLES: Record<
@@ -115,6 +122,13 @@ const SOLID_STYLES: Record<
     container: 'border-amber-700/40 bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 shadow-lg dark:border-amber-800/50',
     iconBg: 'bg-white/20 text-white ring-1 ring-white/30',
     eyebrow: 'text-amber-100',
+    title: 'text-white',
+    backBtn: 'text-white hover:text-white/80',
+  },
+  'teal-indigo': {
+    container: 'border-teal-700/40 bg-gradient-to-br from-teal-600 via-cyan-600 to-indigo-600 shadow-lg dark:border-indigo-800/50',
+    iconBg: 'bg-white/20 text-white ring-1 ring-white/30',
+    eyebrow: 'text-teal-100',
     title: 'text-white',
     backBtn: 'text-white hover:text-white/80',
   },

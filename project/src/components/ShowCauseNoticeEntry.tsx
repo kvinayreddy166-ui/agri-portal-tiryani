@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FileChild } from 'docx';
-import { ChevronDown, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Download, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear, financialYearForDate } from '../utils/financialYear';
 import { isAssistantDirectorOfAgriculture, statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../data/assistantDirectorLocation';
 import {
@@ -13,7 +13,6 @@ import {
   type NoticeCategory,
   type ShowCauseViolation,
 } from '../data/showCauseViolationData';
-import { addEmblemImageWatermark } from '../lib/pdfWatermark';
 
 type NoticeStatus = 'Draft' | 'Issued' | 'Explanation Received' | 'Closed' | 'Action Proposed';
 
@@ -26,6 +25,8 @@ interface NoticeFormState {
   memoNumber: string;
   financialYear: string;
   inspectionDate: string;
+  noticeDate: string;
+  inspectedBy: 'self' | 'mao';
   deadline: string;
   officerName: string;
   officerDesignation: string;
@@ -40,6 +41,7 @@ interface NoticeFormState {
   invoiceDetails: string;
   productRemarks: string;
   observation: string;
+  enclosures: string;
   selectedViolationIds: string[];
   status: NoticeStatus;
 }
@@ -177,6 +179,8 @@ function makeInitialForm(category: NoticeCategory): NoticeFormState {
     memoNumber: `${config.memoPrefix}/${fy}`,
     financialYear: fy,
     inspectionDate: today(),
+    noticeDate: today(),
+    inspectedBy: 'self',
     deadline: '7 (seven) days',
     officerName: statutory.officerName || '',
     officerDesignation: statutory.officerDesignation || designationOptionsFor(category)[0].value,
@@ -191,6 +195,7 @@ function makeInitialForm(category: NoticeCategory): NoticeFormState {
     invoiceDetails: '',
     productRemarks: '',
     observation: '',
+    enclosures: '',
     selectedViolationIds: [],
     status: 'Draft',
   };
@@ -216,6 +221,19 @@ function formatNoticeDate(value: string) {
   if (!value) return '';
   const [year, month, day] = value.split('-');
   return year && month && day ? `${day}-${month}-${year}` : value;
+}
+
+function toRoman(value: number) {
+  const numerals: [number, string][] = [[10, 'x'], [9, 'ix'], [5, 'v'], [4, 'iv'], [1, 'i']];
+  let remaining = value;
+  let result = '';
+  for (const [amount, numeral] of numerals) {
+    while (remaining >= amount) {
+      result += numeral;
+      remaining -= amount;
+    }
+  }
+  return result;
 }
 
 function isAdaDesignation(designation: string): boolean {
@@ -247,13 +265,14 @@ type NoticeBlock =
   | { kind: 'heading'; text: string }
   | { kind: 'lines'; items: NoticeSegment[][]; indent?: number; align?: 'right'; centerLines?: boolean; offsetX?: number }
   | { kind: 'table'; header: [string, string]; rows: { label: string; value: string }[] }
+  | { kind: 'rule' }
   | { kind: 'gap'; mm?: number };
 
 const NOTICE_FONT_STACK = `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', serif`;
 
 function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseViolation[]): NoticeBlock[] {
   const inspectionDate = formatNoticeDate(form.inspectionDate);
-  const noticeDate = formatNoticeDate(today());
+  const noticeDate = formatNoticeDate(form.noticeDate || today());
   const subjectLabel = form.category === 'pesticide' ? 'Pesticides' : form.category === 'seed' ? 'Seeds' : 'Fertilizers';
   const officerDesignation = form.officerDesignation || 'Agriculture Officer';
   // Document shows the bare designation - "& Seed/Fertilizer/Insecticide Inspector" suffix is not printed
@@ -265,9 +284,38 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || 'Tiryani';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || 'Kumuram Bheem Asifabad';
   const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
-  const districtUpper = districtDisplay.toUpperCase();
-  const districtLine = /district$/i.test(districtUpper.trim()) ? districtUpper : `${districtUpper} DISTRICT`;
   const explanationPeriod = form.deadline || '7 (seven) days';
+
+  const instrument = form.category === 'fertiliser'
+    ? 'Fertiliser (Control) Order, 1985'
+    : form.category === 'seed'
+      ? 'Seeds Act, 1966 r/w Seed (Control) Order, 1983'
+      : 'Insecticides Act, 1968 r/w Insecticides Rules, 1971';
+  const certificateTerm = form.category === 'fertiliser'
+    ? 'Certificate of Registration / Letter of Authorization'
+    : form.category === 'seed'
+      ? 'Seed Dealer Licence'
+      : 'Insecticide Licence';
+  const businessTerm = form.category === 'fertiliser'
+    ? 'selling fertilizers'
+    : form.category === 'seed'
+      ? 'selling seeds'
+      : 'selling insecticides';
+  const licenceConditionPhrase = form.category === 'fertiliser'
+    ? 'the conditions of registration/authorization governing the sale of fertilizers'
+    : form.category === 'seed'
+      ? 'the conditions of the dealer licence governing the sale of seeds'
+      : 'the conditions of the licence governing the sale of insecticides';
+  const memoLicencePhrase = form.category === 'fertiliser'
+    ? 'the Letter of Authorization / Registration governing the sale of fertilizers'
+    : form.category === 'seed'
+      ? 'the dealer licence governing the sale of seeds'
+      : 'the insecticide licence governing the sale of insecticides';
+  const firmDisplay = `M/s. ${form.firmName || form.dealerName || '________________'}`;
+  const dealerAddressInline = form.dealerAddress.replace(/\s+/g, ' ').trim();
+  const dealerFullAddress = [dealerAddressInline, effectiveLocationValue(form.mandal, form.manualMandal), districtDisplay]
+    .filter(Boolean)
+    .join(', ');
 
   // Copies submitted to - mirrors the covering-letter pattern based on issuing officer's designation
   const isADA = isAdaDesignation(officerDesignation);
@@ -283,9 +331,9 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       ? districtDisplay
       : mandalValue;
   const copyLines = (isDAO
-    ? 'The Commissioner & Director of Agriculture, Telangana State, for information and necessary action.'
+    ? `1. The Commissioner & Director of Agriculture, Telangana State, for favour of information and necessary action.\n2. The Asst. Director of Agriculture (R) concerned, for information and to serve the notice on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
     : isADA
-      ? `The District Agriculture Officer, ${districtDisplay}, for information and necessary action.`
+      ? `1. The District Agriculture Officer, ${districtDisplay}, for favour of information and necessary action.\n2. The Mandal Agriculture Officer concerned, for information and to serve the notice on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
       : `1. The Asst. Director of Agriculture (R), ${divisionName}, for information and necessary action.\n2. The District Agriculture Officer, ${districtDisplay}, for information and necessary action.`
   ).split('\n');
 
@@ -327,105 +375,288 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     [{ text: officerLocation, bold: true }],
   ];
 
-  // Sections are shown only when they have content
-  const sectionBlocks: NoticeBlock[] = [];
-  if (violationItems.length > 0) {
-    sectionBlocks.push(
-      { kind: 'heading', text: 'Irregularity / Violation noticed:' },
-      ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${index + 1}.`, segments: item })),
+  // Traditional memo format (District Office Manual / drafting & noting):
+  // government + department heading, "Office of the ___" with station, Memo No./Dt. row,
+  // centred MEMORANDUM title, Sub + Ref, "***" separator, numbered paras with the
+  // violation list under para 1, Encl at the left end, full designation signature,
+  // addressee AFTER the signature, Copy submitted to last.
+  if (isMAO) {
+    const designationParts = officerDesignation.split('&').map((part) => part.trim()).filter(Boolean);
+    const memoSignatureItems: NoticeSegment[][] = designationParts.length > 1
+      ? [
+          [{ text: `${designationParts[0]} &`, bold: true }],
+          [{ text: `${designationParts.slice(1).join(' & ').replace(/,+$/, '')},`, bold: true }],
+          [{ text: officerLocation, bold: true }],
+        ]
+      : [
+          [{ text: `${displayDesignation},`, bold: true }],
+          [{ text: officerLocation, bold: true }],
+        ];
+    const memoCopyLines = `1. The Asst. Director of Agriculture (R), ${divisionName}, for favour of information and necessary action.\n2. The District Agriculture Officer, ${districtDisplay}, for favour of information and necessary action.\n3. Copy to Stock File.`.split('\n');
+    const memoNoticedPhrase = violationItems.length > 0
+      ? `the following irregularities and contraventions of the ${instrument} were noticed:`
+      : `certain irregularities and contraventions of the ${instrument} were noticed.`;
+    return [
+      { kind: 'center', text: 'GOVERNMENT OF TELANGANA', bold: true },
+      { kind: 'center', text: 'DEPARTMENT OF AGRICULTURE', bold: true },
+      { kind: 'gap', mm: 3 },
+      { kind: 'center', text: `OFFICE OF THE ${officerTitle},`, bold: true, underline: true },
+      { kind: 'center', text: officerLocation.toUpperCase(), bold: true, underline: true },
+      { kind: 'gap', mm: 4 },
+      {
+        kind: 'memoRow',
+        left: [{ text: 'Memo No. ' }, { text: form.memoNumber || 'Draft', bold: true }],
+        right: [{ text: 'Dt.: ' }, { text: form.inspectionDate ? noticeDate : ' '.repeat(11), bold: true }],
+      },
+      { kind: 'gap', mm: 4 },
+      { kind: 'center', text: 'MEMORANDUM', bold: true },
+      { kind: 'gap', mm: 3 },
+      {
+        kind: 'labelPara',
+        label: 'Sub:',
+        segments: [
+          { text: `${subjectLabel} – Inspection of dealer premises of ` },
+          { text: firmDisplay, bold: true },
+          { text: `, ${mandalValue}` },
+          ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
+          { text: ' – Irregularities noticed during inspection – Memo issued – Explanation called for – Reg.' },
+        ],
+      },
+      {
+        kind: 'labelPara',
+        label: 'Ref:',
+        segments: [
+          { text: `Field inspection conducted by the ${officerDesignation}, ${mandalValue}` },
+          ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
+          { text: '.' },
+        ],
+      },
       { kind: 'gap', mm: 2 },
-    );
-  }
-  if (productRows.length > 0) {
-    sectionBlocks.push(
-      { kind: 'heading', text: 'Product details, wherever applicable:' },
-      { kind: 'table', header: ['Particulars', 'Details'], rows: productRows },
-      { kind: 'gap', mm: 2 },
-    );
-  }
-  if (observation) {
-    sectionBlocks.push(
-      { kind: 'heading', text: 'Specific observation:' },
-      { kind: 'para', indent: 8, segments: [{ text: observation, bold: true }] },
+      { kind: 'center', text: '***' },
       { kind: 'gap', mm: 1 },
-    );
+      {
+        kind: 'labelPara',
+        label: '1.',
+        segments: [
+          { text: 'It is informed that during the field inspection of the business premises of ' },
+          { text: firmDisplay, bold: true },
+          { text: ', located at ' },
+          { text: `${dealerAddressInline || '________________'}, ${mandalValue} Mandal, ${districtDisplay} District`, bold: true },
+          { text: ', conducted' },
+          ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
+          { text: ` (vide reference cited), ${memoNoticedPhrase}` },
+        ],
+      },
+      ...(violationItems.length > 0
+        ? [{ kind: 'heading', text: 'Irregularities / Violations Noticed:' } as NoticeBlock]
+        : []),
+      ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${toRoman(index + 1)})`, segments: item, indent: 8 })),
+      ...(violationItems.length > 0 ? [{ kind: 'gap', mm: 2 } as NoticeBlock] : []),
+      ...(productRows.length > 0
+        ? [
+            { kind: 'heading', text: 'Product details, wherever applicable:' } as NoticeBlock,
+            { kind: 'table', header: ['Particulars', 'Details'], rows: productRows } as NoticeBlock,
+            { kind: 'gap', mm: 2 } as NoticeBlock,
+          ]
+        : []),
+      ...(observation
+        ? [
+            { kind: 'heading', text: 'Specific observation:' } as NoticeBlock,
+            { kind: 'para', indent: 8, segments: [{ text: observation, bold: true }] } as NoticeBlock,
+            { kind: 'gap', mm: 1 } as NoticeBlock,
+          ]
+        : []),
+      {
+        kind: 'labelPara',
+        label: '2.',
+        segments: [
+          { text: `The aforesaid irregularities constitute a violation of the mandatory provisions of the ${instrument} and the conditions of ${memoLicencePhrase}.` },
+        ],
+      },
+      {
+        kind: 'labelPara',
+        label: '3.',
+        segments: [
+          { text: 'In view of the above, ' },
+          { text: firmDisplay, bold: true },
+          { text: ' is hereby directed to submit a ' },
+          { text: `written explanation to the undersigned within ${explanationPeriod} from the date of receipt of this Memo`, bold: true },
+          { text: ', duly explaining each of the above irregularities and enclosing relevant supporting documents, if any.' },
+        ],
+      },
+      {
+        kind: 'labelPara',
+        label: '4.',
+        segments: [
+          { text: `If no written explanation is received within the stipulated period of ${explanationPeriod}, it will be construed that the firm has no explanation to offer, and the matter will be reported to the ` },
+          { text: 'Notified Authority', bold: true },
+          { text: ` without further reference to the firm for initiating/proposing appropriate action under the provisions of the ${instrument} and other applicable Act(s), Rules, and Orders.` },
+        ],
+      },
+      { kind: 'gap', mm: 4 },
+      ...(form.enclosures.trim()
+        ? [{ kind: 'lines', items: [[{ text: 'Encl: ' }, { text: form.enclosures.trim(), bold: true }]] } as NoticeBlock]
+        : []),
+      { kind: 'gap', mm: 4 },
+      { kind: 'lines', items: memoSignatureItems, align: 'right', centerLines: true, offsetX: 5 },
+      { kind: 'gap', mm: 4 },
+      { kind: 'lines', items: [[{ text: 'To', bold: true }]] },
+      { kind: 'lines', items: dealerItems, indent: 8 },
+      { kind: 'gap', mm: 3 },
+      { kind: 'lines', items: [[{ text: 'Copy submitted to:', bold: true }]] },
+      ...memoCopyLines.map((line): NoticeBlock => {
+        const match = line.match(/^(\d+\.)\s*(.*)$/);
+        return match
+          ? { kind: 'labelPara', label: match[1], segments: [{ text: match[2] }] }
+          : { kind: 'lines', items: [[{ text: line }]] };
+      }),
+    ];
   }
 
+  // Formal Show Cause Notice format (ADA / DAO):
+  // government + department heading, "Office of the ___" with address, Rc.No./Date row,
+  // centred title, Sub + numbered Ref, "Whereas / And whereas" numbered paras with
+  // roman-numbered violation items, addressee AFTER the signature, Copy To last.
+  const inspectedByMao = form.inspectedBy === 'mao';
+  const officeLocation = isDAO
+    ? (/district$/i.test(districtDisplay.trim()) ? districtDisplay : `${districtDisplay} District`)
+    : officerLocation;
+  const inspectionRef = inspectedByMao
+    ? `Inspection report of the Mandal Agriculture Officer, ${mandalValue}${inspectionDate ? `, dt. ${inspectionDate}` : ''}.`
+    : `Field inspection of the dealer premises conducted${inspectionDate ? ` on ${inspectionDate}` : ''}.`;
+  const scnSectionBlocks: NoticeBlock[] = [
+    ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${toRoman(index + 1)})`, segments: item, indent: 8 })),
+    ...(violationItems.length > 0 ? [{ kind: 'gap', mm: 2 } as NoticeBlock] : []),
+    ...(productRows.length > 0
+      ? [
+          { kind: 'heading', text: 'Product details, wherever applicable:' } as NoticeBlock,
+          { kind: 'table', header: ['Particulars', 'Details'], rows: productRows } as NoticeBlock,
+          { kind: 'gap', mm: 2 } as NoticeBlock,
+        ]
+      : []),
+    ...(observation
+      ? [
+          { kind: 'heading', text: 'Specific observation:' } as NoticeBlock,
+          { kind: 'para', indent: 8, segments: [{ text: observation, bold: true }] } as NoticeBlock,
+          { kind: 'gap', mm: 1 } as NoticeBlock,
+        ]
+      : []),
+  ];
+  const noticedPhrase = scnSectionBlocks.length > 0
+    ? `the following irregularities and contraventions of the ${instrument} were noticed:`
+    : `certain irregularities and contraventions of the ${instrument} were noticed.`;
+
   return [
-    { kind: 'center', text: `OFFICE OF THE ${officerTitle}, ${officerLocation.toUpperCase()}`, bold: true, underline: true },
-    // District line omitted for the standard designations (MAO/ADA/DAO); kept only for unusual designations
-    ...(isADA || isDAO || isMAO ? [] : [{ kind: 'center' as const, text: districtLine, bold: true }]),
+    { kind: 'center', text: 'GOVERNMENT OF TELANGANA', bold: true },
+    { kind: 'center', text: 'DEPARTMENT OF AGRICULTURE', bold: true },
+    { kind: 'gap', mm: 3 },
+    { kind: 'center', text: `Office of the ${displayDesignation},`, bold: true, underline: true },
+    { kind: 'center', text: officeLocation, bold: true, underline: true },
     { kind: 'gap', mm: 4 },
     {
       kind: 'memoRow',
-      left: [{ text: 'No. ' }, { text: form.memoNumber || 'Draft', bold: true }],
+      left: [{ text: 'Rc.No. ' }, { text: form.memoNumber || 'Draft', bold: true }],
       right: [{ text: 'Date: ' }, { text: form.inspectionDate ? noticeDate : ' '.repeat(11), bold: true }],
     },
     { kind: 'gap', mm: 4 },
-    { kind: 'center', text: noticeTitle, bold: true, underline: true },
-    { kind: 'gap', mm: 3 },
-    { kind: 'lines', items: [[{ text: 'To', bold: true }]] },
-    { kind: 'lines', items: dealerItems, indent: 8 },
+    { kind: 'center', text: noticeTitle, bold: true },
     { kind: 'gap', mm: 3 },
     {
       kind: 'labelPara',
       label: 'Sub:',
       segments: [
-        { text: `${subjectLabel} – Inspection of dealer premises – Irregularities noticed during inspection` },
+        { text: `${subjectLabel} – Inspection of ` },
+        { text: `${firmDisplay}, ${mandalValue}`, bold: true },
         ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
-        { text: ` – ${noticeTitleText} – Explanation called for – Reg.` },
+        { text: ` – Irregularities noticed under the ${instrument} – ${noticeTitleText} issued – Explanation called for – Reg.` },
       ],
     },
     {
       kind: 'labelPara',
       label: 'Ref:',
       segments: [
-        { text: 'Field inspection conducted' },
-        ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
-        { text: '.' },
+        { text: `1. ${certificateTerm} held by ` },
+        { text: `${firmDisplay}.`, bold: true },
       ],
     },
+    { kind: 'lines', items: [[{ text: `2. ${inspectionRef}` }]], indent: 7 },
     { kind: 'gap', mm: 2 },
-    {
-      kind: 'para',
-      firstLineIndent: 10,
-      segments: sectionBlocks.length > 0
-        ? [
-            { text: 'It is informed that during the inspection of the above-mentioned dealer/firm premises' },
-            ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
-            { text: ', the following irregularities were noticed:' },
-          ]
-        : [
-            { text: 'It is informed that during the inspection of the above-mentioned dealer/firm premises' },
-            ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
-            { text: ', certain irregularities were noticed.' },
-          ],
-    },
-    ...sectionBlocks,
+    { kind: 'center', text: '***' },
     { kind: 'gap', mm: 1 },
     {
-      kind: 'para',
+      kind: 'labelPara',
+      label: '1.',
       segments: [
-        { text: 'In view of the above, you are hereby directed to submit your ' },
-        { text: `written explanation within ${explanationPeriod} from the date of receipt of this notice`, bold: true },
-        { text: ', duly explaining the above irregularities and enclosing relevant supporting documents, if any.' },
+        { text: 'Whereas, ' },
+        { text: firmDisplay, bold: true },
+        { text: ', located at ' },
+        { text: dealerFullAddress || '________________', bold: true },
+        { text: `, holds a ${certificateTerm} (vide reference 1st cited) to carry on the business of ${businessTerm}, subject to strict compliance with the provisions of the ${instrument} and the terms and conditions stipulated therein.` },
       ],
     },
     {
-      kind: 'para',
+      kind: 'labelPara',
+      label: '2.',
+      segments: inspectedByMao
+        ? [
+            { text: 'And whereas, based on the report of the ' },
+            { text: `Mandal Agriculture Officer, ${mandalValue}`, bold: true },
+            { text: ', in respect of the field inspection of the business premises of the said dealer/firm conducted' },
+            ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
+            { text: ` (vide reference 2nd cited), ${noticedPhrase}` },
+          ]
+        : [
+            { text: 'And whereas, during the field inspection of the business premises of the said dealer/firm conducted' },
+            ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
+            { text: ` (vide reference 2nd cited), ${noticedPhrase}` },
+          ],
+    },
+    ...scnSectionBlocks,
+    {
+      kind: 'labelPara',
+      label: '3.',
       segments: [
-        { text: 'If no explanation is received within the stipulated period, the matter will be considered ' },
-        { text: 'without further reference to you', bold: true },
-        { text: ', and further action may be initiated/proposed under the provisions of the ' },
-        { text: 'applicable Act(s), Rules and Orders', bold: true },
-        { text: ', as applicable.' },
+        { text: `The aforesaid irregularities constitute a violation of the mandatory provisions of the ${instrument} and ${licenceConditionPhrase}, warranting statutory and administrative action under the relevant provisions of the Order and applicable Acts/Rules.` },
       ],
     },
+    {
+      kind: 'labelPara',
+      label: '4.',
+      segments: [
+        { text: 'In view of the above, ' },
+        { text: firmDisplay, bold: true },
+        { text: ' is hereby directed to ' },
+        { text: 'SHOW CAUSE', bold: true },
+        { text: ' and submit a ' },
+        { text: `written explanation within ${explanationPeriod} from the date of receipt of this notice`, bold: true },
+        { text: `, duly explaining each of the above irregularities along with relevant supporting documents, if any, as to why appropriate action should not be initiated against the firm under the provisions of the ${instrument} and other applicable Acts and Rules.` },
+      ],
+    },
+    {
+      kind: 'labelPara',
+      label: '5.',
+      segments: [
+        { text: `If no written explanation is received in this office within the stipulated period of ${explanationPeriod}, it will be construed that the firm has no explanation to offer, and the matter will be examined and decided ` },
+        { text: 'ex-parte', bold: true },
+        { text: ' based on the material available on record without any further reference, and further action as deemed fit will be initiated under the provisions of the applicable Act(s), Rules, and Orders.' },
+      ],
+    },
+    ...(form.enclosures.trim()
+      ? [{ kind: 'lines', items: [[{ text: 'Encl: ' }, { text: form.enclosures.trim(), bold: true }]] } as NoticeBlock]
+      : []),
     { kind: 'gap', mm: 8 },
     { kind: 'lines', items: signatureItems, align: 'right', centerLines: true, offsetX: 5 },
     { kind: 'gap', mm: 4 },
-    { kind: 'lines', items: [[{ text: 'Copy To:', bold: true }]] },
-    { kind: 'lines', items: copyLines.map((line) => [{ text: line }]) },
+    { kind: 'lines', items: [[{ text: 'To', bold: true }]] },
+    { kind: 'lines', items: dealerItems, indent: 8 },
+    { kind: 'gap', mm: 3 },
+    { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]] },
+    ...copyLines.map((line): NoticeBlock => {
+      const match = line.match(/^(\d+\.)\s*(.*)$/);
+      return match
+        ? { kind: 'labelPara', label: match[1], segments: [{ text: match[2] }] }
+        : { kind: 'lines', items: [[{ text: line }]] };
+    }),
   ];
 }
 
@@ -469,6 +700,8 @@ function noticeBlocksHtml(blocks: NoticeBlock[]) {
                 `<tr><td style="border:1pt solid #000;padding:2pt 6pt;">${escapeHtml(row.label)}</td><td style="border:1pt solid #000;padding:2pt 6pt;font-weight:700;">${escapeHtml(row.value || '______________________________')}</td></tr>`
             )
             .join('')}</tbody></table>`;
+        case 'rule':
+          return '<hr style="border:none;border-top:1pt dashed #000;margin:2pt 0;"/>';
         case 'gap':
           return `<div style="height:${block.mm ?? 2}mm;"></div>`;
         default:
@@ -613,6 +846,13 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
         }));
         break;
       }
+      case 'rule':
+        children.push(new Paragraph({
+          children: [],
+          border: { bottom: { style: BorderStyle.DASHED, size: 6, color: '000000', space: 1 } },
+          spacing: { line: 360, after: 40 },
+        }));
+        break;
       case 'gap':
         children.push(new Paragraph({ children: [], spacing: { after: mmToTwips(block.mm ?? 2) } }));
         break;
@@ -672,6 +912,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const [savedSearch, setSavedSearch] = useState('');
   const [showProductDetails, setShowProductDetails] = useState(false);
   const [showNoticePreview, setShowNoticePreview] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -752,6 +993,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     updateForm({
       category,
       memoNumber: next.memoNumber,
+      noticeDate: next.noticeDate,
       selectedViolationIds: [],
       observation: '',
       dealerName: '',
@@ -760,6 +1002,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       batchLotNumber: '',
       quantityInvolved: '',
       productRemarks: '',
+      enclosures: '',
+      inspectedBy: 'self',
     });
     setShowProductDetails(false);
     setShowNoticePreview(false);
@@ -829,6 +1073,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       memoNumber: notice.memoNumber,
       financialYear: notice.inspectionDate ? financialYearForDate(notice.inspectionDate) : currentFinancialYear(),
       inspectionDate: notice.inspectionDate,
+      noticeDate: notice.noticeDate || today(),
+      inspectedBy: notice.inspectedBy || 'self',
       deadline: notice.deadline,
       officerName: notice.officerName,
       officerDesignation: notice.officerDesignation,
@@ -843,6 +1089,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       invoiceDetails: notice.invoiceDetails || '',
       productRemarks: notice.productRemarks || '',
       observation: notice.observation,
+      enclosures: notice.enclosures || '',
       selectedViolationIds: notice.selectedViolationIds,
       status: notice.status,
     };
@@ -884,6 +1131,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
     const measure = (text: string, bold: boolean) => {
       doc.setFont(fontName, bold ? 'bold' : 'normal');
+      doc.setFontSize(12);
       return doc.getTextWidth(text);
     };
     const spaceWidth = () => measure(' ', false);
@@ -935,6 +1183,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       doc.setFontSize(10);
       doc.text("(Cont'd...)", PAGE_W - MR, PAGE_H - MB + 6, { align: 'right' });
       doc.addPage();
+      doc.setFontSize(12);
       y = MT;
     };
     const ensureSpace = (needed: number) => {
@@ -1052,6 +1301,13 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           });
           break;
         }
+        case 'rule':
+          ensureSpace(2);
+          doc.setLineDashPattern([1.5, 1], 0);
+          doc.line(ML, y, PAGE_W - MR, y);
+          doc.setLineDashPattern([], 0);
+          y += 3;
+          break;
         case 'gap':
           y += block.mm ?? 2;
           break;
@@ -1065,7 +1321,6 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
   const downloadPdf = async () => {
     const doc = await buildNoticePdfDoc();
-    await addEmblemImageWatermark(doc);
     doc.save(noticeFileName());
   };
 
@@ -1169,6 +1424,23 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                   financialYear: value ? financialYearForDate(value) : currentFinancialYear(),
                 })}
               />
+              <TextInput
+                label="Notice Date"
+                type="date"
+                value={form.noticeDate}
+                onChange={(value) => updateForm({ noticeDate: value })}
+              />
+              {!isMAOOfficer && (
+                <SelectInput
+                  label="Inspection Conducted By"
+                  value={form.inspectedBy}
+                  onChange={(value) => updateForm({ inspectedBy: value as 'self' | 'mao' })}
+                  options={[
+                    { label: 'Direct (by issuing officer)', value: 'self' },
+                    { label: 'Mandal Agriculture Officer', value: 'mao' },
+                  ]}
+                />
+              )}
             </div>
           </div>
 
@@ -1197,6 +1469,20 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                 { label: '7 (seven) days', value: '7 (seven) days' },
                 { label: '10 (ten) days', value: '10 (ten) days' },
                 { label: '15 (fifteen) days', value: '15 (fifteen) days' },
+              ]}
+            />
+            <SelectInput
+              label="Enclosures"
+              value={form.enclosures}
+              onChange={(value) => updateForm({ enclosures: value })}
+              options={[
+                ...(form.enclosures && !['Inspection report', 'License Copy', 'Authorization Letter', 'Farmer Complaint'].includes(form.enclosures)
+                  ? [{ label: form.enclosures, value: form.enclosures }]
+                  : []),
+                { label: 'Inspection report', value: 'Inspection report' },
+                { label: 'License Copy', value: 'License Copy' },
+                { label: 'Authorization Letter', value: 'Authorization Letter' },
+                { label: 'Farmer Complaint', value: 'Farmer Complaint' },
               ]}
             />
             </div>
@@ -1300,14 +1586,45 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               <Save className="h-4 w-4" aria-hidden="true" />
               Save Draft
             </button>
-            <button type="button" onClick={downloadPdf} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 sm:text-sm">
-              <FileText className="h-4 w-4" aria-hidden="true" />
-              PDF
-            </button>
-            <button type="button" onClick={downloadWord} className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs font-black text-blue-700 shadow-sm transition hover:bg-blue-50 dark:border-blue-800/50 dark:bg-slate-900 dark:text-blue-300 sm:text-sm">
-              <FileType className="h-4 w-4" aria-hidden="true" />
-              WORD
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setExportOpen((open) => !open)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 sm:text-sm"
+              >
+                <Download className="h-4 w-4" aria-hidden="true" />
+                Export
+                <ChevronDown className={`h-4 w-4 transition-transform ${exportOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+              </button>
+              {exportOpen && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Close export menu"
+                    onClick={() => setExportOpen(false)}
+                    className="fixed inset-0 z-40 cursor-default"
+                  />
+                  <div className="absolute left-0 z-50 mt-1 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                    <button
+                      type="button"
+                      onClick={() => { setExportOpen(false); void downloadPdf(); }}
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs font-black text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800 sm:text-sm"
+                    >
+                      <FileText className="h-4 w-4" aria-hidden="true" />
+                      PDF
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setExportOpen(false); void downloadWord(); }}
+                      className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-left text-xs font-black text-blue-700 transition hover:bg-blue-50 dark:border-slate-800 dark:text-blue-300 dark:hover:bg-slate-800 sm:text-sm"
+                    >
+                      <FileType className="h-4 w-4" aria-hidden="true" />
+                      WORD
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
       {showNoticePreview && (
