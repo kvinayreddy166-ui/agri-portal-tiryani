@@ -63,8 +63,8 @@ export function InspectionsNoticesHub() {
         <div
           className={`overflow-hidden rounded-xl border shadow-sm transition ${
             showInspectionTypes
-              ? 'border-teal-500 bg-white dark:border-teal-600 dark:bg-slate-900'
-              : 'border-teal-200 bg-white hover:border-teal-400 hover:bg-teal-50 dark:border-teal-800 dark:bg-slate-900 dark:hover:border-teal-600 dark:hover:bg-slate-800'
+              ? 'border-teal-400 bg-white dark:border-teal-600 dark:bg-slate-900'
+              : 'border-teal-200 bg-white hover:border-teal-300 hover:bg-teal-50 dark:border-teal-800 dark:bg-slate-900 dark:hover:border-teal-600 dark:hover:bg-slate-800'
           }`}
         >
           <button
@@ -74,7 +74,7 @@ export function InspectionsNoticesHub() {
               setShowNoticeTypes(false);
             }}
             className={`block min-h-[76px] w-full p-4 text-left transition ${
-              showInspectionTypes ? 'bg-teal-600 text-white' : 'text-slate-900 dark:text-white'
+              showInspectionTypes ? 'bg-teal-500 text-white' : 'text-slate-900 dark:text-white'
             }`}
           >
             <div className="flex items-center justify-between gap-3">

@@ -289,8 +289,13 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   const instrument = form.category === 'fertiliser'
     ? 'Fertiliser (Control) Order, 1985'
     : form.category === 'seed'
-      ? 'Seeds Act, 1966 r/w Seed (Control) Order, 1983'
-      : 'Insecticides Act, 1968 r/w Insecticides Rules, 1971';
+      ? 'Seeds Act, 1966 read with Seed (Control) Order, 1983'
+      : 'Insecticides Act, 1968 read with Insecticides Rules, 1971';
+  const instrumentSub = form.category === 'fertiliser'
+    ? 'Fertiliser (Control) Order, 1985'
+    : form.category === 'seed'
+      ? 'Seeds Act, 1966 and Seed (Control) Order, 1983'
+      : 'Insecticides Act, 1968 and Insecticides Rules, 1971';
   const certificateTerm = form.category === 'fertiliser'
     ? 'Certificate of Registration / Letter of Authorization'
     : form.category === 'seed'
@@ -323,7 +328,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   const isMAO = isMaoDesignation(officerDesignation);
   const noticeTitle = isMAO ? 'MEMO' : 'SHOW CAUSE NOTICE';
   const noticeTitleText = isMAO ? 'Memo' : 'Show Cause Notice';
-  const divisionName = (form.division || '').toUpperCase() || '________________';
+  const divisionName = form.division.trim() || '________________';
   // ADA officers operate at division level, DAO at district level, others at mandal level
   const officerLocation = isADA
     ? (form.division.trim() ? `${form.division.trim()} Division` : '________________')
@@ -359,7 +364,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   // - Section -> parent Act, Clause -> Control Order, Rule -> Rules (actOrOrder already names the instrument)
   const violationItems: NoticeSegment[][] = selectedViolations.map((item) => [
     { text: item.shortDescription.replace(/\.+$/, '') },
-    { text: ` which is contravention to ${item.exactReference} of ${item.actOrOrder.replace(/,/g, '')}.`, bold: true },
+    { text: ` which is contravention to ${item.exactReference.replace(/\br\/w\b/g, 'read with')} of ${item.actOrOrder.replace(/,/g, '').replace(/\br\/w\b/g, 'read with')}.`, bold: true },
   ]);
 
   const productRows = [
@@ -568,7 +573,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
         { text: `${subjectLabel} – Inspection of ` },
         { text: `${firmDisplay}, ${mandalValue}`, bold: true },
         ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
-        { text: ` – Irregularities noticed under the ${instrument} – ${noticeTitleText} issued – Explanation called for – Reg.` },
+        { text: ` – Irregularities noticed under the ${instrumentSub} – ${noticeTitleText} issued – Explanation called for – Reg.` },
       ],
     },
     {
