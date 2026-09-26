@@ -1,8 +1,8 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { UploadCloud, FileText, X, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { useToast } from '../../../components/ui/Toast';
-import { useAuth } from '../../../context/AuthContext';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { useToast } from '../../../shared/components/ui/Toast';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import {
@@ -14,8 +14,8 @@ import {
   uploadDocumentFile,
   updateDocument,
 } from '../services/knowledgeService';
-import { computeFileHash, formatFileSize, getExtension, validateKnowledgeFile } from '../utils';
-import { DOCUMENT_TYPES, type DocumentType, type KnowledgeCategory } from '../types';
+import { computeFileHash, formatFileSize, getExtension, validateKnowledgeFile } from '../utils/index';
+import { DOCUMENT_TYPES, type DocumentType, type KnowledgeCategory } from '../types/index';
 
 export function KnowledgeUpload() {
   const { isAdminUser } = useAuth();

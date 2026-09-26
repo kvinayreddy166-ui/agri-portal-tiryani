@@ -1,5 +1,5 @@
-﻿import { supabase } from '../lib/supabase';
-import { repairTeluguText } from '../utils/textRepair';
+﻿import { supabase } from '../shared/lib/supabase';
+import { repairTeluguText } from '../shared/utils/textRepair';
 
 export type CropProtectionCategory = 'weed' | 'pest' | 'disease' | 'nutrient';
 export type ControlType = 'cultural' | 'mechanical' | 'biological' | 'chemical' | 'general_ipm';

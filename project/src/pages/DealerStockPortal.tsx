@@ -1,7 +1,7 @@
 ﻿import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Calendar, ChevronDown, FileSpreadsheet, Menu, Plus, Save, Table2, Trash2, Truck, X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
 import {
   CATEGORY_UNITS,
   FINANCIAL_YEARS,
@@ -13,12 +13,12 @@ import {
   financialYearRange,
   productTypesForCategory,
 } from '../lib/stockInventory';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../shared/lib/supabase';
 import { saveWorkbookFile } from '../lib/documentActions';
-import { bagsToMt, formatBags, formatMt, mtToBags } from '../utils/fertilizerUnits';
-import { currentFinancialYear } from '../utils/financialYear';
-import { IconButton } from '../components/ui/DesignSystem';
-import { appendSummarySheet, totalValue } from '../utils/excelTotals';
+import { bagsToMt, formatBags, formatMt, mtToBags } from '../shared/utils/fertilizerUnits';
+import { currentFinancialYear } from '../shared/utils/financialYear';
+import { IconButton } from '../shared/components/ui/DesignSystem';
+import { appendSummarySheet, totalValue } from '../shared/utils/excelTotals';
 
 type Section = 'entry' | 'saved';
 

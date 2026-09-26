@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Plus, RefreshCw, Search, Trash2, Upload, Phone, User, Building2 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../shared/lib/supabase';
 
 type OfficerType = 'AEO' | 'MAO' | 'ADA' | 'DAO';
 

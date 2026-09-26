@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FolderOpen, Search } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useLanguage } from '../context/LanguageContext';
-import { PageHeader } from '../components/ui/PageHeader';
-import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { FileTypeIcon } from '../components/ui/FileTypeIcon';
-import { inferFileTypeFromName, getFileTypeLabel } from '../lib/fileTypes';
-import { cachedSupabaseRows } from '../lib/offlineCache';
+import { supabase } from '../shared/lib/supabase';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { PageHeader } from '../shared/components/ui/PageHeader';
+import { FileActionButtons } from '../shared/components/ui/FileActionButtons';
+import { FileTypeIcon } from '../shared/components/ui/FileTypeIcon';
+import { inferFileTypeFromName, getFileTypeLabel } from '../shared/lib/fileTypes';
+import { cachedSupabaseRows } from '../shared/lib/offlineCache';
 
 interface UnifiedFile {
   id: string;

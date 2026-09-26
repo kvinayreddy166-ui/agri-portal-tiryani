@@ -4,13 +4,13 @@ import {
   Archive, BarChart3, Settings, LogOut, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen,
 } from 'lucide-react';
-import { PortalLogo } from './ui/PortalLogo';
-import { BackButton } from './ui/BackButton';
-import { LanguageToggle } from './ui/LanguageToggle';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import { useTheme } from '../context/ThemeContext';
-import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
+import { PortalLogo } from '../shared/components/ui/PortalLogo';
+import { BackButton } from '../shared/components/ui/BackButton';
+import { LanguageToggle } from '../shared/components/ui/LanguageToggle';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { useTheme } from '../shared/context/ThemeContext';
+import { useBackButtonOverlay } from '../shared/hooks/useBackButtonOverlay';
 
 interface LayoutProps {
   children: ReactNode;

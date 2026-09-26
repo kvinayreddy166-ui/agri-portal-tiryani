@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BookOpen, Send, Loader2, Search, Sparkles, ThumbsUp, ThumbsDown, FileText, AlertTriangle } from 'lucide-react';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { useToast } from '../../../components/ui/Toast';
-import { useAuth } from '../../../context/AuthContext';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { useToast } from '../../../shared/components/ui/Toast';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import { askQuestion, fetchCategories, fetchSuggestedQuestions, qualityLabel, submitFeedback } from '../services/knowledgeService';
-import type { AskResult, KnowledgeCategory, SuggestedQuestion } from '../types';
+import type { AskResult, KnowledgeCategory, SuggestedQuestion } from '../types/index';
 
 interface ChatMessage {
   role: 'user' | 'assistant';

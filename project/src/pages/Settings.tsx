@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Settings as SettingsIcon, Save, User, Database } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import { Settings as SettingsType } from '../types/database';
+import { supabase } from '../shared/lib/supabase';
+import { useAuth } from '../shared/context/AuthContext';
+import { Settings as SettingsType } from '../shared/types/database';
 
 export function Settings() {
   const { isAdminUser, user } = useAuth();

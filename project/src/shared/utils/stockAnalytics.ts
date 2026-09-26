@@ -1,4 +1,4 @@
-import { StockCategory, StockInventoryLine } from '../lib/stockInventory';
+import { StockCategory, StockInventoryLine } from '../../lib/stockInventory';
 
 export type StockAnalyticsRow = {
   key: string;

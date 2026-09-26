@@ -2,22 +2,22 @@ import React, { useState, useEffect } from 'react';
 
 import { Edit2, FileSpreadsheet, Save, Upload, X } from 'lucide-react';
 
-import { supabase } from '../lib/supabase';
+import { supabase } from '../shared/lib/supabase';
 
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../shared/context/AuthContext';
 
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../shared/context/LanguageContext';
 
-import { ExcelUpload } from '../types/database';
+import { ExcelUpload } from '../shared/types/database';
 
-import { PageHeader } from '../components/ui/PageHeader';
+import { PageHeader } from '../shared/components/ui/PageHeader';
 
-import { FileActionButtons } from '../components/ui/FileActionButtons';
+import { FileActionButtons } from '../shared/components/ui/FileActionButtons';
 
-import { FileTypeIcon } from '../components/ui/FileTypeIcon';
+import { FileTypeIcon } from '../shared/components/ui/FileTypeIcon';
 
-import { parseExcelAndImportDealers } from '../lib/excelParser';
-import { getContentType, inferFileTypeFromName, validateUploadFile } from '../lib/fileTypes';
+import { parseExcelAndImportDealers } from '../shared/lib/excelParser';
+import { getContentType, inferFileTypeFromName, validateUploadFile } from '../shared/lib/fileTypes';
 
 
 

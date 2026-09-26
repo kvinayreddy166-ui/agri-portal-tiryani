@@ -12,13 +12,13 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { getContentType } from '../lib/fileTypes';
-import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { FileTypeIcon } from '../components/ui/FileTypeIcon';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import { QualityControlSample, QualityControlTarget } from '../types/database';
+import { supabase } from '../shared/lib/supabase';
+import { getContentType } from '../shared/lib/fileTypes';
+import { FileActionButtons } from '../shared/components/ui/FileActionButtons';
+import { FileTypeIcon } from '../shared/components/ui/FileTypeIcon';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { QualityControlSample, QualityControlTarget } from '../shared/types/database';
 
 interface QualityControlProps {
   category: 'seeds' | 'pesticides' | 'fertilizers';

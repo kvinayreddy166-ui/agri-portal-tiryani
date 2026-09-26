@@ -10,10 +10,10 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { uploadPortalFile } from '../lib/uploadFile';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { supabase } from '../shared/lib/supabase';
+import { uploadPortalFile } from '../shared/lib/uploadFile';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
 import { getCropIntelligence } from '../lib/cropIntelligence';
 
 interface CropPageProps {

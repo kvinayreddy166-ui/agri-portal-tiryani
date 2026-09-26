@@ -14,9 +14,9 @@ import {
   initialFertilizerPdfValues,
   resolveFertilizerTypeGrade,
 } from '../../lib/statutoryFertilizerPdf';
-import { FertilizerInstructionModal } from '../ui/FertilizerInstructionModal';
-import { PopupHintWrapper } from '../PopupHint';
-import { ToastContainer, useToast } from '../ui/Toast';
+import { FertilizerInstructionModal } from '../../shared/components/ui/FertilizerInstructionModal';
+import { PopupHintWrapper } from '../../shared/components/PopupHint';
+import { ToastContainer, useToast } from '../../shared/components/ui/Toast';
 import { CoveringLetterModal } from  './CoveringLetterModal';
 import {
   QUALIFICATION_OPTIONS,

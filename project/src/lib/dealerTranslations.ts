@@ -2,7 +2,7 @@
  * Telugu translation dictionary for dealer stock screens.
  */
 
-import { repairTeluguText } from '../utils/textRepair';
+import { repairTeluguText } from '../shared/utils/textRepair';
 
 function hasValidTelugu(text?: string | null): boolean {
   if (!text?.trim()) return false;

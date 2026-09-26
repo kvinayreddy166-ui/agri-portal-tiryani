@@ -2,12 +2,12 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import * as pdfjsLib from 'pdfjs-dist';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Loader2, FileText, AlertTriangle } from 'lucide-react';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { BackButton } from '../../../components/ui/BackButton';
-import { useAuth } from '../../../context/AuthContext';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { BackButton } from '../../../shared/components/ui/BackButton';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import { fetchDocument, getDocumentSignedUrl } from '../services/knowledgeService';
-import type { KnowledgeDocument } from '../types';
+import type { KnowledgeDocument } from '../types/index';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 

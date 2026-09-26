@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ListChecks, Loader2, RefreshCw, AlertTriangle, RotateCw } from 'lucide-react';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { useToast } from '../../../components/ui/Toast';
-import { useAuth } from '../../../context/AuthContext';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { useToast } from '../../../shared/components/ui/Toast';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { fetchProcessingJobs, processDocument } from '../services/knowledgeService';
-import type { ProcessingJob } from '../types';
+import type { ProcessingJob } from '../types/index';
 
 export function KnowledgeProcessingQueue() {
   const { isAdminUser } = useAuth();

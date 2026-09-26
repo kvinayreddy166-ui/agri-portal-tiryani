@@ -1,7 +1,7 @@
 import React from 'react';
 import type { CropProtectionRecommendation, LanguageCode } from '../../services/cropProtectionService';
 import { controlLabel, pickLang } from '../../services/cropProtectionService';
-import { label } from '../../services/translationService';
+import { label } from '../../shared/services/translationService';
 
 const controlOrder = ['general_ipm', 'cultural', 'mechanical', 'biological', 'chemical'];
 

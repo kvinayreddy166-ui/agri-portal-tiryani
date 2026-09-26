@@ -37,9 +37,9 @@ import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory,
 import { fertilizerSchedules, type FertilizerScheduleEntry } from '../data/fertilizerSchedules';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { enforcementDeadlines, enforcementMindMap, type MindMapNode } from '../data/fcoEnforcementMindMap';
-import { BackButton } from './ui/BackButton';
+import { BackButton } from '../shared/components/ui/BackButton';
 import { FertilizerFormPdfGenerator } from './forms/FertilizerFormPdfGenerator';
-import { FcoImplementationModal } from './ui/FcoImplementationModal';
+import { FcoImplementationModal } from '../shared/components/ui/FcoImplementationModal';
 
 type ReckonerView = 'powers' | 'notice';
 type MainLegalArea = 'fertilizer' | 'seed' | 'insecticide';

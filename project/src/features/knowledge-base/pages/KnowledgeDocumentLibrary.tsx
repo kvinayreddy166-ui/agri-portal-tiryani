@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { FolderOpen, Loader2, RefreshCw, Eye, Power, PowerOff, Trash2, Search, ChevronLeft, ChevronRight, FileText, RotateCw } from 'lucide-react';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { useToast } from '../../../components/ui/Toast';
-import { useAuth } from '../../../context/AuthContext';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { useToast } from '../../../shared/components/ui/Toast';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import {
@@ -11,8 +11,8 @@ import {
   processDocument,
   toggleDocumentActive,
 } from '../services/knowledgeService';
-import { DOCUMENT_TYPES, type DocumentType, type KnowledgeDocument } from '../types';
-import { formatFileSize } from '../utils';
+import { DOCUMENT_TYPES, type DocumentType, type KnowledgeDocument } from '../types/index';
+import { formatFileSize } from '../utils/index';
 import { StatusBadge } from './KnowledgeDashboard';
 
 export function KnowledgeDocumentLibrary() {

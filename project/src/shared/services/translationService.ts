@@ -1,4 +1,4 @@
-import type { LanguageCode } from './cropProtectionService';
+import type { LanguageCode } from '../../services/cropProtectionService';
 import { repairTeluguText } from '../utils/textRepair';
 
 export const teLabels: Record<string, string> = {

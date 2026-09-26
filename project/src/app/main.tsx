@@ -1,9 +1,9 @@
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { installPwaRecovery } from './lib/pwaRecovery';
-import { recordSiteHit } from './lib/siteHits';
+import { ErrorBoundary } from '../shared/components/ErrorBoundary';
+import { installPwaRecovery } from '../shared/lib/pwaRecovery';
+import { recordSiteHit } from '../shared/lib/siteHits';
 import './index.css';
 
 declare global {

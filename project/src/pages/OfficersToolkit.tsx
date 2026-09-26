@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Calculator, LayoutDashboard, ShieldCheck, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
-import { BackButton } from '../components/ui/BackButton';
-import { LanguageToggle } from '../components/ui/LanguageToggle';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { BackButton } from '../shared/components/ui/BackButton';
+import { LanguageToggle } from '../shared/components/ui/LanguageToggle';
 
 interface ToolkitItem {
   title: string;

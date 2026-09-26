@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Settings, Loader2, Plus, Trash2, Lightbulb } from 'lucide-react';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { useToast } from '../../../components/ui/Toast';
-import { useAuth } from '../../../context/AuthContext';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { useToast } from '../../../shared/components/ui/Toast';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { createSuggestedQuestion, deleteSuggestedQuestion, fetchAllSuggestedQuestions } from '../services/knowledgeService';
-import type { SuggestedQuestion } from '../types';
+import type { SuggestedQuestion } from '../types/index';
 
 export function KnowledgeSettings() {
   const { isAdminUser } = useAuth();

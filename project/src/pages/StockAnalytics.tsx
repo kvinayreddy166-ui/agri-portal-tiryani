@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ClipboardList, Filter, PackageCheck, RefreshCw } from 'lucide-react';
 import { StockManagement } from './StockManagement';
 import { StockInventory } from './StockInventory';
-import { IconButton } from '../components/ui/DesignSystem';
-import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
+import { IconButton } from '../shared/components/ui/DesignSystem';
+import { useAuth } from '../shared/context/AuthContext';
+import { supabase } from '../shared/lib/supabase';
 import {
   FINANCIAL_YEARS,
   StockCategory,

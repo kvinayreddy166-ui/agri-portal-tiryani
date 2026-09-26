@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Eye, FileText, RotateCcw, Save } from 'lucide-react';
-import { SeedInstructionModal } from '../components/ui/SeedInstructionModal';
-import { ToastContainer, useToast } from '../components/ui/Toast';
+import { SeedInstructionModal } from '../shared/components/ui/SeedInstructionModal';
+import { ToastContainer, useToast } from '../shared/components/ui/Toast';
 import { SeedCoveringLetterModal } from '../components/forms/SeedCoveringLetterModal';
 import { 
   QUALIFICATION_OPTIONS,
@@ -11,8 +11,8 @@ import {
   getDivisionsForDistrict,
 } from '../data/telanganaDistrictMandalData';
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../data/assistantDirectorLocation';
-import { PopupHintWrapper } from '../components/PopupHint';
-import { supabase } from '../lib/supabase';
+import { PopupHintWrapper } from '../shared/components/PopupHint';
+import { supabase } from '../shared/lib/supabase';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';

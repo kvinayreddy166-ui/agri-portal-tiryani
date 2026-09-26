@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { BarChart3, ChevronLeft, ChevronRight, FileSpreadsheet, Search, RotateCcw, Filter, ArrowUpDown } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
 import { translateDealerText } from '../lib/dealerTranslations';
-import { supabase } from '../lib/supabase';
-import { IconButton } from '../components/ui/DesignSystem';
-import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../utils/excelTotals';
+import { supabase } from '../shared/lib/supabase';
+import { IconButton } from '../shared/components/ui/DesignSystem';
+import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../shared/utils/excelTotals';
 
 type FertilizerUnit = 'mts' | 'bags';
 

@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Edit2, Folder, Link, Plus, Trash2, Upload, X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import { FormDownload } from '../types/database';
-import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { FileTypeIcon } from '../components/ui/FileTypeIcon';
-import { inferFileTypeFromName } from '../lib/fileTypes';
-import { uploadPortalFile } from '../lib/uploadFile';
+import { supabase } from '../shared/lib/supabase';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { FormDownload } from '../shared/types/database';
+import { FileActionButtons } from '../shared/components/ui/FileActionButtons';
+import { FileTypeIcon } from '../shared/components/ui/FileTypeIcon';
+import { inferFileTypeFromName } from '../shared/lib/fileTypes';
+import { uploadPortalFile } from '../shared/lib/uploadFile';
 
 const folders = [
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },

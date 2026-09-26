@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle, Loader2, Users } from 'lucide-react';
-import { ToolkitPageHeader } from '../components/ui/ToolkitPageHeader';
+import { ToolkitPageHeader } from '../shared/components/ui/ToolkitPageHeader';
 import { AEO_DISTRICTS } from '../data/aeoDistricts';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../shared/lib/supabase';
 
 type OfficerType = 'AEO' | 'MAO' | 'ADA' | 'DAO';
 

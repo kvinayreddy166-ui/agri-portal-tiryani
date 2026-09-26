@@ -1,4 +1,4 @@
-import { FINANCIAL_YEARS, currentReportDate, financialYearForDate, financialYearRange } from '../lib/stockInventory';
+import { FINANCIAL_YEARS, currentReportDate, financialYearForDate, financialYearRange } from '../../lib/stockInventory';
 
 export { FINANCIAL_YEARS, financialYearForDate, financialYearRange };
 

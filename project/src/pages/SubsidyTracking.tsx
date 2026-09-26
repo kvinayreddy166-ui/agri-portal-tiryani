@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Landmark, Sprout, Trash2, Upload, Save } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import { PageHeader } from '../components/ui/PageHeader';
-import { uploadPortalFile } from '../lib/uploadFile';
-import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { inferFileTypeFromName } from '../lib/fileTypes';
+import { supabase } from '../shared/lib/supabase';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { PageHeader } from '../shared/components/ui/PageHeader';
+import { uploadPortalFile } from '../shared/lib/uploadFile';
+import { FileActionButtons } from '../shared/components/ui/FileActionButtons';
+import { inferFileTypeFromName } from '../shared/lib/fileTypes';
 
 export type SubsidyProgram = 'nfsm' | 'state_seed_cell';
 

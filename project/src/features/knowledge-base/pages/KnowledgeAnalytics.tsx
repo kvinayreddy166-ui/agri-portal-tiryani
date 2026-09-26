@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart3, Loader2, AlertTriangle, Clock, HelpCircle } from 'lucide-react';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { ModernStatCard } from '../../../components/ui/ModernCard';
-import { useAuth } from '../../../context/AuthContext';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { ModernStatCard } from '../../../shared/components/ui/ModernCard';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { fetchQueryAnalytics } from '../services/knowledgeService';
 

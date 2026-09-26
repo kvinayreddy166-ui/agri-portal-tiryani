@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Copy, Leaf, RotateCcw, Sprout } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
-import { BackButton } from '../components/ui/BackButton';
-import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { ToastContainer, useToast } from '../components/ui/Toast';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { BackButton } from '../shared/components/ui/BackButton';
+import { LanguageToggle } from '../shared/components/ui/LanguageToggle';
+import { ToastContainer, useToast } from '../shared/components/ui/Toast';
 
 type AreaUnit = 'acres' | 'hectares';
 type SpacingUnit = 'cm' | 'm' | 'feet' | 'inches';

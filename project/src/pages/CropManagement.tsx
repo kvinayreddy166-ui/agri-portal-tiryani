@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { BrainCircuit, ClipboardList, Leaf } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
 import { CropIntelligencePage } from './crops/CropIntelligencePage.jsx';
 
 const cropTabs = [

@@ -19,23 +19,23 @@ import {
   Store,
   X,
 } from 'lucide-react';
-import { BackButton } from './ui/BackButton';
-import { FileTypeIcon } from './ui/FileTypeIcon';
-import { PortalLogo } from './ui/PortalLogo';
-import { LanguageToggle } from './ui/LanguageToggle';
-import { WhatsAppFab } from './ui/WhatsAppFab';
-import { UpdateBanner } from './UpdateBanner';
+import { BackButton } from '../shared/components/ui/BackButton';
+import { FileTypeIcon } from '../shared/components/ui/FileTypeIcon';
+import { PortalLogo } from '../shared/components/ui/PortalLogo';
+import { LanguageToggle } from '../shared/components/ui/LanguageToggle';
+import { WhatsAppFab } from '../shared/components/ui/WhatsAppFab';
+import { UpdateBanner } from '../shared/components/UpdateBanner';
 import { DEALER_DEFAULT_PASSWORD } from '../lib/dealerAuth';
 import { translateDealerLoginError } from '../lib/dealerLoginMessages';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import { supabase } from '../lib/supabase';
-import { downloadFileFromUrl } from '../lib/fileBlob';
-import { recordSiteHit } from '../lib/siteHits';
-import { FormDownload } from '../types/database';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { supabase } from '../shared/lib/supabase';
+import { downloadFileFromUrl } from '../shared/lib/fileBlob';
+import { recordSiteHit } from '../shared/lib/siteHits';
+import { FormDownload } from '../shared/types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useBackButtonOverlay } from '../hooks/useBackButtonOverlay';
-import { getGoogleViewerTabUrl, getOfficeViewerTabUrl } from '../lib/filePreviewUrls';
+import { useBackButtonOverlay } from '../shared/hooks/useBackButtonOverlay';
+import { getGoogleViewerTabUrl, getOfficeViewerTabUrl } from '../shared/lib/filePreviewUrls';
 const FertilizerStatutoryPdfTool = lazy(() =>
   import('./forms/FertilizerStatutoryPdfTool')
     .then((module) => ({ default: module.FertilizerStatutoryPdfTool }))

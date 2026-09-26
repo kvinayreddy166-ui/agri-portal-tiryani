@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Calculator, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { BackButton } from '../components/ui/BackButton';
+import { BackButton } from '../shared/components/ui/BackButton';
 
 const STORAGE_KEY = 'tiryani-acreage-calculator-input';
 const MODE_STORAGE_KEY = 'tiryani-acreage-calculator-mode';

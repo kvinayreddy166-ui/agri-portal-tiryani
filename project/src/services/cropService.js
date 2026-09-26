@@ -1,5 +1,5 @@
-import { supabase } from '../lib/supabase';
-import { getContentType, validateImageUploadFile } from '../lib/fileTypes';
+import { supabase } from '../shared/lib/supabase';
+import { getContentType, validateImageUploadFile } from '../shared/lib/fileTypes';
 
 let cropDatasetCache = null;
 let cropListCache = null;

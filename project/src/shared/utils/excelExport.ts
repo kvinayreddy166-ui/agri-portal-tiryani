@@ -1,4 +1,4 @@
-import { StockCategory } from '../lib/stockInventory';
+import { StockCategory } from '../../lib/stockInventory';
 
 type Metadata = {
   firmName: string;

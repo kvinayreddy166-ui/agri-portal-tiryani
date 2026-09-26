@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CalendarDays, CloudRain, Droplets, Thermometer, Wind } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage } from '../../shared/context/LanguageContext';
 
 /** Tiryani Mandal approximate center */
 const LAT = 19.4167;

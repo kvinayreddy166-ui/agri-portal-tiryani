@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../shared/lib/supabase';
 import { DEFAULT_GRADES } from './fertilizerData';
 import { numberValue } from './fertilizerEngine';
 import type { FertilizerGrade } from './fertilizerTypes';

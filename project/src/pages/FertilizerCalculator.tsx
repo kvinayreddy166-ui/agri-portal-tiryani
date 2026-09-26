@@ -12,11 +12,11 @@ import {
   User,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import { BackButton } from '../components/ui/BackButton';
-import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { repairTeluguRecord, repairTeluguText } from '../utils/textRepair';
+import { supabase } from '../shared/lib/supabase';
+import { useAuth } from '../shared/context/AuthContext';
+import { BackButton } from '../shared/components/ui/BackButton';
+import { LanguageToggle } from '../shared/components/ui/LanguageToggle';
+import { repairTeluguRecord, repairTeluguText } from '../shared/utils/textRepair';
 import {
   DEFAULT_GRADES,
   DEFAULT_RECOMMENDATIONS,

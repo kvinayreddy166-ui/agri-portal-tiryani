@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FileSpreadsheet, Filter, Search } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../shared/lib/supabase';
 import {
   FINANCIAL_YEARS,
   StockCategory,
@@ -8,8 +8,8 @@ import {
   financialYearForDate,
   financialYearRange,
 } from '../lib/stockInventory';
-import { IconButton } from '../components/ui/DesignSystem';
-import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../utils/excelTotals';
+import { IconButton } from '../shared/components/ui/DesignSystem';
+import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../shared/utils/excelTotals';
 
 type DealerProfile = {
   id: string;

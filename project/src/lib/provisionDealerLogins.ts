@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../shared/lib/supabase';
 import { DEALER_DEFAULT_PASSWORD } from './dealerAuth';
 
 export interface ProvisionDealerResult {

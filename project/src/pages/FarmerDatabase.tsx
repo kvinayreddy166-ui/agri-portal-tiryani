@@ -13,10 +13,10 @@ import {
   PhoneCall,
   Save,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../shared/lib/supabase';
 import { saveWorkbookFile } from '../lib/documentActions';
-import { LanguageToggle } from '../components/ui/LanguageToggle';
-import { useAuth } from '../context/AuthContext';
+import { LanguageToggle } from '../shared/components/ui/LanguageToggle';
+import { useAuth } from '../shared/context/AuthContext';
 import {
   FarmerImportRow,
   farmerIdentityKey,
@@ -72,7 +72,7 @@ const ANALYTICS_BATCH_SIZE = 1000;
 const ANALYTICS_MAX_ROWS = 25000;
 const UREA_BAG_WEIGHT_MT = 0.045;
 const LazySimpleBarChart = lazy(() =>
-  import('../components/charts/SimpleBarChart').then((module) => ({ default: module.SimpleBarChart }))
+  import('../shared/components/charts/SimpleBarChart').then((module) => ({ default: module.SimpleBarChart }))
 );
 
 const emptyStateText = 'No farmer records found. Try name, phone number, PPB or village.';

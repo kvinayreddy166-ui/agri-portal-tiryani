@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Package, Search, Save, X, TrendingUp, RefreshCw } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import { Dealer } from '../types/database';
-import { IconButton } from '../components/ui/DesignSystem';
+import { supabase } from '../shared/lib/supabase';
+import { useAuth } from '../shared/context/AuthContext';
+import { Dealer } from '../shared/types/database';
+import { IconButton } from '../shared/components/ui/DesignSystem';
 
 interface DealerStockAllocation {
   id: string;

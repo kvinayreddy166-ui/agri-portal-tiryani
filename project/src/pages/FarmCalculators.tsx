@@ -1,9 +1,9 @@
 import React from 'react';
 import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, Wheat } from 'lucide-react';
-import { ToolkitPageHeader } from '../components/ui/ToolkitPageHeader';
+import { ToolkitPageHeader } from '../shared/components/ui/ToolkitPageHeader';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
-import { LanguageToggle } from '../components/ui/LanguageToggle';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { LanguageToggle } from '../shared/components/ui/LanguageToggle';
 
 
 const calculatorItems = [

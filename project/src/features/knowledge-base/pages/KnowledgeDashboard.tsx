@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { FileText, CheckCircle2, Loader2, AlertTriangle, ScanLine, Layers, Search, UploadCloud, Clock } from 'lucide-react';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { ModernStatCard } from '../../../components/ui/ModernCard';
-import { useAuth } from '../../../context/AuthContext';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { ModernStatCard } from '../../../shared/components/ui/ModernCard';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import { fetchDashboardStats } from '../services/knowledgeService';
-import type { DashboardStats } from '../types';
+import type { DashboardStats } from '../types/index';
 
 export function KnowledgeDashboard() {
   const { isAdminUser } = useAuth();

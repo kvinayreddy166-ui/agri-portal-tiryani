@@ -5,7 +5,7 @@
 // feedback, suggested questions) and to Supabase Edge Functions for
 // heavy processing (process-document), search, and RAG ask.
 // =====================================================================
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '../../../shared/lib/supabase';
 import type {
   AskResult,
   DashboardStats,
@@ -17,7 +17,7 @@ import type {
   SearchFilters,
   SearchResult,
   SuggestedQuestion,
-} from '../types';
+} from '../types/index';
 
 const EDGE_FUNCTION_BASE = `${import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '') || ''}/functions/v1`;
 

@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, Eye, FileText, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
-import { ToastContainer, useToast } from '../components/ui/Toast';
-import { ToolkitPageHeader } from '../components/ui/ToolkitPageHeader';
-import { addEmblemImageWatermark } from '../lib/pdfWatermark';
+import { ToastContainer, useToast } from '../shared/components/ui/Toast';
+import { ToolkitPageHeader } from '../shared/components/ui/ToolkitPageHeader';
+import { addEmblemImageWatermark } from '../shared/lib/pdfWatermark';
 import { ActionButton, CheckRow, Field, InspectionTheme, Modal, RowTable, Section, StatusButtons, StatusInput, SummaryChip, useInputClass } from '../components/inspection/ui';
 import { emptyStatus, formatDate, listOrNil, statusText } from '../components/inspection/types';
 import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../components/inspection/types';

@@ -13,8 +13,8 @@ import {
   extractIngredientNames,
   ActiveIngredient,
 } from '../../lib/statutoryPesticidePdf';
-import { PopupHintWrapper } from '../PopupHint';
-import { ToastContainer, useToast } from '../ui/Toast';
+import { PopupHintWrapper } from '../../shared/components/PopupHint';
+import { ToastContainer, useToast } from '../../shared/components/ui/Toast';
 import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,

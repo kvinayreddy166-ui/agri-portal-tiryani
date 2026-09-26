@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Edit2, Trash2, Users, Search, Save, X, KeyRound } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import { Dealer } from '../types/database';
+import { supabase } from '../shared/lib/supabase';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { Dealer } from '../shared/types/database';
 import { provisionAllDealerLogins, provisionDealerLogin } from '../lib/provisionDealerLogins';
 import { dealerEmailFromPhone, DEALER_DEFAULT_PASSWORD, normalizePhone } from '../lib/dealerAuth';
-import { cachedSupabaseRows } from '../lib/offlineCache';
+import { cachedSupabaseRows } from '../shared/lib/offlineCache';
 
 type DealerCategory = 'fertilizer' | 'seed' | 'pesticide';
 
@@ -213,7 +213,7 @@ export function DealerManagement() {
     if (!file) return;
     setImporting(true);
     try {
-      const { parseExcelAndImportDealers } = await import('../lib/excelParser');
+      const { parseExcelAndImportDealers } = await import('../shared/lib/excelParser');
       const { imported, errors } = await parseExcelAndImportDealers(file, activeTab);
       if (imported > 0) {
         alert(`Imported ${imported} dealers`);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bug, ClipboardCheck, FileText, FlaskConical, Sprout } from 'lucide-react';
-import { ToolkitPageHeader } from '../components/ui/ToolkitPageHeader';
+import { ToolkitPageHeader } from '../shared/components/ui/ToolkitPageHeader';
 import { ShowCauseNoticeEntry } from '../components/ShowCauseNoticeEntry';
 import type { NoticeCategory } from '../data/showCauseViolationData';
 

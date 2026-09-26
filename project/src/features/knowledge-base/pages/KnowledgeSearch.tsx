@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Search as SearchIcon, Loader2, FileText, BookOpen } from 'lucide-react';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { useAuth } from '../../../context/AuthContext';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import { fetchCategories, searchKnowledge } from '../services/knowledgeService';
-import type { KnowledgeCategory, RetrievedChunk, SearchFilters } from '../types';
+import type { KnowledgeCategory, RetrievedChunk, SearchFilters } from '../types/index';
 
 export function KnowledgeSearch() {
   const { isAdminUser } = useAuth();

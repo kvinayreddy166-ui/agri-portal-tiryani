@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FlaskConical, ShieldCheck, Sprout } from 'lucide-react';
 import { QualityControl } from './QualityControl';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../shared/context/LanguageContext';
 
 type QualityCategory = 'seeds' | 'pesticides' | 'fertilizers';
 

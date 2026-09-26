@@ -8,12 +8,12 @@ import {
   Tractor,
   X,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { getContentType } from '../lib/fileTypes';
-import { FileActionButtons } from '../components/ui/FileActionButtons';
-import { FileTypeIcon } from '../components/ui/FileTypeIcon';
-import { useAuth } from '../context/AuthContext';
-import { FarmMechanizationDocument } from '../types/database';
+import { supabase } from '../shared/lib/supabase';
+import { getContentType } from '../shared/lib/fileTypes';
+import { FileActionButtons } from '../shared/components/ui/FileActionButtons';
+import { FileTypeIcon } from '../shared/components/ui/FileTypeIcon';
+import { useAuth } from '../shared/context/AuthContext';
+import { FarmMechanizationDocument } from '../shared/types/database';
 
 const financialYears = ['2025-2026', '2026-2027', '2027-2028', '2028-2029', '2029-2030'];
 

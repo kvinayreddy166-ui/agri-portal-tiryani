@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Tags, Loader2, Plus, Trash2, Pencil, X } from 'lucide-react';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { useToast } from '../../../components/ui/Toast';
-import { useAuth } from '../../../context/AuthContext';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { useToast } from '../../../shared/components/ui/Toast';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { createCategory, deleteCategory, fetchCategories, updateCategory } from '../services/knowledgeService';
-import type { KnowledgeCategory } from '../types';
+import type { KnowledgeCategory } from '../types/index';
 
 export function KnowledgeCategories() {
   const { isAdminUser } = useAuth();

@@ -1,12 +1,12 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { BarChart3, ChevronDown, FileSpreadsheet, FolderOpen, RefreshCw, Search, Trash2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import { FERTILIZER_TYPES } from '../lib/constants';
-import { cachedSupabaseRows } from '../lib/offlineCache';
-import { IconButton } from '../components/ui/DesignSystem';
-import { totalValue } from '../utils/excelTotals';
+import { supabase } from '../shared/lib/supabase';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { FERTILIZER_TYPES } from '../shared/lib/constants';
+import { cachedSupabaseRows } from '../shared/lib/offlineCache';
+import { IconButton } from '../shared/components/ui/DesignSystem';
+import { totalValue } from '../shared/utils/excelTotals';
 import {
   STOCK_CATEGORIES,
   StockCategory,

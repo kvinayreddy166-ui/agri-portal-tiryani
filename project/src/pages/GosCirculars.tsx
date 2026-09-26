@@ -5,12 +5,12 @@ import {
   Upload,
   X,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import { uploadPortalFile } from '../lib/uploadFile';
-import { GosCircular } from '../types/database';
-import { FileActionButtons } from '../components/ui/FileActionButtons';
+import { supabase } from '../shared/lib/supabase';
+import { useAuth } from '../shared/context/AuthContext';
+import { useLanguage } from '../shared/context/LanguageContext';
+import { uploadPortalFile } from '../shared/lib/uploadFile';
+import { GosCircular } from '../shared/types/database';
+import { FileActionButtons } from '../shared/components/ui/FileActionButtons';
 
 const emptyForm = {
   title: '',
