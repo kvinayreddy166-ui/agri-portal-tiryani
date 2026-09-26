@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Eye, FileSpreadsheet, FileText, Filter, RefreshCw } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
-import { savePdfDocument, saveWorkbookFile } from '../../../lib/documentActions';
+import { savePdfDocument, saveWorkbookFile } from '../../documents/lib/documentActions';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { StockCategory, currentReportDate, shiftReportDate } from '../../dealer-stock/lib/stockInventory';
 

@@ -9,8 +9,8 @@ import {
   SEED_SAMPLE_DRAWAL_DESIGNATION_OPTIONS,
   getMandalsForDistrict,
   getDivisionsForDistrict,
-} from '../../../data/telanganaDistrictMandalData';
-import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../../data/assistantDirectorLocation';
+} from '../../../shared/data/telanganaDistrictMandalData';
+import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
 import { PopupHintWrapper } from '../../../shared/components/PopupHint';
 import { supabase } from '../../../shared/lib/supabase';
 

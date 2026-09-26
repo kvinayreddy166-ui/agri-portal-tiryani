@@ -4,8 +4,8 @@ import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { Dealer } from '../../../shared/types/database';
-import { provisionAllDealerLogins, provisionDealerLogin } from '../../../lib/provisionDealerLogins';
-import { dealerEmailFromPhone, DEALER_DEFAULT_PASSWORD, normalizePhone } from '../../../lib/dealerAuth';
+import { provisionAllDealerLogins, provisionDealerLogin } from '../../auth/lib/provisionDealerLogins';
+import { dealerEmailFromPhone, DEALER_DEFAULT_PASSWORD, normalizePhone } from '../../auth/lib/dealerAuth';
 import { cachedSupabaseRows } from '../../../shared/lib/offlineCache';
 
 type DealerCategory = 'fertilizer' | 'seed' | 'pesticide';

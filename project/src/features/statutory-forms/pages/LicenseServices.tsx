@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { FileText, ChevronRight, CheckCircle, ExternalLink, Copy, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, ReceiptText, Store, ClipboardList, Sprout, ArrowUpRight } from 'lucide-react';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
-import { TELANGANA_DISTRICTS } from '../../../data/telanganaDistrictMandalData';
+import { TELANGANA_DISTRICTS } from '../../../shared/data/telanganaDistrictMandalData';
 
 // District to Division mapping
 const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {

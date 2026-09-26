@@ -22,8 +22,8 @@ import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
   getMandalsForDistrict,
-} from '../../../data/telanganaDistrictMandalData';
-import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../../data/assistantDirectorLocation';
+} from '../../../shared/data/telanganaDistrictMandalData';
+import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
 
 const showCoveringLetter = true;
 

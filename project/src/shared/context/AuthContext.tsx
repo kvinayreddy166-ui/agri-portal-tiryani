@@ -6,11 +6,11 @@ import {
   dealerEmailFromPhone,
   isValidDealerPassword,
   normalizePhone,
-} from '../../lib/dealerAuth';
+} from '../../features/auth/lib/dealerAuth';
 import {
   dealerLoginNotConfiguredError,
   isDealerRpcMissing,
-} from '../../lib/dealerLoginMessages';
+} from '../../features/auth/lib/dealerLoginMessages';
 
 const AUTH_STARTUP_TIMEOUT_MS = 5000;
 

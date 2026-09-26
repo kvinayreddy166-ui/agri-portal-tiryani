@@ -14,7 +14,7 @@ import {
   Save,
 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
-import { saveWorkbookFile } from '../../../lib/documentActions';
+import { saveWorkbookFile } from '../../documents/lib/documentActions';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { useAuth } from '../../../shared/context/AuthContext';
 import {

@@ -20,8 +20,8 @@ import {
   TELANGANA_DISTRICTS,
   DESIGNATION_OPTIONS,
   getMandalsForDistrict,
-} from '../../../data/telanganaDistrictMandalData';
-import { effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, withOthersOption, getAssistantDirectorLocationError } from '../../../data/assistantDirectorLocation';
+} from '../../../shared/data/telanganaDistrictMandalData';
+import { effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, withOthersOption, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
 
 type FieldConfig = {
   key: keyof PesticidePdfValues;

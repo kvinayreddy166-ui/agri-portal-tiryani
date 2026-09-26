@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isCombinationProductFromActiveIngredient } from '../lib/statutoryPesticidePdf';
-import { isAssistantDirectorOfAgriculture } from '../../../data/assistantDirectorLocation';
+import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
 const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';

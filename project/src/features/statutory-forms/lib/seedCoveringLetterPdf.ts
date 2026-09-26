@@ -1,6 +1,6 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
-import { isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, statutoryDesignationDisplay } from '../../../data/assistantDirectorLocation';
+import { isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { drawJustifiedBodyText } from '../../../shared/lib/pdfText';
 
 type SeedCoveringLetterQueueItem = {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
-import { isAssistantDirectorOfAgriculture } from '../../../data/assistantDirectorLocation';
+import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 const SEED_COVERING_LETTER_DETAILS_KEY = 'tiryani-seed-covering-letter-details';
