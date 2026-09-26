@@ -73,7 +73,7 @@ export function PlantPopulationCalculator() {
     <div className="space-y-3">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-        <section className="relative rounded-2xl border-2 border-green-300/60 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-700 p-4 shadow-lg dark:border-green-700/60 sm:p-4">
+        <section className="relative rounded-2xl border border-green-300/60 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-700 p-4 shadow-lg dark:border-green-700/60 sm:p-4">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
             <div>
@@ -92,8 +92,8 @@ export function PlantPopulationCalculator() {
         </section>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
-        <section className="rounded-xl border-2 border-green-300 bg-gradient-to-br from-green-100 to-lime-100 p-4 text-sm font-semibold text-green-950 shadow-md dark:border-green-900 dark:from-green-950/50 dark:to-lime-950/30 dark:text-green-100">
+      <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
+        <section className="rounded-xl border border-green-300 bg-gradient-to-br from-green-100 to-lime-100 p-4 text-sm font-semibold text-green-950 shadow-md dark:border-green-900 dark:from-green-950/50 dark:to-lime-950/30 dark:text-green-100">
           <div className="grid gap-2 sm:grid-cols-3">
             <p><span className="font-black">1.</span> Enter field area.</p>
             <p><span className="font-black">2.</span> Enter row spacing and plant spacing.</p>
@@ -101,7 +101,7 @@ export function PlantPopulationCalculator() {
           </div>
         </section>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border-2 border-green-300 bg-gradient-to-br from-white via-green-50 to-lime-100 p-3 shadow-md dark:border-green-900/60 dark:from-slate-900 dark:via-green-950/30 dark:to-lime-950/20">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-green-300 bg-gradient-to-br from-white via-green-50 to-lime-100 p-3 shadow-md dark:border-green-900/60 dark:from-slate-900 dark:via-green-950/30 dark:to-lime-950/20">
           <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-green-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
             <Copy className="h-4 w-4" />
             {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'టెక్స్ట్ కాపీ')}
@@ -195,7 +195,7 @@ export function PlantPopulationCalculator() {
           {calculation.result && (
             <>
               <ResultGrid areaUnit={form.areaUnit} result={calculation.result} t={t} />
-              <div className="rounded-lg border-2 border-amber-300 bg-amber-50 p-4 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
+              <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
                 <div className="flex gap-3">
                   <Leaf className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-300" />
                   <p className="text-sm font-bold text-amber-900 dark:text-amber-100">
@@ -229,7 +229,7 @@ const resultCardPalette = [
 
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border-2 border-green-300 bg-gradient-to-br from-white via-green-50 to-lime-100 p-4 shadow-md dark:border-green-900/60 dark:from-slate-900 dark:via-green-950/30 dark:to-lime-950/20">
+    <section className="rounded-xl border border-green-300 bg-gradient-to-br from-white via-green-50 to-lime-100 p-4 shadow-md dark:border-green-900/60 dark:from-slate-900 dark:via-green-950/30 dark:to-lime-950/20">
       <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">{title}</h2>
       {children}
     </section>
@@ -263,7 +263,7 @@ function ResultGrid({ areaUnit, result, t }: { areaUnit: AreaUnit; result: Plant
   return (
     <div className="grid gap-3">
       {cards.map((card, index) => (
-        <article key={card.label} className={`rounded-xl border-2 bg-gradient-to-br ${resultCardPalette[index % resultCardPalette.length]} p-4 shadow-md dark:border-slate-700 dark:from-slate-900 dark:to-slate-800`}>
+        <article key={card.label} className={`rounded-xl border bg-gradient-to-br ${resultCardPalette[index % resultCardPalette.length]} p-4 shadow-md dark:border-slate-700 dark:from-slate-900 dark:to-slate-800`}>
           <p className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{card.label}</p>
           <p className="mt-1 break-words text-2xl font-black text-slate-950 dark:text-white">{card.value}</p>
           <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-300">{card.note}</p>
@@ -273,7 +273,7 @@ function ResultGrid({ areaUnit, result, t }: { areaUnit: AreaUnit; result: Plant
   );
 }
 
-const inputClass = 'min-h-11 w-full rounded-lg border-2 border-green-300 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-green-900 dark:bg-slate-950 dark:text-white dark:focus:ring-green-900/40';
+const inputClass = 'min-h-11 w-full rounded-lg border border-green-300 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100 dark:border-green-900 dark:bg-slate-950 dark:text-white dark:focus:ring-green-900/40';
 
 interface PlantPopulationResult {
   rowSpacingMeters: number;
