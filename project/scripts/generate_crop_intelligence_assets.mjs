@@ -596,11 +596,11 @@ function createSql() {
 
 const data = crops.map(cropJson);
 for (const crop of crops) {
-  fs.writeFileSync(path.join(root, 'json', `${crop.slug}.json`), JSON.stringify(cropJson(crop), null, 2), 'utf8');
+  fs.writeFileSync(path.join(root, 'assets/data/crops', `${crop.slug}.json`), JSON.stringify(cropJson(crop), null, 2), 'utf8');
 }
-fs.writeFileSync(path.join(root, 'database', 'crop-intelligence.json'), JSON.stringify(data, null, 2), 'utf8');
+fs.writeFileSync(path.join(root, 'assets/data', 'crop-intelligence.json'), JSON.stringify(data, null, 2), 'utf8');
 fs.writeFileSync(path.join(root, 'public/data', 'crop-intelligence.json'), JSON.stringify(data, null, 2), 'utf8');
-fs.writeFileSync(path.join(root, 'images', 'crop-image-references.json'), JSON.stringify(crops.map((crop) => ({
+fs.writeFileSync(path.join(root, 'assets/data', 'crop-image-references.json'), JSON.stringify(crops.map((crop) => ({
   crop: crop.slug,
   crop_image: crop.image_url,
   pests: crop.pests.map((p) => ({ name: p[0], image: p[5], source: p[6] })),
@@ -609,8 +609,7 @@ fs.writeFileSync(path.join(root, 'images', 'crop-image-references.json'), JSON.s
 })), null, 2), 'utf8');
 
 const sql = createSql();
-fs.writeFileSync(path.join(root, 'database/sql', 'crop_intelligence_database.sql'), sql, 'utf8');
-fs.writeFileSync(path.join(root, 'sql', 'crop_intelligence_database.sql'), sql, 'utf8');
-fs.writeFileSync(path.join(root, 'supabase/migrations/20260601143000_normalized_crop_intelligence.sql'), sql, 'utf8');
+fs.writeFileSync(path.join(root, 'assets/data', 'crop_intelligence_database.sql'), sql, 'utf8');
+fs.writeFileSync(path.join(root, 'assets/data', 'generated_normalized_crop_intelligence.sql'), sql, 'utf8');
 
 console.log(`Generated ${crops.length} crop JSON files, ${data.reduce((sum, c) => sum + c.faqs.length, 0)} FAQs, and Supabase SQL.`);

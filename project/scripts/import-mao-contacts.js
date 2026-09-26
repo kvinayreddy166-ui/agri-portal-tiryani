@@ -37,7 +37,7 @@ async function importMAOContacts() {
   
   try {
     // Read CSV file
-    const csvContent = fs.readFileSync('./mao_contacts.csv', 'utf-8');
+    const csvContent = fs.readFileSync('./assets/data/mao_contacts.csv', 'utf-8');
     
     // Parse CSV
     const records = parseCSV(csvContent);

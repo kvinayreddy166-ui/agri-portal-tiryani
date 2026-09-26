@@ -631,7 +631,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
         { text: 'In view of the above, ' },
         { text: firmDisplay, bold: true },
         { text: ' is hereby directed to ' },
-        { text: 'SHOW CAUSE', bold: true },
+        { text: 'Show Cause', bold: true },
         { text: ' and submit a ' },
         { text: `written explanation within ${explanationPeriod} from the date of receipt of this notice`, bold: true },
         { text: `, duly explaining each of the above irregularities along with relevant supporting documents, if any, as to why appropriate action should not be initiated against the firm under the provisions of the ${instrument} and other applicable Acts and Rules.` },
