@@ -8,80 +8,15 @@ import {
   TELANGANA_DISTRICTS,
   SEED_SAMPLE_DRAWAL_DESIGNATION_OPTIONS,
   getMandalsForDistrict,
-  getDivisionsForDistrict,
 } from '../../../shared/data/telanganaDistrictMandalData';
-import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
+import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { PopupHintWrapper } from '../../../shared/components/PopupHint';
-import { supabase } from '../../../shared/lib/supabase';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
 const LAST_GENERATED_KEY = 'tiryani-seed-forms-last-generated';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 
-// Fetch mandals for a given district and division from MAO contacts
-async function fetchMandalsForDivision(district, division) {
-  try {
-    
-    // First try: Exact match with MAO
-    let { data, error } = await supabase
-      .from('officer_contacts')
-      .select('mandal')
-      .eq('officer_type', 'MAO')
-      .eq('district', district)
-      .eq('division', division)
-      .eq('active', true)
-      .not('mandal', 'is', null);
-    
-    
-    // Second try: Case-insensitive with MAO
-    if (!data || data.length === 0) {
-      ({ data, error } = await supabase
-        .from('officer_contacts')
-        .select('mandal')
-        .ilike('officer_type', '%MAO%')
-        .ilike('district', district)
-        .ilike('division', division)
-        .eq('active', true)
-        .not('mandal', 'is', null));
-      
-    }
-    
-    // Third try: Try with Mandal Agriculture Officer
-    if (!data || data.length === 0) {
-      ({ data, error } = await supabase
-        .from('officer_contacts')
-        .select('mandal')
-        .ilike('officer_type', '%Mandal Agriculture Officer%')
-        .ilike('district', district)
-        .ilike('division', division)
-        .eq('active', true)
-        .not('mandal', 'is', null));
-      
-    }
-    
-    // Fourth try: Try with uppercase district/division (database seems to use uppercase)
-    if (!data || data.length === 0) {
-      ({ data, error } = await supabase
-        .from('officer_contacts')
-        .select('mandal')
-        .eq('officer_type', 'MAO')
-        .eq('district', district.toUpperCase())
-        .eq('division', division.toUpperCase())
-        .eq('active', true)
-        .not('mandal', 'is', null));
-      
-    }
-    
-    if (error) throw error;
-    
-    const mandals = Array.from(new Set(data?.map(d => d.mandal) || [])).sort();
-    return mandals;
-  } catch (error) {
-    console.error('Error fetching mandals for division:', error);
-    return [];
-  }
-}
 const PDF_FONT = 'times';
 const PDF_BODY_SIZE = 12.5;
 const PDF_TITLE_SIZE = 16;
@@ -91,7 +26,7 @@ const FORM_II_COTTON_QUANTITY = '25 G * 3';
 const cropOptions = ['Bajra', 'Bengalgram', 'Blackgram', 'Castor', 'Cotton', 'Cowpea', 'Greengram', 'Groundnut', 'Maize', 'Paddy', 'Redgram', 'Safflower', 'Sesamum', 'Sorghum', 'Soybean', 'Sunflower', 'Other'];
 const natureOptions = ['Seed sample', 'Other'];
 
-const cropQuantityMapping = {
+const cropQuantityMapping: Record<string, string> = {
   'Cotton': '250 Grams * 3',
   'Paddy': '400 Grams * 3',
   'Maize': '1000 Grams * 3',
@@ -230,13 +165,13 @@ export function SeedForms() {
     }
   });
   const [message, setMessage] = useState('');
-  const [placeOfCollectionMandals, setPlaceOfCollectionMandals] = useState([]);
+  const [placeOfCollectionMandals, setPlaceOfCollectionMandals] = useState<any[]>([]);
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
   const [selectedDraftName, setSelectedDraftName] = useState('');
   const sampleDetailsRef = useRef(null);
   const dealerDetailsRef = useRef(null);
-  const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue } = useToast();
+  const { toasts, removeToast, showSuccess, showInfo, showSaved, showDeleted, showLoaded, showQueue } = useToast();
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
@@ -255,8 +190,8 @@ export function SeedForms() {
   const resolved = useMemo(() => resolveSeedValues(form), [form]);
   const isCottonCrop = resolved.crop === 'Cotton';
 
-  const setField = (key, value) => {
-    setForm((current) => {
+  const setField = (key: any, value: any) => {
+    setForm((current: any) => {
       if (key === 'crop') {
         const defaultQuantity = cropQuantityMapping[value] || '';
         return { ...current, crop: value, cropOther: '', quantityDrawn: defaultQuantity };
@@ -406,7 +341,7 @@ export function SeedForms() {
     setMessage('Draft reset successfully.');
   };
 
-  const loadDraft = (name) => {
+  const loadDraft = (name: any) => {
     // Use case-insensitive comparison for loading
     const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
@@ -441,7 +376,7 @@ export function SeedForms() {
     showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 4000);
   };
 
-  const buildValidatedPdf = async (kind) => {
+  const buildValidatedPdf = async (kind: any) => {
     const error = validateSeedForm(form, kind);
     if (error) {
       setMessage(error);
@@ -457,7 +392,7 @@ export function SeedForms() {
     }
   };
 
-  const download = async (kind) => {
+  const completeGenerate = async (kind: any) => {
     const doc = await buildValidatedPdf(kind);
     if (!doc) return;
     try {
@@ -473,23 +408,7 @@ export function SeedForms() {
     }
   };
 
-  const completeGenerate = async (kind) => {
-    const doc = await buildValidatedPdf(kind);
-    if (!doc) return;
-    try {
-      downloadSeedDoc(doc, seedFileName(kind, form));
-      rememberSeedGeneratedData(form);
-      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form), 4000);
-    } catch (error) {
-      console.error('Download failed, opening in new tab:', error);
-      const targetWindow = openBlankSeedPdfTab();
-      openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
-      rememberSeedGeneratedData(form);
-      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).', 4000);
-    }
-  };
-
-  const generate = async (kind) => {
+  const generate = async (kind: any) => {
     if (kind === 'ALL') {
       setShowDownloadAllDialog(true);
       return;
@@ -504,7 +423,7 @@ export function SeedForms() {
       try {
         const queue = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
         
-        const existingIndex = queue.findIndex(item => item.sampleCode === form.codeNo.trim());
+        const existingIndex = queue.findIndex((item: any) => item.sampleCode === form.codeNo.trim());
         const sampleCode = form.codeNo.trim();
         
         if (sampleCode) {
@@ -564,7 +483,7 @@ export function SeedForms() {
     await completeGenerate('ALL');
   };
 
-  const completePreview = async (kind) => {
+  const completePreview = async (kind: any) => {
     const targetWindow = openBlankSeedPdfTab();
     const doc = await buildValidatedPdf(kind);
     if (!doc) {
@@ -576,12 +495,12 @@ export function SeedForms() {
     showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
   };
 
-  const preview = async (kind) => {
+  const preview = async (kind: any) => {
     await completePreview(kind);
   };
 
   const resetSampleDetails = () => {
-    setForm(prev => ({
+    setForm((prev: any) => ({
       ...prev,
       serialNo: '',
       codeNo: '',
@@ -612,7 +531,7 @@ export function SeedForms() {
   };
 
   const resetDealerDetails = () => {
-    setForm(prev => ({
+    setForm((prev: any) => ({
       ...prev,
       dealerName: '',
       dealerAddress: '',
@@ -625,7 +544,7 @@ export function SeedForms() {
   };
 
   const resetLaboratoryDetails = () => {
-    setForm(prev => ({
+    setForm((prev: any) => ({
       ...prev,
       labId: '',
       customLabAddress: '',
@@ -702,37 +621,37 @@ export function SeedForms() {
 
       <div className="grid gap-3 lg:grid-cols-2">
         <Card title="INSPECTOR DETAILS" color="emerald">
-          <Input label="INSPECTOR NAME" value={form.officerName} onChange={(value) => setField('officerName', value)} />
-          <Select label="Qualification" value={form.qualification} onChange={(value) => setField('qualification', value)} options={QUALIFICATION_OPTIONS} />
-          {form.qualification === 'Others' && <Input label="Enter qualification" value={form.manualQualification} onChange={(value) => setField('manualQualification', value)} />}
-          <Select label="Designation" value={form.designation} onChange={(value) => setField('designation', value)} options={SEED_SAMPLE_DRAWAL_DESIGNATION_OPTIONS} />
+          <Input label="INSPECTOR NAME" value={form.officerName} onChange={(value: any) => setField('officerName', value)} />
+          <Select label="Qualification" value={form.qualification} onChange={(value: any) => setField('qualification', value)} options={QUALIFICATION_OPTIONS} />
+          {form.qualification === 'Others' && <Input label="Enter qualification" value={form.manualQualification} onChange={(value: any) => setField('manualQualification', value)} />}
+          <Select label="Designation" value={form.designation} onChange={(value: any) => setField('designation', value)} options={SEED_SAMPLE_DRAWAL_DESIGNATION_OPTIONS} />
           {isAssistantDirectorOfAgricultureT(form.designation) && (
-            <Input label="OFFICE" value={form.office} onChange={(value) => setField('office', value)} placeholder="Enter Office" />
+            <Input label="OFFICE" value={form.office} onChange={(value: any) => setField('office', value)} placeholder="Enter Office" />
           )}
-          <Select label="District" value={form.district} onChange={(value) => setField('district', value)} options={withOthersOption(TELANGANA_DISTRICTS.map(toOption))} />
-          {form.district === 'Others' && <Input label="Enter district name" value={form.manualDistrict} onChange={(value) => setField('manualDistrict', value)} />}
+          <Select label="District" value={form.district} onChange={(value: any) => setField('district', value)} options={withOthersOption(TELANGANA_DISTRICTS.map(toOption))} />
+          {form.district === 'Others' && <Input label="Enter district name" value={form.manualDistrict} onChange={(value: any) => setField('manualDistrict', value)} />}
           {isAssistantDirectorOfAgriculture(form.designation) ? (
             <>
               {!isAssistantDirectorOfAgricultureT(form.designation) && (
-                <Input label="DIVISION" value={form.manualDivision} onChange={(value) => setField('manualDivision', value)} placeholder="Enter Division Name" />
+                <Input label="DIVISION" value={form.manualDivision} onChange={(value: any) => setField('manualDivision', value)} placeholder="Enter Division Name" />
               )}
-              <Select label="PLACE OF COLLECTION (MANDAL)" value={form.placeOfCollectionMandal} onChange={(value) => setField('placeOfCollectionMandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(placeOfCollectionMandals.map(toOption)) : [{ label: 'Others', value: 'Others' }]} />
-              {form.placeOfCollectionMandal === 'Others' && <Input label="ENTER PLACE OF COLLECTION / MANDAL NAME" value={form.manualPlaceOfCollection} onChange={(value) => setField('manualPlaceOfCollection', value)} />}
+              <Select label="PLACE OF COLLECTION (MANDAL)" value={form.placeOfCollectionMandal} onChange={(value: any) => setField('placeOfCollectionMandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(placeOfCollectionMandals.map(toOption)) : [{ label: 'Others', value: 'Others' }]} />
+              {form.placeOfCollectionMandal === 'Others' && <Input label="ENTER PLACE OF COLLECTION / MANDAL NAME" value={form.manualPlaceOfCollection} onChange={(value: any) => setField('manualPlaceOfCollection', value)} />}
             </>
           ) : (
             <>
-              <Select label="Mandal" value={form.mandal} onChange={(value) => setField('mandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(getMandalsForDistrict(form.district).map(toOption)) : [{ label: 'Others', value: 'Others' }]} />
-              {form.mandal === 'Others' && <Input label="Enter mandal name" value={form.manualMandal} onChange={(value) => setField('manualMandal', value)} />}
+              <Select label="Mandal" value={form.mandal} onChange={(value: any) => setField('mandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(getMandalsForDistrict(form.district).map(toOption)) : [{ label: 'Others', value: 'Others' }]} />
+              {form.mandal === 'Others' && <Input label="Enter mandal name" value={form.manualMandal} onChange={(value: any) => setField('manualMandal', value)} />}
             </>
           )}
-          <Input label="PIN CODE" value={form.pinCode} onChange={(value) => setField('pinCode', value)} />
-          <Input label="Date" type="date" value={form.date} onChange={(value) => setField('date', value)} />
+          <Input label="PIN CODE" value={form.pinCode} onChange={(value: any) => setField('pinCode', value)} />
+          <Input label="Date" type="date" value={form.date} onChange={(value: any) => setField('date', value)} />
         </Card>
 
         <Card title="LABORATORY DETAILS" color="blue" onReset={resetLaboratoryDetails}>
-          <Select label="To Address / Laboratory" value={form.labId} onChange={(value) => setField('labId', value)} options={labOptions.map((item) => ({ label: item.label, value: item.id }))} />
+          <Select label="To Address / Laboratory" value={form.labId} onChange={(value: any) => setField('labId', value)} options={labOptions.map((item) => ({ label: item.label, value: item.id }))} />
           {form.labId === 'other' ? (
-            <Input label="Custom laboratory address" value={form.customLabAddress} onChange={(value) => setField('customLabAddress', value)} textarea />
+            <Input label="Custom laboratory address" value={form.customLabAddress} onChange={(value: any) => setField('customLabAddress', value)} textarea />
           ) : (
             <p className="whitespace-pre-line rounded-lg bg-slate-50 dark:bg-slate-800/60 p-2 text-xs font-semibold text-slate-600 dark:text-slate-300">{resolved.labAddress}</p>
           )}
@@ -742,31 +661,31 @@ export function SeedForms() {
         <div ref={sampleDetailsRef}>
         <Card title="SAMPLE DETAILS" color="amber" onReset={resetSampleDetails}>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Input label="Serial No. of sample" value={form.serialNo} onChange={(value) => setField('serialNo', value)} />
-            <Input label="Code No. of sample" value={form.codeNo} onChange={(value) => setField('codeNo', value)} />
-            <Input label="Date of collection / sampling" type="date" value={form.collectionDate} onChange={(value) => setField('collectionDate', value)} />
-            <Input label="Place of collection" value={resolved.collectionPlace} onChange={(value) => setField('collectionPlace', value)} />
+            <Input label="Serial No. of sample" value={form.serialNo} onChange={(value: any) => setField('serialNo', value)} />
+            <Input label="Code No. of sample" value={form.codeNo} onChange={(value: any) => setField('codeNo', value)} />
+            <Input label="Date of collection / sampling" type="date" value={form.collectionDate} onChange={(value: any) => setField('collectionDate', value)} />
+            <Input label="Place of collection" value={resolved.collectionPlace} onChange={(value: any) => setField('collectionPlace', value)} />
           </div>
           <SelectWithOther label="Nature of article submitted" valueKey="nature" otherKey="natureOther" form={form} setField={setField} options={natureOptions} />
           <div className="grid gap-2 sm:grid-cols-2">
             <SelectWithOther label="Crop" valueKey="crop" otherKey="cropOther" form={form} setField={setField} options={cropOptions} />
-            <Input label="Variety" value={form.variety} onChange={(value) => setField('variety', value)} />
-            <Input label="Lot No. of sample" value={form.lotNo} onChange={(value) => setField('lotNo', value)} />
-            <Input label="Quantity of sample drawn" value={form.quantityDrawn} onChange={(value) => setField('quantityDrawn', value)} />
-            <Input label="Quantity of sample in lot" value={form.quantityInLot} onChange={(value) => setField('quantityInLot', value)} />
+            <Input label="Variety" value={form.variety} onChange={(value: any) => setField('variety', value)} />
+            <Input label="Lot No. of sample" value={form.lotNo} onChange={(value: any) => setField('lotNo', value)} />
+            <Input label="Quantity of sample drawn" value={form.quantityDrawn} onChange={(value: any) => setField('quantityDrawn', value)} />
+            <Input label="Quantity of sample in lot" value={form.quantityInLot} onChange={(value: any) => setField('quantityInLot', value)} />
             <SelectWithOther label="Class / Origin of seed" valueKey="seedClass" otherKey="seedClassOther" form={form} setField={setField} options={classOptions} />
-            <Input label="Date of packing" type="date" value={form.packingDate} onChange={(value) => setField('packingDate', value)} />
+            <Input label="Date of packing" type="date" value={form.packingDate} onChange={(value: any) => setField('packingDate', value)} />
           </div>
-          {isCottonCrop && <Input label="Produced & Packed by" value={form.producedPackedBy} onChange={(value) => setField('producedPackedBy', value)} placeholder="Enter Producer Details" textarea />}
-          <Input label="Source of supply" value={form.sourceOfSupply} onChange={(value) => setField('sourceOfSupply', value)} placeholder="Enter Distributor/ Marketer Details" textarea />
+          {isCottonCrop && <Input label="Produced & Packed by" value={form.producedPackedBy} onChange={(value: any) => setField('producedPackedBy', value)} placeholder="Enter Producer Details" textarea />}
+          <Input label="Source of supply" value={form.sourceOfSupply} onChange={(value: any) => setField('sourceOfSupply', value)} placeholder="Enter Distributor/ Marketer Details" textarea />
           <SelectWithOther label="Kind of test required" valueKey="testRequired" otherKey="testRequiredOther" form={form} setField={setField} options={testOptions} />
-          <Input label="Remarks" value={form.remarks} onChange={(value) => setField('remarks', value)} textarea />
+          <Input label="Remarks" value={form.remarks} onChange={(value: any) => setField('remarks', value)} textarea />
         </Card>
         </div>
 
         <div ref={dealerDetailsRef}>
         <Card title="DEALER DETAILS" color="maroon" onReset={resetDealerDetails}>
-          <Input label="Dealer / Party name" value={form.dealerName} onChange={(value) => setField('dealerName', value)} />
+          <Input label="Dealer / Party name" value={form.dealerName} onChange={(value: any) => setField('dealerName', value)} />
           <label>
             <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">Dealer / Party address</span>
             <PopupHintWrapper message="Enter D.No, Road and Village; Mandal and District will be auto-populated">
@@ -774,8 +693,8 @@ export function SeedForms() {
             </PopupHintWrapper>
           </label>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Select label="Cost of sample demanded" value={form.costDemanded} onChange={(value) => setField('costDemanded', value)} options={['Yes', 'No'].map(toOption)} />
-            <Select label="Cost paid" value={form.costPaid} onChange={(value) => setField('costPaid', value)} options={['Paid', 'Not Paid', 'Not Applicable'].map(toOption)} />
+            <Select label="Cost of sample demanded" value={form.costDemanded} onChange={(value: any) => setField('costDemanded', value)} options={['Yes', 'No'].map(toOption)} />
+            <Select label="Cost paid" value={form.costPaid} onChange={(value: any) => setField('costPaid', value)} options={['Paid', 'Not Paid', 'Not Applicable'].map(toOption)} />
           </div>
         </Card>
         </div>
@@ -889,8 +808,8 @@ export function SeedForms() {
   );
 }
 
-function Card({ title, children, color = 'slate', onReset }) {
-  const colorStyles = {
+function Card({ title, children, color = 'slate', onReset }: any) {
+  const colorStyles: Record<string, string> = {
     emerald: 'border-emerald-200 bg-emerald-50/50',
     blue: 'border-blue-200 bg-blue-50/50',
     amber: 'border-amber-200 bg-amber-50/50',
@@ -898,7 +817,7 @@ function Card({ title, children, color = 'slate', onReset }) {
     slate: 'border-slate-200 bg-slate-50/50',
   };
   
-  const headerColors = {
+  const headerColors: Record<string, string> = {
     emerald: 'text-emerald-700',
     blue: 'text-blue-700',
     amber: 'text-amber-700',
@@ -906,7 +825,7 @@ function Card({ title, children, color = 'slate', onReset }) {
     slate: 'text-slate-700',
   };
 
-  const iconButtonColors = {
+  const iconButtonColors: Record<string, string> = {
     emerald: 'border-emerald-200 text-emerald-400 hover:bg-emerald-50 hover:text-emerald-600',
     blue: 'border-blue-200 text-blue-400 hover:bg-blue-50 hover:text-blue-600',
     amber: 'border-amber-200 text-amber-400 hover:bg-amber-50 hover:text-amber-600',
@@ -934,18 +853,18 @@ function Card({ title, children, color = 'slate', onReset }) {
   );
 }
 
-function PreviewCard({ title, lines }) {
+function PreviewCard({ title, lines }: any) {
   return (
     <div className="rounded-lg border border-dashed border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-2.5">
       <p className="text-xs font-black text-emerald-900 dark:text-emerald-200">{title}</p>
-      {lines.map((line) => (
+      {lines.map((line: any) => (
         <p key={line} className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">{line}</p>
       ))}
     </div>
   );
 }
 
-function Input({ label, value, onChange, type = 'text', textarea = false, placeholder = '' }) {
+function Input({ label, value, onChange, type = 'text', textarea = false, placeholder = '' }: any) {
   const className = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
   return (
     <label>
@@ -959,13 +878,13 @@ function Input({ label, value, onChange, type = 'text', textarea = false, placeh
   );
 }
 
-function Select({ label, value, onChange, options }) {
+function Select({ label, value, onChange, options }: any) {
   return (
     <label>
       <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">{label}</span>
       <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
         <option value="">Select...</option>
-        {options.map((option) => (
+        {options.map((option: any) => (
           <option key={option.value} value={option.value}>{option.label}</option>
         ))}
       </select>
@@ -973,18 +892,18 @@ function Select({ label, value, onChange, options }) {
   );
 }
 
-function SelectWithOther({ label, valueKey, otherKey, form, setField, options }) {
+function SelectWithOther({ label, valueKey, otherKey, form, setField, options }: any) {
   return (
     <div className="grid gap-2 sm:grid-cols-2">
-      <Select label={label} value={form[valueKey]} onChange={(value) => setField(valueKey, value)} options={options.map(toOption)} />
+      <Select label={label} value={form[valueKey]} onChange={(value: any) => setField(valueKey, value)} options={options.map(toOption)} />
       {form[valueKey] === 'Other' && (
-        <Input label={`${label} - Other`} value={form[otherKey]} onChange={(value) => setField(otherKey, value)} />
+        <Input label={`${label} - Other`} value={form[otherKey]} onChange={(value: any) => setField(otherKey, value)} />
       )}
     </div>
   );
 }
 
-function PdfAction({ label, onPreview, onDownload, primary = false }) {
+function PdfAction({ label, onPreview, onDownload, primary = false }: any) {
   return (
     <div className={`rounded-lg border p-2 ${primary ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
       <div className="mb-1.5 flex items-center justify-between gap-2">
@@ -1015,11 +934,11 @@ function PdfAction({ label, onPreview, onDownload, primary = false }) {
   );
 }
 
-function toOption(value) {
+function toOption(value: any) {
   return { label: value, value };
 }
 
-function resolveSeedValues(form) {
+function resolveSeedValues(form: any) {
   const lab = labOptions.find((item) => item.id === form.labId) || labOptions[0];
   const fromPlace = String(form.place || '').trim();
   const resolvedDistrict = effectiveLocationValue(form.district, form.manualDistrict);
@@ -1030,7 +949,6 @@ function resolveSeedValues(form) {
   
   // Check if ADA is selected to determine whether to use Division or Mandal
   const isADA = isAssistantDirectorOfAgriculture(form.designation);
-  const isMandalAO = form.designation === 'Mandal Agriculture Officer';
   
   // For ADA: use manual Division input and Place of Collection (Mandal) dropdown
   // For others: use Mandal dropdown with effective value
@@ -1075,11 +993,11 @@ function resolveSeedValues(form) {
   };
 }
 
-function isCottonSeedForm(form) {
+function isCottonSeedForm(form: any) {
   return resolveSeedValues(form).crop === 'Cotton';
 }
 
-function validateSeedForm(form, kind) {
+function validateSeedForm(form: any, _kind: any) {
   // Validation for Assistant Director of Agriculture custom location fields
   if (isAssistantDirectorOfAgriculture(form.designation)) {
     if (form.district === 'Others' && !form.manualDistrict.trim()) return 'Please enter DISTRICT NAME.';
@@ -1099,7 +1017,7 @@ function validateSeedForm(form, kind) {
   return '';
 }
 
-async function buildSeedPdf(kind, form) {
+async function buildSeedPdf(kind: any, form: any) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   doc.setProperties({ title: `Seed Form ${kind}`, creator: 'AGRONIX' });
@@ -1136,7 +1054,7 @@ async function buildSeedPdf(kind, form) {
   return doc;
 }
 
-function drawSeedFormII(doc, form) {
+function drawSeedFormII(doc: any, form: any) {
   const r = resolveSeedValues(form);
   const p = page(doc);
   title(doc, p, 'ENVIRONMENT (PROTECTION) RULES, 1986', 'FORM II (SEE RULE 8)', 'MEMORANDUM TO GOVERNMENT ANALYST');
@@ -1156,7 +1074,7 @@ function drawSeedFormII(doc, form) {
   footer(doc, p, r, { compact: true });
 }
 
-function drawSeedFormV(doc, form) {
+function drawSeedFormV(doc: any, form: any) {
   const r = resolveSeedValues(form);
   const p = page(doc);
   title(doc, p, 'FORM V', '', 'MEMORANDUM TO GOVERNMENT ANALYST');
@@ -1179,7 +1097,7 @@ function drawSeedFormV(doc, form) {
   footer(doc, p, r, { compact: true });
 }
 
-function drawSeedFormVI(doc, form) {
+function drawSeedFormVI(doc: any, form: any) {
   const r = resolveSeedValues(form);
   const p = page(doc);
   doc.setFont(PDF_FONT, 'bold');
@@ -1239,7 +1157,7 @@ function drawSeedFormVI(doc, form) {
   signatureRight(doc, Math.min(p.y + 16, 246), seedSignatureLines(r.designation));
 }
 
-function drawSeedFormI(doc, form) {
+function drawSeedFormI(doc: any, form: any) {
   const r = resolveSeedValues(form);
   const p = page(doc);
   
@@ -1326,7 +1244,7 @@ function drawSeedFormI(doc, form) {
   signatureRight(doc, p.y, seedSignatureLines(r.designation, 'Seed Inspector &'));
 }
 
-function drawSeedFormVIII(doc, form) {
+function drawSeedFormVIII(doc: any, form: any) {
   const r = resolveSeedValues(form);
   const p = page(doc);
   title(doc, p, 'FORM VIII', '', 'DETAILS OF SAMPLES TAKEN');
@@ -1379,7 +1297,7 @@ function drawSeedFormVIII(doc, form) {
   doc.text(fmtDate(r.date) || '__________', 20 + dateLabelWidth + 2, signatureY + 29);
 }
 
-async function drawInfoSlips(doc, form, addPageBefore) {
+async function drawInfoSlips(doc: any, form: any, addPageBefore: any) {
   const r = resolveSeedValues(form);
   const tests = r.crop === 'Cotton' ? ['Purity, Moisture & Germination Test', 'BT Protein Test'] : [r.testRequired];
   for (const [index, test] of tests.entries()) {
@@ -1397,7 +1315,7 @@ async function drawInfoSlips(doc, form, addPageBefore) {
   }
 }
 
-function drawInformationSlip(doc, form) {
+function drawInformationSlip(doc: any, form: any) {
   const r = resolveSeedValues(form);
   const p = page(doc);
   title(doc, p, 'INFORMATION TO ACCOMPANY THE SAMPLE', '', '');
@@ -1418,13 +1336,13 @@ function drawInformationSlip(doc, form) {
   signatureRight(doc, Math.min(p.y + 16, 252), seedSignatureLines(r.designation));
 }
 
-function page(doc) {
+function page(doc: any) {
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(PDF_BODY_SIZE);
   return { y: 20, margin: 20, width: 170 };
 }
 
-function title(doc, p, heading, subheading, titleText) {
+function title(doc: any, p: any, heading: any, subheading: any, titleText: any) {
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(PDF_TITLE_SIZE);
   doc.text(heading, 105, p.y, { align: 'center' });
@@ -1449,10 +1367,10 @@ function title(doc, p, heading, subheading, titleText) {
   doc.setFontSize(PDF_BODY_SIZE);
 }
 
-function formatAddressWithCommas(address) {
+function formatAddressWithCommas(address: any) {
   if (!address || !address.trim()) return address;
-  const lines = address.split('\n').filter(line => line.trim());
-  const formatted = lines.map((line, index) => {
+  const lines = address.split('\n').filter((line: any) => line.trim());
+  const formatted = lines.map((line: any, index: any) => {
     if (index === lines.length - 1) {
       return line.trim() + '.';
     }
@@ -1461,7 +1379,7 @@ function formatAddressWithCommas(address) {
   return formatted.join('\n');
 }
 
-function drawFromTo(doc, p, r) {
+function drawFromTo(doc: any, p: any, r: any) {
   doc.setFont(PDF_FONT, 'bold');
   doc.text('From:', 20, p.y);
   doc.text('To:', 128, p.y);
@@ -1472,11 +1390,11 @@ function drawFromTo(doc, p, r) {
   p.y += 44;
 }
 
-function details(doc, p, rows, labelWidth = 82) {
-  rows.forEach(([label, value]) => field(doc, p, label, value, labelWidth));
+function details(doc: any, p: any, rows: any, labelWidth = 82) {
+  rows.forEach(([label, value]: any) => field(doc, p, label, value, labelWidth));
 }
 
-function field(doc, p, label, value, labelWidth = 82) {
+function field(doc: any, p: any, label: any, value: any, labelWidth = 82) {
   const x = p.margin;
   const valueX = x + labelWidth + 4;
   const width = 190 - valueX;
@@ -1510,21 +1428,21 @@ function field(doc, p, label, value, labelWidth = 82) {
   p.y += height;
 }
 
-function para(doc, p, value) {
+function para(doc: any, p: any, value: any) {
   const lines = doc.splitTextToSize(value, p.width);
   doc.setFont(PDF_FONT, 'normal');
   doc.text(lines, 20, p.y);
   p.y += lines.length * 7 + 4;
 }
 
-function richPara(doc, p, segments) {
+function richPara(doc: any, p: any, segments: any) {
   const xStart = 20;
   const maxX = xStart + p.width;
   const lineHeight = 7;
   let x = xStart;
   let y = p.y;
 
-  segments.forEach((segment) => {
+  segments.forEach((segment: any) => {
     const parts = String(segment.text || '').split(/(\s+)/).filter((part) => part.length > 0);
     doc.setFont(PDF_FONT, segment.bold ? 'bold' : 'normal');
 
@@ -1543,7 +1461,7 @@ function richPara(doc, p, segments) {
   p.y = y + lineHeight + 4;
 }
 
-function footer(doc, p, r, options = {}) {
+function footer(doc: any, p: any, r: any, options: any = {}) {
   const y = options.compact ? Math.min(Math.max(p.y + 10, 224), 246) : 250;
   doc.setFont(PDF_FONT, 'bold');
   doc.text('Place:', 24, y);
@@ -1558,11 +1476,11 @@ function footer(doc, p, r, options = {}) {
   signatureRight(doc, y, seedSignatureLines(r.designation));
 }
 
-function seedSignatureLines(designation, firstLine = 'Seed Inspector/') {
+function seedSignatureLines(designation: any, firstLine = 'Seed Inspector/') {
   return [firstLine, isAssistantDirectorOfAgriculture(designation) ? statutoryDesignationDisplay(designation) : 'Mandal Agriculture Officer'];
 }
 
-function signatureRight(doc, y, label) {
+function signatureRight(doc: any, y: any, label: any) {
   doc.setFont(PDF_FONT, 'bold');
   const labelLines = Array.isArray(label) ? label : [label];
   const lines = ['Signature', ...labelLines];
@@ -1572,25 +1490,25 @@ function signatureRight(doc, y, label) {
   doc.setFont(PDF_FONT, 'normal');
 }
 
-function fmtDate(value) {
+function fmtDate(value: any) {
   if (!value) return '';
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-function blank(value) {
+function blank(value: any) {
   return String(value || '').trim() || '________________';
 }
 
-function cottonSlipQuantity(crop, test) {
+function cottonSlipQuantity(crop: any, test: any) {
   if (crop !== 'Cotton') return '';
   if (test === 'BT Protein Test') return '25 grams * 3';
   if (test === 'Purity, Moisture & Germination Test') return '250 grams * 3';
   return '';
 }
 
-async function drawWatermark(doc) {
+async function drawWatermark(doc: any) {
   try {
     const response = await fetch('/images/telangana-govt_emblem.webp');
     const blob = await response.blob();
@@ -1645,7 +1563,7 @@ function openBlankSeedPdfTab() {
   return targetWindow;
 }
 
-function openSeedDocInTab(doc, fileName, targetWindow) {
+function openSeedDocInTab(doc: any, fileName: any, targetWindow: any) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   if (targetWindow && !targetWindow.closed) {
@@ -1656,7 +1574,7 @@ function openSeedDocInTab(doc, fileName, targetWindow) {
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 
-function downloadSeedDoc(doc, fileName) {
+function downloadSeedDoc(doc: any, fileName: any) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1671,7 +1589,7 @@ function downloadSeedDoc(doc, fileName) {
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 
-function seedFileName(kind, form) {
+function seedFileName(kind: any, form: any) {
   const date = fmtDate(form.date || form.collectionDate).replace(/\//g, '-');
   return `Seed_Form_${kind}_${form.codeNo || 'CodeNo'}_${date || 'Date'}.pdf`;
 }
@@ -1686,12 +1604,12 @@ function loadSeedDrafts() {
   }
 }
 
-function upsertSeedDraft(drafts, draft) {
+function upsertSeedDraft(drafts: any, draft: any) {
   // Use case-insensitive comparison to prevent duplicates
-  return [draft, ...drafts.filter((item) => item.name.trim().toLowerCase() !== draft.name.trim().toLowerCase())].slice(0, 30);
+  return [draft, ...drafts.filter((item: any) => item.name.trim().toLowerCase() !== draft.name.trim().toLowerCase())].slice(0, 30);
 }
 
-function seedGenerationSnapshot(form) {
+function seedGenerationSnapshot(form: any) {
   const resolved = resolveSeedValues(form);
   return stableSeedString({
     serialNo: resolved.serialNo,
@@ -1715,15 +1633,8 @@ function seedGenerationSnapshot(form) {
   });
 }
 
-function isDuplicateSeedGeneration(form) {
-  try {
-    return window.localStorage.getItem(LAST_GENERATED_KEY) === seedGenerationSnapshot(form);
-  } catch {
-    return false;
-  }
-}
 
-function rememberSeedGeneratedData(form) {
+function rememberSeedGeneratedData(form: any) {
   try {
     window.localStorage.setItem(LAST_GENERATED_KEY, seedGenerationSnapshot(form));
   } catch {
@@ -1731,43 +1642,16 @@ function rememberSeedGeneratedData(form) {
   }
 }
 
-function stableSeedString(value) {
+function stableSeedString(value: any) {
   return JSON.stringify(
     Object.keys(value)
       .sort()
-      .reduce((acc, key) => {
+      .reduce((acc: Record<string, string>, key: any) => {
         acc[key] = String(value[key] ?? '').trim();
         return acc;
       }, {})
   );
 }
 
-function DuplicateDownloadModal({ onReview, onContinue, onClose }) {
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-xl border border-amber-200 dark:border-amber-800/50 bg-white dark:bg-slate-900 p-5 shadow-2xl">
-        <p className="text-sm font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Duplicate details warning</p>
-        <p className="mt-3 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-200">{DUPLICATE_WARNING_MESSAGE}</p>
-        <div className="mt-5 grid gap-2 sm:grid-cols-2">
-          <button type="button" onClick={onReview} className="rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-black text-slate-700 dark:text-slate-200 hover:bg-slate-50">
-            Review/Edit Details
-          </button>
-          <button type="button" onClick={onContinue} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
-            Download Anyway
-          </button>
-        </div>
-        <div className="mt-3 flex justify-center">
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex items-center justify-center rounded-lg border border-red-600 bg-red-600 px-4 py-1.5 text-xs font-black text-white hover:bg-red-700 hover:border-red-700"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default SeedForms;

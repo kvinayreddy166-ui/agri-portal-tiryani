@@ -39,7 +39,7 @@ const CROP_OPTIONS = [
   { slug: 'other', label: 'Other Crops' },
 ];
 
-const FIELD_CONFIGS = {
+const FIELD_CONFIGS: Record<string, string[][]> = {
   crop_varieties: [
     ['variety', 'Variety name', 'input'],
     ['duration', 'Duration', 'input'],
@@ -104,13 +104,13 @@ export function CropAdminDashboard() {
   const [otherCropName, setOtherCropName] = useState('');
   const [table, setTable] = useState(NORMALIZED_TABLES[0][0]);
   const [search, setSearch] = useState('');
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [dragActive, setDragActive] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<any>(null);
   const slug = selectedCrop === 'other' ? slugifyCropName(otherCropName) : selectedCrop;
   const canEditSelectedCrop = selectedCrop !== 'other' || Boolean(slug);
   const { crop, loading, reload } = useCropData(slug, { faqLimit: 500 });
@@ -138,7 +138,7 @@ export function CropAdminDashboard() {
           : crop?.[table] || [];
     if (!search.trim()) return source;
     const needle = search.toLowerCase();
-    return source.filter((row) => JSON.stringify(row).toLowerCase().includes(needle));
+    return source.filter((row: any) => JSON.stringify(row).toLowerCase().includes(needle));
   }, [crop, table, search]);
 
   const startAdd = () => {
@@ -148,7 +148,7 @@ export function CropAdminDashboard() {
     openEditor(nextRecord);
   };
 
-  const openEditor = (record) => {
+  const openEditor = (record: any) => {
     setEditing(record);
     setUploadError('');
     setStatusMessage('');
@@ -180,13 +180,13 @@ export function CropAdminDashboard() {
       setStatusMessage('Crop content saved successfully.');
       await reload();
     } catch (error) {
-      setUploadError(error.message || 'Unable to save record.');
+      setUploadError((error as any).message || 'Unable to save record.');
     } finally {
       setBusy(false);
     }
   };
 
-  const remove = async (row) => {
+  const remove = async (row: any) => {
     if (!confirm('Delete this crop intelligence record?')) return;
     try {
       if (table.startsWith('ci_')) {
@@ -197,11 +197,11 @@ export function CropAdminDashboard() {
       setStatusMessage('Crop content deleted successfully.');
       await reload();
     } catch (error) {
-      setUploadError(error.message || 'Unable to delete record.');
+      setUploadError((error as any).message || 'Unable to delete record.');
     }
   };
 
-  const uploadImage = async (file) => {
+  const uploadImage = async (file: any) => {
     if (!editing || !file) return;
     const validationError = validateImageUploadFile(file);
     if (validationError) {
@@ -225,7 +225,7 @@ export function CropAdminDashboard() {
         });
       }
     } catch (error) {
-      setUploadError(error.message || 'Unable to upload image.');
+      setUploadError((error as any).message || 'Unable to upload image.');
       setEditing(editing);
     } finally {
       URL.revokeObjectURL(previewUrl);
@@ -244,17 +244,17 @@ export function CropAdminDashboard() {
     try {
       await deleteUploadedCropImage(previousImageUrl);
     } catch (error) {
-      setUploadError(error.message || 'Image reference removed, but storage cleanup failed.');
+      setUploadError((error as any).message || 'Image reference removed, but storage cleanup failed.');
     }
   };
 
-  const handleDrop = (event) => {
+  const handleDrop = (event: any) => {
     event.preventDefault();
     setDragActive(false);
     uploadImage(event.dataTransfer.files?.[0]);
   };
 
-  const updateEditorField = (key, value) => {
+  const updateEditorField = (key: any, value: any) => {
     const nextRecord = { ...(editing || {}), [key]: value };
     setEditing(nextRecord);
     setUploadError('');
@@ -345,7 +345,7 @@ export function CropAdminDashboard() {
               <div className="p-6 text-sm font-semibold text-slate-500">Loading records...</div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {rows.map((row, index) => (
+                {rows.map((row: any, index: any) => (
                   <article key={row.id || row._index || `${table}-${index}`} className="grid gap-3 p-3 lg:grid-cols-[1fr_auto]">
                     <RecordSummaryCard row={row} table={table} />
                     <div className="flex gap-2 lg:flex-col">
@@ -409,7 +409,7 @@ export function CropAdminDashboard() {
               <div className="flex-1 overflow-y-auto border-b border-slate-200 p-4 dark:border-slate-700">
                 <p className="mb-3 text-sm font-black text-slate-950 dark:text-white">Card text editor</p>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {FIELD_CONFIGS[table].map(([key, label, type]) => (
+                  {FIELD_CONFIGS[table].map(([key, label, type]: any) => (
                     <label key={key} className={type === 'textarea' ? 'md:col-span-2' : ''}>
                       <span className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">{label}</span>
                       {type === 'textarea' ? (
@@ -447,8 +447,8 @@ export function CropAdminDashboard() {
   );
 }
 
-function defaultRecordForTable(table) {
-  const defaults = {
+function defaultRecordForTable(table: any) {
+  const defaults: Record<string, any> = {
     crop_varieties: {
       variety: '',
       duration: '',
@@ -510,14 +510,14 @@ function defaultRecordForTable(table) {
   return defaults[table] || {};
 }
 
-function formatEditorValue(value) {
+function formatEditorValue(value: any) {
   if (Array.isArray(value)) return value.join(', ');
   if (value == null) return '';
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
 }
 
-function slugifyCropName(value) {
+function slugifyCropName(value: any) {
   return String(value || '')
     .trim()
     .toLowerCase()
@@ -525,7 +525,7 @@ function slugifyCropName(value) {
     .replace(/^-+|-+$/g, '');
 }
 
-function RecordSummaryCard({ row, table }) {
+function RecordSummaryCard({ row, table }: any) {
   const title = getRecordTitle(row, table);
   const subtitle = getRecordSubtitle(row, table);
   const highlights = getRecordHighlights(row, table);
@@ -549,7 +549,7 @@ function RecordSummaryCard({ row, table }) {
           <h3 className="mt-1 text-base font-black text-slate-950 dark:text-white">{title}</h3>
           {subtitle && <p className="mt-1 text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">{subtitle}</p>}
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {highlights.map((item) => (
+            {highlights.map((item: any) => (
               <div key={item.label} className="rounded-md bg-white px-2.5 py-2 dark:bg-slate-900">
                 <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{item.label}</p>
                 <p className="mt-0.5 line-clamp-2 text-xs font-bold leading-5 text-slate-700 dark:text-slate-200">{item.value}</p>
@@ -562,12 +562,12 @@ function RecordSummaryCard({ row, table }) {
   );
 }
 
-function labelForTable(table) {
+function labelForTable(table: any) {
   const labels = Object.fromEntries([...NORMALIZED_TABLES, ...INTELLIGENCE_TABLES]);
   return labels[table] || table;
 }
 
-function getRecordTitle(row, table) {
+function getRecordTitle(row: any, table: any) {
   if (table === 'crop_varieties') return row.variety || 'Variety record';
   if (table === 'crop_pests') return row.pest_name || 'Pest record';
   if (table === 'crop_diseases') return row.disease_name || 'Disease record';
@@ -581,7 +581,7 @@ function getRecordTitle(row, table) {
   return row.name || row.title || row.id || 'Crop record';
 }
 
-function getRecordSubtitle(row, table) {
+function getRecordSubtitle(row: any, table: any) {
   if (table === 'crop_varieties') return row.special_features || row.expected_yield || row.duration;
   if (table === 'crop_pests' || table === 'crop_diseases') return row.symptoms || row.management;
   if (table === 'crop_weeds') return row.control_measure || row.scientific_name;
@@ -594,8 +594,8 @@ function getRecordSubtitle(row, table) {
   return '';
 }
 
-function getRecordHighlights(row, table) {
-  const keysByTable = {
+function getRecordHighlights(row: any, table: any) {
+  const keysByTable: Record<string, string[][]> = {
     crop_varieties: [['Duration', 'duration'], ['Yield', 'expected_yield'], ['Image', 'image_url']],
     crop_pests: [['Scientific name', 'scientific_name'], ['Management', 'management'], ['Chemical control', 'chemical_control']],
     crop_diseases: [['Causal organism', 'causal_organism'], ['Management', 'management'], ['Fungicide', 'fungicide']],
@@ -610,7 +610,7 @@ function getRecordHighlights(row, table) {
 
   const keys = keysByTable[table] || Object.keys(row).slice(0, 4).map((key) => [key, key]);
   return keys
-    .map(([label, key]) => ({ label, value: formatEditorValue(row[key]) }))
-    .filter((item) => item.value)
+    .map(([label, key]: any) => ({ label, value: formatEditorValue(row[key]) }))
+    .filter((item: any) => item.value)
     .slice(0, 4);
 }

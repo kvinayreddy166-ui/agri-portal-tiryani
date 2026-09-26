@@ -19,7 +19,7 @@ import {
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useCropData } from '../../../shared/hooks/useCropData';
 
-const SECTION_TEXT = {
+const SECTION_TEXT: Record<string, [string, string]> = {
   overview: ['Crop Overview', 'పంట అవలోకనం'],
   land: ['Land Preparation', 'భూమి సిద్ధం'],
   nursery: ['Nursery Management', 'నారు మడి నిర్వహణ'],
@@ -37,10 +37,10 @@ export function CropIntelligencePage({ cropSlug = 'paddy' }) {
   const { crop, cards, faqs, loading, error, search } = useCropData(cropSlug);
   const { isTelugu, t } = useLanguage();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<any[]>([]);
 
   const profile = useMemo(() => crop?.profile || {}, [crop]);
-  const localText = (english, telugu) => (isTelugu && telugu ? telugu : english);
+  const localText = (english: any, telugu: any) => (isTelugu && telugu ? telugu : english);
   const cropName = localText(crop?.name_en || crop?.crop_name, crop?.name_te);
   const cropImageUrl = cropSlug === 'greengram' ? '/images/greengram.webp' : crop?.image_url;
   const isRiceCrop = ['paddy', 'rice'].includes(String(cropSlug).toLowerCase()) || /rice|paddy/i.test(cropName || '');
@@ -311,7 +311,7 @@ export function CropIntelligencePage({ cropSlug = 'paddy' }) {
   );
 }
 
-function AccordionSection({ title, icon: Icon, children, defaultOpen = false }) {
+function AccordionSection({ title, icon: Icon, children, defaultOpen = false }: any) {
   return (
     <details
       className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900"
@@ -331,7 +331,7 @@ function AccordionSection({ title, icon: Icon, children, defaultOpen = false }) 
   );
 }
 
-function MetricCard({ icon: Icon, label, value }) {
+function MetricCard({ icon: Icon, label, value }: any) {
   return (
     <article className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <div className="flex items-center justify-between gap-2">
@@ -347,7 +347,7 @@ function MetricCard({ icon: Icon, label, value }) {
   );
 }
 
-function TextPanel({ title, body }) {
+function TextPanel({ title, body }: any) {
   return (
     <article className="rounded-lg border border-slate-100 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800">
       <h3 className="text-sm font-black text-slate-950 dark:text-white">{title}</h3>
@@ -358,7 +358,7 @@ function TextPanel({ title, body }) {
   );
 }
 
-function InfoCard({ title, body }) {
+function InfoCard({ title, body }: any) {
   return (
     <article className="rounded-lg border border-emerald-100 bg-emerald-50/70 p-3 dark:border-emerald-900/60 dark:bg-emerald-950/20">
       <h3 className="text-sm font-black text-emerald-900 dark:text-emerald-200">{title}</h3>
@@ -367,11 +367,11 @@ function InfoCard({ title, body }) {
   );
 }
 
-function DefinitionGrid({ rows }) {
+function DefinitionGrid({ rows }: any) {
   if (!rows.length) return null;
   return (
     <dl className="grid gap-2">
-      {rows.map((row) => (
+      {rows.map((row: any) => (
         <div key={row.label} className="rounded-lg border border-slate-100 p-3 dark:border-slate-700">
           <dt className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{row.label}</dt>
           <dd className="mt-1 text-sm font-semibold leading-6 text-slate-800 dark:text-slate-100">{valueToText(row.value)}</dd>
@@ -381,14 +381,14 @@ function DefinitionGrid({ rows }) {
   );
 }
 
-function VarietyCards({ varieties = [], isTelugu, t }) {
+function VarietyCards({ varieties = [], isTelugu, t }: any) {
   if (!varieties.length) {
     return <EmptyState text={t('Recommended varieties are not available for this crop yet.', 'ఈ పంటకు సిఫార్సు రకాలు ఇంకా అందుబాటులో లేవు.')} />;
   }
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-      {varieties.map((item) => {
+      {varieties.map((item: any) => {
         const name = item.variety || item.name || t('Variety', 'రకం');
         const notes = localizedValue(item, isTelugu, ['special_features', 'notes_en', 'notes'], ['notes_te']);
         return (
@@ -424,8 +424,8 @@ function VarietyCards({ varieties = [], isTelugu, t }) {
   );
 }
 
-function ResponsiveTable({ columns, rows = [], emptyText }) {
-  const visibleRows = rows.filter((row) => columns.some((column) => row[column.key]));
+function ResponsiveTable({ columns, rows = [], emptyText }: any) {
+  const visibleRows = rows.filter((row: any) => columns.some((column: any) => row[column.key]));
   if (!visibleRows.length) return <EmptyState text={emptyText} />;
 
   return (
@@ -434,15 +434,15 @@ function ResponsiveTable({ columns, rows = [], emptyText }) {
         <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-700">
           <thead className="bg-slate-50 text-left text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-300">
             <tr>
-              {columns.map((column) => (
+              {columns.map((column: any) => (
                 <th key={column.key} className="px-3 py-2">{column.label}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {visibleRows.map((row, index) => (
+            {visibleRows.map((row: any, index: any) => (
               <tr key={row.id || index} className="align-top">
-                {columns.map((column) => (
+                {columns.map((column: any) => (
                   <td key={column.key} className="px-3 py-2 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-200">
                     {valueToText(row[column.key]) || '-'}
                   </td>
@@ -453,9 +453,9 @@ function ResponsiveTable({ columns, rows = [], emptyText }) {
         </table>
       </div>
       <div className="grid gap-2 p-2 md:hidden">
-        {visibleRows.map((row, index) => (
+        {visibleRows.map((row: any, index: any) => (
           <article key={row.id || index} className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-            {columns.map((column) => (
+            {columns.map((column: any) => (
               <div key={column.key} className="mb-2 last:mb-0">
                 <p className="text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{column.label}</p>
                 <p className="mt-0.5 text-sm font-semibold leading-6 text-slate-800 dark:text-slate-100">{valueToText(row[column.key]) || '-'}</p>
@@ -468,7 +468,7 @@ function ResponsiveTable({ columns, rows = [], emptyText }) {
   );
 }
 
-function RiskCardGrid({ items = [], type, isTelugu, fallbackImage, t }) {
+function RiskCardGrid({ items = [], type, isTelugu, fallbackImage, t }: any) {
   if (!items.length) {
     const emptyText =
       type === 'pest'
@@ -479,7 +479,7 @@ function RiskCardGrid({ items = [], type, isTelugu, fallbackImage, t }) {
 
   return (
     <div className="grid gap-3 xl:grid-cols-2">
-      {items.map((item, index) => {
+      {items.map((item: any, index: any) => {
         const name = type === 'pest'
           ? localizedValue(item, isTelugu, ['pest_name', 'name_en', 'name'], ['name_te'])
           : localizedValue(item, isTelugu, ['disease_name', 'name_en', 'name'], ['name_te']);
@@ -546,7 +546,7 @@ function RiskCardGrid({ items = [], type, isTelugu, fallbackImage, t }) {
   );
 }
 
-function RiskField({ icon: Icon, label, value, compact = false }) {
+function RiskField({ icon: Icon, label, value, compact = false }: any) {
   if (!value) return null;
   return (
     <div className="rounded-lg bg-slate-50 p-2 dark:bg-slate-800">
@@ -561,7 +561,7 @@ function RiskField({ icon: Icon, label, value, compact = false }) {
   );
 }
 
-function EmptyState({ text }) {
+function EmptyState({ text }: any) {
   return (
     <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm font-semibold text-slate-500 dark:border-slate-600 dark:text-slate-400">
       {text}
@@ -569,11 +569,11 @@ function EmptyState({ text }) {
   );
 }
 
-function asArray(value) {
+function asArray(value: any) {
   return Array.isArray(value) ? value : [];
 }
 
-function localizedValue(item, isTelugu, englishKeys = [], teluguKeys = []) {
+function localizedValue(item: any, isTelugu: any, englishKeys: string[] = [], teluguKeys: string[] = []) {
   if (!item) return '';
   const keys = isTelugu ? [...teluguKeys, ...englishKeys] : [...englishKeys, ...teluguKeys];
   for (const key of keys) {
@@ -583,7 +583,7 @@ function localizedValue(item, isTelugu, englishKeys = [], teluguKeys = []) {
   return '';
 }
 
-function valueToText(value, isTelugu = false) {
+function valueToText(value: any, isTelugu = false): string {
   if (value === undefined || value === null) return '';
   if (typeof value === 'string' || typeof value === 'number') return String(value);
   if (Array.isArray(value)) return value.map((item) => valueToText(item, isTelugu)).filter(Boolean).join(', ');

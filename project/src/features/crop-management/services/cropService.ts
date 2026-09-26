@@ -1,8 +1,8 @@
 import { supabase } from '../../../shared/lib/supabase';
 import { getContentType, validateImageUploadFile } from '../../../shared/lib/fileTypes';
 
-let cropDatasetCache = null;
-let cropListCache = null;
+let cropDatasetCache: any = null;
+let cropListCache: any = null;
 const CROP_CACHE_PREFIX = 'tiryani-crop-cache:';
 const CROP_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
@@ -78,7 +78,7 @@ export async function fetchCrops({ search = '', slug = '', category = '' } = {})
   return localRows;
 }
 
-export async function fetchCropBySlug(slug) {
+export async function fetchCropBySlug(slug: any) {
   const cacheKey = buildCropCacheKey('detail', { slug });
   const cachedCrop = readCropCache(cacheKey);
   if (cachedCrop) return cachedCrop;
@@ -120,7 +120,7 @@ export async function fetchCropBySlug(slug) {
   return localCrop;
 }
 
-export async function searchCropKnowledge(search, filters = {}) {
+export async function searchCropKnowledge(search: any, filters: any = {}) {
   const term = (search || '').trim();
   if (!term && !filters.cropSlug && !filters.category) return [];
 
@@ -161,7 +161,7 @@ export async function searchCropKnowledge(search, filters = {}) {
   return localRows;
 }
 
-export async function fetchCropImages({ cropSlug, entityType, entityName } = {}) {
+export async function fetchCropImages({ cropSlug, entityType, entityName }: any = {}) {
   const cacheKey = buildCropCacheKey('images', { cropSlug, entityType, entityName });
   const cachedImages = readCropCache(cacheKey);
   if (cachedImages) return cachedImages;
@@ -193,14 +193,14 @@ export async function fetchCropImages({ cropSlug, entityType, entityName } = {})
   return localRows;
 }
 
-export async function createCropRecord(table, payload) {
+export async function createCropRecord(table: any, payload: any) {
   const { data, error } = await supabase.from(table).insert(payload).select().single();
   if (error) throw error;
   invalidateCropCaches();
   return data;
 }
 
-export async function updateCropRecord(table, id, payload) {
+export async function updateCropRecord(table: any, id: any, payload: any) {
   const { data, error } = await supabase
     .from(table)
     .update({ ...payload, updated_at: new Date().toISOString() })
@@ -213,13 +213,13 @@ export async function updateCropRecord(table, id, payload) {
   return data;
 }
 
-export async function deleteCropRecord(table, id) {
+export async function deleteCropRecord(table: any, id: any) {
   const { error } = await supabase.from(table).delete().eq('id', id);
   if (error) throw error;
   invalidateCropCaches();
 }
 
-export async function saveCropIntelligenceCard(slug, table, record) {
+export async function saveCropIntelligenceCard(slug: any, table: any, record: any) {
   const row = await ensureCropIntelligenceRow(slug, record.crop_name || record.name_en || record.name || '');
   if (!row) throw new Error('Crop intelligence record was not found.');
 
@@ -260,7 +260,7 @@ export async function saveCropIntelligenceCard(slug, table, record) {
   return data;
 }
 
-export async function deleteCropIntelligenceCard(slug, table, index) {
+export async function deleteCropIntelligenceCard(slug: any, table: any, index: any) {
   const row = await ensureCropIntelligenceRow(slug);
   if (!row) throw new Error('Crop intelligence record was not found.');
 
@@ -293,7 +293,7 @@ export async function deleteCropIntelligenceCard(slug, table, index) {
   invalidateCropCaches();
 }
 
-export async function uploadCropImage(file, cropSlug, entityType = 'crop', maxRetries = 3) {
+export async function uploadCropImage(file: any, cropSlug: any, entityType = 'crop', maxRetries = 3) {
   const validationError = validateImageUploadFile(file);
   if (validationError) throw new Error(validationError);
 
@@ -341,7 +341,7 @@ export async function uploadCropImage(file, cropSlug, entityType = 'crop', maxRe
   throw new Error('Upload failed after maximum retries');
 }
 
-export async function deleteUploadedCropImage(imageUrl) {
+export async function deleteUploadedCropImage(imageUrl: any) {
   if (!imageUrl || !imageUrl.includes('/storage/v1/object/public/uploads/')) return;
   const path = decodeURIComponent(imageUrl.split('/storage/v1/object/public/uploads/')[1]?.split('?')[0] || '');
   if (!path.startsWith('crop-intelligence/')) return;
@@ -350,7 +350,7 @@ export async function deleteUploadedCropImage(imageUrl) {
   invalidateCropCaches();
 }
 
-export async function bulkImportCropJson(records) {
+export async function bulkImportCropJson(records: any) {
   const items = Array.isArray(records) ? records : [records];
   const results = [];
 
@@ -383,11 +383,11 @@ export async function bulkImportCropJson(records) {
   return results;
 }
 
-function buildCropCacheKey(type, parts = {}) {
+function buildCropCacheKey(type: any, parts = {}) {
   return `${type}:${JSON.stringify(parts)}`;
 }
 
-function readCropCache(key) {
+function readCropCache(key: any) {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return null;
     const storageKey = `${CROP_CACHE_PREFIX}${key}`;
@@ -406,7 +406,7 @@ function readCropCache(key) {
   }
 }
 
-function writeCropCache(key, value) {
+function writeCropCache(key: any, value: any) {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return;
     window.localStorage.setItem(
@@ -437,13 +437,13 @@ function invalidateCropCaches() {
   }
 }
 
-function getCropSlugCandidates(slug) {
+function getCropSlugCandidates(slug: any) {
   const cleanSlug = String(slug || '').trim().toLowerCase();
   if (!cleanSlug) return [];
-  return Array.from(new Set(CROP_SLUG_ALIASES[cleanSlug] || [cleanSlug]));
+  return Array.from(new Set((CROP_SLUG_ALIASES as Record<string, string[]>)[cleanSlug] || [cleanSlug]));
 }
 
-function pickPreferredSlugRow(rows, slug, candidates = getCropSlugCandidates(slug)) {
+function pickPreferredSlugRow(rows: any, slug: any, candidates = getCropSlugCandidates(slug)) {
   const list = Array.isArray(rows) ? rows : rows ? [rows] : [];
   if (!list.length) return null;
 
@@ -455,7 +455,7 @@ function pickPreferredSlugRow(rows, slug, candidates = getCropSlugCandidates(slu
   return list[0] || null;
 }
 
-function hasCropDetailRows(crop) {
+function hasCropDetailRows(crop: any) {
   return [
     'crop_varieties',
     'crop_production',
@@ -472,12 +472,12 @@ function hasCropDetailRows(crop) {
   ].some((key) => Array.isArray(crop?.[key]) && crop[key].length > 0);
 }
 
-function findLocalCropItem(cropDataset, slug) {
+function findLocalCropItem(cropDataset: any, slug: any) {
   const candidates = getCropSlugCandidates(slug);
-  return cropDataset.find((crop) => candidates.includes(String(crop.slug || '').toLowerCase()));
+  return cropDataset.find((crop: any) => candidates.includes(String(crop.slug || '').toLowerCase()));
 }
 
-export async function exportCropWorkbook(crop) {
+export async function exportCropWorkbook(crop: any) {
   const XLSX = await import('xlsx');
   const workbook = XLSX.utils.book_new();
   const sheets = {
@@ -512,16 +512,16 @@ async function loadLocalCropDataset() {
   return cropDatasetCache;
 }
 
-function localCrops(cropDataset, { search = '', slug = '' } = {}) {
+function localCrops(cropDataset: any, { search = '', slug = '' } = {}) {
   const needle = search.toLowerCase();
   const slugCandidates = getCropSlugCandidates(slug);
   return cropDataset
-    .filter((item) => !slug || slugCandidates.includes(String(item.slug || '').toLowerCase()))
-    .filter((item) => {
+    .filter((item: any) => !slug || slugCandidates.includes(String(item.slug || '').toLowerCase()))
+    .filter((item: any) => {
       if (!needle) return true;
       return `${item.crop_profile.name_en} ${item.crop_profile.name_te} ${item.slug}`.toLowerCase().includes(needle);
     })
-    .map((item) => ({
+    .map((item: any) => ({
       id: `local-${item.slug}`,
       crop_name: item.crop_profile.name_en.split('/')[0].trim(),
       acreage: 0,
@@ -575,7 +575,7 @@ async function fetchCropIntelligenceList({ search = '', slug = '' } = {}) {
   }
 }
 
-async function fetchRawCropIntelligence(slug) {
+async function fetchRawCropIntelligence(slug: any) {
   const slugCandidates = getCropSlugCandidates(slug);
   const { data, error } = await supabase
     .from('crop_intelligence')
@@ -586,7 +586,7 @@ async function fetchRawCropIntelligence(slug) {
   return pickPreferredSlugRow(data, slug, slugCandidates);
 }
 
-async function ensureCropIntelligenceRow(slug, cropName = '') {
+async function ensureCropIntelligenceRow(slug: any, cropName = '') {
   const existingRow = await fetchRawCropIntelligence(slug);
   if (existingRow) return existingRow;
 
@@ -602,7 +602,7 @@ async function ensureCropIntelligenceRow(slug, cropName = '') {
   return data;
 }
 
-async function fetchCropIntelligenceBySlug(slug) {
+async function fetchCropIntelligenceBySlug(slug: any) {
   try {
     const data = await fetchRawCropIntelligence(slug);
     return data ? mapCropIntelligenceRow(data) : null;
@@ -612,7 +612,7 @@ async function fetchCropIntelligenceBySlug(slug) {
   }
 }
 
-function mapCropIntelligenceRow(row) {
+function mapCropIntelligenceRow(row: any) {
   const content = row.content || {};
   const risks = Array.isArray(row.risks) ? row.risks : [];
   const varieties = Array.isArray(content.varieties) ? content.varieties : [];
@@ -637,7 +637,7 @@ function mapCropIntelligenceRow(row) {
       soil_requirements_te: getLocalized(content.soil, 'te'),
       seed_rate_seed_treatment: getLocalized(content.duration),
     },
-    crop_varieties: varieties.map((item, index) => ({
+    crop_varieties: varieties.map((item: any, index: any) => ({
       id: `ci_varieties:${index}`,
       _table: 'ci_varieties',
       _index: index,
@@ -650,7 +650,7 @@ function mapCropIntelligenceRow(row) {
       notes_te: getLocalized(item.notes, 'te'),
       image_url: item.image_url || '',
     })),
-    crop_practices: practices.map((item, index) => ({
+    crop_practices: practices.map((item: any, index: any) => ({
       id: `ci_practices:${index}`,
       _table: 'ci_practices',
       _index: index,
@@ -661,18 +661,18 @@ function mapCropIntelligenceRow(row) {
       body_te: getLocalized(item.body, 'te'),
     })),
     crop_pests: risks
-      .map((item, index) => ({ item, index }))
-      .filter(({ item }) => String(item.type || '').toLowerCase() === 'pest')
-      .map(({ item, index }) => mapRiskToCard(item, index, 'pest')),
+      .map((item: any, index: any) => ({ item, index }))
+      .filter(({ item }: any) => String(item.type || '').toLowerCase() === 'pest')
+      .map(({ item, index }: any) => mapRiskToCard(item, index, 'pest')),
     crop_diseases: risks
-      .map((item, index) => ({ item, index }))
-      .filter(({ item }) => String(item.type || '').toLowerCase() === 'disease')
-      .map(({ item, index }) => mapRiskToCard(item, index, 'disease')),
-    ci_risks: risks.map((item, index) => mapRiskToCard(item, index, 'risk')),
+      .map((item: any, index: any) => ({ item, index }))
+      .filter(({ item }: any) => String(item.type || '').toLowerCase() === 'disease')
+      .map(({ item, index }: any) => mapRiskToCard(item, index, 'disease')),
+    ci_risks: risks.map((item: any, index: any) => mapRiskToCard(item, index, 'risk')),
   };
 }
 
-function mapRiskToCard(item, index, kind) {
+function mapRiskToCard(item: any, index: any, kind: any) {
   const chemicals = Array.isArray(item.chemicals) ? item.chemicals : [];
   const newChemicals = Array.isArray(item.newChemicals) ? item.newChemicals : [];
   const base = {
@@ -706,13 +706,13 @@ function mapRiskToCard(item, index, kind) {
   };
 }
 
-function getLocalized(value, lang = 'en') {
+function getLocalized(value: any, lang = 'en') {
   if (!value) return '';
   if (typeof value === 'string') return value;
   return value[lang] || value.en || value.te || '';
 }
 
-function stripAdminFields(record) {
+function stripAdminFields(record: any) {
   const { id, _table, _index, created_at, updated_at, crops, ...rest } = record;
   void id;
   void _table;
@@ -723,7 +723,7 @@ function stripAdminFields(record) {
   return rest;
 }
 
-function upsertArrayItem(value, index, item) {
+function upsertArrayItem(value: any, index: any, item: any) {
   const next = Array.isArray(value) ? [...value] : [];
   if (Number.isInteger(index) && index >= 0 && index < next.length) {
     next[index] = item;
@@ -733,13 +733,13 @@ function upsertArrayItem(value, index, item) {
   return next;
 }
 
-function removeArrayItem(value, index) {
+function removeArrayItem(value: any, index: any) {
   const next = Array.isArray(value) ? [...value] : [];
   if (Number.isInteger(index) && index >= 0) next.splice(index, 1);
   return next;
 }
 
-function csvToArray(value) {
+function csvToArray(value: any) {
   if (Array.isArray(value)) return value;
   return String(value || '')
     .split(',')
@@ -747,7 +747,7 @@ function csvToArray(value) {
     .filter(Boolean);
 }
 
-function toIntelligenceVariety(record) {
+function toIntelligenceVariety(record: any) {
   return {
     name: record.name || record.variety || '',
     duration: record.duration || '',
@@ -760,7 +760,7 @@ function toIntelligenceVariety(record) {
   };
 }
 
-function toIntelligencePractice(record) {
+function toIntelligencePractice(record: any) {
   return {
     key: record.key || (record.title_en || 'practice').toLowerCase().replace(/[^a-z0-9]+/g, '_'),
     title: {
@@ -774,7 +774,7 @@ function toIntelligencePractice(record) {
   };
 }
 
-function toIntelligenceRisk(record) {
+function toIntelligenceRisk(record: any) {
   return {
     type: record.type || 'Pest',
     name: {
@@ -796,7 +796,7 @@ function toIntelligenceRisk(record) {
   };
 }
 
-function buildCropIntelligencePayload(cropDataset, slug, cropName = '') {
+function buildCropIntelligencePayload(cropDataset: any, slug: any, cropName = '') {
   const item = findLocalCropItem(cropDataset, slug);
   const fallbackSlug = String(slug || 'crop').trim().toLowerCase() || 'crop';
   const displayName = String(cropName || fallbackSlug).trim() || fallbackSlug;
@@ -838,7 +838,7 @@ function buildCropIntelligencePayload(cropDataset, slug, cropName = '') {
         en: item.harvesting?.duration || item.harvesting_yield || item.seed_rate_seed_treatment || '',
         te: item.harvesting?.duration_te || item.harvesting_yield_te || item.seed_rate_seed_treatment || '',
       },
-      varieties: item.recommended_varieties.map((row) => ({
+      varieties: item.recommended_varieties.map((row: any) => ({
         name: row.variety || '',
         duration: row.duration || '',
         expected_yield: row.yield || row.expected_yield || '',
@@ -855,8 +855,8 @@ function buildCropIntelligencePayload(cropDataset, slug, cropName = '') {
   };
 }
 
-function localPracticeCardsFromItem(item) {
-  return (item.crop_production_practices || []).map((row, index) => ({
+function localPracticeCardsFromItem(item: any) {
+  return (item.crop_production_practices || []).map((row: any, index: any) => ({
     key: slugifyKey(row.stage, `practice_${index + 1}`),
     title: {
       en: row.stage || `Practice ${index + 1}`,
@@ -869,8 +869,8 @@ function localPracticeCardsFromItem(item) {
   }));
 }
 
-function localPracticeRowsFromItem(item) {
-  return localPracticeCardsFromItem(item).map((practice, index) => ({
+function localPracticeRowsFromItem(item: any) {
+  return localPracticeCardsFromItem(item).map((practice: any, index: any) => ({
     id: `ci_practices:${index}`,
     _table: 'ci_practices',
     _index: index,
@@ -882,8 +882,8 @@ function localPracticeRowsFromItem(item) {
   }));
 }
 
-function localRiskCardsFromItem(item) {
-  const pests = (item.pest_management || []).map((row) => ({
+function localRiskCardsFromItem(item: any) {
+  const pests = (item.pest_management || []).map((row: any) => ({
     type: 'Pest',
     name: {
       en: row.pest_name || '',
@@ -903,7 +903,7 @@ function localRiskCardsFromItem(item) {
     image_source_url: row.image_source_url || '',
   }));
 
-  const diseases = (item.disease_management || []).map((row) => ({
+  const diseases = (item.disease_management || []).map((row: any) => ({
     type: 'Disease',
     name: {
       en: row.disease_name || '',
@@ -926,7 +926,7 @@ function localRiskCardsFromItem(item) {
   return [...pests, ...diseases];
 }
 
-function slugifyKey(value, fallback) {
+function slugifyKey(value: any, fallback: any) {
   const key = String(value || fallback || '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_')
@@ -934,14 +934,14 @@ function slugifyKey(value, fallback) {
   return key || fallback;
 }
 
-function localCropBySlug(cropDataset, slug) {
+function localCropBySlug(cropDataset: any, slug: any) {
   const item = findLocalCropItem(cropDataset, slug);
   if (!item) return null;
   const [base] = localCrops(cropDataset, { slug: item.slug });
   const riskCards = localRiskCardsFromItem(item);
   return {
     ...base,
-    crop_varieties: item.recommended_varieties.map((row, index) => ({
+    crop_varieties: item.recommended_varieties.map((row: any, index: any) => ({
       id: row.id,
       _table: 'ci_varieties',
       _index: index,
@@ -957,7 +957,7 @@ function localCropBySlug(cropDataset, slug) {
     })),
     crop_practices: localPracticeRowsFromItem(item),
     crop_production: item.crop_production_practices,
-    crop_fertilizers: item.fertilizer_recommendations.map((row) => ({
+    crop_fertilizers: item.fertilizer_recommendations.map((row: any) => ({
       id: row.id,
       crop_id: base.id,
       stage: row.stage,
@@ -966,14 +966,14 @@ function localCropBySlug(cropDataset, slug) {
       method: row.method,
       description_te: row.description_te,
     })),
-    crop_irrigation: item.irrigation_management.map((row, index) => ({
+    crop_irrigation: item.irrigation_management.map((row: any, index: any) => ({
       id: `${item.slug}-irrigation-${index + 1}`,
       crop_id: base.id,
       stage: row.stage,
       recommendation_en: row.recommendation,
       recommendation_te: row.recommendation_te || row.recommendation,
     })),
-    crop_weeds: item.weed_management.map((row) => ({
+    crop_weeds: item.weed_management.map((row: any) => ({
       id: row.id,
       crop_id: base.id,
       weed_name: row.weed_name,
@@ -983,7 +983,7 @@ function localCropBySlug(cropDataset, slug) {
       dose: row.dose,
       image_url: row.image,
     })),
-    crop_pests: item.pest_management.map((row) => ({
+    crop_pests: item.pest_management.map((row: any) => ({
       id: row.id,
       crop_id: base.id,
       pest_name: row.pest_name,
@@ -994,7 +994,7 @@ function localCropBySlug(cropDataset, slug) {
       image_url: row.image,
       image_source_url: row.image_source_url,
     })),
-    crop_diseases: item.disease_management.map((row) => ({
+    crop_diseases: item.disease_management.map((row: any) => ({
       id: row.id,
       crop_id: base.id,
       disease_name: row.disease_name,
@@ -1005,7 +1005,7 @@ function localCropBySlug(cropDataset, slug) {
       image_url: row.image,
       image_source_url: row.image_source_url,
     })),
-    crop_deficiencies: item.deficiency_symptoms.map((row, index) => ({
+    crop_deficiencies: item.deficiency_symptoms.map((row: any, index: any) => ({
       id: `${item.slug}-deficiency-${index + 1}`,
       crop_id: base.id,
       deficiency_name: row.deficiency,
@@ -1014,14 +1014,14 @@ function localCropBySlug(cropDataset, slug) {
       correction: row.correction,
       image_url: row.image,
     })),
-    crop_advisories: item.advisories.map((row, index) => ({
+    crop_advisories: item.advisories.map((row: any, index: any) => ({
       id: `${item.slug}-advisory-${index + 1}`,
       crop_id: base.id,
       category: row.category,
       advisory_en: row.description_en,
       advisory_te: row.description_te,
     })),
-    crop_faqs: item.faqs.map((row, index) => ({
+    crop_faqs: item.faqs.map((row: any, index: any) => ({
       id: `${item.slug}-faq-${index + 1}`,
       crop_id: base.id,
       ...row,
@@ -1031,11 +1031,11 @@ function localCropBySlug(cropDataset, slug) {
   };
 }
 
-function localFaqs(cropDataset, { search = '', cropSlug = '', category = '', limit = 50 } = {}) {
+function localFaqs(cropDataset: any, { search = '', cropSlug = '', category = '', limit = 50 } = {}) {
   const needle = search.toLowerCase();
   return cropDataset
-    .filter((crop) => !cropSlug || crop.slug === cropSlug)
-    .flatMap((crop) => crop.faqs.map((faq, index) => ({
+    .filter((crop: any) => !cropSlug || crop.slug === cropSlug)
+    .flatMap((crop: any) => crop.faqs.map((faq: any, index: any) => ({
       id: `${crop.slug}-faq-${index + 1}`,
       crop_id: `local-${crop.slug}`,
       ...faq,
@@ -1046,21 +1046,21 @@ function localFaqs(cropDataset, { search = '', cropSlug = '', category = '', lim
         name_te: crop.crop_profile.name_te,
       },
     })))
-    .filter((faq) => !category || faq.category === category)
-    .filter((faq) => !needle || `${faq.question} ${faq.answer} ${faq.answer_te}`.toLowerCase().includes(needle))
+    .filter((faq: any) => !category || faq.category === category)
+    .filter((faq: any) => !needle || `${faq.question} ${faq.answer} ${faq.answer_te}`.toLowerCase().includes(needle))
     .slice(0, limit);
 }
 
-function localImages(cropDataset, { cropSlug = '', entityType = '', entityName = '' } = {}) {
+function localImages(cropDataset: any, { cropSlug = '', entityType = '', entityName = '' } = {}) {
   const needle = entityName.toLowerCase();
   return cropDataset
-    .filter((crop) => !cropSlug || crop.slug === cropSlug)
-    .flatMap((crop) => {
+    .filter((crop: any) => !cropSlug || crop.slug === cropSlug)
+    .flatMap((crop: any) => {
       const rows = [
         { entity_type: 'crop', entity_name: crop.crop_profile.name_en, image_url: crop.crop_profile.image },
-        ...crop.pest_management.map((item) => ({ entity_type: 'pest', entity_name: item.pest_name, image_url: item.image, source_url: item.image_source_url })),
-        ...crop.disease_management.map((item) => ({ entity_type: 'disease', entity_name: item.disease_name, image_url: item.image, source_url: item.image_source_url })),
-        ...crop.deficiency_symptoms.map((item) => ({ entity_type: 'deficiency', entity_name: item.deficiency, image_url: item.image })),
+        ...crop.pest_management.map((item: any) => ({ entity_type: 'pest', entity_name: item.pest_name, image_url: item.image, source_url: item.image_source_url })),
+        ...crop.disease_management.map((item: any) => ({ entity_type: 'disease', entity_name: item.disease_name, image_url: item.image, source_url: item.image_source_url })),
+        ...crop.deficiency_symptoms.map((item: any) => ({ entity_type: 'deficiency', entity_name: item.deficiency, image_url: item.image })),
       ];
       return rows.map((row, index) => ({
         id: `local-${crop.slug}-image-${index + 1}`,
@@ -1070,6 +1070,6 @@ function localImages(cropDataset, { cropSlug = '', entityType = '', entityName =
         ...row,
       }));
     })
-    .filter((row) => !entityType || row.entity_type === entityType)
-    .filter((row) => !needle || row.entity_name.toLowerCase().includes(needle));
+    .filter((row: any) => !entityType || row.entity_type === entityType)
+    .filter((row: any) => !needle || row.entity_name.toLowerCase().includes(needle));
 }

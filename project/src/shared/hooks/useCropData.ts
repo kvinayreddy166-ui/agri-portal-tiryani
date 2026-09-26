@@ -6,13 +6,13 @@ import {
   searchCropKnowledge,
 } from '../../features/crop-management/services/cropService';
 
-export function useCropData(slug, options = {}) {
-  const [crop, setCrop] = useState(null);
-  const [crops, setCrops] = useState([]);
-  const [images, setImages] = useState([]);
-  const [faqs, setFaqs] = useState([]);
+export function useCropData(slug: any, options: any = {}) {
+  const [crop, setCrop] = useState<any>(null);
+  const [crops, setCrops] = useState<any[]>([]);
+  const [images, setImages] = useState<any[]>([]);
+  const [faqs, setFaqs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -48,7 +48,7 @@ export function useCropData(slug, options = {}) {
     deficiencies: crop?.crop_deficiencies || [],
   }), [crop]);
 
-  const search = useCallback((term, filters = {}) => {
+  const search = useCallback((term: any, filters = {}) => {
     return searchCropKnowledge(term, { cropSlug: slug, ...filters });
   }, [slug]);
 
