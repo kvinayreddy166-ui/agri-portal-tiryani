@@ -1,19 +1,18 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
-import { pesticideNameWithoutTrade } from './statutoryPesticidePdf';
-import { isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
-import { drawJustifiedBodyText } from '../shared/lib/pdfText';
+import { isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, statutoryDesignationDisplay } from '../../../data/assistantDirectorLocation';
+import { drawJustifiedBodyText } from '../../../shared/lib/pdfText';
 
-type PesticideCoveringLetterQueueItem = {
+type SeedCoveringLetterQueueItem = {
   sampleCode: string;
-  tradeName: string;
-  technicalName: string;
-  activeIngredient: string;
-  formulationType: string;
+  seedName: string;
+  variety: string;
+  quantity: string;
   dateOfSampling: string;
+  isCotton?: boolean;
 };
 
-type PesticideCoveringLetterMetadata = {
+type SeedCoveringLetterMetadata = {
   year: string;
   letterNumber: string;
   letterDate: string;
@@ -33,7 +32,7 @@ type OfficerDetails = {
   manualMandal: string;
   manualDivision: string;
   office?: string;
-  sampleDrawingMandal: string;
+  placeOfCollectionMandal: string;
   manualPlaceOfCollection: string;
   district: string;
   manualDistrict: string;
@@ -75,15 +74,16 @@ type PdfCursor = {
   contentWidth: number;
 };
 
-export async function generatePesticideCoveringLetterPdf(
-  queue: PesticideCoveringLetterQueueItem[],
-  metadata: PesticideCoveringLetterMetadata,
+export async function generateSeedCoveringLetterPdf(
+  queue: SeedCoveringLetterQueueItem[],
+  metadata: SeedCoveringLetterMetadata,
   officerDetails?: OfficerDetails,
-  _watermarkEnabled: boolean = false
+  _watermarkEnabled: boolean = false,
+  laboratoryAddress?: string
 ) {
   const { jsPDF } = await import('jspdf');
 
-  const doc = createDocument(jsPDF, 'Covering Letter - Pesticide Samples');
+  const doc = createDocument(jsPDF, 'Covering Letter - Seed Samples');
 
   await drawWatermark(doc);
 
@@ -98,7 +98,7 @@ export async function generatePesticideCoveringLetterPdf(
   
   cursor.y -= 4;
   
-  drawFromToSections(cursor, officerDetails, metadata);
+  drawFromToSections(cursor, officerDetails, laboratoryAddress);
   
   cursor.y -= 6;
   
@@ -110,14 +110,14 @@ export async function generatePesticideCoveringLetterPdf(
   drawSalutation(cursor);
   cursor.y += 8;
   
-  drawSubject(cursor, metadata);
+  drawSubject(cursor, metadata, queue);
   cursor.y += PARAGRAPH_SPACING;
   
   drawReference(cursor, metadata, officerDetails);
   
   drawSeparator(cursor);
   
-  drawBody(cursor, officerDetails);
+  drawBody(cursor, officerDetails, queue);
   cursor.y += PARAGRAPH_SPACING;
   
   cursor.y -= 3;
@@ -145,7 +145,7 @@ export async function generatePesticideCoveringLetterPdf(
   
   cursor.y -= 3;
   
-  drawEnclosures(cursor, queue.length);
+  drawEnclosures(cursor, queue.length, queue);
   cursor.y += PARAGRAPH_SPACING;
   
   drawSignature(cursor, officerDetails);
@@ -172,7 +172,7 @@ function createDocument(
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
   doc.setProperties({
     title,
-    subject: 'Covering Letter for Pesticide Sample Submission',
+    subject: 'Covering Letter for Seed Sample Submission',
     creator: 'AGRONIX',
   });
   return doc;
@@ -278,7 +278,7 @@ async function drawGovernmentHeader(cursor: PdfCursor) {
   doc.setFont(PDF_FONT, 'normal');
 }
 
-function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, metadata?: PesticideCoveringLetterMetadata) {
+function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, laboratoryAddress?: string) {
   const { doc } = cursor;
   
   const leftColumnX = PAGE.marginLeft;
@@ -304,12 +304,10 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, 
     currentY += LINE_HEIGHT;
   }
   
-  const designation = statutoryDesignationDisplay(officerDetails?.designation || '');
-  if (designation) {
-    doc.setFont(PDF_FONT, 'bold');
-    doc.text(`${designation},`, leftColumnX, currentY);
-    currentY += LINE_HEIGHT;
-  }
+  const designation = statutoryDesignationDisplay(officerDetails?.designation || 'Mandal Agricultural Officer');
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text(`${designation},`, leftColumnX, currentY);
+  currentY += LINE_HEIGHT;
   
   const isADA = isAssistantDirectorOfAgriculture(officerDetails?.designation || '');
   const isADAT = isAssistantDirectorOfAgricultureT(officerDetails?.designation || '');
@@ -324,7 +322,7 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, 
   }
   
   const district = officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict || '';
-  const pinCode = officerDetails?.pinCode || (officerDetails as any)?.pincode || '';
+  const pinCode = officerDetails?.pinCode || '';
   if (district) {
     doc.setFont(PDF_FONT, 'bold');
     const districtPin = pinCode ? `${district} -${pinCode},` : `${district},`;
@@ -332,7 +330,7 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, 
     currentY += LINE_HEIGHT;
   }
   
-  const phone = metadata?.officePhone || officerDetails?.phone || '';
+  const phone = officerDetails?.phone || '';
   if (phone) {
     doc.setFont(PDF_FONT, 'bold');
     doc.text(`Cell : ${phone}.`, leftColumnX, currentY);
@@ -344,12 +342,11 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, 
   doc.text('To:', rightColumnX, startY);
   
   currentY = startY + LINE_HEIGHT;
-  const toAddress = [
-    'The Insecticide Analyst,',
-    'Deputy Director of Agriculture (IA),',
-    'PTL & Coding Centre,',
-    'SAMETI Complex, Old Malakpet,',
-    'Hyderabad - 500036.',
+  const toAddress = laboratoryAddress ? laboratoryAddress.split('\n') : [
+    '...................................................',
+    '...................................................',
+    '...................................................',
+    '...................................................',
   ];
   
   doc.setFont(PDF_FONT, 'bold');
@@ -361,7 +358,7 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, 
   cursor.y = currentY + LINE_HEIGHT;
 }
 
-function drawLetterDetails(cursor: PdfCursor, metadata: PesticideCoveringLetterMetadata) {
+function drawLetterDetails(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata) {
   const { doc } = cursor;
   
   // Add spacing before letter number
@@ -394,7 +391,7 @@ function drawSalutation(cursor: PdfCursor) {
   doc.text('Sir/Madam,', PAGE.marginLeft, cursor.y);
 }
 
-function drawSubject(cursor: PdfCursor, metadata: PesticideCoveringLetterMetadata) {
+function drawSubject(cursor: PdfCursor, _metadata: SeedCoveringLetterMetadata, queue?: SeedCoveringLetterQueueItem[]) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
@@ -402,7 +399,15 @@ function drawSubject(cursor: PdfCursor, metadata: PesticideCoveringLetterMetadat
   doc.text('Sub:', PAGE.marginLeft, cursor.y);
   
   doc.setFont(PDF_FONT, 'normal');
-  const subject = `Insecticides Act, 1968 – Quality Control – ${metadata.year || '2026-27'} – Submission of Pesticide Samples Drawn – Request for Quality Analysis – Reg.`;
+  
+  // Check if this is a BT Protein covering letter (all samples are cotton)
+  const isBtProteinLetter = queue && queue.length > 0 && queue.every(item => item.isCotton);
+  
+  // Use different subject based on letter type
+  const subject = isBtProteinLetter
+    ? `Seed Act 1966 – Seed (Control) Order 1983 – EP Act – 1986 –Quality Control – 2026-27– Submission of Seed samples drawn - Request for Quality analysis – Reg.`
+    : `Seed Act 1966 – Seed (Control) Order 1983 – Quality Control – 2026-27– Submission of Seed samples drawn - Request for Quality analysis – Reg.`;
+  
   const subjectX = PAGE.marginLeft + doc.getTextWidth('Sub: ');
   const availableWidth = PAGE.contentWidth - doc.getTextWidth('Sub: ');
   
@@ -412,7 +417,7 @@ function drawSubject(cursor: PdfCursor, metadata: PesticideCoveringLetterMetadat
   cursor.y += (splitSubject.length * LINE_HEIGHT) + 1;
 }
 
-function drawReference(cursor: PdfCursor, metadata: PesticideCoveringLetterMetadata, officerDetails?: OfficerDetails) {
+function drawReference(cursor: PdfCursor, metadata: SeedCoveringLetterMetadata, officerDetails?: OfficerDetails) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'bold');
@@ -421,7 +426,7 @@ function drawReference(cursor: PdfCursor, metadata: PesticideCoveringLetterMetad
   const refIndent = PAGE.marginLeft + doc.getTextWidth('Ref: ');
 
   doc.setFont(PDF_FONT, 'normal');
-  const ref1 = '1) C&DA, TS, Hyd Memo No. PP/34/2026-27, Dt. 21.05.2026.';
+  const ref1 = '1) C&DA, TS, Hyd Memo No. COMAG-SRC/SAMP/1/2026-SRC, Dt: 22.04.2026.';
   doc.text(ref1, refIndent, cursor.y);
   cursor.y += LINE_HEIGHT;
 
@@ -443,28 +448,38 @@ function drawSeparator(cursor: PdfCursor) {
   cursor.y += LINE_HEIGHT + 2;
 }
 
-function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails) {
+function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, queue?: SeedCoveringLetterQueueItem[]) {
   const { doc } = cursor;
   
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(FONT_SIZES.body);
   doc.setLineHeightFactor(LINE_HEIGHTS.body);
   
-  // Use sampleDrawingMandal for ADA designation, otherwise use regular mandal
-  const sampleDrawingMandal = isAssistantDirectorOfAgriculture(officerDetails?.designation || '') && officerDetails?.sampleDrawingMandal
-    ? (officerDetails.sampleDrawingMandal === 'Others' ? officerDetails.manualPlaceOfCollection || '' : officerDetails.sampleDrawingMandal)
+  const isADA = isAssistantDirectorOfAgriculture(officerDetails?.designation || '');
+  // For ADA, use placeOfCollectionMandal (or manualPlaceOfCollection if Others), otherwise use regular mandal
+  const placeOfCollection = isADA 
+    ? (officerDetails?.placeOfCollectionMandal === 'Others' 
+        ? officerDetails?.manualPlaceOfCollection || '' 
+        : officerDetails?.placeOfCollectionMandal || '')
     : displayValue(officerDetails?.mandal === 'Others' ? officerDetails?.manualMandal : officerDetails?.mandal || officerDetails?.manualMandal);
   const district = displayValue(officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict);
   
+  // Check if this is a cotton covering letter (all samples are cotton)
+  const isCottonLetter = queue && queue.length > 0 && queue.every(item => item.isCotton);
+  
   // Text segments with different font styles
+  const testParameter = isCottonLetter ? 'BT Protein Quantification' : 'Purity, Moisture & Germination';
+  
   const segments = [
-    { text: 'In continuation to the subject cited above, I am herewith submitting the pesticide samples drawn from the input dealer premises in ', bold: false },
-    { text: sampleDrawingMandal, bold: true },
+    { text: 'In continuation to the subject cited above, I am herewith submitting the seed samples drawn from the input dealer premises in ', bold: false },
+    { text: placeOfCollection, bold: true },
     { text: ' Mandal, ', bold: false },
     { text: district, bold: true },
-    { text: ' District for quality analysis as per the allotment given by the District Agriculture Officer, ', bold: false },
+    { text: ' District for Quality analysis (', bold: false },
+    { text: testParameter, bold: true },
+    { text: ') as per the allotment given by the District Agriculture Officer, ', bold: false },
     { text: district, bold: false },
-    { text: '.', bold: false },
+    { text: '.', bold: false }
   ];
   
   const endY = drawJustifiedBodyText(doc, segments, {
@@ -486,30 +501,33 @@ function drawSampleTableHeading(cursor: PdfCursor) {
   doc.text('The details of the samples drawn are as follows :', PAGE.marginLeft, cursor.y);
 }
 
-function drawSampleTable(cursor: PdfCursor, queue: PesticideCoveringLetterQueueItem[]) {
+function drawSampleTable(cursor: PdfCursor, queue: SeedCoveringLetterQueueItem[]) {
   const { doc } = cursor;
   
-  const tableData = queue.map((item, index) => {
-    return [
-      String(index + 1),
-      item.tradeName || '-',
-      pesticideNameWithoutTrade({ ...item, insecticideCommonName: item.technicalName }),
-      item.sampleCode || '-',
-      formatDate(item.dateOfSampling) || '-'
-    ];
-  });
+  // Check if this is a cotton covering letter
+  const isCottonLetter = queue.length > 0 && queue.every(item => item.isCotton);
+  
+  const tableData = queue.map((item, index) => [
+    String(index + 1),
+    item.seedName || '-',
+    item.variety || '-',
+    item.sampleCode || '-',
+    isCottonLetter ? '25' : (item.quantity?.match(/\d+/)?.[0] || item.quantity || '-'),
+    formatDate(item.dateOfSampling) || '-'
+  ]);
 
   const columnWidths = [
-    PAGE.contentWidth * 0.07,  // Sl. No. - 7%
-    PAGE.contentWidth * 0.23,  // Trade Name - 23%
-    PAGE.contentWidth * 0.38,  // Technical Name - 38%
-    PAGE.contentWidth * 0.18,  // Sample Code - 18%
+    PAGE.contentWidth * 0.05,  // Sl. No. - 5%
+    PAGE.contentWidth * 0.20,  // Crop - 20%
+    PAGE.contentWidth * 0.28,  // Variety - 28%
+    PAGE.contentWidth * 0.21,  // Sample Code - 21%
+    PAGE.contentWidth * 0.12,  // Quantity - 12%
     PAGE.contentWidth * 0.14,  // Sampling Date - 14%
   ];
 
   autoTable(doc, {
     startY: cursor.y,
-    head: [['S.No', 'Trade Name', 'Technical Name', 'Code No. of Sample', 'Date of Sampling']],
+    head: [['S.No', 'Crop', 'Variety', 'Code No. of Sample', 'Quantity (gms)', 'Sampling Date']],
     body: tableData,
     theme: 'grid',
     margin: {
@@ -524,12 +542,12 @@ function drawSampleTable(cursor: PdfCursor, queue: PesticideCoveringLetterQueueI
       lineColor: [0, 0, 0],
       valign: 'middle',
       overflow: 'linebreak',
-      fillColor: undefined, // Transparent background to show watermark
+      fillColor: false, // Transparent background to show watermark
     },
     headStyles: {
       fontStyle: 'bold',
       fontSize: FONT_SIZES.body,
-      fillColor: undefined, // Transparent background to show watermark
+      fillColor: false, // Transparent background to show watermark
       textColor: [0, 0, 0],
       halign: 'center',
       valign: 'middle',
@@ -537,7 +555,7 @@ function drawSampleTable(cursor: PdfCursor, queue: PesticideCoveringLetterQueueI
     bodyStyles: {
       halign: 'center',
       textColor: [0, 0, 0],
-      fillColor: undefined, // Transparent background to show watermark
+      fillColor: false, // Transparent background to show watermark
     },
     columnStyles: {
       0: { cellWidth: columnWidths[0], halign: 'center' },
@@ -545,6 +563,7 @@ function drawSampleTable(cursor: PdfCursor, queue: PesticideCoveringLetterQueueI
       2: { cellWidth: columnWidths[2], halign: 'center' },
       3: { cellWidth: columnWidths[3], halign: 'center' },
       4: { cellWidth: columnWidths[4], halign: 'center' },
+      5: { cellWidth: columnWidths[5], halign: 'center' },
     },
     pageBreak: 'auto',
     rowPageBreak: 'avoid',
@@ -573,28 +592,29 @@ function drawClosing(cursor: PdfCursor) {
   doc.text('Thanking you.', PAGE.width / 2, cursor.y, { align: 'center' });
   cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;
   
-  // Form V(D) with V(D) in bold
-  doc.setFont(PDF_FONT, 'normal');
-  doc.text('Form "', PAGE.marginLeft, cursor.y);
-  const formX = PAGE.marginLeft + doc.getTextWidth('Form "');
-  doc.setFont(PDF_FONT, 'bold');
-  doc.text('V(D)"', formX, cursor.y);
-  const vdX = formX + doc.getTextWidth('V(D)"');
-  doc.setFont(PDF_FONT, 'normal');
-  doc.text(' is kept with the sample,', vdX, cursor.y);
-  cursor.y += LINE_HEIGHT + 1.7;
+  doc.text('Information Slip is kept with the sample.', PAGE.marginLeft, cursor.y);
+  cursor.y += LINE_HEIGHT + 1.5;
 }
 
-function drawEnclosures(cursor: PdfCursor, sampleCount: number) {
+function drawEnclosures(cursor: PdfCursor, sampleCount: number, queue?: SeedCoveringLetterQueueItem[]) {
   const { doc } = cursor;
+  
+  // Check if this is a cotton covering letter
+  const isCottonLetter = queue && queue.length > 0 && queue.every(item => item.isCotton);
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
+
   doc.text('Enclosures:', PAGE.marginLeft, cursor.y);
-  
   const enclosuresX = PAGE.marginLeft + doc.getTextWidth('Enclosures: ');
   doc.setFont(PDF_FONT, 'normal');
-  doc.text(`Form V(E) & Docket Sheet (${sampleCount}).`, enclosuresX, cursor.y);
+
+  if (isCottonLetter) {
+    // For cotton, use Form II with sample count
+    doc.text(`Form II (${sampleCount})`, enclosuresX, cursor.y);
+  } else {
+    doc.text(`Form V (${sampleCount})`, enclosuresX, cursor.y);
+  }
 }
 
 function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
@@ -614,14 +634,14 @@ function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   
   const isADA = isAssistantDirectorOfAgriculture(officerDetails?.designation || '');
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(isADA ? statutoryDesignationDisplay(officerDetails?.designation || 'Asst. Director of Agriculture') : 'Mandal Agriculture Officer', signatureX, cursor.y, { align: 'right' });
+  doc.text(isADA ? statutoryDesignationDisplay(officerDetails?.designation || 'Asst. Director of Agriculture') : 'Mandal Agricultural Officer', signatureX, cursor.y, { align: 'right' });
   cursor.y += LINE_HEIGHT;
   
-  doc.text('& Insecticide Inspector', signatureX, cursor.y, { align: 'right' });
+  doc.text('& Seed Inspector', signatureX, cursor.y, { align: 'right' });
   cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;
 }
 
-function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, metadata?: PesticideCoveringLetterMetadata) {
+function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, metadata?: SeedCoveringLetterMetadata) {
   const { doc } = cursor;
   
   const district = displayValue(officerDetails?.district === 'Others' ? officerDetails?.manualDistrict : officerDetails?.district || officerDetails?.manualDistrict);
@@ -635,12 +655,10 @@ function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, m
   
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(11);
-  
   if (!isADA) {
     doc.text(`1. The Asst. Director of Agriculture (R), ${division} for favour of kind information.`, PAGE.marginLeft + 5, cursor.y);
     cursor.y += LINE_HEIGHT;
   }
-  
   const daoNumber = `${isADA ? '1' : '2'}. `;
   const daoText = `The District Agriculture Officer, ${district} along with the Referee portion of the samples listed above for safe custody & necessary action.`;
   const daoNumberWidth = doc.getTextWidth(daoNumber);

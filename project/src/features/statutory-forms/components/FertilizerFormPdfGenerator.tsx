@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Loader2, FileText } from 'lucide-react';
 import type { PDFDocumentLoadingTask } from 'pdfjs-dist';
-import type { FertilizerFormEntry } from '../../data/fertilizerForms';
+import type { FertilizerFormEntry } from '../data/fertilizerForms';
 
 export function FertilizerFormPdfGenerator({ form, onClose }: { form: FertilizerFormEntry; onClose: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);

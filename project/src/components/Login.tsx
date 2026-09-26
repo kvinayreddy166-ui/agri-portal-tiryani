@@ -37,7 +37,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../shared/hooks/useBackButtonOverlay';
 import { getGoogleViewerTabUrl, getOfficeViewerTabUrl } from '../shared/lib/filePreviewUrls';
 const FertilizerStatutoryPdfTool = lazy(() =>
-  import('./forms/FertilizerStatutoryPdfTool')
+  import('../features/statutory-forms/components/FertilizerStatutoryPdfTool')
     .then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
     .catch((error) => {
       console.error('Failed to load FertilizerStatutoryPdfTool:', error);
@@ -45,10 +45,10 @@ const FertilizerStatutoryPdfTool = lazy(() =>
     })
 );
 const PesticideStatutoryPdfTool = lazy(() =>
-  import('./forms/PesticideStatutoryPdfTool').then((module) => ({ default: module.PesticideStatutoryPdfTool }))
+  import('../features/statutory-forms/components/PesticideStatutoryPdfTool').then((module) => ({ default: module.PesticideStatutoryPdfTool }))
 );
 const SeedForms = lazy(() =>
-  import('../pages/SeedForms').then((module) => ({ default: module.SeedForms }))
+  import('../features/statutory-forms/pages/SeedForms').then((module) => ({ default: module.SeedForms }))
 );
 const FertilizerCalculator = lazy(() =>
   import('../pages/FertilizerCalculator').then((module) => ({ default: module.FertilizerCalculator }))

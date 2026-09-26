@@ -12,16 +12,16 @@ import {
   isCombinationProduct,
   extractIngredientNames,
   ActiveIngredient,
-} from '../../lib/statutoryPesticidePdf';
-import { PopupHintWrapper } from '../../shared/components/PopupHint';
-import { ToastContainer, useToast } from '../../shared/components/ui/Toast';
+} from '../lib/statutoryPesticidePdf';
+import { PopupHintWrapper } from '../../../shared/components/PopupHint';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
   DESIGNATION_OPTIONS,
   getMandalsForDistrict,
-} from '../../data/telanganaDistrictMandalData';
-import { effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, withOthersOption, getAssistantDirectorLocationError } from '../../data/assistantDirectorLocation';
+} from '../../../data/telanganaDistrictMandalData';
+import { effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, withOthersOption, getAssistantDirectorLocationError } from '../../../data/assistantDirectorLocation';
 
 type FieldConfig = {
   key: keyof PesticidePdfValues;

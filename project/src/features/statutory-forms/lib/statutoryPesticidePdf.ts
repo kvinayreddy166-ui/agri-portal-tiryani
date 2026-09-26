@@ -1,5 +1,5 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
-import { statutoryDesignationDisplay } from '../data/assistantDirectorLocation';
+import { statutoryDesignationDisplay } from '../../../data/assistantDirectorLocation';
 
 export type PesticideStatutoryFormType = 'VC' | 'VD' | 'VE' | 'DOCKET';
 

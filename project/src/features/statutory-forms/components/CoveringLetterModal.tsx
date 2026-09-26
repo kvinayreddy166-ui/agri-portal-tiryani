@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
-import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
+import { isAssistantDirectorOfAgriculture } from '../../../data/assistantDirectorLocation';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 const COVERING_LETTER_DETAILS_KEY = 'tiryani-covering-letter-details';
@@ -349,7 +349,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     setIsPreviewing(true);
     setIsGenerating(true);
     try {
-      const { generateCoveringLetterPdf } = await import('../../lib/coveringLetterPdf');
+      const { generateCoveringLetterPdf } = await import('../lib/coveringLetterPdf');
       
       // For Portion III, use incremented serial number
       const metadataForPdf = letterType === 'safe-custody' 
@@ -398,7 +398,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
     setIsGenerating(true);
     try {
-      const { generateCoveringLetterPdf } = await import('../../lib/coveringLetterPdf');
+      const { generateCoveringLetterPdf } = await import('../lib/coveringLetterPdf');
       
       // For Portion III, use incremented serial number
       const metadataForPdf = letterType === 'safe-custody' 

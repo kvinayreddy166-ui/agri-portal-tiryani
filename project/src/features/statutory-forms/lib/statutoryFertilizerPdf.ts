@@ -1,5 +1,5 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
-import { isAssistantDirectorOfAgriculture } from '../data/assistantDirectorLocation';
+import { isAssistantDirectorOfAgriculture } from '../../../data/assistantDirectorLocation';
 
 export type FertilizerStatutoryFormType = 'J' | 'K_ADA' | 'K_JDA' | 'P';
 

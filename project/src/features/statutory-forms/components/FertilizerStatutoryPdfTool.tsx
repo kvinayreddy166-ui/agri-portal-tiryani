@@ -13,17 +13,17 @@ import {
   getFertilizerPdfFileName,
   initialFertilizerPdfValues,
   resolveFertilizerTypeGrade,
-} from '../../lib/statutoryFertilizerPdf';
-import { FertilizerInstructionModal } from '../../shared/components/ui/FertilizerInstructionModal';
-import { PopupHintWrapper } from '../../shared/components/PopupHint';
-import { ToastContainer, useToast } from '../../shared/components/ui/Toast';
+} from '../lib/statutoryFertilizerPdf';
+import { FertilizerInstructionModal } from '../../../shared/components/ui/FertilizerInstructionModal';
+import { PopupHintWrapper } from '../../../shared/components/PopupHint';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { CoveringLetterModal } from  './CoveringLetterModal';
 import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
   getMandalsForDistrict,
-} from '../../data/telanganaDistrictMandalData';
-import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../data/assistantDirectorLocation';
+} from '../../../data/telanganaDistrictMandalData';
+import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../../data/assistantDirectorLocation';
 
 const showCoveringLetter = true;
 

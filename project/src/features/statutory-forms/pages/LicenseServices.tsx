@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../shared/context/LanguageContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { FileText, ChevronRight, CheckCircle, ExternalLink, Copy, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, ReceiptText, Store, ClipboardList, Sprout, ArrowUpRight } from 'lucide-react';
-import { ToolkitPageHeader } from '../shared/components/ui/ToolkitPageHeader';
-import { TELANGANA_DISTRICTS } from '../data/telanganaDistrictMandalData';
+import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { TELANGANA_DISTRICTS } from '../../../data/telanganaDistrictMandalData';
 
 // District to Division mapping
 const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {

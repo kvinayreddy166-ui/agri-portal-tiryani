@@ -1,70 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
-import { isAssistantDirectorOfAgriculture } from '../../data/assistantDirectorLocation';
+import { isCombinationProductFromActiveIngredient } from '../lib/statutoryPesticidePdf';
+import { isAssistantDirectorOfAgriculture } from '../../../data/assistantDirectorLocation';
 
-const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
-const SEED_COVERING_LETTER_DETAILS_KEY = 'tiryani-seed-covering-letter-details';
+const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
+const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';
 
-function incrementSerialNumber(letterNumber: string): string {
-  if (!letterNumber) return letterNumber;
-  
-  // Pattern 0: Alphanumeric serial at the beginning (e.g., "C1/MAO/TRN/FRT-QC/2026-27/01" to "C2/...")
-  const alphaStartMatch = letterNumber.match(/^([A-Za-z])(\d+)(\/.*)$/);
-  if (alphaStartMatch) {
-    const letter = alphaStartMatch[1];
-    const serial = alphaStartMatch[2];
-    const rest = alphaStartMatch[3];
-    const serialNum = parseInt(serial, 10);
-    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
-    return `${letter}${incremented}${rest}`;
-  }
-  
-  // Pattern 1: Serial at the beginning (e.g., "001/MAO/TRN/FRT-QC/2026-27")
-  // Must be checked after alphanumeric pattern to avoid conflict
-  const startMatch = letterNumber.match(/^(\d+)(\/.*)$/);
-  if (startMatch) {
-    const serial = startMatch[1];
-    const rest = startMatch[2];
-    const serialNum = parseInt(serial, 10);
-    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
-    return `${incremented}${rest}`;
-  }
-  
-  // Pattern 2: Serial at the end (e.g., "MAO/TRN/FRT-QC/2026-27/01")
-  const endMatch = letterNumber.match(/^(.*)\/(\d+)$/);
-  if (endMatch) {
-    const prefix = endMatch[1];
-    const serial = endMatch[2];
-    const serialNum = parseInt(serial, 10);
-    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
-    return `${prefix}/${incremented}`;
-  }
-  
-  // Pattern 3: Serial in middle (e.g., "MAO/TRN/FRT-QC/01/2026-27")
-  // Only match if prefix doesn't start with digits (to avoid conflict with Pattern 1)
-  const middleMatch = letterNumber.match(/^([^\d]+)\/(\d+)\/(.*)$/);
-  if (middleMatch) {
-    const prefix = middleMatch[1];
-    const serial = middleMatch[2];
-    const suffix = middleMatch[3];
-    const serialNum = parseInt(serial, 10);
-    const incremented = (serialNum + 1).toString().padStart(serial.length, '0');
-    return `${prefix}/${incremented}/${suffix}`;
-  }
-  
-  return letterNumber;
-}
-
-type SeedCoveringLetterQueueItem = {
+type PesticideCoveringLetterQueueItem = {
   sampleCode: string;
-  seedName: string;
-  variety: string;
-  quantity: string;
+  tradeName: string;
+  technicalName: string;
+  activeIngredient: string;
+  formulationType: string;
   dateOfSampling: string;
-  isCotton?: boolean;
 };
 
-type SeedCoveringLetterMetadata = {
+type PesticideCoveringLetterMetadata = {
   year: string;
   letterNumber: string;
   letterDate: string;
@@ -86,13 +37,14 @@ type OfficerDetails = {
   office?: string;
   placeOfCollectionMandal: string;
   manualPlaceOfCollection: string;
+  sampleDrawingMandal: string;
   district: string;
   manualDistrict: string;
   pinCode: string;
   phone: string;
 };
 
-type SeedCoveringLetterDetails = {
+type PesticideCoveringLetterDetails = {
   financialYear: string;
   letterNumber: string;
   letterDate: string;
@@ -103,13 +55,12 @@ type SeedCoveringLetterDetails = {
   officerPhone: string;
 };
 
-type SeedCoveringLetterModalProps = {
+type PesticideCoveringLetterModalProps = {
   isOpen: boolean;
   onClose: () => void;
   officerDetails?: OfficerDetails;
-  coveringLetterDetails?: SeedCoveringLetterDetails;
-  onMetadataChange?: (metadata: SeedCoveringLetterMetadata) => void;
-  laboratoryAddress?: string;
+  coveringLetterDetails?: PesticideCoveringLetterDetails;
+  onMetadataChange?: (metadata: PesticideCoveringLetterMetadata) => void;
 };
 
 const currentYear = new Date().getFullYear();
@@ -119,7 +70,7 @@ const financialYears = [
   `${currentYear + 1}-${(currentYear + 2).toString().slice(-2)}`,
 ];
 
-export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, onMetadataChange, laboratoryAddress }: SeedCoveringLetterModalProps) {
+export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, onMetadataChange }: PesticideCoveringLetterModalProps) {
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
     try {
       const stored = window.localStorage.getItem('tiryani-watermark-enabled');
@@ -139,8 +90,9 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const [editedQueue, setEditedQueue] = useState<SeedCoveringLetterQueueItem[]>([]);
-  const [metadata, setMetadata] = useState<SeedCoveringLetterMetadata>({
+  const [editedQueue, setEditedQueue] = useState<PesticideCoveringLetterQueueItem[]>([]);
+  const [editingTechnicalNames, setEditingTechnicalNames] = useState<Record<number, string>>({});
+  const [metadata, setMetadata] = useState<PesticideCoveringLetterMetadata>({
     year: coveringLetterDetails?.financialYear || financialYears[0],
     letterNumber: coveringLetterDetails?.letterNumber || '',
     letterDate: coveringLetterDetails?.letterDate || new Date().toISOString().slice(0, 10),
@@ -153,15 +105,25 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   const [message, setMessage] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<number, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
-  const [, setIsPreviewing] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
-  const [letterType, setLetterType] = useState<'PMG' | 'BT Protein'>('PMG');
   const [isMobile, setIsMobile] = useState(false);
+  const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showMessage = (msg: string, duration: number = 3000) => {
+    if (messageTimeoutRef.current) {
+      clearTimeout(messageTimeoutRef.current);
+    }
+    setMessage(msg);
+    messageTimeoutRef.current = setTimeout(() => {
+      setMessage(null);
+      messageTimeoutRef.current = null;
+    }, duration);
+  };
 
   // Auto-save Covering Letter Details to localStorage and sync with parent
   useEffect(() => {
-    window.localStorage.setItem(SEED_COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
     if (onMetadataChange) {
       onMetadataChange(metadata);
     }
@@ -173,7 +135,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
       loadQueue();
       // Only load from localStorage if parent didn't provide coveringLetterDetails
       if (!coveringLetterDetails) {
-        const savedDetails = window.localStorage.getItem(SEED_COVERING_LETTER_DETAILS_KEY);
+        const savedDetails = window.localStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
         if (savedDetails) {
           try {
             const parsedDetails = JSON.parse(savedDetails);
@@ -199,10 +161,10 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
 
   const loadQueue = () => {
     try {
-      const savedQueue = JSON.parse(window.localStorage.getItem(SEED_COVERING_LETTER_QUEUE_KEY) || '[]');
+      const savedQueue = JSON.parse(window.localStorage.getItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY) || '[]');
       setEditedQueue(savedQueue);
     } catch (error) {
-      console.error('Error loading seed covering letter queue:', error);
+      console.error('Error loading pesticide covering letter queue:', error);
       setEditedQueue([]);
     }
   };
@@ -230,7 +192,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], sampleCode: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
     
     if (validationErrors[index]) {
       const newErrors = { ...validationErrors };
@@ -239,39 +201,89 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     }
   };
 
-  const handleSeedNameChange = (index: number, value: string) => {
+  const handleTradeNameChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
-    updatedQueue[index] = { ...updatedQueue[index], seedName: value, isCotton: value.toLowerCase().includes('cotton') };
+    updatedQueue[index] = { ...updatedQueue[index], tradeName: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
-  const handleVarietyChange = (index: number, value: string) => {
+  const handleTechnicalNameChange = (index: number, value: string) => {
+    setEditingTechnicalNames(prev => ({ ...prev, [index]: value }));
     const updatedQueue = [...editedQueue];
-    updatedQueue[index] = { ...updatedQueue[index], variety: value };
+    updatedQueue[index] = parseTechnicalNameInput(value, updatedQueue[index]);
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
-  const handleQuantityChange = (index: number, value: string) => {
-    const updatedQueue = [...editedQueue];
-    updatedQueue[index] = { ...updatedQueue[index], quantity: value };
-    setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+  const handleTechnicalNameFocus = (index: number, item: PesticideCoveringLetterQueueItem) => {
+    setEditingTechnicalNames(prev => ({ ...prev, [index]: getTechnicalNameDisplay(item) }));
+  };
+
+  const handleTechnicalNameBlur = (index: number) => {
+    setEditingTechnicalNames(prev => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+  };
+
+  const isCombinationProduct = (technicalName: string): boolean => {
+    return technicalName.includes('+');
+  };
+
+  const getTechnicalNameDisplay = (item: PesticideCoveringLetterQueueItem): string => {
+    if (isCombinationProduct(item.technicalName)) {
+      // For combination products: display "Active Ingredient + Formulation Type"
+      const parts = item.activeIngredient.split('+').map(p => p.trim()).filter(Boolean);
+      const activeIngredientDisplay = parts.join(' + ');
+      return `${activeIngredientDisplay}${item.formulationType ? ` ${item.formulationType}` : ''}`;
+    }
+    if (isCombinationProductFromActiveIngredient(item.activeIngredient)) {
+      return item.technicalName;
+    }
+    // For single products: display existing combined format
+    return `${item.technicalName}${item.activeIngredient ? ` ${item.activeIngredient}` : ''}${item.formulationType ? ` ${item.formulationType}` : ''}`;
+  };
+
+  const parseTechnicalNameInput = (value: string, currentItem: PesticideCoveringLetterQueueItem): PesticideCoveringLetterQueueItem => {
+    if (isCombinationProduct(currentItem.technicalName)) {
+      // For combination products, parse the input back to activeIngredient and formulationType
+      // Format: "Ingredient1 % + Ingredient2 % Formulation"
+      const match = value.match(/^(.+?)\s+([A-Z]+)$/);
+      if (match) {
+        return {
+          ...currentItem,
+          activeIngredient: match[1],
+          formulationType: match[2]
+        };
+      }
+      return {
+        ...currentItem,
+        activeIngredient: value,
+        formulationType: ''
+      };
+    }
+    // For single products, keep existing behavior - update technicalName field
+    return {
+      ...currentItem,
+      technicalName: value
+    };
   };
 
   const handleDateChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], dateOfSampling: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleDeleteSample = (index: number) => {
+    setEditingTechnicalNames({});
     const updatedQueue = editedQueue.filter((_, i) => i !== index);
     setEditedQueue(updatedQueue);
     
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
     
     if (validationErrors[index]) {
       const newErrors = { ...validationErrors };
@@ -280,75 +292,44 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     }
   };
 
-  const handleClearQueue = () => {
-    setEditedQueue([]);
-    setValidationErrors({});
-    window.localStorage.removeItem(SEED_COVERING_LETTER_QUEUE_KEY);
-    setMessage('Queue cleared successfully.');
-    setTimeout(() => setMessage(null), 3000);
+  const handleAddManually = () => {
+    const newItem: PesticideCoveringLetterQueueItem = {
+      sampleCode: '',
+      tradeName: '',
+      technicalName: '',
+      activeIngredient: '',
+      formulationType: '',
+      dateOfSampling: new Date().toISOString().slice(0, 10),
+    };
+    const updatedQueue = [...editedQueue, newItem];
+    setEditedQueue(updatedQueue);
+    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
-  const handleAddSample = () => {
-    const newSample: SeedCoveringLetterQueueItem = {
-      sampleCode: '',
-      seedName: '',
-      variety: '',
-      quantity: '',
-      dateOfSampling: new Date().toISOString().slice(0, 10),
-      isCotton: false,
-    };
-    const updatedQueue = [...editedQueue, newSample];
-    setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+  const handleClearQueue = () => {
+    setEditedQueue([]);
+    setEditingTechnicalNames({});
+    setValidationErrors({});
+    window.localStorage.removeItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY);
+    showMessage('Queue cleared successfully.');
   };
 
   const handlePreview = async () => {
     if (!validateSampleCodes()) {
-      setMessage('Please fix validation errors before previewing.');
-      setTimeout(() => setMessage(null), 3000);
+      showMessage('Please fix validation errors before previewing.');
       return;
     }
     
     if (editedQueue.length === 0) {
-      setMessage('Please add at least one sample to the queue.');
-      setTimeout(() => setMessage(null), 3000);
+      showMessage('Please add at least one sample to the queue.');
       return;
     }
     
     setIsGenerating(true);
-    setIsPreviewing(true);
     
     try {
-      const { generateSeedCoveringLetterPdf } = await import('../../lib/seedCoveringLetterPdf');
-      
-      // Filter queue based on letter type
-      const filteredQueue = letterType === 'BT Protein' 
-        ? editedQueue.filter(item => item.isCotton)
-        : editedQueue;
-      
-      if (filteredQueue.length === 0) {
-        setMessage('No cotton samples found for BT Protein letter type.');
-        setIsGenerating(false);
-        setIsPreviewing(false);
-        setTimeout(() => setMessage(null), 3000);
-        return;
-      }
-      
-      // For BT Protein, use incremented serial number
-      const metadataForPdf = letterType === 'BT Protein' 
-        ? { ...metadata, letterNumber: incrementSerialNumber(metadata.letterNumber) }
-        : metadata;
-      
-      // Update officerDetails with phone from metadata
-      const officerDetailsWithPhone = officerDetails ? { ...officerDetails, phone: metadata.officePhone } : officerDetails;
-      
-      // Use selected letter type to determine isCotton flag
-      const queueWithLetterType = filteredQueue.map(item => ({
-        ...item,
-        isCotton: letterType === 'BT Protein'
-      }));
-      
-      const doc = await generateSeedCoveringLetterPdf(queueWithLetterType, metadataForPdf, officerDetailsWithPhone, watermarkEnabled, laboratoryAddress);
+      const { generatePesticideCoveringLetterPdf } = await import('../lib/pesticideCoveringLetterPdf');
+      const doc = await generatePesticideCoveringLetterPdf(editedQueue, metadata, officerDetails, watermarkEnabled);
       
       if (isMobile) {
         const pdfBlob = doc.output('blob');
@@ -361,78 +342,42 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
         setShowPreviewDialog(true);
       }
       
-      setMessage(`Preview generated successfully for ${letterType}.`);
+      showMessage('Preview generated successfully.');
     } catch (error) {
       console.error('Error generating preview:', error);
-      setMessage('Error generating preview. Please try again.');
+      showMessage('Error generating preview. Please try again.');
     } finally {
       setIsGenerating(false);
-      setIsPreviewing(false);
     }
-    
-    setTimeout(() => setMessage(null), 3000);
   };
 
   const handleDownload = async () => {
     if (!validateSampleCodes()) {
-      setMessage('Please fix validation errors before downloading.');
-      setTimeout(() => setMessage(null), 3000);
+      showMessage('Please fix validation errors before downloading.');
       return;
     }
     
     if (editedQueue.length === 0) {
-      setMessage('Please add at least one sample to the queue.');
-      setTimeout(() => setMessage(null), 3000);
+      showMessage('Please add at least one sample to the queue.');
       return;
     }
     
     setIsGenerating(true);
     
     try {
-      const { generateSeedCoveringLetterPdf } = await import('../../lib/seedCoveringLetterPdf');
+      const { generatePesticideCoveringLetterPdf } = await import('../lib/pesticideCoveringLetterPdf');
+      const doc = await generatePesticideCoveringLetterPdf(editedQueue, metadata, officerDetails, watermarkEnabled);
       
-      // Filter queue based on letter type
-      const filteredQueue = letterType === 'BT Protein' 
-        ? editedQueue.filter(item => item.isCotton)
-        : editedQueue;
-      
-      if (filteredQueue.length === 0) {
-        setMessage('No cotton samples found for BT Protein letter type.');
-        setIsGenerating(false);
-        setTimeout(() => setMessage(null), 3000);
-        return;
-      }
-      
-      // For BT Protein, use incremented serial number
-      const metadataForPdf = letterType === 'BT Protein' 
-        ? { ...metadata, letterNumber: incrementSerialNumber(metadata.letterNumber) }
-        : metadata;
-      
-      // Update officerDetails with phone from metadata
-      const officerDetailsWithPhone = officerDetails ? { ...officerDetails, phone: metadata.officePhone } : officerDetails;
-      
-      // Use selected letter type to determine isCotton flag
-      const queueWithLetterType = filteredQueue.map(item => ({
-        ...item,
-        isCotton: letterType === 'BT Protein'
-      }));
-      
-      const doc = await generateSeedCoveringLetterPdf(queueWithLetterType, metadataForPdf, officerDetailsWithPhone, watermarkEnabled, laboratoryAddress);
-      
-      const fileName = letterType === 'BT Protein' 
-        ? `Seed_Covering_Letter_BT_${metadataForPdf.letterNumber || 'Draft'}.pdf`
-        : `Seed_Covering_Letter_PMG_${metadata.letterNumber || 'Draft'}.pdf`;
+      const fileName = `Pesticide_Covering_Letter_${metadata.letterNumber || 'Draft'}.pdf`;
       doc.save(fileName);
       
-      setMessage(`Covering letter downloaded successfully for ${letterType}.`);
+      showMessage('Covering letter downloaded successfully.');
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      setMessage('Error downloading PDF. Please try again.');
+      showMessage('Error downloading PDF. Please try again.');
     } finally {
       setIsGenerating(false);
     }
-    
-    setTimeout(() => setMessage(null), 3000);
   };
 
   const closePreviewDialog = () => {
@@ -467,7 +412,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-3 sm:p-6">
             {message && (
-              <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 sm:px-4 sm:py-2 text-sm font-bold text-green-800">
+              <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 sm:px-4 sm:py-2 text-sm font-bold text-amber-800">
                 {message}
               </div>
             )}
@@ -488,8 +433,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                       division: '',
                       officePhone: '',
                     });
-                    setMessage('Covering letter details reset successfully.');
-                    setTimeout(() => setMessage(null), 3000);
+                    showMessage('Covering letter details reset successfully.');
                   }}
                   className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-purple-200 text-purple-400 hover:bg-purple-50 hover:text-purple-600"
                   title="Reset Covering Letter Details"
@@ -516,11 +460,6 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                     placeholder="Enter Letter Number"
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                   />
-                  {letterType === 'BT Protein' && metadata.letterNumber && (
-                    <p className="mt-1 text-[10px] text-emerald-600 font-medium">
-                      BT Protein will use: {incrementSerialNumber(metadata.letterNumber)}
-                    </p>
-                  )}
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">LETTER DATE</label>
@@ -588,13 +527,13 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
               </div>
             </div>
 
-            <div className="rounded-xl shadow-sm border border-emerald-200 bg-emerald-50/50 p-2 sm:p-6">
+            <div className="rounded-xl shadow-sm border border-amber-200 bg-amber-50/50 p-2 sm:p-6">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-black text-emerald-700">SAMPLE QUEUE</h3>
+                <h3 className="text-sm font-black text-amber-700">SAMPLE QUEUE</h3>
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={handleAddSample}
+                    onClick={handleAddManually}
                     className="inline-flex items-center gap-2 bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 rounded-lg"
                   >
                     <span className="text-xs">+</span> Add
@@ -617,38 +556,39 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-50">
-                      <tr>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider w-12">S.No</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Crop Name</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Variety</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Code No. of Sample</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sampling Date</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider w-20">Actions</th>
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200">
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">S.No</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Trade Name</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Technical Name</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Code No. of Sample</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Date of Sampling</th>
+                        <th className="px-2 py-2 text-left font-bold text-slate-700">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-slate-200">
+                    <tbody>
                       {editedQueue.map((item, index) => (
-                        <tr key={index}>
-                          <td className="px-2 py-2 whitespace-nowrap text-xs font-medium text-gray-900">{index + 1}</td>
+                        <tr key={index} className="border-b border-slate-100">
+                          <td className="px-2 py-2 text-center font-bold text-slate-700">{index + 1}</td>
                           <td className="px-2 py-2">
                             <input
                               type="text"
-                              value={item.seedName}
-                              onChange={(e) => handleSeedNameChange(index, e.target.value)}
+                              value={item.tradeName}
+                              onChange={(e) => handleTradeNameChange(index, e.target.value)}
                               className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                              placeholder="Crop Name"
+                              placeholder="Trade Name"
                             />
                           </td>
                           <td className="px-2 py-2">
                             <input
                               type="text"
-                              value={item.variety}
-                              onChange={(e) => handleVarietyChange(index, e.target.value)}
+                              value={editingTechnicalNames[index] ?? getTechnicalNameDisplay(item)}
+                              onFocus={() => handleTechnicalNameFocus(index, item)}
+                              onBlur={() => handleTechnicalNameBlur(index)}
+                              onChange={(e) => handleTechnicalNameChange(index, e.target.value)}
                               className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                              placeholder="Variety"
+                              placeholder="Technical Name"
                             />
                           </td>
                           <td className="px-2 py-2">
@@ -662,15 +602,6 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                             {validationErrors[index] && (
                               <p className="mt-1 text-[10px] text-red-600">{validationErrors[index]}</p>
                             )}
-                          </td>
-                          <td className="px-2 py-2">
-                            <input
-                              type="text"
-                              value={item.quantity}
-                              onChange={(e) => handleQuantityChange(index, e.target.value)}
-                              className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                              placeholder="Quantity"
-                            />
                           </td>
                           <td className="px-2 py-2">
                             <input
@@ -701,19 +632,6 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
 
         <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 sm:px-6 sm:py-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              {editedQueue.some(item => item.isCotton) && (
-                <>
-                  <label className="text-sm font-bold text-gray-700 shrink-0">Letter Type:</label>
-                  <select
-                    value={letterType}
-                    onChange={(e) => setLetterType(e.target.value as 'PMG' | 'BT Protein')}
-                    className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-w-0"
-                  >
-                    <option value="PMG">Purity, Moisture & Germination (PMG)</option>
-                    <option value="BT Protein">BT Protein</option>
-                  </select>
-                </>
-              )}
             </div>
             <div className="flex flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <button
@@ -782,3 +700,4 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     </div>
   );
 }
+

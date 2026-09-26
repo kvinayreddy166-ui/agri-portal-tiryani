@@ -17,7 +17,7 @@ const Login = lazy(() => import('../components/Login').then((m) => ({ default: m
 const Layout = lazy(() => import('./Layout').then((m) => ({ default: m.Layout })));
 const Dashboard = lazy(() => import('../pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const DealerManagement = lazy(() => import('../pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));
-const StatutoryForms = lazy(() => import('../pages/StatutoryForms').then((m) => ({ default: m.StatutoryForms })));
+const StatutoryForms = lazy(() => import('../features/statutory-forms/pages/StatutoryForms').then((m) => ({ default: m.StatutoryForms })));
 const ExcelUploads = lazy(() => import('../pages/ExcelUploads').then((m) => ({ default: m.ExcelUploads })));
 const Analytics = lazy(() => import('../pages/Analytics').then((m) => ({ default: m.Analytics })));
 const FarmerDatabase = lazy(() => import('../pages/FarmerDatabase').then((m) => ({ default: m.FarmerDatabase })));
@@ -32,7 +32,7 @@ const DealerStockPortal = lazy(() => import('../pages/DealerStockPortal').then((
 const AcreageCalculator = lazy(() => import('../pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const FertilizerCalculator = lazy(() => import('../pages/FertilizerCalculator').then((m) => ({ default: m.FertilizerCalculator })));
 const OfficersToolkit = lazy(() => import('../features/officers-toolkit/pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
-const LicenseServices = lazy(() => import('../pages/LicenseServices').then((m) => ({ default: m.LicenseServices })));
+const LicenseServices = lazy(() => import('../features/statutory-forms/pages/LicenseServices').then((m) => ({ default: m.LicenseServices })));
 const FarmCalculators = lazy(() => import('../pages/FarmCalculators').then((m) => ({ default: m.FarmCalculators })));
 const CropProtectionTool = lazy(() => import('../pages/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
 const PesticideCalculator = lazy(() => import('../pages/PesticideCalculator').then((m) => ({ default: m.PesticideCalculator })));
