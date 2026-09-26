@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, FileSpreadsheet, ImagePlus, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
-import { useCropData } from '../../shared/hooks/useCropData';
+import { useCropData } from '../../../shared/hooks/useCropData';
 import {
   createCropRecord,
   deleteCropRecord,
@@ -10,9 +10,9 @@ import {
   saveCropIntelligenceCard,
   updateCropRecord,
   uploadCropImage,
-} from '../../services/cropService';
-import { validateImageUploadFile } from '../../shared/lib/fileTypes';
-import { IconButton } from '../../shared/components/ui/DesignSystem';
+} from '../../crop-management/services/cropService';
+import { validateImageUploadFile } from '../../../shared/lib/fileTypes';
+import { IconButton } from '../../../shared/components/ui/DesignSystem';
 
 const NORMALIZED_TABLES = [
   ['crop_varieties', 'Varieties'],

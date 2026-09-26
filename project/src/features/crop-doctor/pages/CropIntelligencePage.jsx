@@ -16,8 +16,8 @@ import {
   TableProperties,
   Wheat,
 } from 'lucide-react';
-import { useLanguage } from '../../shared/context/LanguageContext';
-import { useCropData } from '../../shared/hooks/useCropData';
+import { useLanguage } from '../../../shared/context/LanguageContext';
+import { useCropData } from '../../../shared/hooks/useCropData';
 
 const SECTION_TEXT = {
   overview: ['Crop Overview', 'పంట అవలోకనం'],

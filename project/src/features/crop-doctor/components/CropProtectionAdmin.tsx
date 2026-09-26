@@ -1,11 +1,11 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { Image as ImageIcon, Save, Upload } from 'lucide-react';
-import type { CropProtectionCategory, CropProtectionCrop } from '../../services/cropProtectionService';
+import type { CropProtectionCategory, CropProtectionCrop } from '../services/cropProtectionService';
 import {
   saveCropProtectionCrop,
   saveCropProtectionItem,
   uploadCropProtectionCropImage,
-} from '../../services/cropProtectionService';
+} from '../services/cropProtectionService';
 
 export function CropProtectionAdmin({
   crops,

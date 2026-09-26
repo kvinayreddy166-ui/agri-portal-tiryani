@@ -1,6 +1,6 @@
 import React from 'react';
-import type { CropProtectionCrop, LanguageCode } from '../../services/cropProtectionService';
-import { pickLang } from '../../services/cropProtectionService';
+import type { CropProtectionCrop, LanguageCode } from '../services/cropProtectionService';
+import { pickLang } from '../services/cropProtectionService';
 
 export function CropCard({
   crop,

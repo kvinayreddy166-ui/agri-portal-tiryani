@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Calculator } from 'lucide-react';
-import type { LanguageCode } from '../../services/cropProtectionService';
-import { label } from '../../shared/services/translationService';
+import type { LanguageCode } from '../services/cropProtectionService';
+import { label } from '../../../shared/services/translationService';
 
 export function SprayCalculator({ language }: { language: LanguageCode }) {
   const [tankSize, setTankSize] = useState('16');

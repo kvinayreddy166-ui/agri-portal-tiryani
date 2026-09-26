@@ -34,7 +34,7 @@ const FertilizerCalculator = lazy(() => import('../pages/FertilizerCalculator').
 const OfficersToolkit = lazy(() => import('../features/officers-toolkit/pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
 const LicenseServices = lazy(() => import('../features/statutory-forms/pages/LicenseServices').then((m) => ({ default: m.LicenseServices })));
 const FarmCalculators = lazy(() => import('../pages/FarmCalculators').then((m) => ({ default: m.FarmCalculators })));
-const CropProtectionTool = lazy(() => import('../pages/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
+const CropProtectionTool = lazy(() => import('../features/crop-doctor/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
 const PesticideCalculator = lazy(() => import('../pages/PesticideCalculator').then((m) => ({ default: m.PesticideCalculator })));
 const PlantPopulationCalculator = lazy(() => import('../pages/PlantPopulationCalculator').then((m) => ({ default: m.PlantPopulationCalculator })));
 const SeedRateCalculator = lazy(() => import('../pages/SeedRateCalculator').then((m) => ({ default: m.SeedRateCalculator })));
@@ -48,9 +48,9 @@ const SeedDealerInspection = lazy(() => import('../features/officers-toolkit/pag
 const FertilizerDealerInspection = lazy(() => import('../features/officers-toolkit/pages/FertilizerDealerInspection').then((m) => ({ default: m.FertilizerDealerInspection })));
 const InsecticideDealerInspection = lazy(() => import('../features/officers-toolkit/pages/InsecticideDealerInspection').then((m) => ({ default: m.InsecticideDealerInspection })));
 const InspectionsNoticesHub = lazy(() => import('../features/officers-toolkit/pages/InspectionsNoticesHub').then((m) => ({ default: m.InspectionsNoticesHub })));
-const CropManagement = lazy(() => import('../pages/CropManagement').then((m) => ({ default: m.CropManagement })));
-const CropAdminDashboard = lazy(() => import('../pages/admin/CropAdminDashboard').then((m) => ({ default: m.CropAdminDashboard })));
-const CropPage = lazy(() => import('../pages/CropPage').then((m) => ({ default: m.CropPage })));
+const CropManagement = lazy(() => import('../features/crop-management/pages/CropManagement').then((m) => ({ default: m.CropManagement })));
+const CropAdminDashboard = lazy(() => import('../features/crop-doctor/pages/CropAdminDashboard').then((m) => ({ default: m.CropAdminDashboard })));
+const CropPage = lazy(() => import('../features/crop-management/pages/CropPage').then((m) => ({ default: m.CropPage })));
 const KnowledgeDashboard = lazy(() => import('../features/knowledge-base/pages/KnowledgeDashboard').then((m) => ({ default: m.KnowledgeDashboard })));
 const KnowledgeDocumentLibrary = lazy(() => import('../features/knowledge-base/pages/KnowledgeDocumentLibrary').then((m) => ({ default: m.KnowledgeDocumentLibrary })));
 const KnowledgeUpload = lazy(() => import('../features/knowledge-base/pages/KnowledgeUpload').then((m) => ({ default: m.KnowledgeUpload })));

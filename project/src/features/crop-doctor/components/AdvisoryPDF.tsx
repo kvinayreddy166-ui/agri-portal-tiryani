@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
-import type { CropProtectionCrop, CropProtectionItem, LanguageCode } from '../../services/cropProtectionService';
-import { downloadAdvisoryPdf } from '../../services/pdfAdvisoryService';
+import type { CropProtectionCrop, CropProtectionItem, LanguageCode } from '../services/cropProtectionService';
+import { downloadAdvisoryPdf } from '../services/pdfAdvisoryService';
 
 export function AdvisoryPDF({
   crop,

@@ -4,7 +4,7 @@ import {
   fetchCrops,
   fetchCropImages,
   searchCropKnowledge,
-} from '../../services/cropService';
+} from '../../features/crop-management/services/cropService';
 
 export function useCropData(slug, options = {}) {
   const [crop, setCrop] = useState(null);

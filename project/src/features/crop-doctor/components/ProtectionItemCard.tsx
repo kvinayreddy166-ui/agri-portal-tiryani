@@ -1,9 +1,9 @@
 import React from 'react';
 import { Copy, ImageOff, MessageCircle, ShieldCheck, FileText } from 'lucide-react';
-import type { CropProtectionCrop, CropProtectionItem, LanguageCode } from '../../services/cropProtectionService';
-import { advisoryText, hasTelugu, pickLang } from '../../services/cropProtectionService';
-import { label } from '../../shared/services/translationService';
-import { downloadAdvisoryPdf } from '../../services/pdfAdvisoryService';
+import type { CropProtectionCrop, CropProtectionItem, LanguageCode } from '../services/cropProtectionService';
+import { advisoryText, hasTelugu, pickLang } from '../services/cropProtectionService';
+import { label } from '../../../shared/services/translationService';
+import { downloadAdvisoryPdf } from '../services/pdfAdvisoryService';
 import { RecommendationPanel } from './RecommendationPanel';
 
 export function ProtectionItemCard({

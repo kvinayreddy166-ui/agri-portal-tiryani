@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { BrainCircuit, ClipboardList, Leaf } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../shared/context/AuthContext';
-import { useLanguage } from '../shared/context/LanguageContext';
-import { CropIntelligencePage } from './crops/CropIntelligencePage.jsx';
+import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
+import { CropIntelligencePage } from '../../crop-doctor/pages/CropIntelligencePage.jsx';
 
 const cropTabs = [
   { id: 'paddy', label: 'Paddy', labelTe: 'వరి', image: '/images/paddy.webp' },

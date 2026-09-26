@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Camera, RefreshCw, Search, Sprout } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../shared/context/AuthContext';
-import type { CropProtectionCategory, CropProtectionCrop, CropProtectionItem, LanguageCode } from '../../services/cropProtectionService';
-import { buildGeneralIpmItem, pickLang } from '../../services/cropProtectionService';
-import { label } from '../../shared/services/translationService';
+import { useAuth } from '../../../shared/context/AuthContext';
+import type { CropProtectionCategory, CropProtectionCrop, CropProtectionItem, LanguageCode } from '../services/cropProtectionService';
+import { buildGeneralIpmItem, pickLang } from '../services/cropProtectionService';
+import { label } from '../../../shared/services/translationService';
 import { ProtectionItemCard } from './ProtectionItemCard';
 import { CropProtectionAdmin } from './CropProtectionAdmin';
-import { BackButton } from '../../shared/components/ui/BackButton';
-import { LanguageToggle } from '../../shared/components/ui/LanguageToggle';
+import { BackButton } from '../../../shared/components/ui/BackButton';
+import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 
 const categories: Array<{
   key: CropProtectionCategory;
