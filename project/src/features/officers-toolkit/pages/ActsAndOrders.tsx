@@ -33,13 +33,13 @@ import {
 import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData';
 import { type LegalCategory } from '../data/legalReadyReckonerData';
 import { fcoClauseCards, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
-import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory, type FertilizerFormEntry } from '../data/fertilizerForms';
-import { fertilizerSchedules, type FertilizerScheduleEntry } from '../data/fertilizerSchedules';
+import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory, type FertilizerFormEntry } from '../../../data/fertilizerForms';
+import { fertilizerSchedules, type FertilizerScheduleEntry } from '../../../data/fertilizerSchedules';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { enforcementDeadlines, enforcementMindMap, type MindMapNode } from '../data/fcoEnforcementMindMap';
-import { BackButton } from '../shared/components/ui/BackButton';
-import { FertilizerFormPdfGenerator } from './forms/FertilizerFormPdfGenerator';
-import { FcoImplementationModal } from '../shared/components/ui/FcoImplementationModal';
+import { BackButton } from '../../../shared/components/ui/BackButton';
+import { FertilizerFormPdfGenerator } from '../../../components/forms/FertilizerFormPdfGenerator';
+import { FcoImplementationModal } from '../../../shared/components/ui/FcoImplementationModal';
 
 type ReckonerView = 'powers' | 'notice';
 type MainLegalArea = 'fertilizer' | 'seed' | 'insecticide';

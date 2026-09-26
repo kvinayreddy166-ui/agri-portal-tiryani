@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, Eye, FileText, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
-import { ToastContainer, useToast } from '../shared/components/ui/Toast';
-import { ToolkitPageHeader } from '../shared/components/ui/ToolkitPageHeader';
-import { addEmblemImageWatermark } from '../shared/lib/pdfWatermark';
-import { ActionButton, Field, InspectionTheme, Modal, RowTable, Section, StatusButtons, StatusInput, SummaryChip, useInputClass } from '../components/inspection/ui';
-import { emptyStatus, formatDate, listOrNil, statusText, toggleText } from '../components/inspection/types';
-import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../components/inspection/types';
-import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../components/inspection/persistence';
-import { confirmDiscardIfDirty, useDirtyGuard } from '../components/inspection/useDirtyGuard';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
+import { ActionButton, Field, InspectionTheme, Modal, RowTable, Section, StatusButtons, StatusInput, SummaryChip, useInputClass } from '../inspection/ui';
+import { emptyStatus, formatDate, listOrNil, statusText, toggleText } from '../inspection/types';
+import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../inspection/types';
+import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../inspection/persistence';
+import { confirmDiscardIfDirty, useDirtyGuard } from '../inspection/useDirtyGuard';
 
 type VariationRow = { productName: string; brandName: string; batchNumber: string; bookStock: string; physicalStock: string; variation: string; remarks: string };
 type DetainedRow = { productName: string; brandName: string; manufacturer: string; batchNumber: string; quantity: string; detentionReason: string };

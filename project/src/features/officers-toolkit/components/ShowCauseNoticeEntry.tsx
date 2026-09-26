@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FileChild } from 'docx';
 import { ChevronDown, Download, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
-import { currentFinancialYear, financialYearForDate } from '../shared/utils/financialYear';
-import { isAssistantDirectorOfAgriculture, statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../data/assistantDirectorLocation';
+import { currentFinancialYear, financialYearForDate } from '../../../shared/utils/financialYear';
+import { isAssistantDirectorOfAgriculture, statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../../../data/assistantDirectorLocation';
 import {
   TELANGANA_DISTRICTS,
   getMandalsForDistrict,
-} from '../data/telanganaDistrictMandalData';
+} from '../../../data/telanganaDistrictMandalData';
 import {
   noticeCategoryConfigs,
   allShowCauseViolations,
