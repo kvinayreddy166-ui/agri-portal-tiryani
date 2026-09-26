@@ -39,7 +39,36 @@ npm run dev
 
 **Best practice:** clone or copy the project to a local folder outside OneDrive (e.g. `C:\dev\agri-portal-tiryani`) for development.
 
-Apply Supabase migrations from `supabase/migrations/` or `project/supabase/migrations/` (including storage policies and subsidy tables).
+Apply Supabase migrations from the **repo-root** `supabase/migrations/` (the linked project — verified against the remote via `npx supabase migration list`). The `project/supabase/migrations/` tree is a stale divergent copy — do not push from it.
+
+## Repository layout
+
+```
+supabase/            # Edge Functions + canonical migrations (linked project)
+project/             # Vite SPA
+  └── src/
+      ├── app/       # entry, App, Layout, router/
+      ├── features/  # business modules (pages + components + lib + data)
+      └── shared/    # contexts, hooks, lib, ui components, utils
+```
+
+Docs: [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [MODULES.md](MODULES.md) · [FILE_INVENTORY.md](FILE_INVENTORY.md) · [REFACTORING_LOG.md](REFACTORING_LOG.md) · [AGENTS.md](AGENTS.md) (Knowledge Base / RAG setup)
+
+## Development commands
+
+```bash
+cd project
+npm run dev          # dev server
+npm run typecheck    # TypeScript check (strict)
+npm run build        # production build → dist/
+```
+
+If `typecheck` or `build` runs out of memory on Windows, raise the heap:
+
+```bash
+$env:NODE_OPTIONS="--max-old-space-size=6144"   # PowerShell
+# or:  NODE_OPTIONS=--max-old-space-size=6144   # bash
+```
 
 ## Environment variables (`project/.env`)
 
