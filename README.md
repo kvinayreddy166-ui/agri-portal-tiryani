@@ -52,7 +52,7 @@ project/             # Vite SPA
       └── shared/    # contexts, hooks, lib, ui components, utils
 ```
 
-Docs: [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [MODULES.md](MODULES.md) · [FILE_INVENTORY.md](FILE_INVENTORY.md) · [REFACTORING_LOG.md](REFACTORING_LOG.md) · [AGENTS.md](AGENTS.md) (Knowledge Base / RAG setup)
+Docs: [PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) · [ARCHITECTURE.md](docs/ARCHITECTURE.md) · [MODULES.md](docs/MODULES.md) · [FILE_INVENTORY.md](docs/FILE_INVENTORY.md) · [REFACTORING_LOG.md](docs/REFACTORING_LOG.md) · [AGENTS.md](AGENTS.md) (Knowledge Base / RAG setup)
 
 ## Development commands
 
