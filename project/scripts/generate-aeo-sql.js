@@ -24,7 +24,7 @@ const values = jsonData.map((item, index) => {
 sql += values.join('\n');
 
 // Write to SQL file
-const outputPath = path.resolve('supabase/migrations/20260830130000_aeo_contacts.sql');
+const outputPath = path.resolve('assets/data/20260830130000_aeo_contacts.sql');
 fs.writeFileSync(outputPath, sql);
 
 console.log(`Generated SQL file with ${jsonData.length} AEO contacts at ${outputPath}`);

@@ -14,7 +14,7 @@ const dirs = [
   'src/pages/admin',
   'src/pages/crops',
   'public/data',
-  'supabase/migrations',
+  'assets/data',
 ];
 
 for (const dir of dirs) fs.mkdirSync(path.join(root, dir), { recursive: true });

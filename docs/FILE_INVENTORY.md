@@ -36,7 +36,7 @@ Not executed and unreferenced: `fetchMandalsForDivision`, `download` (duplicate 
 
 | Path | Status | Note |
 |------|--------|------|
-| `project/supabase/migrations/` | REVIEW | Stale divergent tree; canonical is repo-root `supabase/migrations` (remote-verified). Kept per decision — safe to delete once contents confirmed unneeded |
+| `project/supabase/` | **REMOVED** | Stale divergent tree (61 migrations + empty functions/) deleted — canonical is repo-root `supabase/migrations` (remote-verified). Recoverable from git history |
 | `handbook.txt` (root) | KEEP | 252 KB reference doc, not imported by code |
 | `project/assets/data/crop_intelligence_database*.sql` | KEEP | Two SQL dumps (slightly different image paths) kept intentionally |
 | `project/dist/` | generated | Build output, gitignored |

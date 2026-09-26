@@ -67,9 +67,11 @@ Verified: typecheck ✅, build ✅ (3508 modules).
 | Tests | none exist in the project |
 | `npx supabase migration list` | remote matches root `supabase/` tree exactly |
 
-## Known caveats
+## Post-log cleanup
 
-- `project/supabase/migrations/` is **stale/divergent** (61 files incl. 12 never deployed — officer contacts, `20260901145651_tour_diary`, `20260923000000_update_test_user_password`). Canonical tree: repo-root `supabase/migrations`. Left in place per decision; recommend eventual removal after confirming those schemas exist in production.
+- `project/supabase/` (61 stale migrations + empty `functions/`) **removed** — canonical tree is repo-root `supabase/migrations` (remote-verified). Generator scripts redirected to `assets/data/` so the tree won't regenerate. The 12 never-deployed migrations (officer contacts, `20260901145651_tour_diary`, `20260923000000_update_test_user_password`) remain recoverable from git history.
+
+## Known caveats
 - `typecheck`/`build` OOM on this machine at default heap — run with `NODE_OPTIONS=--max-old-space-size=6144` if needed (see README).
 - Build warnings only: outdated Browserslist db, `eval` in bluebird, chunks >650 kB.
 - No `.jsx`/`.js` source files remain; no path aliases (relative imports).

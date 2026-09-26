@@ -39,7 +39,7 @@ npm run dev
 
 **Best practice:** clone or copy the project to a local folder outside OneDrive (e.g. `C:\dev\agri-portal-tiryani`) for development.
 
-Apply Supabase migrations from the **repo-root** `supabase/migrations/` (the linked project — verified against the remote via `npx supabase migration list`). The `project/supabase/migrations/` tree is a stale divergent copy — do not push from it.
+Apply Supabase migrations from the **repo-root** `supabase/migrations/` (the linked project — verified against the remote via `npx supabase migration list`).
 
 ## Repository layout
 

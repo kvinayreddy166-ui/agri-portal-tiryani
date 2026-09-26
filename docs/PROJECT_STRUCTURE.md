@@ -48,8 +48,6 @@ project/
 │   └── reference/             # Tour Diary format .xlsx, crop-doctor screenshots
 ├── scripts/                   # Node utilities: data importers, icon generators,
 │                              #   refactor codemods (refactor-move, move-batch, ts-annotate)
-├── supabase/migrations/       # ⚠ STALE divergent tree — NOT deployed; canonical is repo-root
-│                              #   supabase/migrations (see REFACTORING_LOG.md)
 └── src/                       # application source (see below)
 ```
 
