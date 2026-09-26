@@ -42,6 +42,15 @@ Not executed and unreferenced: `fetchMandalsForDivision`, `download` (duplicate 
 | `project/dist/` | generated | Build output, gitignored |
 | `project/android/` | KEEP | Capacitor wrapper |
 
+## Improvement backlog (deferred by owner, 2026-09-26)
+
+- `typecheck` npm script OOMs on Windows at default heap — bake `--max-old-space-size=6144` into it (build script already does)
+- Duplicate `vercel.json` (root + `project/`) — keep only the authoritative one
+- `eslint.config.js` exists but lint is not run in CI
+- `public/images/` (18 MB) and `farmer_database_seed.json` (7.7 MB) — image optimization script exists, unused
+- No test suite; no lint gate in CI
+- Cosmetic: duplicate `CropProtectionTool.tsx` name (crop-doctor root vs `components/`); `QualityControl` vs `QualityControlHub` near-duplicates
+
 ## Oversized files (future split candidates — not touched)
 
 `features/tour-diary/pages/TourDiary.tsx` (~177 KB), `statutory-forms/components/FertilizerStatutoryPdfTool.tsx` (~120 KB), `officers-toolkit/data/fcoClauses.ts` (~116 KB), `calculators/pages/FertilizerCalculator.tsx` (~116 KB), `officers-toolkit/components/ShowCauseNoticeEntry.tsx` (~83 KB), `auth/pages/Login.tsx` (~67 KB).
