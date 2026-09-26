@@ -1,4 +1,4 @@
-import { FERTILIZER_TYPES } from '../shared/lib/constants';
+import { FERTILIZER_TYPES } from '../../../shared/lib/constants';
 
 export type StockCategory = 'fertilizer' | 'seed' | 'pesticide';
 

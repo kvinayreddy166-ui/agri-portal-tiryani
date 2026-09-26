@@ -1,12 +1,12 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { BarChart3, ChevronDown, FileSpreadsheet, FolderOpen, RefreshCw, Search, Trash2 } from 'lucide-react';
-import { supabase } from '../shared/lib/supabase';
-import { useAuth } from '../shared/context/AuthContext';
-import { useLanguage } from '../shared/context/LanguageContext';
-import { FERTILIZER_TYPES } from '../shared/lib/constants';
-import { cachedSupabaseRows } from '../shared/lib/offlineCache';
-import { IconButton } from '../shared/components/ui/DesignSystem';
-import { totalValue } from '../shared/utils/excelTotals';
+import { supabase } from '../../../shared/lib/supabase';
+import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
+import { FERTILIZER_TYPES } from '../../../shared/lib/constants';
+import { cachedSupabaseRows } from '../../../shared/lib/offlineCache';
+import { IconButton } from '../../../shared/components/ui/DesignSystem';
+import { totalValue } from '../../../shared/utils/excelTotals';
 import {
   STOCK_CATEGORIES,
   StockCategory,
@@ -16,7 +16,7 @@ import {
   formatReportDateLabel,
 } from '../lib/stockInventory';
 
-const LazyStockChart = lazy(() => import('./LazyStockChart'));
+const LazyStockChart = lazy(() => import('../components/LazyStockChart'));
 
 const titleCase = (value = '') =>
   value

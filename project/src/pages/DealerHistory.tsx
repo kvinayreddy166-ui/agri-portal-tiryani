@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { BarChart3, ChevronLeft, ChevronRight, FileSpreadsheet, Search, RotateCcw, Filter, ArrowUpDown } from 'lucide-react';
 import { useAuth } from '../shared/context/AuthContext';
 import { useLanguage } from '../shared/context/LanguageContext';
-import { translateDealerText } from '../lib/dealerTranslations';
+import { translateDealerText } from '../features/dealer-stock/lib/dealerTranslations';
 import { supabase } from '../shared/lib/supabase';
 import { IconButton } from '../shared/components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../shared/utils/excelTotals';

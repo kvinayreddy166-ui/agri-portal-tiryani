@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapPin, AlertCircle } from 'lucide-react';
-import { useLanguage } from '../../shared/context/LanguageContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 /** Tiryani Mandal, Kumram Bheem Asifabad */
 const TIRYANI_CENTER = { lat: 19.17631, lng: 79.27137 };

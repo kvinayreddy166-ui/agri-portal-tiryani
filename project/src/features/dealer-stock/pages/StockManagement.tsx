@@ -1,16 +1,16 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { BarChart3, ChevronDown, ClipboardList, FileSpreadsheet, Package, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
-import { supabase } from '../shared/lib/supabase';
-import { useAuth } from '../shared/context/AuthContext';
-import { Dealer, DealerStockAllocation } from '../shared/types/database';
-import { FERTILIZER_TYPES } from '../shared/lib/constants';
+import { supabase } from '../../../shared/lib/supabase';
+import { useAuth } from '../../../shared/context/AuthContext';
+import { Dealer, DealerStockAllocation } from '../../../shared/types/database';
+import { FERTILIZER_TYPES } from '../../../shared/lib/constants';
 import { syncFertilizerStockTable } from '../lib/fertilizerStock';
 import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
-import { useVirtualRows } from '../shared/hooks/useVirtualRows';
-import { IconButton } from '../shared/components/ui/DesignSystem';
-import { appendSheetWithTotals, appendSummarySheet, totalValue, type ExcelRow } from '../shared/utils/excelTotals';
+import { useVirtualRows } from '../../../shared/hooks/useVirtualRows';
+import { IconButton } from '../../../shared/components/ui/DesignSystem';
+import { appendSheetWithTotals, appendSummarySheet, totalValue, type ExcelRow } from '../../../shared/utils/excelTotals';
 
-const LazyFertilizerChart = lazy(() => import('./LazyFertilizerChart'));
+const LazyFertilizerChart = lazy(() => import('../components/LazyFertilizerChart'));
 
 const fertilizers = [...FERTILIZER_TYPES];
 

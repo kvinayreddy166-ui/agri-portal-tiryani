@@ -15,12 +15,12 @@ import { UpdateBanner } from '../shared/components/UpdateBanner';
 
 const Login = lazy(() => import('../components/Login').then((m) => ({ default: m.Login })));
 const Layout = lazy(() => import('./Layout').then((m) => ({ default: m.Layout })));
-const Dashboard = lazy(() => import('../pages/Dashboard').then((m) => ({ default: m.Dashboard })));
-const DealerManagement = lazy(() => import('../pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));
+const Dashboard = lazy(() => import('../features/dashboard/pages/Dashboard').then((m) => ({ default: m.Dashboard })));
+const DealerManagement = lazy(() => import('../features/dealer-stock/pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));
 const StatutoryForms = lazy(() => import('../features/statutory-forms/pages/StatutoryForms').then((m) => ({ default: m.StatutoryForms })));
-const ExcelUploads = lazy(() => import('../pages/ExcelUploads').then((m) => ({ default: m.ExcelUploads })));
-const Analytics = lazy(() => import('../pages/Analytics').then((m) => ({ default: m.Analytics })));
-const FarmerDatabase = lazy(() => import('../pages/FarmerDatabase').then((m) => ({ default: m.FarmerDatabase })));
+const ExcelUploads = lazy(() => import('../features/farmer-database/pages/ExcelUploads').then((m) => ({ default: m.ExcelUploads })));
+const Analytics = lazy(() => import('../features/dashboard/pages/Analytics').then((m) => ({ default: m.Analytics })));
+const FarmerDatabase = lazy(() => import('../features/farmer-database/pages/FarmerDatabase').then((m) => ({ default: m.FarmerDatabase })));
 const Settings = lazy(() => import('../pages/Settings').then((m) => ({ default: m.Settings })));
 const QualityControl = lazy(() => import('../pages/QualityControl').then((m) => ({ default: m.QualityControl })));
 const QualityControlHub = lazy(() => import('../pages/QualityControlHub').then((m) => ({ default: m.QualityControlHub })));
@@ -28,7 +28,7 @@ const FarmMechanization = lazy(() => import('../pages/FarmMechanization').then((
 const GosCirculars = lazy(() => import('../pages/GosCirculars').then((m) => ({ default: m.GosCirculars })));
 const FileDirectory = lazy(() => import('../pages/FileDirectory').then((m) => ({ default: m.FileDirectory })));
 const SubsidyTracking = lazy(() => import('../pages/SubsidyTracking').then((m) => ({ default: m.SubsidyTracking })));
-const DealerStockPortal = lazy(() => import('../pages/DealerStockPortal').then((m) => ({ default: m.DealerStockPortal })));
+const DealerStockPortal = lazy(() => import('../features/dealer-stock/pages/DealerStockPortal').then((m) => ({ default: m.DealerStockPortal })));
 const AcreageCalculator = lazy(() => import('../pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 const FertilizerCalculator = lazy(() => import('../pages/FertilizerCalculator').then((m) => ({ default: m.FertilizerCalculator })));
 const OfficersToolkit = lazy(() => import('../features/officers-toolkit/pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
@@ -39,8 +39,8 @@ const PesticideCalculator = lazy(() => import('../pages/PesticideCalculator').th
 const PlantPopulationCalculator = lazy(() => import('../pages/PlantPopulationCalculator').then((m) => ({ default: m.PlantPopulationCalculator })));
 const SeedRateCalculator = lazy(() => import('../pages/SeedRateCalculator').then((m) => ({ default: m.SeedRateCalculator })));
 const ActsAndOrders = lazy(() => import('../features/officers-toolkit/pages/ActsAndOrders').then((m) => ({ default: m.ActsAndOrders })));
-const StockAnalytics = lazy(() => import('../pages/StockAnalytics'));
-const StockReceiptsSales = lazy(() => import('../pages/StockReceiptsSales'));
+const StockAnalytics = lazy(() => import('../features/dealer-stock/pages/StockAnalytics'));
+const StockReceiptsSales = lazy(() => import('../features/dealer-stock/pages/StockReceiptsSales'));
 const OfficerContacts = lazy(() => import('../pages/OfficerContacts').then((m) => ({ default: m.OfficerContacts })));
 const OfficerContactsAdmin = lazy(() => import('../pages/admin/OfficerContactsAdmin').then((m) => ({ default: m.OfficerContactsAdmin })));
 const TourDiary = lazy(() => import('../pages/TourDiary').then((m) => ({ default: m.TourDiary })));

@@ -1,14 +1,14 @@
 ﻿import React, { useCallback, useState, useEffect } from 'react';
 import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
-import { supabase } from '../shared/lib/supabase';
-import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../lib/fertilizerStock';
-import { useAuth } from '../shared/context/AuthContext';
-import { useLanguage } from '../shared/context/LanguageContext';
-import { Crop, Scheme, SchemeBeneficiary, MandalOverview } from '../shared/types/database';
-import { GoogleMapWidget } from '../components/dashboard/GoogleMapWidget';
-import { WeatherWidget } from '../components/dashboard/WeatherWidget';
-import { PortalLogo } from '../shared/components/ui/PortalLogo';
-import { cachedSupabaseRows, cachedSupabaseValue } from '../shared/lib/offlineCache';
+import { supabase } from '../../../shared/lib/supabase';
+import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../../dealer-stock/lib/fertilizerStock';
+import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
+import { Crop, Scheme, SchemeBeneficiary, MandalOverview } from '../../../shared/types/database';
+import { GoogleMapWidget } from '../components/GoogleMapWidget';
+import { WeatherWidget } from '../components/WeatherWidget';
+import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
+import { cachedSupabaseRows, cachedSupabaseValue } from '../../../shared/lib/offlineCache';
 
 type FarmerDashboardRow = {
   s_no?: number;

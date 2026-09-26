@@ -1,8 +1,8 @@
-import { supabase } from '../shared/lib/supabase';
-import { FERTILIZER_TYPES } from '../shared/lib/constants';
-import { FertilizerStock } from '../shared/types/database';
+import { supabase } from '../../../shared/lib/supabase';
+import { FERTILIZER_TYPES } from '../../../shared/lib/constants';
+import { FertilizerStock } from '../../../shared/types/database';
 import { currentReportDate } from './stockInventory';
-import { cachedSupabaseRows } from '../shared/lib/offlineCache';
+import { cachedSupabaseRows } from '../../../shared/lib/offlineCache';
 
 export type DailyFertilizerStockSummary = FertilizerStock & {
   sales_mts: number;
