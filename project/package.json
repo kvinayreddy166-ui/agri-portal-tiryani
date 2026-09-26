@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "optimize:images": "node scripts/optimize-images.mjs",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "typecheck": "node --max-old-space-size=8192 --max-semi-space-size=512 node_modules/typescript/bin/tsc --noEmit -p tsconfig.app.json",
     "android:add": "cap add android",
     "android:sync": "npm run build && cap sync android",
     "android:apk": "npm run build && cap sync android && cd android && gradlew assembleDebug"
