@@ -107,8 +107,10 @@ export function getContentType(file: File): string {
     doc: 'application/msword',
     docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   };
-  if (file.type && file.type !== 'application/octet-stream') return file.type;
+  // Prefer the extension map: browsers report odd MIME types for Office/CSV files
+  // (e.g. application/CDFV2, application/x-pdf) which the bucket allowlist rejects.
   if (ext && map[ext]) return map[ext];
+  if (file.type && file.type !== 'application/octet-stream') return file.type;
   return 'application/octet-stream';
 }
 

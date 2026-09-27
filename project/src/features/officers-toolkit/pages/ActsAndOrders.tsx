@@ -7,6 +7,7 @@ import {
   BookmarkCheck,
   BookOpen,
   ChevronDown,
+  ChevronRight,
   Clock,
   Copy,
   FileSearch,
@@ -631,11 +632,9 @@ function printFcoOffences(entries: FcoOffenceEntry[]) {
 
 function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => void }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-blue-100 bg-[linear-gradient(135deg,#f7fee7_0%,#ecfdf5_48%,#eff6ff_100%)] p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-5">
-      <div className="mx-auto max-w-4xl text-center">
-        <h2 className="text-lg font-black text-blue-950 dark:text-white sm:text-xl">Select input category</h2>
-      </div>
-      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+    <section>
+      <h2 className="text-xl font-black text-slate-900 dark:text-white">Select category</h2>
+      <div className="mt-4 space-y-3">
         {legalAreaCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -643,15 +642,16 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
               key={card.id}
               type="button"
               onClick={() => onOpen(card.id)}
-              className={`group flex min-h-[7rem] w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 ${card.border} bg-gradient-to-br ${card.panel} p-3 text-center shadow-md transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl focus-visible:outline-blue-700 active:scale-[0.98]`}
+              className={`group flex w-full items-center gap-4 rounded-2xl border ${card.border} bg-gradient-to-r ${card.panel} px-4 py-3.5 text-left shadow-sm transition duration-300 hover:shadow-md ${card.hover} focus-visible:outline-blue-700 active:scale-[0.99]`}
             >
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-lg`}>
-                <Icon className="h-5 w-5" />
+              <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-md`}>
+                <Icon className="h-7 w-7" />
               </span>
-              <span className="min-w-0">
-                <span className="block text-sm font-black leading-snug text-slate-950 dark:text-white">{card.title}</span>
-                <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-700 dark:text-slate-300">{card.description}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-lg font-black leading-snug text-slate-900 dark:text-white">{card.title}</span>
+                <span className="mt-0.5 block text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{card.description}</span>
               </span>
+              <ChevronRight className={`h-5 w-5 shrink-0 ${card.accent}`} />
             </button>
           );
         })}
@@ -684,7 +684,7 @@ function LegalTopicScreen({
           </div>
         </div>
       </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-4 space-y-3">
         {topics.map((topic) => {
           const Icon = topic.icon;
           return (
@@ -692,13 +692,16 @@ function LegalTopicScreen({
               key={topic.title}
               type="button"
               onClick={() => onOpenTopic(topic)}
-              className={`group rounded-lg border ${areaCard.border} bg-gradient-to-br ${areaCard.panel} p-4 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 ${areaCard.hover} hover:shadow-md active:scale-[0.99]`}
+              className={`group flex w-full items-center gap-3.5 rounded-xl border ${areaCard.border} bg-gradient-to-r ${areaCard.panel} px-4 py-3 text-left shadow-sm transition duration-300 ${areaCard.hover} hover:shadow-md active:scale-[0.99]`}
             >
-              <span className={`flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br ${areaCard.color} text-white shadow-sm transition group-hover:scale-105`}>
-                <Icon className="h-4 w-4" />
+              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${areaCard.color} text-white shadow-sm transition group-hover:scale-105`}>
+                <Icon className="h-5 w-5" />
               </span>
-              <span className="mt-3 block text-sm font-black text-slate-950 dark:text-white">{topic.title}</span>
-              <span className="mt-1 block text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{topic.description}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-black text-slate-950 dark:text-white">{topic.title}</span>
+                <span className="mt-0.5 block text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{topic.description}</span>
+              </span>
+              <ChevronRight className={`h-4 w-4 shrink-0 ${areaCard.accent}`} />
             </button>
           );
         })}
