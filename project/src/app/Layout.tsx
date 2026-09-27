@@ -213,11 +213,13 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
         }`}
       >
         <div className="border-b border-slate-200 bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900 px-3.5 pb-3 pt-4 text-white dark:border-slate-800">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-wide text-emerald-100">{t('Navigation', 'నావిగేషన్')}</p>
-              <h2 className="mt-0.5 truncate text-base font-black tracking-tight font-[var(--font-stylish)]">{t('Agronix', 'తిర్యాని')}</h2>
-              <p className="mt-0.5 truncate text-[11px] font-semibold text-emerald-100">{t(pageMeta.title, translateMenu(pageMeta.title))}</p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <PortalLogo size="sm" />
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-black tracking-tight font-[var(--font-stylish)]">{t('Agronix', 'తిర్యాని')}</h2>
+                <p className="truncate text-[11px] font-semibold text-emerald-100">{t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}</p>
+              </div>
             </div>
             <button
               type="button"

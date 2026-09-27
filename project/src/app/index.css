@@ -101,7 +101,7 @@ body,
   max-width: 100%;
   overflow-x: hidden;
   font-family: var(--font-body);
-  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 50%, #ecfeff 100%);
+  background: var(--agri-bg);
   color: var(--agri-text);
 }
 

@@ -871,10 +871,12 @@ export function Login() {
             </div>
 
             <div className="mb-3 animate-slide-up delay-400">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">
-                {loginMode === 'dealer' ? t('Dealer login', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Secure sign in', 'à°¸à±à°°à°•à±à°·à°¿à°¤ à°²à°¾à°—à°¿à°¨à±')}
+              <h3 className="text-lg font-black uppercase tracking-wide text-slate-950 dark:text-white">
+                {loginMode === 'dealer' ? t('Dealer sign in', 'డీలర్ సైన్ ఇన్') : t('Secure sign in', 'సురక్షిత సైన్ ఇన్')}
+              </h3>
+              <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {t('Access Agronix with your official credentials', 'మీ అధికారిక ఆధారాలతో Agronixను యాక్సెస్ చేయండి')}
               </p>
-              <h3 className="mt-1 text-2xl font-black text-slate-950 dark:text-white">{t('Welcome', 'à°¸à±à°µà°¾à°—à°¤à°‚')}</h3>
             </div>
 
             {error && (
@@ -902,7 +904,7 @@ export function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3 font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:from-emerald-800 hover:to-teal-800 disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 py-3 font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:bg-emerald-800 disabled:opacity-60"
               >
                 {loginMode === 'dealer' ? <Store className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
                 {loading ? t('Signing in...', 'à°²à°¾à°—à°¿à°¨à± à°…à°µà±à°¤à±‹à°‚à°¦à°¿...') : loginMode === 'dealer' ? t('Dealer Sign In', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Sign In', 'à°²à°¾à°—à°¿à°¨à±')}

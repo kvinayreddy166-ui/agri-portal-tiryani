@@ -1,5 +1,5 @@
 ﻿import React, { useCallback, useState, useEffect } from 'react';
-import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
+import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2, CalendarDays, Leaf } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../../dealer-stock/lib/fertilizerStock';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -218,6 +218,25 @@ export const Dashboard = React.memo(function Dashboard() {
 
   return (
     <div className="dashboard-shell space-y-6">
+      <div className="dashboard-rise flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-sm">
+            <Leaf className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-lg font-black tracking-tight text-slate-950 dark:text-white sm:text-xl">
+              {t('Dashboard', 'డ్యాష్‌బోర్డ్')}
+            </h1>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              {t('Welcome back, Officer', 'తిరిగి స్వాగతం, అధికారి')}
+            </p>
+          </div>
+        </div>
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-white px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-sm dark:border-emerald-900 dark:bg-slate-900 dark:text-emerald-300">
+          <CalendarDays className="h-3.5 w-3.5" />
+          {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
+        </div>
+      </div>
       <div className="dashboard-rise dashboard-delay-1 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <GoogleMapWidget />
         <WeatherWidget />
