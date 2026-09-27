@@ -1,11 +1,10 @@
 import React, { useMemo, useState, ReactNode } from 'react';
 import {
-  ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
-  Archive, BarChart3, Settings, LogOut, ShieldCheck, Tractor, ScrollText,
+  ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
+  Archive, BarChart3, Settings, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen,
 } from 'lucide-react';
 import { PortalLogo } from '../shared/components/ui/PortalLogo';
-import { BackButton } from '../shared/components/ui/BackButton';
 import { LanguageToggle } from '../shared/components/ui/LanguageToggle';
 import { useAuth } from '../shared/context/AuthContext';
 import { useLanguage } from '../shared/context/LanguageContext';
@@ -17,7 +16,6 @@ interface LayoutProps {
   currentPage: string;
   onNavigate: (page: string, options?: { replace?: boolean }) => void;
   onBack: () => void;
-  onSignOut: () => void;
 }
 
 const adminMenuItems = [
@@ -45,7 +43,7 @@ const dealerMenuItems = [] as typeof adminMenuItems;
 
 const menuItems = adminMenuItems;
 
-export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }: LayoutProps) {
+export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const sidebarOverlay = useBackButtonOverlay('app-sidebar', () => setSidebarOpen(false));
   const { user, isAdminUser, isDealerUser, dealerName } = useAuth();
@@ -53,7 +51,6 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
   const { isDark, toggleTheme } = useTheme();
   const pageMeta = useMemo(() => getPageMeta(currentPage, t), [currentPage, t]);
   const hidePortalLogo = currentPage === 'fertilizer-calculator' || currentPage === 'acreage-calculator';
-  const showPageBackButton = currentPage !== 'dashboard' && currentPage !== 'dealer-portal';
 
   const handleNavigation = (page: string) => {
     const replaceDrawerEntry = sidebarOpen;
@@ -101,13 +98,6 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
               {sidebarOpen ? <X className="relative h-5 w-5" /> : <Menu className="relative h-5 w-5" />}
             </button>
 
-            {showPageBackButton && (
-              <BackButton
-                onClick={onBack}
-                tone="solid"
-                label={t('Back', 'వెనుకకు')}
-              />
-            )}
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               {!hidePortalLogo && <PortalLogo size="sm" />}
               <div className="min-w-0">
@@ -241,22 +231,23 @@ export function Layout({ children, currentPage, onNavigate, onBack, onSignOut }:
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onSignOut}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-2 text-xs font-black text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
-          >
-            <LogOut className="h-4 w-4" />
-            {t('Sign Out', 'సైన్ అవుట్')}
-          </button>
         </div>
       </aside>
 
       <main className="min-h-[calc(100vh-4.25rem)] max-w-full overflow-x-hidden">
         <div className="mx-auto w-full max-w-7xl overflow-x-hidden p-3 sm:p-4 md:p-5 lg:p-6">
           {currentPage !== 'dashboard' && currentPage !== 'dealer-portal' && (
-            <div className="mb-4 flex flex-col gap-2">
-              <nav className="flex flex-wrap items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400" aria-label="Breadcrumb">
+            <div className="mb-4 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
+                aria-label={t('Back', 'వెనుకకు')}
+                title={t('Back', 'వెనుకకు')}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <nav className="flex min-w-0 flex-wrap items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400" aria-label="Breadcrumb">
                 {pageMeta.breadcrumbs.map((item, index) => (
                   <React.Fragment key={`${item.label}-${index}`}>
                     {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-slate-400" />}
@@ -319,6 +310,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
   const dashboard = { label: t('Dashboard', 'డ్యాష్‌బోర్డ్'), page: 'dashboard' };
   const toolkit = { label: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), page: 'officer-toolkit' };
   const farmCalculators = { label: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), page: 'farm-calculators' };
+  const inspectionsHub = { label: t('Inspections & Notices', 'తనిఖీలు & నోటీసులు'), page: 'inspections-notices' };
 
   if (page.startsWith('quality-')) {
     const title = qualityTitle(page);
@@ -363,7 +355,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'officer-toolkit': { title: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), breadcrumbs: [dashboard] },
     knowledge: { title: t('Knowledge Base', 'జ్ఞాన భాండాగారం'), breadcrumbs: [dashboard] },
     forms: { title: t('Statutory Forms', 'చట్టబద్ధ ఫారాలు'), breadcrumbs: [dashboard, toolkit] },
-    'acreage-calculator': { title: t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit] },
+    'acreage-calculator': { title: t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'farm-calculators': { title: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), breadcrumbs: [dashboard, toolkit] },
     'crop-protection': { title: t('Crop Doctor', 'పంట డాక్టర్'), breadcrumbs: [dashboard, toolkit] },
     'fertilizer-calculator': { title: t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
@@ -371,9 +363,14 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'plant-population-calculator': { title: t('Plant Population Calculator', 'మొక్కల జనాభా కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'seed-rate-calculator': { title: t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'legal-ready-reckoner': { title: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు'), breadcrumbs: [dashboard, toolkit] },
-    'seed-dealer-inspection': { title: t('Inspections', 'తనిఖీలు'), breadcrumbs: [dashboard, toolkit] },
-    'fertilizer-dealer-inspection': { title: t('Fertilizer inspection', 'ఎరువుల తనిఖీ'), breadcrumbs: [dashboard, toolkit] },
-    'insecticide-dealer-inspection': { title: t('Insecticide inspection', 'పురుగుమందుల తనిఖీ'), breadcrumbs: [dashboard, toolkit] },
+    'seed-dealer-inspection': { title: t('Seed Dealer Inspection', 'విత్తన డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
+    'fertilizer-dealer-inspection': { title: t('Fertilizer Dealer Inspection', 'ఎరువుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
+    'insecticide-dealer-inspection': { title: t('Pesticide Dealer Inspection', 'పురుగుమందుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
+    'inspections-notices': { title: t('Inspections & Notices', 'తనిఖీలు & నోటీసులు'), breadcrumbs: [dashboard, toolkit] },
+    'license-application-generator': { title: t('License Application Generator', 'లైసెన్స్ దరఖాస్తు జనరేటర్'), breadcrumbs: [dashboard, toolkit] },
+    'tour-diary': { title: t('Tour Diary', 'టూర్ డైరీ'), breadcrumbs: [dashboard, toolkit] },
+    'officer-contacts': { title: t('Officer Contacts', 'అధికారుల పరిచయాలు'), breadcrumbs: [dashboard, toolkit] },
+    'officer-contacts-admin': { title: t('Officer Contacts Admin', 'అధికారుల పరిచయాల నిర్వహణ'), breadcrumbs: [dashboard, toolkit] },
     'gos-circulars': { title: t('GOs & Circulars', 'జి.ఓ.లు & సర్క్యులర్లు'), breadcrumbs: [dashboard] },
     quality: { title: t('Quality Control', 'నాణ్యత నియంత్రణ'), breadcrumbs: [dashboard] },
     'farm-mechanization': { title: t('Farm Mechanization', 'వ్యవసాయ యాంత్రీకరణ'), breadcrumbs: [dashboard] },

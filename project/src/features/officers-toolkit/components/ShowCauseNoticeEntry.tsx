@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FileChild } from 'docx';
 import { ChevronDown, Download, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear, financialYearForDate } from '../../../shared/utils/financialYear';
+import { useAuth } from '../../../shared/context/AuthContext';
+import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { isAssistantDirectorOfAgriculture, statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../../../shared/data/assistantDirectorLocation';
 import {
   TELANGANA_DISTRICTS,
@@ -912,6 +914,8 @@ async function loadNoticeFonts(doc: { addFileToVFS: (name: string, data: string)
 }
 
 export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: NoticeCategory } = {}) {
+  const { isAdminUser, isTestUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
   const [form, setForm] = useState<NoticeFormState>(() => makeInitialForm(lockedCategory ?? 'fertiliser'));
   const [savedNotices, setSavedNotices] = useState<SavedNotice[]>(() => readSavedNotices());
   const [savedSearch, setSavedSearch] = useState('');
@@ -1353,7 +1357,14 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
   return (
     <div className="space-y-4">
-      {!lockedCategory && (
+      {!lockedCategory && showCompactHeader && (
+        <CompactToolkitHeader
+          eyebrow="Inspections & Notices"
+          title={config.title}
+          subtitle="Show Cause Notice / Memo Entry"
+        />
+      )}
+      {!lockedCategory && !showCompactHeader && (
         <div className={`overflow-hidden rounded-lg bg-gradient-to-r ${config.theme.header} px-4 py-3 text-white shadow-sm`}>
           <div>
             <h2 className="text-lg font-black">{config.title}</h2>

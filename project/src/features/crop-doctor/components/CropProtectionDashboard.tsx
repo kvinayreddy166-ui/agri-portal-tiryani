@@ -9,6 +9,7 @@ import { ProtectionItemCard } from './ProtectionItemCard';
 import { CropProtectionAdmin } from './CropProtectionAdmin';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
+import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 
 const categories: Array<{
   key: CropProtectionCategory;
@@ -31,7 +32,8 @@ export function CropProtectionDashboard({
   onRefresh: () => void;
 }) {
   const navigate = useNavigate();
-  const { isAdminUser } = useAuth();
+  const { isAdminUser, isTestUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
   const [language, setLanguage] = useState<LanguageCode>('en');
   const [selectedCropKey, setSelectedCropKey] = useState(crops[0]?.crop_key || 'cotton');
   const [category, setCategory] = useState<CropProtectionCategory>('pest');
@@ -101,6 +103,15 @@ export function CropProtectionDashboard({
 
   return (
     <div className="space-y-4">
+      {showCompactHeader ? (
+        <CompactToolkitHeader
+          title={label('Crop Doctor', language)}
+          subtitle={label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
+          actions={(
+            <LanguageToggle language={language} onClick={() => setLanguage((value) => (value === 'en' ? 'te' : 'en'))} accent="emerald" />
+          )}
+        />
+      ) : (
       <section className="overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-800 via-green-700 to-teal-800 p-4 text-white shadow-sm sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex min-w-0 items-start gap-3">
@@ -115,41 +126,45 @@ export function CropProtectionDashboard({
               </p>
             </div>
           </div>
-          <div className="flex w-full flex-wrap items-center gap-2 self-end lg:w-auto">
+          <div className="flex items-center gap-2 self-end lg:self-start">
             <LanguageToggle language={language} onClick={() => setLanguage((value) => (value === 'en' ? 'te' : 'en'))} tone="solid" />
-            <button
-              type="button"
-              onClick={onRefresh}
-              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/25 bg-white/15 dark:bg-slate-900/15 px-3 text-xs font-black text-white transition hover:bg-white/25"
-            >
-              <RefreshCw className="h-4 w-4" /> {label('Refresh', language)}
-            </button>
           </div>
         </div>
-        <div className="relative mt-4">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-700 dark:text-emerald-300" />
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={label('Search crop, pest, disease, weed or symptom', language)}
-            className="h-11 w-full rounded-xl border border-white/20 bg-white dark:bg-slate-900 py-2 pl-10 pr-3 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-white/25"
-          />
-        </div>
       </section>
+      )}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-600 dark:text-emerald-300" />
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder={label('Search crop, pest, disease, weed or symptom', language)}
+          className="h-10 w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-3 text-sm font-bold text-slate-900 shadow-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+        />
+      </div>
       <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">
           <div>
             <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{label('Quick Crop Selection', language)}</p>
             <h2 className="text-base font-black text-slate-950 dark:text-white">{pickLang(selectedCrop.name_en, selectedCrop.name_te, language)}</h2>
           </div>
-          <button
-            type="button"
-            disabled
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-dashed border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 text-[11px] font-black text-emerald-800 dark:text-emerald-300 disabled:opacity-80"
-            title={label('AI photo diagnosis coming soon', language)}
-          >
-            <Camera className="h-3.5 w-3.5" /> {label('Identify from Photo', language)}
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] font-black text-slate-600 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+              title={label('Refresh', language)}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} /> {label('Refresh', language)}
+            </button>
+            <button
+              type="button"
+              disabled
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-dashed border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 text-[11px] font-black text-emerald-800 dark:text-emerald-300 disabled:opacity-80"
+              title={label('AI photo diagnosis coming soon', language)}
+            >
+              <Camera className="h-3.5 w-3.5" /> {label('Identify from Photo', language)}
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 lg:grid-cols-10">
           {crops.map((crop) => {

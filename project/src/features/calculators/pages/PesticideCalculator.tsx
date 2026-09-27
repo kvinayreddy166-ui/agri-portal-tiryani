@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
+import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
 type Mode = 'activeIngredient' | 'directDose';
@@ -41,6 +43,8 @@ const numericFieldWarnings: Partial<Record<keyof typeof initialForm, { isInvalid
 export function PesticideCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
+  const { isAdminUser, isTestUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
   const [mode, setMode] = useState<Mode>('activeIngredient');
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
@@ -90,6 +94,13 @@ export function PesticideCalculator() {
     <div className="space-y-3">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        {showCompactHeader ? (
+          <CompactToolkitHeader
+            eyebrow="Farm Calculators"
+            title={t('Pesticide Calculator', 'పురుగుమందు కాలిక్యులేటర్')}
+            subtitle={t('Selected tank dose, total water and total product.', 'ఎంచుకున్న ట్యాంక్ మోతాదు, మొత్తం నీరు మరియు మొత్తం ఉత్పత్తి.')}
+          />
+        ) : (
         <section className="relative rounded-2xl border border-amber-300/60 bg-gradient-to-br from-red-600 via-amber-600 to-orange-700 p-4 shadow-lg dark:border-amber-700/60 sm:p-4">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
@@ -107,6 +118,7 @@ export function PesticideCalculator() {
             <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
           </div>
         </section>
+        )}
       </div>
 
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">

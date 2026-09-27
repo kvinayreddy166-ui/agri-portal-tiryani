@@ -3,6 +3,7 @@ import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, Wheat } from 'lucide-re
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 
 
@@ -67,6 +68,7 @@ const calculatorItems = [
 export function FarmCalculators() {
   const navigate = useNavigate();
   const { t, language, toggleLanguage } = useLanguage();
+  const { user } = useAuth();
 
   return (
     <div className="space-y-4">
@@ -83,9 +85,11 @@ export function FarmCalculators() {
             onBack={() => navigate('/officer-toolkit')}
             className="mb-0"
           />
-          <div className="absolute bottom-4 right-4">
-            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
-          </div>
+          {!user && (
+            <div className="absolute bottom-4 right-4">
+              <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
+            </div>
+          )}
         </div>
       </div>
 

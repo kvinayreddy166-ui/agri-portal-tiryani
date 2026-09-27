@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { supabase } from '../../../shared/lib/supabase';
 import { BackButton } from '../../../shared/components/ui/BackButton';
+import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, Clock, ChevronRight as ArrowRight, X, ClipboardList } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -487,7 +488,8 @@ function DiaryDialog({ dialog, onResolve }: { dialog: DialogState; onResolve: (v
 
 export function TourDiary() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdminUser, isTestUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
   const [mounted, setMounted] = useState(false);
   
   // State
@@ -2227,6 +2229,13 @@ export function TourDiary() {
         <div className="sticky top-0 z-40 border-b border-emerald-200/50 bg-white/80 backdrop-blur-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
           <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex-1">
+              {showCompactHeader ? (
+                <CompactToolkitHeader
+                  title="Tour Diary"
+                  subtitle="Manage your monthly tour diaries"
+                  className="mb-0"
+                />
+              ) : (
               <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
                 <div className="flex items-center gap-4">
                   <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" />
@@ -2242,6 +2251,7 @@ export function TourDiary() {
                   </div>
                 </div>
               </div>
+              )}
             </div>
           </div>
         </div>
@@ -2613,6 +2623,13 @@ export function TourDiary() {
       <div className="sticky top-0 z-40 border-b border-emerald-200/50 bg-white/80 backdrop-blur-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex-1">
+            {showCompactHeader ? (
+              <CompactToolkitHeader
+                title="Tour Diary"
+                subtitle="Monthly Tour Diary with Journey Tracking"
+                className="mb-0"
+              />
+            ) : (
             <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
               <div className="flex items-center gap-4">
                 <BackButton onClick={() => setShowLandingPage(true)} tone="solid" />
@@ -2628,6 +2645,7 @@ export function TourDiary() {
                 </div>
               </div>
             </div>
+            )}
           </div>
         </div>
       </div>

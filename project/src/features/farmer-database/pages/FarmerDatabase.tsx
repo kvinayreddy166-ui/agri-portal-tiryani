@@ -181,6 +181,51 @@ function MultiSelectFilter({
   );
 }
 
+function ExportMenu({ onExportExcel, showTelugu }: { onExportExcel: () => void; showTelugu: boolean }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex h-10 items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 text-white shadow-sm transition hover:bg-emerald-800 active:scale-[0.98]"
+        aria-expanded={open}
+        aria-haspopup="menu"
+      >
+        <FileSpreadsheet className="h-4 w-4" />
+        <span className="text-xs font-black">{uiLabel('Export', showTelugu)}</span>
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute right-0 z-30 mt-1 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onExportExcel();
+            }}
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs font-black text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            {uiLabel('Excel (.xlsx)', showTelugu)}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function FarmerDatabase() {
   const { isAdminUser, user } = useAuth();
   const [rows, setRows] = useState<FarmerRow[]>([]);
@@ -548,7 +593,7 @@ export function FarmerDatabase() {
           <div className="flex flex-wrap gap-2">
             <LanguageToggle language={showTelugu ? 'te' : 'en'} onClick={() => setShowTelugu((value) => !value)} accent="emerald" />
             <button type="button" onClick={loadRows} className="icon-action" aria-label="Refresh"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /></button>
-            <button type="button" onClick={exportFiltered} className="icon-action bg-emerald-700 text-white" aria-label="Export Excel"><FileSpreadsheet className="h-4 w-4" /></button>
+            <ExportMenu onExportExcel={() => void exportFiltered()} showTelugu={showTelugu} />
           </div>
         </div>
         <div className="mt-3 grid gap-2 lg:grid-cols-[1.5fr_0.8fr_0.8fr_0.8fr]">
@@ -576,6 +621,52 @@ export function FarmerDatabase() {
             renderLabel={(crop) => cropDisplay(crop, showTelugu)}
           />
           <input value={surveyFilter} onChange={(event) => setSurveyFilter(event.target.value)} className="filter-select" placeholder={uiLabel('Survey Number', showTelugu)} />
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+        {loading ? (
+          <LoadingSkeleton />
+        ) : groups.length ? (
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {groups.map((group) => (
+              <div key={group.key} className="grid gap-2 px-3 py-2 text-xs sm:grid-cols-[1.3fr_1fr_1.4fr_auto] sm:items-center">
+                <button type="button" onClick={() => openDetails(group)} className="min-w-0 text-left">
+                  <p className="truncate text-sm font-black text-slate-950 dark:text-white">{farmerDisplay(group.farmerNameEnglish, group.farmerNameTelugu, showTelugu)}</p>
+                  <p className="truncate font-bold text-slate-500 dark:text-slate-400">{farmerDisplay(group.fatherEnglish, group.fatherTelugu, showTelugu)}</p>
+                </button>
+                <div className="min-w-0 font-bold text-slate-700 dark:text-slate-200">
+                  <p className="truncate">{farmerDisplay(group.villageEnglish, group.villageTelugu, showTelugu)}</p>
+                  <p className="truncate text-slate-500 dark:text-slate-400">{uiLabel('Survey', showTelugu)}: {group.surveyNo || '-'}</p>
+                </div>
+                <div className="min-w-0 text-slate-600 dark:text-slate-300">
+                  <p className="truncate">{uiLabel('Phone', showTelugu)}: {group.phoneNumber || '-'} | {uiLabel('Aadhaar', showTelugu)}: {group.aadhaarNo || '-'}</p>
+                  <p className="truncate">{uiLabel('PPB', showTelugu)}: {group.ppbNo || '-'} | {group.cropRows.map((item) => `${cropDisplay(item.crop, showTelugu)}: ${formatExtent(guntasToExtent(item.extent))}`).join(', ')}</p>
+                </div>
+                <div className="flex items-center justify-between gap-2 sm:justify-end">
+                  <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 font-black text-emerald-700 dark:text-emerald-300">{formatExtent(guntasToExtent(group.totalExtent))} {uiLabel('ac', showTelugu)}</span>
+                  <button type="button" onClick={() => openDetails(group)} className="icon-action" aria-label={uiLabel('View details', showTelugu)}><Eye className="h-4 w-4" /></button>
+                  {phoneLink(group.phoneNumber) && (
+                    <a href={phoneLink(group.phoneNumber)} className="icon-action" aria-label={uiLabel('Call farmer', showTelugu)} title={uiLabel('Call farmer', showTelugu)}>
+                      <PhoneCall className="h-4 w-4" />
+                    </a>
+                  )}
+                  {whatsappLink(group.phoneNumber) && (
+                    <a href={whatsappLink(group.phoneNumber)} target="_blank" rel="noreferrer" className="icon-action text-emerald-700 dark:text-emerald-300" aria-label={uiLabel('WhatsApp farmer', showTelugu)} title={uiLabel('WhatsApp farmer', showTelugu)}>
+                      <WhatsAppIcon className="h-4 w-4" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-10 text-center text-sm font-bold text-slate-500 dark:text-slate-400">{uiLabel(emptyStateText, showTelugu)}</div>
+        )}
+        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 px-3 py-2 text-xs font-black">
+          <button type="button" onClick={() => setPage((value) => Math.max(0, value - 1))} disabled={page === 0} className="rounded-md border px-3 py-1.5 disabled:opacity-50">{uiLabel('Previous', showTelugu)}</button>
+          <span>{uiLabel('Page', showTelugu)} {Math.min(page + 1, totalPages)}/{totalPages}</span>
+          <button type="button" onClick={() => setPage((value) => value + 1)} disabled={!hasMore} className="rounded-md border px-3 py-1.5 disabled:opacity-50">{uiLabel('Next', showTelugu)}</button>
         </div>
       </section>
 
@@ -652,52 +743,6 @@ export function FarmerDatabase() {
           <DeferredBarChart data={villageUreaChart} dataKey="mt" nameKey="name" />
           <RequirementTable rows={villageUreaChart} showTelugu={showTelugu} nameLabel={uiLabel('Village', showTelugu)} />
         </ChartCard>
-      </section>
-
-      <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
-        {loading ? (
-          <LoadingSkeleton />
-        ) : groups.length ? (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {groups.map((group) => (
-              <div key={group.key} className="grid gap-2 px-3 py-2 text-xs sm:grid-cols-[1.3fr_1fr_1.4fr_auto] sm:items-center">
-                <button type="button" onClick={() => openDetails(group)} className="min-w-0 text-left">
-                  <p className="truncate text-sm font-black text-slate-950 dark:text-white">{farmerDisplay(group.farmerNameEnglish, group.farmerNameTelugu, showTelugu)}</p>
-                  <p className="truncate font-bold text-slate-500 dark:text-slate-400">{farmerDisplay(group.fatherEnglish, group.fatherTelugu, showTelugu)}</p>
-                </button>
-                <div className="min-w-0 font-bold text-slate-700 dark:text-slate-200">
-                  <p className="truncate">{farmerDisplay(group.villageEnglish, group.villageTelugu, showTelugu)}</p>
-                  <p className="truncate text-slate-500 dark:text-slate-400">{uiLabel('Survey', showTelugu)}: {group.surveyNo || '-'}</p>
-                </div>
-                <div className="min-w-0 text-slate-600 dark:text-slate-300">
-                  <p className="truncate">{uiLabel('Phone', showTelugu)}: {group.phoneNumber || '-'} | {uiLabel('Aadhaar', showTelugu)}: {group.aadhaarNo || '-'}</p>
-                  <p className="truncate">{uiLabel('PPB', showTelugu)}: {group.ppbNo || '-'} | {group.cropRows.map((item) => `${cropDisplay(item.crop, showTelugu)}: ${formatExtent(guntasToExtent(item.extent))}`).join(', ')}</p>
-                </div>
-                <div className="flex items-center justify-between gap-2 sm:justify-end">
-                  <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 font-black text-emerald-700 dark:text-emerald-300">{formatExtent(guntasToExtent(group.totalExtent))} {uiLabel('ac', showTelugu)}</span>
-                  <button type="button" onClick={() => openDetails(group)} className="icon-action" aria-label={uiLabel('View details', showTelugu)}><Eye className="h-4 w-4" /></button>
-                  {phoneLink(group.phoneNumber) && (
-                    <a href={phoneLink(group.phoneNumber)} className="icon-action" aria-label={uiLabel('Call farmer', showTelugu)} title={uiLabel('Call farmer', showTelugu)}>
-                      <PhoneCall className="h-4 w-4" />
-                    </a>
-                  )}
-                  {whatsappLink(group.phoneNumber) && (
-                    <a href={whatsappLink(group.phoneNumber)} target="_blank" rel="noreferrer" className="icon-action text-emerald-700 dark:text-emerald-300" aria-label={uiLabel('WhatsApp farmer', showTelugu)} title={uiLabel('WhatsApp farmer', showTelugu)}>
-                      <WhatsAppIcon className="h-4 w-4" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-10 text-center text-sm font-bold text-slate-500 dark:text-slate-400">{uiLabel(emptyStateText, showTelugu)}</div>
-        )}
-        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 px-3 py-2 text-xs font-black">
-          <button type="button" onClick={() => setPage((value) => Math.max(0, value - 1))} disabled={page === 0} className="rounded-md border px-3 py-1.5 disabled:opacity-50">{uiLabel('Previous', showTelugu)}</button>
-          <span>{uiLabel('Page', showTelugu)} {Math.min(page + 1, totalPages)}/{totalPages}</span>
-          <button type="button" onClick={() => setPage((value) => value + 1)} disabled={!hasMore} className="rounded-md border px-3 py-1.5 disabled:opacity-50">{uiLabel('Next', showTelugu)}</button>
-        </div>
       </section>
 
       {selected && (
@@ -943,8 +988,22 @@ function useNearViewport<T extends Element>() {
   return { ref, isVisible };
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm"><h2 className="mb-2 text-sm font-black text-slate-950 dark:text-white">{title}</h2>{children}</section>;
+function ChartCard({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-between gap-2 p-3 text-left"
+        aria-expanded={open}
+      >
+        <h2 className="text-sm font-black text-slate-950 dark:text-white">{title}</h2>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && <div className="border-t border-slate-100 p-3 pt-2 dark:border-slate-800">{children}</div>}
+    </section>
+  );
 }
 
 function RequirementTable({
@@ -956,8 +1015,20 @@ function RequirementTable({
   showTelugu: boolean;
   nameLabel: string;
 }) {
+  const [open, setOpen] = useState(false);
   return (
     <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-black uppercase tracking-wide text-slate-600 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+        aria-expanded={open}
+      >
+        <span>{uiLabel('Requirement table', showTelugu)}</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+      <>
       <div className="table-scroll">
         <table className="w-full min-w-[420px] text-xs">
           <thead className="bg-slate-900 text-white">
@@ -983,6 +1054,8 @@ function RequirementTable({
       <p className="border-t border-slate-100 dark:border-slate-800 px-3 py-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
         {uiLabel('Calculation: Cotton 2 bags/ac, Maize 4 bags/ac, Paddy 3 bags/ac, other crops 1 bag/ac. 1 bag = 45 kg.', showTelugu)}
       </p>
+      </>
+      )}
     </div>
   );
 }

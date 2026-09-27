@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 
 type BackButtonTone = 'light' | 'solid';
 
@@ -21,8 +21,8 @@ const toneClass: Record<BackButtonTone, string> = {
 };
 
 /**
- * Bare back-arrow button that sits flush on the header's leading edge.
- * No border/background — just the arrow glyph with a generous touch target.
+ * Bare back-chevron button that sits flush on the header's leading edge.
+ * No border/background — just the chevron glyph with a generous touch target.
  */
 export function BackButton({ onClick, tone = 'light', colors, className = '', label = 'Go back' }: BackButtonProps) {
   return (
@@ -37,7 +37,7 @@ export function BackButton({ onClick, tone = 'light', colors, className = '', la
         className,
       ].join(' ')}
     >
-      <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+      <ChevronLeft className="h-5 w-5" aria-hidden="true" />
     </button>
   );
 }

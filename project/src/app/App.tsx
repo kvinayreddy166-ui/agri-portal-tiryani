@@ -10,7 +10,6 @@ import { HelmetProvider } from 'react-helmet-async';
 import { SEO, OrganizationSchema } from '../shared/components/seo/SEO';
 import { UpdateBanner } from '../shared/components/UpdateBanner';
 import {
-  INACTIVITY_SIGN_OUT_MS,
   PUBLIC_AUTH_ROUTES,
   PUBLIC_PAGES,
   PUBLIC_VIEW_PAGES,
@@ -24,12 +23,12 @@ import {
   useAppScrollRestoration,
   useInitialBackFallback,
 } from './router/navigation';
-import { AppVersionBadge, GlobalAppLoader, PageLoader, SafeSuspense } from './router/loading';
+import { GlobalAppLoader, PageLoader, SafeSuspense } from './router/loading';
 import { PageSwitch, PublicPageSwitch } from './router/PageSwitch';
 import { Layout, Login } from './router/lazyPages';
 
 function AppContent() {
-  const { user, loading, authChecked, appReady, isAdminUser, isTestUser, isDealerUser, signOut } = useAuth();
+  const { user, loading, authChecked, appReady, isAdminUser, isTestUser, isDealerUser } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const navigationType = useNavigationType();
@@ -70,18 +69,6 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState(() => getPageFromLocation());
   const pageRef = useRef(currentPage);
 
-  const returnToLoginPage = useCallback(() => {
-    pageRef.current = 'dashboard';
-    setCurrentPage('dashboard');
-    window.localStorage.removeItem('tiryani-post-login-page');
-    navigate('/dashboard', { replace: true });
-  }, [navigate]);
-
-  const handleSignOut = useCallback(() => {
-    returnToLoginPage();
-    void signOut();
-  }, [returnToLoginPage, signOut]);
-
   const navigateToPage = useCallback(
     (page: string, options: { replace?: boolean } = {}) => {
       if (!validPages.has(page)) return;
@@ -102,9 +89,16 @@ function AppContent() {
 
   const handleBack = useCallback(() => {
     if (!confirmDiscardIfDirty()) return;
+    if (isAdminUser || isTestUser) {
+      const idx = (window.history.state as { idx?: number } | null)?.idx;
+      if (typeof idx === 'number' && idx > 0) {
+        navigate(-1);
+        return;
+      }
+    }
     const fallbackPage = getPageBackFallback(currentPage, isDealerUser);
     navigate(pageToPath(fallbackPage), { replace: true });
-  }, [currentPage, isDealerUser, navigate]);
+  }, [currentPage, isAdminUser, isTestUser, isDealerUser, navigate]);
 
   useEffect(() => {
     const nextPage = getPageFromLocation();
@@ -123,27 +117,6 @@ function AppContent() {
       navigateToPage('dealer-portal', { replace: true });
     }
   }, [currentPage, isDealerUser, navigateToPage, user]);
-
-  useEffect(() => {
-    if (!user) return;
-
-    let timeoutId = 0;
-    const resetTimer = () => {
-      window.clearTimeout(timeoutId);
-      timeoutId = window.setTimeout(() => {
-        handleSignOut();
-      }, INACTIVITY_SIGN_OUT_MS);
-    };
-
-    const activityEvents = ['click', 'keydown', 'mousemove', 'pointerdown', 'scroll', 'touchstart'];
-    activityEvents.forEach((eventName) => window.addEventListener(eventName, resetTimer, { passive: true }));
-    resetTimer();
-
-    return () => {
-      window.clearTimeout(timeoutId);
-      activityEvents.forEach((eventName) => window.removeEventListener(eventName, resetTimer));
-    };
-  }, [handleSignOut, user]);
 
   useEffect(() => {
     const isDefaultAuthRoute = location.pathname === '/' || location.pathname === '/login';
@@ -205,7 +178,7 @@ function AppContent() {
 
   return (
     <SafeSuspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
-      <Layout currentPage={currentPage} onNavigate={navigateToPage} onBack={handleBack} onSignOut={handleSignOut}>
+      <Layout currentPage={currentPage} onNavigate={navigateToPage} onBack={handleBack}>
         <PageSwitch currentPage={currentPage} isAdminUser={isAdminUser} isTestUser={isTestUser} />
         {isOfficerToolkitRoute && <AgronixBrandMark />}
       </Layout>
@@ -243,7 +216,6 @@ function App() {
               <OfflineScreen />
               <UpdateBanner />
               <AppContent />
-              <AppVersionBadge />
             </LanguageScope>
           </BrowserRouter>
         </AuthProvider>

@@ -30,6 +30,51 @@ const categoryLabels = {
   fertilizers: 'Fertilizers',
 };
 
+const categoryThemes = {
+  seeds: {
+    header: 'border-emerald-200 bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-100 dark:border-emerald-800/60 dark:from-emerald-950/60 dark:via-slate-900 dark:to-emerald-900/40',
+    title: 'text-emerald-950 dark:text-emerald-50',
+    accent: 'text-emerald-700 dark:text-emerald-300',
+    sub: 'text-emerald-800/80 dark:text-emerald-200/80',
+    card: 'border-emerald-200 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-50 dark:from-emerald-950 to-emerald-100 dark:to-emerald-900',
+    iconBg: 'bg-emerald-200 text-emerald-700 dark:text-emerald-300',
+    chip: 'bg-emerald-200 text-emerald-800 dark:text-emerald-300',
+    label: 'text-emerald-600 dark:text-emerald-300',
+    input: 'border-emerald-300 dark:border-emerald-700 focus:border-emerald-500 focus:ring-emerald-100',
+    saveBtn: 'bg-emerald-600 hover:bg-emerald-700',
+    primary: 'bg-emerald-700 shadow-emerald-900/10 hover:bg-emerald-800',
+    icon: 'text-emerald-600 dark:text-emerald-300',
+  },
+  pesticides: {
+    header: 'border-rose-200 bg-gradient-to-r from-rose-50 via-red-50 to-rose-100 dark:border-rose-800/60 dark:from-rose-950/60 dark:via-slate-900 dark:to-rose-900/40',
+    title: 'text-rose-950 dark:text-rose-50',
+    accent: 'text-rose-700 dark:text-rose-300',
+    sub: 'text-rose-800/80 dark:text-rose-200/80',
+    card: 'border-rose-200 dark:border-rose-800/50 bg-gradient-to-br from-rose-50 dark:from-rose-950 to-rose-100 dark:to-rose-900',
+    iconBg: 'bg-rose-200 text-rose-700 dark:text-rose-300',
+    chip: 'bg-rose-200 text-rose-800 dark:text-rose-300',
+    label: 'text-rose-600 dark:text-rose-300',
+    input: 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100',
+    saveBtn: 'bg-rose-600 hover:bg-rose-700',
+    primary: 'bg-rose-700 shadow-rose-900/10 hover:bg-rose-800',
+    icon: 'text-rose-600 dark:text-rose-300',
+  },
+  fertilizers: {
+    header: 'border-sky-200 bg-gradient-to-r from-sky-50 via-blue-50 to-sky-100 dark:border-sky-800/60 dark:from-sky-950/60 dark:via-slate-900 dark:to-sky-900/40',
+    title: 'text-sky-950 dark:text-sky-50',
+    accent: 'text-sky-700 dark:text-sky-300',
+    sub: 'text-sky-800/80 dark:text-sky-200/80',
+    card: 'border-sky-200 dark:border-sky-800/50 bg-gradient-to-br from-sky-50 dark:from-sky-950 to-sky-100 dark:to-sky-900',
+    iconBg: 'bg-sky-200 text-sky-700 dark:text-sky-300',
+    chip: 'bg-sky-200 text-sky-800 dark:text-sky-300',
+    label: 'text-sky-600 dark:text-sky-300',
+    input: 'border-sky-300 dark:border-sky-700 focus:border-sky-500 focus:ring-sky-100',
+    saveBtn: 'bg-sky-600 hover:bg-sky-700',
+    primary: 'bg-sky-700 shadow-sky-900/10 hover:bg-sky-800',
+    icon: 'text-sky-600 dark:text-sky-300',
+  },
+} as const;
+
 const QUALITY_FINANCIAL_YEARS = ['2025-26', '2026-27', '2027-28', '2028-29', '2029-30', '2030-31'];
 
 const currentFinancialYear = () => {
@@ -64,6 +109,7 @@ export function QualityControl({ category }: QualityControlProps) {
   const [sampleFile, setSampleFile] = useState<File | null>(null);
 
   const categoryTitle = categoryLabels[category];
+  const theme = categoryThemes[category];
   const progress = useMemo(() => {
     if (!targetCount) return 0;
     return Math.min(100, Math.round((samples.length / targetCount) * 100));
@@ -219,21 +265,21 @@ export function QualityControl({ category }: QualityControlProps) {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-lg bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-3 text-white shadow-md md:p-4">
+      <div className={`rounded-lg border p-3 shadow-md md:p-4 ${theme.header}`}>
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-emerald-100">Quality Control</p>
-            <h1 className="text-2xl font-black tracking-tight">{categoryTitle}</h1>
-            <p className="mt-0.5 max-w-2xl text-xs text-emerald-50">
+            <p className={`text-xs font-bold uppercase tracking-wide ${theme.accent}`}>Quality Control</p>
+            <h1 className={`text-2xl font-black tracking-tight ${theme.title}`}>{categoryTitle}</h1>
+            <p className={`mt-0.5 max-w-2xl text-xs ${theme.sub}`}>
               Track dealer samples, uploaded sample-drawn forms, and financial-year targets.
             </p>
           </div>
           <div className="min-w-52">
-            <label className="mb-1 block text-xs font-bold text-emerald-50">Financial Year</label>
+            <label className={`mb-1 block text-xs font-bold ${theme.accent}`}>Financial Year</label>
             <select
               value={financialYear}
               onChange={(e) => setFinancialYear(e.target.value)}
-              className="w-full rounded-lg border border-white/20 bg-white dark:bg-slate-900 px-3 py-2 font-bold text-gray-950 dark:text-white outline-none"
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 font-bold text-gray-950 dark:text-white outline-none"
             >
               {financialYearOptions().map((year) => (
                 <option key={year} value={year}>{year}</option>
@@ -244,14 +290,14 @@ export function QualityControl({ category }: QualityControlProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
-        <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-50 dark:from-emerald-950 to-emerald-100 dark:to-emerald-900 p-3 shadow-sm">
+        <div className={`rounded-lg border p-3 shadow-sm ${theme.card}`}>
           <div className="mb-2 flex items-center justify-between">
-            <div className="rounded-lg bg-emerald-200 p-2 text-emerald-700 dark:text-emerald-300">
+            <div className={`rounded-lg p-2 ${theme.iconBg}`}>
               <Target className="h-5 w-5" />
             </div>
-            <span className="rounded-full bg-emerald-200 px-3 py-1 text-sm font-bold text-emerald-800 dark:text-emerald-300">{financialYear}</span>
+            <span className={`rounded-full px-3 py-1 text-sm font-bold ${theme.chip}`}>{financialYear}</span>
           </div>
-          <p className="text-xs font-bold uppercase tracking-wide text-emerald-600 dark:text-emerald-300">{t('Target', 'లక్ష్యం')}</p>
+          <p className={`text-xs font-bold uppercase tracking-wide ${theme.label}`}>{t('Target', 'లక్ష్యం')}</p>
           {isAdminUser ? (
             <div className="mt-2 flex gap-2">
               <input
@@ -259,19 +305,19 @@ export function QualityControl({ category }: QualityControlProps) {
                 min="0"
                 value={targetCount}
                 onChange={(e) => setTargetCount(parseInt(e.target.value) || 0)}
-                className="w-full rounded-lg border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-lg font-black outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className={`w-full rounded-lg border bg-white dark:bg-slate-900 px-3 py-1.5 text-lg font-black outline-none focus:ring-4 ${theme.input}`}
               />
               <button
                 onClick={saveTarget}
                 disabled={saving}
-                className="rounded-lg bg-emerald-600 px-3 text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                className={`rounded-lg px-3 text-white transition disabled:opacity-60 ${theme.saveBtn}`}
                 aria-label="Save target"
               >
                 <Save className="h-5 w-5" />
               </button>
             </div>
           ) : (
-            <p className="mt-1 text-2xl font-black text-emerald-900 dark:text-emerald-200">{targetCount}</p>
+            <p className={`mt-1 text-2xl font-black ${theme.title}`}>{targetCount}</p>
           )}
         </div>
 
@@ -304,7 +350,7 @@ export function QualityControl({ category }: QualityControlProps) {
           {isAdminUser && (
             <button
               onClick={() => setShowSampleForm(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+              className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-white shadow-lg transition ${theme.primary}`}
             >
                 <Plus className="h-4 w-4" />
               {t('Add Sample', 'నమూనా జోడించు')}
@@ -331,11 +377,11 @@ export function QualityControl({ category }: QualityControlProps) {
                     </div>
                   </div>
                   <div className="col-start-1 space-y-1 text-xs text-gray-600 dark:text-slate-300 lg:col-start-auto lg:text-sm">
-                    <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />{sample.phone_number || 'No phone'}</p>
-                    <p className="flex items-center gap-2"><MapPin className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />{sample.location || 'No location'}</p>
+                    <p className="flex items-center gap-2"><Phone className={`h-4 w-4 ${theme.icon}`} />{sample.phone_number || 'No phone'}</p>
+                    <p className="flex items-center gap-2"><MapPin className={`h-4 w-4 ${theme.icon}`} />{sample.location || 'No location'}</p>
                   </div>
                   <div className="col-start-1 text-xs text-gray-600 dark:text-slate-300 lg:col-start-auto lg:text-sm">
-                    <p className="flex items-center gap-2 font-semibold"><CalendarDays className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />{new Date(sample.sample_date).toLocaleDateString()}</p>
+                    <p className="flex items-center gap-2 font-semibold"><CalendarDays className={`h-4 w-4 ${theme.icon}`} />{new Date(sample.sample_date).toLocaleDateString()}</p>
                     {sample.remarks && <p className="mt-1 line-clamp-1">{sample.remarks}</p>}
                   </div>
                   <div className="row-span-3 flex items-center gap-1 lg:row-span-1">

@@ -19,7 +19,6 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/insecticide-dealer-inspection',
   '/officer-toolkit/inspections-notices',
 ]);
-export const INACTIVITY_SIGN_OUT_MS = 5 * 60 * 1000;
 
 // Page keys renderable without authentication (handled by PublicPageSwitch).
 export const PUBLIC_PAGES = new Set([

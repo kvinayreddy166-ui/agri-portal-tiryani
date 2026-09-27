@@ -17,6 +17,7 @@ import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
+import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { repairTeluguRecord, repairTeluguText } from '../../../shared/utils/textRepair';
 import {
   DEFAULT_GRADES,
@@ -1314,7 +1315,8 @@ function recommendationNpkLabel(recommendation: CropRecommendation) {
 
 export function FertilizerCalculator() {
   const navigate = useNavigate();
-  const { isAdminUser, user } = useAuth();
+  const { isAdminUser, isTestUser, user } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
   const [language, setLanguage] = useState<'en' | 'te'>('en');
   const toggleLanguage = () => setLanguage((current) => (current === 'en' ? 'te' : 'en'));
   const uiLabels = useMemo(() => (language === 'te' ? repairTeluguRecord(UI_LABELS.te) : UI_LABELS.en), [language]);
@@ -1856,6 +1858,13 @@ export function FertilizerCalculator() {
   return (
     <div className="space-y-2 sm:space-y-3">
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        {showCompactHeader ? (
+          <CompactToolkitHeader
+            eyebrow="Farm Calculators"
+            title={language === 'te' ? 'ఎరువుల క్యాలిక్యులేటర్' : 'Fertilizer Calculator'}
+            subtitle={language === 'te' ? 'పంటకు అవసరమైన ఎరువుల లెక్కింపు' : 'Calculate crop fertilizer requirements'}
+          />
+        ) : (
         <section className="overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 text-white shadow-lg dark:border-emerald-800/50 sm:p-5">
           <div className="flex items-start gap-3">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-0.5" />
@@ -1873,6 +1882,7 @@ export function FertilizerCalculator() {
             <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
           </div>
         </section>
+        )}
       </div>
 
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">

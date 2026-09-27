@@ -402,9 +402,17 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         )}
 
         {shouldHideHeader && (
-          <div className={`mb-4 flex justify-end transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <LanguageToggle language={language} onClick={toggleLanguage} />
-          </div>
+          <header className={`mb-4 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <p className="text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+              Officer Toolkit
+            </p>
+            <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-900 dark:text-white sm:text-3xl">
+              {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+            </h1>
+            <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+              {t('Agricultural Tools & Government Portals', 'వ్యవసాయ పనిముట్లు & ప్రభుత్వ పోర్టల్స్')}
+            </p>
+          </header>
         )}
 
         {/* Internal Tools Section */}

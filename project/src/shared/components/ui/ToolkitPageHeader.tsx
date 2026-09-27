@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type LucideIcon } from 'lucide-react';
 import { BackButton } from './BackButton';
+import { useAuth } from '../../context/AuthContext';
 
 export type ToolkitHeaderTone = 'emerald' | 'sky' | 'rose' | 'lime' | 'indigo' | 'amber' | 'teal-indigo';
 
@@ -134,6 +135,37 @@ const SOLID_STYLES: Record<
   },
 };
 
+export function CompactToolkitHeader({
+  title,
+  eyebrow = 'Officer Toolkit',
+  subtitle,
+  actions,
+  className = '',
+}: Pick<ToolkitPageHeaderProps, 'title' | 'eyebrow' | 'subtitle' | 'actions' | 'className'>) {
+  return (
+    <header className={`mb-5 ${className}`}>
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0">
+          {eyebrow && (
+            <p className="text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+              {eyebrow}
+            </p>
+          )}
+          <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-900 dark:text-white sm:text-3xl">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+              {subtitle}
+            </p>
+          )}
+        </div>
+        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      </div>
+    </header>
+  );
+}
+
 export function ToolkitPageHeader({
   title,
   eyebrow = 'Officer Toolkit',
@@ -147,7 +179,20 @@ export function ToolkitPageHeader({
   className = '',
 }: ToolkitPageHeaderProps) {
   const navigate = useNavigate();
+  const { isAdminUser, isTestUser } = useAuth();
   const theme = (variant === 'solid' ? SOLID_STYLES[tone] : TONE_STYLES[tone]) || TONE_STYLES.emerald;
+
+  if (isAdminUser || isTestUser) {
+    return (
+      <CompactToolkitHeader
+        title={title}
+        eyebrow={eyebrow}
+        subtitle={subtitle}
+        actions={actions}
+        className={className}
+      />
+    );
+  }
 
   const handleBack = () => {
     if (onBack) {

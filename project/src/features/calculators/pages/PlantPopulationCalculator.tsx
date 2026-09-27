@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
+import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
 type AreaUnit = 'acres' | 'hectares';
@@ -31,6 +33,8 @@ const numericFieldWarnings: Partial<Record<keyof typeof initialForm, [string, st
 export function PlantPopulationCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
+  const { isAdminUser, isTestUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
   const { toasts, removeToast, showWarning } = useToast();
@@ -73,6 +77,13 @@ export function PlantPopulationCalculator() {
     <div className="space-y-3">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        {showCompactHeader ? (
+          <CompactToolkitHeader
+            eyebrow="Farm Calculators"
+            title={t('Plant Population Calculator', 'మొక్కల జనాభా కాలిక్యులేటర్')}
+            subtitle={t('Calculate plant stand from row and plant spacing.', 'వరుసల మధ్య మరియు మొక్కల మధ్య దూరం ఆధారంగా మొక్కల సంఖ్యను లెక్కించండి.')}
+          />
+        ) : (
         <section className="relative rounded-2xl border border-green-300/60 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-700 p-4 shadow-lg dark:border-green-700/60 sm:p-4">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
@@ -90,6 +101,7 @@ export function PlantPopulationCalculator() {
             <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
           </div>
         </section>
+        )}
       </div>
 
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">

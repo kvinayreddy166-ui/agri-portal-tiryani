@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Calculator, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BackButton } from '../../../shared/components/ui/BackButton';
+import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { useAuth } from '../../../shared/context/AuthContext';
 
 const STORAGE_KEY = 'tiryani-acreage-calculator-input';
 const MODE_STORAGE_KEY = 'tiryani-acreage-calculator-mode';
@@ -26,6 +28,8 @@ const modeOptions: Array<{ value: AcreageMode; label: string }> = [
 
 export function AcreageCalculator() {
   const navigate = useNavigate();
+  const { isAdminUser, isTestUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
   const [mode, setMode] = useState<AcreageMode>(() => readMode());
   const [acreInput, setAcreInput] = useState(() => window.sessionStorage.getItem(STORAGE_KEY) || '');
   const [centInput, setCentInput] = useState(() => window.sessionStorage.getItem(CENTS_STORAGE_KEY) || '');
@@ -79,6 +83,13 @@ export function AcreageCalculator() {
   return (
     <div className="space-y-4">
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        {showCompactHeader ? (
+          <CompactToolkitHeader
+            eyebrow="Farm Calculators"
+            title="Area Calculator"
+            subtitle="Convert land area between acres, hectares, cents and guntas for field reports."
+          />
+        ) : (
         <section className="rounded-2xl border border-sky-300/60 bg-gradient-to-br from-sky-600 via-cyan-600 to-teal-700 p-4 shadow-lg dark:border-sky-700/60">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
@@ -91,6 +102,7 @@ export function AcreageCalculator() {
             </div>
           </div>
         </section>
+        )}
       </div>
 
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">

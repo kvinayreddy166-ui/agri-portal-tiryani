@@ -211,10 +211,4 @@ export function PublicReadOnlyShell({
   );
 }
 
-export function AppVersionBadge() {
-  return (
-    <div className="pointer-events-none fixed bottom-1 right-2 z-[60] rounded-full bg-white/80 px-2 py-1 text-[10px] font-black text-slate-500 shadow-sm ring-1 ring-slate-200 backdrop-blur dark:bg-slate-950/70 dark:text-slate-400 dark:ring-slate-800">
-      App Version: {APP_BUILD_LABEL}
-    </div>
-  );
-}
+

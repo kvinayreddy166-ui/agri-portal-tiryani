@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
+import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
 type AreaUnit = 'acres' | 'hectares';
@@ -35,6 +37,8 @@ const numericFieldWarnings: Partial<Record<keyof typeof initialForm, { isInvalid
 export function SeedRateCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
+  const { isAdminUser, isTestUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
   const { toasts, removeToast, showWarning } = useToast();
@@ -77,6 +81,13 @@ export function SeedRateCalculator() {
     <div className="space-y-3">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        {showCompactHeader ? (
+          <CompactToolkitHeader
+            eyebrow="Farm Calculators"
+            title={t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్')}
+            subtitle={t('Calculate seed requirement from population, germination and test weight.', 'జనాభా, మొలక శాతం మరియు టెస్ట్ వెయిట్ ఆధారంగా విత్తన అవసరాన్ని లెక్కించండి.')}
+          />
+        ) : (
         <section className="relative rounded-2xl border border-lime-300/60 bg-gradient-to-br from-lime-600 via-green-600 to-emerald-700 p-4 shadow-lg dark:border-lime-700/60 sm:p-4">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
@@ -94,6 +105,7 @@ export function SeedRateCalculator() {
             <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
           </div>
         </section>
+        )}
       </div>
 
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">

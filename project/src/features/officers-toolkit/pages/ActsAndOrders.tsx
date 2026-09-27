@@ -41,6 +41,7 @@ import { enforcementDeadlines, enforcementMindMap, type MindMapNode } from '../d
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { FertilizerFormPdfGenerator } from '../../statutory-forms/components/FertilizerFormPdfGenerator';
 import { FcoImplementationModal } from '../../../shared/components/ui/FcoImplementationModal';
+import { useAuth } from '../../../shared/context/AuthContext';
 
 type ReckonerView = 'powers' | 'notice';
 type MainLegalArea = 'fertilizer' | 'seed' | 'insecticide';
@@ -216,6 +217,8 @@ function readBookmarks() {
 
 export function ActsAndOrders() {
   const navigate = useNavigate();
+  const { isAdminUser, isTestUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
   const [view, setView] = useState<ReckonerView>('powers');
   const [selectedLegalArea, setSelectedLegalArea] = useState<MainLegalArea | null>(null);
   const [query, setQuery] = useState('');
@@ -304,7 +307,20 @@ export function ActsAndOrders() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-4 px-4 pb-6 pt-4 sm:px-6 sm:pb-8 lg:px-8">
-      {!selectedFcoCardId && (
+      {!selectedFcoCardId && showCompactHeader && (
+        <header className="mb-1">
+          <p className="text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+            Officer Toolkit
+          </p>
+          <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-900 dark:text-white sm:text-3xl">
+            {activeAreaCard?.title || 'Acts & Orders'}
+          </h1>
+          <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+            {activeAreaCard?.description || 'Agriculture laws, rules, and official procedures for Fertilizer, Seed, and Insecticide.'}
+          </p>
+        </header>
+      )}
+      {!selectedFcoCardId && !showCompactHeader && (
       <section className={`overflow-hidden rounded-2xl border px-4 py-3 text-white shadow-md ${
           activeAreaCard
             ? `border-white/20 bg-gradient-to-br ${activeAreaCard.color}`
@@ -633,8 +649,8 @@ function printFcoOffences(entries: FcoOffenceEntry[]) {
 function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => void }) {
   return (
     <section>
-      <h2 className="text-xl font-black text-slate-900 dark:text-white">Select category</h2>
-      <div className="mt-4 space-y-3">
+      <h2 className="text-base font-black text-slate-900 dark:text-white">Select category</h2>
+      <div className="mt-2.5 space-y-2">
         {legalAreaCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -642,16 +658,16 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
               key={card.id}
               type="button"
               onClick={() => onOpen(card.id)}
-              className={`group flex w-full items-center gap-4 rounded-2xl border ${card.border} bg-gradient-to-r ${card.panel} px-4 py-3.5 text-left shadow-sm transition duration-300 hover:shadow-md ${card.hover} focus-visible:outline-blue-700 active:scale-[0.99]`}
+              className={`group flex w-full items-center gap-3 rounded-xl border ${card.border} bg-gradient-to-r ${card.panel} px-3.5 py-2.5 text-left shadow-sm transition duration-300 hover:shadow-md ${card.hover} focus-visible:outline-blue-700 active:scale-[0.99]`}
             >
-              <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-md`}>
-                <Icon className="h-7 w-7" />
+              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-md`}>
+                <Icon className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-lg font-black leading-snug text-slate-900 dark:text-white">{card.title}</span>
-                <span className="mt-0.5 block text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{card.description}</span>
+                <span className="block text-base font-bold leading-snug text-slate-900 dark:text-white">{card.title}</span>
+                <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.description}</span>
               </span>
-              <ChevronRight className={`h-5 w-5 shrink-0 ${card.accent}`} />
+              <ChevronRight className={`h-4 w-4 shrink-0 ${card.accent}`} />
             </button>
           );
         })}

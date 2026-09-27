@@ -25,6 +25,22 @@ const emptyForm = {
 
 const STATE_KEY = 'tiryani-statutory-forms-state';
 
+function isNetworkError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /failed to fetch|network|timed?\s?out|connection/i.test(message);
+}
+
+async function withNetworkRetry<T>(fn: () => PromiseLike<T>, retries = 3): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt >= retries || !isNetworkError(error)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+    }
+  }
+}
+
 export function StatutoryForms() {
   const { isAdminUser } = useAuth();
   const { t } = useLanguage();
@@ -83,11 +99,11 @@ export function StatutoryForms() {
   const fetchForms = async () => {
     setFetchError(null);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await withNetworkRetry(() => supabase
         .from('forms_downloads')
-        .select('id, title, label, description, file_url, file_type, category, created_at')
+        .select('id, title, description, file_url, file_type, category, created_at')
         .in('category', folders.map((folder) => folder.id))
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }));
 
       if (error) throw error;
       setForms(data || []);
@@ -151,8 +167,8 @@ export function StatutoryForms() {
       };
 
       const { error } = editingFormId
-        ? await supabase.from('forms_downloads').update(payload).eq('id', editingFormId)
-        : await supabase.from('forms_downloads').insert([payload]);
+        ? await withNetworkRetry(() => supabase.from('forms_downloads').update(payload).eq('id', editingFormId))
+        : await withNetworkRetry(() => supabase.from('forms_downloads').insert([payload]));
 
       if (error) throw error;
 
@@ -160,7 +176,9 @@ export function StatutoryForms() {
       fetchForms();
     } catch (error) {
       console.error('Error adding document:', error);
-      alert(error instanceof Error ? error.message : 'Failed to add document.');
+      alert(isNetworkError(error)
+        ? 'Network error — could not reach the server. Please try again.'
+        : error instanceof Error ? error.message : 'Failed to add document.');
     } finally {
       setUploading(false);
     }
@@ -169,12 +187,12 @@ export function StatutoryForms() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this item?')) return;
     try {
-      const { error } = await supabase.from('forms_downloads').delete().eq('id', id);
+      const { error } = await withNetworkRetry(() => supabase.from('forms_downloads').delete().eq('id', id));
       if (error) throw error;
       fetchForms();
     } catch (error) {
       console.error('Error deleting document:', error);
-      alert('Failed to delete item');
+      alert(isNetworkError(error) ? 'Network error — could not reach the server. Please try again.' : 'Failed to delete item');
     }
   };
 
