@@ -111,9 +111,9 @@ export function SeedRateCalculator() {
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <section className="rounded-xl border border-lime-300 bg-gradient-to-br from-lime-100 to-emerald-100 p-4 text-sm font-semibold text-emerald-950 shadow-md dark:border-emerald-900 dark:from-emerald-950/50 dark:to-lime-950/30 dark:text-emerald-100">
           <div className="grid gap-2 sm:grid-cols-3">
-            <p><span className="font-black">1.</span> Enter crop area and required population.</p>
-            <p><span className="font-black">2.</span> Add germination and test weight from seed label.</p>
-            <p><span className="font-black">3.</span> Get seed required in kg.</p>
+            <p><span className="font-black">1.</span> {t('Enter crop area and required population.', 'పంట విస్తీర్ణం మరియు అవసరమైన మొక్కల జనాభా నమోదు చేయండి.')}</p>
+            <p><span className="font-black">2.</span> {t('Add germination and test weight from seed label.', 'విత్తన లేబుల్ నుండి మొలక శాతం మరియు టెస్ట్ వెయిట్ జోడించండి.')}</p>
+            <p><span className="font-black">3.</span> {t('Get seed required in kg.', 'అవసరమైన విత్తనాన్ని కిలోల్లో పొందండి.')}</p>
           </div>
         </section>
 

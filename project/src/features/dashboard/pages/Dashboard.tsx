@@ -1,5 +1,5 @@
 ﻿import React, { useCallback, useState, useEffect } from 'react';
-import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2, LogOut } from 'lucide-react';
+import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../../dealer-stock/lib/fertilizerStock';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -37,7 +37,7 @@ type FarmerDashboardStats = {
 let farmerDashboardSeedCache: FarmerDashboardRow[] | null = null;
 
 export const Dashboard = React.memo(function Dashboard() {
-  const { isAdminUser, signOut } = useAuth();
+  const { isAdminUser } = useAuth();
   const { t } = useLanguage();
   const [crops, setCrops] = useState<Crop[]>([]);
   const [fertilizers, setFertilizers] = useState<DailyFertilizerStockSummary[]>([]);
@@ -218,16 +218,6 @@ export const Dashboard = React.memo(function Dashboard() {
 
   return (
     <div className="dashboard-shell space-y-6">
-      <div className="dashboard-rise dashboard-delay-1 flex items-center justify-end">
-        <button
-          type="button"
-          onClick={() => { void signOut(); }}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-3.5 py-2 text-xs font-black uppercase tracking-wide text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
-        >
-          <LogOut className="h-4 w-4" />
-          {t('Sign Out', 'సైన్ అవుట్')}
-        </button>
-      </div>
       <div className="dashboard-rise dashboard-delay-1 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <GoogleMapWidget />
         <WeatherWidget />

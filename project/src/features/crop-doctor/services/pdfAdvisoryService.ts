@@ -1,5 +1,6 @@
 import type { CropProtectionCrop, CropProtectionItem, LanguageCode } from './cropProtectionService';
 import { advisoryText } from './cropProtectionService';
+import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 
 export async function downloadAdvisoryPdf(
   crop: CropProtectionCrop,
@@ -8,6 +9,7 @@ export async function downloadAdvisoryPdf(
 ) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  await setupPdfUnicodeFonts(doc);
   const title = 'Crop Protection Advisory';
   const body = advisoryText(crop, item, language);
   doc.setProperties({ title, creator: 'AGRONIX' });

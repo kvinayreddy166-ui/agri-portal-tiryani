@@ -9,6 +9,7 @@ import {
   TELANGANA_DISTRICTS,
   getMandalsForDistrict,
 } from '../../../shared/data/telanganaDistrictMandalData';
+import { setupPdfUnicodeFonts, DOCX_TELUGU_FONT } from '../../../shared/lib/pdfUnicodeFonts';
 import {
   noticeCategoryConfigs,
   allShowCauseViolations,
@@ -270,7 +271,7 @@ type NoticeBlock =
   | { kind: 'rule' }
   | { kind: 'gap'; mm?: number };
 
-const NOTICE_FONT_STACK = `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', serif`;
+const NOTICE_FONT_STACK = `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`;
 
 function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseViolation[]): NoticeBlock[] {
   const inspectionDate = formatNoticeDate(form.inspectionDate);
@@ -741,7 +742,7 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
     WidthType,
   } = await import('docx');
 
-  const font = 'Book Antiqua';
+  const font = { ascii: 'Book Antiqua', hAnsi: 'Book Antiqua', eastAsia: 'Book Antiqua', cs: DOCX_TELUGU_FONT };
   const fontSize = 24;
   const mmToTwips = (mm: number) => Math.round(mm * 56.6929);
   const runs = (segments: NoticeSegment[]) => segments.map((segment) => new TextRun({ text: segment.text, bold: segment.bold, font, size: fontSize }));
@@ -1127,6 +1128,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
     doc.setProperties({ title: form.memoNumber || 'Show Cause Notice', subject: 'Show Cause Notice', creator: 'AGRONIX' });
     const fontName = await loadNoticeFonts(doc);
+    await setupPdfUnicodeFonts(doc);
 
     const PAGE_W = 210;
     const PAGE_H = 297;

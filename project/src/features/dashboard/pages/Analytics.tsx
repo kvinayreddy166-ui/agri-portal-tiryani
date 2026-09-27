@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Eye, FileSpreadsheet, FileText, Filter, RefreshCw } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
+import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { savePdfDocument, saveWorkbookFile } from '../../documents/lib/documentActions';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { StockCategory, currentReportDate, shiftReportDate } from '../../dealer-stock/lib/stockInventory';
@@ -223,6 +224,7 @@ export function Analytics() {
     try {
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    await setupPdfUnicodeFonts(doc);
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 32;
     let y = 34;

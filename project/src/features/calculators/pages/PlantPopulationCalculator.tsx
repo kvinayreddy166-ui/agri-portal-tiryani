@@ -107,9 +107,9 @@ export function PlantPopulationCalculator() {
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <section className="rounded-xl border border-green-300 bg-gradient-to-br from-green-100 to-lime-100 p-4 text-sm font-semibold text-green-950 shadow-md dark:border-green-900 dark:from-green-950/50 dark:to-lime-950/30 dark:text-green-100">
           <div className="grid gap-2 sm:grid-cols-3">
-            <p><span className="font-black">1.</span> Enter field area.</p>
-            <p><span className="font-black">2.</span> Enter row spacing and plant spacing.</p>
-            <p><span className="font-black">3.</span> Read total plants instantly.</p>
+            <p><span className="font-black">1.</span> {t('Enter field area.', 'పొలం విస్తీర్ణం నమోదు చేయండి.')}</p>
+            <p><span className="font-black">2.</span> {t('Enter row spacing and plant spacing.', 'వరుస దూరం మరియు మొక్కల దూరం నమోదు చేయండి.')}</p>
+            <p><span className="font-black">3.</span> {t('Read total plants instantly.', 'మొత్తం మొక్కల సంఖ్యను వెంటనే చూడండి.')}</p>
           </div>
         </section>
 

@@ -1,4 +1,5 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
+import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import type { FertilizerFormEntry } from '../data/fertilizerForms';
 
 export type FertilizerFormPdfValues = {
@@ -66,6 +67,7 @@ export async function generateFertilizerFormPdf(
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, `${form.formNo} - ${form.title}`);
   
+  await setupPdfUnicodeFonts(doc);
   if (watermarkEnabled) {
     await drawWatermark(doc);
   }

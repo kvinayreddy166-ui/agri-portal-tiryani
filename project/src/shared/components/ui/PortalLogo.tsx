@@ -1,11 +1,12 @@
 import React from 'react';
 
 interface PortalLogoProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
 const sizeMap = {
+  xs: 'h-8 w-8',
   sm: 'h-9 w-9',
   md: 'h-12 w-12',
   lg: 'h-16 w-16',
@@ -13,6 +14,7 @@ const sizeMap = {
 };
 
 const pixelSizeMap = {
+  xs: 32,
   sm: 36,
   md: 48,
   lg: 64,

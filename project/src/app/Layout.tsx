@@ -2,7 +2,7 @@ import React, { useMemo, useState, ReactNode } from 'react';
 import {
   ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
   Archive, BarChart3, Settings, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Database, BookOpen,
+  FolderOpen, Moon, Sun, Landmark, Database, BookOpen, LogOut,
 } from 'lucide-react';
 import { PortalLogo } from '../shared/components/ui/PortalLogo';
 import { LanguageToggle } from '../shared/components/ui/LanguageToggle';
@@ -45,8 +45,10 @@ const menuItems = adminMenuItems;
 
 export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const sidebarOverlay = useBackButtonOverlay('app-sidebar', () => setSidebarOpen(false));
-  const { user, isAdminUser, isDealerUser, dealerName } = useAuth();
+  const profileOverlay = useBackButtonOverlay('profile-menu', () => setProfileOpen(false));
+  const { user, isAdminUser, isDealerUser, dealerName, signOut } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const pageMeta = useMemo(() => getPageMeta(currentPage, t), [currentPage, t]);
@@ -68,6 +70,19 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
     setSidebarOpen(true);
   };
 
+  const toggleProfile = () => {
+    if (profileOpen) {
+      profileOverlay.closeOverlay();
+      return;
+    }
+    profileOverlay.pushOverlay();
+    setProfileOpen(true);
+  };
+
+  const userMeta = (user?.user_metadata ?? {}) as { name?: string; full_name?: string; display_name?: string; designation?: string };
+  const profileName = userMeta.name || userMeta.full_name || userMeta.display_name || user?.email?.split('@')[0] || 'User';
+  const profileRole = userMeta.designation || (isAdminUser ? t('Administrator', 'నిర్వాహకుడు') : isDealerUser ? dealerName || t('Dealer', 'డీలర్') : t('View access', 'చూడే ప్రవేశం'));
+
   const visibleMenuItems = isDealerUser
     ? dealerMenuItems
     : menuItems.filter((item) => {
@@ -81,12 +96,12 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
   return (
     <div className="min-h-screen bg-[#eef6f0] dark:bg-slate-950">
       <header className="sticky top-0 z-50 border-b border-emerald-800/20 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-700 text-white shadow-lg">
-        <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:px-4 lg:px-6">
-          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-1.5 sm:px-4 lg:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <button
               type="button"
               onClick={toggleSidebar}
-              className={`group relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border shadow-sm transition focus:outline-none focus:ring-4 focus:ring-white/25 ${
+              className={`group relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border shadow-sm transition focus:outline-none focus:ring-4 focus:ring-white/25 ${
                 sidebarOpen
                   ? 'border-white/40 bg-white text-emerald-800'
                   : 'border-white/20 bg-white/15 text-white hover:border-white/35 hover:bg-white/25'
@@ -94,32 +109,32 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
               aria-label={sidebarOpen ? t('Close menu', 'మెనూ మూసివేయండి') : t('Open menu', 'మెనూ తెరవండి')}
               aria-expanded={sidebarOpen}
             >
-              <span className="absolute inset-1 rounded-xl bg-white/10 opacity-0 transition group-hover:opacity-100" />
-              {sidebarOpen ? <X className="relative h-5 w-5" /> : <Menu className="relative h-5 w-5" />}
+              <span className="absolute inset-1 rounded-lg bg-white/10 opacity-0 transition group-hover:opacity-100" />
+              {sidebarOpen ? <X className="relative h-4 w-4" /> : <Menu className="relative h-4 w-4" />}
             </button>
 
-            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-              {!hidePortalLogo && <PortalLogo size="sm" />}
+            <div className="flex min-w-0 items-center gap-2">
+              {!hidePortalLogo && <PortalLogo size="xs" />}
               <div className="min-w-0">
                 <h1 className="truncate text-sm font-black tracking-tight sm:text-base font-[var(--font-stylish)]">
                   {t('Agronix', 'తిర్యాని వ్యవసాయ పోర్టల్')}
                 </h1>
-                <p className="truncate text-[10px] font-medium text-emerald-100 sm:text-xs">
+                <p className="truncate text-[10px] font-medium text-emerald-100">
                   {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+          <div className="relative flex shrink-0 items-center gap-1.5">
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
               aria-label={isDark ? 'Light mode' : 'Dark mode'}
               title={isDark ? t('Light mode', 'లైట్ మోడ్') : t('Dark mode', 'డార్క్ మోడ్')}
             >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
             </button>
             <LanguageToggle
               language={language}
@@ -127,16 +142,59 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
               tone="solid"
               label={t('Change language', 'భాష మార్చండి')}
             />
-            <span
-              className={`hidden rounded-full px-2.5 py-1 text-[10px] font-bold sm:inline-block sm:text-xs ${
-                isAdminUser ? 'bg-amber-200 text-amber-950' : 'bg-cyan-200 text-cyan-950'
-              }`}
+            <button
+              type="button"
+              onClick={toggleProfile}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-bold transition hover:bg-white/30 focus:outline-none focus:ring-4 focus:ring-white/25"
+              aria-label={t('Profile menu', 'ప్రొఫైల్ మెనూ')}
+              aria-expanded={profileOpen}
+              aria-haspopup="menu"
             >
-              {isAdminUser ? t('Admin', 'అడ్మిన్') : isDealerUser ? t('Dealer', 'డీలర్') : t('Test User', 'టెస్ట్ యూజర్')}
-            </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-sm font-bold">
               {user?.email?.charAt(0).toUpperCase()}
-            </div>
+            </button>
+            {profileOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={profileOverlay.closeOverlay} aria-hidden />
+                <div
+                  className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-950/15 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                  role="menu"
+                >
+                  <div className="flex items-center gap-2.5 border-b border-slate-100 px-3.5 py-3 dark:border-slate-800">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 text-sm font-black text-white">
+                      {user?.email?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-black">{profileName}</p>
+                      <p className="truncate text-[11px] font-semibold text-slate-500 dark:text-slate-400">{profileRole}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      profileOverlay.closeOverlay();
+                      handleNavigation('settings');
+                    }}
+                    className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-bold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    <Settings className="h-4 w-4 shrink-0 text-slate-400" />
+                    {t('Settings', 'సెట్టింగులు')}
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      profileOverlay.releaseOverlay();
+                      void signOut();
+                    }}
+                    className="flex w-full items-center gap-2.5 border-t border-slate-100 px-3.5 py-2.5 text-left text-[13px] font-bold text-red-600 transition hover:bg-red-50 dark:border-slate-800 dark:text-red-400 dark:hover:bg-red-950/40"
+                  >
+                    <LogOut className="h-4 w-4 shrink-0" />
+                    {t('Sign Out', 'సైన్ అవుట్')}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -234,7 +292,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
         </div>
       </aside>
 
-      <main className="min-h-[calc(100vh-4.25rem)] max-w-full overflow-x-hidden">
+      <main className="min-h-[calc(100vh-3rem)] max-w-full overflow-x-hidden">
         <div className="mx-auto w-full max-w-7xl overflow-x-hidden p-3 sm:p-4 md:p-5 lg:p-6">
           {currentPage !== 'dashboard' && currentPage !== 'dealer-portal' && (
             <div className="mb-4 flex items-center gap-2">

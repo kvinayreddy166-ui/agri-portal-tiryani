@@ -1,5 +1,6 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
+import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { drawJustifiedBodyText } from '../../../shared/lib/pdfText';
 
@@ -88,6 +89,7 @@ export async function generateCoveringLetterPdf(
 
   const doc = createDocument(jsPDF, 'Covering Letter - Fertilizer Samples');
 
+  await setupPdfUnicodeFonts(doc);
   await drawWatermark(doc);
 
   // Set bottom margin based on letter type

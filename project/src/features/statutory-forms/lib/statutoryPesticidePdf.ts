@@ -1,4 +1,5 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
+import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 
 export type PesticideStatutoryFormType = 'VC' | 'VD' | 'VE' | 'DOCKET';
@@ -504,6 +505,7 @@ type PdfCursor = {
 export async function generatePesticideStatutoryPdf(formType: PesticideStatutoryFormType, values: PesticidePdfValues, _watermarkEnabled: boolean = false) {
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, `${pesticideFormTitles[formType]} - Pesticide Sampling`);
+  await setupPdfUnicodeFonts(doc);
   await drawWatermark(doc);
   drawPesticideForm(doc, formType, normalizePesticideValues(values));
   return doc;
@@ -512,6 +514,7 @@ export async function generatePesticideStatutoryPdf(formType: PesticideStatutory
 export async function generateAllPesticideStatutoryPdf(values: PesticidePdfValues, _watermarkEnabled: boolean = false) {
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, 'Form VC VD VE Docket - Pesticide Sampling');
+  await setupPdfUnicodeFonts(doc);
   const normalized = normalizePesticideValues(values);
   await drawWatermark(doc);
   drawPesticideForm(doc, 'VD', normalized);

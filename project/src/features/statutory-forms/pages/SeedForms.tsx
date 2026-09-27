@@ -11,6 +11,7 @@ import {
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { PopupHintWrapper } from '../../../shared/components/PopupHint';
+import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
@@ -1020,6 +1021,7 @@ function validateSeedForm(form: any, _kind: any) {
 async function buildSeedPdf(kind: any, form: any) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  await setupPdfUnicodeFonts(doc);
   doc.setProperties({ title: `Seed Form ${kind}`, creator: 'AGRONIX' });
 
   // Add watermark to initial page

@@ -3,7 +3,9 @@ import { Calculator, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 const STORAGE_KEY = 'tiryani-acreage-calculator-input';
 const MODE_STORAGE_KEY = 'tiryani-acreage-calculator-mode';
@@ -18,17 +20,18 @@ const HECTARES_PER_ACRE = 0.404686;
 
 type AcreageMode = 'acres' | 'cents' | 'acres-cents' | 'guntas' | 'hectares';
 
-const modeOptions: Array<{ value: AcreageMode; label: string }> = [
-  { value: 'acres', label: 'Acres.Guntas' },
-  { value: 'cents', label: 'Cents' },
-  { value: 'acres-cents', label: 'Acres.Cents' },
-  { value: 'guntas', label: 'Guntas' },
-  { value: 'hectares', label: 'Hectares' },
+const modeOptions: Array<{ value: AcreageMode; label: string; telugu: string }> = [
+  { value: 'acres', label: 'Acres.Guntas', telugu: 'ఎకరాలు.గుంటలు' },
+  { value: 'cents', label: 'Cents', telugu: 'సెంట్లు' },
+  { value: 'acres-cents', label: 'Acres.Cents', telugu: 'ఎకరాలు.సెంట్లు' },
+  { value: 'guntas', label: 'Guntas', telugu: 'గుంటలు' },
+  { value: 'hectares', label: 'Hectares', telugu: 'హెక్టార్లు' },
 ];
 
 export function AcreageCalculator() {
   const navigate = useNavigate();
   const { isAdminUser, isTestUser } = useAuth();
+  const { language, toggleLanguage, t } = useLanguage();
   const showCompactHeader = isAdminUser || isTestUser;
   const [mode, setMode] = useState<AcreageMode>(() => readMode());
   const [acreInput, setAcreInput] = useState(() => window.sessionStorage.getItem(STORAGE_KEY) || '');
@@ -37,11 +40,11 @@ export function AcreageCalculator() {
   const [hectareInput, setHectareInput] = useState(() => window.sessionStorage.getItem(HECTARES_STORAGE_KEY) || '');
   const [acresCentsPasteInput, setAcresCentsPasteInput] = useState(() => window.sessionStorage.getItem(ACRES_CENTS_PASTE_STORAGE_KEY) || '');
   const result = useMemo(
-    () => calculateAcreageResult({ mode, acreInput, centInput, guntaInput, hectareInput, acresCentsPasteInput }),
-    [acreInput, acresCentsPasteInput, centInput, guntaInput, hectareInput, mode]
+    () => calculateAcreageResult({ mode, acreInput, centInput, guntaInput, hectareInput, acresCentsPasteInput, t }),
+    [acreInput, acresCentsPasteInput, centInput, guntaInput, hectareInput, mode, t]
   );
   const acreResult = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
-  const guideItems = useMemo(() => getAcreageGuide(mode), [mode]);
+  const guideItems = useMemo(() => getAcreageGuide(mode, t), [mode, t]);
   const hasInput = Boolean(acreInput || centInput || guntaInput || hectareInput || acresCentsPasteInput);
 
   const resetCalculator = () => {
@@ -85,21 +88,25 @@ export function AcreageCalculator() {
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         {showCompactHeader ? (
           <CompactToolkitHeader
-            eyebrow="Farm Calculators"
-            title="Area Calculator"
-            subtitle="Convert land area between acres, hectares, cents and guntas for field reports."
+            eyebrow={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+            title={t('Area Calculator', 'విస్తీర్ణ కాలిక్యులేటర్')}
+            subtitle={t('Convert land area between acres, hectares, cents and guntas for field reports.', 'ఫీల్డ్ నివేదికల కోసం ఎకరాలు, హెక్టార్లు, సెంట్లు మరియు గుంటల మధ్య భూవిస్తీర్ణాన్ని మార్చండి.')}
+            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
           />
         ) : (
-        <section className="rounded-2xl border border-sky-300/60 bg-gradient-to-br from-sky-600 via-cyan-600 to-teal-700 p-4 shadow-lg dark:border-sky-700/60">
+        <section className="relative rounded-2xl border border-sky-300/60 bg-gradient-to-br from-sky-600 via-cyan-600 to-teal-700 p-4 shadow-lg dark:border-sky-700/60">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
             <div>
               <h1 className="flex items-center gap-2 text-xl font-black text-white">
                 <Calculator className="h-6 w-6" aria-label="Area Calculator" />
-                Area Calculator
+                {t('Area Calculator', 'విస్తీర్ణ కాలిక్యులేటర్')}
               </h1>
-              <p className="text-sm font-semibold text-white/90">Convert land area between acres, hectares, cents and guntas for field reports.</p>
+              <p className="text-sm font-semibold text-white/90">{t('Convert land area between acres, hectares, cents and guntas for field reports.', 'ఫీల్డ్ నివేదికల కోసం ఎకరాలు, హెక్టార్లు, సెంట్లు మరియు గుంటల మధ్య భూవిస్తీర్ణాన్ని మార్చండి.')}</p>
             </div>
+          </div>
+          <div className="absolute bottom-3 right-4">
+            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
           </div>
         </section>
         )}
@@ -120,13 +127,13 @@ export function AcreageCalculator() {
           <div className="space-y-3 rounded-xl border border-sky-300 bg-gradient-to-br from-white via-sky-50 to-cyan-100 p-4 shadow-md dark:border-sky-800/60 dark:from-slate-900 dark:via-sky-950/30 dark:to-cyan-950/30">
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
               <label className="block">
-                <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Input type</span>
+                <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">{t('Input type', 'ఇన్‌పుట్ రకం')}</span>
                 <select
                   value={mode}
                   onChange={(event) => setMode(event.target.value as AcreageMode)}
                   className="w-full rounded-lg border border-sky-300 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100 dark:border-sky-900 dark:bg-slate-950 dark:text-white"
                 >
-                  {modeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  {modeOptions.map((option) => <option key={option.value} value={option.value}>{t(option.label, option.telugu)}</option>)}
                 </select>
               </label>
               <button
@@ -134,63 +141,63 @@ export function AcreageCalculator() {
                 onClick={resetCalculator}
                 disabled={!hasInput}
                 className="inline-flex min-h-[2.625rem] items-center justify-center gap-2 rounded-lg border border-rose-200 bg-white/90 px-4 py-2 text-sm font-black text-rose-700 shadow-sm transition hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-rose-900/70 dark:bg-slate-950 dark:text-rose-200 dark:hover:bg-rose-950/30"
-                title="Clear calculator inputs"
+                title={t('Clear calculator inputs', 'కాలిక్యులేటర్ ఇన్‌పుట్‌లు క్లియర్ చేయండి')}
               >
                 <RotateCcw className="h-4 w-4" />
-                Clear
+                {t('Clear', 'క్లియర్')}
               </button>
             </div>
 
           {mode === 'acres' && (
             <label className="block">
-              <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Acre values</span>
+              <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">{t('Acre values', 'ఎకరాల విలువలు')}</span>
               <PasteTextarea
                 value={acreInput}
                 onChange={setAcreInput}
-                placeholder={'Example:\n2.10\n2.36\n0.15'}
+                placeholder={t('Example:', 'ఉదాహరణ:') + '\n2.10\n2.36\n0.15'}
               />
             </label>
           )}
 
           {mode === 'cents' && (
-            <NumberInput label="Total Cents" value={centInput} onChange={setCentInput} placeholder="Example: 150" />
+            <NumberInput label={t('Total Cents', 'మొత్తం సెంట్లు')} value={centInput} onChange={setCentInput} placeholder={t('Example: 150', 'ఉదాహరణ: 150')} />
           )}
 
           {mode === 'acres-cents' && (
             <label className="block">
-              <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">Acre.Cent values</span>
+              <span className="mb-2 block text-sm font-black text-slate-700 dark:text-slate-200">{t('Acre.Cent values', 'ఎకరాలు.సెంట్ల విలువలు')}</span>
               <PasteTextarea
                 value={acresCentsPasteInput}
                 onChange={setAcresCentsPasteInput}
-                placeholder={'Example:\n2.25\n1.50\n0.75'}
+                placeholder={t('Example:', 'ఉదాహరణ:') + '\n2.25\n1.50\n0.75'}
               />
-              <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">Paste one column or type values. Example: 2.25 means 2 acres 25 cents.</p>
+              <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">{t('Paste one column or type values. Example: 2.25 means 2 acres 25 cents.', 'ఒక కాలమ్ అతికించండి లేదా విలువలు టైప్ చేయండి. ఉదా: 2.25 అంటే 2 ఎకరాలు 25 సెంట్లు.')}</p>
             </label>
           )}
 
           {mode === 'guntas' && (
-            <NumberInput label="Total Guntas" value={guntaInput} onChange={setGuntaInput} placeholder="Example: 10" />
+            <NumberInput label={t('Total Guntas', 'మొత్తం గుంటలు')} value={guntaInput} onChange={setGuntaInput} placeholder={t('Example: 10', 'ఉదాహరణ: 10')} />
           )}
 
           {mode === 'hectares' && (
-            <NumberInput label="Total Hectares" value={hectareInput} onChange={setHectareInput} placeholder="Example: 1.5" />
+            <NumberInput label={t('Total Hectares', 'మొత్తం హెక్టార్లు')} value={hectareInput} onChange={setHectareInput} placeholder={t('Example: 1.5', 'ఉదాహరణ: 1.5')} />
           )}
         </div>
 
         <div className="grid gap-3">
           {mode === 'acres' ? (
             <>
-              <ResultCard tone="from-emerald-100 to-lime-100 border-emerald-200" label="Total acres" value={acreResult.formatted} note={`${acreResult.acres} acres ${acreResult.guntas} guntas`} />
-              <ResultCard tone="from-sky-100 to-cyan-100 border-sky-200" label="Hectares" value={acreResult.hectares} note="Converted from total acres" />
-              <ResultCard tone="from-amber-100 to-orange-100 border-amber-200" label="Items read" value={String(acreResult.count)} note="Paste one Excel column or type values with plus signs" />
+              <ResultCard tone="from-emerald-100 to-lime-100 border-emerald-200" label={t('Total acres', 'మొత్తం ఎకరాలు')} value={acreResult.formatted} note={`${acreResult.acres} ${t('acres', 'ఎకరాలు')} ${acreResult.guntas} ${t('guntas', 'గుంటలు')}`} />
+              <ResultCard tone="from-sky-100 to-cyan-100 border-sky-200" label={t('Hectares', 'హెక్టార్లు')} value={acreResult.hectares} note={t('Converted from total acres', 'మొత్తం ఎకరాల నుండి మార్చబడింది')} />
+              <ResultCard tone="from-amber-100 to-orange-100 border-amber-200" label={t('Items read', 'చదివిన అంశాలు')} value={String(acreResult.count)} note={t('Paste one Excel column or type values with plus signs', 'ఒక Excel కాలమ్ అతికించండి లేదా + గుర్తులతో విలువలు టైప్ చేయండి')} />
             </>
           ) : (
             <>
-              <ResultCard tone="from-emerald-100 to-lime-100 border-emerald-200" label="Acres" value={result.acresDecimal} note={result.acreGuntaNote} />
-              {mode !== 'cents' && <ResultCard tone="from-yellow-100 to-amber-100 border-yellow-200" label="Cents" value={result.cents} note="1 acre = 100 cents" />}
-              {mode !== 'acres-cents' && mode !== 'cents' && mode !== 'guntas' && mode !== 'hectares' && <ResultCard tone="from-pink-100 to-rose-100 border-pink-200" label="Acres + Cents" value={result.acresCents} note="Whole acres with remaining cents" />}
-              {mode !== 'guntas' && <ResultCard tone="from-purple-100 to-indigo-100 border-purple-200" label="Guntas" value={result.guntas} note="1 acre = 40 guntas" />}
-              {mode !== 'hectares' && <ResultCard tone="from-sky-100 to-cyan-100 border-sky-200" label="Hectares" value={result.hectares} note="Converted from decimal acres" />}
+              <ResultCard tone="from-emerald-100 to-lime-100 border-emerald-200" label={t('Acres', 'ఎకరాలు')} value={result.acresDecimal} note={result.acreGuntaNote} />
+              {mode !== 'cents' && <ResultCard tone="from-yellow-100 to-amber-100 border-yellow-200" label={t('Cents', 'సెంట్లు')} value={result.cents} note={t('1 acre = 100 cents', '1 ఎకరం = 100 సెంట్లు')} />}
+              {mode !== 'acres-cents' && mode !== 'cents' && mode !== 'guntas' && mode !== 'hectares' && <ResultCard tone="from-pink-100 to-rose-100 border-pink-200" label={t('Acres + Cents', 'ఎకరాలు + సెంట్లు')} value={result.acresCents} note={t('Whole acres with remaining cents', 'పూర్తి ఎకరాలు మరియు మిగిలిన సెంట్లు')} />}
+              {mode !== 'guntas' && <ResultCard tone="from-purple-100 to-indigo-100 border-purple-200" label={t('Guntas', 'గుంటలు')} value={result.guntas} note={t('1 acre = 40 guntas', '1 ఎకరం = 40 గుంటలు')} />}
+              {mode !== 'hectares' && <ResultCard tone="from-sky-100 to-cyan-100 border-sky-200" label={t('Hectares', 'హెక్టార్లు')} value={result.hectares} note={t('Converted from decimal acres', 'దశాంశ ఎకరాల నుండి మార్చబడింది')} />}
             </>
           )}
         </div>
@@ -200,43 +207,43 @@ export function AcreageCalculator() {
   );
 }
 
-function getAcreageGuide(mode: AcreageMode) {
+function getAcreageGuide(mode: AcreageMode, t: (english: string, telugu: string) => string) {
   if (mode === 'acres') {
     return [
-      'Paste Acres.Guntas values from Excel or type one per line.',
-      'Example 2.10 means 2 acres and 10 guntas.',
-      'Read total Acres.Guntas, hectares and item count.',
+      t('Paste Acres.Guntas values from Excel or type one per line.', 'Excel నుండి ఎకరాలు.గుంటల విలువలను అతికించండి లేదా ఒక్కో లైన్‌లో టైప్ చేయండి.'),
+      t('Example 2.10 means 2 acres and 10 guntas.', 'ఉదా: 2.10 అంటే 2 ఎకరాలు 10 గుంటలు.'),
+      t('Read total Acres.Guntas, hectares and item count.', 'మొత్తం ఎకరాలు.గుంటలు, హెక్టార్లు మరియు అంశాల సంఖ్య చూడండి.'),
     ];
   }
 
   if (mode === 'cents') {
     return [
-      'Enter the total cents value.',
-      'Read decimal acres and equivalent guntas.',
-      'Use hectares output for official reports.',
+      t('Enter the total cents value.', 'మొత్తం సెంట్ల విలువ నమోదు చేయండి.'),
+      t('Read decimal acres and equivalent guntas.', 'దశాంశ ఎకరాలు మరియు సమానమైన గుంటలు చూడండి.'),
+      t('Use hectares output for official reports.', 'అధికారిక నివేదికలకు హెక్టార్లు ఉపయోగించండి.'),
     ];
   }
 
   if (mode === 'acres-cents') {
     return [
-      'Paste Acres.Cents values from Excel or type one per line.',
-      'Example 2.25 means 2 acres and 25 cents.',
-      'Read acres, cents, guntas and hectares instantly.',
+      t('Paste Acres.Cents values from Excel or type one per line.', 'Excel నుండి ఎకరాలు.సెంట్ల విలువలను అతికించండి లేదా ఒక్కో లైన్‌లో టైప్ చేయండి.'),
+      t('Example 2.25 means 2 acres and 25 cents.', 'ఉదా: 2.25 అంటే 2 ఎకరాలు 25 సెంట్లు.'),
+      t('Read acres, cents, guntas and hectares instantly.', 'ఎకరాలు, సెంట్లు, గుంటలు, హెక్టార్లు వెంటనే చూడండి.'),
     ];
   }
 
   if (mode === 'hectares') {
     return [
-      'Enter the total hectare value.',
-      'Read equivalent acres, cents and guntas.',
-      'Use the acre-gunta note for field records.',
+      t('Enter the total hectare value.', 'మొత్తం హెక్టార్ల విలువ నమోదు చేయండి.'),
+      t('Read equivalent acres, cents and guntas.', 'సమానమైన ఎకరాలు, సెంట్లు, గుంటలు చూడండి.'),
+      t('Use the acre-gunta note for field records.', 'ఫీల్డ్ రికార్డులకు ఎకరా-గుంట గమనిక ఉపయోగించండి.'),
     ];
   }
 
   return [
-    'Enter the total guntas value.',
-    'Read decimal acres and equivalent cents.',
-    'Use hectares output for field records.',
+    t('Enter the total guntas value.', 'మొత్తం గుంటల విలువ నమోదు చేయండి.'),
+    t('Read decimal acres and equivalent cents.', 'దశాంశ ఎకరాలు మరియు సమానమైన సెంట్లు చూడండి.'),
+    t('Use hectares output for field records.', 'ఫీల్డ్ రికార్డులకు హెక్టార్లు ఉపయోగించండి.'),
   ];
 }
 function PasteTextarea({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) {
@@ -291,6 +298,7 @@ function calculateAcreageResult({
   guntaInput,
   hectareInput,
   acresCentsPasteInput,
+  t,
 }: {
   mode: AcreageMode;
   acreInput: string;
@@ -298,6 +306,7 @@ function calculateAcreageResult({
   guntaInput: string;
   hectareInput: string;
   acresCentsPasteInput: string;
+  t: (english: string, telugu: string) => string;
 }) {
   const totalCents = calculateTotalCents({ mode, acreInput, centInput, guntaInput, hectareInput, acresCentsPasteInput });
   const decimalAcres = totalCents / CENTS_PER_ACRE;
@@ -312,9 +321,9 @@ function calculateAcreageResult({
     count,
     acresDecimal: formatNumber(decimalAcres),
     cents: formatNumber(totalCents),
-    acresCents: `${wholeAcres} acres ${formatNumber(remainingCents)} cents`,
+    acresCents: `${wholeAcres} ${t('acres', 'ఎకరాలు')} ${formatNumber(remainingCents)} ${t('cents', 'సెంట్లు')}`,
     guntas: formatNumber(totalGuntas),
-    acreGuntaNote: `${Math.floor(totalGuntas / GUNTAS_PER_ACRE)} acres ${formatNumber(totalGuntas % GUNTAS_PER_ACRE)} guntas`,
+    acreGuntaNote: `${Math.floor(totalGuntas / GUNTAS_PER_ACRE)} ${t('acres', 'ఎకరాలు')} ${formatNumber(totalGuntas % GUNTAS_PER_ACRE)} ${t('guntas', 'గుంటలు')}`,
     hectares: formatNumber(decimalAcres * 0.40468564224, 4),
     wholeGuntas,
     remainingGuntas,

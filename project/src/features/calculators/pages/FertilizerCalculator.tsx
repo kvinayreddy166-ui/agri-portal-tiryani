@@ -1888,9 +1888,9 @@ export function FertilizerCalculator() {
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <section className="rounded-xl border border-lime-300 dark:border-lime-800/50 bg-gradient-to-br from-lime-100 dark:from-lime-900 to-emerald-100 dark:to-emerald-900 p-4 text-sm font-semibold text-emerald-950 dark:text-emerald-100 shadow-md">
           <div className="grid gap-2 sm:grid-cols-3">
-            <p><span className="font-black">1.</span> Select crop recommendation or enter nutrients manually.</p>
-            <p><span className="font-black">2.</span> Enter area and choose available fertilizers.</p>
-            <p><span className="font-black">3.</span> See fertilizer bags and split doses instantly.</p>
+            <p><span className="font-black">1.</span> {language === 'te' ? 'పంట సిఫార్సును ఎంచుకోండి లేదా పోషకాలను మాన్యువల్‌గా నమోదు చేయండి.' : 'Select crop recommendation or enter nutrients manually.'}</p>
+            <p><span className="font-black">2.</span> {language === 'te' ? 'విస్తీర్ణం నమోదు చేసి అందుబాటులో ఉన్న ఎరువులను ఎంచుకోండి.' : 'Enter area and choose available fertilizers.'}</p>
+            <p><span className="font-black">3.</span> {language === 'te' ? 'ఎరువుల సంచులు మరియు విడత మోతాదులను వెంటనే చూడండి.' : 'See fertilizer bags and split doses instantly.'}</p>
           </div>
         </section>
 

@@ -1,5 +1,6 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
+import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { pesticideNameWithoutTrade } from './statutoryPesticidePdf';
 import { isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { drawJustifiedBodyText } from '../../../shared/lib/pdfText';
@@ -85,6 +86,7 @@ export async function generatePesticideCoveringLetterPdf(
 
   const doc = createDocument(jsPDF, 'Covering Letter - Pesticide Samples');
 
+  await setupPdfUnicodeFonts(doc);
   await drawWatermark(doc);
 
   const cursor = {

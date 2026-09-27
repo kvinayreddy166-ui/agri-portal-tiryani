@@ -32,6 +32,7 @@ import { useLanguage } from '../../../shared/context/LanguageContext';
 import { supabase } from '../../../shared/lib/supabase';
 import { downloadFileFromUrl } from '../../../shared/lib/fileBlob';
 import { recordSiteHit } from '../../../shared/lib/siteHits';
+import { getMandalsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
 import { FormDownload } from '../../../shared/types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../../../shared/hooks/useBackButtonOverlay';
@@ -112,6 +113,13 @@ const TELANGANA_DISTRICTS = [
   'Yadadri Bhuvanagiri',
 ];
 
+const DISTRICT_TO_MANDAL_KEY: Record<string, string> = {
+  'Hanamakonda': 'Hanamkonda',
+  'Kumuram Bheem Asifabad': 'Kumrambheem Asifabad',
+  'Medchal-Malkajgiri': 'Medchal–Malkajgiri',
+  'Rangareddy': 'Ranga Reddy',
+};
+
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
@@ -161,6 +169,7 @@ export function Login() {
 
   const { signIn, signInDealer } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
+  const grievanceMandals = getMandalsForDistrict(DISTRICT_TO_MANDAL_KEY[grievance.district] || grievance.district);
   const pdfToolOverlay = useBackButtonOverlay('public-pdf-tool', () => setPdfToolOpen(false));
   const grievanceOverlay = useBackButtonOverlay('public-grievance', () => setGrievanceOpen(false));
 
@@ -953,18 +962,18 @@ export function Login() {
                 onChange={(event) => setAcreInput(event.target.value)}
                 rows={5}
                 className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 font-semibold text-slate-950 dark:text-white outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
-                placeholder={'Example:\n2.10\n2.36\n0.15'}
+                placeholder={t('Example:', 'ఉదాహరణ:') + '\n2.10\n2.36\n0.15'}
               />
             </label>
             <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Paste one Excel column or type values with + signs. Format uses acres.guntas; one acre is 40 guntas.
+              {t('Paste one Excel column or type values with + signs. Format uses acres.guntas; one acre is 40 guntas.', 'ఒక Excel కాలమ్ అతికించండి లేదా + గుర్తులతో విలువలు టైప్ చేయండి. ఆకృతి ఎకరాలు.గుంటలు; ఒక ఎకరం 40 గుంటలు.')}
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-4">
                 <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°²à±')}</p>
                 <p className="mt-1 text-3xl font-black text-emerald-950 dark:text-emerald-100">{acreCalculation.formatted}</p>
                 <p className="mt-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-                  {acreCalculation.acres} acres {acreCalculation.guntas} guntas
+                  {acreCalculation.acres} {t('acres', 'ఎకరాలు')} {acreCalculation.guntas} {t('guntas', 'గుంటలు')}
                 </p>
               </div>
               <div className="rounded-xl border border-sky-200 dark:border-sky-800/50 bg-sky-50 dark:bg-sky-950/40 p-4">
@@ -1000,13 +1009,19 @@ export function Login() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <input type="email" value={grievance.email} onChange={(e) => setGrievance({ ...grievance, email: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Email (optional)', 'à°‡à°®à±†à°¯à°¿à°²à± (à°à°šà±à°šà°¿à°•à°‚)')} />
-                <select value={grievance.district} onChange={(e) => setGrievance({ ...grievance, district: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                <select value={grievance.district} onChange={(e) => setGrievance({ ...grievance, district: e.target.value, mandal: '' })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
                   {TELANGANA_DISTRICTS.map((district) => (
                     <option key={district} value={district}>{district}</option>
                   ))}
                 </select>
+                <select value={grievance.mandal} onChange={(e) => setGrievance({ ...grievance, mandal: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" required>
+                  <option value="" disabled>{t('Select mandal', 'మండలం ఎంచుకోండి')}</option>
+                  {grievanceMandals.map((mandal) => (
+                    <option key={mandal} value={mandal}>{mandal}</option>
+                  ))}
+                  <option value="Others">{t('Others', 'ఇతరులు')}</option>
+                </select>
               </div>
-              <input value={grievance.mandal} onChange={(e) => setGrievance({ ...grievance, mandal: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Mandal', 'à°®à°‚à°¡à°²à°‚')} required />
 
               <p className="pt-2 text-sm font-black text-slate-900 dark:text-white">{t('Complaint details', 'à°«à°¿à°°à±à°¯à°¾à°¦à± à°µà°¿à°µà°°à°¾à°²à±')}</p>
               <div className="grid gap-4 sm:grid-cols-2">

@@ -3,6 +3,12 @@
  */
 
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
+import { DOCX_TELUGU_FONT } from '../lib/pdfUnicodeFonts';
+
+// Complex-script font applied to Telugu (and other Indic) characters inside a
+// run; Word picks it automatically via the w:cs font attribute while Latin
+// text keeps the document default.
+const TELUGU_RUN_FONT = { cs: DOCX_TELUGU_FONT };
 
 export async function createDocxFromText(text: string, title?: string): Promise<Blob> {
   const paragraphs: Paragraph[] = [];
@@ -10,7 +16,7 @@ export async function createDocxFromText(text: string, title?: string): Promise<
   if (title) {
     paragraphs.push(
       new Paragraph({
-        text: title,
+        children: [new TextRun({ text: title, font: TELUGU_RUN_FONT })],
         heading: HeadingLevel.HEADING_1,
         alignment: AlignmentType.CENTER,
         spacing: {
@@ -31,6 +37,7 @@ export async function createDocxFromText(text: string, title?: string): Promise<
             new TextRun({
               text: para.trim(),
               size: 24, // 12pt
+              font: TELUGU_RUN_FONT,
             }),
           ],
           spacing: {
@@ -66,7 +73,7 @@ export async function createDocxFromStructuredText(
   if (metadata?.title) {
     paragraphs.push(
       new Paragraph({
-        text: metadata.title,
+        children: [new TextRun({ text: metadata.title, font: TELUGU_RUN_FONT })],
         heading: HeadingLevel.HEADING_1,
         alignment: AlignmentType.CENTER,
         spacing: {
@@ -86,6 +93,7 @@ export async function createDocxFromStructuredText(
               text: metaText,
               italics: true,
               size: 20, // 10pt
+              font: TELUGU_RUN_FONT,
             }),
           ],
           alignment: AlignmentType.CENTER,
@@ -110,6 +118,7 @@ export async function createDocxFromStructuredText(
               new TextRun({
                 text: currentParagraph.trim(),
                 size: 24, // 12pt
+                font: TELUGU_RUN_FONT,
               }),
             ],
             spacing: {
@@ -132,6 +141,7 @@ export async function createDocxFromStructuredText(
           new TextRun({
             text: currentParagraph.trim(),
             size: 24, // 12pt
+            font: TELUGU_RUN_FONT,
           }),
         ],
         spacing: {

@@ -4,6 +4,7 @@ import { ClipboardCheck, Eye, FileText, FileDown, FileUp, FolderOpen, RotateCcw,
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
+import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { ActionButton, Field, InspectionTheme, Modal, RowTable, Section, StatusInput, SummaryChip, useInputClass } from '../inspection/ui';
 import { emptyStatus, formatDate, listOrNil, statusText } from '../inspection/types';
 import type { DraftRecord as DraftRecordBase, PdfSubTable, StatusField } from '../inspection/types';
@@ -647,6 +648,7 @@ async function buildPdf(form: InspectionForm) {
   const { jsPDF } = await import('jspdf');
   const { default: autoTable } = await import('jspdf-autotable');
   const doc = new jsPDF('p', 'mm', 'a4');
+  await setupPdfUnicodeFonts(doc);
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 14;

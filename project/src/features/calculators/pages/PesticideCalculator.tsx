@@ -124,9 +124,9 @@ export function PesticideCalculator() {
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <section className="rounded-xl border border-amber-300 bg-gradient-to-br from-amber-100 to-orange-100 p-4 text-sm font-semibold text-amber-950 shadow-md dark:border-amber-900 dark:from-amber-950/50 dark:to-orange-950/30 dark:text-amber-100">
           <div className="grid gap-2 sm:grid-cols-3">
-            <p><span className="font-black">1.</span> Choose active ingredient or direct dose mode.</p>
-            <p><span className="font-black">2.</span> Enter area, water and tank size.</p>
-            <p><span className="font-black">3.</span> Copy or share the final spray quantity.</p>
+            <p><span className="font-black">1.</span> {t('Choose active ingredient or direct dose mode.', 'క్రియాశీల పదార్థం లేదా ప్రత్యక్ష మోతాదు మోడ్‌ను ఎంచుకోండి.')}</p>
+            <p><span className="font-black">2.</span> {t('Enter area, water and tank size.', 'విస్తీర్ణం, నీరు మరియు ట్యాంక్ పరిమాణం నమోదు చేయండి.')}</p>
+            <p><span className="font-black">3.</span> {t('Copy or share the final spray quantity.', 'తుది స్ప్రే పరిమాణాన్ని కాపీ చేయండి లేదా షేర్ చేయండి.')}</p>
           </div>
         </section>
 

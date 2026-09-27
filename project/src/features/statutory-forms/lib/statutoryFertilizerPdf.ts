@@ -1,4 +1,5 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
+import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 
 export type FertilizerStatutoryFormType = 'J' | 'K_ADA' | 'K_JDA' | 'P';
@@ -301,6 +302,7 @@ export async function generateFertilizerStatutoryPdf(
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, `${fertilizerFormTitles[formType]} - Fertilizer Sampling`);
 
+  await setupPdfUnicodeFonts(doc);
   await drawWatermark(doc);
 
   if (formType === 'P') {
@@ -319,6 +321,7 @@ export async function generateAllFertilizerStatutoryPdf(values: FertilizerPdfVal
   const { jsPDF } = await import('jspdf');
   const doc = createDocument(jsPDF, 'FORM J K P - Fertilizer Sampling');
 
+  await setupPdfUnicodeFonts(doc);
   await drawWatermark(doc);
   drawForm(doc, 'J', values);
   doc.addPage();
