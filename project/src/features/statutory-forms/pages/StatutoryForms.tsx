@@ -8,6 +8,7 @@ import { FileActionButtons } from '../../../shared/components/ui/FileActionButto
 import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { inferFileTypeFromName } from '../../../shared/lib/fileTypes';
 import { uploadPortalFile } from '../../../shared/lib/uploadFile';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
 const folders = [
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
@@ -60,6 +61,7 @@ export function StatutoryForms() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newForm, setNewForm] = useState(emptyForm);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const { toasts, removeToast, showSaved, showDeleted, showWarning } = useToast();
 
   useEffect(() => {
     fetchForms();
@@ -136,12 +138,12 @@ export function StatutoryForms() {
 
   const handleSave = async () => {
     if (!newForm.title.trim()) {
-      alert('Please enter a title');
+      showWarning('Title required', 'Please enter a title.');
       return;
     }
 
     if (!selectedFile && !newForm.file_url.trim()) {
-      alert('Please select a file or enter a file URL');
+      showWarning('File required', 'Please select a file or enter a file URL.');
       return;
     }
 
@@ -174,25 +176,29 @@ export function StatutoryForms() {
 
       resetForm();
       fetchForms();
+      showSaved(editingFormId ? 'Form updated' : 'Form uploaded', payload.title);
     } catch (error) {
       console.error('Error adding document:', error);
-      alert(isNetworkError(error)
-        ? 'Network error — could not reach the server. Please try again.'
-        : error instanceof Error ? error.message : 'Failed to add document.');
+      showWarning(
+        'Save failed',
+        isNetworkError(error)
+          ? 'Network error — could not reach the server. Please try again.'
+          : error instanceof Error ? error.message : 'Failed to add document.'
+      );
     } finally {
       setUploading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
     try {
       const { error } = await withNetworkRetry(() => supabase.from('forms_downloads').delete().eq('id', id));
       if (error) throw error;
       fetchForms();
+      showDeleted('Form deleted');
     } catch (error) {
       console.error('Error deleting document:', error);
-      alert(isNetworkError(error) ? 'Network error — could not reach the server. Please try again.' : 'Failed to delete item');
+      showWarning('Delete failed', isNetworkError(error) ? 'Network error — could not reach the server. Please try again.' : 'Failed to delete item');
     }
   };
 
@@ -226,6 +232,7 @@ export function StatutoryForms() {
 
   return (
     <div className="space-y-4">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="mt-1 text-2xl font-black tracking-tight text-gray-950 dark:text-white">

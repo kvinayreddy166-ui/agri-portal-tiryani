@@ -17,6 +17,7 @@ import {
 import { FertilizerInstructionModal } from '../../../shared/components/ui/FertilizerInstructionModal';
 import { PopupHintWrapper } from '../../../shared/components/PopupHint';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { CoveringLetterModal } from  './CoveringLetterModal';
 import {
   QUALIFICATION_OPTIONS,
@@ -661,6 +662,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(showCoveringLetter ? ['COVERING LETTER DETAILS'] : []));
   const allFields = useMemo(() => fertilizerFieldSections, []);
   const { toasts, removeToast, showSuccess, showInfo, showReset, showSaved, showDeleted, showLoaded, showQueue } = useToast();
+  const [confirmAction, setConfirmAction] = useState<{ title: string; message?: string; action: () => void } | null>(null);
 
   // Apply effective location values for Assistant Director of Agriculture
   const documentValues = useMemo(() => {
@@ -1023,12 +1025,17 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const resetDraft = () => {
-    if (!window.confirm('Reset fertilizer form draft?')) return;
-    setValues(initialFertilizerPdfValues);
-    window.localStorage.removeItem(STORAGE_KEY);
-    setSelectedDraftName('');
-    setPreviewError(null);
-    showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.', 4000);
+    setConfirmAction({
+      title: 'Reset fertilizer form draft?',
+      message: 'All entered data will be cleared.',
+      action: () => {
+        setValues(initialFertilizerPdfValues);
+        window.localStorage.removeItem(STORAGE_KEY);
+        setSelectedDraftName('');
+        setPreviewError(null);
+        showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.', 4000);
+      },
+    });
   };
 
   const loadDraft = (name: string) => {
@@ -1054,17 +1061,22 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       showInfo('No Draft Found', 'There is no saved draft to delete.', 4000);
       return;
     }
-    if (!window.confirm(`Delete saved draft "${name}"?`)) return;
-    // Use case-insensitive comparison for deletion
-    const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
-    window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
-    setSavedDrafts(nextDrafts);
-    // Clear auto-save storage to prevent the deleted draft from reappearing
-    window.localStorage.removeItem(STORAGE_KEY);
-    // Reset ALL draft-owned state to initial values (excluding covering letter details)
-    setValues(initialFertilizerPdfValues);
-    setSelectedDraftName('');
-    showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 4000);
+    setConfirmAction({
+      title: `Delete saved draft "${name}"?`,
+      message: 'The saved draft will be removed permanently.',
+      action: () => {
+        // Use case-insensitive comparison for deletion
+        const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
+        window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+        setSavedDrafts(nextDrafts);
+        // Clear auto-save storage to prevent the deleted draft from reappearing
+        window.localStorage.removeItem(STORAGE_KEY);
+        // Reset ALL draft-owned state to initial values (excluding covering letter details)
+        setValues(initialFertilizerPdfValues);
+        setSelectedDraftName('');
+        showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 4000);
+      },
+    });
   };
 
   const completePreviewPdf = async (type = formType) => {
@@ -1397,6 +1409,13 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   return (
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <ConfirmDialog
+        open={confirmAction !== null}
+        title={confirmAction?.title ?? ''}
+        message={confirmAction?.message}
+        onConfirm={() => { const action = confirmAction?.action; setConfirmAction(null); action?.(); }}
+        onCancel={() => setConfirmAction(null)}
+      />
       <div className="fixed inset-0 z-[50] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
         <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
           <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-amber-100/50 dark:border-amber-900/50 bg-gradient-to-r from-amber-50 dark:from-amber-950 via-white to-orange-50 dark:to-orange-950 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">

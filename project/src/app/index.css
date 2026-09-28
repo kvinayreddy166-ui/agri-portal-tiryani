@@ -885,3 +885,16 @@ button {
 .pulse-border-animation {
   animation: pulse-border 2s ease-in-out infinite;
 }
+
+@keyframes resetCcwSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.reset-ccw-spin {
+  animation: resetCcwSpin 0.45s ease-in-out;
+}

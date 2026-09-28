@@ -10,7 +10,7 @@ import {
   getMandalsForDistrict,
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { setupPdfUnicodeFonts, DOCX_TELUGU_FONT } from '../../../shared/lib/pdfUnicodeFonts';
-import { useTwoStepConfirm } from '../../../shared/hooks/useTwoStepConfirm';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import {
   noticeCategoryConfigs,
   allShowCauseViolations,
@@ -926,7 +926,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const [exportOpen, setExportOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const previewRef = useRef<HTMLDivElement>(null);
-  const { armed: resetArmed, requestConfirm: requestResetConfirm } = useTwoStepConfirm();
+  const [resetSpinKey, setResetSpinKey] = useState(0);
+  const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
 
   const config = useMemo(() => getConfig(form.category), [form.category]);
   const categoryViolations = useMemo(
@@ -1071,6 +1072,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     const id = `${form.memoNumber || 'draft'}-${Date.now()}`;
     const saved: SavedNotice = { ...form, id, savedAt: new Date().toISOString() };
     setSavedNotices((current) => [saved, ...current.filter((item) => item.memoNumber !== form.memoNumber)]);
+    showSaved('Draft saved', form.memoNumber || 'Untitled notice');
   };
 
   const editSavedNotice = (notice: SavedNotice) => {
@@ -1108,19 +1110,30 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     setForm(noticeForm);
     setShowProductDetails(Boolean(notice.productName || notice.batchLotNumber || notice.quantityInvolved || notice.productRemarks));
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    showLoaded('Draft loaded', notice.memoNumber || 'Untitled notice');
   };
 
   const resetNotice = () => {
-    requestResetConfirm(() => {
-      setForm(makeInitialForm(lockedCategory ?? form.category));
-      setShowProductDetails(false);
-      setShowNoticePreview(false);
+    setResetSpinKey((current) => current + 1);
+    const next = makeInitialForm(lockedCategory ?? form.category);
+    setForm({
+      ...next,
+      officerDesignation: '',
+      district: '',
+      mandal: '',
+      manualMandal: '',
+      manualDistrict: '',
+      deadline: '',
+      enclosures: '',
     });
+    setShowProductDetails(false);
+    setShowNoticePreview(false);
+    showReset('Form reset');
   };
 
   const deleteSavedNotice = (notice: SavedNotice) => {
-    if (!window.confirm(`Delete saved notice "${notice.memoNumber || 'Untitled'}"?`)) return;
     setSavedNotices((current) => current.filter((item) => item.id !== notice.id));
+    showDeleted('Notice deleted', notice.memoNumber || 'Untitled notice');
   };
 
   const noticeFileName = () => `${form.memoNumber || 'show-cause-notice'}.pdf`.replace(/[\\/]/g, '-');
@@ -1336,6 +1349,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const downloadPdf = async () => {
     const doc = await buildNoticePdfDoc();
     doc.save(noticeFileName());
+    showSuccess('PDF downloaded', noticeFileName());
   };
 
   const downloadWord = async () => {
@@ -1349,19 +1363,22 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       link.click();
       document.body.removeChild(link);
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      showSuccess('Word downloaded', noticeWordFileName());
     } catch (error) {
       console.error('Unable to generate notice Word document:', error);
-      window.alert('Word document could not be generated. Please try again.');
+      showWarning('Word export failed', 'Please try again.');
     }
   };
 
   const previewNotice = () => {
     setShowNoticePreview(true);
+    showInfo('Preview ready');
     window.requestAnimationFrame(() => previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
 
   return (
     <div className="space-y-4">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       {!lockedCategory && showCompactHeader && (
         <CompactToolkitHeader
           eyebrow="Inspections & Notices"
@@ -1395,17 +1412,9 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               ))}
             </div>
             ) : <span />}
-            <button
-              type="button"
-              onClick={resetNotice}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-black shadow-sm transition sm:text-sm ${
-                resetArmed
-                  ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
-                  : 'border-red-200 bg-white text-red-700 hover:bg-red-50 dark:border-red-800/50 dark:bg-slate-900 dark:text-red-300'
-              }`}
-            >
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              {resetArmed ? 'Tap again to confirm' : 'Reset'}
+            <button type="button" onClick={resetNotice} className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 shadow-sm transition hover:bg-red-50 dark:border-red-800/50 dark:bg-slate-900 dark:text-red-300 sm:text-sm">
+              <RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />
+              Reset
             </button>
           </div>
 

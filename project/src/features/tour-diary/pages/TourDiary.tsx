@@ -4,7 +4,7 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { supabase } from '../../../shared/lib/supabase';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
-import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, Clock, ChevronRight as ArrowRight, X, ClipboardList } from 'lucide-react';
+import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, Clock, ChevronRight as ArrowRight, X, ClipboardList, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import autoTable from 'jspdf-autotable';
@@ -549,6 +549,7 @@ export function TourDiary() {
   const [, setSavedDiaries] = useState<SavedDiaryRecord[]>([]);
   const [, setCompletedDiaries] = useState<TourDiary[]>([]);
   const [pdfMenuOpen, setPdfMenuOpen] = useState<string | null>(null);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [pdfPreview, setPdfPreview] = useState<{ blob: Blob; fileName: string } | null>(null);
   const [showMyDiariesDropdown, setShowMyDiariesDropdown] = useState(false);
   
@@ -606,12 +607,13 @@ export function TourDiary() {
 
   // Dismiss open menus on outside click or Escape
   useEffect(() => {
-    if (!actionMenuOpen && !draftMenuOpen && !pdfMenuOpen) return;
+    if (!actionMenuOpen && !draftMenuOpen && !pdfMenuOpen && !exportMenuOpen) return;
     const handlePointerDown = (e: MouseEvent | TouchEvent) => {
       if (!(e.target as HTMLElement).closest('[data-menu-root]')) {
         setActionMenuOpen(null);
         setDraftMenuOpen(null);
         setPdfMenuOpen(null);
+        setExportMenuOpen(false);
       }
     };
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -619,6 +621,7 @@ export function TourDiary() {
         setActionMenuOpen(null);
         setDraftMenuOpen(null);
         setPdfMenuOpen(null);
+        setExportMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handlePointerDown);
@@ -629,7 +632,7 @@ export function TourDiary() {
       document.removeEventListener('touchstart', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [actionMenuOpen, draftMenuOpen, pdfMenuOpen]);
+  }, [actionMenuOpen, draftMenuOpen, pdfMenuOpen, exportMenuOpen]);
 
   // Reset day-card expansion when switching months
   useEffect(() => {
@@ -2791,7 +2794,7 @@ export function TourDiary() {
         </div>
 
         {/* Month/Year Selection */}
-        <div className={`mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`relative z-20 mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <button
@@ -2856,30 +2859,56 @@ export function TourDiary() {
                 <Eye className="h-4 w-4" />
                 Preview
               </button>
-              <button
-                onClick={() => generatePDF()}
-                disabled={isGeneratingPDF}
-                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGeneratingPDF ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    Generating PDF...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4" />
-                    PDF
-                  </>
+              <div className="relative" data-menu-root>
+                <button
+                  onClick={() => setExportMenuOpen(prev => !prev)}
+                  disabled={isGeneratingPDF}
+                  aria-haspopup="menu"
+                  aria-expanded={exportMenuOpen}
+                  className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingPDF ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" />
+                      Export
+                      <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                    </>
+                  )}
+                </button>
+                {exportMenuOpen && (
+                  <div role="menu" className="absolute right-0 top-full z-50 mt-1 w-44 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
+                    <div className="py-1">
+                      <button
+                        role="menuitem"
+                        onClick={() => {
+                          setExportMenuOpen(false);
+                          generatePDF();
+                        }}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                      >
+                        <FileText className="h-4 w-4" aria-hidden="true" />
+                        PDF
+                      </button>
+                      <button
+                        role="menuitem"
+                        onClick={() => {
+                          setExportMenuOpen(false);
+                          generateExcel();
+                        }}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-900"
+                      >
+                        <Table className="h-4 w-4" aria-hidden="true" />
+                        Excel
+                      </button>
+                    </div>
+                  </div>
                 )}
-              </button>
-              <button
-                onClick={generateExcel}
-                className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700"
-              >
-                <Table className="h-4 w-4" />
-                Excel
-              </button>
+              </div>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, Eye, FileText, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
@@ -10,7 +11,6 @@ import { emptyStatus, formatDate, listOrNil, statusText, toggleText } from '../i
 import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../inspection/types';
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../inspection/persistence';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../inspection/useDirtyGuard';
-import { useTwoStepConfirm } from '../../../shared/hooks/useTwoStepConfirm';
 
 type VariationRow = { productName: string; brandName: string; batchNumber: string; bookStock: string; physicalStock: string; variation: string; remarks: string };
 type DetainedRow = { productName: string; brandName: string; manufacturer: string; batchNumber: string; quantity: string; detentionReason: string };
@@ -125,7 +125,7 @@ function migrateForm(parsed: Partial<InspectionForm>): Partial<InspectionForm> {
 export function InsecticideDealerInspection() {
   const navigate = useNavigate();
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo } = useToast();
-  const { armed: resetArmed, requestConfirm: requestResetConfirm } = useTwoStepConfirm();
+  const [confirmAction, setConfirmAction] = useState<{ title: string; message?: string; action: () => void } | null>(null);
   const [form, setForm] = useState<InspectionForm>(() => loadPersistedForm(FORM_KEY, initialForm, migrateForm));
   const [drafts, setDrafts] = useState<DraftRecord[]>(() => loadPersistedDrafts(DRAFTS_KEY, migrateForm));
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
@@ -177,12 +177,17 @@ export function InsecticideDealerInspection() {
   };
 
   const deleteDraft = (id: string) => {
-    if (!window.confirm('Delete this draft?')) return;
-    const next = drafts.filter((d) => d.id !== id);
-    setDrafts(next);
-    persistDraftRecords(DRAFTS_KEY, next);
-    if (activeDraftId === id) setActiveDraftId(null);
-    showDeleted('Draft deleted');
+    setConfirmAction({
+      title: 'Delete this draft?',
+      message: 'The saved draft will be removed permanently.',
+      action: () => {
+        const next = drafts.filter((d) => d.id !== id);
+        setDrafts(next);
+        persistDraftRecords(DRAFTS_KEY, next);
+        if (activeDraftId === id) setActiveDraftId(null);
+        showDeleted('Draft deleted');
+      },
+    });
   };
 
   const exportDrafts = () => {
@@ -204,13 +209,11 @@ export function InsecticideDealerInspection() {
   };
 
   const resetForm = () => {
-    requestResetConfirm(() => {
-      setForm(initialForm());
-      setActiveDraftId(null);
-      setError('');
-      setDirty(false);
-      showReset('Form reset');
-    });
+    setForm(initialForm());
+    setActiveDraftId(null);
+    setError('');
+    setDirty(false);
+    showReset('Form reset');
   };
 
   const openPreview = () => {
@@ -275,6 +278,13 @@ export function InsecticideDealerInspection() {
     <InspectionTheme tone="rose">
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-red-50 to-pink-50 dark:from-slate-950 dark:via-rose-950 dark:to-red-950">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <ConfirmDialog
+        open={confirmAction !== null}
+        title={confirmAction?.title ?? ''}
+        message={confirmAction?.message}
+        onConfirm={() => { const action = confirmAction?.action; setConfirmAction(null); action?.(); }}
+        onCancel={() => setConfirmAction(null)}
+      />
       <div className="relative mx-auto max-w-5xl p-4 pb-28 sm:p-6 lg:p-8">
         <ToolkitPageHeader
           icon={ClipboardCheck}
@@ -295,7 +305,7 @@ export function InsecticideDealerInspection() {
         <div className="mb-3 flex flex-wrap gap-2">
           <ActionButton onClick={saveDraft} icon={Save} tone="rose">Save Draft</ActionButton>
           <ActionButton onClick={() => setShowDrafts(true)} icon={FolderOpen} tone="white">Drafts{drafts.length ? ` (${drafts.length})` : ''}</ActionButton>
-          <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">{resetArmed ? 'Tap again to confirm' : 'Reset'}</ActionButton>
+          <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">Reset</ActionButton>
         </div>
 
         <div className="mb-5 grid gap-3 sm:grid-cols-3">

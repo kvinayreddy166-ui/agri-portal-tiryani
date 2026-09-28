@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Eye, FileText, RotateCcw, Save } from 'lucide-react';
 import { SeedInstructionModal } from '../../../shared/components/ui/SeedInstructionModal';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { SeedCoveringLetterModal } from '../components/SeedCoveringLetterModal';
 import { 
   QUALIFICATION_OPTIONS,
@@ -172,7 +173,8 @@ export function SeedForms() {
   const [selectedDraftName, setSelectedDraftName] = useState('');
   const sampleDetailsRef = useRef(null);
   const dealerDetailsRef = useRef(null);
-  const { toasts, removeToast, showSuccess, showInfo, showSaved, showDeleted, showLoaded, showQueue } = useToast();
+  const { toasts, removeToast, showSuccess, showInfo, showSaved, showDeleted, showLoaded, showQueue, showReset } = useToast();
+  const [confirmAction, setConfirmAction] = useState<{ title: string; message?: string; action: () => void } | null>(null);
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
@@ -335,11 +337,17 @@ export function SeedForms() {
   };
 
   const resetDraft = () => {
-    if (!confirm('Reset seed form draft?')) return;
-    setForm(initialSeedForm);
-    window.localStorage.removeItem(STORAGE_KEY);
-    setSelectedDraftName('');
-    setMessage('Draft reset successfully.');
+    setConfirmAction({
+      title: 'Reset seed form draft?',
+      message: 'All entered data will be cleared.',
+      action: () => {
+        setForm(initialSeedForm);
+        window.localStorage.removeItem(STORAGE_KEY);
+        setSelectedDraftName('');
+        setMessage('Draft reset successfully.');
+        showReset('Draft Reset', 'The form has been cleared.', 4000);
+      },
+    });
   };
 
   const loadDraft = (name: any) => {
@@ -364,17 +372,22 @@ export function SeedForms() {
       showInfo('No Draft Found', 'There is no saved draft to delete.', 4000);
       return;
     }
-    if (!confirm(`Delete saved draft "${name}"?`)) return;
-    // Use case-insensitive comparison for deletion
-    const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
-    window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
-    setSavedDrafts(nextDrafts);
-    // Clear auto-save storage to prevent the deleted draft from reappearing
-    window.localStorage.removeItem(STORAGE_KEY);
-    // Reset ALL draft-owned state to initial values (excluding covering letter details)
-    setForm(initialSeedForm);
-    setSelectedDraftName('');
-    showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 4000);
+    setConfirmAction({
+      title: `Delete saved draft "${name}"?`,
+      message: 'The saved draft will be removed permanently.',
+      action: () => {
+        // Use case-insensitive comparison for deletion
+        const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
+        window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+        setSavedDrafts(nextDrafts);
+        // Clear auto-save storage to prevent the deleted draft from reappearing
+        window.localStorage.removeItem(STORAGE_KEY);
+        // Reset ALL draft-owned state to initial values (excluding covering letter details)
+        setForm(initialSeedForm);
+        setSelectedDraftName('');
+        showDeleted('Draft Deleted Successfully', 'The saved draft has been deleted permanently.', 4000);
+      },
+    });
   };
 
   const buildValidatedPdf = async (kind: any) => {
@@ -557,6 +570,13 @@ export function SeedForms() {
   return (
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <ConfirmDialog
+        open={confirmAction !== null}
+        title={confirmAction?.title ?? ''}
+        message={confirmAction?.message}
+        onConfirm={() => { const action = confirmAction?.action; setConfirmAction(null); action?.(); }}
+        onCancel={() => setConfirmAction(null)}
+      />
       
       <div className="mb-2 flex justify-end gap-1">
         <button
