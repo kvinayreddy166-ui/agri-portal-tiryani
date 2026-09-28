@@ -10,6 +10,7 @@ import { emptyStatus, formatDate, listOrNil, statusText, toggleText } from '../i
 import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../inspection/types';
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../inspection/persistence';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../inspection/useDirtyGuard';
+import { useTwoStepConfirm } from '../../../shared/hooks/useTwoStepConfirm';
 
 type VariationRow = { productName: string; brandName: string; batchNumber: string; bookStock: string; physicalStock: string; variation: string; remarks: string };
 type DetainedRow = { productName: string; brandName: string; manufacturer: string; batchNumber: string; quantity: string; detentionReason: string };
@@ -124,6 +125,7 @@ function migrateForm(parsed: Partial<InspectionForm>): Partial<InspectionForm> {
 export function InsecticideDealerInspection() {
   const navigate = useNavigate();
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo } = useToast();
+  const { armed: resetArmed, requestConfirm: requestResetConfirm } = useTwoStepConfirm();
   const [form, setForm] = useState<InspectionForm>(() => loadPersistedForm(FORM_KEY, initialForm, migrateForm));
   const [drafts, setDrafts] = useState<DraftRecord[]>(() => loadPersistedDrafts(DRAFTS_KEY, migrateForm));
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
@@ -202,12 +204,13 @@ export function InsecticideDealerInspection() {
   };
 
   const resetForm = () => {
-    if (!window.confirm('Reset the form? Unsaved entries will be lost.')) return;
-    setForm(initialForm());
-    setActiveDraftId(null);
-    setError('');
-    setDirty(false);
-    showReset('Form reset');
+    requestResetConfirm(() => {
+      setForm(initialForm());
+      setActiveDraftId(null);
+      setError('');
+      setDirty(false);
+      showReset('Form reset');
+    });
   };
 
   const openPreview = () => {
@@ -292,7 +295,7 @@ export function InsecticideDealerInspection() {
         <div className="mb-3 flex flex-wrap gap-2">
           <ActionButton onClick={saveDraft} icon={Save} tone="rose">Save Draft</ActionButton>
           <ActionButton onClick={() => setShowDrafts(true)} icon={FolderOpen} tone="white">Drafts{drafts.length ? ` (${drafts.length})` : ''}</ActionButton>
-          <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">Reset</ActionButton>
+          <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">{resetArmed ? 'Tap again to confirm' : 'Reset'}</ActionButton>
         </div>
 
         <div className="mb-5 grid gap-3 sm:grid-cols-3">

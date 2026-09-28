@@ -10,6 +10,7 @@ import { emptyStatus, formatDate, listOrNil, statusText } from '../inspection/ty
 import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../inspection/types';
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../inspection/persistence';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../inspection/useDirtyGuard';
+import { useTwoStepConfirm } from '../../../shared/hooks/useTwoStepConfirm';
 
 
 type GroundBalanceRow = { crop: string; variety: string; lotNo: string; registerQuantity: string; groundStock: string; difference: string; unit: string };
@@ -137,6 +138,7 @@ function migrateForm(parsed: Partial<InspectionForm>): Partial<InspectionForm> {
 export function SeedDealerInspection() {
   const navigate = useNavigate();
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo } = useToast();
+  const { armed: resetArmed, requestConfirm: requestResetConfirm } = useTwoStepConfirm();
   const [form, setForm] = useState<InspectionForm>(() => loadPersistedForm(FORM_KEY, initialForm, migrateForm));
   const [drafts, setDrafts] = useState<DraftRecord[]>(() => loadPersistedDrafts(DRAFTS_KEY, migrateForm));
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
@@ -215,12 +217,13 @@ export function SeedDealerInspection() {
   };
 
   const resetForm = () => {
-    if (!window.confirm('Reset the form? Unsaved entries will be lost.')) return;
-    setForm(initialForm());
-    setActiveDraftId(null);
-    setError('');
-    setDirty(false);
-    showReset('Form reset');
+    requestResetConfirm(() => {
+      setForm(initialForm());
+      setActiveDraftId(null);
+      setError('');
+      setDirty(false);
+      showReset('Form reset');
+    });
   };
 
   const openPreview = () => {
@@ -310,7 +313,7 @@ export function SeedDealerInspection() {
         <div className="mb-3 flex flex-wrap gap-2">
           <ActionButton onClick={saveDraft} icon={Save} tone="emerald">Save Draft</ActionButton>
           <ActionButton onClick={() => setShowDrafts(true)} icon={FolderOpen} tone="white">Drafts{drafts.length ? ` (${drafts.length})` : ''}</ActionButton>
-          <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">Reset</ActionButton>
+          <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">{resetArmed ? 'Tap again to confirm' : 'Reset'}</ActionButton>
         </div>
 
         <div className="mb-5 grid gap-3 sm:grid-cols-3">

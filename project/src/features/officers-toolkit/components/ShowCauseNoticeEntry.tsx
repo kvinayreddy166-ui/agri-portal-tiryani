@@ -10,6 +10,7 @@ import {
   getMandalsForDistrict,
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { setupPdfUnicodeFonts, DOCX_TELUGU_FONT } from '../../../shared/lib/pdfUnicodeFonts';
+import { useTwoStepConfirm } from '../../../shared/hooks/useTwoStepConfirm';
 import {
   noticeCategoryConfigs,
   allShowCauseViolations,
@@ -925,6 +926,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const [exportOpen, setExportOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const previewRef = useRef<HTMLDivElement>(null);
+  const { armed: resetArmed, requestConfirm: requestResetConfirm } = useTwoStepConfirm();
 
   const config = useMemo(() => getConfig(form.category), [form.category]);
   const categoryViolations = useMemo(
@@ -1109,10 +1111,11 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   };
 
   const resetNotice = () => {
-    if (!window.confirm('Reset the form? Unsaved entries will be lost.')) return;
-    setForm(makeInitialForm(lockedCategory ?? form.category));
-    setShowProductDetails(false);
-    setShowNoticePreview(false);
+    requestResetConfirm(() => {
+      setForm(makeInitialForm(lockedCategory ?? form.category));
+      setShowProductDetails(false);
+      setShowNoticePreview(false);
+    });
   };
 
   const deleteSavedNotice = (notice: SavedNotice) => {
@@ -1392,9 +1395,17 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               ))}
             </div>
             ) : <span />}
-            <button type="button" onClick={resetNotice} className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 shadow-sm transition hover:bg-red-50 dark:border-red-800/50 dark:bg-slate-900 dark:text-red-300 sm:text-sm">
+            <button
+              type="button"
+              onClick={resetNotice}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-black shadow-sm transition sm:text-sm ${
+                resetArmed
+                  ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
+                  : 'border-red-200 bg-white text-red-700 hover:bg-red-50 dark:border-red-800/50 dark:bg-slate-900 dark:text-red-300'
+              }`}
+            >
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              Reset
+              {resetArmed ? 'Tap again to confirm' : 'Reset'}
             </button>
           </div>
 
