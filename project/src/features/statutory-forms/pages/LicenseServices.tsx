@@ -425,7 +425,7 @@ export function LicenseServices() {
   const handleConfirmProceed = () => {
     setShowModal(false);
     // Open external portal - preserve existing functionality
-    window.open('https://ifmis.telangana.gov.in/echallan', '_blank');
+    window.open('https://ifmis.telangana.gov.in/manual_challan_entry', '_blank');
   };
 
   return (

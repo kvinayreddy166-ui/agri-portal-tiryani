@@ -11,6 +11,7 @@ import {
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { setupPdfUnicodeFonts, DOCX_TELUGU_FONT } from '../../../shared/lib/pdfUnicodeFonts';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import {
   noticeCategoryConfigs,
   allShowCauseViolations,
@@ -927,6 +928,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const previewRef = useRef<HTMLDivElement>(null);
   const [resetSpinKey, setResetSpinKey] = useState(0);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
 
   const config = useMemo(() => getConfig(form.category), [form.category]);
@@ -1114,16 +1116,29 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   };
 
   const resetNotice = () => {
+    setResetConfirmOpen(true);
+  };
+
+  const performReset = () => {
     setResetSpinKey((current) => current + 1);
     const next = makeInitialForm(lockedCategory ?? form.category);
     setForm({
       ...next,
+      dealerName: '',
+      firmName: '',
+      licenceNumber: '',
+      dealerAddress: '',
+      memoNumber: '',
+      inspectionDate: '',
+      noticeDate: '',
+      deadline: '',
+      officerName: '',
       officerDesignation: '',
-      district: '',
       mandal: '',
+      district: '',
       manualMandal: '',
       manualDistrict: '',
-      deadline: '',
+      division: '',
       enclosures: '',
     });
     setShowProductDetails(false);
@@ -1379,6 +1394,13 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   return (
     <div className="space-y-4">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <ConfirmDialog
+        open={resetConfirmOpen}
+        title="Reset form?"
+        message="All entered details will be cleared."
+        onConfirm={() => { setResetConfirmOpen(false); performReset(); }}
+        onCancel={() => setResetConfirmOpen(false)}
+      />
       {!lockedCategory && showCompactHeader && (
         <CompactToolkitHeader
           eyebrow="Inspections & Notices"

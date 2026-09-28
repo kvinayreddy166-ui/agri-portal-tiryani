@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, LayoutDashboard, ShieldCheck, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, type LucideIcon } from 'lucide-react';
+import { Calculator, ShieldCheck, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
@@ -101,14 +101,6 @@ const toolkitItems: ToolkitItem[] = [
 
 const externalPortals: ToolkitItem[] = [
   {
-    title: 'Urea Dashboard',
-    description: 'Urea Fertilizer Dashboard Portal',
-    externalUrl: 'http://74.225.14.186:8025/login',
-    icon: LayoutDashboard,
-    gradient: 'from-purple-500 to-pink-600',
-    bgGradient: 'from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30',
-  },
-  {
     title: 'Crop Loan Waiver',
     description: 'Telangana Crop Loan Waiver Portal',
     externalUrl: 'https://clw.telangana.gov.in/Login.aspx',
@@ -157,9 +149,9 @@ const externalPortals: ToolkitItem[] = [
     bgGradient: 'from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30',
   },
   {
-    title: 'IMD Weather',
-    description: 'India Meteorological Department Weather',
-    externalUrl: 'https://mausam.imd.gov.in/imd_latest/contents/districtwise-warning_mc.php?id=1',
+    title: 'TGDPS Weather',
+    description: 'Telangana Development Planning Society Weather',
+    externalUrl: 'https://tgdps.telangana.gov.in/districtdata.jsp',
     icon: CloudSunRain,
     gradient: 'from-cyan-500 to-teal-600',
     bgGradient: 'from-cyan-50 to-teal-50 dark:from-cyan-950/30 dark:to-teal-950/30',
@@ -220,6 +212,14 @@ const externalPortals: ToolkitItem[] = [
     gradient: 'from-cyan-500 to-blue-600',
     bgGradient: 'from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30',
   },
+  {
+    title: 'GT Points',
+    description: 'Krishi Decision Support System',
+    externalUrl: 'https://krishi-dss.gov.in/krishi-dss/auth/login',
+    icon: MapPin,
+    gradient: 'from-emerald-500 to-teal-600',
+    bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
+  },
 ];
 
 function translateToolkit(label?: string) {
@@ -239,8 +239,7 @@ function translateToolkit(label?: string) {
     'Acts & Orders': 'చట్టాలు & ఉత్తర్వులు',
     'FCO, Seed Act, Insecticide Act, clauses, Rules.': 'FCO, విత్తన చట్టం, పురుగుమందు చట్టం, క్లాజులు, నియమాలు.',
     'Under development': 'అభివృద్ధిలో ఉంది',
-    'Urea Dashboard': 'యూరియా డ్యాష్‌బోర్డ్',
-    'Urea Fertilizer Dashboard Portal': 'యూరియా ఎరువుల డ్యాష్‌బోర్డ్ పోర్టల్',
+
     'Crop Loan Waiver': 'పంట రుణమాఫీ',
     'Telangana Crop Loan Waiver Portal': 'తెలంగాణ పంట రుణమాఫీ పోర్టల్',
     'Soil Health Card': 'సాయిల్ హెల్త్ కార్డ్',
@@ -253,8 +252,8 @@ function translateToolkit(label?: string) {
     'Telangana IFMIS e-Challan Portal': 'తెలంగాణ IFMIS ఈ-చలాన్ పోర్టల్',
     'Agromet Advisories': 'అగ్రోమెట్ సలహాలు',
     'Agricultural Meteorological Advisories': 'వ్యవసాయ వాతావరణ సలహాలు',
-    'IMD Weather': 'IMD వాతావరణం',
-    'India Meteorological Department Weather': 'భారత వాతావరణ శాఖ వాతావరణం',
+    'TGDPS Weather': 'TGDPS వాతావరణం',
+    'Telangana Development Planning Society Weather': 'తెలంగాణ డెవలప్‌మెంట్ ప్లానింగ్ సొసైటీ వాతావరణం',
     'Quality Control - Court Judgements': 'నాణ్యత నియంత్రణ - కోర్టు తీర్పులు',
     'Fertilizer Control Order Court Judgements': 'ఎరువుల నియంత్రణ ఉత్తర్వుల కోర్టు తీర్పులు',
     'Rythu Bharosa': 'రైతు భరోసా',
@@ -269,6 +268,8 @@ function translateToolkit(label?: string) {
     'Natural Farming National Portal': 'ప్రకృతి వ్యవసాయ జాతీయ పోర్టల్',
     'Farmer Registry': 'రైతు రిజిస్ట్రీ',
     'Telangana Farmer Registry': 'తెలంగాణ రైతు రిజిస్ట్రీ',
+    'GT Points': 'జీటీ పాయింట్స్',
+    'Krishi Decision Support System': 'కృషి డిసిషన్ సపోర్ట్ సిస్టమ్',
     'Officer Toolkit': 'అధికారుల టూల్‌కిట్',
     'Agricultural Tools & Government Portals': 'వ్యవసాయ సాధనాలు & ప్రభుత్వ పోర్టళ్లు',
     'Field Tools': 'క్షేత్ర సాధనాలు',
