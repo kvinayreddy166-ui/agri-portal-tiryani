@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, ShieldCheck, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, type LucideIcon } from 'lucide-react';
+import { Calculator, ShieldCheck, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
@@ -220,6 +220,30 @@ const externalPortals: ToolkitItem[] = [
     gradient: 'from-emerald-500 to-teal-600',
     bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
   },
+  {
+    title: 'CFQCTI',
+    description: 'Central Fertilizer Quality Control & Training Institute',
+    externalUrl: 'https://cfqcti.da.gov.in/',
+    icon: ShieldCheck,
+    gradient: 'from-amber-500 to-orange-600',
+    bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
+  },
+  {
+    title: 'FFS Web',
+    description: 'Fertilizer Statistics & Analysis (DA&FW)',
+    externalUrl: 'https://fsas.agriwelfare.gov.in/fertilizer/#/',
+    icon: BarChart3,
+    gradient: 'from-blue-500 to-indigo-600',
+    bgGradient: 'from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30',
+  },
+  {
+    title: 'CIB&RC',
+    description: 'Central Insecticide Board & Registration Committee',
+    externalUrl: 'https://ppqs.gov.in/divisions/central-insecticide-board-registration-committee',
+    icon: Bug,
+    gradient: 'from-lime-500 to-green-600',
+    bgGradient: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
+  },
 ];
 
 function translateToolkit(label?: string) {
@@ -270,6 +294,12 @@ function translateToolkit(label?: string) {
     'Telangana Farmer Registry': 'తెలంగాణ రైతు రిజిస్ట్రీ',
     'GT Points': 'జీటీ పాయింట్స్',
     'Krishi Decision Support System': 'కృషి డిసిషన్ సపోర్ట్ సిస్టమ్',
+    'CFQCTI': 'సీఎఫ్‌క్యూసీటీఐ',
+    'Central Fertilizer Quality Control & Training Institute': 'సెంట్రల్ ఎరువుల నాణ్యత నియంత్రణ & శిక్షణ సంస్థ',
+    'FFS Web': 'ఎఫ్‌ఎఫ్‌ఎస్ వెబ్',
+    'Fertilizer Statistics & Analysis (DA&FW)': 'ఎరువుల గణాంకాలు & విశ్లేషణ (DA&FW)',
+    'CIB&RC': 'సీఐబీ&ఆర్‌సీ',
+    'Central Insecticide Board & Registration Committee': 'సెంట్రల్ ఇన్‌సెక్టిసైడ్ బోర్డ్ & రిజిస్ట్రేషన్ కమిటీ',
     'Officer Toolkit': 'అధికారుల టూల్‌కిట్',
     'Agricultural Tools & Government Portals': 'వ్యవసాయ సాధనాలు & ప్రభుత్వ పోర్టళ్లు',
     'Field Tools': 'క్షేత్ర సాధనాలు',
