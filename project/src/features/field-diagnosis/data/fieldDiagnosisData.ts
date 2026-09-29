@@ -1,7 +1,10 @@
 // Agronix Field Diagnosis — crop-wise disease & symptom dataset.
-// Seed records compiled from the TNAU Agritech Crop Protection Portal.
-// Where the source does not specify a growth stage, the record uses 'UNKNOWN'
+// Disease/symptom records are generated from diseaseSymptoms.json, which
+// consolidates the TNAU Agritech Crop Protection Portal reference data.
+// Where the source does not specify a growth stage, records use 'UNKNOWN'
 // rather than an inferred value.
+
+import sourceData from './diseaseSymptoms.json';
 
 export const UNKNOWN_STAGE = 'UNKNOWN';
 
@@ -166,80 +169,7 @@ export function plantPartLabel(code: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Symptoms (shared per crop; diseases map weights onto these)
-// ---------------------------------------------------------------------------
-
-export const FD_SYMPTOMS: Record<string, FdSymptomDef[]> = {
-  paddy: [
-    { id: 'pdy-spindle', label: 'Spindle-shaped lesions', parts: ['LEAF'] },
-    { id: 'pdy-grey-ashy', label: 'Grey or ashy lesion centre', parts: ['LEAF'] },
-    { id: 'pdy-round-oval-brown', label: 'Round to oval brown spots', parts: ['LEAF'] },
-    { id: 'pdy-water-streaks', label: 'Water-soaked streaks', parts: ['LEAF'] },
-    { id: 'pdy-yellowing', label: 'Yellowing of leaves', parts: ['LEAF', 'WHOLE_PLANT'] },
-    { id: 'pdy-leaf-drying', label: 'Leaf blight (complete drying)', parts: ['LEAF'] },
-    { id: 'pdy-chlorotic-stripes', label: 'Chlorotic stripes', parts: ['LEAF'] },
-    { id: 'pdy-white-powder', label: 'White powdery growth', parts: ['LEAF'] },
-    { id: 'pdy-neck-black', label: 'Neck turns black and shrivels', parts: ['NECK'] },
-    { id: 'pdy-glume-spots', label: 'Black or brown spots on glumes', parts: ['GRAIN'] },
-    { id: 'pdy-smut-balls', label: 'Smut balls on grains', parts: ['GRAIN'] },
-    { id: 'pdy-grain-discolor', label: 'Grain discoloration', parts: ['GRAIN'] },
-    { id: 'pdy-sheath-lesions', label: 'Irregular lesions on leaf sheath', parts: ['LEAF_SHEATH'] },
-    { id: 'pdy-panicle-trapped', label: 'Panicle trapped inside sheath', parts: ['PANICLE'] },
-    { id: 'pdy-stunting', label: 'Stunting and reduced growth', parts: ['WHOLE_PLANT'] },
-  ],
-  cotton: [
-    { id: 'ctn-yellowing', label: 'Yellowing of leaves', parts: ['LEAF'] },
-    { id: 'ctn-leaf-drop', label: 'Browning and leaf drop', parts: ['LEAF'] },
-    { id: 'ctn-wilt-droop', label: 'Wilting / loss of turgidity', parts: ['LEAF', 'WHOLE_PLANT'] },
-    { id: 'ctn-round-spots', label: 'Round or irregular brown spots', parts: ['LEAF'] },
-    { id: 'ctn-angular-spots', label: 'Angular pale spots bounded by veins', parts: ['LEAF'] },
-    { id: 'ctn-reddish-spots', label: 'Small reddish / light-coloured spots', parts: ['LEAF'] },
-    { id: 'ctn-stem-canker', label: 'Canker-like lesions on stem', parts: ['STEM'] },
-    { id: 'ctn-boll-spots', label: 'Water-soaked reddish-brown boll spots', parts: ['BOLL'] },
-    { id: 'ctn-boll-rot', label: 'Boll rot / discoloured bolls', parts: ['BOLL'] },
-    { id: 'ctn-root-decay', label: 'Root decay and weak plants', parts: ['ROOT'] },
-    { id: 'ctn-stunted-root', label: 'Stunted taproot, fewer lateral roots', parts: ['ROOT'] },
-  ],
-  maize: [
-    { id: 'mze-diamond-lesions', label: 'Diamond-shaped elongated lesions', parts: ['LEAF'] },
-    { id: 'mze-leaf-burning', label: 'Large areas of leaf burning', parts: ['LEAF'] },
-    { id: 'mze-chlorotic-base', label: 'Chlorotic areas including leaf base', parts: ['LEAF'] },
-    { id: 'mze-downy-growth', label: 'White downy growth on leaf surfaces', parts: ['LEAF'] },
-    { id: 'mze-tassel-abnormal', label: 'Abnormal tassel / floral development', parts: ['FLOWER'] },
-  ],
-  greengram: [
-    { id: 'ggm-concentric-spots', label: 'Circular brown spots with concentric rings', parts: ['LEAF'] },
-    { id: 'ggm-shot-holes', label: 'Shot holes in leaves', parts: ['LEAF'] },
-    { id: 'ggm-sunken-black', label: 'Circular black sunken spots', parts: ['LEAF', 'POD'] },
-    { id: 'ggm-orange-margins', label: 'Bright reddish-orange spot margins', parts: ['LEAF', 'POD'] },
-    { id: 'ggm-white-cankers', label: 'Raised white cankers at stem base', parts: ['STEM_BASE'] },
-    { id: 'ggm-mottled-leaves', label: 'Mottled, dark green, reduced leaves', parts: ['LEAF'] },
-    { id: 'ggm-yellow-mottling', label: 'Bright yellow mottling of leaves', parts: ['LEAF'] },
-    { id: 'ggm-powdery', label: 'White powdery patches on leaves', parts: ['LEAF'] },
-    { id: 'ggm-root-black', label: 'Root and basal stem blackening', parts: ['ROOT', 'STEM_BASE'] },
-    { id: 'ggm-rust-pustules', label: 'Reddish-brown pustules on lower leaf surface', parts: ['LEAF'] },
-    { id: 'ggm-seedling-death', label: 'Sudden drying and death of seedlings', parts: ['SEEDLING', 'WHOLE_PLANT'] },
-  ],
-  soybean: [
-    { id: 'sbn-concentric', label: 'Brown spots with concentric rings', parts: ['LEAF'] },
-    { id: 'sbn-irregular-lesions', label: 'Irregular brown lesions / vein necrosis', parts: ['LEAF'] },
-    { id: 'sbn-angular-spots', label: 'Small angular water-soaked spots', parts: ['LEAF'] },
-    { id: 'sbn-frogeye', label: 'Circular lesions with grey centres, dark margins', parts: ['LEAF'] },
-    { id: 'sbn-powdery', label: 'White powdery patches', parts: ['LEAF'] },
-    { id: 'sbn-rust', label: 'Tan to reddish-brown lesions (lower surface)', parts: ['LEAF'] },
-    { id: 'sbn-mosaic', label: 'Distorted, puckered or crinkled leaves', parts: ['LEAF'] },
-    { id: 'sbn-stem-lesions', label: 'Brown lesions / cankers on stem', parts: ['STEM'] },
-    { id: 'sbn-pod-lesions', label: 'Brown lesions on pods / discoloured seeds', parts: ['POD', 'SEED'] },
-    { id: 'sbn-webblight', label: 'Water-soaked lesions turning dark brown', parts: ['LEAF'] },
-  ],
-};
-
-export function getSymptoms(cropId: string): FdSymptomDef[] {
-  return FD_SYMPTOMS[cropId] || [];
-}
-
-// ---------------------------------------------------------------------------
-// Diagnostic questions (symptom characteristics — step 5)
+// Diagnostic questions (symptom characteristics — additional details)
 // ---------------------------------------------------------------------------
 
 export const FD_TRAIT_QUESTIONS: { key: FdTraitKey; label: string; options: string[] }[] = [
@@ -251,505 +181,244 @@ export const FD_TRAIT_QUESTIONS: { key: FdTraitKey; label: string; options: stri
 
 const TRAIT_WEIGHT = 3;
 
+const TNAU_PORTAL = 'https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_diseases_agri.html';
+
 // ---------------------------------------------------------------------------
-// Diseases
+// Source JSON → app structures
 // ---------------------------------------------------------------------------
 
-const TNAU_MAIN = 'https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_diseases_agri.html';
-const TNAU_RICE = 'https://www.agritech.tnau.ac.in/crop_protection/crop_prot_crop%20diseases_cereals_rice_main.html';
-const TNAU_COTTON = 'https://agritech.tnau.ac.in/crop_protection/crop_prot_crop%20diseases_cash%20crops_cotton.html';
-const TNAU_MGMT = 'https://www.agritech.tnau.ac.in/org_farm/orgfarm_agridiseases.html';
+interface SourceDisease {
+  disease_name: string;
+  plant_parts_affected?: string[];
+  symptoms?: string[];
+  diagnostic_features?: string[];
+}
 
-const ALL_PADDY_STAGES = PADDY_STAGES.map((s) => s.code);
-const ALL_COTTON_STAGES = COTTON_STAGES.map((s) => s.code);
+interface SourceCrop {
+  crop_name: string;
+  category: string;
+  diseases: SourceDisease[];
+}
 
-export const FD_DISEASES: FdDisease[] = [
-  // ---- Paddy ----
-  {
-    id: 'pdy-blast',
-    cropId: 'paddy',
-    name: 'Rice Blast',
-    scientificName: 'Magnaporthe oryzae',
-    type: 'Fungus',
-    parts: ['LEAF', 'NECK', 'NODE', 'PANICLE'],
-    stages: ALL_PADDY_STAGES,
-    overview:
-      'Small specks develop into spindle-shaped lesions with grey or ashy centres; lesions may merge. After ear emergence the neck turns black and shrivels and the panicle may break.',
-    references: [
-      { label: 'TNAU Rice Disease Reference', url: TNAU_RICE },
-      { label: 'TNAU Crop Diseases Portal', url: TNAU_MAIN },
-    ],
-    symptomWeights: { 'pdy-spindle': 5, 'pdy-grey-ashy': 5, 'pdy-neck-black': 5, 'pdy-yellowing': 1 },
-    traits: { lesionShape: ['Spindle-shaped'], lesionCentre: ['Grey / Ashy'], distribution: ['Many plants', 'Throughout field'] },
-  },
-  {
-    id: 'pdy-brown-spot',
-    cropId: 'paddy',
-    name: 'Brown Spot',
-    scientificName: 'Bipolaris oryzae',
-    type: 'Fungus',
-    parts: ['LEAF', 'GRAIN'],
-    stages: ['NURSERY', 'SEEDLING', 'TILLERING', 'STEM_ELONGATION', 'BOOTING', 'HEADING', 'FLOWERING', 'GRAIN_FILLING', 'MATURITY'],
-    overview:
-      'Small, round to oval brown spots on leaves which may merge; black or brown spots may develop on the glumes during grain development.',
-    references: [{ label: 'TNAU Rice Disease Reference', url: TNAU_RICE }],
-    symptomWeights: { 'pdy-round-oval-brown': 5, 'pdy-glume-spots': 4 },
-    traits: { lesionShape: ['Round'], lesionCentre: ['Brown'] },
-  },
-  {
-    id: 'pdy-blb',
-    cropId: 'paddy',
-    name: 'Bacterial Leaf Blight',
-    scientificName: 'Xanthomonas oryzae pv. oryzae',
-    type: 'Bacteria',
-    parts: ['LEAF', 'LEAF_TIP', 'LEAF_MARGIN'],
-    stages: ['TILLERING', 'STEM_ELONGATION', 'BOOTING'],
-    overview: 'Leaf lesions spread along the leaf and can result in complete drying of affected leaves.',
-    references: [{ label: 'TNAU Rice Disease Reference', url: TNAU_RICE }],
-    symptomWeights: { 'pdy-leaf-drying': 5, 'pdy-yellowing': 3, 'pdy-water-streaks': 2 },
-    traits: { lesionShape: ['Irregular'], severity: ['Moderate', 'Severe'] },
-  },
-  {
-    id: 'pdy-bls',
-    cropId: 'paddy',
-    name: 'Bacterial Leaf Streak',
-    scientificName: 'Xanthomonas oryzae pv. oryzicola',
-    type: 'Bacteria',
-    parts: ['LEAF'],
-    stages: ['TILLERING', 'STEM_ELONGATION', 'BOOTING'],
-    overview: 'Small, dark-green, water-soaked streaks develop between the leaf veins.',
-    references: [{ label: 'TNAU Rice Disease Reference', url: TNAU_RICE }],
-    symptomWeights: { 'pdy-water-streaks': 5, 'pdy-chlorotic-stripes': 3 },
-    traits: { lesionShape: ['Irregular'] },
-  },
-  {
-    id: 'pdy-tungro',
-    cropId: 'paddy',
-    name: 'Rice Tungro',
-    scientificName: 'RTSV / RTBV',
-    type: 'Virus',
-    parts: ['LEAF', 'WHOLE_PLANT'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Yellowing, stunting and reduced growth of the whole plant.',
-    references: [{ label: 'TNAU Rice Disease Reference', url: TNAU_RICE }],
-    symptomWeights: { 'pdy-yellowing': 4, 'pdy-stunting': 5, 'pdy-chlorotic-stripes': 2 },
-    traits: { distribution: ['Throughout field', 'Patchy'] },
-  },
-  {
-    id: 'pdy-sheath-rot',
-    cropId: 'paddy',
-    name: 'Sheath Rot',
-    scientificName: 'Sarocladium oryzae',
-    type: 'Fungus',
-    parts: ['LEAF_SHEATH', 'PANICLE', 'GRAIN'],
-    stages: ['HEADING', 'FLOWERING'],
-    overview:
-      'Irregular lesions on the leaf sheath with reddish-brown margins and grey centres; the panicle may remain trapped inside the sheath and florets may turn reddish-brown.',
-    references: [{ label: 'TNAU Rice Disease Reference', url: TNAU_RICE }],
-    symptomWeights: { 'pdy-sheath-lesions': 5, 'pdy-panicle-trapped': 4, 'pdy-grain-discolor': 3 },
-    traits: { lesionShape: ['Irregular'], lesionCentre: ['Grey / Ashy'] },
-  },
-  {
-    id: 'pdy-sheath-blight',
-    cropId: 'paddy',
-    name: 'Sheath Blight',
-    scientificName: 'Rhizoctonia solani',
-    type: 'Fungus',
-    parts: ['LEAF_SHEATH'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Lesions develop on the leaf sheath and may spread upwards.',
-    references: [{ label: 'TNAU Rice Disease Reference', url: TNAU_RICE }],
-    symptomWeights: { 'pdy-sheath-lesions': 5 },
-    traits: { lesionShape: ['Irregular'] },
-  },
-  {
-    id: 'pdy-false-smut',
-    cropId: 'paddy',
-    name: 'False Smut',
-    scientificName: 'Ustilaginoidea virens',
-    type: 'Fungus',
-    parts: ['GRAIN'],
-    stages: ['GRAIN_FILLING'],
-    overview: 'Individual grains develop characteristic smut balls.',
-    references: [{ label: 'TNAU Rice Disease Reference', url: TNAU_RICE }],
-    symptomWeights: { 'pdy-smut-balls': 5, 'pdy-grain-discolor': 2 },
-    traits: {},
-  },
-  {
-    id: 'pdy-bakanae',
-    cropId: 'paddy',
-    name: 'Bakanae',
-    scientificName: 'Fusarium fujikuroi',
-    type: 'Fungus',
-    parts: ['WHOLE_PLANT', 'STEM'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Listed in the TNAU rice disease reference; detailed symptom mapping pending source verification.',
-    references: [{ label: 'TNAU Rice Disease Reference', url: TNAU_RICE }],
-    symptomWeights: { 'pdy-stunting': 2 },
-    traits: {},
-  },
-  {
-    id: 'pdy-grain-discolor',
-    cropId: 'paddy',
-    name: 'Grain Discoloration',
-    scientificName: 'Multiple fungi',
-    type: 'Fungus',
-    parts: ['GRAIN'],
-    stages: ['GRAIN_FILLING', 'MATURITY'],
-    overview: 'Listed in the TNAU rice disease reference; detailed symptom mapping pending source verification.',
-    references: [{ label: 'TNAU Rice Disease Reference', url: TNAU_RICE }],
-    symptomWeights: { 'pdy-grain-discolor': 4, 'pdy-glume-spots': 2 },
-    traits: {},
-  },
-  // ---- Cotton ----
-  {
-    id: 'ctn-fusarium',
-    cropId: 'cotton',
-    name: 'Fusarium Wilt',
-    scientificName: 'Fusarium oxysporum f. sp. vasinfectum',
-    type: 'Fungus',
-    parts: ['LEAF', 'ROOT', 'WHOLE_PLANT'],
-    stages: ALL_COTTON_STAGES,
-    overview: 'Yellowing, loss of turgidity, browning and leaf drop; taproot stunted with fewer lateral roots.',
-    references: [{ label: 'TNAU Cotton Disease Reference', url: TNAU_COTTON }],
-    symptomWeights: { 'ctn-yellowing': 4, 'ctn-wilt-droop': 5, 'ctn-leaf-drop': 4, 'ctn-stunted-root': 4 },
-    traits: { distribution: ['Patchy', 'Throughout field'], severity: ['Moderate', 'Severe'] },
-  },
-  {
-    id: 'ctn-verticillium',
-    cropId: 'cotton',
-    name: 'Verticillium Wilt',
-    scientificName: 'Verticillium dahliae',
-    type: 'Fungus',
-    parts: ['LEAF', 'WHOLE_PLANT'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Listed in the TNAU cotton disease reference; wilt symptoms with leaf yellowing and drop.',
-    references: [{ label: 'TNAU Cotton Disease Reference', url: TNAU_COTTON }],
-    symptomWeights: { 'ctn-yellowing': 3, 'ctn-wilt-droop': 4, 'ctn-leaf-drop': 3 },
-    traits: {},
-  },
-  {
-    id: 'ctn-alternaria',
-    cropId: 'cotton',
-    name: 'Alternaria Leaf Spot',
-    scientificName: 'Alternaria spp.',
-    type: 'Fungus',
-    parts: ['LEAF', 'STEM', 'BOLL'],
-    stages: [UNKNOWN_STAGE],
-    overview:
-      'Pale to brown, round or irregular spots with cracked centres; affected leaves dry and fall. Canker-like lesions may develop on stems and infection may spread to bolls.',
-    references: [{ label: 'TNAU Cotton Disease Reference', url: TNAU_COTTON }],
-    symptomWeights: { 'ctn-round-spots': 5, 'ctn-leaf-drop': 3, 'ctn-stem-canker': 4, 'ctn-boll-rot': 3 },
-    traits: { lesionShape: ['Round', 'Irregular'], lesionCentre: ['Brown'] },
-  },
-  {
-    id: 'ctn-anthracnose',
-    cropId: 'cotton',
-    name: 'Anthracnose',
-    scientificName: 'Colletotrichum gossypii',
-    type: 'Fungus',
-    parts: ['LEAF', 'STEM', 'BOLL'],
-    stages: ['SEEDLING', 'BOLL_FORMATION', 'BOLL_DEVELOPMENT'],
-    overview:
-      'Small reddish or light-coloured leaf spots at the seedling stage; stem infection through wounds weakens plants; water-soaked, circular, slightly depressed reddish-brown spots on bolls.',
-    references: [{ label: 'TNAU Cotton Disease Reference', url: TNAU_COTTON }],
-    symptomWeights: { 'ctn-reddish-spots': 4, 'ctn-stem-canker': 3, 'ctn-boll-spots': 5 },
-    traits: { lesionShape: ['Round'], lesionCentre: ['Brown'] },
-  },
-  {
-    id: 'ctn-grey-mildew',
-    cropId: 'cotton',
-    name: 'Grey Mildew',
-    scientificName: 'Ramularia areola',
-    type: 'Fungus',
-    parts: ['LEAF'],
-    stages: ['MATURITY'],
-    overview: 'Angular, pale, translucent spots bounded by leaf veins, appearing near maturity.',
-    references: [{ label: 'TNAU Cotton Disease Reference', url: TNAU_COTTON }],
-    symptomWeights: { 'ctn-angular-spots': 5 },
-    traits: { lesionShape: ['Irregular'] },
-  },
-  {
-    id: 'ctn-bacterial-blight',
-    cropId: 'cotton',
-    name: 'Bacterial Blight',
-    scientificName: 'Xanthomonas citri pv. malvacearum',
-    type: 'Bacteria',
-    parts: ['LEAF'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Leaf lesions and possible vein-associated symptoms.',
-    references: [{ label: 'TNAU Cotton Disease Reference', url: TNAU_COTTON }],
-    symptomWeights: { 'ctn-angular-spots': 4, 'ctn-reddish-spots': 2 },
-    traits: {},
-  },
-  {
-    id: 'ctn-root-rot',
-    cropId: 'cotton',
-    name: 'Root Rot',
-    scientificName: 'Rhizoctonia solani / Macrophomina spp.',
-    type: 'Fungus',
-    parts: ['ROOT'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Root decay and loss of plant vigour.',
-    references: [{ label: 'TNAU Cotton Disease Reference', url: TNAU_COTTON }],
-    symptomWeights: { 'ctn-root-decay': 5, 'ctn-wilt-droop': 3 },
-    traits: {},
-  },
-  {
-    id: 'ctn-boll-rot',
-    cropId: 'cotton',
-    name: 'Boll Rot',
-    scientificName: 'Multiple organisms',
-    type: 'Fungus/Bacteria',
-    parts: ['BOLL'],
-    stages: ['BOLL_DEVELOPMENT'],
-    overview: 'Listed in the TNAU cotton disease reference; rotting and discolouration of bolls.',
-    references: [{ label: 'TNAU Cotton Disease Reference', url: TNAU_COTTON }],
-    symptomWeights: { 'ctn-boll-rot': 5, 'ctn-boll-spots': 3 },
-    traits: {},
-  },
-  // ---- Maize ----
-  {
-    id: 'mze-mlb',
-    cropId: 'maize',
-    name: 'Maydis Leaf Blight',
-    scientificName: 'Bipolaris maydis',
-    type: 'Fungus',
-    parts: ['LEAF'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Young diamond-shaped lesions elongate and merge, causing large areas of leaf burning.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'mze-diamond-lesions': 5, 'mze-leaf-burning': 4 },
-    traits: { lesionShape: ['Spindle-shaped', 'Irregular'] },
-  },
-  {
-    id: 'mze-downy',
-    cropId: 'maize',
-    name: 'Sorghum Downy Mildew',
-    scientificName: 'Peronosclerospora sorghi',
-    type: 'Oomycete',
-    parts: ['LEAF', 'FLOWER'],
-    stages: [UNKNOWN_STAGE],
-    overview:
-      'Chlorotic areas include the base of the leaf blade with sharply defined margins; white downy growth may appear on both leaf surfaces; abnormal floral development may occur.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'mze-chlorotic-base': 4, 'mze-downy-growth': 5, 'mze-tassel-abnormal': 3 },
-    traits: { lesionCentre: ['Grey / Ashy'] },
-  },
-  // ---- Greengram ----
-  {
-    id: 'ggm-alternaria',
-    cropId: 'greengram',
-    name: 'Alternaria Leaf Spot',
-    scientificName: 'Alternaria spp.',
-    type: 'Fungus',
-    parts: ['LEAF'],
-    stages: [UNKNOWN_STAGE],
-    overview:
-      'Circular brown spots develop dark concentric rings; affected tissue may fall out, creating shot holes.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'ggm-concentric-spots': 5, 'ggm-shot-holes': 4 },
-    traits: { lesionShape: ['Round'], lesionCentre: ['Brown'] },
-  },
-  {
-    id: 'ggm-anthracnose',
-    cropId: 'greengram',
-    name: 'Anthracnose',
-    scientificName: 'Colletotrichum spp.',
-    type: 'Fungus',
-    parts: ['LEAF', 'POD'],
-    stages: GENERIC_STAGES.map((s) => s.code),
-    overview: 'Circular black sunken spots with dark centres and bright reddish-orange margins on leaves and pods.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'ggm-sunken-black': 5, 'ggm-orange-margins': 5 },
-    traits: { lesionShape: ['Round'], lesionCentre: ['Black'] },
-  },
-  {
-    id: 'ggm-web-blight',
-    cropId: 'greengram',
-    name: 'Leaf Web Blight',
-    scientificName: 'Rhizoctonia solani',
-    type: 'Fungus',
-    parts: ['STEM_BASE', 'LEAF'],
-    stages: ['VEGETATIVE'],
-    overview:
-      'Raised white cankers develop at the stem base around four weeks and become brown streaks; leaves become mottled, dark green and reduced in size.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'ggm-white-cankers': 5, 'ggm-mottled-leaves': 4 },
-    traits: {},
-  },
-  {
-    id: 'ggm-yellow-mosaic',
-    cropId: 'greengram',
-    name: 'Yellow Mosaic',
-    scientificName: 'Mungbean yellow mosaic virus',
-    type: 'Virus',
-    parts: ['LEAF'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Bright yellow mottling of leaves.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'ggm-yellow-mottling': 5, 'ggm-mottled-leaves': 3 },
-    traits: { distribution: ['Patchy', 'Throughout field'] },
-  },
-  {
-    id: 'ggm-powdery',
-    cropId: 'greengram',
-    name: 'Powdery Mildew',
-    scientificName: 'Erysiphe polygoni',
-    type: 'Fungus',
-    parts: ['LEAF'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'White powdery patches expand and may cover leaf surfaces.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'ggm-powdery': 5 },
-    traits: {},
-  },
-  {
-    id: 'ggm-root-rot',
-    cropId: 'greengram',
-    name: 'Root Rot',
-    scientificName: 'Macrophomina phaseolina / Rhizoctonia spp.',
-    type: 'Fungus',
-    parts: ['ROOT', 'STEM_BASE'],
-    stages: ['POD_FRUIT_FORMATION'],
-    overview: 'Root and basal stem blackening; bark peels off; internal tissues may show reddish discoloration.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'ggm-root-black': 5, 'ggm-seedling-death': 2 },
-    traits: {},
-  },
-  {
-    id: 'ggm-rust',
-    cropId: 'greengram',
-    name: 'Rust',
-    scientificName: 'Uromyces spp.',
-    type: 'Fungus',
-    parts: ['LEAF'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Reddish-brown pustules, especially on the lower leaf surface.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'ggm-rust-pustules': 5 },
-    traits: { lesionCentre: ['Brown'] },
-  },
-  {
-    id: 'ggm-seedling-rot',
-    cropId: 'greengram',
-    name: 'Seedling Rot',
-    scientificName: 'Multiple organisms',
-    type: 'Fungus',
-    parts: ['SEEDLING', 'STEM_BASE'],
-    stages: ['GERMINATION', 'SEEDLING'],
-    overview: 'Sudden drying and death; basal stem weakens and turns brown.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'ggm-seedling-death': 5, 'ggm-root-black': 3 },
-    traits: {},
-  },
-  // ---- Soybean ----
-  {
-    id: 'sbn-alternaria',
-    cropId: 'soybean',
-    name: 'Alternaria Leaf Spot',
-    scientificName: 'Alternaria spp.',
-    type: 'Fungus',
-    parts: ['LEAF'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Brown necrotic spots with concentric rings; spots merge into larger necrotic areas.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'sbn-concentric': 5 },
-    traits: { lesionShape: ['Round'], lesionCentre: ['Brown'] },
-  },
-  {
-    id: 'sbn-anthracnose',
-    cropId: 'soybean',
-    name: 'Anthracnose',
-    scientificName: 'Colletotrichum spp.',
-    type: 'Fungus',
-    parts: ['LEAF', 'STEM', 'POD'],
-    stages: [UNKNOWN_STAGE],
-    overview:
-      'Irregular brown lesions and possible veinal necrosis on leaves; brown lesions and cankers on stems; infected pods and seeds may become discoloured.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'sbn-irregular-lesions': 4, 'sbn-stem-lesions': 4, 'sbn-pod-lesions': 4 },
-    traits: { lesionShape: ['Irregular'], lesionCentre: ['Brown'] },
-  },
-  {
-    id: 'sbn-bacterial-blight',
-    cropId: 'soybean',
-    name: 'Bacterial Blight',
-    scientificName: 'Pseudomonas savastanoi pv. glycinea',
-    type: 'Bacteria',
-    parts: ['LEAF', 'STEM'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Small angular, translucent, water-soaked yellow to light-brown spots; dark lesions may develop on stems.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'sbn-angular-spots': 5, 'sbn-stem-lesions': 3 },
-    traits: {},
-  },
-  {
-    id: 'sbn-frogeye',
-    cropId: 'soybean',
-    name: 'Frog-eye Leaf Spot',
-    scientificName: 'Cercospora sojina',
-    type: 'Fungus',
-    parts: ['LEAF'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Circular or angular lesions with grey centres and dark margins.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'sbn-frogeye': 5 },
-    traits: { lesionShape: ['Round'], lesionCentre: ['Grey / Ashy'] },
-  },
-  {
-    id: 'sbn-powdery',
-    cropId: 'soybean',
-    name: 'Powdery Mildew',
-    scientificName: 'Microsphaera diffusa',
-    type: 'Fungus',
-    parts: ['LEAF'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'White powdery patches on leaves.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'sbn-powdery': 5 },
-    traits: {},
-  },
-  {
-    id: 'sbn-rust',
-    cropId: 'soybean',
-    name: 'Rust',
-    scientificName: 'Phakopsora pachyrhizi',
-    type: 'Fungus',
-    parts: ['LEAF'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Tan to dark-brown or reddish-brown lesions, particularly on the lower leaf surface.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'sbn-rust': 5 },
-    traits: { lesionCentre: ['Brown'] },
-  },
-  {
-    id: 'sbn-mosaic',
-    cropId: 'soybean',
-    name: 'Soybean Mosaic',
-    scientificName: 'Soybean mosaic virus',
-    type: 'Virus',
-    parts: ['LEAF', 'WHOLE_PLANT'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Distorted, puckered, crinkled or narrow leaves; plants may be stunted.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'sbn-mosaic': 5 },
-    traits: { distribution: ['Patchy', 'Throughout field'] },
-  },
-  {
-    id: 'sbn-web-blight',
-    cropId: 'soybean',
-    name: 'Web Blight',
-    scientificName: 'Rhizoctonia solani',
-    type: 'Fungus',
-    parts: ['LEAF'],
-    stages: [UNKNOWN_STAGE],
-    overview: 'Water-soaked lesions turn greenish-brown, reddish-brown or dark.',
-    references: [{ label: 'TNAU Agricultural Crop Disease Management', url: TNAU_MGMT }],
-    symptomWeights: { 'sbn-webblight': 5 },
-    traits: { lesionCentre: ['Brown', 'Black'] },
-  },
-];
+const CROP_NAME_TO_ID: Record<string, string> = {
+  'rice (paddy)': 'paddy',
+  'sorghum (jowar)': 'sorghum',
+  maize: 'maize',
+  'cumbu (pearl millet)': 'pearl-millet',
+  wheat: 'wheat',
+  'ragi (finger millet)': 'ragi',
+  'redgram (pigeon pea)': 'redgram',
+  'blackgram (urad)': 'blackgram',
+  'greengram (mungbean)': 'greengram',
+  cowpea: 'cowpea',
+  'chickpea (bengal gram)': 'chickpea',
+  soybean: 'soybean',
+  sunflower: 'sunflower',
+  groundnut: 'groundnut',
+  castor: 'castor',
+  'gingelly (sesame)': 'sesame',
+  'rapeseed and mustard': 'rapeseed-mustard',
+  safflower: 'safflower',
+  cotton: 'cotton',
+  sugarcane: 'sugarcane',
+  tobacco: 'tobacco',
+};
+
+const PART_NAME_MAP: Record<string, string> = {
+  leaves: 'LEAF',
+  leaf: 'LEAF',
+  midrib: 'LEAF',
+  'leaf sheaths': 'LEAF_SHEATH',
+  'leaf sheath': 'LEAF_SHEATH',
+  'panicle neck': 'NECK',
+  neck: 'NECK',
+  panicle: 'PANICLE',
+  panicles: 'PANICLE',
+  'finger-like spikes': 'PANICLE',
+  ear: 'PANICLE',
+  ears: 'PANICLE',
+  grains: 'GRAIN',
+  grain: 'GRAIN',
+  seeds: 'SEED',
+  seed: 'SEED',
+  setts: 'SEED',
+  'whole plant': 'WHOLE_PLANT',
+  seedlings: 'SEEDLING',
+  seedling: 'SEEDLING',
+  shoots: 'SEEDLING',
+  stem: 'STEM',
+  stems: 'STEM',
+  stalks: 'STEM',
+  stalk: 'STEM',
+  branches: 'STEM',
+  'vascular tissues': 'STEM',
+  'stem base': 'STEM_BASE',
+  collar: 'COLLAR',
+  roots: 'ROOT',
+  root: 'ROOT',
+  pegs: 'ROOT',
+  pods: 'POD',
+  pod: 'POD',
+  capsules: 'FRUIT',
+  bolls: 'BOLL',
+  flowers: 'FLOWER',
+  flower: 'FLOWER',
+  'flower head': 'FLOWER',
+  head: 'FLOWER',
+  inflorescence: 'FLOWER',
+  tassels: 'FLOWER',
+  petioles: 'PETIOLE',
+  petiole: 'PETIOLE',
+  'growing point': 'WHOLE_PLANT',
+  'growing points': 'WHOLE_PLANT',
+};
+
+function mapPart(name: string): string {
+  return PART_NAME_MAP[name.trim().toLowerCase()] || 'WHOLE_PLANT';
+}
+
+// Past-participle forms used after "have" in modal phrases ("may appear" → "may have appeared")
+const AUX_PARTICIPLE: Record<string, string> = {
+  be: 'been', become: 'become', break: 'broken', cause: 'caused', collapse: 'collapsed',
+  cover: 'covered', crack: 'cracked', develop: 'developed', die: 'died', drop: 'dropped',
+  dry: 'dried', enlarge: 'enlarged', fall: 'fallen', form: 'formed', girdle: 'girdled',
+  hang: 'hung', merge: 'merged', occur: 'occurred', produce: 'produced', remain: 'remained',
+  result: 'resulted', rot: 'rotted', shrivel: 'shriveled', split: 'split', spread: 'spread',
+  stunt: 'stunted', turn: 'turned', wilt: 'wilted', appear: 'appeared', show: 'shown',
+};
+
+// Simple-past forms for standalone present-tense verbs in symptom text
+const SIMPLE_PAST: Record<string, string> = {
+  develop: 'developed', develops: 'developed', become: 'became', becomes: 'became',
+  wilt: 'wilted', wilts: 'wilted', turn: 'turned', turns: 'turned',
+  cause: 'caused', causes: 'caused', die: 'died', dies: 'died',
+  enlarge: 'enlarged', enlarges: 'enlarged', dry: 'dried', dries: 'dried',
+  rot: 'rotted', rots: 'rotted', merge: 'merged', merges: 'merged',
+  show: 'showed', shows: 'showed', appear: 'appeared', appears: 'appeared',
+  produce: 'produced', produces: 'produced', spread: 'spread', spreads: 'spread',
+  fall: 'fell', falls: 'fell', drop: 'dropped', drops: 'dropped',
+  collapse: 'collapsed', collapses: 'collapsed', split: 'split', splits: 'split',
+  shrivel: 'shriveled', shrivels: 'shriveled', crack: 'cracked', cracks: 'cracked',
+  ooze: 'oozed', oozes: 'oozed', exude: 'exuded', exudes: 'exuded',
+  girdle: 'girdled', girdles: 'girdled', stunt: 'stunted', stunts: 'stunted',
+  dwarf: 'dwarfed', dwarfs: 'dwarfed', cover: 'covered', covers: 'covered',
+  result: 'resulted', results: 'resulted', remain: 'remained', remains: 'remained',
+  occur: 'occurred', occurs: 'occurred', discolor: 'discolored', discolors: 'discolored',
+  form: 'formed', forms: 'formed', break: 'broke', breaks: 'broke',
+  hang: 'hung', hangs: 'hung', extend: 'extended', extends: 'extended',
+  swell: 'swelled', swells: 'swelled', burst: 'burst', bursts: 'burst',
+  bend: 'bent', bends: 'bent', kill: 'killed', kills: 'killed',
+  expand: 'expanded', expands: 'expanded', lose: 'lost', loses: 'lost',
+};
+
+// Convert present-tense symptom descriptions into past-tense observations.
+export function toPastTense(text: string): string {
+  const protectedSpans: string[] = [];
+  let out = text.replace(/\b(may|can|could|might)\s+([a-z]+)\b/gi, (_m, aux: string, verb: string) => {
+    const pp = AUX_PARTICIPLE[verb.toLowerCase()] || `${verb}ed`;
+    const placeholder = `__FDPH${protectedSpans.length}__`;
+    protectedSpans.push(`${aux.toLowerCase()} have ${pp}`);
+    return placeholder;
+  });
+  out = out.replace(/\bis\b/g, 'was').replace(/\bare\b/g, 'were');
+  for (const [present, past] of Object.entries(SIMPLE_PAST)) {
+    out = out.replace(new RegExp(`\\b${present}\\b`, 'g'), past);
+  }
+  return out.replace(/__FDPH(\d+)__/g, (_m, i) => protectedSpans[Number(i)]);
+}
+
+function symptomId(cropId: string, index: number): string {
+  return `${cropId}-s${index}`;
+}
+
+function diseaseId(cropId: string, name: string): string {
+  return `${cropId}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+}
+
+interface BuiltCropData {
+  symptoms: FdSymptomDef[];
+  diseases: FdDisease[];
+}
+
+function buildCropData(source: SourceCrop): BuiltCropData | null {
+  const cropId = CROP_NAME_TO_ID[source.crop_name.trim().toLowerCase()];
+  if (!cropId) return null;
+
+  // Shared symptom list: same description shared across diseases maps to one id.
+  const symptomIndex = new Map<string, { id: string; label: string; parts: Set<string>; diseaseCount: number }>();
+  const diseaseSymptomIds: Map<string, string[]> = new Map();
+
+  for (const disease of source.diseases) {
+    const ids: string[] = [];
+    for (const symptom of disease.symptoms || []) {
+      const key = symptom.trim().toLowerCase();
+      const parts = (disease.plant_parts_affected || []).map(mapPart);
+      const existing = symptomIndex.get(key);
+      if (existing) {
+        parts.forEach((p) => existing.parts.add(p));
+        existing.diseaseCount += 1;
+        ids.push(existing.id);
+      } else {
+        const id = symptomId(cropId, symptomIndex.size);
+        symptomIndex.set(key, { id, label: toPastTense(symptom.trim()), parts: new Set(parts), diseaseCount: 1 });
+        ids.push(id);
+      }
+    }
+    diseaseSymptomIds.set(disease.disease_name, ids);
+  }
+
+  const symptoms: FdSymptomDef[] = Array.from(symptomIndex.values()).map((s) => ({
+    id: s.id,
+    label: s.label,
+    parts: Array.from(s.parts),
+  }));
+
+  const diseases: FdDisease[] = source.diseases.map((disease) => {
+    const ids = diseaseSymptomIds.get(disease.disease_name) || [];
+    const weights: Record<string, number> = {};
+    ids.forEach((id) => {
+      const entry = Array.from(symptomIndex.values()).find((s) => s.id === id);
+      // Distinctive symptoms (seen in fewer diseases of this crop) weigh more.
+      const count = entry?.diseaseCount || 1;
+      weights[id] = count === 1 ? 5 : count === 2 ? 4 : count === 3 ? 3 : 2;
+    });
+    return {
+      id: diseaseId(cropId, disease.disease_name),
+      cropId,
+      name: disease.disease_name,
+      scientificName: '',
+      type: '',
+      parts: Array.from(new Set((disease.plant_parts_affected || []).map(mapPart))),
+      stages: [UNKNOWN_STAGE],
+      overview: (disease.symptoms || []).join(' '),
+      references: [{ label: 'TNAU Agritech Crop Protection Portal', url: TNAU_PORTAL }],
+      symptomWeights: weights,
+      traits: {},
+    };
+  });
+
+  return { symptoms, diseases };
+}
+
+const BUILT: { symptoms: Record<string, FdSymptomDef[]>; diseases: FdDisease[] } = (() => {
+  const symptoms: Record<string, FdSymptomDef[]> = {};
+  const diseases: FdDisease[] = [];
+  for (const crop of (sourceData as unknown as { crops: SourceCrop[] }).crops) {
+    const built = buildCropData(crop);
+    if (!built) continue;
+    const cropId = CROP_NAME_TO_ID[crop.crop_name.trim().toLowerCase()];
+    symptoms[cropId] = built.symptoms;
+    diseases.push(...built.diseases);
+  }
+  return { symptoms, diseases };
+})();
+
+export const FD_SYMPTOMS: Record<string, FdSymptomDef[]> = BUILT.symptoms;
+export const FD_DISEASES: FdDisease[] = BUILT.diseases;
+
+export function getSymptoms(cropId: string): FdSymptomDef[] {
+  return FD_SYMPTOMS[cropId] || [];
+}
 
 export function getDiseasesForCrop(cropId: string): FdDisease[] {
   return FD_DISEASES.filter((d) => d.cropId === cropId);
@@ -795,14 +464,14 @@ export function scoreDisease(disease: FdDisease, symptomDefs: FdSymptomDef[], in
   const matched: string[] = [];
   const missing: string[] = [];
 
-  for (const [symptomId, weight] of Object.entries(disease.symptomWeights)) {
+  for (const [symId, weight] of Object.entries(disease.symptomWeights)) {
     max += weight;
-    if (input.selectedSymptomIds.includes(symptomId)) {
-      const v = partial.has(symptomId) ? 0.5 : 1;
+    if (input.selectedSymptomIds.includes(symId)) {
+      const v = partial.has(symId) ? 0.5 : 1;
       raw += weight * v;
-      matched.push(defById.get(symptomId)?.label || symptomId);
+      matched.push(defById.get(symId)?.label || symId);
     } else {
-      missing.push(defById.get(symptomId)?.label || symptomId);
+      missing.push(defById.get(symId)?.label || symId);
     }
   }
 
