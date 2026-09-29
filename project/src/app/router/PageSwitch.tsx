@@ -17,6 +17,7 @@ import {
   FarmerDatabase,
   FarmMechanization,
   FertilizerCalculator,
+  FieldDiagnosis,
   FertilizerDealerInspection,
   FileDirectory,
   GosCirculars,
@@ -158,6 +159,8 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       return <InsecticideDealerInspection />;
     case 'inspections-notices':
       return <InspectionsNoticesHub />;
+    case 'field-diagnosis':
+      return <FieldDiagnosis />;
     case 'analytics':
       return <Analytics />;
     case 'settings':
@@ -287,6 +290,8 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return <PublicToolkitPage><InsecticideDealerInspection /></PublicToolkitPage>;
     case 'inspections-notices':
       return <PublicToolkitPage><InspectionsNoticesHub /></PublicToolkitPage>;
+    case 'field-diagnosis':
+      return <PublicToolkitPage><FieldDiagnosis /></PublicToolkitPage>;
     default:
       return null;
   }

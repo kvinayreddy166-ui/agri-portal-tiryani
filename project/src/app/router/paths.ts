@@ -18,6 +18,7 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/fertilizer-dealer-inspection',
   '/officer-toolkit/insecticide-dealer-inspection',
   '/officer-toolkit/inspections-notices',
+  '/officer-toolkit/field-diagnosis',
 ]);
 
 // Page keys renderable without authentication (handled by PublicPageSwitch).
@@ -39,6 +40,7 @@ export const PUBLIC_PAGES = new Set([
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
   'inspections-notices',
+  'field-diagnosis',
 ]);
 
 export const PAGE_PATHS: Record<string, string> = {
@@ -77,6 +79,7 @@ export const PAGE_PATHS: Record<string, string> = {
   'fertilizer-dealer-inspection': '/officer-toolkit/fertilizer-dealer-inspection',
   'insecticide-dealer-inspection': '/officer-toolkit/insecticide-dealer-inspection',
   'inspections-notices': '/officer-toolkit/inspections-notices',
+  'field-diagnosis': '/officer-toolkit/field-diagnosis',
   analytics: '/analytics',
   settings: '/settings',
   knowledge: '/knowledge',
@@ -185,6 +188,7 @@ export const VALID_PAGES = new Set([
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
   'inspections-notices',
+  'field-diagnosis',
   'analytics',
   'settings',
   'knowledge',
@@ -217,6 +221,7 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
   'inspections-notices',
+  'field-diagnosis',
 ]);
 const SUBPAGE_ALIASES: Record<string, string> = { 'statutory-forms': 'forms' };
 

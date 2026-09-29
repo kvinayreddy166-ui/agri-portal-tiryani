@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, ShieldCheck, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, type LucideIcon } from 'lucide-react';
+import { Calculator, ShieldCheck, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, Microscope, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
@@ -85,6 +85,16 @@ const toolkitItems: ToolkitItem[] = [
     category: 'internal',
     gradient: 'from-red-500 to-amber-600',
     bgGradient: 'from-red-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30',
+    statusMessage: 'Under development',
+  },
+  {
+    title: 'Field Diagnosis',
+    description: 'Identify crop diseases by symptoms.',
+    path: '/officer-toolkit/field-diagnosis',
+    icon: Microscope,
+    category: 'internal',
+    gradient: 'from-emerald-500 to-teal-600',
+    bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
     statusMessage: 'Under development',
   },
   {
@@ -260,6 +270,8 @@ function translateToolkit(label?: string) {
     'Crop, seed, fertilizer and pesticide calculations.': 'పంట, విత్తనం, ఎరువు మరియు పురుగుమందుల లెక్కలు.',
     'Crop Doctor': 'పంట డాక్టర్',
     'Crop-wise pests, diseases, weeds and nutrient deficiencies.': 'పంటల వారీగా పురుగులు, వ్యాధులు, కలుపు మొక్కలు మరియు పోషక లోపాలు.',
+    'Field Diagnosis': 'క్షేత్ర నిర్ధారణ',
+    'Identify crop diseases by symptoms.': 'లక్షణాల ద్వారా పంట వ్యాధులను గుర్తించండి.',
     'Acts & Orders': 'చట్టాలు & ఉత్తర్వులు',
     'FCO, Seed Act, Insecticide Act, clauses, Rules.': 'FCO, విత్తన చట్టం, పురుగుమందు చట్టం, క్లాజులు, నియమాలు.',
     'Under development': 'అభివృద్ధిలో ఉంది',
