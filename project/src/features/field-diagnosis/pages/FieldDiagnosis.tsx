@@ -25,15 +25,17 @@ import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 
 import {
   FD_CROPS,
-  FD_PLANT_PARTS,
+  FD_NONINFECTIOUS,
   FD_TRAIT_QUESTIONS,
   UNKNOWN_STAGE,
   FdDisease,
   FdDiseaseScore,
   FdSymptomDef,
   FdTraitKey,
+  expandPartSelection,
   getDiseasesForCrop,
   getGrowthStages,
+  getPlantParts,
   getSymptoms,
   matchTier,
   plantPartLabel,
@@ -46,9 +48,12 @@ interface SavedDiagnosis {
   id: string;
   savedAt: string;
   cropId: string;
-  stage: string;
+  stage: string; // legacy single-stage records
+  stages?: string[];
   parts: string[];
   symptomIds: string[];
+  partialIds?: string[];
+  ruledOutIds?: string[];
   traitAnswers: Partial<Record<FdTraitKey, string>>;
   photoCount: number;
   topResults: { diseaseId: string; name: string; score: number }[];
@@ -89,9 +94,12 @@ export function FieldDiagnosis() {
 
   const [view, setView] = useState<View>('wizard');
   const [cropId, setCropId] = useState('');
-  const [stage, setStage] = useState('');
+  const [stagesSel, setStagesSel] = useState<string[]>([]);
   const [parts, setParts] = useState<string[]>([]);
   const [symptomIds, setSymptomIds] = useState<string[]>([]);
+  const [partialIds, setPartialIds] = useState<string[]>([]);
+  const [ruledOutIds, setRuledOutIds] = useState<string[]>([]);
+  const [symptomQuery, setSymptomQuery] = useState('');
   const [traitAnswers, setTraitAnswers] = useState<Partial<Record<FdTraitKey, string>>>({});
   const [photos, setPhotos] = useState<PhotoEntry[]>([]);
   const [results, setResults] = useState<FdDiseaseScore[]>([]);
@@ -105,14 +113,53 @@ export function FieldDiagnosis() {
 
   const crop = cropById(cropId);
   const stages = useMemo(() => (cropId ? getGrowthStages(cropId) : []), [cropId]);
+  const plantParts = useMemo(() => getPlantParts(cropId), [cropId]);
   const cropSymptoms = useMemo(() => getSymptoms(cropId), [cropId]);
   const cropDiseases = useMemo(() => getDiseasesForCrop(cropId), [cropId]);
 
+  const stageLabel = (code: string) => stages.find((s) => s.code === code)?.label || code;
+  const stagesLabel = (codes: string[]) => codes.map(stageLabel).join(', ');
+
   const visibleSymptoms = useMemo(() => {
-    if (parts.length === 0) return cropSymptoms;
-    const selected = new Set(parts);
-    return cropSymptoms.filter((s) => s.parts.some((p) => selected.has(p)));
+    if (parts.length === 0) return [];
+    const expanded = expandPartSelection(parts);
+    return cropSymptoms.filter((s) => s.parts.some((p) => expanded.has(p)));
   }, [cropSymptoms, parts]);
+
+  // Lesion questions only make sense when a lesion-bearing part is selected.
+  const LESION_PARTS = useMemo(
+    () =>
+      expandPartSelection([
+        'LEAF', 'LEAF_SHEATH', 'STEM', 'PETIOLE', 'BOLL', 'POD', 'FRUIT', 'PANICLE', 'GRAIN', 'SQUARE', 'BUD', 'FLOWER', 'BRANCH',
+      ]),
+    []
+  );
+  const visibleTraitQuestions = useMemo(() => {
+    if (parts.length === 0) return [];
+    const lesionSelected = parts.some((p) => LESION_PARTS.has(p));
+    return FD_TRAIT_QUESTIONS.filter((q) =>
+      lesionSelected ? true : q.key === 'distribution' || q.key === 'severity'
+    );
+  }, [parts, LESION_PARTS]);
+
+  // Symptoms grouped under each selected part (first-match wins so a symptom
+  // never appears twice), then filtered by the search box.
+  const symptomGroups = useMemo(() => {
+    const query = symptomQuery.trim().toLowerCase();
+    const seen = new Set<string>();
+    return parts
+      .map((code) => {
+        const family = expandPartSelection([code]);
+        const items = visibleSymptoms.filter((s) => {
+          if (seen.has(s.id) || !s.parts.some((p) => family.has(p))) return false;
+          if (query && !s.label.toLowerCase().includes(query)) return false;
+          seen.add(s.id);
+          return true;
+        });
+        return { code, items };
+      })
+      .filter((g) => g.items.length > 0);
+  }, [parts, visibleSymptoms, symptomQuery]);
 
   const categories = useMemo(() => Array.from(new Set(FD_CROPS.map((c) => c.category))), []);
 
@@ -120,15 +167,40 @@ export function FieldDiagnosis() {
     setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
   };
 
-  const runDiagnosis = () => {
-    const scored = cropDiseases
-      .map((d) => scoreDisease(d, cropSymptoms, { selectedSymptomIds: symptomIds, traitAnswers }))
+  const rescore = (symIds: string[], partIds: string[], ruledIds: string[]) => {
+    return cropDiseases
+      .map((d) =>
+        scoreDisease(d, cropSymptoms, {
+          selectedSymptomIds: symIds,
+          partialSymptomIds: partIds,
+          contradictedSymptomIds: ruledIds,
+          traitAnswers,
+          selectedParts: parts,
+          selectedStages: stagesSel,
+        })
+      )
       .filter((s) => s.hasData && s.score > 0)
       .sort((a, b) => b.score - a.score || a.disease.name.localeCompare(b.disease.name));
+  };
+
+  const runDiagnosis = () => {
+    const scored = rescore(symptomIds, partialIds, ruledOutIds);
     setResults(scored);
     setCompareIds(scored.slice(0, 3).map((s) => s.disease.id));
     setView('results');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Results-screen refinement: mark a suggested symptom as observed or ruled
+  // out and immediately re-rank without leaving the results view.
+  const markSymptom = (symId: string, mode: 'present' | 'ruledOut') => {
+    const nextSym = mode === 'present' ? Array.from(new Set([...symptomIds, symId])) : symptomIds.filter((id) => id !== symId);
+    const nextRuled = mode === 'ruledOut' ? Array.from(new Set([...ruledOutIds, symId])) : ruledOutIds.filter((id) => id !== symId);
+    const nextPartial = partialIds.filter((id) => id !== symId);
+    setSymptomIds(nextSym);
+    setRuledOutIds(nextRuled);
+    setPartialIds(nextPartial);
+    setResults(rescore(nextSym, nextPartial, nextRuled));
   };
 
   const saveDiagnosis = () => {
@@ -137,9 +209,12 @@ export function FieldDiagnosis() {
       id: `${Date.now()}`,
       savedAt: new Date().toISOString(),
       cropId,
-      stage,
+      stage: stagesSel.join(','),
+      stages: stagesSel,
       parts,
       symptomIds,
+      partialIds,
+      ruledOutIds,
       traitAnswers,
       photoCount: photos.length,
       topResults: results.slice(0, 3).map((r) => ({ diseaseId: r.disease.id, name: r.disease.name, score: r.score })),
@@ -159,14 +234,28 @@ export function FieldDiagnosis() {
 
   const loadSavedRecord = (record: SavedDiagnosis) => {
     setCropId(record.cropId);
-    setStage(record.stage);
+    const restoredStages = record.stages || (record.stage ? [record.stage] : []);
+    const restoredPartial = record.partialIds || [];
+    const restoredRuled = record.ruledOutIds || [];
+    setStagesSel(restoredStages);
     setParts(record.parts);
     setSymptomIds(record.symptomIds);
+    setPartialIds(restoredPartial);
+    setRuledOutIds(restoredRuled);
     setTraitAnswers(record.traitAnswers);
     setPhotos([]);
     const defs = getSymptoms(record.cropId);
     const scored = getDiseasesForCrop(record.cropId)
-      .map((d) => scoreDisease(d, defs, { selectedSymptomIds: record.symptomIds, traitAnswers: record.traitAnswers }))
+      .map((d) =>
+        scoreDisease(d, defs, {
+          selectedSymptomIds: record.symptomIds,
+          partialSymptomIds: restoredPartial,
+          contradictedSymptomIds: restoredRuled,
+          traitAnswers: record.traitAnswers,
+          selectedParts: record.parts,
+          selectedStages: restoredStages,
+        })
+      )
       .filter((s) => s.hasData && s.score > 0)
       .sort((a, b) => b.score - a.score || a.disease.name.localeCompare(b.disease.name));
     setResults(scored);
@@ -178,9 +267,12 @@ export function FieldDiagnosis() {
 
   const resetAll = () => {
     setCropId('');
-    setStage('');
+    setStagesSel([]);
     setParts([]);
     setSymptomIds([]);
+    setPartialIds([]);
+    setRuledOutIds([]);
+    setSymptomQuery('');
     setTraitAnswers({});
     setPhotos([]);
     setResults([]);
@@ -229,7 +321,7 @@ export function FieldDiagnosis() {
       doc.setFontSize(11);
       doc.text(`Crop: ${crop?.name || '—'}`, 14, y);
       y += 6;
-      doc.text(`Growth Stage: ${stage || 'Not specified'}`, 14, y);
+      doc.text(`Growth Stage: ${stagesLabel(stagesSel) || 'Not specified'}`, 14, y);
       y += 6;
       doc.text(`Affected Parts: ${parts.map(plantPartLabel).join(', ') || '—'}`, 14, y);
       y += 6;
@@ -254,7 +346,50 @@ export function FieldDiagnosis() {
             y += 5;
           });
         }
+        if (r.ruledOutSymptoms.length) {
+          doc.splitTextToSize(`    Ruled out: ${r.ruledOutSymptoms.join('; ')}`, 175).forEach((l: string) => {
+            doc.text(l, 16, y);
+            y += 5;
+          });
+        }
+        if (r.disease.differentials.length) {
+          doc.splitTextToSize(`    Differentials: ${r.disease.differentials.join(', ')}`, 175).forEach((l: string) => {
+            doc.text(l, 16, y);
+            y += 5;
+          });
+        }
       });
+      if (photos.length > 0) {
+        if (y > 240) {
+          doc.addPage();
+          y = 18;
+        }
+        y += 4;
+        doc.setFontSize(11);
+        doc.text('Field photographs', 14, y);
+        y += 4;
+        const imgW = 55;
+        const imgH = 42;
+        const gridRows = Math.ceil(photos.length / 3);
+        if (y + gridRows * (imgH + 6) > 285) {
+          doc.addPage();
+          y = 18;
+        }
+        photos.forEach((p, i) => {
+          const x = 14 + (i % 3) * (imgW + 6);
+          const yy = y + Math.floor(i / 3) * (imgH + 6);
+          try {
+            doc.addImage(p.dataUrl, 'JPEG', x, yy, imgW, imgH);
+          } catch {
+            try {
+              doc.addImage(p.dataUrl, 'PNG', x, yy, imgW, imgH);
+            } catch {
+              /* unsupported format — skip */
+            }
+          }
+        });
+        y += gridRows * (imgH + 6);
+      }
       y += 6;
       doc.setFontSize(8);
       doc.setTextColor(110);
@@ -364,21 +499,38 @@ export function FieldDiagnosis() {
               <Sprout className="h-4 w-4 text-teal-600" aria-hidden="true" />
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Select Growth Stage</h2>
             </div>
-            <p className="mb-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">{crop?.name} growth stage</p>
-            <select
-              value={stage}
-              onChange={(e) => setStage(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-teal-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-              aria-label="Select growth stage"
-            >
-              <option value="">Select growth stage…</option>
-              {stages.map((s) => (
-                <option key={s.code} value={s.code}>
-                  {s.label}
-                  {s.hint ? ` (${s.hint})` : ''}
-                </option>
-              ))}
-            </select>
+            <p className="mb-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+              {crop?.name} growth stage (you can select multiple)
+            </p>
+            <div className="max-h-64 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700" role="group" aria-label="Select growth stages">
+              {stages.map((s) => {
+                const checked = stagesSel.includes(s.code);
+                return (
+                  <label
+                    key={s.code}
+                    className={`flex cursor-pointer items-center gap-3 border-b border-slate-100 px-3 py-2.5 transition last:border-b-0 dark:border-slate-800 ${
+                      checked ? 'bg-teal-50 dark:bg-teal-950/40' : 'bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggle(stagesSel, s.code, setStagesSel)}
+                      className="h-4 w-4 shrink-0 rounded border-slate-300 accent-teal-600"
+                    />
+                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                      {s.label}
+                      {s.hint ? <span className="ml-1 text-[11px] font-bold text-slate-400">({s.hint})</span> : null}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+            {stagesSel.length > 0 && (
+              <p className="mt-2 text-[11px] font-bold text-teal-700 dark:text-teal-300">
+                Selected: {stagesLabel(stagesSel)}
+              </p>
+            )}
           </div>
         );
       case 3:
@@ -393,7 +545,7 @@ export function FieldDiagnosis() {
               {crop?.name} — Select affected plant part (you can select multiple)
             </p>
             <div className="max-h-64 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700" role="group" aria-label="Select affected plant parts">
-              {FD_PLANT_PARTS.map((p) => {
+              {plantParts.map((p) => {
                 const checked = parts.includes(p.code);
                 return (
                   <label
@@ -429,36 +581,117 @@ export function FieldDiagnosis() {
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Select Observed Symptoms</h2>
             </div>
             <p className="mb-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-              {crop?.name} — {parts.map(plantPartLabel).join(', ') || 'All parts'} — select the symptoms you observe (you can select multiple)
+              {crop?.name} — {parts.map(plantPartLabel).join(', ') || 'Select plant parts first'} — select the symptoms you observe (you can select multiple)
             </p>
             {visibleSymptoms.length === 0 ? (
               <p className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-xs font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                Symptom records for this crop are being compiled from TNAU references. You can continue — the ranked list will show diseases once data is available.
+                {parts.length === 0
+                  ? 'Select at least one affected plant part above to see its symptoms.'
+                  : 'No symptom records for the selected plant part(s). Try selecting a different part.'}
               </p>
             ) : (
-              <div className="grid gap-2">
-                {visibleSymptoms.map((s: FdSymptomDef) => {
-                  const checked = symptomIds.includes(s.id);
-                  return (
-                    <label
-                      key={s.id}
-                      className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 px-3 py-2.5 transition ${
-                        checked
-                          ? 'border-teal-600 bg-teal-50 dark:border-teal-500 dark:bg-teal-950/40'
-                          : 'border-slate-200 bg-white hover:border-teal-300 dark:border-slate-700 dark:bg-slate-900'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggle(symptomIds, s.id, setSymptomIds)}
-                        className="h-4 w-4 shrink-0 rounded border-slate-300 accent-teal-600"
-                      />
-                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{s.label}</span>
-                    </label>
-                  );
-                })}
-              </div>
+              <>
+                <div className="mb-3 flex items-center gap-2">
+                  <input
+                    type="search"
+                    value={symptomQuery}
+                    onChange={(e) => setSymptomQuery(e.target.value)}
+                    placeholder="Search symptoms…"
+                    className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:border-teal-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                    aria-label="Search symptoms"
+                  />
+                  <span className="shrink-0 rounded-full bg-teal-50 px-2.5 py-1 text-[10px] font-black text-teal-700 dark:bg-teal-950/40 dark:text-teal-300">
+                    {symptomGroups.reduce((n, g) => n + g.items.length, 0)} shown · {symptomIds.length} selected
+                  </span>
+                </div>
+                <div className="grid gap-4">
+                  {symptomGroups.map((group) => (
+                    <div key={group.code}>
+                      <p className="mb-1.5 text-[10px] font-black uppercase tracking-wide text-teal-700 dark:text-teal-400">
+                        {plantPartLabel(group.code)}
+                      </p>
+                      <div className="grid gap-2">
+                        {group.items.map((s: FdSymptomDef) => {
+                          const checked = symptomIds.includes(s.id);
+                          const isPartial = partialIds.includes(s.id);
+                          const isRuledOut = ruledOutIds.includes(s.id);
+                          return (
+                            <div
+                              key={s.id}
+                              className={`rounded-xl border-2 transition ${
+                                isRuledOut
+                                  ? 'border-red-300 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20'
+                                  : checked
+                                    ? 'border-teal-600 bg-teal-50 dark:border-teal-500 dark:bg-teal-950/40'
+                                    : 'border-slate-200 bg-white hover:border-teal-300 dark:border-slate-700 dark:bg-slate-900'
+                              }`}
+                            >
+                              <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => {
+                                    toggle(symptomIds, s.id, setSymptomIds);
+                                    if (checked) {
+                                      setPartialIds((prev) => prev.filter((id) => id !== s.id));
+                                    } else {
+                                      setRuledOutIds((prev) => prev.filter((id) => id !== s.id));
+                                    }
+                                  }}
+                                  className="h-4 w-4 shrink-0 rounded border-slate-300 accent-teal-600"
+                                />
+                                <span className={`flex-1 text-sm font-semibold ${isRuledOut ? 'text-slate-500 line-through dark:text-slate-400' : 'text-slate-800 dark:text-slate-100'}`}>
+                                  {s.label}
+                                </span>
+                                <button
+                                  type="button"
+                                  title="Definitely absent — count against diseases that expect it"
+                                  aria-pressed={isRuledOut}
+                                  onClick={() => {
+                                    toggle(ruledOutIds, s.id, setRuledOutIds);
+                                    if (!isRuledOut) {
+                                      setSymptomIds((prev) => prev.filter((id) => id !== s.id));
+                                      setPartialIds((prev) => prev.filter((id) => id !== s.id));
+                                    }
+                                  }}
+                                  className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase transition ${
+                                    isRuledOut
+                                      ? 'border-red-500 bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300'
+                                      : 'border-slate-300 text-slate-400 hover:border-red-400 hover:text-red-600 dark:border-slate-600'
+                                  }`}
+                                >
+                                  Ruled out
+                                </button>
+                              </label>
+                              {checked && (
+                                <div className="flex justify-end px-3 pb-2">
+                                  <button
+                                    type="button"
+                                    aria-pressed={isPartial}
+                                    onClick={() => toggle(partialIds, s.id, setPartialIds)}
+                                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase transition ${
+                                      isPartial
+                                        ? 'border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
+                                        : 'border-slate-300 text-slate-400 hover:border-amber-400 hover:text-amber-600 dark:border-slate-600'
+                                    }`}
+                                  >
+                                    {isPartial ? 'Partially observed' : 'Mark as partial'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                  {symptomGroups.length === 0 && (
+                    <p className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-xs font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                      No symptoms match the search.
+                    </p>
+                  )}
+                </div>
+              </>
             )}
           </div>
         );
@@ -471,8 +704,13 @@ export function FieldDiagnosis() {
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Additional Details</h2>
             </div>
             <p className="mb-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Select symptom characteristics</p>
+            {visibleTraitQuestions.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-xs font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                Select at least one affected plant part above.
+              </p>
+            ) : (
             <div className="grid gap-4">
-              {FD_TRAIT_QUESTIONS.map((q) => (
+              {visibleTraitQuestions.map((q) => (
                 <div key={q.key}>
                   <p className="mb-1.5 text-xs font-bold text-slate-700 dark:text-slate-200">{q.label}</p>
                   <div className="flex flex-wrap gap-1.5">
@@ -499,6 +737,7 @@ export function FieldDiagnosis() {
                 </div>
               ))}
             </div>
+            )}
           </div>
         );
       case 6:
@@ -556,7 +795,7 @@ export function FieldDiagnosis() {
             </p>
             <div className="mt-2 space-y-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
               <p>Crop: {crop?.name || '—'}</p>
-              <p>Growth Stage: {stages.find((s) => s.code === stage)?.label || stage || '—'}</p>
+              <p>Growth Stage: {stagesLabel(stagesSel) || '—'}</p>
               <p>Affected Part: {parts.map(plantPartLabel).join(', ') || '—'}</p>
             </div>
           </div>
@@ -566,6 +805,22 @@ export function FieldDiagnosis() {
           </button>
         </div>
       </div>
+
+      {results.length >= 2 && results[0].score - results[1].score < 10 && (
+        <div className={`${stepCard} !border-amber-300 dark:!border-amber-800`}>
+          <p className="text-xs font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">Close call — verify distinguishing features</p>
+          <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+            {results[0].disease.name} and {results[1].disease.name} scored within 10 points.
+          </p>
+          {[results[0], results[1]].map((r) =>
+            r.disease.distinguishing.length > 0 ? (
+              <p key={r.disease.id} className="mt-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                <span className="font-black text-slate-800 dark:text-slate-100">{r.disease.name}:</span> {r.disease.distinguishing.join('; ')}
+              </p>
+            ) : null
+          )}
+        </div>
+      )}
 
       {results.length === 0 ? (
         <div className={stepCard}>
@@ -584,7 +839,14 @@ export function FieldDiagnosis() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white">{r.disease.name}</h3>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                      {r.disease.name}
+                      {r.disease.provisional && (
+                        <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 align-middle text-[9px] font-black uppercase text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                          Provisional
+                        </span>
+                      )}
+                    </h3>
                     <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${tier.badge}`}>{tier.label}</span>
                   </div>
                   <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
@@ -603,8 +865,49 @@ export function FieldDiagnosis() {
                       </ul>
                     </div>
                   )}
+                  {r.missingSymptomIds.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Check also (tap to refine)</p>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {r.missingSymptomIds.slice(0, 4).map((sid) => {
+                          const label = cropSymptoms.find((s) => s.id === sid)?.label || sid;
+                          return (
+                            <span key={sid} className="inline-flex items-center overflow-hidden rounded-full border border-slate-200 text-[10px] font-bold dark:border-slate-700">
+                              <button
+                                type="button"
+                                title="Observed — add to symptoms"
+                                onClick={() => markSymptom(sid, 'present')}
+                                className="px-2 py-1 text-teal-700 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-950/40"
+                              >
+                                + {label.length > 46 ? `${label.slice(0, 46)}…` : label}
+                              </button>
+                              <button
+                                type="button"
+                                title="Definitely absent — rule out"
+                                onClick={() => markSymptom(sid, 'ruledOut')}
+                                className="border-l border-slate-200 px-1.5 py-1 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:hover:bg-red-950/40"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {r.ruledOutSymptoms.length > 0 && (
+                    <p className="mt-1 text-[10px] font-semibold text-red-500">Ruled out by observation: {r.ruledOutSymptoms.join('; ')}</p>
+                  )}
                   {r.contradictoryTraits.length > 0 && (
                     <p className="mt-1 text-[10px] font-semibold text-red-500">Contradictory: {r.contradictoryTraits.join('; ')}</p>
+                  )}
+                  {r.adjustments.length > 0 && (
+                    <p className="mt-1 text-[10px] font-semibold text-slate-400">{r.adjustments.join(' · ')}</p>
+                  )}
+                  {r.disease.differentials.length > 0 && (
+                    <p className="mt-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                      Compare with: {r.disease.differentials.slice(0, 3).join(', ')}
+                    </p>
                   )}
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     <button
@@ -634,6 +937,17 @@ export function FieldDiagnosis() {
           );
         })
       )}
+
+      <div className={stepCard}>
+        <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Also consider — non-infectious causes</p>
+        <div className="grid gap-1.5">
+          {FD_NONINFECTIOUS.map((n) => (
+            <p key={n.label} className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+              <span className="font-black text-slate-700 dark:text-slate-200">{n.label}:</span> {n.hint}
+            </p>
+          ))}
+        </div>
+      </div>
 
       <div className="flex flex-wrap justify-between gap-2">
         <button type="button" onClick={() => setView('wizard')} className={ghostBtn}>
@@ -696,7 +1010,32 @@ export function FieldDiagnosis() {
             ))}
           </div>
           <div className="py-4 text-sm font-semibold leading-relaxed text-slate-700 dark:text-slate-200">
-            {detailTab === 'overview' && <p>{detailDisease.overview}</p>}
+            {detailTab === 'overview' && (
+              <div className="grid gap-3">
+                {detailDisease.provisional && (
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                    Provisional category — do not treat as a confirmed disease without verified diagnosis.
+                  </p>
+                )}
+                <p>{detailDisease.overview}</p>
+                {detailDisease.distinguishing.length > 0 && (
+                  <div>
+                    <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Distinguishing features</p>
+                    <ul className="list-inside list-disc space-y-0.5">
+                      {detailDisease.distinguishing.map((d) => (
+                        <li key={d}>{d}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {detailDisease.differentials.length > 0 && (
+                  <p className="text-xs">
+                    <span className="font-black">Differential diagnosis: </span>
+                    {detailDisease.differentials.join(', ')}
+                  </p>
+                )}
+              </div>
+            )}
             {detailTab === 'symptoms' && (
               <div className="grid gap-3">
                 <div>
@@ -777,8 +1116,12 @@ export function FieldDiagnosis() {
         render: (d) => d.traits.lesionCentre?.join(', ') || '—',
       },
       {
-        label: 'Distribution',
-        render: (d) => d.traits.distribution?.join(', ') || '—',
+        label: 'Lesion margin',
+        render: (d) => d.traits.lesionMargin?.join(', ') || '—',
+      },
+      {
+        label: 'Differential diagnosis',
+        render: (d) => d.differentials.join(', ') || '—',
       },
       {
         label: 'Plant parts',
@@ -907,10 +1250,15 @@ export function FieldDiagnosis() {
               <button type="button" onClick={resetAll} className={ghostBtn}>
                 Reset
               </button>
-              <button type="button" onClick={runDiagnosis} disabled={!cropId} className={primaryBtn}>
+              <button type="button" onClick={runDiagnosis} disabled={!cropId || symptomIds.length === 0} className={primaryBtn}>
                 Get Diagnosis
               </button>
             </div>
+            {(!cropId || symptomIds.length === 0) && (
+              <p className="text-center text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                {!cropId ? 'Select a crop to begin.' : 'Select at least one observed symptom to run the diagnosis.'}
+              </p>
+            )}
           </div>
         )}
         {view === 'results' && renderResults()}

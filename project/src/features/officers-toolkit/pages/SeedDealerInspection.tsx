@@ -222,11 +222,17 @@ export function SeedDealerInspection() {
   };
 
   const resetForm = () => {
-    setForm(initialForm());
-    setActiveDraftId(null);
-    setError('');
-    setDirty(false);
-    showReset('Form reset');
+    setConfirmAction({
+      title: 'Reset form?',
+      message: 'All entered data will be cleared.',
+      action: () => {
+        setForm(initialForm());
+        setActiveDraftId(null);
+        setError('');
+        setDirty(false);
+        showReset('Form reset');
+      },
+    });
   };
 
   const openPreview = () => {

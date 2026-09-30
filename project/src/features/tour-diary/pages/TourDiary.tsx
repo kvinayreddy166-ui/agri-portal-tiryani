@@ -2838,7 +2838,7 @@ export function TourDiary() {
               <button
                 onClick={saveDraftToLocal}
                 disabled={isSavingDraft}
-                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm"
               >
                 {isSavingDraft ? (
                   <>
@@ -2854,7 +2854,7 @@ export function TourDiary() {
               </button>
               <button
                 onClick={openEditablePreview}
-                className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-bold text-white hover:bg-purple-700"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-purple-700 sm:text-sm"
               >
                 <Eye className="h-4 w-4" />
                 Preview
@@ -2865,7 +2865,7 @@ export function TourDiary() {
                   disabled={isGeneratingPDF}
                   aria-haspopup="menu"
                   aria-expanded={exportMenuOpen}
-                  className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm"
                 >
                   {isGeneratingPDF ? (
                     <>

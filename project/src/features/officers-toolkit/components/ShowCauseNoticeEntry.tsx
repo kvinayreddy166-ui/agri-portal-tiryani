@@ -266,7 +266,7 @@ type NoticeBlock =
   | { kind: 'center'; text: string; bold?: boolean; underline?: boolean }
   | { kind: 'memoRow'; left: NoticeSegment[]; right: NoticeSegment[] }
   | { kind: 'para'; segments: NoticeSegment[]; indent?: number; firstLineIndent?: number }
-  | { kind: 'labelPara'; label: string; segments: NoticeSegment[]; indent?: number }
+  | { kind: 'labelPara'; label: string; labelSuffix?: string; segments: NoticeSegment[]; indent?: number; labelPad?: string; labelBold?: boolean }
   | { kind: 'heading'; text: string }
   | { kind: 'lines'; items: NoticeSegment[][]; indent?: number; align?: 'right'; centerLines?: boolean; offsetX?: number }
   | { kind: 'table'; header: [string, string]; rows: { label: string; value: string }[] }
@@ -428,7 +428,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
           { text: `${subjectLabel} – Inspection of dealer premises of ` },
           { text: firmDisplay, bold: true },
           { text: `, ${mandalValue}` },
-          ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
           { text: ' – Irregularities noticed during inspection – Memo issued – Explanation called for – Reg.' },
         ],
       },
@@ -577,19 +576,19 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       segments: [
         { text: `${subjectLabel} – Inspection of ` },
         { text: `${firmDisplay}, ${mandalValue}`, bold: true },
-        ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
         { text: ` – Irregularities noticed under the ${instrumentSub} – ${noticeTitleText} issued – Explanation called for – Reg.` },
       ],
     },
     {
       kind: 'labelPara',
       label: 'Ref:',
+      labelSuffix: '1.',
       segments: [
-        { text: `1. ${certificateTerm} held by ` },
+        { text: `${certificateTerm} held by ` },
         { text: `${firmDisplay}.`, bold: true },
       ],
     },
-    { kind: 'lines', items: [[{ text: `2. ${inspectionRef}` }]], indent: 7 },
+    { kind: 'labelPara', label: '2.', segments: [{ text: inspectionRef }], labelPad: 'Ref:', labelBold: false },
     { kind: 'gap', mm: 2 },
     { kind: 'center', text: '***' },
     { kind: 'gap', mm: 1 },
@@ -690,8 +689,12 @@ function noticeBlocksHtml(blocks: NoticeBlock[]) {
           return `<div style="display:flex;justify-content:space-between;gap:12pt;"><span>${segmentsHtml(block.left)}</span><span>${segmentsHtml(block.right)}</span></div>`;
         case 'para':
           return `<p style="margin:0 0 4pt ${block.indent || 0}mm;text-align:justify;${block.firstLineIndent ? `text-indent:${block.firstLineIndent}mm;` : ''}">${segmentsHtml(block.segments)}</p>`;
-        case 'labelPara':
-          return `<div style="display:flex;margin:0 0 4pt ${block.indent || 0}mm;"><strong style="flex:none;">${escapeHtml(block.label)}&nbsp;</strong><span style="flex:1;text-align:justify;">${segmentsHtml(block.segments)}</span></div>`;
+        case 'labelPara': {
+          const pad = block.labelPad ? `<strong style="flex:none;visibility:hidden;">${escapeHtml(block.labelPad)}&nbsp;</strong>` : '';
+          const labelTag = block.labelBold === false ? 'span' : 'strong';
+          const suffix = block.labelSuffix ? `<span style="flex:none;">${escapeHtml(block.labelSuffix)}&nbsp;</span>` : '';
+          return `<div style="display:flex;margin:0 0 4pt ${block.indent || 0}mm;">${pad}<${labelTag} style="flex:none;">${escapeHtml(block.label)}&nbsp;</${labelTag}>${suffix}<span style="flex:1;text-align:justify;">${segmentsHtml(block.segments)}</span></div>`;
+        }
         case 'heading':
           return `<p style="margin:6pt 0 2pt;font-weight:700;">${escapeHtml(block.text)}</p>`;
         case 'lines': {
@@ -783,10 +786,16 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
         break;
       case 'labelPara': {
         const hanging = mmToTwips(7);
+        // Approximate the bold leader's width so "2." aligns under "1." after "Ref:".
+        const padTwips = block.labelPad ? mmToTwips(block.labelPad.length * 2.3 + 1.4) : 0;
         children.push(new Paragraph({
-          children: [new TextRun({ text: `${block.label} `, bold: true, font, size: fontSize }), ...runs(block.segments)],
+          children: [
+            new TextRun({ text: `${block.label} `, bold: block.labelBold !== false, font, size: fontSize }),
+            ...(block.labelSuffix ? [new TextRun({ text: `${block.labelSuffix} `, font, size: fontSize })] : []),
+            ...runs(block.segments),
+          ],
           alignment: AlignmentType.JUSTIFIED,
-          indent: { left: mmToTwips(block.indent || 0) + hanging, hanging },
+          indent: { left: mmToTwips(block.indent || 0) + padTwips + hanging, hanging },
           spacing: { line: 360, after: 80 },
         }));
         break;
@@ -1270,16 +1279,23 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           break;
         }
         case 'labelPara': {
-          const indent = block.indent || 0;
-          const labelWidth = measure(`${block.label} `, true);
+          const padWidth = block.labelPad ? measure(`${block.labelPad} `, true) : 0;
+          const labelBold = block.labelBold !== false;
+          const suffix = block.labelSuffix ? `${block.labelSuffix} ` : '';
+          const indent = (block.indent || 0) + padWidth;
+          const labelWidth = measure(`${block.label} `, labelBold) + measure(suffix, false);
           const lineWidth = CW - indent - labelWidth;
           const lines = wrapSegments(block.segments, lineWidth);
           lines.forEach((runs, index) => {
             ensureSpace(LH);
             if (index === 0) {
-              doc.setFont(fontName, 'bold');
               doc.setFontSize(12);
+              doc.setFont(fontName, labelBold ? 'bold' : 'normal');
               doc.text(block.label, ML + indent, y);
+              if (suffix) {
+                doc.setFont(fontName, 'normal');
+                doc.text(suffix, ML + indent + measure(`${block.label} `, labelBold), y);
+              }
             }
             const isLastLine = index === lines.length - 1;
             drawRuns(runs, ML + indent + labelWidth, y, isLastLine ? undefined : lineWidth);
