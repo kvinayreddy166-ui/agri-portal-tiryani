@@ -263,7 +263,7 @@ interface NoticeSegment {
 }
 
 type NoticeBlock =
-  | { kind: 'center'; text: string; bold?: boolean; underline?: boolean }
+  | { kind: 'center'; text: string; bold?: boolean; underline?: boolean; size?: number }
   | { kind: 'memoRow'; left: NoticeSegment[]; right: NoticeSegment[] }
   | { kind: 'para'; segments: NoticeSegment[]; indent?: number; firstLineIndent?: number }
   | { kind: 'labelPara'; label: string; labelSuffix?: string; segments: NoticeSegment[]; indent?: number; labelPad?: string; labelBold?: boolean }
@@ -285,7 +285,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   const displayDesignation = statutoryDesignationDisplay(
     officerDesignation.replace(/\s*&\s*.*$/, '').trim() || officerDesignation
   );
-  const officerTitle = displayDesignation.toUpperCase();
+
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || 'Tiryani';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || 'Kumuram Bheem Asifabad';
   const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
@@ -336,7 +336,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   const divisionName = form.division.trim() || '________________';
   // ADA officers operate at division level, DAO at district level, others at mandal level
   const officerLocation = isADA
-    ? (form.division.trim() ? `${form.division.trim()} Division` : '________________')
+    ? (form.division.trim() ? form.division.trim() : '________________')
     : isDAO
       ? districtDisplay
       : mandalValue;
@@ -348,10 +348,10 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   ).split('\n');
 
   const addressLines: NoticeSegment[][] = [
-    [{ text: `M/s. ${form.firmName || form.dealerName || '__________________________________________'}`, bold: true }],
-    [{ text: form.dealerAddress || '_______________________________________________', bold: true }],
-    [{ text: effectiveLocationValue(form.mandal, form.manualMandal) || '________________', bold: true }],
-    [{ text: districtDisplay, bold: true }],
+    [{ text: `M/s. ${form.firmName || form.dealerName || '__________________________________________'}` }],
+    [{ text: form.dealerAddress || '_______________________________________________' }],
+    [{ text: effectiveLocationValue(form.mandal, form.manualMandal) || '________________' }],
+    [{ text: districtDisplay }],
   ];
 
   const dealerItems: NoticeSegment[][] = [
@@ -380,10 +380,13 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   ].filter((row) => row.value.trim());
 
   const observation = form.observation.trim();
-  const signatureItems: NoticeSegment[][] = [
-    [{ text: displayDesignation, bold: true }],
-    [{ text: officerLocation, bold: true }],
-  ];
+  const signatureDesignationParts = officerDesignation.split('&').map((part) => part.trim()).filter(Boolean);
+  const signatureItems: NoticeSegment[][] = signatureDesignationParts.length > 1
+    ? [
+        [{ text: `${displayDesignation} &`, bold: true }],
+        [{ text: signatureDesignationParts.slice(1).join(' & ').replace(/,+$/, ''), bold: true }],
+      ]
+    : [[{ text: displayDesignation, bold: true }]];
 
   // Traditional memo format (District Office Manual / drafting & noting):
   // government + department heading, "Office of the ___" with station, Memo No./Dt. row,
@@ -395,23 +398,15 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     const memoSignatureItems: NoticeSegment[][] = designationParts.length > 1
       ? [
           [{ text: `${designationParts[0]} &`, bold: true }],
-          [{ text: `${designationParts.slice(1).join(' & ').replace(/,+$/, '')},`, bold: true }],
-          [{ text: officerLocation, bold: true }],
+          [{ text: designationParts.slice(1).join(' & ').replace(/,+$/, ''), bold: true }],
         ]
-      : [
-          [{ text: `${displayDesignation},`, bold: true }],
-          [{ text: officerLocation, bold: true }],
-        ];
+      : [[{ text: displayDesignation, bold: true }]];
     const memoCopyLines = `1. The Asst. Director of Agriculture (R), ${divisionName}, for favour of information and necessary action.\n2. The District Agriculture Officer, ${districtDisplay}, for favour of information and necessary action.\n3. Copy to Stock File.`.split('\n');
     const memoNoticedPhrase = violationItems.length > 0
       ? `the following irregularities and contraventions of the ${instrument} were noticed:`
       : `certain irregularities and contraventions of the ${instrument} were noticed.`;
     return [
-      { kind: 'center', text: 'GOVERNMENT OF TELANGANA', bold: true },
-      { kind: 'center', text: 'DEPARTMENT OF AGRICULTURE', bold: true },
-      { kind: 'gap', mm: 3 },
-      { kind: 'center', text: `OFFICE OF THE ${officerTitle},`, bold: true, underline: true },
-      { kind: 'center', text: officerLocation.toUpperCase(), bold: true, underline: true },
+      { kind: 'center', text: `Office of the ${displayDesignation}, ${officerLocation}`, bold: true, underline: true, size: 14 },
       { kind: 'gap', mm: 4 },
       {
         kind: 'memoRow',
@@ -419,7 +414,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
         right: [{ text: 'Dt.: ' }, { text: form.inspectionDate ? noticeDate : ' '.repeat(11), bold: true }],
       },
       { kind: 'gap', mm: 4 },
-      { kind: 'center', text: 'MEMORANDUM', bold: true },
+      { kind: 'center', text: 'MEMO', bold: true },
       { kind: 'gap', mm: 3 },
       {
         kind: 'labelPara',
@@ -446,6 +441,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: '1.',
+        labelBold: false,
         segments: [
           { text: 'It is informed that during the field inspection of the business premises of ' },
           { text: firmDisplay, bold: true },
@@ -456,10 +452,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
           { text: ` (vide reference cited), ${memoNoticedPhrase}` },
         ],
       },
-      ...(violationItems.length > 0
-        ? [{ kind: 'heading', text: 'Irregularities / Violations Noticed:' } as NoticeBlock]
-        : []),
-      ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${toRoman(index + 1)})`, segments: item, indent: 8 })),
+      ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${toRoman(index + 1)})`, labelBold: false, segments: item, indent: 8 })),
       ...(violationItems.length > 0 ? [{ kind: 'gap', mm: 2 } as NoticeBlock] : []),
       ...(productRows.length > 0
         ? [
@@ -478,6 +471,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: '2.',
+        labelBold: false,
         segments: [
           { text: `The aforesaid irregularities constitute a violation of the mandatory provisions of the ${instrument} and the conditions of ${memoLicencePhrase}.` },
         ],
@@ -485,6 +479,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: '3.',
+        labelBold: false,
         segments: [
           { text: 'In view of the above, ' },
           { text: firmDisplay, bold: true },
@@ -496,6 +491,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: '4.',
+        labelBold: false,
         segments: [
           { text: `If no written explanation is received within the stipulated period of ${explanationPeriod}, it will be construed that the firm has no explanation to offer, and the matter will be reported to the ` },
           { text: 'Notified Authority', bold: true },
@@ -516,7 +512,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       ...memoCopyLines.map((line): NoticeBlock => {
         const match = line.match(/^(\d+\.)\s*(.*)$/);
         return match
-          ? { kind: 'labelPara', label: match[1], segments: [{ text: match[2] }] }
+          ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }] }
           : { kind: 'lines', items: [[{ text: line }]] };
       }),
     ];
@@ -527,14 +523,12 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   // centred title, Sub + numbered Ref, "Whereas / And whereas" numbered paras with
   // roman-numbered violation items, addressee AFTER the signature, Copy To last.
   const inspectedByMao = form.inspectedBy === 'mao';
-  const officeLocation = isDAO
-    ? (/district$/i.test(districtDisplay.trim()) ? districtDisplay : `${districtDisplay} District`)
-    : officerLocation;
+  const officeLocation = isDAO ? districtDisplay : officerLocation;
   const inspectionRef = inspectedByMao
     ? `Inspection report of the Mandal Agriculture Officer, ${mandalValue}${inspectionDate ? `, dt. ${inspectionDate}` : ''}.`
     : `Field inspection of the dealer premises conducted${inspectionDate ? ` on ${inspectionDate}` : ''}.`;
   const scnSectionBlocks: NoticeBlock[] = [
-    ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${toRoman(index + 1)})`, segments: item, indent: 8 })),
+    ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${toRoman(index + 1)})`, labelBold: false, segments: item, indent: 8 })),
     ...(violationItems.length > 0 ? [{ kind: 'gap', mm: 2 } as NoticeBlock] : []),
     ...(productRows.length > 0
       ? [
@@ -556,11 +550,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     : `certain irregularities and contraventions of the ${instrument} were noticed.`;
 
   return [
-    { kind: 'center', text: 'GOVERNMENT OF TELANGANA', bold: true },
-    { kind: 'center', text: 'DEPARTMENT OF AGRICULTURE', bold: true },
-    { kind: 'gap', mm: 3 },
-    { kind: 'center', text: `Office of the ${displayDesignation},`, bold: true, underline: true },
-    { kind: 'center', text: officeLocation, bold: true, underline: true },
+    { kind: 'center', text: `Office of the ${displayDesignation}, ${officeLocation}`, bold: true, underline: true, size: 14 },
     { kind: 'gap', mm: 4 },
     {
       kind: 'memoRow',
@@ -595,6 +585,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'labelPara',
       label: '1.',
+      labelBold: false,
       segments: [
         { text: 'Whereas, ' },
         { text: firmDisplay, bold: true },
@@ -606,6 +597,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'labelPara',
       label: '2.',
+      labelBold: false,
       segments: inspectedByMao
         ? [
             { text: 'And whereas, based on the report of the ' },
@@ -624,6 +616,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'labelPara',
       label: '3.',
+      labelBold: false,
       segments: [
         { text: `The aforesaid irregularities constitute a violation of the mandatory provisions of the ${instrument} and ${licenceConditionPhrase}, warranting statutory and administrative action under the relevant provisions of the Order and applicable Acts/Rules.` },
       ],
@@ -631,6 +624,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'labelPara',
       label: '4.',
+      labelBold: false,
       segments: [
         { text: 'In view of the above, ' },
         { text: firmDisplay, bold: true },
@@ -644,6 +638,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'labelPara',
       label: '5.',
+      labelBold: false,
       segments: [
         { text: `If no written explanation is received in this office within the stipulated period of ${explanationPeriod}, it will be construed that the firm has no explanation to offer, and the matter will be examined and decided ` },
         { text: 'ex-parte', bold: true },
@@ -663,7 +658,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     ...copyLines.map((line): NoticeBlock => {
       const match = line.match(/^(\d+\.)\s*(.*)$/);
       return match
-        ? { kind: 'labelPara', label: match[1], segments: [{ text: match[2] }] }
+        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }] }
         : { kind: 'lines', items: [[{ text: line }]] };
     }),
   ];
@@ -684,7 +679,7 @@ function noticeBlocksHtml(blocks: NoticeBlock[]) {
     .map((block) => {
       switch (block.kind) {
         case 'center':
-          return `<div style="text-align:center;${block.bold ? 'font-weight:700;' : ''}${block.underline ? 'text-decoration:underline;' : ''}">${escapeHtml(block.text)}</div>`;
+          return `<div style="text-align:center;${block.bold ? 'font-weight:700;' : ''}${block.underline ? 'text-decoration:underline;' : ''}${block.size ? `font-size:${block.size}pt;` : ''}">${escapeHtml(block.text)}</div>`;
         case 'memoRow':
           return `<div style="display:flex;justify-content:space-between;gap:12pt;"><span>${segmentsHtml(block.left)}</span><span>${segmentsHtml(block.right)}</span></div>`;
         case 'para':
@@ -761,7 +756,7 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
     switch (block.kind) {
       case 'center':
         children.push(new Paragraph({
-          children: [new TextRun({ text: block.text, bold: block.bold, underline: block.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: fontSize })],
+          children: [new TextRun({ text: block.text, bold: block.bold, underline: block.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: block.size ? block.size * 2 : fontSize })],
           alignment: AlignmentType.CENTER,
           spacing: { line: 360, after: 0 },
         }));
@@ -1246,14 +1241,16 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       switch (block.kind) {
         case 'center': {
           const bold = !!block.bold;
-          const width = measure(block.text, bold);
-          ensureSpace(LH);
+          const pt = block.size || 12;
           doc.setFont(fontName, bold ? 'bold' : 'normal');
-          doc.setFontSize(12);
+          doc.setFontSize(pt);
+          const width = doc.getTextWidth(block.text);
+          ensureSpace(LH);
           const x = (PAGE_W - width) / 2;
           doc.text(block.text, x, y);
           if (block.underline) doc.line(x, y + 0.8, x + width, y + 0.8);
-          y += LH;
+          y += pt * 0.5;
+          doc.setFontSize(12);
           break;
         }
         case 'memoRow': {
