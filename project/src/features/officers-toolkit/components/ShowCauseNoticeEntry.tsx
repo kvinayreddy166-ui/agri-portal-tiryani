@@ -263,17 +263,20 @@ interface NoticeSegment {
 }
 
 type NoticeBlock =
-  | { kind: 'center'; text: string; bold?: boolean; underline?: boolean; size?: number }
-  | { kind: 'memoRow'; left: NoticeSegment[]; right: NoticeSegment[] }
-  | { kind: 'para'; segments: NoticeSegment[]; indent?: number; firstLineIndent?: number }
-  | { kind: 'labelPara'; label: string; labelSuffix?: string; segments: NoticeSegment[]; indent?: number; labelPad?: string; labelBold?: boolean }
-  | { kind: 'heading'; text: string }
-  | { kind: 'lines'; items: NoticeSegment[][]; indent?: number; align?: 'right'; centerLines?: boolean; offsetX?: number }
-  | { kind: 'table'; header: [string, string]; rows: { label: string; value: string }[] }
-  | { kind: 'rule' }
-  | { kind: 'gap'; mm?: number };
+  | { kind: 'center'; text: string; bold?: boolean; underline?: boolean; size?: number; keepWithNext?: boolean }
+  | { kind: 'memoRow'; left: NoticeSegment[]; right: NoticeSegment[]; keepWithNext?: boolean }
+  | { kind: 'para'; segments: NoticeSegment[]; indent?: number; firstLineIndent?: number; keepWithNext?: boolean }
+  | { kind: 'labelPara'; label: string; labelSuffix?: string; segments: NoticeSegment[]; indent?: number; labelPad?: string; labelBold?: boolean; keepWithNext?: boolean }
+  | { kind: 'heading'; text: string; keepWithNext?: boolean }
+  | { kind: 'lines'; items: NoticeSegment[][]; indent?: number; align?: 'right'; centerLines?: boolean; offsetX?: number; keepWithNext?: boolean }
+  | { kind: 'table'; header: [string, string]; rows: { label: string; value: string }[]; keepWithNext?: boolean }
+  | { kind: 'rule'; keepWithNext?: boolean }
+  | { kind: 'gap'; mm?: number; keepWithNext?: boolean };
 
 const NOTICE_FONT_STACK = `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`;
+
+// One-tab indent (mm) for "Sub:"/"Ref:" label lines, per standard memo/notice format
+const SUBJECT_REF_INDENT = 10;
 
 function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseViolation[]): NoticeBlock[] {
   const inspectionDate = formatNoticeDate(form.inspectionDate);
@@ -358,10 +361,11 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     ...addressLines.map((line, index) => {
       const suffix = index === addressLines.length - 1 ? '.' : ',';
       const last = line[line.length - 1];
-      return [...line.slice(0, -1), { ...last, text: `${last.text.trimEnd()}${suffix}` }];
+      return [...line.slice(0, -1), { ...last, text: `${last.text.trimEnd()}${suffix}` }]
+        .map((segment) => ({ ...segment, bold: true }));
     }),
     ...(form.licenceNumber.trim()
-      ? [[{ text: 'Licence No.: ' }, { text: form.licenceNumber, bold: true }]]
+      ? [[{ text: 'Licence No.: ', bold: true }, { text: form.licenceNumber, bold: true }]]
       : []),
   ];
 
@@ -419,6 +423,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: 'Sub:',
+        indent: SUBJECT_REF_INDENT,
         segments: [
           { text: `${subjectLabel} – Inspection of dealer premises of ` },
           { text: firmDisplay, bold: true },
@@ -429,6 +434,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: 'Ref:',
+        indent: SUBJECT_REF_INDENT,
         segments: [
           { text: `Field inspection conducted by the ${officerDesignation}, ${mandalValue}` },
           ...(inspectionDate ? [{ text: ' on ' }, { text: inspectionDate, bold: true }] : []),
@@ -498,22 +504,23 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
           { text: ` without further reference to the firm for initiating/proposing appropriate action under the provisions of the ${instrument} and other applicable Act(s), Rules, and Orders.` },
         ],
       },
-      { kind: 'gap', mm: 4 },
+      { kind: 'gap', mm: 4, keepWithNext: true },
       ...(form.enclosures.trim()
-        ? [{ kind: 'lines', items: [[{ text: 'Encl: ' }, { text: form.enclosures.trim(), bold: true }]] } as NoticeBlock]
+        ? [{ kind: 'lines', items: [[{ text: 'Encl: ' }, { text: form.enclosures.trim(), bold: true }]], keepWithNext: true } as NoticeBlock]
         : []),
-      { kind: 'gap', mm: 4 },
-      { kind: 'lines', items: memoSignatureItems, align: 'right', centerLines: true, offsetX: 5 },
-      { kind: 'gap', mm: 4 },
-      { kind: 'lines', items: [[{ text: 'To', bold: true }]] },
-      { kind: 'lines', items: dealerItems, indent: 8 },
-      { kind: 'gap', mm: 3 },
-      { kind: 'lines', items: [[{ text: 'Copy submitted to:', bold: true }]] },
-      ...memoCopyLines.map((line): NoticeBlock => {
+      { kind: 'gap', mm: 4, keepWithNext: true },
+      { kind: 'lines', items: memoSignatureItems, align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
+      { kind: 'gap', mm: 4, keepWithNext: true },
+      { kind: 'lines', items: [[{ text: 'To', bold: true }]], keepWithNext: true },
+      { kind: 'lines', items: dealerItems, indent: 8, keepWithNext: true },
+      { kind: 'gap', mm: 3, keepWithNext: true },
+      { kind: 'lines', items: [[{ text: 'Copy submitted to:', bold: true }]], keepWithNext: true },
+      ...memoCopyLines.map((line, index): NoticeBlock => {
+        const keepWithNext = index < memoCopyLines.length - 1;
         const match = line.match(/^(\d+\.)\s*(.*)$/);
         return match
-          ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }] }
-          : { kind: 'lines', items: [[{ text: line }]] };
+          ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
+          : { kind: 'lines', items: [[{ text: line }]], keepWithNext };
       }),
     ];
   }
@@ -563,6 +570,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'labelPara',
       label: 'Sub:',
+      indent: SUBJECT_REF_INDENT,
       segments: [
         { text: `${subjectLabel} – Inspection of ` },
         { text: `${firmDisplay}, ${mandalValue}`, bold: true },
@@ -573,12 +581,13 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       kind: 'labelPara',
       label: 'Ref:',
       labelSuffix: '1.',
+      indent: SUBJECT_REF_INDENT,
       segments: [
         { text: `${certificateTerm} held by ` },
         { text: `${firmDisplay}.`, bold: true },
       ],
     },
-    { kind: 'labelPara', label: '2.', segments: [{ text: inspectionRef }], labelPad: 'Ref:', labelBold: false },
+    { kind: 'labelPara', label: '2.', segments: [{ text: inspectionRef }], labelPad: 'Ref:', indent: SUBJECT_REF_INDENT, labelBold: false },
     { kind: 'gap', mm: 2 },
     { kind: 'center', text: '***' },
     { kind: 'gap', mm: 1 },
@@ -646,20 +655,21 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       ],
     },
     ...(form.enclosures.trim()
-      ? [{ kind: 'lines', items: [[{ text: 'Encl: ' }, { text: form.enclosures.trim(), bold: true }]] } as NoticeBlock]
+      ? [{ kind: 'lines', items: [[{ text: 'Encl: ' }, { text: form.enclosures.trim(), bold: true }]], keepWithNext: true } as NoticeBlock]
       : []),
-    { kind: 'gap', mm: 8 },
-    { kind: 'lines', items: signatureItems, align: 'right', centerLines: true, offsetX: 5 },
-    { kind: 'gap', mm: 4 },
-    { kind: 'lines', items: [[{ text: 'To', bold: true }]] },
-    { kind: 'lines', items: dealerItems, indent: 8 },
-    { kind: 'gap', mm: 3 },
-    { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]] },
-    ...copyLines.map((line): NoticeBlock => {
+    { kind: 'gap', mm: 8, keepWithNext: true },
+    { kind: 'lines', items: signatureItems, align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
+    { kind: 'gap', mm: 4, keepWithNext: true },
+    { kind: 'lines', items: [[{ text: 'To', bold: true }]], keepWithNext: true },
+    { kind: 'lines', items: dealerItems, indent: 8, keepWithNext: true },
+    { kind: 'gap', mm: 3, keepWithNext: true },
+    { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
+    ...copyLines.map((line, index): NoticeBlock => {
+      const keepWithNext = index < copyLines.length - 1;
       const match = line.match(/^(\d+\.)\s*(.*)$/);
       return match
-        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }] }
-        : { kind: 'lines', items: [[{ text: line }]] };
+        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
+        : { kind: 'lines', items: [[{ text: line }]], keepWithNext };
     }),
   ];
 }
@@ -675,8 +685,7 @@ function segmentsHtml(segments: NoticeSegment[]) {
 }
 
 function noticeBlocksHtml(blocks: NoticeBlock[]) {
-  return blocks
-    .map((block) => {
+  const renderBlock = (block: NoticeBlock) => {
       switch (block.kind) {
         case 'center':
           return `<div style="text-align:center;${block.bold ? 'font-weight:700;' : ''}${block.underline ? 'text-decoration:underline;' : ''}${block.size ? `font-size:${block.size}pt;` : ''}">${escapeHtml(block.text)}</div>`;
@@ -715,8 +724,26 @@ function noticeBlocksHtml(blocks: NoticeBlock[]) {
         default:
           return '';
       }
-    })
-    .join('');
+  };
+  // Runs of keepWithNext blocks (signature / To / Copy footer) are wrapped so
+  // they never split across pages when the document is printed or exported.
+  const html: string[] = [];
+  let index = 0;
+  while (index < blocks.length) {
+    const block = blocks[index];
+    if (!block.keepWithNext) {
+      html.push(renderBlock(block));
+      index += 1;
+      continue;
+    }
+    const group: string[] = [];
+    do {
+      group.push(renderBlock(blocks[index]));
+      index += 1;
+    } while (index < blocks.length && blocks[index - 1].keepWithNext);
+    html.push(`<div style="break-inside:avoid;page-break-inside:avoid;">${group.join('')}</div>`);
+  }
+  return html.join('');
 }
 
 export function noticeDocumentHtml(blocks: NoticeBlock[]) {
@@ -758,6 +785,7 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
         children.push(new Paragraph({
           children: [new TextRun({ text: block.text, bold: block.bold, underline: block.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: block.size ? block.size * 2 : fontSize })],
           alignment: AlignmentType.CENTER,
+          keepNext: block.keepWithNext,
           spacing: { line: 360, after: 0 },
         }));
         break;
@@ -765,6 +793,7 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
         children.push(new Paragraph({
           children: [...runs(block.left), new TextRun({ text: '\t', font, size: fontSize }), ...runs(block.right)],
           tabStops: [{ type: TabStopType.RIGHT, position: mmToTwips(165) }],
+          keepNext: block.keepWithNext,
           spacing: { line: 360, after: 0 },
         }));
         break;
@@ -776,6 +805,7 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
             left: mmToTwips(block.indent || 0),
             firstLine: mmToTwips(block.firstLineIndent || 0),
           },
+          keepNext: block.keepWithNext,
           spacing: { line: 360, after: 80 },
         }));
         break;
@@ -791,6 +821,7 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
           ],
           alignment: AlignmentType.JUSTIFIED,
           indent: { left: mmToTwips(block.indent || 0) + padTwips + hanging, hanging },
+          keepNext: block.keepWithNext,
           spacing: { line: 360, after: 80 },
         }));
         break;
@@ -798,6 +829,7 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
       case 'heading':
         children.push(new Paragraph({
           children: [new TextRun({ text: block.text, bold: true, font, size: fontSize })],
+          keepNext: block.keepWithNext,
           spacing: { line: 360, before: 120, after: 40 },
         }));
         break;
@@ -805,10 +837,12 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
         if (block.centerLines) {
           children.push(new Table({
             rows: [new TableRow({
+              cantSplit: true,
               children: [new TableCell({
                 children: block.items.map((item) => new Paragraph({
                   children: runs(item),
                   alignment: AlignmentType.CENTER,
+                  keepNext: block.keepWithNext,
                   spacing: { line: 360, after: 0 },
                 })),
                 verticalAlign: VerticalAlign.CENTER,
@@ -827,6 +861,7 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
             children: runs(item),
             alignment: block.align === 'right' ? AlignmentType.RIGHT : AlignmentType.LEFT,
             indent: { left: mmToTwips(block.indent || 0) },
+            keepNext: block.keepWithNext,
             spacing: { line: 360, after: 0 },
           })));
         }
@@ -864,11 +899,12 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
         children.push(new Paragraph({
           children: [],
           border: { bottom: { style: BorderStyle.DASHED, size: 6, color: '000000', space: 1 } },
+          keepNext: block.keepWithNext,
           spacing: { line: 360, after: 40 },
         }));
         break;
       case 'gap':
-        children.push(new Paragraph({ children: [], spacing: { after: mmToTwips(block.mm ?? 2) } }));
+        children.push(new Paragraph({ children: [], keepNext: block.keepWithNext, spacing: { after: mmToTwips(block.mm ?? 2) } }));
         break;
       default:
         break;
@@ -1224,6 +1260,49 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       return lines;
     };
 
+    // Height a block will occupy in mm — mirrors the per-kind draw logic below so
+    // keepWithNext chains (signature / To / Copy footer) can be space-reserved as a unit.
+    const measureBlock = (block: NoticeBlock): number => {
+      switch (block.kind) {
+        case 'center':
+          return (block.size || 12) * 0.5;
+        case 'memoRow':
+          return LH;
+        case 'para': {
+          const indent = block.indent || 0;
+          const firstLineIndent = block.firstLineIndent || 0;
+          const lineWidth = CW - indent;
+          const lines = wrapSegments(block.segments, lineWidth, firstLineIndent ? lineWidth - firstLineIndent : undefined);
+          return lines.length * LH + 1;
+        }
+        case 'labelPara': {
+          const padWidth = block.labelPad ? measure(`${block.labelPad} `, true) : 0;
+          const labelBold = block.labelBold !== false;
+          const suffix = block.labelSuffix ? `${block.labelSuffix} ` : '';
+          const indent = (block.indent || 0) + padWidth;
+          const labelWidth = measure(`${block.label} `, labelBold) + measure(suffix, false);
+          return wrapSegments(block.segments, CW - indent - labelWidth).length * LH + 1;
+        }
+        case 'heading':
+          return wrapSegments([{ text: block.text, bold: true }], CW).length * LH;
+        case 'lines':
+          return block.items.reduce((total, item) => total + wrapSegments(item, CW - (block.indent || 0)).length * LH, 0);
+        case 'table': {
+          const col2 = CW - 8 - 62;
+          return block.rows.reduce(
+            (total, row) => total + Math.max(7, wrapSegments([{ text: row.value || '______________________________', bold: true }], col2 - 4).length * LH + 1.5),
+            7
+          );
+        }
+        case 'rule':
+          return 3;
+        case 'gap':
+          return block.mm ?? 2;
+        default:
+          return 0;
+      }
+    };
+
     const pageBreak = () => {
       doc.setFont(fontName, 'normal');
       doc.setFontSize(10);
@@ -1237,7 +1316,17 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     };
 
     doc.setFontSize(12);
-    noticeBlocks.forEach((block) => {
+    noticeBlocks.forEach((block, index) => {
+      // At the start of a keepWithNext chain, reserve room for the whole group so
+      // the signature and To-address footer never split across a page break.
+      if (block.keepWithNext && !(index > 0 && noticeBlocks[index - 1].keepWithNext)) {
+        let groupHeight = 0;
+        for (let j = index; j < noticeBlocks.length; j += 1) {
+          groupHeight += measureBlock(noticeBlocks[j]);
+          if (!noticeBlocks[j].keepWithNext) break;
+        }
+        ensureSpace(groupHeight);
+      }
       switch (block.kind) {
         case 'center': {
           const bold = !!block.bold;

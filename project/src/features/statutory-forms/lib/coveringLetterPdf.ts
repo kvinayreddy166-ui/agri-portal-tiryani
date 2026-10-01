@@ -445,14 +445,15 @@ function drawSubject(cursor: PdfCursor, metadata: CoveringLetterMetadata, letter
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
-  doc.text('Sub: ', PAGE.marginLeft, cursor.y);
-  
+  const labelX = PAGE.marginLeft + FIRST_LINE_INDENT;
+  doc.text('Sub: ', labelX, cursor.y);
+
   doc.setFont(PDF_FONT, 'normal');
   const subject = letterType === 'safe-custody'
     ? `FCO, 1985 – Quality Control – ${metadata.year || '2026-27'} – Submission of III Portion of Fertilizer Samples along with Form K for Safe Custody – Request – Reg.`
     : `FCO 1985 – Quality Control – ${metadata.year || '2026-27'} – Submission of Fertilizer Samples (Portion-I) drawn – Request for Quality Analysis – Reg.`;
-  const subjectX = PAGE.marginLeft + doc.getTextWidth('Sub: ');
-  const availableWidth = PAGE.contentWidth - doc.getTextWidth('Sub: ');
+  const subjectX = labelX + doc.getTextWidth('Sub: ');
+  const availableWidth = PAGE.contentWidth - FIRST_LINE_INDENT - doc.getTextWidth('Sub: ');
   
   const splitSubject = doc.splitTextToSize(subject, availableWidth);
   doc.text(splitSubject, subjectX, cursor.y);
@@ -465,8 +466,9 @@ function drawReference(cursor: PdfCursor, metadata: CoveringLetterMetadata, offi
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
-  doc.text('Ref:', PAGE.marginLeft, cursor.y);
-  const refIndent = PAGE.marginLeft + doc.getTextWidth('Ref: ');
+  const refLabelX = PAGE.marginLeft + FIRST_LINE_INDENT;
+  doc.text('Ref:', refLabelX, cursor.y);
+  const refIndent = refLabelX + doc.getTextWidth('Ref: ');
 
   doc.setFont(PDF_FONT, 'normal');
   const ref1 = '1) C&DA, TS, Hyd Memo No. e-937125, COMAG-FERT/FQC/3/2026-FERT, Dt. 22.06.2026.';

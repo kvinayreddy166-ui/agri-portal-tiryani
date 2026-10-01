@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bug, ClipboardCheck, FileText, FlaskConical, Sprout } from 'lucide-react';
+import { Ban, Bug, ClipboardCheck, FileText, FlaskConical, PackageX, Sprout } from 'lucide-react';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { ShowCauseNoticeEntry } from '../components/ShowCauseNoticeEntry';
 import type { NoticeCategory } from '../data/showCauseViolationData';
@@ -15,6 +15,18 @@ const NOTICE_TYPES: { label: string; category: NoticeCategory; icon: typeof Spro
   { label: 'Seed', category: 'seed', icon: Sprout, tone: 'emerald' },
   { label: 'Fertilizer', category: 'fertiliser', icon: FlaskConical, tone: 'sky' },
   { label: 'Pesticide', category: 'pesticide', icon: Bug, tone: 'amber' },
+];
+
+const STOP_SALE_TYPES: { label: string; icon: typeof Sprout; tone: string }[] = [
+  { label: 'Seed', icon: Sprout, tone: 'emerald' },
+  { label: 'Fertilizer', icon: FlaskConical, tone: 'sky' },
+  { label: 'Pesticide', icon: Bug, tone: 'amber' },
+];
+
+const SEIZURE_TYPES: { label: string; icon: typeof Sprout; tone: string }[] = [
+  { label: 'Seed', icon: Sprout, tone: 'emerald' },
+  { label: 'Fertilizer', icon: FlaskConical, tone: 'sky' },
+  { label: 'Pesticide', icon: Bug, tone: 'amber' },
 ];
 
 const toneClasses: Record<string, string> = {
@@ -44,9 +56,11 @@ const noticeModalThemes: Record<NoticeCategory, { header: string; icon: string; 
 
 export function InspectionsNoticesHub() {
   const navigate = useNavigate();
-  const [showInspectionTypes, setShowInspectionTypes] = useState(false);
-  const [showNoticeTypes, setShowNoticeTypes] = useState(false);
+  const [openCard, setOpenCard] = useState<'inspections' | 'notices' | 'stopSale' | 'seizure' | null>(null);
   const [selectedNoticeCategory, setSelectedNoticeCategory] = useState<NoticeCategory | null>(null);
+
+  const toggleCard = (card: 'inspections' | 'notices' | 'stopSale' | 'seizure') =>
+    setOpenCard((current) => (current === card ? null : card));
 
   return (
     <div className="mx-auto w-full max-w-4xl p-2 sm:p-3">
@@ -62,37 +76,34 @@ export function InspectionsNoticesHub() {
       <div className="grid items-start gap-3 sm:grid-cols-2">
         <div
           className={`overflow-hidden rounded-xl border shadow-sm transition ${
-            showInspectionTypes
+            openCard === 'inspections'
               ? 'border-teal-400 bg-white dark:border-teal-600 dark:bg-slate-900'
               : 'border-teal-200 bg-white hover:border-teal-300 hover:bg-teal-50 dark:border-teal-800 dark:bg-slate-900 dark:hover:border-teal-600 dark:hover:bg-slate-800'
           }`}
         >
           <button
             type="button"
-            onClick={() => {
-              setShowInspectionTypes((current) => !current);
-              setShowNoticeTypes(false);
-            }}
+            onClick={() => toggleCard('inspections')}
             className={`block min-h-[76px] w-full p-4 text-left transition ${
-              showInspectionTypes ? 'bg-teal-500 text-white' : 'text-slate-900 dark:text-white'
+              openCard === 'inspections' ? 'bg-teal-500 text-white' : 'text-slate-900 dark:text-white'
             }`}
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showInspectionTypes ? 'bg-white/20' : 'bg-teal-100 dark:bg-teal-900/40'}`}>
-                  <ClipboardCheck className={`h-5 w-5 ${showInspectionTypes ? 'text-white' : 'text-teal-700 dark:text-teal-300'}`} />
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${openCard === 'inspections' ? 'bg-white/20' : 'bg-teal-100 dark:bg-teal-900/40'}`}>
+                  <ClipboardCheck className={`h-5 w-5 ${openCard === 'inspections' ? 'text-white' : 'text-teal-700 dark:text-teal-300'}`} />
                 </div>
                 <div>
                   <p className="text-base font-black">Inspections</p>
-                  <p className={`text-xs font-semibold leading-snug ${showInspectionTypes ? 'text-teal-100' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <p className={`text-xs font-semibold leading-snug ${openCard === 'inspections' ? 'text-teal-100' : 'text-slate-500 dark:text-slate-400'}`}>
                     Seed • Fertilizer • Pesticide dealer inspection
                   </p>
                 </div>
               </div>
-              {showInspectionTypes && <span className="text-teal-200">✓</span>}
+              {openCard === 'inspections' && <span className="text-teal-200">✓</span>}
             </div>
           </button>
-          {showInspectionTypes && (
+          {openCard === 'inspections' && (
             <div className="grid gap-2 border-t border-teal-200/70 bg-teal-50/50 p-3 dark:border-teal-800/50 dark:bg-slate-950/40">
               {INSPECTION_TYPES.map((item) => (
                 <button
@@ -111,38 +122,35 @@ export function InspectionsNoticesHub() {
 
         <div
           className={`overflow-hidden rounded-xl border shadow-sm transition ${
-            showNoticeTypes
-              ? 'border-indigo-400 bg-white dark:border-indigo-500 dark:bg-slate-900'
-              : 'border-indigo-200 bg-white hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-900 dark:hover:border-indigo-600 dark:hover:bg-slate-800'
+            openCard === 'notices'
+              ? 'border-cyan-400 bg-white dark:border-cyan-500 dark:bg-slate-900'
+              : 'border-cyan-200 bg-white hover:border-cyan-300 hover:bg-cyan-50 dark:border-cyan-800 dark:bg-slate-900 dark:hover:border-cyan-600 dark:hover:bg-slate-800'
           }`}
         >
           <button
             type="button"
-            onClick={() => {
-              setShowNoticeTypes((current) => !current);
-              setShowInspectionTypes(false);
-            }}
+            onClick={() => toggleCard('notices')}
             className={`block min-h-[76px] w-full p-4 text-left transition ${
-              showNoticeTypes ? 'bg-indigo-500 text-white' : 'text-slate-900 dark:text-white'
+              openCard === 'notices' ? 'bg-cyan-500 text-white' : 'text-slate-900 dark:text-white'
             }`}
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${showNoticeTypes ? 'bg-white/20' : 'bg-indigo-100 dark:bg-indigo-900/40'}`}>
-                  <FileText className={`h-5 w-5 ${showNoticeTypes ? 'text-white' : 'text-indigo-700 dark:text-indigo-300'}`} />
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${openCard === 'notices' ? 'bg-white/20' : 'bg-cyan-100 dark:bg-cyan-900/40'}`}>
+                  <FileText className={`h-5 w-5 ${openCard === 'notices' ? 'text-white' : 'text-cyan-700 dark:text-cyan-300'}`} />
                 </div>
                 <div>
                   <p className="text-base font-black">Notices / Memos</p>
-                  <p className={`text-xs font-semibold leading-snug ${showNoticeTypes ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <p className={`text-xs font-semibold leading-snug ${openCard === 'notices' ? 'text-cyan-100' : 'text-slate-500 dark:text-slate-400'}`}>
                     Seed • Fertilizer • Pesticide notices and memos
                   </p>
                 </div>
               </div>
-              {showNoticeTypes && <span className="text-indigo-200">✓</span>}
+              {openCard === 'notices' && <span className="text-cyan-200">✓</span>}
             </div>
           </button>
-          {showNoticeTypes && (
-            <div className="grid gap-2 border-t border-indigo-200/70 bg-indigo-50/50 p-3 dark:border-indigo-800/50 dark:bg-slate-950/40">
+          {openCard === 'notices' && (
+            <div className="grid gap-2 border-t border-cyan-200/70 bg-cyan-50/50 p-3 dark:border-cyan-800/50 dark:bg-slate-950/40">
               {NOTICE_TYPES.map((item) => (
                 <button
                   key={item.category}
@@ -152,6 +160,96 @@ export function InspectionsNoticesHub() {
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
                   <span className="text-sm font-black">{item.label} Notice</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div
+          className={`overflow-hidden rounded-xl border shadow-sm transition ${
+            openCard === 'stopSale'
+              ? 'border-sky-400 bg-white dark:border-sky-500 dark:bg-slate-900'
+              : 'border-sky-200 bg-white hover:border-sky-300 hover:bg-sky-50 dark:border-sky-800 dark:bg-slate-900 dark:hover:border-sky-600 dark:hover:bg-slate-800'
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => toggleCard('stopSale')}
+            className={`block min-h-[76px] w-full p-4 text-left transition ${
+              openCard === 'stopSale' ? 'bg-sky-500 text-white' : 'text-slate-900 dark:text-white'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${openCard === 'stopSale' ? 'bg-white/20' : 'bg-sky-100 dark:bg-sky-900/40'}`}>
+                  <Ban className={`h-5 w-5 ${openCard === 'stopSale' ? 'text-white' : 'text-sky-700 dark:text-sky-300'}`} />
+                </div>
+                <div>
+                  <p className="text-base font-black">Stop Sale</p>
+                  <p className={`text-xs font-semibold leading-snug ${openCard === 'stopSale' ? 'text-sky-100' : 'text-slate-500 dark:text-slate-400'}`}>
+                    Seed • Fertilizer • Pesticide stop sale orders
+                  </p>
+                </div>
+              </div>
+              {openCard === 'stopSale' && <span className="text-sky-200">✓</span>}
+            </div>
+          </button>
+          {openCard === 'stopSale' && (
+            <div className="grid gap-2 border-t border-sky-200/70 bg-sky-50/50 p-3 dark:border-sky-800/50 dark:bg-slate-950/40">
+              {STOP_SALE_TYPES.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span className="text-sm font-black">{item.label} Stop Sale</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div
+          className={`overflow-hidden rounded-xl border shadow-sm transition ${
+            openCard === 'seizure'
+              ? 'border-indigo-400 bg-white dark:border-indigo-500 dark:bg-slate-900'
+              : 'border-indigo-200 bg-white hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-900 dark:hover:border-indigo-600 dark:hover:bg-slate-800'
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => toggleCard('seizure')}
+            className={`block min-h-[76px] w-full p-4 text-left transition ${
+              openCard === 'seizure' ? 'bg-indigo-500 text-white' : 'text-slate-900 dark:text-white'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${openCard === 'seizure' ? 'bg-white/20' : 'bg-indigo-100 dark:bg-indigo-900/40'}`}>
+                  <PackageX className={`h-5 w-5 ${openCard === 'seizure' ? 'text-white' : 'text-indigo-700 dark:text-indigo-300'}`} />
+                </div>
+                <div>
+                  <p className="text-base font-black">Seizure</p>
+                  <p className={`text-xs font-semibold leading-snug ${openCard === 'seizure' ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'}`}>
+                    Seed • Fertilizer • Pesticide seizure memos
+                  </p>
+                </div>
+              </div>
+              {openCard === 'seizure' && <span className="text-indigo-200">✓</span>}
+            </div>
+          </button>
+          {openCard === 'seizure' && (
+            <div className="grid gap-2 border-t border-indigo-200/70 bg-indigo-50/50 p-3 dark:border-indigo-800/50 dark:bg-slate-950/40">
+              {SEIZURE_TYPES.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span className="text-sm font-black">{item.label} Seizure</span>
                 </button>
               ))}
             </div>
