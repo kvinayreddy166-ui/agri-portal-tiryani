@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Ban, Bug, ClipboardCheck, FileText, FlaskConical, PackageX, Sprout } from 'lucide-react';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { ShowCauseNoticeEntry } from '../components/ShowCauseNoticeEntry';
+import { PesticideStopSaleEntry } from '../components/PesticideStopSaleEntry';
+import { FertilizerStopSaleEntry } from '../components/FertilizerStopSaleEntry';
+import { SeedStopSaleEntry } from '../components/SeedStopSaleEntry';
 import type { NoticeCategory } from '../data/showCauseViolationData';
 
 const INSPECTION_TYPES = [
@@ -58,6 +61,9 @@ export function InspectionsNoticesHub() {
   const navigate = useNavigate();
   const [openCard, setOpenCard] = useState<'inspections' | 'notices' | 'stopSale' | 'seizure' | null>(null);
   const [selectedNoticeCategory, setSelectedNoticeCategory] = useState<NoticeCategory | null>(null);
+  const [showPesticideStopSale, setShowPesticideStopSale] = useState(false);
+  const [showFertilizerStopSale, setShowFertilizerStopSale] = useState(false);
+  const [showSeedStopSale, setShowSeedStopSale] = useState(false);
 
   const toggleCard = (card: 'inspections' | 'notices' | 'stopSale' | 'seizure') =>
     setOpenCard((current) => (current === card ? null : card));
@@ -201,6 +207,11 @@ export function InspectionsNoticesHub() {
                 <button
                   key={item.label}
                   type="button"
+                  onClick={() => {
+                    if (item.label === 'Pesticide') setShowPesticideStopSale(true);
+                    if (item.label === 'Fertilizer') setShowFertilizerStopSale(true);
+                    if (item.label === 'Seed') setShowSeedStopSale(true);
+                  }}
                   className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
@@ -282,6 +293,96 @@ export function InspectionsNoticesHub() {
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
               <ShowCauseNoticeEntry lockedCategory={selectedNoticeCategory} />
+            </div>
+          </section>
+        </div>
+      )}
+
+      {showPesticideStopSale && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-0 backdrop-blur-sm sm:p-4">
+          <section className="flex h-full max-h-none w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl dark:bg-slate-900 sm:h-auto sm:max-h-[94vh] sm:rounded-2xl">
+            <header className={`relative flex shrink-0 items-start justify-between gap-3 border-b bg-gradient-to-r px-4 py-4 sm:px-6 ${noticeModalThemes.pesticide.header}`}>
+              <div className="relative flex min-w-0 flex-1 items-start gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg ${noticeModalThemes.pesticide.icon}`}>
+                  <Ban className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.pesticide.eyebrow}`}>Stop Sale Order — Form V(A)</p>
+                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                    Pesticide Stop Sale Order Entry
+                  </h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPesticideStopSale(false)}
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+              >
+                Close
+              </button>
+            </header>
+            <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+              <PesticideStopSaleEntry />
+            </div>
+          </section>
+        </div>
+      )}
+
+      {showFertilizerStopSale && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-0 backdrop-blur-sm sm:p-4">
+          <section className="flex h-full max-h-none w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl dark:bg-slate-900 sm:h-auto sm:max-h-[94vh] sm:rounded-2xl">
+            <header className={`relative flex shrink-0 items-start justify-between gap-3 border-b bg-gradient-to-r px-4 py-4 sm:px-6 ${noticeModalThemes.fertiliser.header}`}>
+              <div className="relative flex min-w-0 flex-1 items-start gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg ${noticeModalThemes.fertiliser.icon}`}>
+                  <Ban className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.fertiliser.eyebrow}`}>Stop Sale Notice — Annexure-A</p>
+                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                    Fertilizer Stop Sale Notice Entry
+                  </h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFertilizerStopSale(false)}
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+              >
+                Close
+              </button>
+            </header>
+            <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+              <FertilizerStopSaleEntry />
+            </div>
+          </section>
+        </div>
+      )}
+
+      {showSeedStopSale && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-0 backdrop-blur-sm sm:p-4">
+          <section className="flex h-full max-h-none w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl dark:bg-slate-900 sm:h-auto sm:max-h-[94vh] sm:rounded-2xl">
+            <header className={`relative flex shrink-0 items-start justify-between gap-3 border-b bg-gradient-to-r px-4 py-4 sm:px-6 ${noticeModalThemes.seed.header}`}>
+              <div className="relative flex min-w-0 flex-1 items-start gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg ${noticeModalThemes.seed.icon}`}>
+                  <Ban className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.seed.eyebrow}`}>Stop Sale Order — Form III</p>
+                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                    Seed Stop Sale Order Entry
+                  </h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSeedStopSale(false)}
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+              >
+                Close
+              </button>
+            </header>
+            <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+              <SeedStopSaleEntry />
             </div>
           </section>
         </div>

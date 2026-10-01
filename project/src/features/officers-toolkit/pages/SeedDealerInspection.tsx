@@ -80,7 +80,7 @@ const MAJOR_DEFECT_LABELS = [
 
 const UNIT_OPTIONS = ['kg', 'quintals', 'packets', 'bags'];
 const SAMPLE_TYPE_OPTIONS = ['Purity, moisture & germination', 'BT protein', 'Genetic purity', 'Seed health', 'Complete analysis'];
-const CROP_OPTIONS = ['Bajra', 'Bengalgram', 'Blackgram', 'Castor', 'Cotton', 'Cowpea', 'Greengram', 'Groundnut', 'Maize', 'Paddy', 'Redgram', 'Safflower', 'Sesamum', 'Sorghum', 'Soybean', 'Sunflower'];
+export const CROP_OPTIONS = ['Bajra', 'Bengalgram', 'Blackgram', 'Castor', 'Cotton', 'Cowpea', 'Greengram', 'Groundnut', 'Maize', 'Paddy', 'Redgram', 'Safflower', 'Sesamum', 'Sorghum', 'Soybean', 'Sunflower'];
 const DESIGNATION_OPTIONS = [
   'Mandal Agriculture Officer & Seed Inspector',
   'Asst. Director of Agriculture & Seed Inspector',

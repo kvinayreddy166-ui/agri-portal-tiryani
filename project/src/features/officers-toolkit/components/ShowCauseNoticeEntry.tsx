@@ -101,7 +101,7 @@ function compareProvisionKeys(a: ProvisionKey, b: ProvisionKey): number {
   return 0;
 }
 
-function readStatutoryDetails(category: NoticeCategory) {
+export function readStatutoryDetails(category: NoticeCategory) {
   const storageKey = category === 'fertiliser'
     ? 'tiryani-fertilizer-forms-draft'
     : category === 'seed'
@@ -125,7 +125,7 @@ function readStatutoryDetails(category: NoticeCategory) {
   }
 }
 
-function designationOptionsFor(category: NoticeCategory) {
+export function designationOptionsFor(category: NoticeCategory) {
   const inspector = category === 'seed' ? 'Seed Inspector' : category === 'pesticide' ? 'Insecticide Inspector' : 'Fertilizer Inspector';
   return [
     { label: `Mandal Agriculture Officer & ${inspector}`, value: `Mandal Agriculture Officer & ${inspector}` },
@@ -134,7 +134,7 @@ function designationOptionsFor(category: NoticeCategory) {
   ];
 }
 
-function resolveDistrict(value: string, manual = '') {
+export function resolveDistrict(value: string, manual = '') {
   const trimmed = (value || '').trim();
   if (!trimmed) return { district: '', manualDistrict: '' };
   if (trimmed === 'Others') return { district: 'Others', manualDistrict: manual };
@@ -147,7 +147,7 @@ function resolveDistrict(value: string, manual = '') {
   return { district: 'Others', manualDistrict: trimmed };
 }
 
-function resolveMandal(district: string, value: string, manual = '') {
+export function resolveMandal(district: string, value: string, manual = '') {
   const trimmed = (value || '').trim();
   if (!trimmed) return { mandal: '', manualMandal: '' };
   if (trimmed === 'Others') return { mandal: 'Others', manualMandal: manual };
@@ -222,7 +222,7 @@ function legalSourceBadge(actOrOrder: string) {
   return null;
 }
 
-function formatNoticeDate(value: string) {
+export function formatNoticeDate(value: string) {
   if (!value) return '';
   const [year, month, day] = value.split('-');
   return year && month && day ? `${day}-${month}-${year}` : value;
@@ -241,28 +241,28 @@ function toRoman(value: number) {
   return result;
 }
 
-function isAdaDesignation(designation: string): boolean {
+export function isAdaDesignation(designation: string): boolean {
   const lower = (designation || '').toLowerCase();
   return isAssistantDirectorOfAgriculture(designation)
     || ((lower.includes('asst') || lower.includes('assistant') || lower.trim() === 'ada') && lower.includes('director'));
 }
 
-function isDaoDesignation(designation: string): boolean {
+export function isDaoDesignation(designation: string): boolean {
   const lower = (designation || '').toLowerCase();
   return lower.includes('district agriculture officer') || lower.trim() === 'dao';
 }
 
-function isMaoDesignation(designation: string): boolean {
+export function isMaoDesignation(designation: string): boolean {
   const lower = (designation || '').toLowerCase();
   return lower.includes('mandal agriculture officer') || lower.trim() === 'mao';
 }
 
-interface NoticeSegment {
+export interface NoticeSegment {
   text: string;
   bold?: boolean;
 }
 
-type NoticeBlock =
+export type NoticeBlock =
   | { kind: 'center'; text: string; bold?: boolean; underline?: boolean; size?: number; keepWithNext?: boolean }
   | { kind: 'memoRow'; left: NoticeSegment[]; right: NoticeSegment[]; keepWithNext?: boolean }
   | { kind: 'para'; segments: NoticeSegment[]; indent?: number; firstLineIndent?: number; keepWithNext?: boolean }
@@ -270,10 +270,11 @@ type NoticeBlock =
   | { kind: 'heading'; text: string; keepWithNext?: boolean }
   | { kind: 'lines'; items: NoticeSegment[][]; indent?: number; align?: 'right'; centerLines?: boolean; offsetX?: number; keepWithNext?: boolean }
   | { kind: 'table'; header: [string, string]; rows: { label: string; value: string }[]; keepWithNext?: boolean }
+  | { kind: 'gridTable'; header: string[]; rows: string[][]; colWeights?: number[]; keepWithNext?: boolean }
   | { kind: 'rule'; keepWithNext?: boolean }
   | { kind: 'gap'; mm?: number; keepWithNext?: boolean };
 
-const NOTICE_FONT_STACK = `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`;
+const NOTICE_FONT_STACK = `'Roboto Serif', 'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`;
 
 // One-tab indent (mm) for "Sub:"/"Ref:" label lines, per standard memo/notice format
 const SUBJECT_REF_INDENT = 10;
@@ -434,6 +435,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: 'Ref:',
+        labelSuffix: '1.',
         indent: SUBJECT_REF_INDENT,
         segments: [
           { text: `Field inspection conducted by the ${officerDesignation}, ${mandalValue}` },
@@ -684,7 +686,7 @@ function segmentsHtml(segments: NoticeSegment[]) {
     .join('');
 }
 
-function noticeBlocksHtml(blocks: NoticeBlock[]) {
+export function noticeBlocksHtml(blocks: NoticeBlock[]) {
   const renderBlock = (block: NoticeBlock) => {
       switch (block.kind) {
         case 'center':
@@ -706,7 +708,7 @@ function noticeBlocksHtml(blocks: NoticeBlock[]) {
           if (block.centerLines) {
             return `<div style="margin-left:${block.indent || 0}mm;text-align:right;transform:translateX(${block.offsetX || 0}mm);"><div style="display:inline-block;text-align:center;">${inner}</div></div>`;
           }
-          return `<div style="margin-left:${block.indent || 0}mm;${block.align === 'right' ? 'text-align:right;' : ''}transform:translateX(${block.offsetX || 0}mm);">${inner}</div>`;
+          return `<div style="margin-left:${block.indent || 0}mm;text-align:${block.align === 'right' ? 'right' : 'left'};transform:translateX(${block.offsetX || 0}mm);">${inner}</div>`;
         }
         case 'table':
           return `<table style="width:92%;border-collapse:collapse;margin:2pt 0 2pt 8mm;"><thead><tr>${block.header
@@ -717,6 +719,23 @@ function noticeBlocksHtml(blocks: NoticeBlock[]) {
                 `<tr><td style="border:1pt solid #000;padding:2pt 6pt;">${escapeHtml(row.label)}</td><td style="border:1pt solid #000;padding:2pt 6pt;font-weight:700;">${escapeHtml(row.value || '______________________________')}</td></tr>`
             )
             .join('')}</tbody></table>`;
+        case 'gridTable': {
+          const weights = block.colWeights && block.colWeights.length === block.header.length
+            ? block.colWeights
+            : block.header.map(() => 1);
+          const total = weights.reduce((a, b) => a + b, 0);
+          const cols = weights.map((w) => `<col style="width:${(w / total) * 100}%;"/>`).join('');
+          return `<table style="width:100%;border-collapse:collapse;margin:2pt 0 4pt;table-layout:fixed;">${cols}<thead><tr>${block.header
+            .map((cell) => `<th style="border:1pt solid #000;padding:2pt 4pt;text-align:center;font-weight:700;vertical-align:middle;overflow-wrap:break-word;">${escapeHtml(cell)}</th>`)
+            .join('')}</tr></thead><tbody>${block.rows
+            .map(
+              (row) =>
+                `<tr>${row
+                  .map((cell) => `<td style="border:1pt solid #000;padding:2pt 4pt;vertical-align:top;overflow-wrap:break-word;">${escapeHtml(cell) || '&nbsp;'}</td>`)
+                  .join('')}</tr>`
+            )
+            .join('')}</tbody></table>`;
+        }
         case 'rule':
           return '<hr style="border:none;border-top:1pt dashed #000;margin:2pt 0;"/>';
         case 'gap':
@@ -750,7 +769,7 @@ export function noticeDocumentHtml(blocks: NoticeBlock[]) {
   return `<html><head><style>@page{size:A4;margin:18mm 20mm;}body{font-family:${NOTICE_FONT_STACK};font-size:12pt;line-height:1.5;color:#000;}</style></head><body>${noticeBlocksHtml(blocks)}</body></html>`;
 }
 
-async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
+export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: NoticeDocFont = 'robotoSerif') {
   const {
     AlignmentType,
     BorderStyle,
@@ -769,7 +788,8 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
     WidthType,
   } = await import('docx');
 
-  const font = { ascii: 'Book Antiqua', hAnsi: 'Book Antiqua', eastAsia: 'Book Antiqua', cs: DOCX_TELUGU_FONT };
+  const latinFont = docFont === 'robotoSerif' ? 'Roboto Serif' : 'Book Antiqua';
+  const font = { ascii: latinFont, hAnsi: latinFont, eastAsia: latinFont, cs: DOCX_TELUGU_FONT };
   const fontSize = 24;
   const mmToTwips = (mm: number) => Math.round(mm * 56.6929);
   const runs = (segments: NoticeSegment[]) => segments.map((segment) => new TextRun({ text: segment.text, bold: segment.bold, font, size: fontSize }));
@@ -895,6 +915,42 @@ async function buildNoticeWordDocument(blocks: NoticeBlock[]) {
         }));
         break;
       }
+      case 'gridTable': {
+        const weights = block.colWeights && block.colWeights.length === block.header.length
+          ? block.colWeights
+          : block.header.map(() => 1);
+        const total = weights.reduce((a, b) => a + b, 0);
+        const contentWidth = mmToTwips(170);
+        const cellPara = (text: string, bold = false) => new Paragraph({
+          children: [new TextRun({ text, bold, font, size: fontSize })],
+          spacing: { line: 360, after: 0 },
+        });
+        children.push(new Table({
+          rows: [
+            new TableRow({
+              tableHeader: true,
+              cantSplit: true,
+              children: block.header.map((text) => new TableCell({
+                children: [cellPara(text, true)],
+                verticalAlign: VerticalAlign.CENTER,
+              })),
+            }),
+            ...block.rows.map((row) => new TableRow({
+              cantSplit: true,
+              children: row.map((text) => new TableCell({
+                children: [cellPara(text)],
+                verticalAlign: VerticalAlign.CENTER,
+              })),
+            })),
+          ],
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          columnWidths: weights.map((w) => Math.round((contentWidth * w) / total)),
+          borders: tableBorders,
+          margins: { top: 40, bottom: 40, left: 80, right: 80 },
+          layout: TableLayoutType.FIXED,
+        }));
+        break;
+      }
       case 'rule':
         children.push(new Paragraph({
           children: [],
@@ -943,9 +999,20 @@ function arrayBufferToBase64(buffer: ArrayBuffer) {
   return btoa(binary);
 }
 
-async function loadNoticeFonts(doc: { addFileToVFS: (name: string, data: string) => void; addFont: (file: string, name: string, style: string) => void }) {
+export type NoticeDocFont = 'bookAntiqua' | 'robotoSerif';
+
+export async function loadNoticeFonts(doc: { addFileToVFS: (name: string, data: string) => void; addFont: (file: string, name: string, style: string) => void }, font: NoticeDocFont = 'robotoSerif') {
   try {
     const load = async (url: string) => arrayBufferToBase64(await (await fetch(url)).arrayBuffer());
+    if (font === 'robotoSerif') {
+      doc.addFileToVFS('RobotoSerif.ttf', await load('/fonts/RobotoSerif.ttf'));
+      doc.addFont('RobotoSerif.ttf', 'RobotoSerif', 'normal');
+      doc.addFileToVFS('RobotoSerif-Bold.ttf', await load('/fonts/RobotoSerif-Bold.ttf'));
+      doc.addFont('RobotoSerif-Bold.ttf', 'RobotoSerif', 'bold');
+      doc.addFileToVFS('RobotoSerif-Italic.ttf', await load('/fonts/RobotoSerif-Italic.ttf'));
+      doc.addFont('RobotoSerif-Italic.ttf', 'RobotoSerif', 'italic');
+      return 'RobotoSerif';
+    }
     doc.addFileToVFS('BookAntiqua.ttf', await load('/fonts/BookAntiqua.ttf'));
     doc.addFont('BookAntiqua.ttf', 'BookAntiqua', 'normal');
     doc.addFileToVFS('BookAntiqua-Bold.ttf', await load('/fonts/BookAntiqua-Bold.ttf'));
@@ -954,6 +1021,313 @@ async function loadNoticeFonts(doc: { addFileToVFS: (name: string, data: string)
   } catch {
     return 'times';
   }
+}
+
+export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title: string, font: NoticeDocFont = 'robotoSerif') {
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+  doc.setProperties({ title, subject: title, creator: 'AGRONIX' });
+  const fontName = await loadNoticeFonts(doc, font);
+  await setupPdfUnicodeFonts(doc);
+
+  const PAGE_W = 210;
+  const PAGE_H = 297;
+  const ML = 20;
+  const MR = 20;
+  const MT = 15;
+  const MB = 18;
+  const CW = PAGE_W - ML - MR;
+  const LH = 5.8;
+  let y = MT;
+
+  const measure = (text: string, bold: boolean) => {
+    doc.setFont(fontName, bold ? 'bold' : 'normal');
+    doc.setFontSize(12);
+    return doc.getTextWidth(text);
+  };
+  const spaceWidth = () => measure(' ', false);
+  const runsWidth = (runs: NoticeSegment[]) =>
+    runs.reduce((total, run) => total + measure(run.text, !!run.bold), 0) + Math.max(runs.length - 1, 0) * spaceWidth();
+
+  const drawRuns = (runs: NoticeSegment[], x: number, lineY: number, justifyToWidth?: number) => {
+    let cx = x;
+    let gap = spaceWidth();
+    if (justifyToWidth && runs.length > 1) {
+      const extra = justifyToWidth - runsWidth(runs);
+      if (extra > 0) gap += extra / (runs.length - 1);
+    }
+    runs.forEach((run) => {
+      doc.setFont(fontName, run.bold ? 'bold' : 'normal');
+      doc.setFontSize(12);
+      doc.text(run.text, cx, lineY);
+      cx += doc.getTextWidth(run.text) + gap;
+    });
+  };
+
+  const wrapSegments = (segments: NoticeSegment[], width: number, firstLineWidth?: number): NoticeSegment[][] => {
+    const words: NoticeSegment[] = [];
+    segments.forEach((segment) => {
+      segment.text
+        .split(/\s+/)
+        .filter(Boolean)
+        .forEach((word) => words.push({ text: word, bold: segment.bold }));
+    });
+    const lines: NoticeSegment[][] = [];
+    let current: NoticeSegment[] = [];
+    let limit = firstLineWidth ?? width;
+    words.forEach((word) => {
+      const candidate = [...current, word];
+      if (current.length > 0 && runsWidth(candidate) > limit) {
+        lines.push(current);
+        current = [word];
+        limit = width;
+      } else {
+        current = candidate;
+      }
+    });
+    if (current.length > 0) lines.push(current);
+    return lines;
+  };
+
+  const gridColWidths = (block: Extract<NoticeBlock, { kind: 'gridTable' }>) => {
+    const weights = block.colWeights && block.colWeights.length === block.header.length
+      ? block.colWeights
+      : block.header.map(() => 1);
+    const total = weights.reduce((a, b) => a + b, 0);
+    return weights.map((w) => (CW * w) / total);
+  };
+
+  const gridRowHeight = (cells: string[], colW: number[], bold: boolean) => {
+    const lineCounts = cells.map((cell, i) => wrapSegments([{ text: cell, bold }], colW[i] - 3).length);
+    return Math.max(7, Math.max(...lineCounts, 1) * LH + 2);
+  };
+
+  // Height a block will occupy in mm — mirrors the per-kind draw logic below so
+  // keepWithNext chains (signature / To / Copy footer) can be space-reserved as a unit.
+  const measureBlock = (block: NoticeBlock): number => {
+    switch (block.kind) {
+      case 'center':
+        return (block.size || 12) * 0.5;
+      case 'memoRow':
+        return LH;
+      case 'para': {
+        const indent = block.indent || 0;
+        const firstLineIndent = block.firstLineIndent || 0;
+        const lineWidth = CW - indent;
+        const lines = wrapSegments(block.segments, lineWidth, firstLineIndent ? lineWidth - firstLineIndent : undefined);
+        return lines.length * LH + 1;
+      }
+      case 'labelPara': {
+        const padWidth = block.labelPad ? measure(`${block.labelPad} `, true) : 0;
+        const labelBold = block.labelBold !== false;
+        const suffix = block.labelSuffix ? `${block.labelSuffix} ` : '';
+        const indent = (block.indent || 0) + padWidth;
+        const labelWidth = measure(`${block.label} `, labelBold) + measure(suffix, false);
+        return wrapSegments(block.segments, CW - indent - labelWidth).length * LH + 1;
+      }
+      case 'heading':
+        return wrapSegments([{ text: block.text, bold: true }], CW).length * LH;
+      case 'lines':
+        return block.items.reduce((total, item) => total + wrapSegments(item, CW - (block.indent || 0)).length * LH, 0);
+      case 'table': {
+        const col2 = CW - 8 - 62;
+        return block.rows.reduce(
+          (total, row) => total + Math.max(7, wrapSegments([{ text: row.value || '______________________________', bold: true }], col2 - 4).length * LH + 1.5),
+          7
+        );
+      }
+      case 'gridTable': {
+        const colW = gridColWidths(block);
+        return gridRowHeight(block.header, colW, true)
+          + block.rows.reduce((total, row) => total + gridRowHeight(row, colW, false), 0)
+          + 1;
+      }
+      case 'rule':
+        return 3;
+      case 'gap':
+        return block.mm ?? 2;
+      default:
+        return 0;
+    }
+  };
+
+  const pageBreak = () => {
+    doc.setFont(fontName, 'normal');
+    doc.setFontSize(10);
+    doc.text("(Cont'd...)", PAGE_W - MR, PAGE_H - MB + 6, { align: 'right' });
+    doc.addPage();
+    doc.setFontSize(12);
+    y = MT;
+  };
+  const ensureSpace = (needed: number) => {
+    if (y + needed > PAGE_H - MB) pageBreak();
+  };
+
+  doc.setFontSize(12);
+  noticeBlocks.forEach((block, index) => {
+    // At the start of a keepWithNext chain, reserve room for the whole group so
+    // the signature and To-address footer never split across a page break.
+    if (block.keepWithNext && !(index > 0 && noticeBlocks[index - 1].keepWithNext)) {
+      let groupHeight = 0;
+      for (let j = index; j < noticeBlocks.length; j += 1) {
+        groupHeight += measureBlock(noticeBlocks[j]);
+        if (!noticeBlocks[j].keepWithNext) break;
+      }
+      ensureSpace(groupHeight);
+    }
+    switch (block.kind) {
+      case 'center': {
+        const bold = !!block.bold;
+        const pt = block.size || 12;
+        doc.setFont(fontName, bold ? 'bold' : 'normal');
+        doc.setFontSize(pt);
+        const width = doc.getTextWidth(block.text);
+        ensureSpace(LH);
+        const x = (PAGE_W - width) / 2;
+        doc.text(block.text, x, y);
+        if (block.underline) doc.line(x, y + 0.8, x + width, y + 0.8);
+        y += pt * 0.5;
+        doc.setFontSize(12);
+        break;
+      }
+      case 'memoRow': {
+        ensureSpace(LH);
+        drawRuns(block.left, ML, y);
+        drawRuns(block.right, PAGE_W - MR - runsWidth(block.right), y);
+        y += LH;
+        break;
+      }
+      case 'para': {
+        const indent = block.indent || 0;
+        const firstLineIndent = block.firstLineIndent || 0;
+        const lineWidth = CW - indent;
+        const lines = wrapSegments(block.segments, lineWidth, firstLineIndent ? lineWidth - firstLineIndent : undefined);
+        lines.forEach((runs, index) => {
+          ensureSpace(LH);
+          const isLastLine = index === lines.length - 1;
+          const offset = index === 0 ? firstLineIndent : 0;
+          drawRuns(runs, ML + indent + offset, y, isLastLine ? undefined : lineWidth - offset);
+          y += LH;
+        });
+        y += 1;
+        break;
+      }
+      case 'labelPara': {
+        const padWidth = block.labelPad ? measure(`${block.labelPad} `, true) : 0;
+        const labelBold = block.labelBold !== false;
+        const suffix = block.labelSuffix ? `${block.labelSuffix} ` : '';
+        const indent = (block.indent || 0) + padWidth;
+        const labelWidth = measure(`${block.label} `, labelBold) + measure(suffix, false);
+        const lineWidth = CW - indent - labelWidth;
+        const lines = wrapSegments(block.segments, lineWidth);
+        lines.forEach((runs, index) => {
+          ensureSpace(LH);
+          if (index === 0) {
+            doc.setFontSize(12);
+            doc.setFont(fontName, labelBold ? 'bold' : 'normal');
+            doc.text(block.label, ML + indent, y);
+            if (suffix) {
+              doc.setFont(fontName, 'normal');
+              doc.text(suffix, ML + indent + measure(`${block.label} `, labelBold), y);
+            }
+          }
+          const isLastLine = index === lines.length - 1;
+          drawRuns(runs, ML + indent + labelWidth, y, isLastLine ? undefined : lineWidth);
+          y += LH;
+        });
+        y += 1;
+        break;
+      }
+      case 'heading': {
+        const lines = wrapSegments([{ text: block.text, bold: true }], CW);
+        lines.forEach((runs) => {
+          ensureSpace(LH);
+          drawRuns(runs, ML, y);
+          y += LH;
+        });
+        break;
+      }
+      case 'lines': {
+        const indent = block.indent || 0;
+        const wrapped = block.items.map((item) => wrapSegments(item, CW - indent));
+        const blockWidth = block.centerLines
+          ? Math.max(...wrapped.flat().map((runs) => runsWidth(runs)))
+          : 0;
+        wrapped.forEach((lines) => {
+          lines.forEach((runs) => {
+            ensureSpace(LH);
+            const w = runsWidth(runs);
+            const x = (block.align === 'right'
+              ? PAGE_W - MR - (block.centerLines ? blockWidth - (blockWidth - w) / 2 : w)
+              : ML + indent) + (block.offsetX || 0);
+            drawRuns(runs, x, y);
+            y += LH;
+          });
+        });
+        break;
+      }
+      case 'table': {
+        const x0 = ML + 8;
+        const col1 = 62;
+        const col2 = CW - 8 - col1;
+        const rowH = 7;
+        const headerLines = [
+          wrapSegments([{ text: block.header[0], bold: true }], col1 - 4),
+          wrapSegments([{ text: block.header[1], bold: true }], col2 - 4),
+        ];
+        ensureSpace(rowH);
+        doc.rect(x0, y - 4.5, col1, rowH);
+        doc.rect(x0 + col1, y - 4.5, col2, rowH);
+        drawRuns(headerLines[0][0] || [], x0 + 2, y);
+        drawRuns(headerLines[1][0] || [], x0 + col1 + 2, y);
+        y += rowH;
+        block.rows.forEach((row) => {
+          const valueRuns = wrapSegments([{ text: row.value || '______________________________', bold: true }], col2 - 4);
+          const height = Math.max(rowH, valueRuns.length * LH + 1.5);
+          ensureSpace(height);
+          doc.rect(x0, y - 4.5, col1, height);
+          doc.rect(x0 + col1, y - 4.5, col2, height);
+          drawRuns([{ text: row.label }], x0 + 2, y);
+          valueRuns.forEach((runs, index) => drawRuns(runs, x0 + col1 + 2, y + index * LH));
+          y += height;
+        });
+        break;
+      }
+      case 'gridTable': {
+        const colW = gridColWidths(block);
+        const drawRow = (cells: string[], bold: boolean) => {
+          const rowH = gridRowHeight(cells, colW, bold);
+          ensureSpace(rowH);
+          let cx = ML;
+          cells.forEach((cell, i) => {
+            doc.rect(cx, y - 4.5, colW[i], rowH);
+            const wrapped = wrapSegments([{ text: cell, bold }], colW[i] - 3);
+            wrapped.forEach((runs, lineIndex) => drawRuns(runs, cx + 1.5, y + lineIndex * LH));
+            cx += colW[i];
+          });
+          y += rowH;
+        };
+        drawRow(block.header, true);
+        block.rows.forEach((row) => drawRow(row, false));
+        y += 1;
+        break;
+      }
+      case 'rule':
+        ensureSpace(2);
+        doc.setLineDashPattern([1.5, 1], 0);
+        doc.line(ML, y, PAGE_W - MR, y);
+        doc.setLineDashPattern([], 0);
+        y += 3;
+        break;
+      case 'gap':
+        y += block.mm ?? 2;
+        break;
+      default:
+        break;
+    }
+  });
+
+  return doc;
 }
 
 export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: NoticeCategory } = {}) {
@@ -1194,274 +1568,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const noticeFileName = () => `${form.memoNumber || 'show-cause-notice'}.pdf`.replace(/[\\/]/g, '-');
   const noticeWordFileName = () => `${form.memoNumber || 'show-cause-notice'}.docx`.replace(/[\\/]/g, '-');
 
-  const buildNoticePdfDoc = async () => {
-    const { jsPDF } = await import('jspdf');
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-    doc.setProperties({ title: form.memoNumber || 'Show Cause Notice', subject: 'Show Cause Notice', creator: 'AGRONIX' });
-    const fontName = await loadNoticeFonts(doc);
-    await setupPdfUnicodeFonts(doc);
-
-    const PAGE_W = 210;
-    const PAGE_H = 297;
-    const ML = 20;
-    const MR = 20;
-    const MT = 15;
-    const MB = 18;
-    const CW = PAGE_W - ML - MR;
-    const LH = 5.8;
-    let y = MT;
-
-    const measure = (text: string, bold: boolean) => {
-      doc.setFont(fontName, bold ? 'bold' : 'normal');
-      doc.setFontSize(12);
-      return doc.getTextWidth(text);
-    };
-    const spaceWidth = () => measure(' ', false);
-    const runsWidth = (runs: NoticeSegment[]) =>
-      runs.reduce((total, run) => total + measure(run.text, !!run.bold), 0) + Math.max(runs.length - 1, 0) * spaceWidth();
-
-    const drawRuns = (runs: NoticeSegment[], x: number, lineY: number, justifyToWidth?: number) => {
-      let cx = x;
-      let gap = spaceWidth();
-      if (justifyToWidth && runs.length > 1) {
-        const extra = justifyToWidth - runsWidth(runs);
-        if (extra > 0) gap += extra / (runs.length - 1);
-      }
-      runs.forEach((run) => {
-        doc.setFont(fontName, run.bold ? 'bold' : 'normal');
-        doc.setFontSize(12);
-        doc.text(run.text, cx, lineY);
-        cx += doc.getTextWidth(run.text) + gap;
-      });
-    };
-
-    const wrapSegments = (segments: NoticeSegment[], width: number, firstLineWidth?: number): NoticeSegment[][] => {
-      const words: NoticeSegment[] = [];
-      segments.forEach((segment) => {
-        segment.text
-          .split(/\s+/)
-          .filter(Boolean)
-          .forEach((word) => words.push({ text: word, bold: segment.bold }));
-      });
-      const lines: NoticeSegment[][] = [];
-      let current: NoticeSegment[] = [];
-      let limit = firstLineWidth ?? width;
-      words.forEach((word) => {
-        const candidate = [...current, word];
-        if (current.length > 0 && runsWidth(candidate) > limit) {
-          lines.push(current);
-          current = [word];
-          limit = width;
-        } else {
-          current = candidate;
-        }
-      });
-      if (current.length > 0) lines.push(current);
-      return lines;
-    };
-
-    // Height a block will occupy in mm — mirrors the per-kind draw logic below so
-    // keepWithNext chains (signature / To / Copy footer) can be space-reserved as a unit.
-    const measureBlock = (block: NoticeBlock): number => {
-      switch (block.kind) {
-        case 'center':
-          return (block.size || 12) * 0.5;
-        case 'memoRow':
-          return LH;
-        case 'para': {
-          const indent = block.indent || 0;
-          const firstLineIndent = block.firstLineIndent || 0;
-          const lineWidth = CW - indent;
-          const lines = wrapSegments(block.segments, lineWidth, firstLineIndent ? lineWidth - firstLineIndent : undefined);
-          return lines.length * LH + 1;
-        }
-        case 'labelPara': {
-          const padWidth = block.labelPad ? measure(`${block.labelPad} `, true) : 0;
-          const labelBold = block.labelBold !== false;
-          const suffix = block.labelSuffix ? `${block.labelSuffix} ` : '';
-          const indent = (block.indent || 0) + padWidth;
-          const labelWidth = measure(`${block.label} `, labelBold) + measure(suffix, false);
-          return wrapSegments(block.segments, CW - indent - labelWidth).length * LH + 1;
-        }
-        case 'heading':
-          return wrapSegments([{ text: block.text, bold: true }], CW).length * LH;
-        case 'lines':
-          return block.items.reduce((total, item) => total + wrapSegments(item, CW - (block.indent || 0)).length * LH, 0);
-        case 'table': {
-          const col2 = CW - 8 - 62;
-          return block.rows.reduce(
-            (total, row) => total + Math.max(7, wrapSegments([{ text: row.value || '______________________________', bold: true }], col2 - 4).length * LH + 1.5),
-            7
-          );
-        }
-        case 'rule':
-          return 3;
-        case 'gap':
-          return block.mm ?? 2;
-        default:
-          return 0;
-      }
-    };
-
-    const pageBreak = () => {
-      doc.setFont(fontName, 'normal');
-      doc.setFontSize(10);
-      doc.text("(Cont'd...)", PAGE_W - MR, PAGE_H - MB + 6, { align: 'right' });
-      doc.addPage();
-      doc.setFontSize(12);
-      y = MT;
-    };
-    const ensureSpace = (needed: number) => {
-      if (y + needed > PAGE_H - MB) pageBreak();
-    };
-
-    doc.setFontSize(12);
-    noticeBlocks.forEach((block, index) => {
-      // At the start of a keepWithNext chain, reserve room for the whole group so
-      // the signature and To-address footer never split across a page break.
-      if (block.keepWithNext && !(index > 0 && noticeBlocks[index - 1].keepWithNext)) {
-        let groupHeight = 0;
-        for (let j = index; j < noticeBlocks.length; j += 1) {
-          groupHeight += measureBlock(noticeBlocks[j]);
-          if (!noticeBlocks[j].keepWithNext) break;
-        }
-        ensureSpace(groupHeight);
-      }
-      switch (block.kind) {
-        case 'center': {
-          const bold = !!block.bold;
-          const pt = block.size || 12;
-          doc.setFont(fontName, bold ? 'bold' : 'normal');
-          doc.setFontSize(pt);
-          const width = doc.getTextWidth(block.text);
-          ensureSpace(LH);
-          const x = (PAGE_W - width) / 2;
-          doc.text(block.text, x, y);
-          if (block.underline) doc.line(x, y + 0.8, x + width, y + 0.8);
-          y += pt * 0.5;
-          doc.setFontSize(12);
-          break;
-        }
-        case 'memoRow': {
-          ensureSpace(LH);
-          drawRuns(block.left, ML, y);
-          drawRuns(block.right, PAGE_W - MR - runsWidth(block.right), y);
-          y += LH;
-          break;
-        }
-        case 'para': {
-          const indent = block.indent || 0;
-          const firstLineIndent = block.firstLineIndent || 0;
-          const lineWidth = CW - indent;
-          const lines = wrapSegments(block.segments, lineWidth, firstLineIndent ? lineWidth - firstLineIndent : undefined);
-          lines.forEach((runs, index) => {
-            ensureSpace(LH);
-            const isLastLine = index === lines.length - 1;
-            const offset = index === 0 ? firstLineIndent : 0;
-            drawRuns(runs, ML + indent + offset, y, isLastLine ? undefined : lineWidth - offset);
-            y += LH;
-          });
-          y += 1;
-          break;
-        }
-        case 'labelPara': {
-          const padWidth = block.labelPad ? measure(`${block.labelPad} `, true) : 0;
-          const labelBold = block.labelBold !== false;
-          const suffix = block.labelSuffix ? `${block.labelSuffix} ` : '';
-          const indent = (block.indent || 0) + padWidth;
-          const labelWidth = measure(`${block.label} `, labelBold) + measure(suffix, false);
-          const lineWidth = CW - indent - labelWidth;
-          const lines = wrapSegments(block.segments, lineWidth);
-          lines.forEach((runs, index) => {
-            ensureSpace(LH);
-            if (index === 0) {
-              doc.setFontSize(12);
-              doc.setFont(fontName, labelBold ? 'bold' : 'normal');
-              doc.text(block.label, ML + indent, y);
-              if (suffix) {
-                doc.setFont(fontName, 'normal');
-                doc.text(suffix, ML + indent + measure(`${block.label} `, labelBold), y);
-              }
-            }
-            const isLastLine = index === lines.length - 1;
-            drawRuns(runs, ML + indent + labelWidth, y, isLastLine ? undefined : lineWidth);
-            y += LH;
-          });
-          y += 1;
-          break;
-        }
-        case 'heading': {
-          const lines = wrapSegments([{ text: block.text, bold: true }], CW);
-          lines.forEach((runs) => {
-            ensureSpace(LH);
-            drawRuns(runs, ML, y);
-            y += LH;
-          });
-          break;
-        }
-        case 'lines': {
-          const indent = block.indent || 0;
-          const wrapped = block.items.map((item) => wrapSegments(item, CW - indent));
-          const blockWidth = block.centerLines
-            ? Math.max(...wrapped.flat().map((runs) => runsWidth(runs)))
-            : 0;
-          wrapped.forEach((lines) => {
-            lines.forEach((runs) => {
-              ensureSpace(LH);
-              const w = runsWidth(runs);
-              const x = (block.align === 'right'
-                ? PAGE_W - MR - (block.centerLines ? blockWidth - (blockWidth - w) / 2 : w)
-                : ML + indent) + (block.offsetX || 0);
-              drawRuns(runs, x, y);
-              y += LH;
-            });
-          });
-          break;
-        }
-        case 'table': {
-          const x0 = ML + 8;
-          const col1 = 62;
-          const col2 = CW - 8 - col1;
-          const rowH = 7;
-          const headerLines = [
-            wrapSegments([{ text: block.header[0], bold: true }], col1 - 4),
-            wrapSegments([{ text: block.header[1], bold: true }], col2 - 4),
-          ];
-          ensureSpace(rowH);
-          doc.rect(x0, y - 4.5, col1, rowH);
-          doc.rect(x0 + col1, y - 4.5, col2, rowH);
-          drawRuns(headerLines[0][0] || [], x0 + 2, y);
-          drawRuns(headerLines[1][0] || [], x0 + col1 + 2, y);
-          y += rowH;
-          block.rows.forEach((row) => {
-            const valueRuns = wrapSegments([{ text: row.value || '______________________________', bold: true }], col2 - 4);
-            const height = Math.max(rowH, valueRuns.length * LH + 1.5);
-            ensureSpace(height);
-            doc.rect(x0, y - 4.5, col1, height);
-            doc.rect(x0 + col1, y - 4.5, col2, height);
-            drawRuns([{ text: row.label }], x0 + 2, y);
-            valueRuns.forEach((runs, index) => drawRuns(runs, x0 + col1 + 2, y + index * LH));
-            y += height;
-          });
-          break;
-        }
-        case 'rule':
-          ensureSpace(2);
-          doc.setLineDashPattern([1.5, 1], 0);
-          doc.line(ML, y, PAGE_W - MR, y);
-          doc.setLineDashPattern([], 0);
-          y += 3;
-          break;
-        case 'gap':
-          y += block.mm ?? 2;
-          break;
-        default:
-          break;
-      }
-    });
-
-    return doc;
-  };
+  const buildNoticePdfDoc = () => renderNoticePdfDocument(noticeBlocks, form.memoNumber || 'Show Cause Notice');
 
   const downloadPdf = async () => {
     const doc = await buildNoticePdfDoc();
@@ -1805,7 +1912,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
-            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', serif`, fontSize: '12pt', lineHeight: 1.5 }}
+            style={{ fontFamily: NOTICE_FONT_STACK, fontSize: '12pt', lineHeight: 1.5 }}
             dangerouslySetInnerHTML={{ __html: noticeHtml }}
           />
         </section>
@@ -1870,7 +1977,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   );
 }
 
-function SelectInput({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: { label: string; value: string }[] }) {
+export function SelectInput({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: { label: string; value: string }[] }) {
   return (
     <label className="block">
       <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">{label}</span>
@@ -1888,7 +1995,7 @@ function SelectInput({ label, value, onChange, options }: { label: string; value
   );
 }
 
-function TextInput({ label, value, onChange, type = 'text', optional = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; optional?: boolean }) {
+export function TextInput({ label, value, onChange, type = 'text', optional = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; optional?: boolean }) {
   return (
     <label className="block">
       <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">
