@@ -414,7 +414,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
         right: [{ text: 'Dt.: ' }, { text: form.inspectionDate ? noticeDate : ' '.repeat(11), bold: true }],
       },
       { kind: 'gap', mm: 4 },
-      { kind: 'center', text: 'MEMO', bold: true },
+      { kind: 'center', text: 'MEMO', bold: true, underline: true },
       { kind: 'gap', mm: 3 },
       {
         kind: 'labelPara',
@@ -558,7 +558,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       right: [{ text: 'Date: ' }, { text: form.inspectionDate ? noticeDate : ' '.repeat(11), bold: true }],
     },
     { kind: 'gap', mm: 4 },
-    { kind: 'center', text: noticeTitle, bold: true },
+    { kind: 'center', text: noticeTitle, bold: true, underline: true },
     { kind: 'gap', mm: 3 },
     {
       kind: 'labelPara',
