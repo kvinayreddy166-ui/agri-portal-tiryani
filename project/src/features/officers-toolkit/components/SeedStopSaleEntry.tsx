@@ -106,6 +106,18 @@ function writeSavedOrders(orders: SavedSeedStopSaleOrder[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
+const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
+
+function readFormDraft(): SeedStopSaleFormState | null {
+  try {
+    const raw = window.localStorage.getItem(FORM_DRAFT_KEY);
+    if (!raw) return null;
+    return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<SeedStopSaleFormState>) };
+  } catch {
+    return null;
+  }
+}
+
 function makeInitialForm(): SeedStopSaleFormState {
   const fy = currentFinancialYear();
   const statutory = readStatutoryDetails('seed');
@@ -147,7 +159,8 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
     ...(form.dealerAddress.trim()
       ? form.dealerAddress.split('\n').map((line) => [{ text: line.trim(), bold: true }] as NoticeSegment[])
       : [[{ text: '_______________________________________________________________', bold: true }] as NoticeSegment[]]),
-    [{ text: `${mandalValue} Mandal, ${districtDisplay} District.`, bold: true }],
+    [{ text: `${mandalValue} Mandal,`, bold: true }],
+    [{ text: `${districtDisplay} District.`, bold: true }],
     ...(form.licenceNumber.trim()
       ? [[{ text: 'Licence No.: ', bold: true }, { text: form.licenceNumber.trim(), bold: true }] as NoticeSegment[]]
       : []),
@@ -198,14 +211,14 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
     },
     { kind: 'gap', mm: 1 },
     { kind: 'lines', items: [[{ text: 'Details of stock of seeds:', bold: true }]] },
-    { kind: 'gap', mm: 1 },
+    { kind: 'gap', mm: 2 },
     {
       kind: 'gridTable',
       header: ['S.No.', 'Name of Seed (Crop & Variety)', 'Lot / Batch No.', 'Source / Purchased from', 'Quantity', 'Remarks'],
       colWeights: [7, 28, 14, 22, 12, 17],
       rows: tableRows,
     },
-    { kind: 'gap', mm: 2 },
+    { kind: 'gap', mm: 4 },
     {
       kind: 'para',
       firstLineIndent: 10,
@@ -236,7 +249,7 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
 }
 
 export function SeedStopSaleEntry() {
-  const [form, setForm] = useState<SeedStopSaleFormState>(() => makeInitialForm());
+  const [form, setForm] = useState<SeedStopSaleFormState>(() => readFormDraft() ?? makeInitialForm());
   const [savedOrders, setSavedOrders] = useState<SavedSeedStopSaleOrder[]>(() => readSavedOrders());
   const [savedSearch, setSavedSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -274,6 +287,12 @@ export function SeedStopSaleEntry() {
   useEffect(() => {
     writeSavedOrders(savedOrders);
   }, [savedOrders]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
+    } catch {}
+  }, [form]);
 
   const updateForm = (patch: Partial<SeedStopSaleFormState>) => setForm((current) => ({ ...current, ...patch }));
 
@@ -313,7 +332,24 @@ export function SeedStopSaleEntry() {
 
   const performReset = () => {
     setResetSpinKey((current) => current + 1);
-    setForm(makeInitialForm());
+    const next = makeInitialForm();
+    setForm({
+      ...next,
+      orderNumber: '',
+      noticeDate: '',
+      officerName: '',
+      officerDesignation: '',
+      mandal: '',
+      district: '',
+      manualMandal: '',
+      manualDistrict: '',
+      division: '',
+      firmName: '',
+      dealerName: '',
+      dealerAddress: '',
+      licenceNumber: '',
+      defects: '',
+    });
     setEditingId(null);
     setShowPreview(false);
     showReset('Form reset');
@@ -330,14 +366,14 @@ export function SeedStopSaleEntry() {
   const fileBase = () => `${form.orderNumber || 'stop-sale-order'}`.replace(/[\\/]/g, '-');
 
   const downloadPdf = async () => {
-    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'robotoSerif');
+    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'bookAntiqua');
     doc.save(`${fileBase()}.pdf`);
     showSuccess('PDF downloaded', `${fileBase()}.pdf`);
   };
 
   const downloadWord = async () => {
     try {
-      const blob = await buildNoticeWordDocument(noticeBlocks, 'robotoSerif');
+      const blob = await buildNoticeWordDocument(noticeBlocks, 'bookAntiqua');
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -566,7 +602,7 @@ export function SeedStopSaleEntry() {
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
-            style={{ fontFamily: `'Roboto Serif', 'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', serif`, fontSize: '12pt', lineHeight: 1.5 }}
+            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.5 }}
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
         </section>

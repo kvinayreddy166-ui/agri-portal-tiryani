@@ -169,6 +169,19 @@ function writeSavedNotices(notices: SavedNotice[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notices));
 }
 
+const FORM_DRAFT_PREFIX = `${STORAGE_KEY}-draft-`;
+
+// Persist the in-progress form per category so it survives app/session closure
+function readFormDraft(category: NoticeCategory): NoticeFormState | null {
+  try {
+    const raw = window.localStorage.getItem(`${FORM_DRAFT_PREFIX}${category}`);
+    if (!raw) return null;
+    return { ...makeInitialForm(category), ...(JSON.parse(raw) as Partial<NoticeFormState>), category };
+  } catch {
+    return null;
+  }
+}
+
 function makeInitialForm(category: NoticeCategory): NoticeFormState {
   const config = noticeCategoryConfigs.find((item) => item.category === category) || noticeCategoryConfigs[0];
   const fy = currentFinancialYear();
@@ -725,7 +738,7 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
             : block.header.map(() => 1);
           const total = weights.reduce((a, b) => a + b, 0);
           const cols = weights.map((w) => `<col style="width:${(w / total) * 100}%;"/>`).join('');
-          return `<table style="width:100%;border-collapse:collapse;margin:2pt 0 4pt;table-layout:fixed;">${cols}<thead><tr>${block.header
+          return `<table style="width:100%;border-collapse:collapse;margin:2pt 0 4pt;table-layout:fixed;font-size:11pt;">${cols}<thead><tr>${block.header
             .map((cell) => `<th style="border:1pt solid #000;padding:2pt 4pt;text-align:center;font-weight:700;vertical-align:middle;overflow-wrap:break-word;">${escapeHtml(cell)}</th>`)
             .join('')}</tr></thead><tbody>${block.rows
             .map(
@@ -922,7 +935,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
         const total = weights.reduce((a, b) => a + b, 0);
         const contentWidth = mmToTwips(170);
         const cellPara = (text: string, bold = false) => new Paragraph({
-          children: [new TextRun({ text, bold, font, size: fontSize })],
+          children: [new TextRun({ text, bold, font, size: fontSize - 2 })],
           spacing: { line: 360, after: 0 },
         });
         children.push(new Table({
@@ -1040,31 +1053,31 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
   const LH = 5.8;
   let y = MT;
 
-  const measure = (text: string, bold: boolean) => {
+  const measure = (text: string, bold: boolean, size = 12) => {
     doc.setFont(fontName, bold ? 'bold' : 'normal');
-    doc.setFontSize(12);
+    doc.setFontSize(size);
     return doc.getTextWidth(text);
   };
-  const spaceWidth = () => measure(' ', false);
-  const runsWidth = (runs: NoticeSegment[]) =>
-    runs.reduce((total, run) => total + measure(run.text, !!run.bold), 0) + Math.max(runs.length - 1, 0) * spaceWidth();
+  const spaceWidth = (size = 12) => measure(' ', false, size);
+  const runsWidth = (runs: NoticeSegment[], size = 12) =>
+    runs.reduce((total, run) => total + measure(run.text, !!run.bold, size), 0) + Math.max(runs.length - 1, 0) * spaceWidth(size);
 
-  const drawRuns = (runs: NoticeSegment[], x: number, lineY: number, justifyToWidth?: number) => {
+  const drawRuns = (runs: NoticeSegment[], x: number, lineY: number, justifyToWidth?: number, size = 12) => {
     let cx = x;
-    let gap = spaceWidth();
+    let gap = spaceWidth(size);
     if (justifyToWidth && runs.length > 1) {
-      const extra = justifyToWidth - runsWidth(runs);
+      const extra = justifyToWidth - runsWidth(runs, size);
       if (extra > 0) gap += extra / (runs.length - 1);
     }
     runs.forEach((run) => {
       doc.setFont(fontName, run.bold ? 'bold' : 'normal');
-      doc.setFontSize(12);
+      doc.setFontSize(size);
       doc.text(run.text, cx, lineY);
       cx += doc.getTextWidth(run.text) + gap;
     });
   };
 
-  const wrapSegments = (segments: NoticeSegment[], width: number, firstLineWidth?: number): NoticeSegment[][] => {
+  const wrapSegments = (segments: NoticeSegment[], width: number, firstLineWidth?: number, size = 12): NoticeSegment[][] => {
     const words: NoticeSegment[] = [];
     segments.forEach((segment) => {
       segment.text
@@ -1077,7 +1090,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
     let limit = firstLineWidth ?? width;
     words.forEach((word) => {
       const candidate = [...current, word];
-      if (current.length > 0 && runsWidth(candidate) > limit) {
+      if (current.length > 0 && runsWidth(candidate, size) > limit) {
         lines.push(current);
         current = [word];
         limit = width;
@@ -1089,6 +1102,9 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
     return lines;
   };
 
+  const GRID_FONT_SIZE = 11;
+  const GRID_LH = (LH * GRID_FONT_SIZE) / 12;
+
   const gridColWidths = (block: Extract<NoticeBlock, { kind: 'gridTable' }>) => {
     const weights = block.colWeights && block.colWeights.length === block.header.length
       ? block.colWeights
@@ -1098,8 +1114,8 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
   };
 
   const gridRowHeight = (cells: string[], colW: number[], bold: boolean) => {
-    const lineCounts = cells.map((cell, i) => wrapSegments([{ text: cell, bold }], colW[i] - 3).length);
-    return Math.max(7, Math.max(...lineCounts, 1) * LH + 2);
+    const lineCounts = cells.map((cell, i) => wrapSegments([{ text: cell, bold }], colW[i] - 3, undefined, GRID_FONT_SIZE).length);
+    return Math.max(7, Math.max(...lineCounts, 1) * GRID_LH + 2);
   };
 
   // Height a block will occupy in mm — mirrors the per-kind draw logic below so
@@ -1301,8 +1317,8 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
           let cx = ML;
           cells.forEach((cell, i) => {
             doc.rect(cx, y - 4.5, colW[i], rowH);
-            const wrapped = wrapSegments([{ text: cell, bold }], colW[i] - 3);
-            wrapped.forEach((runs, lineIndex) => drawRuns(runs, cx + 1.5, y + lineIndex * LH));
+            const wrapped = wrapSegments([{ text: cell, bold }], colW[i] - 3, undefined, GRID_FONT_SIZE);
+            wrapped.forEach((runs, lineIndex) => drawRuns(runs, cx + 1.5, y + lineIndex * GRID_LH, undefined, GRID_FONT_SIZE));
             cx += colW[i];
           });
           y += rowH;
@@ -1333,7 +1349,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
 export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: NoticeCategory } = {}) {
   const { isAdminUser, isTestUser } = useAuth();
   const showCompactHeader = isAdminUser || isTestUser;
-  const [form, setForm] = useState<NoticeFormState>(() => makeInitialForm(lockedCategory ?? 'fertiliser'));
+  const [form, setForm] = useState<NoticeFormState>(() => readFormDraft(lockedCategory ?? 'fertiliser') ?? makeInitialForm(lockedCategory ?? 'fertiliser'));
   const [savedNotices, setSavedNotices] = useState<SavedNotice[]>(() => readSavedNotices());
   const [savedSearch, setSavedSearch] = useState('');
   const [showProductDetails, setShowProductDetails] = useState(false);
@@ -1415,9 +1431,22 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     writeSavedNotices(savedNotices);
   }, [savedNotices]);
 
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(`${FORM_DRAFT_PREFIX}${form.category}`, JSON.stringify(form));
+    } catch {}
+  }, [form]);
+
   const updateForm = (patch: Partial<NoticeFormState>) => setForm((current) => ({ ...current, ...patch }));
 
   const changeCategory = (category: NoticeCategory) => {
+    const draft = readFormDraft(category);
+    if (draft) {
+      setForm(draft);
+      setShowProductDetails(Boolean(draft.productName || draft.batchLotNumber || draft.quantityInvolved || draft.productRemarks));
+      setShowNoticePreview(false);
+      return;
+    }
     const next = makeInitialForm(category);
     updateForm({
       category,
@@ -1665,7 +1694,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               )}
               {(isADAOfficer || isMAOOfficer) && (
                 <TextInput
-                  label={isADAOfficer ? 'Division' : 'Division (Copy to ADA)'}
+                  label="Division"
                   value={form.division}
                   onChange={(value) => updateForm({ division: value })}
                 />

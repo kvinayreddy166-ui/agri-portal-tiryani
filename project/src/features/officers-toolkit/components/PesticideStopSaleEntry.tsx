@@ -106,6 +106,19 @@ function writeSavedOrders(orders: SavedStopSaleOrder[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
+const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
+
+// Persist the in-progress form so it survives app/session closure (like statutory forms)
+function readFormDraft(): StopSaleFormState | null {
+  try {
+    const raw = window.localStorage.getItem(FORM_DRAFT_KEY);
+    if (!raw) return null;
+    return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<StopSaleFormState>) };
+  } catch {
+    return null;
+  }
+}
+
 function makeInitialForm(): StopSaleFormState {
   const fy = currentFinancialYear();
   const statutory = readStatutoryDetails('pesticide');
@@ -154,7 +167,8 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
     [{ text: firmDisplay, bold: true }],
     ...(form.dealerName.trim() ? [[{ text: `(Prop./Dealer: ${form.dealerName.trim()})`, bold: true }]] : []),
     ...addressLines.map((line) => [{ text: line.replace(/,+$/, ''), bold: true }] as NoticeSegment[]),
-    [{ text: `${mandalValue} Mandal, ${districtDisplay} District.`, bold: true }],
+    [{ text: `${mandalValue} Mandal,`, bold: true }],
+    [{ text: `${districtDisplay} District.`, bold: true }],
     ...(form.licenceNumber.trim()
       ? [[{ text: 'Licence No.: ', bold: true }, { text: form.licenceNumber.trim(), bold: true }] as NoticeSegment[]]
       : []),
@@ -203,13 +217,14 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
         { text: ':' },
       ],
     },
+    { kind: 'gap', mm: 2 },
     {
       kind: 'gridTable',
       header: ['Sr. No.', 'Name of the Insecticide with complete details', 'Manufactured by', 'Batch No.', 'Date of Manufacture and Date of Expiry', 'Stock Quantity as on Date (indicate units also)', 'Remarks'],
       colWeights: [6, 26, 15, 10, 15, 14, 14],
       rows: tableRows,
     },
-    { kind: 'gap', mm: 2 },
+    { kind: 'gap', mm: 4 },
     {
       kind: 'para',
       firstLineIndent: 10,
@@ -233,7 +248,7 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
 }
 
 export function PesticideStopSaleEntry() {
-  const [form, setForm] = useState<StopSaleFormState>(() => makeInitialForm());
+  const [form, setForm] = useState<StopSaleFormState>(() => readFormDraft() ?? makeInitialForm());
   const [savedOrders, setSavedOrders] = useState<SavedStopSaleOrder[]>(() => readSavedOrders());
   const [savedSearch, setSavedSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -271,6 +286,12 @@ export function PesticideStopSaleEntry() {
   useEffect(() => {
     writeSavedOrders(savedOrders);
   }, [savedOrders]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
+    } catch {}
+  }, [form]);
 
   const updateForm = (patch: Partial<StopSaleFormState>) => setForm((current) => ({ ...current, ...patch }));
 
@@ -313,7 +334,25 @@ export function PesticideStopSaleEntry() {
 
   const performReset = () => {
     setResetSpinKey((current) => current + 1);
-    setForm(makeInitialForm());
+    const next = makeInitialForm();
+    setForm({
+      ...next,
+      orderNumber: '',
+      orderDate: '',
+      officerName: '',
+      officerDesignation: '',
+      mandal: '',
+      district: '',
+      manualMandal: '',
+      manualDistrict: '',
+      division: '',
+      firmName: '',
+      dealerName: '',
+      dealerAddress: '',
+      licenceNumber: '',
+      actSection: '',
+      rulesRef: '',
+    });
     setEditingId(null);
     setShowPreview(false);
     showReset('Form reset');
@@ -330,14 +369,14 @@ export function PesticideStopSaleEntry() {
   const fileBase = () => `${form.orderNumber || 'stop-sale-order'}`.replace(/[\\/]/g, '-');
 
   const downloadPdf = async () => {
-    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'robotoSerif');
+    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'bookAntiqua');
     doc.save(`${fileBase()}.pdf`);
     showSuccess('PDF downloaded', `${fileBase()}.pdf`);
   };
 
   const downloadWord = async () => {
     try {
-      const blob = await buildNoticeWordDocument(noticeBlocks, 'robotoSerif');
+      const blob = await buildNoticeWordDocument(noticeBlocks, 'bookAntiqua');
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -565,7 +604,7 @@ export function PesticideStopSaleEntry() {
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
-            style={{ fontFamily: `'Roboto Serif', 'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', serif`, fontSize: '12pt', lineHeight: 1.5 }}
+            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.5 }}
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
         </section>

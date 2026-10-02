@@ -99,6 +99,18 @@ function writeSavedOrders(orders: SavedFertStopSaleOrder[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
+const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
+
+function readFormDraft(): FertStopSaleFormState | null {
+  try {
+    const raw = window.localStorage.getItem(FORM_DRAFT_KEY);
+    if (!raw) return null;
+    return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<FertStopSaleFormState>) };
+  } catch {
+    return null;
+  }
+}
+
 function makeInitialForm(): FertStopSaleFormState {
   const fy = currentFinancialYear();
   const statutory = readStatutoryDetails('fertiliser');
@@ -184,14 +196,14 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
       kind: 'para',
       segments: [{ text: 'In respect of the stock of the fertilizer in your possession as detailed below:' }],
     },
-    { kind: 'gap', mm: 1 },
+    { kind: 'gap', mm: 2 },
     {
       kind: 'gridTable',
       header: ['S.No.', 'Name of Fertilizer', 'Batch No. (if applicable)', 'Name of the Manufacturer / Importer', 'Quantity (MT)', 'Remarks'],
       colWeights: [7, 27, 14, 23, 12, 17],
       rows: tableRows,
     },
-    { kind: 'gap', mm: 2 },
+    { kind: 'gap', mm: 4 },
     {
       kind: 'para',
       firstLineIndent: 10,
@@ -221,7 +233,7 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
 }
 
 export function FertilizerStopSaleEntry() {
-  const [form, setForm] = useState<FertStopSaleFormState>(() => makeInitialForm());
+  const [form, setForm] = useState<FertStopSaleFormState>(() => readFormDraft() ?? makeInitialForm());
   const [savedOrders, setSavedOrders] = useState<SavedFertStopSaleOrder[]>(() => readSavedOrders());
   const [savedSearch, setSavedSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -259,6 +271,12 @@ export function FertilizerStopSaleEntry() {
   useEffect(() => {
     writeSavedOrders(savedOrders);
   }, [savedOrders]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
+    } catch {}
+  }, [form]);
 
   const updateForm = (patch: Partial<FertStopSaleFormState>) => setForm((current) => ({ ...current, ...patch }));
 
@@ -298,7 +316,23 @@ export function FertilizerStopSaleEntry() {
 
   const performReset = () => {
     setResetSpinKey((current) => current + 1);
-    setForm(makeInitialForm());
+    const next = makeInitialForm();
+    setForm({
+      ...next,
+      orderNumber: '',
+      noticeDate: '',
+      officerName: '',
+      officerDesignation: '',
+      mandal: '',
+      district: '',
+      manualMandal: '',
+      manualDistrict: '',
+      division: '',
+      firmName: '',
+      dealerAddress: '',
+      formA2Number: '',
+      formA2ValidUpto: '',
+    });
     setEditingId(null);
     setShowPreview(false);
     showReset('Form reset');
@@ -315,14 +349,14 @@ export function FertilizerStopSaleEntry() {
   const fileBase = () => `${form.orderNumber || 'stop-sale-notice'}`.replace(/[\\/]/g, '-');
 
   const downloadPdf = async () => {
-    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Notice', 'robotoSerif');
+    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Notice', 'bookAntiqua');
     doc.save(`${fileBase()}.pdf`);
     showSuccess('PDF downloaded', `${fileBase()}.pdf`);
   };
 
   const downloadWord = async () => {
     try {
-      const blob = await buildNoticeWordDocument(noticeBlocks, 'robotoSerif');
+      const blob = await buildNoticeWordDocument(noticeBlocks, 'bookAntiqua');
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -542,7 +576,7 @@ export function FertilizerStopSaleEntry() {
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
-            style={{ fontFamily: `'Roboto Serif', 'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', serif`, fontSize: '12pt', lineHeight: 1.5 }}
+            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.5 }}
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
         </section>
