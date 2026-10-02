@@ -334,18 +334,18 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <div className="mb-3 inline-flex overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
+              <div className="mb-3 flex w-full overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
                 <button
                   type="button"
                   onClick={() => setPestStopSaleTab('issue')}
-                  className={`px-3 py-1.5 text-xs font-black transition ${pestStopSaleTab === 'issue' ? 'bg-amber-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`flex-1 px-4 py-2.5 text-sm font-bold transition ${pestStopSaleTab === 'issue' ? 'bg-amber-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
                   Stop Sale Order
                 </button>
                 <button
                   type="button"
                   onClick={() => { setPestRevokePrefill(null); setPestStopSaleTab('revoke'); }}
-                  className={`border-l border-slate-200 px-3 py-1.5 text-xs font-black transition dark:border-slate-700 ${pestStopSaleTab === 'revoke' ? 'bg-amber-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`border-l border-slate-200 flex-1 px-4 py-2.5 text-sm font-bold transition dark:border-slate-700 ${pestStopSaleTab === 'revoke' ? 'bg-amber-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
                   Revoke
                 </button>
@@ -391,18 +391,18 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <div className="mb-3 inline-flex overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
+              <div className="mb-3 flex w-full overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
                 <button
                   type="button"
                   onClick={() => setFertStopSaleTab('issue')}
-                  className={`px-3 py-1.5 text-xs font-black transition ${fertStopSaleTab === 'issue' ? 'bg-sky-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`flex-1 px-4 py-2.5 text-sm font-bold transition ${fertStopSaleTab === 'issue' ? 'bg-sky-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
                   Stop Sale Notice
                 </button>
                 <button
                   type="button"
                   onClick={() => { setFertRevokePrefill(null); setFertStopSaleTab('revoke'); }}
-                  className={`border-l border-slate-200 px-3 py-1.5 text-xs font-black transition dark:border-slate-700 ${fertStopSaleTab === 'revoke' ? 'bg-sky-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`border-l border-slate-200 flex-1 px-4 py-2.5 text-sm font-bold transition dark:border-slate-700 ${fertStopSaleTab === 'revoke' ? 'bg-sky-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
                   Revoke
                 </button>
@@ -448,18 +448,18 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <div className="mb-3 inline-flex overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
+              <div className="mb-3 flex w-full overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
                 <button
                   type="button"
                   onClick={() => setSeedStopSaleTab('issue')}
-                  className={`px-3 py-1.5 text-xs font-black transition ${seedStopSaleTab === 'issue' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`flex-1 px-4 py-2.5 text-sm font-bold transition ${seedStopSaleTab === 'issue' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
                   Stop Sale Order
                 </button>
                 <button
                   type="button"
                   onClick={() => { setSeedRevokePrefill(null); setSeedStopSaleTab('revoke'); }}
-                  className={`border-l border-slate-200 px-3 py-1.5 text-xs font-black transition dark:border-slate-700 ${seedStopSaleTab === 'revoke' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`border-l border-slate-200 flex-1 px-4 py-2.5 text-sm font-bold transition dark:border-slate-700 ${seedStopSaleTab === 'revoke' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
                   Revoke
                 </button>
