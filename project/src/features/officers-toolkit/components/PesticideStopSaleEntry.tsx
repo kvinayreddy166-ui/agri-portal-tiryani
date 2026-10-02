@@ -54,6 +54,7 @@ interface StopSaleFormState {
   actSection: string;
   rulesRef: string;
   stopDays: string;
+  observations: string;
   products: StopSaleProductRow[];
 }
 
@@ -141,6 +142,7 @@ function makeInitialForm(): StopSaleFormState {
     actSection: '',
     rulesRef: '',
     stopDays: '15',
+    observations: '',
     products: [emptyProduct()],
   };
 }
@@ -176,6 +178,15 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
 
   const actSection = form.actSection.trim() || '_____';
   const rulesRef = form.rulesRef.trim() || '__________';
+
+  const observationLines = form.observations.split('\n').map((line) => line.trim()).filter(Boolean);
+  const observationBlocks: NoticeBlock[] = observationLines.map((line, index) => ({
+    kind: 'labelPara',
+    label: `${index + 1}.`,
+    labelBold: false,
+    indent: 8,
+    segments: [{ text: line }],
+  }));
 
   const filledProducts = form.products.filter((item) =>
     [item.name, item.manufacturer, item.batchNo, item.mfgDate, item.expiryDate, item.quantity, item.remarks].some((field) => field.trim())
@@ -225,6 +236,13 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
       rows: tableRows,
     },
     { kind: 'gap', mm: 4 },
+    ...(observationBlocks.length > 0
+      ? [
+          { kind: 'lines', items: [[{ text: 'Observations:', bold: true }]] } as NoticeBlock,
+          ...observationBlocks,
+          { kind: 'gap', mm: 2 } as NoticeBlock,
+        ]
+      : []),
     {
       kind: 'para',
       firstLineIndent: 10,
@@ -352,6 +370,7 @@ export function PesticideStopSaleEntry() {
       licenceNumber: '',
       actSection: '',
       rulesRef: '',
+      observations: '',
     });
     setEditingId(null);
     setShowPreview(false);
@@ -451,7 +470,7 @@ export function PesticideStopSaleEntry() {
       </div>
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Dealer Details (To)</h3>
+        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-4">
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
           <label className="block md:col-span-2">
@@ -486,6 +505,15 @@ export function PesticideStopSaleEntry() {
             onChange={(value) => updateForm({ rulesRef: value })}
           />
           <TextInput label="Stop Sale Period (days)" value={form.stopDays} onChange={(value) => updateForm({ stopDays: value })} />
+          <label className="block md:col-span-3">
+            <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Observations (Optional — one per line)</span>
+            <textarea
+              value={form.observations}
+              onChange={(event) => updateForm({ observations: event.target.value })}
+              rows={2}
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+            />
+          </label>
         </div>
       </div>
 

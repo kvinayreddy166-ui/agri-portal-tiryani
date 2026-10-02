@@ -34,7 +34,7 @@ export const TourDiary = lazy(() => import('../../features/tour-diary/pages/Tour
 export const SeedDealerInspection = lazy(() => import('../../features/officers-toolkit/pages/SeedDealerInspection').then((m) => ({ default: m.SeedDealerInspection })));
 export const FertilizerDealerInspection = lazy(() => import('../../features/officers-toolkit/pages/FertilizerDealerInspection').then((m) => ({ default: m.FertilizerDealerInspection })));
 export const InsecticideDealerInspection = lazy(() => import('../../features/officers-toolkit/pages/InsecticideDealerInspection').then((m) => ({ default: m.InsecticideDealerInspection })));
-export const InspectionsNoticesHub = lazy(() => import('../../features/officers-toolkit/pages/InspectionsNoticesHub').then((m) => ({ default: m.InspectionsNoticesHub })));
+export const InspectionEnforcementHub = lazy(() => import('../../features/officers-toolkit/pages/InspectionEnforcementHub').then((m) => ({ default: m.InspectionEnforcementHub })));
 export const FieldDiagnosis = lazy(() => import('../../features/field-diagnosis/pages/FieldDiagnosis').then((m) => ({ default: m.FieldDiagnosis })));
 export const CropManagement = lazy(() => import('../../features/crop-management/pages/CropManagement').then((m) => ({ default: m.CropManagement })));
 export const CropAdminDashboard = lazy(() => import('../../features/crop-doctor/pages/CropAdminDashboard').then((m) => ({ default: m.CropAdminDashboard })));

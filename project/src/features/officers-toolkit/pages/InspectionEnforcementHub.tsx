@@ -57,7 +57,7 @@ const noticeModalThemes: Record<NoticeCategory, { header: string; icon: string; 
   },
 };
 
-export function InspectionsNoticesHub() {
+export function InspectionEnforcementHub() {
   const navigate = useNavigate();
   const [openCard, setOpenCard] = useState<'inspections' | 'notices' | 'stopSale' | 'seizure' | null>(null);
   const [selectedNoticeCategory, setSelectedNoticeCategory] = useState<NoticeCategory | null>(null);
@@ -71,7 +71,7 @@ export function InspectionsNoticesHub() {
   return (
     <div className="mx-auto w-full max-w-4xl p-2 sm:p-3">
       <ToolkitPageHeader
-        title="Inspections & Notices"
+        title="Inspection & Enforcement"
         eyebrow="Officer Toolkit"
         icon={ClipboardCheck}
         tone="teal-indigo"

@@ -1641,7 +1641,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       />
       {!lockedCategory && showCompactHeader && (
         <CompactToolkitHeader
-          eyebrow="Inspections & Notices"
+          eyebrow="Inspection & Enforcement"
           title={config.title}
           subtitle="Show Cause Notice / Memo Entry"
         />

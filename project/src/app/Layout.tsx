@@ -370,7 +370,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
   const dashboard = { label: t('Dashboard', 'డ్యాష్‌బోర్డ్'), page: 'dashboard' };
   const toolkit = { label: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), page: 'officer-toolkit' };
   const farmCalculators = { label: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), page: 'farm-calculators' };
-  const inspectionsHub = { label: t('Inspections & Notices', 'తనిఖీలు & నోటీసులు'), page: 'inspections-notices' };
+  const inspectionsHub = { label: t('Inspection & Enforcement', 'తనిఖీ & అమలు'), page: 'inspection-enforcement' };
 
   if (page.startsWith('quality-')) {
     const title = qualityTitle(page);
@@ -426,7 +426,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'seed-dealer-inspection': { title: t('Seed Dealer Inspection', 'విత్తన డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
     'fertilizer-dealer-inspection': { title: t('Fertilizer Dealer Inspection', 'ఎరువుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
     'insecticide-dealer-inspection': { title: t('Pesticide Dealer Inspection', 'పురుగుమందుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
-    'inspections-notices': { title: t('Inspections & Notices', 'తనిఖీలు & నోటీసులు'), breadcrumbs: [dashboard, toolkit] },
+    'inspection-enforcement': { title: t('Inspection & Enforcement', 'తనిఖీ & అమలు'), breadcrumbs: [dashboard, toolkit] },
     'license-application-generator': { title: t('License Application Generator', 'లైసెన్స్ దరఖాస్తు జనరేటర్'), breadcrumbs: [dashboard, toolkit] },
     'tour-diary': { title: t('Tour Diary', 'టూర్ డైరీ'), breadcrumbs: [dashboard, toolkit] },
     'officer-contacts': { title: t('Officer Contacts', 'అధికారుల పరిచయాలు'), breadcrumbs: [dashboard, toolkit] },

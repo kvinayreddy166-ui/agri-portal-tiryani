@@ -22,7 +22,7 @@ import {
   FileDirectory,
   GosCirculars,
   InsecticideDealerInspection,
-  InspectionsNoticesHub,
+  InspectionEnforcementHub,
   KnowledgeAnalytics,
   KnowledgeAssistant,
   KnowledgeCategories,
@@ -157,8 +157,8 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       return <FertilizerDealerInspection />;
     case 'insecticide-dealer-inspection':
       return <InsecticideDealerInspection />;
-    case 'inspections-notices':
-      return <InspectionsNoticesHub />;
+    case 'inspection-enforcement':
+      return <InspectionEnforcementHub />;
     case 'field-diagnosis':
       return <FieldDiagnosis />;
     case 'analytics':
@@ -288,8 +288,8 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return <PublicToolkitPage><FertilizerDealerInspection /></PublicToolkitPage>;
     case 'insecticide-dealer-inspection':
       return <PublicToolkitPage><InsecticideDealerInspection /></PublicToolkitPage>;
-    case 'inspections-notices':
-      return <PublicToolkitPage><InspectionsNoticesHub /></PublicToolkitPage>;
+    case 'inspection-enforcement':
+      return <PublicToolkitPage><InspectionEnforcementHub /></PublicToolkitPage>;
     case 'field-diagnosis':
       return <PublicToolkitPage><FieldDiagnosis /></PublicToolkitPage>;
     default:

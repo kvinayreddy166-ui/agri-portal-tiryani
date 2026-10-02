@@ -49,6 +49,7 @@ interface FertStopSaleFormState {
   formA2Number: string;
   formA2ValidUpto: string;
   stopDays: string;
+  observations: string;
   products: FertStopSaleProductRow[];
 }
 
@@ -131,6 +132,7 @@ function makeInitialForm(): FertStopSaleFormState {
     formA2Number: '',
     formA2ValidUpto: '',
     stopDays: '15',
+    observations: '',
     products: [emptyProduct()],
   };
 }
@@ -148,6 +150,15 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
   const a2ValidUpto = form.formA2ValidUpto ? formatNoticeDate(form.formA2ValidUpto) : '______________';
   const placeValue = mandalValue;
   const dateValue = form.noticeDate ? formatNoticeDate(form.noticeDate) : '__________';
+
+  const observationLines = form.observations.split('\n').map((line) => line.trim()).filter(Boolean);
+  const observationBlocks: NoticeBlock[] = observationLines.map((line, index) => ({
+    kind: 'labelPara',
+    label: `${index + 1}.`,
+    labelBold: false,
+    indent: 8,
+    segments: [{ text: line }],
+  }));
 
   const filledProducts = form.products.filter((item) =>
     [item.name, item.batchNo, item.manufacturer, item.quantityMt, item.remarks].some((field) => field.trim())
@@ -204,6 +215,13 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
       rows: tableRows,
     },
     { kind: 'gap', mm: 4 },
+    ...(observationBlocks.length > 0
+      ? [
+          { kind: 'lines', items: [[{ text: 'Observations:', bold: true }]] } as NoticeBlock,
+          ...observationBlocks,
+          { kind: 'gap', mm: 2 } as NoticeBlock,
+        ]
+      : []),
     {
       kind: 'para',
       firstLineIndent: 10,
@@ -332,6 +350,7 @@ export function FertilizerStopSaleEntry() {
       dealerAddress: '',
       formA2Number: '',
       formA2ValidUpto: '',
+      observations: '',
     });
     setEditingId(null);
     setShowPreview(false);
@@ -457,6 +476,15 @@ export function FertilizerStopSaleEntry() {
         <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Order Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Stop Sale Period (days)" value={form.stopDays} onChange={(value) => updateForm({ stopDays: value })} />
+          <label className="block md:col-span-2">
+            <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Observations (Optional — one per line)</span>
+            <textarea
+              value={form.observations}
+              onChange={(event) => updateForm({ observations: event.target.value })}
+              rows={2}
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+            />
+          </label>
         </div>
         <p className="mt-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
           Notice issued under Clause 28(2) of the Fertilizer (Control) Order, 1985.

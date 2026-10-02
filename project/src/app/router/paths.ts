@@ -17,7 +17,7 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/seed-dealer-inspection',
   '/officer-toolkit/fertilizer-dealer-inspection',
   '/officer-toolkit/insecticide-dealer-inspection',
-  '/officer-toolkit/inspections-notices',
+  '/officer-toolkit/inspection-enforcement',
   '/officer-toolkit/field-diagnosis',
 ]);
 
@@ -39,7 +39,7 @@ export const PUBLIC_PAGES = new Set([
   'seed-dealer-inspection',
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
-  'inspections-notices',
+  'inspection-enforcement',
   'field-diagnosis',
 ]);
 
@@ -78,7 +78,7 @@ export const PAGE_PATHS: Record<string, string> = {
   'seed-dealer-inspection': '/officer-toolkit/seed-dealer-inspection',
   'fertilizer-dealer-inspection': '/officer-toolkit/fertilizer-dealer-inspection',
   'insecticide-dealer-inspection': '/officer-toolkit/insecticide-dealer-inspection',
-  'inspections-notices': '/officer-toolkit/inspections-notices',
+  'inspection-enforcement': '/officer-toolkit/inspection-enforcement',
   'field-diagnosis': '/officer-toolkit/field-diagnosis',
   analytics: '/analytics',
   settings: '/settings',
@@ -187,7 +187,7 @@ export const VALID_PAGES = new Set([
   'seed-dealer-inspection',
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
-  'inspections-notices',
+  'inspection-enforcement',
   'field-diagnosis',
   'analytics',
   'settings',
@@ -220,7 +220,7 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'seed-dealer-inspection',
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
-  'inspections-notices',
+  'inspection-enforcement',
   'field-diagnosis',
 ]);
 const SUBPAGE_ALIASES: Record<string, string> = { 'statutory-forms': 'forms' };

@@ -315,12 +315,12 @@ export function SeedDealerInspection() {
           tone="emerald"
           eyebrow="Seed inspection"
           title="Seed dealer inspection form"
-          fallbackPath="/officer-toolkit/inspections-notices"
+          fallbackPath="/officer-toolkit/inspection-enforcement"
           onBack={() => {
             if (!confirmDiscardIfDirty(dirty)) return;
             const idx = (window.history.state as { idx?: number } | null)?.idx;
             if (typeof idx === 'number' && idx > 0) navigate(-1);
-            else navigate('/officer-toolkit/inspections-notices');
+            else navigate('/officer-toolkit/inspection-enforcement');
           }}
         />
 
