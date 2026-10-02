@@ -816,13 +816,53 @@ export function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-slate-50 p-4 pb-28 dark:bg-slate-950 sm:pb-24">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 lg:grid lg:grid-cols-2">
       <UpdateBanner />
 
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-emerald-800 p-10 text-white lg:flex">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-700 via-emerald-800 to-emerald-950" />
+        <div className="relative flex items-center gap-3">
+          <PortalLogo size="md" />
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight font-[var(--font-stylish)]">AGRONIX</h2>
+            <p className="text-xs text-emerald-200">
+              {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
+            </p>
+          </div>
+        </div>
+        <div className="relative space-y-5">
+          <h1 className="max-w-md text-3xl font-semibold leading-snug xl:text-4xl">
+            {t('Field-ready documents for agriculture enforcement.', 'వ్యవసాయ అమలు కోసం సిద్ధమైన పత్రాలు.')}
+          </h1>
+          <p className="max-w-md text-sm leading-6 text-emerald-100/90">
+            {t('Inspections, memos, stop sale and seizure orders — prepared in departmental format, ready for PDF and Word.', 'తనిఖీలు, మెమోలు, స్టాప్ సేల్ మరియు జబ్తు ఆర్డర్లు — శాఖా ఫార్మాట్‌లో, PDF మరియు Word కోసం సిద్ధం.')}
+          </p>
+          <ul className="space-y-3 text-sm text-emerald-50">
+            <li className="flex items-start gap-3">
+              <FileText className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+              <span>{t('Statutory forms & covering letters', 'చట్టబద్ధ ఫారాలు & కవరింగ్ లెటర్లు')}</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+              <span>{t('Inspection & enforcement toolkit', 'తనిఖీ & అమలు టూల్‌కిట్')}</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <Sprout className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+              <span>{t('Seed, fertilizer & pesticide workflows', 'విత్తన, ఎరువు & పురుగుమందు పనిప్రవాహాలు')}</span>
+            </li>
+          </ul>
+        </div>
+        <div className="relative text-xs leading-5 text-emerald-200/80">
+          <p>version-1.0.1 &middot; &copy; 2026 Agronix — Information Management System</p>
+          <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
+        </div>
+      </aside>
+
+      <div className="relative flex min-h-screen items-center justify-center p-4 pb-28 sm:pb-24 lg:min-h-0 lg:p-8">
       <div className="w-full max-w-md">
         <section className="flex flex-col justify-start rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
           <div className="w-full">
-            <div className="mb-8 flex flex-col items-center gap-3 text-center">
+            <div className="mb-8 flex flex-col items-center gap-3 text-center lg:hidden">
               <PortalLogo size="lg" />
               <div>
                 <h2 className="whitespace-nowrap text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl font-[var(--font-stylish)]">
@@ -912,11 +952,12 @@ export function Login() {
           </div>
         </section>
 
-        <div className="mt-5 text-center text-xs leading-5 text-slate-400 dark:text-slate-500">
+        <div className="mt-5 text-center text-xs leading-5 text-slate-400 dark:text-slate-500 lg:hidden">
           <p className="font-medium">version-1.0.1</p>
           <p>&copy; 2026 Agronix - Information Management System</p>
           <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
         </div>
+      </div>
       </div>
 
       <button
