@@ -816,44 +816,41 @@ export function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24 lg:p-4 lg:pb-24">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(4,120,87,0.08),rgba(14,165,233,0.08)_48%,rgba(250,204,21,0.08))]" />
+    <div className="relative flex min-h-screen items-center justify-center bg-slate-50 p-4 pb-28 dark:bg-slate-950 sm:pb-24">
       <UpdateBanner />
 
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/60 bg-white/90 dark:bg-slate-900/90 shadow-2xl shadow-emerald-950/10 backdrop-blur-sm animate-fadeIn">
-        <section className="flex flex-col justify-start p-6 sm:p-8 lg:p-10">
-          <div className="mx-auto w-full max-w-md">
-            <div className="mb-6 flex flex-col items-center gap-4 text-center animate-slide-up">
-              <div className="login-logo-hero inline-flex">
-                <PortalLogo size="xl" />
-              </div>
+      <div className="w-full max-w-md">
+        <section className="flex flex-col justify-start rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+          <div className="w-full">
+            <div className="mb-8 flex flex-col items-center gap-3 text-center">
+              <PortalLogo size="lg" />
               <div>
-                <h2 className="whitespace-nowrap text-xl font-black tracking-tight text-slate-950 dark:text-white sm:text-2xl font-[var(--font-stylish)]">
+                <h2 className="whitespace-nowrap text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl font-[var(--font-stylish)]">
                   {t('AGRONIX', 'AGRONIX')}
                 </h2>
-                <p className="mt-1 text-sm font-bold text-emerald-700 dark:text-emerald-300">
+                <p className="mt-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
                   {t('Information Management System', 'à°¸à°®à°¾à°šà°¾à°° à°¨à°¿à°°à±à°µà°¹à°£ à°µà±à°¯à°µà°¸à±à°¥')}
                 </p>
               </div>
             </div>
 
-            <div className="absolute top-6 left-6 animate-slide-up delay-100">
+            <div className="absolute top-6 left-6">
               <WhatsAppFab whatsappLink="https://wa.me/918308487046" />
             </div>
-            <div className="absolute top-6 right-6 flex items-center gap-2 animate-slide-up delay-100">
+            <div className="absolute top-6 right-6 flex items-center gap-2">
               <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" className="shrink-0" />
             </div>
 
             <button
               type="button"
               onClick={openOfficerToolkit}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2.5 text-sm font-black text-emerald-800 dark:text-emerald-300 shadow-lg shadow-emerald-300/50 transition hover:bg-emerald-100 hover:border-emerald-600 animate-slide-up delay-200 pulse-border-animation"
+              className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-600/60 bg-white px-4 py-2.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-50 dark:border-emerald-700 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-slate-800"
             >
               <ShieldCheck className="h-4 w-4" />
               <span>{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
             </button>
 
-            <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-sm font-bold animate-slide-up delay-300">
+            <div className="mb-4 grid grid-cols-2 rounded-lg bg-slate-100 dark:bg-slate-800 p-1 text-sm font-semibold">
               <button
                 type="button"
                 onClick={() => setLoginMode('staff')}
@@ -870,28 +867,28 @@ export function Login() {
               </button>
             </div>
 
-            <div className="mb-3 animate-slide-up delay-400">
-              <h3 className="text-lg font-black uppercase tracking-wide text-slate-950 dark:text-white">
+            <div className="mb-3">
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                 {loginMode === 'dealer' ? t('Dealer sign in', 'డీలర్ సైన్ ఇన్') : t('Secure sign in', 'సురక్షిత సైన్ ఇన్')}
               </h3>
-              <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                 {t('Access Agronix with your official credentials', 'మీ అధికారిక ఆధారాలతో Agronixను యాక్సెస్ చేయండి')}
               </p>
             </div>
 
             {error && (
-              <div className="mb-4 flex gap-3 rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-700 dark:text-red-300 animate-slide-up">
+              <div className="mb-4 flex gap-3 rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-700 dark:text-red-300">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-2 animate-slide-up delay-500">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {loginMode === 'dealer' ? (
                 <>
                   <LoginField label={t('Registered phone (Dealers Directory)', 'à°¨à°®à±‹à°¦à±ˆà°¨ à°«à±‹à°¨à± (à°¡à±€à°²à°°à±à°² à°¡à±ˆà°°à±†à°•à±à°Ÿà°°à±€)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
                   <LoginField label={t('Guest Password', 'à°—à±†à°¸à±à°Ÿà± à°ªà°¾à°¸à±à°µà°°à±à°¡à±')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
-                  <p className="-mt-1 text-[10px] text-slate-500 dark:text-slate-400">
+                  <p className="-mt-1 text-xs text-slate-500 dark:text-slate-400">
                     {t(`Guest password: ${DEALER_DEFAULT_PASSWORD}`, `à°—à±†à°¸à±à°Ÿà± à°ªà°¾à°¸à±à°µà°°à±à°¡à±: ${DEALER_DEFAULT_PASSWORD}`)}
                   </p>
                 </>
@@ -904,7 +901,7 @@ export function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 py-3 font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:bg-emerald-800 disabled:opacity-60"
+                className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 py-3 font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-60"
               >
                 {loginMode === 'dealer' ? <Store className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
                 {loading ? t('Signing in...', 'à°²à°¾à°—à°¿à°¨à± à°…à°µà±à°¤à±‹à°‚à°¦à°¿...') : loginMode === 'dealer' ? t('Dealer Sign In', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Sign In', 'à°²à°¾à°—à°¿à°¨à±')}
@@ -912,19 +909,20 @@ export function Login() {
             </form>
 
 
-            <div className="mb-20 mt-3 text-center text-[11px] font-semibold leading-5 text-slate-600 dark:text-slate-300 sm:mb-16 animate-slide-up delay-600">
-              <p className="font-black text-emerald-700 dark:text-emerald-300">version-1.0.1</p>
-              <p>&copy; 2026 Agronix - Information Management System</p>
-              <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
-            </div>
           </div>
         </section>
+
+        <div className="mt-5 text-center text-xs leading-5 text-slate-400 dark:text-slate-500">
+          <p className="font-medium">version-1.0.1</p>
+          <p>&copy; 2026 Agronix - Information Management System</p>
+          <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
+        </div>
       </div>
 
       <button
         type="button"
         onClick={handleInstallApp}
-        className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-black text-white shadow-xl shadow-slate-950/20 transition hover:bg-slate-800"
+        className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-slate-800"
       >
         <Smartphone className="h-5 w-5" />
         Install App
@@ -938,7 +936,7 @@ export function Login() {
       <button
         type="button"
         onClick={openGrievance}
-        className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-black text-white shadow-xl shadow-emerald-950/20 transition hover:bg-emerald-800"
+        className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-800"
       >
         <MessageSquareText className="h-5 w-5" />
         {t('Grievances', 'à°«à°¿à°°à±à°¯à°¾à°¦à±à°²à±')}
@@ -1133,16 +1131,16 @@ function LoginField({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">{label}</label>
       <div className="relative">
         {React.cloneElement(icon, {
-          className: 'pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400',
+          className: 'pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400',
         })}
         <input
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 py-2 pl-12 pr-4 text-slate-950 dark:text-white outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+          className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 py-2.5 pl-11 pr-4 text-slate-900 dark:text-white outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900"
           placeholder={placeholder}
           required
         />
