@@ -274,7 +274,7 @@ export type NoticeBlock =
   | { kind: 'rule'; keepWithNext?: boolean }
   | { kind: 'gap'; mm?: number; keepWithNext?: boolean };
 
-const NOTICE_FONT_STACK = `'Roboto Serif', 'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`;
+const NOTICE_FONT_STACK = `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`;
 
 // One-tab indent (mm) for "Sub:"/"Ref:" label lines, per standard memo/notice format
 const SUBJECT_REF_INDENT = 10;
@@ -769,7 +769,7 @@ export function noticeDocumentHtml(blocks: NoticeBlock[]) {
   return `<html><head><style>@page{size:A4;margin:18mm 20mm;}body{font-family:${NOTICE_FONT_STACK};font-size:12pt;line-height:1.5;color:#000;}</style></head><body>${noticeBlocksHtml(blocks)}</body></html>`;
 }
 
-export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: NoticeDocFont = 'robotoSerif') {
+export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: NoticeDocFont = 'bookAntiqua') {
   const {
     AlignmentType,
     BorderStyle,
@@ -1001,7 +1001,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer) {
 
 export type NoticeDocFont = 'bookAntiqua' | 'robotoSerif';
 
-export async function loadNoticeFonts(doc: { addFileToVFS: (name: string, data: string) => void; addFont: (file: string, name: string, style: string) => void }, font: NoticeDocFont = 'robotoSerif') {
+export async function loadNoticeFonts(doc: { addFileToVFS: (name: string, data: string) => void; addFont: (file: string, name: string, style: string) => void }, font: NoticeDocFont = 'bookAntiqua') {
   try {
     const load = async (url: string) => arrayBufferToBase64(await (await fetch(url)).arrayBuffer());
     if (font === 'robotoSerif') {
@@ -1023,7 +1023,7 @@ export async function loadNoticeFonts(doc: { addFileToVFS: (name: string, data: 
   }
 }
 
-export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title: string, font: NoticeDocFont = 'robotoSerif') {
+export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title: string, font: NoticeDocFont = 'bookAntiqua') {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
   doc.setProperties({ title, subject: title, creator: 'AGRONIX' });
