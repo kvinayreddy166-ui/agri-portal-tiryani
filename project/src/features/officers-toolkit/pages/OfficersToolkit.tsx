@@ -61,7 +61,7 @@ const toolkitItems: ToolkitItem[] = [
   },
   {
     title: 'Inspection & Enforcement',
-    description: 'Inspection proforma & notices / memos for seed, fertilizer & insecticide.',
+    description: 'Inspection proforma, memo & show cause notice, stop sale & seizure orders for seed, fertilizer & insecticide.',
     path: '/officer-toolkit/inspection-enforcement',
     icon: ClipboardCheck,
     category: 'internal',
@@ -265,7 +265,7 @@ function translateToolkit(label?: string) {
     'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
     'Prepare and download field forms.': 'క్షేత్ర ఫారాలను సిద్ధం చేసి డౌన్‌లోడ్ చేయండి.',
     'Inspection & Enforcement': 'తనిఖీ & అమలు',
-    'Inspection proforma & notices / memos for seed, fertilizer & insecticide.': 'విత్తనం, ఎరువు & పురుగుమందు తనిఖీ ప్రొఫార్మా మరియు నోటీసులు / మెమోలు.',
+    'Inspection proforma, memo & show cause notice, stop sale & seizure orders for seed, fertilizer & insecticide.': 'విత్తనం, ఎరువు & పురుగుమందు తనిఖీ ప్రొఫార్మా, మెమో & షోకాజ్ నోటీసు, స్టాప్ సేల్ & జప్తి ఆర్డర్లు.',
     'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
     'Crop, seed, fertilizer and pesticide calculations.': 'పంట, విత్తనం, ఎరువు మరియు పురుగుమందుల లెక్కలు.',
     'Crop Doctor': 'పంట డాక్టర్',

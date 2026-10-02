@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, Download, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear } from '../../../shared/utils/financialYear';
-import { statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../../../shared/data/assistantDirectorLocation';
+import { CROP_OPTIONS } from '../pages/SeedDealerInspection';
+import { withOthersOption, effectiveLocationValue } from '../../../shared/data/assistantDirectorLocation';
 import {
   TELANGANA_DISTRICTS,
   getMandalsForDistrict,
@@ -25,21 +26,22 @@ import {
   type NoticeBlock,
   type NoticeSegment,
 } from './ShowCauseNoticeEntry';
+import type { SavedSeedStopSaleOrder } from './SeedStopSaleEntry';
 
-interface StopSaleProductRow {
+interface SeedRevokeProductRow {
   id: string;
-  name: string;
-  manufacturer: string;
-  batchNo: string;
-  mfgDate: string;
-  expiryDate: string;
+  crop: string;
+  cropOther: string;
+  variety: string;
+  lotNo: string;
+  source: string;
   quantity: string;
   remarks: string;
 }
 
-interface StopSaleFormState {
+interface SeedRevokeFormState {
   orderNumber: string;
-  orderDate: string;
+  revokeDate: string;
   officerName: string;
   officerDesignation: string;
   mandal: string;
@@ -48,54 +50,35 @@ interface StopSaleFormState {
   manualDistrict: string;
   division: string;
   firmName: string;
-  dealerName: string;
   dealerAddress: string;
   licenceNumber: string;
-  actSection: string;
-  rulesRef: string;
-  stopDays: string;
-  observations: string;
-  products: StopSaleProductRow[];
+  issuedOn: string;
+  noticeNo: string;
+  noticeDate: string;
+  products: SeedRevokeProductRow[];
 }
 
-export interface SavedPestStopSaleOrder extends StopSaleFormState {
+interface SavedSeedRevokeOrder extends SeedRevokeFormState {
   id: string;
   savedAt: string;
 }
 
-const STORAGE_KEY = 'agri-legal-pesticide-stop-sale-orders';
-const MAX_STOP_DAYS = 20;
+const STORAGE_KEY = 'agri-legal-seed-stop-sale-revoke-orders';
 const today = () => new Date().toISOString().slice(0, 10);
 const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-const ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
-  'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
-const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
-
-function numToWords(n: number): string {
-  if (n < 20) return ONES[n];
-  if (n < 100) return TENS[Math.floor(n / 10)] + (n % 10 ? `-${ONES[n % 10]}` : '');
-  return String(n);
-}
-
-// '15' -> '15 (fifteen)'; non-numeric input is used as typed
-function formatStopDays(raw: string): string {
-  const trimmed = raw.trim();
-  return /^\d{1,2}$/.test(trimmed) ? `${trimmed} (${numToWords(Number(trimmed))})` : trimmed;
-}
-
-const emptyProduct = (): StopSaleProductRow => ({
+const emptyProduct = (): SeedRevokeProductRow => ({
   id: uid(),
-  name: '',
-  manufacturer: '',
-  batchNo: '',
-  mfgDate: '',
-  expiryDate: '',
+  crop: '',
+  cropOther: '',
+  variety: '',
+  lotNo: '',
+  source: '',
   quantity: '',
   remarks: '',
 });
 
-function readSavedOrders(): SavedPestStopSaleOrder[] {
+function readSavedOrders(): SavedSeedRevokeOrder[] {
   try {
     const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]');
     return Array.isArray(parsed) ? parsed : [];
@@ -104,110 +87,127 @@ function readSavedOrders(): SavedPestStopSaleOrder[] {
   }
 }
 
-function writeSavedOrders(orders: SavedPestStopSaleOrder[]) {
+function writeSavedOrders(orders: SavedSeedRevokeOrder[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
 const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
 
-// Persist the in-progress form so it survives app/session closure (like statutory forms)
-function readFormDraft(): StopSaleFormState | null {
+function readFormDraft(): SeedRevokeFormState | null {
   try {
     const raw = window.localStorage.getItem(FORM_DRAFT_KEY);
     if (!raw) return null;
-    return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<StopSaleFormState>) };
+    return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<SeedRevokeFormState>) };
   } catch {
     return null;
   }
 }
 
-function makeInitialForm(): StopSaleFormState {
+function makeInitialForm(): SeedRevokeFormState {
   const fy = currentFinancialYear();
-  const statutory = readStatutoryDetails('pesticide');
+  const statutory = readStatutoryDetails('seed');
   const resolvedDistrict = resolveDistrict(statutory.district || 'Kumuram Bheem Asifabad', statutory.manualDistrict || '');
   const resolvedMandal = resolveMandal(resolvedDistrict.district, statutory.mandal || 'Tiryani', statutory.manualMandal || '');
   return {
-    orderNumber: `SSO/P/${fy}`,
-    orderDate: today(),
+    orderNumber: `RSN/S/${fy}`,
+    revokeDate: today(),
     officerName: statutory.officerName || '',
-    officerDesignation: statutory.officerDesignation || 'Mandal Agriculture Officer & Insecticide Inspector',
+    officerDesignation: statutory.officerDesignation || 'Mandal Agriculture Officer & Seed Inspector',
     mandal: resolvedMandal.mandal,
     manualMandal: resolvedMandal.manualMandal,
     district: resolvedDistrict.district,
     manualDistrict: resolvedDistrict.manualDistrict,
     division: statutory.division || '',
     firmName: statutory.dealerName || '',
-    dealerName: '',
     dealerAddress: statutory.dealerAddress || '',
     licenceNumber: '',
-    actSection: '',
-    rulesRef: '',
-    stopDays: '15',
-    observations: '',
+    issuedOn: '',
+    noticeNo: '',
+    noticeDate: '',
     products: [emptyProduct()],
   };
 }
 
-// Form V(A) — "Order not to dispose of any stock" under Rule 30 read with
-// Section 21(1)(d) of the Insecticides Act, 1968 / Insecticides Rules, 1971.
-function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
-  const officerDesignation = form.officerDesignation || 'Insecticide Inspector';
-  const displayDesignation = statutoryDesignationDisplay(
-    officerDesignation.replace(/\s*&\s*.*$/, '').trim() || officerDesignation
-  );
+// Pre-fill a revoke form from a saved stop-sale order — links the revocation
+// back to the original order no./date, dealer, location, and stock.
+function makeFormFromOrder(order: SavedSeedStopSaleOrder): SeedRevokeFormState {
+  const fy = currentFinancialYear();
+  return {
+    orderNumber: `RSN/S/${fy}`,
+    revokeDate: today(),
+    officerName: order.officerName,
+    officerDesignation: order.officerDesignation,
+    mandal: order.mandal,
+    manualMandal: order.manualMandal,
+    district: order.district,
+    manualDistrict: order.manualDistrict,
+    division: order.division,
+    firmName: order.firmName,
+    dealerAddress: order.dealerAddress,
+    licenceNumber: order.licenceNumber,
+    issuedOn: order.noticeDate,
+    noticeNo: order.orderNumber,
+    noticeDate: order.noticeDate,
+    products: order.products.length
+      ? order.products.map((item) => ({ id: uid(), crop: item.crop, cropOther: item.cropOther, variety: item.variety, lotNo: item.lotNo, source: item.source, quantity: item.quantity, remarks: item.remarks }))
+      : [emptyProduct()],
+  };
+}
+
+// Annexure-I — Revocation of Stop Sale Order under clause (c) of sub-section (1)
+// of Section 14 of the Seeds Act, 1966 (No. 54 of 1966).
+function buildRevokeModel(form: SeedRevokeFormState): NoticeBlock[] {
+  const officerDesignation = form.officerDesignation || 'Seed Inspector';
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || '________________';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || '________________';
   const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
 
-  const orderDateObj = form.orderDate ? new Date(`${form.orderDate}T00:00:00`) : null;
-  const dayPart = orderDateObj ? String(orderDateObj.getDate()).padStart(2, '0') : '_____';
-  const monthPart = orderDateObj ? orderDateObj.toLocaleString('en', { month: 'long' }) : '__________';
-  const yearPart = orderDateObj ? String(orderDateObj.getFullYear()) : '______';
+  const firmDisplay = form.firmName.trim() || '____________________________';
+  const placeValue = mandalValue;
+  const dateValue = form.revokeDate ? formatNoticeDate(form.revokeDate) : '__________';
 
-  const firmDisplay = `M/s. ${form.firmName || '____________________________'}`;
+  const issuedOnDisplay = form.issuedOn ? formatNoticeDate(form.issuedOn) : '__________';
+  const noticeNoDisplay = form.noticeNo.trim() || '__________';
+  const noticeDateDisplay = form.noticeDate ? formatNoticeDate(form.noticeDate) : '__________';
+
   const addressLines = form.dealerAddress.split('\n').map((line) => line.trim()).filter(Boolean);
   const dealerItems: NoticeSegment[][] = [
-    [{ text: firmDisplay, bold: true }],
-    ...(form.dealerName.trim() ? [[{ text: `(Prop./Dealer: ${form.dealerName.trim()})`, bold: true }]] : []),
+    [{ text: `M/s. ${firmDisplay}`, bold: true }],
     ...addressLines.map((line) => [{ text: line.replace(/,+$/, ''), bold: true }] as NoticeSegment[]),
     [{ text: `${mandalValue} Mandal,`, bold: true }],
     [{ text: `${districtDisplay} District.`, bold: true }],
   ];
 
-  const actSection = form.actSection.trim() || '_____';
-  const rulesRef = form.rulesRef.trim() || '__________';
+  const divisionName = form.division.trim() || '________________';
+  const designationParts = officerDesignation.split('&').map((part) => part.trim()).filter(Boolean);
+  const issuedByPlace = isDaoDesignation(officerDesignation)
+    ? districtDisplay
+    : isAdaDesignation(officerDesignation)
+      ? divisionName
+      : mandalValue;
+  const issuedByDisplay = `${officerDesignation}, ${issuedByPlace}`;
 
-  const observationLines = form.observations.split('\n').map((line) => line.trim()).filter(Boolean);
-  const observationBlocks: NoticeBlock[] = observationLines.map((line, index) => ({
-    kind: 'labelPara',
-    label: `${index + 1}.`,
-    labelBold: false,
-    indent: 8,
-    segments: [{ text: line }],
-  }));
+  const signatureItems: NoticeSegment[][] = designationParts.length > 1
+    ? [[{ text: `${designationParts[0]} &`, bold: true }], [{ text: designationParts.slice(1).join(' & ').replace(/,+$/, ''), bold: true }]]
+    : [[{ text: officerDesignation, bold: true }]];
 
+  const seedName = (item: SeedRevokeProductRow) => {
+    const crop = item.crop === 'Others' ? item.cropOther.trim() : item.crop;
+    return [crop, item.variety.trim()].filter(Boolean).join(' / ');
+  };
   const filledProducts = form.products.filter((item) =>
-    [item.name, item.manufacturer, item.batchNo, item.mfgDate, item.expiryDate, item.quantity, item.remarks].some((field) => field.trim())
+    [item.crop, item.cropOther, item.variety, item.lotNo, item.source, item.quantity, item.remarks].some((field) => field.trim())
   );
   const productRows = filledProducts.length > 0 ? filledProducts : form.products;
   const tableRows = productRows.map((item, index) => [
     String(index + 1),
-    item.name,
-    item.manufacturer,
-    item.batchNo,
-    [item.mfgDate && `Mfg: ${formatNoticeDate(item.mfgDate)}`, item.expiryDate && `Exp: ${formatNoticeDate(item.expiryDate)}`].filter(Boolean).join(' / '),
+    seedName(item),
+    item.lotNo,
+    item.source,
     item.quantity,
     item.remarks,
   ]);
 
-  const designationParts = officerDesignation.split('&').map((part) => part.trim()).filter(Boolean);
-  const signatureItems: NoticeSegment[][] = [
-    ...(designationParts.length > 1
-      ? [[{ text: `${designationParts[0]} &`, bold: true }], [{ text: designationParts.slice(1).join(' & ').replace(/,+$/, ''), bold: true }]]
-      : [[{ text: displayDesignation, bold: true }]]),
-  ];
-
-  const divisionName = form.division.trim() || '________________';
   const copyLines = (isDaoDesignation(officerDesignation)
     ? `1. The Commissioner & Director of Agriculture, Telangana State, for favour of information and necessary action.\n2. The Asst. Director of Agriculture (R) concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
     : isAdaDesignation(officerDesignation)
@@ -216,14 +216,13 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
   ).split('\n');
 
   return [
-    { kind: 'center', text: 'FORM V(A)', bold: true },
-    { kind: 'center', text: 'FORM OF ORDER "NOT TO DISPOSE OF ANY STOCK"', bold: true, underline: true },
-    { kind: 'center', text: '[See Rule 30]', bold: true },
+    { kind: 'center', text: 'ANNEXURE – I', bold: true, size: 14 },
+    { kind: 'center', text: '(REVOCATION OF STOP SALE ORDER)', bold: true, underline: true },
     { kind: 'gap', mm: 2 },
     {
       kind: 'memoRow',
       left: [{ text: 'Order No.: ' }, { text: form.orderNumber || '______________', bold: true }],
-      right: [{ text: 'Dt.: ' }, { text: form.orderDate ? formatNoticeDate(form.orderDate) : '__________', bold: true }],
+      right: [{ text: 'Dt.: ' }, { text: dateValue, bold: true }],
     },
     { kind: 'gap', mm: 3 },
     { kind: 'lines', items: [[{ text: 'To,', bold: true }]] },
@@ -235,47 +234,39 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
       kind: 'para',
       firstLineIndent: 10,
       segments: [
-        { text: 'Whereas, I have reason(s) to believe that the stock of the following insecticide(s), which is in your possession, is being stored for distribution, sale or exhibited for sale and used in contravention of the provisions of ' },
-        { text: `Section ${actSection} of the Insecticides Act, 1968`, bold: true },
-        { text: ' and/or ' },
-        { text: `${rulesRef} of the Insecticides Rules, 1971`, bold: true },
-        { text: ':' },
-      ],
-    },
-    { kind: 'gap', mm: 2 },
-    {
-      kind: 'gridTable',
-      header: ['Sr. No.', 'Name of the Insecticide with complete details', 'Manufactured by', 'Batch No.', 'Date of Manufacture and Date of Expiry', 'Stock Quantity as on Date (indicate units also)', 'Remarks'],
-      colWeights: [6, 26, 15, 10, 15, 14, 14],
-      rows: tableRows,
-    },
-    { kind: 'gap', mm: 4 },
-    ...(observationBlocks.length > 0
-      ? [
-          { kind: 'lines', items: [[{ text: 'Observations:', bold: true }]] } as NoticeBlock,
-          ...observationBlocks,
-          { kind: 'gap', mm: 2 } as NoticeBlock,
-        ]
-      : []),
-    {
-      kind: 'para',
-      firstLineIndent: 10,
-      segments: [
-        { text: 'I hereby require you under ' },
-        { text: 'clause (d) of sub-section (1) of Section 21 of the Insecticides Act, 1968', bold: true },
-        { text: ' to stop the distribution, sales or exhibit for sale and use of the said stock for a period of ' },
-        { text: `${formatStopDays(form.stopDays) || '_____'} days`, bold: true },
-        { text: ` from this ` },
-        { text: dayPart, bold: true },
-        { text: ' day of ' },
-        { text: monthPart, bold: true },
-        { text: ' month of the year ' },
-        { text: yearPart, bold: true },
+        { text: 'It has been ascertained that the defect(s) responsible for the stop sale order issued by ' },
+        { text: issuedByDisplay, bold: true },
+        { text: ' on ' },
+        { text: issuedOnDisplay, bold: true },
+        { text: ' under ' },
+        { text: 'clause (c) of Sub-section (1) of Section 14 of the Seeds Act, 1966 (No. 54 of 1966)', bold: true },
+        { text: ' has/have now been removed or corrected. I, therefore, hereby revoke the order passed vide Stop Sale Order No. ' },
+        { text: noticeNoDisplay, bold: true },
+        { text: ' dated ' },
+        { text: noticeDateDisplay, bold: true },
         { text: '.' },
       ],
     },
-    { kind: 'gap', mm: 8, keepWithNext: true },
-    { kind: 'lines', items: signatureItems, align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
+    { kind: 'gap', mm: 2 },
+    { kind: 'lines', items: [[{ text: 'Details of Seed stock kept under stop sale', bold: true }]], keepWithNext: true },
+    { kind: 'gap', mm: 1, keepWithNext: true },
+    {
+      kind: 'gridTable',
+      header: ['S.No.', 'Name of Seed (Crop & Variety)', 'Lot / Batch No.', 'Source / Purchased from', 'Quantity', 'Remarks'],
+      colWeights: [7, 28, 14, 22, 12, 17],
+      rows: tableRows,
+      keepWithNext: true,
+    },
+    { kind: 'gap', mm: 13, keepWithNext: true },
+    {
+      kind: 'memoRow',
+      leftLines: [
+        [{ text: 'Place: ' }, { text: `${placeValue},`, bold: true }],
+        [{ text: 'Date: ' }, { text: `${dateValue}.`, bold: true }],
+      ],
+      rightLines: signatureItems,
+      keepWithNext: true,
+    },
     { kind: 'gap', mm: 12, keepWithNext: true },
     { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
     ...copyLines.map((line, index): NoticeBlock => {
@@ -288,9 +279,11 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
   ];
 }
 
-export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedPestStopSaleOrder) => void } = {}) {
-  const [form, setForm] = useState<StopSaleFormState>(() => readFormDraft() ?? makeInitialForm());
-  const [savedOrders, setSavedOrders] = useState<SavedPestStopSaleOrder[]>(() => readSavedOrders());
+export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSaleOrder | null } = {}) {
+  const [form, setForm] = useState<SeedRevokeFormState>(() =>
+    prefill ? makeFormFromOrder(prefill) : readFormDraft() ?? makeInitialForm()
+  );
+  const [savedOrders, setSavedOrders] = useState<SavedSeedRevokeOrder[]>(() => readSavedOrders());
   const [savedSearch, setSavedSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -298,22 +291,9 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
   const previewRef = useRef<HTMLDivElement>(null);
   const [resetSpinKey, setResetSpinKey] = useState(0);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
-  const overLimitWarned = useRef(false);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
 
-  const updateStopDays = (value: string) => {
-    updateForm({ stopDays: value });
-    const days = Number(value.trim());
-    const over = value.trim() !== '' && Number.isFinite(days) && days > MAX_STOP_DAYS;
-    if (over && !overLimitWarned.current) {
-      overLimitWarned.current = true;
-      showWarning(`Maximum stop sale period is ${MAX_STOP_DAYS} days`, 'Check the period before issuing the order.');
-    } else if (!over) {
-      overLimitWarned.current = false;
-    }
-  };
-
-  const noticeBlocks = useMemo(() => buildStopSaleModel(form), [form]);
+  const noticeBlocks = useMemo(() => buildRevokeModel(form), [form]);
   const previewHtml = useMemo(() => noticeBlocksHtml(noticeBlocks), [noticeBlocks]);
 
   const districtOptions = useMemo(
@@ -327,7 +307,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
     return [{ label: 'Others', value: 'Others' }];
   }, [form.district]);
   const designationOptions = useMemo(() => {
-    const base = designationOptionsFor('pesticide');
+    const base = designationOptionsFor('seed');
     return form.officerDesignation && !base.some((item) => item.value === form.officerDesignation)
       ? [{ label: form.officerDesignation, value: form.officerDesignation }, ...base]
       : base;
@@ -347,9 +327,9 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
     } catch {}
   }, [form]);
 
-  const updateForm = (patch: Partial<StopSaleFormState>) => setForm((current) => ({ ...current, ...patch }));
+  const updateForm = (patch: Partial<SeedRevokeFormState>) => setForm((current) => ({ ...current, ...patch }));
 
-  const updateProduct = (id: string, patch: Partial<StopSaleProductRow>) =>
+  const updateProduct = (id: string, patch: Partial<SeedRevokeProductRow>) =>
     setForm((current) => ({
       ...current,
       products: current.products.map((row) => (row.id === id ? { ...row, ...patch } : row)),
@@ -360,27 +340,24 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
     setForm((current) => ({ ...current, products: current.products.filter((row) => row.id !== id) }));
 
   const saveOrder = () => {
-    const entry: SavedPestStopSaleOrder = {
+    const entry: SavedSeedRevokeOrder = {
       ...form,
       id: editingId || uid(),
       savedAt: new Date().toISOString(),
     };
-    setSavedOrders((current) => {
-      const rest = current.filter((item) => item.id !== entry.id);
-      return [entry, ...rest];
-    });
+    setSavedOrders((current) => [entry, ...current.filter((item) => item.id !== entry.id)]);
     setEditingId(entry.id);
-    showSaved('Order saved', entry.orderNumber || 'Stop Sale Order');
+    showSaved('Order saved', entry.orderNumber || 'Revocation of Stop Sale Order');
   };
 
-  const editSavedOrder = (order: SavedPestStopSaleOrder) => {
-    setForm({ ...order, products: order.products.length ? order.products : [emptyProduct()] });
+  const editSavedOrder = (order: SavedSeedRevokeOrder) => {
+    setForm({ ...order, products: order.products?.length ? order.products : [emptyProduct()] });
     setEditingId(order.id);
     setShowPreview(false);
-    showLoaded('Order loaded', order.orderNumber || 'Stop Sale Order');
+    showLoaded('Order loaded', order.orderNumber || 'Revocation of Stop Sale Order');
   };
 
-  const deleteSavedOrder = (order: SavedPestStopSaleOrder) => {
+  const deleteSavedOrder = (order: SavedSeedRevokeOrder) => {
     setSavedOrders((current) => current.filter((item) => item.id !== order.id));
     if (editingId === order.id) setEditingId(null);
     showDeleted('Order deleted', order.orderNumber || 'Untitled order');
@@ -392,7 +369,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
     setForm({
       ...next,
       orderNumber: '',
-      orderDate: '',
+      revokeDate: '',
       officerName: '',
       officerDesignation: '',
       mandal: '',
@@ -401,12 +378,11 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
       manualDistrict: '',
       division: '',
       firmName: '',
-      dealerName: '',
       dealerAddress: '',
       licenceNumber: '',
-      actSection: '',
-      rulesRef: '',
-      observations: '',
+      issuedOn: '',
+      noticeNo: '',
+      noticeDate: '',
     });
     setEditingId(null);
     setShowPreview(false);
@@ -417,14 +393,14 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
     const term = savedSearch.trim().toLowerCase();
     if (!term) return savedOrders;
     return savedOrders.filter((order) =>
-      [order.orderNumber, order.dealerName, order.firmName, order.orderDate].join(' ').toLowerCase().includes(term)
+      [order.orderNumber, order.firmName, order.noticeNo, order.revokeDate].join(' ').toLowerCase().includes(term)
     );
   }, [savedOrders, savedSearch]);
 
-  const fileBase = () => `${form.orderNumber || 'stop-sale-order'}`.replace(/[\\/]/g, '-');
+  const fileBase = () => `${form.orderNumber || 'revoke-stop-sale-order'}`.replace(/[\\/]/g, '-');
 
   const downloadPdf = async () => {
-    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'bookAntiqua');
+    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Revocation of Stop Sale Order', 'bookAntiqua');
     doc.save(`${fileBase()}.pdf`);
     showSuccess('PDF downloaded', `${fileBase()}.pdf`);
   };
@@ -442,7 +418,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
       showSuccess('Word downloaded', `${fileBase()}.docx`);
     } catch (error) {
-      console.error('Unable to generate stop sale Word document:', error);
+      console.error('Unable to generate revoke order Word document:', error);
       showWarning('Word export failed', 'Please try again.');
     }
   };
@@ -502,15 +478,16 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
             <TextInput label="Enter Mandal Name" value={form.manualMandal} onChange={(value) => updateForm({ manualMandal: value })} />
           )}
           <TextInput label="Order No." value={form.orderNumber} onChange={(value) => updateForm({ orderNumber: value })} />
-          <TextInput label="Date" type="date" value={form.orderDate} onChange={(value) => updateForm({ orderDate: value })} />
+          <TextInput label="Date" type="date" value={form.revokeDate} onChange={(value) => updateForm({ revokeDate: value })} />
         </div>
       </div>
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Dealer Details</h3>
-        <div className="grid gap-3 md:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
-          <label className="block md:col-span-2">
+          <TextInput label="Licence No." value={form.licenceNumber} onChange={(value) => updateForm({ licenceNumber: value })} />
+          <label className="block md:col-span-3">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
             <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
               {effectiveLocationValue(form.mandal, form.manualMandal) || 'Mandal'} Mandal,<br />
@@ -524,33 +501,15 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
               className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
             />
           </label>
-          <TextInput label="Licence Number" value={form.licenceNumber} onChange={(value) => updateForm({ licenceNumber: value })} />
         </div>
       </div>
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Contravention &amp; Order Details</h3>
+        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Revocation Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
-          <TextInput
-            label="Section — Insecticides Act, 1968"
-            value={form.actSection}
-            onChange={(value) => updateForm({ actSection: value })}
-          />
-          <TextInput
-            label="Rule — Insecticides Rules, 1971"
-            value={form.rulesRef}
-            onChange={(value) => updateForm({ rulesRef: value })}
-          />
-          <TextInput label="Stop Sale Period (days)" value={form.stopDays} onChange={updateStopDays} />
-          <label className="block md:col-span-3">
-            <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Observations (Optional — one per line)</span>
-            <textarea
-              value={form.observations}
-              onChange={(event) => updateForm({ observations: event.target.value })}
-              rows={2}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-            />
-          </label>
+          <TextInput label="Stop Sale Order No." value={form.noticeNo} onChange={(value) => updateForm({ noticeNo: value })} />
+          <TextInput label="Order Dated" type="date" value={form.noticeDate} onChange={(value) => updateForm({ noticeDate: value })} />
+          <TextInput label="Order Issued On" type="date" value={form.issuedOn} onChange={(value) => updateForm({ issuedOn: value })} />
         </div>
       </div>
 
@@ -560,7 +519,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
           <button
             type="button"
             onClick={addProduct}
-            className="inline-flex items-center gap-1 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-sky-700"
+            className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-700"
           >
             <Plus className="h-3.5 w-3.5" />
             Add Row
@@ -582,20 +541,23 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
                 </button>
               </div>
               <div className="grid gap-3 md:grid-cols-4">
-                <label className="block md:col-span-2">
-                  <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Insecticide Name &amp; Details</span>
-                  <textarea
-                    value={row.name}
-                    onChange={(event) => updateProduct(row.id, { name: event.target.value })}
-                    rows={1}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                  />
-                </label>
-                <TextInput label="Manufactured By" value={row.manufacturer} onChange={(value) => updateProduct(row.id, { manufacturer: value })} />
-                <TextInput label="Batch No." value={row.batchNo} onChange={(value) => updateProduct(row.id, { batchNo: value })} />
-                <TextInput label="Mfg. Date" type="date" value={row.mfgDate} onChange={(value) => updateProduct(row.id, { mfgDate: value })} />
-                <TextInput label="Expiry Date" type="date" value={row.expiryDate} onChange={(value) => updateProduct(row.id, { expiryDate: value })} />
-                <TextInput label="Stock Qty (with units)" value={row.quantity} onChange={(value) => updateProduct(row.id, { quantity: value })} />
+                <SelectInput
+                  label="Crop"
+                  value={row.crop}
+                  onChange={(value) => updateProduct(row.id, { crop: value, cropOther: value === 'Others' ? row.cropOther : '' })}
+                  options={withOthersOption(CROP_OPTIONS.map((item) => ({ label: item, value: item })))}
+                />
+                {row.crop === 'Others' ? (
+                  <TextInput label="Enter Crop" value={row.cropOther} onChange={(value) => updateProduct(row.id, { cropOther: value })} />
+                ) : (
+                  <TextInput label="Variety" value={row.variety} onChange={(value) => updateProduct(row.id, { variety: value })} />
+                )}
+                {row.crop === 'Others' && (
+                  <TextInput label="Variety" value={row.variety} onChange={(value) => updateProduct(row.id, { variety: value })} />
+                )}
+                <TextInput label="Lot / Batch No." value={row.lotNo} onChange={(value) => updateProduct(row.id, { lotNo: value })} />
+                <TextInput label="Source / Purchased from" value={row.source} onChange={(value) => updateProduct(row.id, { source: value })} />
+                <TextInput label="Quantity" value={row.quantity} onChange={(value) => updateProduct(row.id, { quantity: value })} />
                 <TextInput label="Remarks" value={row.remarks} onChange={(value) => updateProduct(row.id, { remarks: value })} />
               </div>
             </div>
@@ -656,7 +618,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
       {showPreview && (
         <section ref={previewRef} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-base font-black text-slate-900 dark:text-white">Stop Sale Order Preview</h3>
+            <h3 className="text-base font-black text-slate-900 dark:text-white">Revocation of Stop Sale Order Preview</h3>
             <button
               type="button"
               onClick={() => setShowPreview(false)}
@@ -692,8 +654,8 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-black uppercase text-slate-500 dark:text-slate-400">
               <tr>
-                <th className="px-3 py-2">Order No.</th>
-                <th className="px-3 py-2">Dealer</th>
+                <th className="px-3 py-2">Ref No.</th>
+                <th className="px-3 py-2">Firm</th>
                 <th className="px-3 py-2">Date</th>
                 <th className="px-3 py-2">Items</th>
                 <th className="px-3 py-2 text-right">Action</th>
@@ -703,20 +665,15 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
               {filteredSaved.map((order) => (
                 <tr key={order.id}>
                   <td className="px-3 py-2 font-black">{order.orderNumber}</td>
-                  <td className="px-3 py-2">{order.firmName || order.dealerName || '-'}</td>
-                  <td className="px-3 py-2">{formatNoticeDate(order.orderDate) || '-'}</td>
-                  <td className="px-3 py-2">{order.products.filter((row) => row.name.trim()).length || '-'}</td>
+                  <td className="px-3 py-2">{order.firmName || '-'}</td>
+                  <td className="px-3 py-2">{formatNoticeDate(order.revokeDate) || '-'}</td>
+                  <td className="px-3 py-2">{order.products.filter((row) => row.crop.trim() || row.variety.trim()).length || '-'}</td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex items-center gap-1">
                       <button type="button" onClick={() => editSavedOrder(order)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50">
                         <Edit3 className="h-3.5 w-3.5" />
                         Edit
                       </button>
-                      {onRevoke && (
-                        <button type="button" onClick={() => onRevoke(order)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40">
-                          Revoke
-                        </button>
-                      )}
                       <button type="button" onClick={() => deleteSavedOrder(order)} aria-label="Delete saved order" className="inline-flex items-center justify-center rounded-md p-1.5 text-red-600 dark:text-red-300 hover:bg-red-50">
                         <Trash2 className="h-4 w-4" />
                       </button>

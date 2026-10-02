@@ -57,12 +57,13 @@ interface SeedStopSaleFormState {
   products: SeedStopSaleProductRow[];
 }
 
-interface SavedSeedStopSaleOrder extends SeedStopSaleFormState {
+export interface SavedSeedStopSaleOrder extends SeedStopSaleFormState {
   id: string;
   savedAt: string;
 }
 
 const STORAGE_KEY = 'agri-legal-seed-stop-sale-orders';
+const MAX_STOP_DAYS = 30;
 const today = () => new Date().toISOString().slice(0, 10);
 const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -161,9 +162,6 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
       : [[{ text: '_______________________________________________________________', bold: true }] as NoticeSegment[]]),
     [{ text: `${mandalValue} Mandal,`, bold: true }],
     [{ text: `${districtDisplay} District.`, bold: true }],
-    ...(form.licenceNumber.trim()
-      ? [[{ text: 'Licence No.: ', bold: true }, { text: form.licenceNumber.trim(), bold: true }] as NoticeSegment[]]
-      : []),
   ];
 
   const seedName = (item: SeedStopSaleProductRow) => {
@@ -189,16 +187,32 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
     : [[{ text: '_____________________________________________________' }], [{ text: '_____________________________________________________' }]];
 
   const designationParts = officerDesignation.split('&').map((part) => part.trim()).filter(Boolean);
-  const signatureLines: string[] = designationParts.length > 1
-    ? [`${designationParts[0]} &`, designationParts.slice(1).join(' & ').replace(/,+$/, '')]
-    : [officerDesignation, ''];
+  const signatureItems: NoticeSegment[][] = designationParts.length > 1
+    ? [[{ text: `${designationParts[0]} &`, bold: true }], [{ text: designationParts.slice(1).join(' & ').replace(/,+$/, ''), bold: true }]]
+    : [[{ text: officerDesignation, bold: true }]];
+
+  const divisionName = form.division.trim() || '________________';
+  const copyLines = (isDaoDesignation(officerDesignation)
+    ? `1. The Commissioner & Director of Agriculture, Telangana State, for favour of information and necessary action.\n2. The Asst. Director of Agriculture (R) concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
+    : isAdaDesignation(officerDesignation)
+      ? `1. The District Agriculture Officer, ${districtDisplay}, for favour of information and necessary action.\n2. The Mandal Agriculture Officer concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
+      : `1. The Asst. Director of Agriculture (R), ${divisionName}, for information and necessary action.\n2. The District Agriculture Officer, ${districtDisplay}, for information and necessary action.\n3. Copy to Stock File.`
+  ).split('\n');
 
   return [
     { kind: 'center', text: 'FORM – III', bold: true, size: 14 },
     { kind: 'center', text: '(FORM OF STOP SALE ORDER)', bold: true, underline: true },
+    { kind: 'gap', mm: 2 },
+    {
+      kind: 'memoRow',
+      left: [{ text: 'Order No.: ' }, { text: form.orderNumber || '______________', bold: true }],
+      right: [{ text: 'Dt.: ' }, { text: dateValue, bold: true }],
+    },
     { kind: 'gap', mm: 3 },
     { kind: 'lines', items: [[{ text: 'To,', bold: true }]] },
     { kind: 'lines', items: dealerItems, indent: 8 },
+    { kind: 'gap', mm: 2 },
+    { kind: 'lines', items: [[{ text: 'Licence No.: ', bold: true }, { text: form.licenceNumber.trim() || '______________' }]] },
     { kind: 'gap', mm: 3 },
     {
       kind: 'para',
@@ -236,19 +250,26 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
     { kind: 'gap', mm: 13, keepWithNext: true },
     {
       kind: 'memoRow',
-      left: [{ text: 'Place: ' }, { text: `${placeValue},`, bold: true }],
-      right: [{ text: signatureLines[0], bold: true }],
+      leftLines: [
+        [{ text: 'Place: ' }, { text: `${placeValue},`, bold: true }],
+        [{ text: 'Date: ' }, { text: `${dateValue}.`, bold: true }],
+      ],
+      rightLines: signatureItems,
       keepWithNext: true,
     },
-    {
-      kind: 'memoRow',
-      left: [{ text: 'Date: ' }, { text: `${dateValue}.`, bold: true }],
-      right: [{ text: signatureLines[1], bold: true }],
-    },
+    { kind: 'gap', mm: 12, keepWithNext: true },
+    { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
+    ...copyLines.map((line, index): NoticeBlock => {
+      const keepWithNext = index < copyLines.length - 1;
+      const match = line.match(/^(\d+\.)\s*(.*)$/);
+      return match
+        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
+        : { kind: 'lines', items: [[{ text: line }]], keepWithNext };
+    }),
   ];
 }
 
-export function SeedStopSaleEntry() {
+export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedStopSaleOrder) => void } = {}) {
   const [form, setForm] = useState<SeedStopSaleFormState>(() => readFormDraft() ?? makeInitialForm());
   const [savedOrders, setSavedOrders] = useState<SavedSeedStopSaleOrder[]>(() => readSavedOrders());
   const [savedSearch, setSavedSearch] = useState('');
@@ -258,7 +279,20 @@ export function SeedStopSaleEntry() {
   const previewRef = useRef<HTMLDivElement>(null);
   const [resetSpinKey, setResetSpinKey] = useState(0);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const overLimitWarned = useRef(false);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
+
+  const updateStopDays = (value: string) => {
+    updateForm({ stopDays: value });
+    const days = Number(value.trim());
+    const over = value.trim() !== '' && Number.isFinite(days) && days > MAX_STOP_DAYS;
+    if (over && !overLimitWarned.current) {
+      overLimitWarned.current = true;
+      showWarning(`Maximum stop sale period is ${MAX_STOP_DAYS} days`, 'Check the period before issuing the order.');
+    } else if (!over) {
+      overLimitWarned.current = false;
+    }
+  };
 
   const noticeBlocks = useMemo(() => buildStopSaleModel(form), [form]);
   const previewHtml = useMemo(() => noticeBlocksHtml(noticeBlocks), [noticeBlocks]);
@@ -443,6 +477,7 @@ export function SeedStopSaleEntry() {
           {form.mandal === 'Others' && (
             <TextInput label="Enter Mandal Name" value={form.manualMandal} onChange={(value) => updateForm({ manualMandal: value })} />
           )}
+          <TextInput label="Order No." value={form.orderNumber} onChange={(value) => updateForm({ orderNumber: value })} />
           <TextInput label="Date" type="date" value={form.noticeDate} onChange={(value) => updateForm({ noticeDate: value })} />
         </div>
       </div>
@@ -471,7 +506,7 @@ export function SeedStopSaleEntry() {
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Order Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
-          <TextInput label="Stop Sale Period (days)" value={form.stopDays} onChange={(value) => updateForm({ stopDays: value })} />
+          <TextInput label="Stop Sale Period (days)" value={form.stopDays} onChange={updateStopDays} />
           <label className="block md:col-span-2">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Defects to be Removed (one per line)</span>
             <textarea
@@ -645,6 +680,11 @@ export function SeedStopSaleEntry() {
                         <Edit3 className="h-3.5 w-3.5" />
                         Edit
                       </button>
+                      {onRevoke && (
+                        <button type="button" onClick={() => onRevoke(order)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40">
+                          Revoke
+                        </button>
+                      )}
                       <button type="button" onClick={() => deleteSavedOrder(order)} aria-label="Delete saved order" className="inline-flex items-center justify-center rounded-md p-1.5 text-red-600 dark:text-red-300 hover:bg-red-50">
                         <Trash2 className="h-4 w-4" />
                       </button>

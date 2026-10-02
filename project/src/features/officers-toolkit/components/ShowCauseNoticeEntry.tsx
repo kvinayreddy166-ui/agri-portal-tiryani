@@ -277,7 +277,7 @@ export interface NoticeSegment {
 
 export type NoticeBlock =
   | { kind: 'center'; text: string; bold?: boolean; underline?: boolean; size?: number; keepWithNext?: boolean }
-  | { kind: 'memoRow'; left: NoticeSegment[]; right: NoticeSegment[]; keepWithNext?: boolean }
+  | { kind: 'memoRow'; left?: NoticeSegment[]; right?: NoticeSegment[]; leftLines?: NoticeSegment[][]; rightLines?: NoticeSegment[][]; keepWithNext?: boolean }
   | { kind: 'para'; segments: NoticeSegment[]; indent?: number; firstLineIndent?: number; keepWithNext?: boolean }
   | { kind: 'labelPara'; label: string; labelSuffix?: string; segments: NoticeSegment[]; indent?: number; labelPad?: string; labelBold?: boolean; keepWithNext?: boolean }
   | { kind: 'heading'; text: string; keepWithNext?: boolean }
@@ -704,8 +704,16 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
       switch (block.kind) {
         case 'center':
           return `<div style="text-align:center;${block.bold ? 'font-weight:700;' : ''}${block.underline ? 'text-decoration:underline;' : ''}${block.size ? `font-size:${block.size}pt;` : ''}">${escapeHtml(block.text)}</div>`;
-        case 'memoRow':
-          return `<div style="display:flex;justify-content:space-between;gap:12pt;"><span>${segmentsHtml(block.left)}</span><span>${segmentsHtml(block.right)}</span></div>`;
+        case 'memoRow': {
+          const leftLines = block.leftLines ?? (block.left ? [block.left] : []);
+          const rightLines = block.rightLines ?? (block.right ? [block.right] : []);
+          const leftHtml = leftLines.map((line) => `<div>${segmentsHtml(line)}</div>`).join('');
+          const rightInner = rightLines.map((line) => `<div>${segmentsHtml(line)}</div>`).join('');
+          const rightHtml = block.rightLines
+            ? `<span style="display:inline-block;text-align:center;">${rightInner}</span>`
+            : `<span>${rightInner}</span>`;
+          return `<div style="display:flex;justify-content:space-between;gap:12pt;"><span>${leftHtml}</span>${rightHtml}</div>`;
+        }
         case 'para':
           return `<p style="margin:0 0 4pt ${block.indent || 0}mm;text-align:justify;${block.firstLineIndent ? `text-indent:${block.firstLineIndent}mm;` : ''}">${segmentsHtml(block.segments)}</p>`;
         case 'labelPara': {
@@ -744,7 +752,7 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
             .map(
               (row) =>
                 `<tr>${row
-                  .map((cell) => `<td style="border:1pt solid #000;padding:2pt 4pt;vertical-align:top;overflow-wrap:break-word;">${escapeHtml(cell) || '&nbsp;'}</td>`)
+                  .map((cell) => `<td style="border:1pt solid #000;padding:2pt 4pt;text-align:center;vertical-align:middle;overflow-wrap:break-word;">${escapeHtml(cell) || '&nbsp;'}</td>`)
                   .join('')}</tr>`
             )
             .join('')}</tbody></table>`;
@@ -823,12 +831,37 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
         }));
         break;
       case 'memoRow':
-        children.push(new Paragraph({
-          children: [...runs(block.left), new TextRun({ text: '\t', font, size: fontSize }), ...runs(block.right)],
-          tabStops: [{ type: TabStopType.RIGHT, position: mmToTwips(165) }],
-          keepNext: block.keepWithNext,
-          spacing: { line: 360, after: 0 },
-        }));
+        if (block.leftLines || block.rightLines) {
+          const leftLines = block.leftLines ?? (block.left ? [block.left] : []);
+          const rightLines = block.rightLines ?? (block.right ? [block.right] : []);
+          const memoPara = (line: NoticeSegment[], centered = false) => new Paragraph({
+            children: runs(line),
+            alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
+            keepNext: block.keepWithNext,
+            spacing: { line: 360, after: 0 },
+          });
+          children.push(new Table({
+            rows: [new TableRow({
+              cantSplit: true,
+              children: [
+                new TableCell({ children: leftLines.map((line) => memoPara(line)), verticalAlign: VerticalAlign.CENTER, borders: noBorders }),
+                new TableCell({ children: rightLines.map((line) => memoPara(line, true)), verticalAlign: VerticalAlign.CENTER, borders: noBorders }),
+              ],
+            })],
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            columnWidths: [mmToTwips(100), mmToTwips(70)],
+            borders: noBorders,
+            margins: { top: 0, bottom: 0, left: 0, right: 0 },
+            layout: TableLayoutType.FIXED,
+          }));
+        } else {
+          children.push(new Paragraph({
+            children: [...runs(block.left || []), new TextRun({ text: '\t', font, size: fontSize }), ...runs(block.right || [])],
+            tabStops: [{ type: TabStopType.RIGHT, position: mmToTwips(165) }],
+            keepNext: block.keepWithNext,
+            spacing: { line: 360, after: 0 },
+          }));
+        }
         break;
       case 'para':
         children.push(new Paragraph({
@@ -936,6 +969,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
         const contentWidth = mmToTwips(170);
         const cellPara = (text: string, bold = false) => new Paragraph({
           children: [new TextRun({ text, bold, font, size: fontSize - 2 })],
+          alignment: AlignmentType.CENTER,
           spacing: { line: 360, after: 0 },
         });
         children.push(new Table({
@@ -1124,8 +1158,14 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
     switch (block.kind) {
       case 'center':
         return (block.size || 12) * 0.5;
-      case 'memoRow':
+      case 'memoRow': {
+        if (block.leftLines || block.rightLines) {
+          const leftCount = block.leftLines?.length ?? (block.left ? 1 : 0);
+          const rightCount = block.rightLines?.length ?? (block.right ? 1 : 0);
+          return Math.max(leftCount, rightCount, 1) * LH;
+        }
         return LH;
+      }
       case 'para': {
         const indent = block.indent || 0;
         const firstLineIndent = block.firstLineIndent || 0;
@@ -1207,10 +1247,22 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
         break;
       }
       case 'memoRow': {
-        ensureSpace(LH);
-        drawRuns(block.left, ML, y);
-        drawRuns(block.right, PAGE_W - MR - runsWidth(block.right), y);
-        y += LH;
+        const leftLines = block.leftLines ?? (block.left ? [block.left] : []);
+        const rightLines = block.rightLines ?? (block.right ? [block.right] : []);
+        const rightBlockWidth = block.rightLines
+          ? Math.max(...rightLines.map((line) => runsWidth(line)), 0)
+          : 0;
+        const rowCount = Math.max(leftLines.length, rightLines.length, 1);
+        ensureSpace(rowCount * LH);
+        leftLines.forEach((lineRuns, i) => drawRuns(lineRuns, ML, y + i * LH));
+        rightLines.forEach((lineRuns, i) => {
+          const w = runsWidth(lineRuns);
+          const x = block.rightLines
+            ? PAGE_W - MR - rightBlockWidth + (rightBlockWidth - w) / 2
+            : PAGE_W - MR - w;
+          drawRuns(lineRuns, x, y + i * LH);
+        });
+        y += rowCount * LH;
         break;
       }
       case 'para': {
@@ -1318,7 +1370,11 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
           cells.forEach((cell, i) => {
             doc.rect(cx, y - 4.5, colW[i], rowH);
             const wrapped = wrapSegments([{ text: cell, bold }], colW[i] - 3, undefined, GRID_FONT_SIZE);
-            wrapped.forEach((runs, lineIndex) => drawRuns(runs, cx + 1.5, y + lineIndex * GRID_LH, undefined, GRID_FONT_SIZE));
+            const startY = y + Math.max(0, (rowH - 2 - wrapped.length * GRID_LH) / 2);
+            wrapped.forEach((runs, lineIndex) => {
+              const lineW = runsWidth(runs, GRID_FONT_SIZE);
+              drawRuns(runs, cx + Math.max(1.5, (colW[i] - lineW) / 2), startY + lineIndex * GRID_LH, undefined, GRID_FONT_SIZE);
+            });
             cx += colW[i];
           });
           y += rowH;

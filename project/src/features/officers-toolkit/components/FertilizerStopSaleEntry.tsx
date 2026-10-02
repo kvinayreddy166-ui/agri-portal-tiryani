@@ -23,6 +23,7 @@ import {
   SelectInput,
   TextInput,
   type NoticeBlock,
+  type NoticeSegment,
 } from './ShowCauseNoticeEntry';
 
 interface FertStopSaleProductRow {
@@ -47,18 +48,18 @@ interface FertStopSaleFormState {
   firmName: string;
   dealerAddress: string;
   formA2Number: string;
-  formA2ValidUpto: string;
   stopDays: string;
   observations: string;
   products: FertStopSaleProductRow[];
 }
 
-interface SavedFertStopSaleOrder extends FertStopSaleFormState {
+export interface SavedFertStopSaleOrder extends FertStopSaleFormState {
   id: string;
   savedAt: string;
 }
 
 const STORAGE_KEY = 'agri-legal-fertilizer-stop-sale-orders';
+const MAX_STOP_DAYS = 21;
 const today = () => new Date().toISOString().slice(0, 10);
 const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -130,7 +131,6 @@ function makeInitialForm(): FertStopSaleFormState {
     firmName: statutory.dealerName || '',
     dealerAddress: statutory.dealerAddress || '',
     formA2Number: '',
-    formA2ValidUpto: '',
     stopDays: '15',
     observations: '',
     products: [emptyProduct()],
@@ -147,9 +147,16 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
 
   const firmDisplay = form.firmName.trim() || '____________________________';
   const a2Number = form.formA2Number.trim() || '______________';
-  const a2ValidUpto = form.formA2ValidUpto ? formatNoticeDate(form.formA2ValidUpto) : '______________';
   const placeValue = mandalValue;
   const dateValue = form.noticeDate ? formatNoticeDate(form.noticeDate) : '__________';
+
+  const addressLines = form.dealerAddress.split('\n').map((line) => line.trim()).filter(Boolean);
+  const dealerItems: NoticeSegment[][] = [
+    [{ text: `M/s. ${firmDisplay}`, bold: true }],
+    ...addressLines.map((line) => [{ text: line.replace(/,+$/, ''), bold: true }] as NoticeSegment[]),
+    [{ text: `${mandalValue} Mandal,`, bold: true }],
+    [{ text: `${districtDisplay} District.`, bold: true }],
+  ];
 
   const observationLines = form.observations.split('\n').map((line) => line.trim()).filter(Boolean);
   const observationBlocks: NoticeBlock[] = observationLines.map((line, index) => ({
@@ -174,16 +181,35 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
   ]);
 
   const designationParts = officerDesignation.split('&').map((part) => part.trim()).filter(Boolean);
-  const signatureLines: string[] = designationParts.length > 1
-    ? [`${designationParts[0]} &`, designationParts.slice(1).join(' & ').replace(/,+$/, '')]
-    : [officerDesignation, ''];
+  const signatureItems: NoticeSegment[][] = designationParts.length > 1
+    ? [[{ text: `${designationParts[0]} &`, bold: true }], [{ text: designationParts.slice(1).join(' & ').replace(/,+$/, ''), bold: true }]]
+    : [[{ text: officerDesignation, bold: true }]];
+
+  const divisionName = form.division.trim() || '________________';
+  const copyLines = (isDaoDesignation(officerDesignation)
+    ? `1. The Commissioner & Director of Agriculture, Telangana State, for favour of information and necessary action.\n2. The Asst. Director of Agriculture (R) concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
+    : isAdaDesignation(officerDesignation)
+      ? `1. The District Agriculture Officer, ${districtDisplay}, for favour of information and necessary action.\n2. The Mandal Agriculture Officer concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
+      : `1. The Asst. Director of Agriculture (R), ${divisionName}, for information and necessary action.\n2. The District Agriculture Officer, ${districtDisplay}, for information and necessary action.\n3. Copy to Stock File.`
+  ).split('\n');
 
   return [
     { kind: 'center', text: 'ANNEXURE-A', bold: true, size: 14 },
     { kind: 'center', text: '(STOP SALE NOTICE)', bold: true, underline: true },
     { kind: 'center', text: '(Order under clause 28(2) of the Fertilizer (Control) Order, 1985', bold: true },
     { kind: 'center', text: 'requiring a person not to dispose of any stock in his possession)', bold: true },
-    { kind: 'gap', mm: 4 },
+    { kind: 'gap', mm: 2 },
+    {
+      kind: 'memoRow',
+      left: [{ text: 'Order No.: ' }, { text: form.orderNumber || '______________', bold: true }],
+      right: [{ text: 'Dt.: ' }, { text: dateValue, bold: true }],
+    },
+    { kind: 'gap', mm: 3 },
+    { kind: 'lines', items: [[{ text: 'To,', bold: true }]] },
+    { kind: 'lines', items: dealerItems, indent: 8 },
+    { kind: 'gap', mm: 2 },
+    { kind: 'lines', items: [[{ text: 'Form A2 No.: ', bold: true }, { text: a2Number }]] },
+    { kind: 'gap', mm: 3 },
     {
       kind: 'para',
       firstLineIndent: 10,
@@ -191,21 +217,9 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
         { text: 'Whereas I have reason(s) to believe that a contravention of the ' },
         { text: 'FCO 1985', bold: true },
         { text: ' has been or is being or is about to be committed by ' },
-        { text: `M/s. ${firmDisplay}`, bold: true },
-        ...(form.dealerAddress.trim()
-          ? [{ text: `, ${form.dealerAddress.trim().replace(/\n+/g, ', ')}`, bold: true }]
-          : []),
-        { text: `, ${mandalValue} Mandal, ${districtDisplay} District`, bold: true },
-        { text: ' with Form A2 No. ' },
-        { text: a2Number, bold: true },
-        { text: ' valid upto ' },
-        { text: a2ValidUpto, bold: true },
-        { text: '.' },
+        { text: 'you' },
+        { text: ' in respect of the stock of the fertilizer in your possession as detailed below:' },
       ],
-    },
-    {
-      kind: 'para',
-      segments: [{ text: 'In respect of the stock of the fertilizer in your possession as detailed below:' }],
     },
     { kind: 'gap', mm: 2 },
     {
@@ -226,31 +240,38 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
       kind: 'para',
       firstLineIndent: 10,
       segments: [
-        { text: 'I hereby require you under ' },
-        { text: 'clause 28 of the said Order', bold: true },
-        { text: ' to stop the sale, distribution or use of the said stock for a period of ' },
+        { text: 'In exercise of the powers conferred to me under ' },
+        { text: 'clause 28(2)', bold: true },
+        { text: ', I hereby require you to stop the sale, distribution or use of the said stock for a period of ' },
         { text: `${formatStopDays(form.stopDays) || '_____'} days`, bold: true },
         { text: ' from this date ' },
         { text: dateValue, bold: true },
-        { text: '.' },
+        { text: ' until further order.' },
       ],
     },
     { kind: 'gap', mm: 13, keepWithNext: true },
     {
       kind: 'memoRow',
-      left: [{ text: 'Place: ' }, { text: `${placeValue},`, bold: true }],
-      right: [{ text: signatureLines[0], bold: true }],
+      leftLines: [
+        [{ text: 'Place: ' }, { text: `${placeValue},`, bold: true }],
+        [{ text: 'Date: ' }, { text: `${dateValue}.`, bold: true }],
+      ],
+      rightLines: signatureItems,
       keepWithNext: true,
     },
-    {
-      kind: 'memoRow',
-      left: [{ text: 'Date: ' }, { text: `${dateValue}.`, bold: true }],
-      right: [{ text: signatureLines[1], bold: true }],
-    },
+    { kind: 'gap', mm: 12, keepWithNext: true },
+    { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
+    ...copyLines.map((line, index): NoticeBlock => {
+      const keepWithNext = index < copyLines.length - 1;
+      const match = line.match(/^(\d+\.)\s*(.*)$/);
+      return match
+        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
+        : { kind: 'lines', items: [[{ text: line }]], keepWithNext };
+    }),
   ];
 }
 
-export function FertilizerStopSaleEntry() {
+export function FertilizerStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedFertStopSaleOrder) => void } = {}) {
   const [form, setForm] = useState<FertStopSaleFormState>(() => readFormDraft() ?? makeInitialForm());
   const [savedOrders, setSavedOrders] = useState<SavedFertStopSaleOrder[]>(() => readSavedOrders());
   const [savedSearch, setSavedSearch] = useState('');
@@ -260,7 +281,20 @@ export function FertilizerStopSaleEntry() {
   const previewRef = useRef<HTMLDivElement>(null);
   const [resetSpinKey, setResetSpinKey] = useState(0);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const overLimitWarned = useRef(false);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
+
+  const updateStopDays = (value: string) => {
+    updateForm({ stopDays: value });
+    const days = Number(value.trim());
+    const over = value.trim() !== '' && Number.isFinite(days) && days > MAX_STOP_DAYS;
+    if (over && !overLimitWarned.current) {
+      overLimitWarned.current = true;
+      showWarning(`Maximum stop sale period is ${MAX_STOP_DAYS} days`, 'Check the period before issuing the order.');
+    } else if (!over) {
+      overLimitWarned.current = false;
+    }
+  };
 
   const noticeBlocks = useMemo(() => buildStopSaleModel(form), [form]);
   const previewHtml = useMemo(() => noticeBlocksHtml(noticeBlocks), [noticeBlocks]);
@@ -349,7 +383,6 @@ export function FertilizerStopSaleEntry() {
       firmName: '',
       dealerAddress: '',
       formA2Number: '',
-      formA2ValidUpto: '',
       observations: '',
     });
     setEditingId(null);
@@ -445,6 +478,7 @@ export function FertilizerStopSaleEntry() {
           {form.mandal === 'Others' && (
             <TextInput label="Enter Mandal Name" value={form.manualMandal} onChange={(value) => updateForm({ manualMandal: value })} />
           )}
+          <TextInput label="Order No." value={form.orderNumber} onChange={(value) => updateForm({ orderNumber: value })} />
           <TextInput label="Date" type="date" value={form.noticeDate} onChange={(value) => updateForm({ noticeDate: value })} />
         </div>
       </div>
@@ -454,7 +488,6 @@ export function FertilizerStopSaleEntry() {
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
           <TextInput label="Form A2 / Licence No." value={form.formA2Number} onChange={(value) => updateForm({ formA2Number: value })} />
-          <TextInput label="Validity" type="date" value={form.formA2ValidUpto} onChange={(value) => updateForm({ formA2ValidUpto: value })} />
           <label className="block md:col-span-3">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
             <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
@@ -475,7 +508,7 @@ export function FertilizerStopSaleEntry() {
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Order Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
-          <TextInput label="Stop Sale Period (days)" value={form.stopDays} onChange={(value) => updateForm({ stopDays: value })} />
+          <TextInput label="Stop Sale Period (days)" value={form.stopDays} onChange={updateStopDays} />
           <label className="block md:col-span-2">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Observations (Optional — one per line)</span>
             <textarea
@@ -486,9 +519,6 @@ export function FertilizerStopSaleEntry() {
             />
           </label>
         </div>
-        <p className="mt-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-          Notice issued under Clause 28(2) of the Fertilizer (Control) Order, 1985.
-        </p>
       </div>
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
@@ -647,6 +677,11 @@ export function FertilizerStopSaleEntry() {
                         <Edit3 className="h-3.5 w-3.5" />
                         Edit
                       </button>
+                      {onRevoke && (
+                        <button type="button" onClick={() => onRevoke(order)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40">
+                          Revoke
+                        </button>
+                      )}
                       <button type="button" onClick={() => deleteSavedOrder(order)} aria-label="Delete saved order" className="inline-flex items-center justify-center rounded-md p-1.5 text-red-600 dark:text-red-300 hover:bg-red-50">
                         <Trash2 className="h-4 w-4" />
                       </button>

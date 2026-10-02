@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Ban, Bug, ClipboardCheck, FileText, FlaskConical, PackageX, Sprout } from 'lucide-react';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { ShowCauseNoticeEntry } from '../components/ShowCauseNoticeEntry';
-import { PesticideStopSaleEntry } from '../components/PesticideStopSaleEntry';
-import { FertilizerStopSaleEntry } from '../components/FertilizerStopSaleEntry';
-import { SeedStopSaleEntry } from '../components/SeedStopSaleEntry';
+import { PesticideStopSaleEntry, type SavedPestStopSaleOrder } from '../components/PesticideStopSaleEntry';
+import { PesticideStopSaleRevokeEntry } from '../components/PesticideStopSaleRevokeEntry';
+import { FertilizerStopSaleEntry, type SavedFertStopSaleOrder } from '../components/FertilizerStopSaleEntry';
+import { SeedStopSaleEntry, type SavedSeedStopSaleOrder } from '../components/SeedStopSaleEntry';
+import { FertilizerStopSaleRevokeEntry } from '../components/FertilizerStopSaleRevokeEntry';
+import { SeedStopSaleRevokeEntry } from '../components/SeedStopSaleRevokeEntry';
 import type { NoticeCategory } from '../data/showCauseViolationData';
 
 const INSPECTION_TYPES = [
@@ -64,6 +67,12 @@ export function InspectionEnforcementHub() {
   const [showPesticideStopSale, setShowPesticideStopSale] = useState(false);
   const [showFertilizerStopSale, setShowFertilizerStopSale] = useState(false);
   const [showSeedStopSale, setShowSeedStopSale] = useState(false);
+  const [fertStopSaleTab, setFertStopSaleTab] = useState<'issue' | 'revoke'>('issue');
+  const [fertRevokePrefill, setFertRevokePrefill] = useState<SavedFertStopSaleOrder | null>(null);
+  const [seedStopSaleTab, setSeedStopSaleTab] = useState<'issue' | 'revoke'>('issue');
+  const [seedRevokePrefill, setSeedRevokePrefill] = useState<SavedSeedStopSaleOrder | null>(null);
+  const [pestStopSaleTab, setPestStopSaleTab] = useState<'issue' | 'revoke'>('issue');
+  const [pestRevokePrefill, setPestRevokePrefill] = useState<SavedPestStopSaleOrder | null>(null);
 
   const toggleCard = (card: 'inspections' | 'notices' | 'stopSale' | 'seizure') =>
     setOpenCard((current) => (current === card ? null : card));
@@ -146,7 +155,7 @@ export function InspectionEnforcementHub() {
                   <FileText className={`h-5 w-5 ${openCard === 'notices' ? 'text-white' : 'text-cyan-700 dark:text-cyan-300'}`} />
                 </div>
                 <div>
-                  <p className="text-base font-black">Notices / Memos</p>
+                  <p className="text-base font-black">Memo &amp; Show Cause Notice</p>
                   <p className={`text-xs font-semibold leading-snug ${openCard === 'notices' ? 'text-cyan-100' : 'text-slate-500 dark:text-slate-400'}`}>
                     Seed • Fertilizer • Pesticide notices and memos
                   </p>
@@ -192,7 +201,7 @@ export function InspectionEnforcementHub() {
                   <Ban className={`h-5 w-5 ${openCard === 'stopSale' ? 'text-white' : 'text-sky-700 dark:text-sky-300'}`} />
                 </div>
                 <div>
-                  <p className="text-base font-black">Stop Sale</p>
+                  <p className="text-base font-black">Stop Sale Order</p>
                   <p className={`text-xs font-semibold leading-snug ${openCard === 'stopSale' ? 'text-sky-100' : 'text-slate-500 dark:text-slate-400'}`}>
                     Seed • Fertilizer • Pesticide stop sale orders
                   </p>
@@ -208,9 +217,9 @@ export function InspectionEnforcementHub() {
                   key={item.label}
                   type="button"
                   onClick={() => {
-                    if (item.label === 'Pesticide') setShowPesticideStopSale(true);
-                    if (item.label === 'Fertilizer') setShowFertilizerStopSale(true);
-                    if (item.label === 'Seed') setShowSeedStopSale(true);
+                    if (item.label === 'Pesticide') { setPestStopSaleTab('issue'); setShowPesticideStopSale(true); }
+                    if (item.label === 'Fertilizer') { setFertStopSaleTab('issue'); setShowFertilizerStopSale(true); }
+                    if (item.label === 'Seed') { setSeedStopSaleTab('issue'); setShowSeedStopSale(true); }
                   }}
                   className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
                 >
@@ -218,6 +227,7 @@ export function InspectionEnforcementHub() {
                   <span className="text-sm font-black">{item.label} Stop Sale</span>
                 </button>
               ))}
+
             </div>
           )}
         </div>
@@ -242,9 +252,9 @@ export function InspectionEnforcementHub() {
                   <PackageX className={`h-5 w-5 ${openCard === 'seizure' ? 'text-white' : 'text-indigo-700 dark:text-indigo-300'}`} />
                 </div>
                 <div>
-                  <p className="text-base font-black">Seizure</p>
+                  <p className="text-base font-black">Seizure Order</p>
                   <p className={`text-xs font-semibold leading-snug ${openCard === 'seizure' ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'}`}>
-                    Seed • Fertilizer • Pesticide seizure memos
+                    Seed • Fertilizer • Pesticide seizure orders
                   </p>
                 </div>
               </div>
@@ -307,9 +317,11 @@ export function InspectionEnforcementHub() {
                   <Ban className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.pesticide.eyebrow}`}>Stop Sale Order — Form V(A)</p>
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.pesticide.eyebrow}`}>
+                    {pestStopSaleTab === 'issue' ? 'Stop Sale Order — Form V(A)' : 'Revocation of Stop Sale Order'}
+                  </p>
                   <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
-                    Pesticide Stop Sale Order Entry
+                    {pestStopSaleTab === 'issue' ? 'Pesticide Stop Sale Order Entry' : 'Pesticide Stop Sale Revoke Entry'}
                   </h2>
                 </div>
               </div>
@@ -322,7 +334,32 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <PesticideStopSaleEntry />
+              <div className="mb-3 inline-flex overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setPestStopSaleTab('issue')}
+                  className={`px-3 py-1.5 text-xs font-black transition ${pestStopSaleTab === 'issue' ? 'bg-amber-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                >
+                  Stop Sale Order
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPestRevokePrefill(null); setPestStopSaleTab('revoke'); }}
+                  className={`border-l border-slate-200 px-3 py-1.5 text-xs font-black transition dark:border-slate-700 ${pestStopSaleTab === 'revoke' ? 'bg-amber-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                >
+                  Revoke
+                </button>
+              </div>
+              {pestStopSaleTab === 'issue' ? (
+                <PesticideStopSaleEntry
+                  onRevoke={(order) => {
+                    setPestRevokePrefill(order);
+                    setPestStopSaleTab('revoke');
+                  }}
+                />
+              ) : (
+                <PesticideStopSaleRevokeEntry prefill={pestRevokePrefill} />
+              )}
             </div>
           </section>
         </div>
@@ -337,9 +374,11 @@ export function InspectionEnforcementHub() {
                   <Ban className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.fertiliser.eyebrow}`}>Stop Sale Notice — Annexure-A</p>
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.fertiliser.eyebrow}`}>
+                    {fertStopSaleTab === 'issue' ? 'Stop Sale Notice — Annexure-A' : 'Revoke of Stop Sale Notice — Clause 28'}
+                  </p>
                   <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
-                    Fertilizer Stop Sale Notice Entry
+                    {fertStopSaleTab === 'issue' ? 'Fertilizer Stop Sale Notice Entry' : 'Fertilizer Stop Sale Revoke Entry'}
                   </h2>
                 </div>
               </div>
@@ -352,7 +391,32 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <FertilizerStopSaleEntry />
+              <div className="mb-3 inline-flex overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setFertStopSaleTab('issue')}
+                  className={`px-3 py-1.5 text-xs font-black transition ${fertStopSaleTab === 'issue' ? 'bg-sky-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                >
+                  Stop Sale Notice
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setFertRevokePrefill(null); setFertStopSaleTab('revoke'); }}
+                  className={`border-l border-slate-200 px-3 py-1.5 text-xs font-black transition dark:border-slate-700 ${fertStopSaleTab === 'revoke' ? 'bg-sky-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                >
+                  Revoke
+                </button>
+              </div>
+              {fertStopSaleTab === 'issue' ? (
+                <FertilizerStopSaleEntry
+                  onRevoke={(order) => {
+                    setFertRevokePrefill(order);
+                    setFertStopSaleTab('revoke');
+                  }}
+                />
+              ) : (
+                <FertilizerStopSaleRevokeEntry prefill={fertRevokePrefill} />
+              )}
             </div>
           </section>
         </div>
@@ -367,9 +431,11 @@ export function InspectionEnforcementHub() {
                   <Ban className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.seed.eyebrow}`}>Stop Sale Order — Form III</p>
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.seed.eyebrow}`}>
+                    {seedStopSaleTab === 'issue' ? 'Stop Sale Order — Form III' : 'Revocation of Stop Sale Order — Annexure-I'}
+                  </p>
                   <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
-                    Seed Stop Sale Order Entry
+                    {seedStopSaleTab === 'issue' ? 'Seed Stop Sale Order Entry' : 'Seed Stop Sale Revoke Entry'}
                   </h2>
                 </div>
               </div>
@@ -382,7 +448,32 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <SeedStopSaleEntry />
+              <div className="mb-3 inline-flex overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setSeedStopSaleTab('issue')}
+                  className={`px-3 py-1.5 text-xs font-black transition ${seedStopSaleTab === 'issue' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                >
+                  Stop Sale Order
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSeedRevokePrefill(null); setSeedStopSaleTab('revoke'); }}
+                  className={`border-l border-slate-200 px-3 py-1.5 text-xs font-black transition dark:border-slate-700 ${seedStopSaleTab === 'revoke' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                >
+                  Revoke
+                </button>
+              </div>
+              {seedStopSaleTab === 'issue' ? (
+                <SeedStopSaleEntry
+                  onRevoke={(order) => {
+                    setSeedRevokePrefill(order);
+                    setSeedStopSaleTab('revoke');
+                  }}
+                />
+              ) : (
+                <SeedStopSaleRevokeEntry prefill={seedRevokePrefill} />
+              )}
             </div>
           </section>
         </div>
