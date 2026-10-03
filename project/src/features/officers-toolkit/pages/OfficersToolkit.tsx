@@ -254,6 +254,30 @@ const externalPortals: ToolkitItem[] = [
     gradient: 'from-lime-500 to-green-600',
     bgGradient: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
   },
+  {
+    title: 'IRAC',
+    description: 'Insecticide Resistance Action Committee',
+    externalUrl: 'https://irac-online.org/',
+    icon: Bug,
+    gradient: 'from-red-500 to-amber-600',
+    bgGradient: 'from-red-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30',
+  },
+  {
+    title: 'FRAC',
+    description: 'Fungicide Resistance Action Committee',
+    externalUrl: 'https://www.frac.info/',
+    icon: Microscope,
+    gradient: 'from-violet-500 to-purple-600',
+    bgGradient: 'from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30',
+  },
+  {
+    title: 'HRAC',
+    description: 'Herbicide Resistance Action Committee',
+    externalUrl: 'https://hracglobal.com/herbicide-resistance',
+    icon: Leaf,
+    gradient: 'from-green-600 to-emerald-700',
+    bgGradient: 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
+  },
 ];
 
 function translateToolkit(label?: string) {
@@ -312,6 +336,12 @@ function translateToolkit(label?: string) {
     'Fertilizer Statistics & Analysis (DA&FW)': 'ఎరువుల గణాంకాలు & విశ్లేషణ (DA&FW)',
     'CIB&RC': 'సీఐబీ&ఆర్‌సీ',
     'Central Insecticide Board & Registration Committee': 'సెంట్రల్ ఇన్‌సెక్టిసైడ్ బోర్డ్ & రిజిస్ట్రేషన్ కమిటీ',
+    IRAC: 'ఐఆర్‌ఏసీ',
+    'Insecticide Resistance Action Committee': 'పురుగుమందుల నిరోధక చర్య కమిటీ',
+    FRAC: 'ఎఫ్‌ఆర్‌ఏసీ',
+    'Fungicide Resistance Action Committee': 'శిలీంధ్రమందుల నిరోధక చర్య కమిటీ',
+    HRAC: 'హెచ్‌ఆర్‌ఏసీ',
+    'Herbicide Resistance Action Committee': 'కలుపుమందుల నిరోధక చర్య కమిటీ',
     'Officer Toolkit': 'అధికారుల టూల్‌కిట్',
     'Agricultural Tools & Government Portals': 'వ్యవసాయ సాధనాలు & ప్రభుత్వ పోర్టళ్లు',
     'Field Tools': 'క్షేత్ర సాధనాలు',
@@ -349,7 +379,6 @@ function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: numbe
   const [isVisible, setIsVisible] = useState(false);
   const theme = cardThemeByGradient[item.gradient];
   const cardBg = theme?.cardBg ?? item.bgGradient;
-  const iconColor = theme?.icon ?? 'text-emerald-600 dark:text-emerald-400';
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), index * 60);
@@ -359,31 +388,31 @@ function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: numbe
   return (
     <div
       onClick={onClick}
-      className={`group relative flex h-full cursor-pointer flex-col items-center overflow-hidden rounded-2xl border border-emerald-200/50 bg-gradient-to-br ${cardBg} px-2 pb-3 pt-4 text-center shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-emerald-800/50 sm:px-3 sm:pb-4 sm:pt-5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-900/5 bg-gradient-to-br ${cardBg} p-4 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 sm:p-5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
     >
-      <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-10`} />
-      {item.externalUrl && (
-        <div className="absolute right-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white/80 text-emerald-600 shadow-sm dark:bg-slate-800/80 dark:text-emerald-400">
-          <ExternalLink className="h-3 w-3" />
+      <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${item.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
+      <div className="flex items-start justify-between gap-2">
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.gradient} text-white shadow-lg transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105 sm:h-12 sm:w-12`}>
+          <item.icon className="h-5 w-5 sm:h-6 sm:w-6" />
         </div>
-      )}
-      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-slate-900/5 transition-transform duration-300 group-hover:scale-110 dark:bg-slate-800 dark:ring-slate-700 sm:h-16 sm:w-16 lg:h-20 lg:w-20">
-        <item.icon className={`h-7 w-7 sm:h-8 sm:w-8 lg:h-10 lg:w-10 ${iconColor}`} />
+        {item.externalUrl && (
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/70 text-slate-400 shadow-sm ring-1 ring-slate-900/5 transition-all duration-300 group-hover:bg-white group-hover:text-slate-600 dark:bg-slate-800/70 dark:text-slate-500 dark:ring-slate-700 dark:group-hover:bg-slate-700 dark:group-hover:text-slate-200">
+            <ExternalLink className="h-3.5 w-3.5" />
+          </span>
+        )}
       </div>
-      <h3 className="relative mt-2 text-balance text-[11px] font-bold leading-tight text-slate-800 transition-colors group-hover:text-emerald-700 dark:text-slate-100 dark:group-hover:text-emerald-400 sm:mt-3 sm:text-sm">
+      <h3 className="relative mt-3 text-[13px] font-bold leading-tight text-slate-800 transition-colors group-hover:text-slate-900 dark:text-slate-100 dark:group-hover:text-white sm:text-sm">
         {t(item.title, translateToolkit(item.title))}
       </h3>
-      <div className="relative mt-1 hidden md:block">
-        <p className="text-[11px] font-medium leading-snug text-slate-500 line-clamp-2 dark:text-slate-400">
-          {t(item.description, translateToolkit(item.description))}
-        </p>
-      </div>
+      <p className="relative mt-1 hidden text-[11px] font-medium leading-snug text-slate-500 line-clamp-2 dark:text-slate-400 lg:block">
+        {t(item.description, translateToolkit(item.description))}
+      </p>
       {item.statusMessage && (
-        <div className="relative mt-1.5 inline-flex rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-red-800 dark:bg-red-900/40 dark:text-red-200 sm:text-[10px]">
+        <span className="relative mt-2 inline-flex w-fit rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-red-800 dark:bg-red-900/40 dark:text-red-200 sm:text-[10px]">
           {t(item.statusMessage, translateToolkit(item.statusMessage))}
-        </div>
+        </span>
       )}
-      <div className={`pointer-events-none absolute -right-4 -bottom-4 h-20 w-20 rounded-full bg-gradient-to-br ${item.gradient} opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-20`} />
+      <div className={`pointer-events-none absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-gradient-to-br ${item.gradient} opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-25`} />
     </div>
   );
 }
@@ -415,16 +444,17 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
           <div className={`mb-5 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="relative overflow-hidden rounded-2xl border border-violet-400/70 bg-gradient-to-br from-violet-300 via-violet-200 to-purple-300/80 px-4 py-3 shadow-lg shadow-violet-900/15 backdrop-blur-sm dark:border-violet-700/60 dark:from-violet-900/50 dark:via-slate-900 dark:to-purple-900/40">
+            <div className="relative overflow-hidden rounded-2xl border border-violet-200/80 bg-gradient-to-r from-violet-100/90 via-purple-50/80 to-violet-100/90 px-4 py-3.5 shadow-md shadow-violet-900/5 backdrop-blur-sm dark:border-violet-700/50 dark:from-violet-950/50 dark:via-slate-900 dark:to-purple-950/40">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-400" />
               <div className="relative flex min-w-0 items-center gap-3">
                 <BackButton
                   onClick={() => navigate('/login')}
-                  colors="text-violet-800 hover:text-violet-950 dark:text-violet-200 dark:hover:text-white"
+                  colors="text-violet-700 hover:text-violet-950 dark:text-violet-300 dark:hover:text-white"
                 />
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 text-white shadow-md shadow-violet-600/30">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 text-white shadow-lg shadow-violet-600/25">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <h1 className="truncate text-lg font-black tracking-tight text-slate-900 dark:text-white sm:text-xl">
                     {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                   </h1>
@@ -432,12 +462,10 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                     {t('Agricultural Tools & Government Portals', 'వ్యవసాయ పనిముట్లు & ప్రభుత్వ పోర్టల్స్')}
                   </p>
                 </div>
-              </div>
-              <div className="relative mt-3 flex items-center justify-end gap-3 border-t border-violet-400/60 pt-3 dark:border-violet-700/50">
                 <LanguageToggle
                   language={language}
                   onClick={toggleLanguage}
-                  className="h-9 rounded-xl !border-violet-200 dark:border-violet-800/50 !bg-white/80 dark:bg-slate-900/80 !text-violet-800 dark:text-violet-300 px-3 hover:!bg-white dark:bg-slate-900 dark:!border-violet-800 dark:!bg-slate-800/80 dark:!text-violet-200 dark:hover:!bg-slate-700"
+                  className="h-9 shrink-0 rounded-xl !border-violet-200 !bg-white/80 !text-violet-800 shadow-sm backdrop-blur px-3 hover:!bg-white dark:!border-violet-800/60 dark:!bg-slate-900/80 dark:!text-violet-300 dark:hover:!bg-slate-800"
                 />
               </div>
             </div>
