@@ -821,13 +821,13 @@ export function Login() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
       <UpdateBanner />
 
-      <aside className="relative hidden flex-col justify-between overflow-hidden bg-indigo-600 p-10 text-white lg:flex xl:p-14">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-800" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-indigo-200/25" />
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-emerald-600 p-10 text-white lg:flex xl:p-14">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-500 via-emerald-600 to-green-800" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-emerald-200/25" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.12] [background-image:radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:22px_22px]" />
         <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-sky-300/30 blur-3xl dashboard-float" />
         <div className="pointer-events-none absolute -bottom-28 -left-20 h-96 w-96 rounded-full bg-emerald-300/35 blur-3xl dashboard-float" style={{ animationDelay: '1.5s' }} />
-        <div className="pointer-events-none absolute right-10 top-1/2 h-44 w-44 rounded-full bg-violet-300/30 blur-3xl dashboard-float" style={{ animationDelay: '2.5s' }} />
+        <div className="pointer-events-none absolute right-10 top-1/2 h-44 w-44 rounded-full bg-green-300/30 blur-3xl dashboard-float" style={{ animationDelay: '2.5s' }} />
         <div className="pointer-events-none absolute -left-40 top-1/2 h-[28rem] w-[28rem] -translate-y-1/2 rounded-full border border-white/10" />
         <div className="pointer-events-none absolute -left-24 top-1/2 h-[18rem] w-[18rem] -translate-y-1/2 rounded-full border border-white/10" />
         <div className="relative flex items-center gap-3">
@@ -836,32 +836,32 @@ export function Login() {
           </div>
           <div>
             <h2 className="text-2xl font-bold tracking-tight font-[var(--font-stylish)]">AGRONIX</h2>
-            <p className="text-xs text-indigo-200">
+            <p className="text-xs text-emerald-200">
               {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
             </p>
           </div>
         </div>
         <div className="relative space-y-6">
-          <h1 className="max-w-md bg-gradient-to-r from-white via-indigo-50 to-emerald-100 bg-clip-text text-3xl font-bold leading-tight tracking-tight text-transparent xl:text-[2.5rem]">
+          <h1 className="max-w-md bg-gradient-to-r from-white via-emerald-50 to-emerald-100 bg-clip-text text-3xl font-bold leading-tight tracking-tight text-transparent xl:text-[2.5rem]">
             {t('Field-ready documents for Quality enforcement.', 'నాణ్యత అమలు కోసం సిద్ధమైన పత్రాలు.')}
           </h1>
-          <p className="max-w-md text-[15px] leading-7 text-indigo-50/95">
+          <p className="max-w-md text-[15px] leading-7 text-emerald-50/95">
             {t('Inspections, memos, stop sale and seizure orders — prepared in departmental format, ready for PDF and Word.', 'తనిఖీలు, మెమోలు, స్టాప్ సేల్ మరియు జబ్తు ఆర్డర్లు — శాఖా ఫార్మాట్‌లో, PDF మరియు Word కోసం సిద్ధం.')}
           </p>
           <ul className="max-w-md space-y-3 text-sm font-medium text-white">
-            <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-indigo-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
+            <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-emerald-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30 transition group-hover:scale-105">
                 <FileText className="h-4 w-4 text-white" />
               </span>
               <span>{t('Statutory forms & covering letters', 'చట్టబద్ధ ఫారాలు & కవరింగ్ లెటర్లు')}</span>
             </li>
-            <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-indigo-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
+            <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-emerald-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30 transition group-hover:scale-105">
                 <ShieldCheck className="h-4 w-4 text-white" />
               </span>
               <span>{t('Inspection & enforcement toolkit', 'తనిఖీ & అమలు టూల్‌కిట్')}</span>
             </li>
-            <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-indigo-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
+            <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-emerald-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30 transition group-hover:scale-105">
                 <Sprout className="h-4 w-4 text-emerald-100" />
               </span>
@@ -869,22 +869,22 @@ export function Login() {
             </li>
           </ul>
         </div>
-        <div className="relative border-t border-white/15 pt-4 text-xs leading-5 text-indigo-100/80">
+        <div className="relative border-t border-white/15 pt-4 text-xs leading-5 text-emerald-100/80">
           <p>version-1.0.1 &middot; &copy; 2026 Agronix — Information Management System</p>
           <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
         </div>
       </aside>
 
-      <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-indigo-50 to-violet-100 p-4 pb-28 dark:from-slate-950 dark:via-indigo-950/50 dark:to-indigo-950/70 sm:pb-24 lg:min-h-0 lg:p-8">
-      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-violet-300/40 blur-3xl dark:bg-indigo-500/10" />
+      <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-emerald-50 to-green-100 p-4 pb-28 dark:from-slate-950 dark:via-emerald-950/50 dark:to-emerald-950/70 sm:pb-24 lg:min-h-0 lg:p-8">
+      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-green-300/40 blur-3xl dark:bg-emerald-500/10" />
       <div className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-emerald-300/35 blur-3xl dashboard-float dark:bg-emerald-500/10" />
-      <div className="pointer-events-none absolute right-1/4 top-1/3 h-40 w-40 rounded-full bg-violet-300/30 blur-3xl dashboard-float dark:bg-violet-500/10" style={{ animationDelay: '2s' }} />
+      <div className="pointer-events-none absolute right-1/4 top-1/3 h-40 w-40 rounded-full bg-green-300/30 blur-3xl dashboard-float dark:bg-green-500/10" style={{ animationDelay: '2s' }} />
       <div className="flex flex-1 items-center justify-center">
       <div className="relative w-full max-w-[28rem]">
-        <section className="relative flex flex-col justify-start overflow-hidden rounded-[28px] border border-white/80 bg-white/90 p-6 shadow-2xl shadow-indigo-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl animate-fadeIn dark:border-slate-800 dark:bg-slate-900/85 dark:ring-white/5 sm:p-10">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-emerald-400" />
+        <section className="relative flex flex-col justify-start overflow-hidden rounded-[28px] border border-white/80 bg-white/90 p-6 shadow-2xl shadow-emerald-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl animate-fadeIn dark:border-slate-800 dark:bg-slate-900/85 dark:ring-white/5 sm:p-10">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400" />
           <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
-            <LanguageToggle language={language} onClick={toggleLanguage} accent="violet" />
+            <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
           </div>
           <div className="w-full">
             <div className="mb-8 flex flex-col items-center gap-3 text-center animate-slide-up lg:hidden">
@@ -904,30 +904,30 @@ export function Login() {
             <button
               type="button"
               onClick={openOfficerToolkit}
-              className="group mb-5 flex w-full animate-slide-up items-center gap-3 rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50 via-violet-50/80 to-indigo-50 px-3.5 py-3 text-left shadow-sm transition delay-100 hover:-translate-y-px hover:border-indigo-200 hover:from-indigo-100/80 hover:to-violet-100/70 hover:shadow-md hover:shadow-indigo-500/10 active:translate-y-0 active:scale-[0.99] dark:border-indigo-500/30 dark:from-indigo-950/50 dark:via-violet-950/40 dark:to-indigo-950/50 dark:hover:border-indigo-400/50"
+              className="group mb-5 flex w-full animate-slide-up items-center gap-3 rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 via-green-50/80 to-emerald-50 px-3.5 py-3 text-left shadow-sm transition delay-100 hover:-translate-y-px hover:border-emerald-200 hover:from-emerald-100/80 hover:to-green-100/70 hover:shadow-md hover:shadow-emerald-500/10 active:translate-y-0 active:scale-[0.99] dark:border-emerald-500/30 dark:from-emerald-950/50 dark:via-green-950/40 dark:to-emerald-950/50 dark:hover:border-emerald-400/50"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100 transition group-hover:scale-105 dark:bg-slate-800 dark:text-indigo-300 dark:ring-indigo-500/30">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-100 transition group-hover:scale-105 dark:bg-slate-800 dark:text-emerald-300 dark:ring-emerald-500/30">
                 <ShieldCheck className="h-[18px] w-[18px]" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-bold text-slate-800 dark:text-slate-100">{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
                 <span className="block text-[11px] font-medium leading-snug text-slate-500 dark:text-slate-400">{t('Inspections, notices & orders — no sign-in needed', 'తనిఖీలు, నోటీసులు & ఆర్డర్లు — సైన్-ఇన్ అవసరం లేదు')}</span>
               </span>
-              <ArrowRight className="h-4 w-4 shrink-0 text-indigo-400 transition-transform group-hover:translate-x-0.5 dark:text-indigo-300" />
+              <ArrowRight className="h-4 w-4 shrink-0 text-emerald-400 transition-transform group-hover:translate-x-0.5 dark:text-emerald-300" />
             </button>
 
             <div className="mb-6 grid animate-slide-up grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 text-sm font-semibold ring-1 ring-inset ring-slate-200/70 delay-100 dark:bg-slate-800 dark:ring-slate-700">
               <button
                 type="button"
                 onClick={() => setLoginMode('staff')}
-                className={`rounded-lg px-3 py-2.5 transition-all ${loginMode === 'staff' ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-indigo-300 dark:ring-slate-700' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                className={`rounded-lg px-3 py-2.5 transition-all ${loginMode === 'staff' ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-emerald-300 dark:ring-slate-700' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
               >
                 {t('Staff / Test', 'సిబ్బంది / పరీక్ష')}
               </button>
               <button
                 type="button"
                 onClick={() => setLoginMode('dealer')}
-                className={`rounded-lg px-3 py-2.5 transition-all ${loginMode === 'dealer' ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-indigo-300 dark:ring-slate-700' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                className={`rounded-lg px-3 py-2.5 transition-all ${loginMode === 'dealer' ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-emerald-300 dark:ring-slate-700' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
               >
                 {t('Dealer', 'డీలర్')}
               </button>
@@ -967,7 +967,7 @@ export function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#5956eb] to-[#844bf2] py-3.5 font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:-translate-y-px hover:from-indigo-600 hover:to-violet-600 hover:shadow-xl hover:shadow-indigo-500/35 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/30 active:translate-y-0 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-60"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0aa775] to-[#1cb454] py-3.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:-translate-y-px hover:from-emerald-600 hover:to-green-600 hover:shadow-xl hover:shadow-emerald-500/35 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/30 active:translate-y-0 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-60"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : loginMode === 'dealer' ? <Store className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
                 {loading ? t('Signing in...', 'à°²à°¾à°—à°¿à°¨à± à°…à°µà±à°¤à±‹à°‚à°¦à°¿...') : loginMode === 'dealer' ? t('Dealer Sign In', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Sign In', 'à°²à°¾à°—à°¿à°¨à±')}
@@ -990,7 +990,7 @@ export function Login() {
       <button
         type="button"
         onClick={handleInstallApp}
-        className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-gradient-to-r from-[#5956eb] to-[#844bf2] px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-indigo-500/25 ring-1 ring-white/10 backdrop-blur transition hover:-translate-y-0.5 hover:from-indigo-600 hover:to-violet-600"
+        className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-gradient-to-r from-[#0aa775] to-[#1cb454] px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-emerald-500/25 ring-1 ring-white/10 backdrop-blur transition hover:-translate-y-0.5 hover:from-emerald-600 hover:to-green-600"
       >
         <Smartphone className="h-5 w-5" />
         Install App
@@ -1007,7 +1007,7 @@ export function Login() {
       <button
         type="button"
         onClick={openGrievance}
-        className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#5956eb] to-[#844bf2] px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-indigo-500/25 ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:from-indigo-600 hover:to-violet-600"
+        className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#0aa775] to-[#1cb454] px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-emerald-500/25 ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:from-emerald-600 hover:to-green-600"
       >
         <MessageSquareText className="h-5 w-5" />
         {t('Grievances', 'à°«à°¿à°°à±à°¯à°¾à°¦à±à°²à±')}
@@ -1106,7 +1106,7 @@ export function Login() {
                 <input value={grievance.subject} onChange={(e) => setGrievance({ ...grievance, subject: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Subject', 'à°µà°¿à°·à°¯à°‚')} required />
               </div>
               <textarea value={grievance.description} onChange={(e) => setGrievance({ ...grievance, description: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Description', 'à°µà°¿à°µà°°à°£')} required />
-              <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 py-3.5 font-bold text-white shadow-lg">
+              <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-700 py-3.5 font-bold text-white shadow-lg">
                 <Send className="h-5 w-5" />
                 {t('Submit Complaint', 'à°«à°¿à°°à±à°¯à°¾à°¦à± à°ªà°‚à°ªà°‚à°¡à°¿')}
               </button>
@@ -1207,13 +1207,13 @@ function LoginField({
       <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">{label}</label>
       <div className="relative">
         {React.cloneElement(icon, {
-          className: 'pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-indigo-600',
+          className: 'pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-emerald-600',
         })}
         <input
           type={isPassword && revealed ? 'text' : type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full rounded-xl border border-slate-200 bg-slate-50/70 py-3.5 pl-11 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:hover:border-slate-600 dark:focus:ring-indigo-500/20 ${isPassword ? 'pr-12' : 'pr-4'}`}
+          className={`w-full rounded-xl border border-slate-200 bg-slate-50/70 py-3.5 pl-11 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:hover:border-slate-600 dark:focus:ring-emerald-500/20 ${isPassword ? 'pr-12' : 'pr-4'}`}
           placeholder={placeholder}
           required
         />
