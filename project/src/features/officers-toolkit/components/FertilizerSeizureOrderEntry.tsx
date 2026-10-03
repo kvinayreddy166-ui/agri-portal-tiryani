@@ -242,15 +242,15 @@ function buildSeizureModel(form: FertSeizureFormState): NoticeBlock[] {
     { kind: 'lines', items: [[{ text: `1. ${witness1}` }], [{ text: `2. ${witness2}` }]], indent: 8, keepWithNext: true },
     { kind: 'gap', mm: 6, keepWithNext: true },
     { kind: 'lines', items: [[{ text: 'Signature of the Dealer in token of', bold: true }], [{ text: 'receipt of this notice', bold: true }]], align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
-    { kind: 'gap', mm: 10, keepWithNext: true },
+    { kind: 'gap', mm: 10 },
     { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
     ...(isDaoDesignation(officerDesignation)
       ? `1. The Commissioner & Director of Agriculture, Telangana State, for favour of information and necessary action.\n2. The Asst. Director of Agriculture (R) concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
       : isAdaDesignation(officerDesignation)
         ? `1. The District Agriculture Officer, ${districtDisplay}, for favour of information and necessary action.\n2. The Mandal Agriculture Officer concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
         : `1. The Asst. Director of Agriculture (R), ${divisionName}, for information and necessary action.\n2. The District Agriculture Officer, ${districtDisplay}, for information and necessary action.\n3. Copy to Stock File.`
-    ).split('\n').map((line, index, arr): NoticeBlock => {
-      const keepWithNext = index < arr.length - 1;
+    ).split('\n').map((line): NoticeBlock => {
+      const keepWithNext = false;
       const match = line.match(/^(\d+\.)\s*(.*)$/);
       return match
         ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
@@ -657,7 +657,7 @@ export function FertilizerSeizureOrderEntry() {
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-black uppercase text-slate-500 dark:text-slate-400">
               <tr>
-                <th className="px-3 py-2">Ref No.</th>
+                <th className="px-3 py-2">Notice No.</th>
                 <th className="px-3 py-2">Firm</th>
                 <th className="px-3 py-2">Date</th>
                 <th className="px-3 py-2">Items</th>

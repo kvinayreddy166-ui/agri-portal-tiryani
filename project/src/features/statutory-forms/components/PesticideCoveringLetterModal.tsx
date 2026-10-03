@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isCombinationProductFromActiveIngredient } from '../lib/statutoryPesticidePdf';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
+import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
 
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
 const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';
@@ -351,7 +352,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (format: CoveringLetterExportFormat = 'pdf') => {
     if (!validateSampleCodes()) {
       showMessage('Please fix validation errors before downloading.');
       return;
@@ -366,10 +367,16 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     
     try {
       const { generatePesticideCoveringLetterPdf } = await import('../lib/pesticideCoveringLetterPdf');
-      const doc = await generatePesticideCoveringLetterPdf(editedQueue, metadata, officerDetails, watermarkEnabled);
+      const wordRecorder = format === 'word' ? (await import('../lib/coveringLetterDocx')).createCoveringLetterRecorder() : null;
+      const doc = await generatePesticideCoveringLetterPdf(editedQueue, metadata, officerDetails, watermarkEnabled, wordRecorder?.attach);
       
       const fileName = `Pesticide_Covering_Letter_${metadata.letterNumber || 'Draft'}.pdf`;
-      doc.save(fileName);
+      if (wordRecorder) {
+        const { downloadBlob } = await import('../lib/coveringLetterDocx');
+        downloadBlob(await wordRecorder.buildDocx(), fileName.replace(/\.pdf$/, '.docx'));
+      } else {
+        doc.save(fileName);
+      }
       
       showMessage('Covering letter downloaded successfully.');
     } catch (error) {
@@ -652,24 +659,12 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                   </>
                 )}
               </button>
-              <button
-                type="button"
-                onClick={handleDownload}
+              <CoveringLetterExportButton
+                onExport={handleDownload}
                 disabled={editedQueue.length === 0 || isGenerating}
+                isGenerating={isGenerating}
                 className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 flex-1 sm:w-auto min-w-0"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Downloading...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-4 h-4" />
-                    Download
-                  </>
-                )}
-              </button>
+              />
             </div>
         </footer>
       </div>

@@ -276,10 +276,10 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
     },
     { kind: 'gap', mm: 8, keepWithNext: true },
     { kind: 'lines', items: signatureItems, align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
-    { kind: 'gap', mm: 12, keepWithNext: true },
+    { kind: 'gap', mm: 12 },
     { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
-    ...copyLines.map((line, index): NoticeBlock => {
-      const keepWithNext = index < copyLines.length - 1;
+    ...copyLines.map((line): NoticeBlock => {
+      const keepWithNext = false;
       const match = line.match(/^(\d+\.)\s*(.*)$/);
       return match
         ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }

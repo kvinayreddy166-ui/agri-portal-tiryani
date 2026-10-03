@@ -80,11 +80,13 @@ export async function generateSeedCoveringLetterPdf(
   metadata: SeedCoveringLetterMetadata,
   officerDetails?: OfficerDetails,
   _watermarkEnabled: boolean = false,
-  laboratoryAddress?: string
+  laboratoryAddress?: string,
+  onDocCreated?: (doc: JsPdfInstance) => void
 ) {
   const { jsPDF } = await import('jspdf');
 
   const doc = createDocument(jsPDF, 'Covering Letter - Seed Samples');
+  onDocCreated?.(doc);
 
   await setupPdfUnicodeFonts(doc);
   await drawWatermark(doc);

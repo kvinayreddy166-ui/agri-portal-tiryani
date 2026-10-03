@@ -80,11 +80,13 @@ export async function generatePesticideCoveringLetterPdf(
   queue: PesticideCoveringLetterQueueItem[],
   metadata: PesticideCoveringLetterMetadata,
   officerDetails?: OfficerDetails,
-  _watermarkEnabled: boolean = false
+  _watermarkEnabled: boolean = false,
+  onDocCreated?: (doc: JsPdfInstance) => void
 ) {
   const { jsPDF } = await import('jspdf');
 
   const doc = createDocument(jsPDF, 'Covering Letter - Pesticide Samples');
+  onDocCreated?.(doc);
 
   await setupPdfUnicodeFonts(doc);
   await drawWatermark(doc);

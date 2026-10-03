@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect } from 'react';
-import { ChevronDown, Plus, Trash2 } from 'lucide-react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { ChevronDown, FileDown, FileSpreadsheet, FileText, Plus, Trash2 } from 'lucide-react';
 import type { Column, Status, StatusField } from './types';
 
 export type InspectionTone = 'emerald' | 'sky' | 'rose';
@@ -116,6 +117,69 @@ export function ActionButton({
       <Icon className="h-4 w-4" aria-hidden="true" />
       {children}
     </button>
+  );
+}
+
+export function ExportMenu({ tone, onPdf, onExcel }: { tone: InspectionTone; onPdf: () => void; onExcel: () => void }) {
+  const [open, setOpen] = useState(false);
+  const solid: Record<InspectionTone, string> = {
+    emerald: 'bg-emerald-600 text-white hover:bg-emerald-700',
+    sky: 'bg-sky-600 text-white hover:bg-sky-700',
+    rose: 'bg-rose-600 text-white hover:bg-rose-700',
+  };
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [position, setPosition] = useState<{ top: number; right: number } | null>(null);
+  const MENU_HEIGHT = 96;
+  const toggle = () => {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (rect) {
+      const fitsBelow = window.innerHeight - rect.bottom >= MENU_HEIGHT + 8;
+      setPosition({
+        top: fitsBelow ? rect.bottom + 4 : Math.max(8, rect.top - MENU_HEIGHT - 4),
+        right: Math.max(8, window.innerWidth - rect.right),
+      });
+    }
+    setOpen(true);
+  };
+  const choose = (action: () => void) => {
+    setOpen(false);
+    action();
+  };
+  return (
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={toggle}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black shadow-sm transition sm:text-sm ${solid[tone]}`}
+      >
+        <FileDown className="h-4 w-4" aria-hidden="true" />
+        Export
+        <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+      {open && position && createPortal(
+        <>
+          <button type="button" aria-label="Close export menu" onClick={() => setOpen(false)} className="fixed inset-0 z-[200] cursor-default" />
+          <div role="menu" style={{ position: 'fixed', top: position.top, right: position.right }} className="z-[210] w-40 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
+            <button type="button" role="menuitem" onClick={() => choose(onPdf)} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs font-black text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800 sm:text-sm">
+              <FileText className="h-4 w-4" aria-hidden="true" />
+              PDF
+            </button>
+            <button type="button" role="menuitem" onClick={() => choose(onExcel)} className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-left text-xs font-black text-emerald-700 transition hover:bg-emerald-50 dark:border-slate-800 dark:text-emerald-300 dark:hover:bg-slate-800 sm:text-sm">
+              <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />
+              EXCEL
+            </button>
+          </div>
+        </>,
+        document.body,
+      )}
+    </div>
   );
 }
 

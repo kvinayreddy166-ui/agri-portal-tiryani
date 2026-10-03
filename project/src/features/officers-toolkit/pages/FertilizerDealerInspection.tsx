@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardCheck, Eye, FileText, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
+import { ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
-import { ActionButton, Field, InspectionTheme, Modal, RowTable, Section, StatusInput, SummaryChip, useInputClass } from '../inspection/ui';
+import { ActionButton, ExportMenu, Field, InspectionTheme, Modal, RowTable, Section, StatusInput, SummaryChip, useInputClass } from '../inspection/ui';
 import { emptyStatus, formatDate, listOrNil, statusText } from '../inspection/types';
 import type { DraftRecord as DraftRecordBase, PdfSubTable, StatusField } from '../inspection/types';
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../inspection/persistence';
@@ -245,6 +245,34 @@ export function FertilizerDealerInspection() {
     if (message) return;
     setShowPreview(true);
     showInfo('Preview ready');
+  };
+
+  const generateExcel = async () => {
+    const message = validate();
+    setError(message);
+    if (message) return;
+    try {
+      const { exportInspectionExcel } = await import('../inspection/excelExport');
+      const { items, subTables } = buildRows(form, stockTotal);
+      await exportInspectionExcel({
+        title: 'Fertilizer Dealer Inspection Report',
+        items,
+        subTables,
+        dealerLabel: 'Signature of dealer and seal',
+        dealerName: form.dealerName,
+        inspectorLabel: 'Signature of fertilizer inspector and seal',
+        inspectorLines: [
+          form.inspectorName.trim() ? `(${form.inspectorName.trim()})` : '',
+          form.inspectorDesignation.split('&')[0].trim(),
+          form.inspectorOffice.trim(),
+        ].filter(Boolean),
+        fileName: `Fertilizer_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.xlsx`,
+      });
+      showSuccess('Excel downloaded');
+    } catch (error) {
+      console.error('Excel export failed:', error);
+      setError('Excel could not be generated. Please try again.');
+    }
   };
 
   const generatePdf = async () => {
@@ -567,7 +595,7 @@ export function FertilizerDealerInspection() {
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-sky-100 pt-3 dark:border-sky-900/40">
             <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
-            <ActionButton onClick={generatePdf} icon={FileText} tone="sky">PDF</ActionButton>
+            <ExportMenu tone="sky" onPdf={generatePdf} onExcel={generateExcel} />
           </div>
         </div>
       </div>
@@ -607,7 +635,7 @@ export function FertilizerDealerInspection() {
       )}
 
       {showPreview && (
-        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ActionButton onClick={generatePdf} icon={FileText} tone="sky">PDF</ActionButton>}>
+        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ExportMenu tone="sky" onPdf={generatePdf} onExcel={generateExcel} />}>
           <Preview form={form} stockTotal={stockTotal} />
         </Modal>
       )}

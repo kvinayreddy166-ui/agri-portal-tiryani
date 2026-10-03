@@ -529,10 +529,10 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       { kind: 'gap', mm: 4, keepWithNext: true },
       { kind: 'lines', items: [[{ text: 'To', bold: true }]], keepWithNext: true },
       { kind: 'lines', items: dealerItems, indent: 8, keepWithNext: true },
-      { kind: 'gap', mm: 3, keepWithNext: true },
+      { kind: 'gap', mm: 3 },
       { kind: 'lines', items: [[{ text: 'Copy submitted to:', bold: true }]], keepWithNext: true },
-      ...memoCopyLines.map((line, index): NoticeBlock => {
-        const keepWithNext = index < memoCopyLines.length - 1;
+      ...memoCopyLines.map((line): NoticeBlock => {
+        const keepWithNext = false;
         const match = line.match(/^(\d+\.)\s*(.*)$/);
         return match
           ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
@@ -678,10 +678,10 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     { kind: 'gap', mm: 4, keepWithNext: true },
     { kind: 'lines', items: [[{ text: 'To', bold: true }]], keepWithNext: true },
     { kind: 'lines', items: dealerItems, indent: 8, keepWithNext: true },
-    { kind: 'gap', mm: 3, keepWithNext: true },
+    { kind: 'gap', mm: 3 },
     { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
-    ...copyLines.map((line, index): NoticeBlock => {
-      const keepWithNext = index < copyLines.length - 1;
+    ...copyLines.map((line): NoticeBlock => {
+      const keepWithNext = false;
       const match = line.match(/^(\d+\.)\s*(.*)$/);
       return match
         ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
@@ -799,6 +799,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
     AlignmentType,
     BorderStyle,
     Document,
+    LineRuleType,
     PageOrientation,
     Packer,
     Paragraph,
@@ -817,6 +818,8 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
   const font = { ascii: latinFont, hAnsi: latinFont, eastAsia: latinFont, cs: DOCX_TELUGU_FONT };
   const fontSize = 24;
   const mmToTwips = (mm: number) => Math.round(mm * 56.6929);
+  const wordLine = { line: mmToTwips(5.8), lineRule: LineRuleType.AT_LEAST };
+  const wordGridLine = { line: mmToTwips((5.8 * 11) / 12), lineRule: LineRuleType.AT_LEAST };
   const runs = (segments: NoticeSegment[]) => segments.map((segment) => new TextRun({ text: segment.text, bold: segment.bold, underline: segment.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: fontSize }));
   const children: FileChild[] = [];
   const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
@@ -831,7 +834,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           children: [new TextRun({ text: block.text, bold: block.bold, underline: block.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: block.size ? block.size * 2 : fontSize })],
           alignment: AlignmentType.CENTER,
           keepNext: block.keepWithNext,
-          spacing: { line: 360, after: 0 },
+          spacing: { ...wordLine, after: 0 },
         }));
         break;
       case 'memoRow':
@@ -842,7 +845,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             children: runs(line),
             alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
             keepNext: block.keepWithNext,
-            spacing: { line: 360, after: 0 },
+            spacing: { ...wordLine, after: 0 },
           });
           children.push(new Table({
             rows: [new TableRow({
@@ -863,7 +866,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             children: [...runs(block.left || []), new TextRun({ text: '\t', font, size: fontSize }), ...runs(block.right || [])],
             tabStops: [{ type: TabStopType.RIGHT, position: mmToTwips(165) }],
             keepNext: block.keepWithNext,
-            spacing: { line: 360, after: 0 },
+            spacing: { ...wordLine, after: 0 },
           }));
         }
         break;
@@ -876,7 +879,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             firstLine: mmToTwips(block.firstLineIndent || 0),
           },
           keepNext: block.keepWithNext,
-          spacing: { line: 360, after: 80 },
+          spacing: { ...wordLine, after: mmToTwips(1) },
         }));
         break;
       case 'labelPara': {
@@ -892,7 +895,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           alignment: AlignmentType.JUSTIFIED,
           indent: { left: mmToTwips(block.indent || 0) + padTwips + hanging, hanging },
           keepNext: block.keepWithNext,
-          spacing: { line: 360, after: 80 },
+          spacing: { ...wordLine, after: mmToTwips(1) },
         }));
         break;
       }
@@ -900,7 +903,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
         children.push(new Paragraph({
           children: [new TextRun({ text: block.text, bold: true, font, size: fontSize })],
           keepNext: block.keepWithNext,
-          spacing: { line: 360, before: 120, after: 40 },
+          spacing: { ...wordLine, before: 0, after: 0 },
         }));
         break;
       case 'lines':
@@ -913,7 +916,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
                   children: runs(item),
                   alignment: AlignmentType.CENTER,
                   keepNext: block.keepWithNext,
-                  spacing: { line: 360, after: 0 },
+                  spacing: { ...wordLine, after: 0 },
                 })),
                 verticalAlign: VerticalAlign.CENTER,
                 borders: noBorders,
@@ -932,14 +935,14 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             alignment: block.align === 'right' ? AlignmentType.RIGHT : AlignmentType.LEFT,
             indent: { left: mmToTwips(block.indent || 0) },
             keepNext: block.keepWithNext,
-            spacing: { line: 360, after: 0 },
+            spacing: { ...wordLine, after: 0 },
           })));
         }
         break;
       case 'table': {
         const cellParagraph = (text: string, bold = false) => new Paragraph({
           children: [new TextRun({ text, bold, font, size: fontSize })],
-          spacing: { line: 360, after: 0 },
+          spacing: { ...wordLine, after: 0 },
         });
         children.push(new Table({
           rows: [
@@ -974,7 +977,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
         const cellPara = (text: string, bold = false) => new Paragraph({
           children: [new TextRun({ text, bold, font, size: fontSize - 2 })],
           alignment: AlignmentType.CENTER,
-          spacing: { line: 360, after: 0 },
+          spacing: { ...wordGridLine, after: 0 },
         });
         children.push(new Table({
           rows: [
@@ -1007,11 +1010,15 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           children: [],
           border: { bottom: { style: BorderStyle.DASHED, size: 6, color: '000000', space: 1 } },
           keepNext: block.keepWithNext,
-          spacing: { line: 360, after: 40 },
+          spacing: { ...wordLine, after: 0 },
         }));
         break;
       case 'gap':
-        children.push(new Paragraph({ children: [], keepNext: block.keepWithNext, spacing: { after: mmToTwips(block.mm ?? 2) } }));
+        children.push(new Paragraph({
+          children: [],
+          keepNext: block.keepWithNext,
+          spacing: { before: 0, after: 0, line: mmToTwips(block.mm ?? 2), lineRule: LineRuleType.EXACT },
+        }));
         break;
       default:
         break;
@@ -1023,7 +1030,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
       default: {
         document: {
           run: { font, size: fontSize, color: '000000' },
-          paragraph: { spacing: { line: 360 } },
+          paragraph: { spacing: { ...wordLine } },
         },
       },
     },
@@ -1107,12 +1114,12 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
       const extra = justifyToWidth - runsWidth(runs, size);
       if (extra > 0) gap += extra / (runs.length - 1);
     }
-    runs.forEach((run) => {
+    runs.forEach((run, runIndex) => {
       doc.setFont(fontName, run.bold ? 'bold' : 'normal');
       doc.setFontSize(size);
       doc.text(run.text, cx, lineY);
       const w = doc.getTextWidth(run.text);
-      if (run.underline) doc.line(cx, lineY + 0.8, cx + w, lineY + 0.8);
+      if (run.underline) doc.line(cx, lineY + 0.8, cx + w + (runs[runIndex + 1]?.underline ? gap : 0), lineY + 0.8);
       cx += w + gap;
     });
   };

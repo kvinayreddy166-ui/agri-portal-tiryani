@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
+import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
 
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 const SEED_COVERING_LETTER_DETAILS_KEY = 'tiryani-seed-covering-letter-details';
@@ -373,7 +374,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     setTimeout(() => setMessage(null), 3000);
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (format: CoveringLetterExportFormat = 'pdf') => {
     if (!validateSampleCodes()) {
       setMessage('Please fix validation errors before downloading.');
       setTimeout(() => setMessage(null), 3000);
@@ -417,12 +418,18 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
         isCotton: letterType === 'BT Protein'
       }));
       
-      const doc = await generateSeedCoveringLetterPdf(queueWithLetterType, metadataForPdf, officerDetailsWithPhone, watermarkEnabled, laboratoryAddress);
+      const wordRecorder = format === 'word' ? (await import('../lib/coveringLetterDocx')).createCoveringLetterRecorder() : null;
+      const doc = await generateSeedCoveringLetterPdf(queueWithLetterType, metadataForPdf, officerDetailsWithPhone, watermarkEnabled, laboratoryAddress, wordRecorder?.attach);
       
       const fileName = letterType === 'BT Protein' 
         ? `Seed_Covering_Letter_BT_${metadataForPdf.letterNumber || 'Draft'}.pdf`
         : `Seed_Covering_Letter_PMG_${metadata.letterNumber || 'Draft'}.pdf`;
-      doc.save(fileName);
+      if (wordRecorder) {
+        const { downloadBlob } = await import('../lib/coveringLetterDocx');
+        downloadBlob(await wordRecorder.buildDocx(), fileName.replace(/\.pdf$/, '.docx'));
+      } else {
+        doc.save(fileName);
+      }
       
       setMessage(`Covering letter downloaded successfully for ${letterType}.`);
     } catch (error) {
@@ -734,24 +741,12 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   </>
                 )}
               </button>
-              <button
-                type="button"
-                onClick={handleDownload}
+              <CoveringLetterExportButton
+                onExport={handleDownload}
                 disabled={editedQueue.length === 0 || isGenerating}
+                isGenerating={isGenerating}
                 className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 flex-1 sm:w-auto min-w-0"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Downloading...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-4 h-4" />
-                    Download
-                  </>
-                )}
-              </button>
+              />
             </div>
         </footer>
       </div>

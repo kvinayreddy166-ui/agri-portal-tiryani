@@ -11,7 +11,6 @@ import {
   getMandalsForDistrict,
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
-import { PopupHintWrapper } from '../../../shared/components/PopupHint';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
@@ -709,9 +708,11 @@ export function SeedForms() {
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value: any) => setField('dealerName', value)} />
           <label>
             <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">Dealer / Party address</span>
-            <PopupHintWrapper message="Enter D.No, Road and Village; Mandal and District will be auto-populated">
-              <textarea rows={2} value={form.dealerAddress} onChange={(event) => setField('dealerAddress', event.target.value)} placeholder="D.No, Road, Village" className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" />
-            </PopupHintWrapper>
+            <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
+              {(isAssistantDirectorOfAgriculture(form.designation) ? effectiveLocationValue(form.placeOfCollectionMandal, form.manualPlaceOfCollection) : effectiveLocationValue(form.mandal, form.manualMandal)) || 'Mandal'} Mandal,<br />
+              {effectiveLocationValue(form.district, form.manualDistrict) || 'District'} District. (auto-added)
+            </span>
+            <textarea rows={2} value={form.dealerAddress} onChange={(event) => setField('dealerAddress', event.target.value)} placeholder="D.No, Road, Village" className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" />
           </label>
           <div className="grid gap-2 sm:grid-cols-2">
             <Select label="Cost of sample demanded" value={form.costDemanded} onChange={(value: any) => setField('costDemanded', value)} options={['Yes', 'No'].map(toOption)} />

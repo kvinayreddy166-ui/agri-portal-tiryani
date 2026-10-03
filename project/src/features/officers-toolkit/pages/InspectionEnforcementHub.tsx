@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Ban, Bug, ClipboardCheck, FileText, FlaskConical, PackageX, Sprout } from 'lucide-react';
+import { ArrowRight, Ban, Bug, ChevronDown, ClipboardCheck, FileText, FlaskConical, PackageX, Sprout } from 'lucide-react';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { ShowCauseNoticeEntry } from '../components/ShowCauseNoticeEntry';
 import { PesticideStopSaleEntry, type SavedPestStopSaleOrder } from '../components/PesticideStopSaleEntry';
@@ -38,11 +38,44 @@ const SEIZURE_TYPES: { label: string; icon: typeof Sprout; tone: string }[] = [
   { label: 'Pesticide', icon: Bug, tone: 'amber' },
 ];
 
-const toneClasses: Record<string, string> = {
-  emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/70',
-  sky: 'border-sky-200 bg-sky-50 text-sky-800 hover:border-sky-400 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200 dark:hover:border-sky-600 dark:hover:bg-sky-950/70',
-  rose: 'border-rose-200 bg-rose-50 text-rose-800 hover:border-rose-400 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:border-rose-600 dark:hover:bg-rose-950/70',
-  amber: 'border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-400 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:border-amber-600 dark:hover:bg-amber-950/70',
+const chipClasses: Record<string, string> = {
+  emerald: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+  sky: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
+  rose: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
+  amber: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+};
+
+type HubCardKey = 'inspections' | 'notices' | 'stopSale' | 'seizure';
+
+const cardThemes: Record<string, { bar: string; tile: string; openBorder: string; openShadow: string; chevronOpen: string }> = {
+  teal: {
+    bar: 'from-teal-400 to-emerald-500',
+    tile: 'from-teal-500 to-emerald-600 shadow-teal-500/30',
+    openBorder: 'border-teal-300 dark:border-teal-600',
+    openShadow: 'shadow-teal-500/10',
+    chevronOpen: 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300',
+  },
+  cyan: {
+    bar: 'from-cyan-400 to-blue-500',
+    tile: 'from-cyan-500 to-blue-600 shadow-cyan-500/30',
+    openBorder: 'border-cyan-300 dark:border-cyan-600',
+    openShadow: 'shadow-cyan-500/10',
+    chevronOpen: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300',
+  },
+  sky: {
+    bar: 'from-sky-400 to-indigo-500',
+    tile: 'from-sky-500 to-blue-600 shadow-sky-500/30',
+    openBorder: 'border-sky-300 dark:border-sky-600',
+    openShadow: 'shadow-sky-500/10',
+    chevronOpen: 'bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300',
+  },
+  indigo: {
+    bar: 'from-indigo-400 to-violet-500',
+    tile: 'from-indigo-500 to-violet-600 shadow-indigo-500/30',
+    openBorder: 'border-indigo-300 dark:border-indigo-600',
+    openShadow: 'shadow-indigo-500/10',
+    chevronOpen: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300',
+  },
 };
 
 const noticeModalThemes: Record<NoticeCategory, { header: string; icon: string; eyebrow: string }> = {
@@ -65,7 +98,7 @@ const noticeModalThemes: Record<NoticeCategory, { header: string; icon: string; 
 
 export function InspectionEnforcementHub() {
   const navigate = useNavigate();
-  const [openCard, setOpenCard] = useState<'inspections' | 'notices' | 'stopSale' | 'seizure' | null>(null);
+  const [openCard, setOpenCard] = useState<HubCardKey | null>(null);
   const [selectedNoticeCategory, setSelectedNoticeCategory] = useState<NoticeCategory | null>(null);
   const [showPesticideStopSale, setShowPesticideStopSale] = useState(false);
   const [showFertilizerStopSale, setShowFertilizerStopSale] = useState(false);
@@ -80,8 +113,68 @@ export function InspectionEnforcementHub() {
   const [showSeedSeizure, setShowSeedSeizure] = useState(false);
   const [showPesticideSeizure, setShowPesticideSeizure] = useState(false);
 
-  const toggleCard = (card: 'inspections' | 'notices' | 'stopSale' | 'seizure') =>
+  const toggleCard = (card: HubCardKey) =>
     setOpenCard((current) => (current === card ? null : card));
+
+  const hubCards: {
+    key: HubCardKey;
+    title: string;
+    subtitle: string;
+    icon: typeof Sprout;
+    theme: string;
+    items: { label: string; icon: typeof Sprout; tone: string; onClick: () => void }[];
+  }[] = [
+    {
+      key: 'inspections',
+      title: 'Inspections',
+      subtitle: 'Seed • Fertilizer • Pesticide dealer inspection',
+      icon: ClipboardCheck,
+      theme: 'teal',
+      items: INSPECTION_TYPES.map((item) => ({ label: `${item.label} Inspection`, icon: item.icon, tone: item.tone, onClick: () => navigate(item.path) })),
+    },
+    {
+      key: 'notices',
+      title: 'Memo & Show Cause Notice',
+      subtitle: 'Seed • Fertilizer • Pesticide notices and memos',
+      icon: FileText,
+      theme: 'cyan',
+      items: NOTICE_TYPES.map((item) => ({ label: `${item.label} Notice`, icon: item.icon, tone: item.tone, onClick: () => setSelectedNoticeCategory(item.category) })),
+    },
+    {
+      key: 'stopSale',
+      title: 'Stop Sale Order',
+      subtitle: 'Seed • Fertilizer • Pesticide stop sale orders',
+      icon: Ban,
+      theme: 'sky',
+      items: STOP_SALE_TYPES.map((item) => ({
+        label: `${item.label} Stop Sale`,
+        icon: item.icon,
+        tone: item.tone,
+        onClick: () => {
+          if (item.label === 'Pesticide') { setPestStopSaleTab('issue'); setShowPesticideStopSale(true); }
+          if (item.label === 'Fertilizer') { setFertStopSaleTab('issue'); setShowFertilizerStopSale(true); }
+          if (item.label === 'Seed') { setSeedStopSaleTab('issue'); setShowSeedStopSale(true); }
+        },
+      })),
+    },
+    {
+      key: 'seizure',
+      title: 'Seizure Order',
+      subtitle: 'Seed • Fertilizer • Pesticide seizure orders',
+      icon: PackageX,
+      theme: 'indigo',
+      items: SEIZURE_TYPES.map((item) => ({
+        label: `${item.label} Seizure`,
+        icon: item.icon,
+        tone: item.tone,
+        onClick: () => {
+          if (item.label === 'Fertilizer') setShowFertilizerSeizure(true);
+          if (item.label === 'Seed') setShowSeedSeizure(true);
+          if (item.label === 'Pesticide') setShowPesticideSeizure(true);
+        },
+      })),
+    },
+  ];
 
   return (
     <div className="mx-auto w-full max-w-4xl p-2 sm:p-3">
@@ -94,199 +187,58 @@ export function InspectionEnforcementHub() {
         className="mb-4"
       />
 
-      <div className="grid items-start gap-3 sm:grid-cols-2">
-        <div
-          className={`overflow-hidden rounded-xl border shadow-sm transition ${
-            openCard === 'inspections'
-              ? 'border-teal-400 bg-white dark:border-teal-600 dark:bg-slate-900'
-              : 'border-teal-200 bg-white hover:border-teal-300 hover:bg-teal-50 dark:border-teal-800 dark:bg-slate-900 dark:hover:border-teal-600 dark:hover:bg-slate-800'
-          }`}
-        >
-          <button
-            type="button"
-            onClick={() => toggleCard('inspections')}
-            className={`block min-h-[76px] w-full p-4 text-left transition ${
-              openCard === 'inspections' ? 'bg-teal-500 text-white' : 'text-slate-900 dark:text-white'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${openCard === 'inspections' ? 'bg-white/20' : 'bg-teal-100 dark:bg-teal-900/40'}`}>
-                  <ClipboardCheck className={`h-5 w-5 ${openCard === 'inspections' ? 'text-white' : 'text-teal-700 dark:text-teal-300'}`} />
+      <div className="grid items-start gap-4 sm:grid-cols-2">
+        {hubCards.map((card) => {
+          const isOpen = openCard === card.key;
+          const theme = cardThemes[card.theme];
+          return (
+            <div
+              key={card.key}
+              className={`group relative overflow-hidden rounded-2xl border bg-white transition-all duration-300 dark:bg-slate-900 ${
+                isOpen
+                  ? `${theme.openBorder} shadow-xl ${theme.openShadow}`
+                  : 'border-slate-200 shadow-sm hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800'
+              }`}
+            >
+              <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${theme.bar}`} />
+              <button
+                type="button"
+                onClick={() => toggleCard(card.key)}
+                aria-expanded={isOpen}
+                className="flex min-h-[88px] w-full items-center gap-4 p-4 pt-5 text-left"
+              >
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg transition-transform duration-300 group-hover:scale-105 ${theme.tile}`}>
+                  <card.icon className="h-6 w-6" />
                 </div>
-                <div>
-                  <p className="text-base font-black">Inspections</p>
-                  <p className={`text-xs font-semibold leading-snug ${openCard === 'inspections' ? 'text-teal-100' : 'text-slate-500 dark:text-slate-400'}`}>
-                    Seed • Fertilizer • Pesticide dealer inspection
-                  </p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-base font-black leading-tight text-slate-900 dark:text-white">{card.title}</p>
+                  <p className="mt-0.5 text-xs font-semibold leading-snug text-slate-500 dark:text-slate-400">{card.subtitle}</p>
                 </div>
-              </div>
-              {openCard === 'inspections' && <span className="text-teal-200">✓</span>}
-            </div>
-          </button>
-          {openCard === 'inspections' && (
-            <div className="grid gap-2 border-t border-teal-200/70 bg-teal-50/50 p-3 dark:border-teal-800/50 dark:bg-slate-950/40">
-              {INSPECTION_TYPES.map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => navigate(item.path)}
-                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span className="text-sm font-black">{item.label} Inspection</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div
-          className={`overflow-hidden rounded-xl border shadow-sm transition ${
-            openCard === 'notices'
-              ? 'border-cyan-400 bg-white dark:border-cyan-500 dark:bg-slate-900'
-              : 'border-cyan-200 bg-white hover:border-cyan-300 hover:bg-cyan-50 dark:border-cyan-800 dark:bg-slate-900 dark:hover:border-cyan-600 dark:hover:bg-slate-800'
-          }`}
-        >
-          <button
-            type="button"
-            onClick={() => toggleCard('notices')}
-            className={`block min-h-[76px] w-full p-4 text-left transition ${
-              openCard === 'notices' ? 'bg-cyan-500 text-white' : 'text-slate-900 dark:text-white'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${openCard === 'notices' ? 'bg-white/20' : 'bg-cyan-100 dark:bg-cyan-900/40'}`}>
-                  <FileText className={`h-5 w-5 ${openCard === 'notices' ? 'text-white' : 'text-cyan-700 dark:text-cyan-300'}`} />
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${isOpen ? `rotate-180 ${theme.chevronOpen}` : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                  <ChevronDown className="h-4 w-4" />
+                </span>
+              </button>
+              {isOpen && (
+                <div className="grid gap-2 border-t border-slate-100 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-950/40">
+                  {card.items.map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={item.onClick}
+                      className="group/item flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm transition-all hover:-translate-y-px hover:border-slate-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-600"
+                    >
+                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${chipClasses[item.tone]}`}>
+                        <item.icon className="h-5 w-5" />
+                      </span>
+                      <span className="flex-1 text-sm font-black text-slate-800 dark:text-slate-100">{item.label}</span>
+                      <ArrowRight className="h-4 w-4 text-slate-300 transition-all group-hover/item:translate-x-0.5 group-hover/item:text-slate-500 dark:text-slate-600" />
+                    </button>
+                  ))}
                 </div>
-                <div>
-                  <p className="text-base font-black">Memo &amp; Show Cause Notice</p>
-                  <p className={`text-xs font-semibold leading-snug ${openCard === 'notices' ? 'text-cyan-100' : 'text-slate-500 dark:text-slate-400'}`}>
-                    Seed • Fertilizer • Pesticide notices and memos
-                  </p>
-                </div>
-              </div>
-              {openCard === 'notices' && <span className="text-cyan-200">✓</span>}
+              )}
             </div>
-          </button>
-          {openCard === 'notices' && (
-            <div className="grid gap-2 border-t border-cyan-200/70 bg-cyan-50/50 p-3 dark:border-cyan-800/50 dark:bg-slate-950/40">
-              {NOTICE_TYPES.map((item) => (
-                <button
-                  key={item.category}
-                  type="button"
-                  onClick={() => setSelectedNoticeCategory(item.category)}
-                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span className="text-sm font-black">{item.label} Notice</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div
-          className={`overflow-hidden rounded-xl border shadow-sm transition ${
-            openCard === 'stopSale'
-              ? 'border-sky-400 bg-white dark:border-sky-500 dark:bg-slate-900'
-              : 'border-sky-200 bg-white hover:border-sky-300 hover:bg-sky-50 dark:border-sky-800 dark:bg-slate-900 dark:hover:border-sky-600 dark:hover:bg-slate-800'
-          }`}
-        >
-          <button
-            type="button"
-            onClick={() => toggleCard('stopSale')}
-            className={`block min-h-[76px] w-full p-4 text-left transition ${
-              openCard === 'stopSale' ? 'bg-sky-500 text-white' : 'text-slate-900 dark:text-white'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${openCard === 'stopSale' ? 'bg-white/20' : 'bg-sky-100 dark:bg-sky-900/40'}`}>
-                  <Ban className={`h-5 w-5 ${openCard === 'stopSale' ? 'text-white' : 'text-sky-700 dark:text-sky-300'}`} />
-                </div>
-                <div>
-                  <p className="text-base font-black">Stop Sale Order</p>
-                  <p className={`text-xs font-semibold leading-snug ${openCard === 'stopSale' ? 'text-sky-100' : 'text-slate-500 dark:text-slate-400'}`}>
-                    Seed • Fertilizer • Pesticide stop sale orders
-                  </p>
-                </div>
-              </div>
-              {openCard === 'stopSale' && <span className="text-sky-200">✓</span>}
-            </div>
-          </button>
-          {openCard === 'stopSale' && (
-            <div className="grid gap-2 border-t border-sky-200/70 bg-sky-50/50 p-3 dark:border-sky-800/50 dark:bg-slate-950/40">
-              {STOP_SALE_TYPES.map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => {
-                    if (item.label === 'Pesticide') { setPestStopSaleTab('issue'); setShowPesticideStopSale(true); }
-                    if (item.label === 'Fertilizer') { setFertStopSaleTab('issue'); setShowFertilizerStopSale(true); }
-                    if (item.label === 'Seed') { setSeedStopSaleTab('issue'); setShowSeedStopSale(true); }
-                  }}
-                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span className="text-sm font-black">{item.label} Stop Sale</span>
-                </button>
-              ))}
-
-            </div>
-          )}
-        </div>
-
-        <div
-          className={`overflow-hidden rounded-xl border shadow-sm transition ${
-            openCard === 'seizure'
-              ? 'border-indigo-400 bg-white dark:border-indigo-500 dark:bg-slate-900'
-              : 'border-indigo-200 bg-white hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-900 dark:hover:border-indigo-600 dark:hover:bg-slate-800'
-          }`}
-        >
-          <button
-            type="button"
-            onClick={() => toggleCard('seizure')}
-            className={`block min-h-[76px] w-full p-4 text-left transition ${
-              openCard === 'seizure' ? 'bg-indigo-500 text-white' : 'text-slate-900 dark:text-white'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${openCard === 'seizure' ? 'bg-white/20' : 'bg-indigo-100 dark:bg-indigo-900/40'}`}>
-                  <PackageX className={`h-5 w-5 ${openCard === 'seizure' ? 'text-white' : 'text-indigo-700 dark:text-indigo-300'}`} />
-                </div>
-                <div>
-                  <p className="text-base font-black">Seizure Order</p>
-                  <p className={`text-xs font-semibold leading-snug ${openCard === 'seizure' ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'}`}>
-                    Seed • Fertilizer • Pesticide seizure orders
-                  </p>
-                </div>
-              </div>
-              {openCard === 'seizure' && <span className="text-indigo-200">✓</span>}
-            </div>
-          </button>
-          {openCard === 'seizure' && (
-            <div className="grid gap-2 border-t border-indigo-200/70 bg-indigo-50/50 p-3 dark:border-indigo-800/50 dark:bg-slate-950/40">
-              {SEIZURE_TYPES.map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => {
-                    if (item.label === 'Fertilizer') setShowFertilizerSeizure(true);
-                    if (item.label === 'Seed') setShowSeedSeizure(true);
-                    if (item.label === 'Pesticide') setShowPesticideSeizure(true);
-                  }}
-                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span className="text-sm font-black">{item.label} Seizure</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+          );
+        })}
       </div>
 
       {selectedNoticeCategory && (
@@ -345,20 +297,20 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <div className="mb-3 flex w-full overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
+              <div className="mb-3 flex w-full gap-2">
                 <button
                   type="button"
                   onClick={() => setPestStopSaleTab('issue')}
-                  className={`flex-1 px-4 py-2.5 text-sm font-bold transition ${pestStopSaleTab === 'issue' ? 'bg-amber-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold shadow-sm transition dark:border-slate-700 ${pestStopSaleTab === 'issue' ? 'border-amber-600 bg-amber-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
                   Stop Sale Order
                 </button>
                 <button
                   type="button"
                   onClick={() => { setPestRevokePrefill(null); setPestStopSaleTab('revoke'); }}
-                  className={`border-l border-slate-200 flex-1 px-4 py-2.5 text-sm font-bold transition dark:border-slate-700 ${pestStopSaleTab === 'revoke' ? 'bg-amber-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold shadow-sm transition dark:border-slate-700 ${pestStopSaleTab === 'revoke' ? 'border-amber-600 bg-amber-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
-                  Revoke
+                  Revocation Order
                 </button>
               </div>
               {pestStopSaleTab === 'issue' ? (
@@ -402,20 +354,20 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <div className="mb-3 flex w-full overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
+              <div className="mb-3 flex w-full gap-2">
                 <button
                   type="button"
                   onClick={() => setFertStopSaleTab('issue')}
-                  className={`flex-1 px-4 py-2.5 text-sm font-bold transition ${fertStopSaleTab === 'issue' ? 'bg-sky-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold shadow-sm transition dark:border-slate-700 ${fertStopSaleTab === 'issue' ? 'border-sky-600 bg-sky-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
                   Stop Sale Notice
                 </button>
                 <button
                   type="button"
                   onClick={() => { setFertRevokePrefill(null); setFertStopSaleTab('revoke'); }}
-                  className={`border-l border-slate-200 flex-1 px-4 py-2.5 text-sm font-bold transition dark:border-slate-700 ${fertStopSaleTab === 'revoke' ? 'bg-sky-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold shadow-sm transition dark:border-slate-700 ${fertStopSaleTab === 'revoke' ? 'border-sky-600 bg-sky-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
-                  Revoke
+                  Revocation Order
                 </button>
               </div>
               {fertStopSaleTab === 'issue' ? (
@@ -459,20 +411,20 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <div className="mb-3 flex w-full overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700">
+              <div className="mb-3 flex w-full gap-2">
                 <button
                   type="button"
                   onClick={() => setSeedStopSaleTab('issue')}
-                  className={`flex-1 px-4 py-2.5 text-sm font-bold transition ${seedStopSaleTab === 'issue' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold shadow-sm transition dark:border-slate-700 ${seedStopSaleTab === 'issue' ? 'border-emerald-600 bg-emerald-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
                   Stop Sale Order
                 </button>
                 <button
                   type="button"
                   onClick={() => { setSeedRevokePrefill(null); setSeedStopSaleTab('revoke'); }}
-                  className={`border-l border-slate-200 flex-1 px-4 py-2.5 text-sm font-bold transition dark:border-slate-700 ${seedStopSaleTab === 'revoke' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  className={`flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold shadow-sm transition dark:border-slate-700 ${seedStopSaleTab === 'revoke' ? 'border-emerald-600 bg-emerald-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
                 >
-                  Revoke
+                  Revocation Order
                 </button>
               </div>
               {seedStopSaleTab === 'issue' ? (

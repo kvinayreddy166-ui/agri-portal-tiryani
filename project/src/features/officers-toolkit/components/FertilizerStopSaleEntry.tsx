@@ -259,10 +259,10 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
       rightLines: signatureItems,
       keepWithNext: true,
     },
-    { kind: 'gap', mm: 12, keepWithNext: true },
+    { kind: 'gap', mm: 12 },
     { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
-    ...copyLines.map((line, index): NoticeBlock => {
-      const keepWithNext = index < copyLines.length - 1;
+    ...copyLines.map((line): NoticeBlock => {
+      const keepWithNext = false;
       const match = line.match(/^(\d+\.)\s*(.*)$/);
       return match
         ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
@@ -657,7 +657,7 @@ export function FertilizerStopSaleEntry({ onRevoke }: { onRevoke?: (order: Saved
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-black uppercase text-slate-500 dark:text-slate-400">
               <tr>
-                <th className="px-3 py-2">Ref No.</th>
+                <th className="px-3 py-2">Order No.</th>
                 <th className="px-3 py-2">Firm</th>
                 <th className="px-3 py-2">Date</th>
                 <th className="px-3 py-2">Items</th>

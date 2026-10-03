@@ -80,7 +80,8 @@ export async function generateCoveringLetterPdf(
   metadata: CoveringLetterMetadata,
   officerDetails?: OfficerDetails,
   letterType: LetterType = 'quality-analysis',
-  _watermarkEnabled: boolean = false
+  _watermarkEnabled: boolean = false,
+  onDocCreated?: (doc: JsPdfInstance) => void
 ) {
   const { jsPDF } = await import('jspdf');
 
@@ -88,6 +89,7 @@ export async function generateCoveringLetterPdf(
   const updatedMetadata = metadata;
 
   const doc = createDocument(jsPDF, 'Covering Letter - Fertilizer Samples');
+  onDocCreated?.(doc);
 
   await setupPdfUnicodeFonts(doc);
   await drawWatermark(doc);

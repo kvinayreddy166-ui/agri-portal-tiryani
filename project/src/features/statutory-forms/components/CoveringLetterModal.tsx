@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
+import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
 
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 const COVERING_LETTER_DETAILS_KEY = 'tiryani-covering-letter-details';
@@ -385,7 +386,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (format: CoveringLetterExportFormat = 'pdf') => {
     if (editedQueue.length === 0) {
       setMessage('Please add samples to the queue before downloading.');
       return;
@@ -405,7 +406,8 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
         ? { ...metadata, letterNumber: incrementSerialNumber(metadata.letterNumber) }
         : metadata;
       
-      const doc = await generateCoveringLetterPdf(editedQueue, metadataForPdf, officerDetails, letterType, watermarkEnabled);
+      const wordRecorder = format === 'word' ? (await import('../lib/coveringLetterDocx')).createCoveringLetterRecorder() : null;
+      const doc = await generateCoveringLetterPdf(editedQueue, metadataForPdf, officerDetails, letterType, watermarkEnabled, wordRecorder?.attach);
       
       if (!doc) {
         setMessage('Failed to generate Covering Letter. Please try again.');
@@ -418,6 +420,12 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       const fileName = letterType === 'safe-custody'
         ? `Covering_Letter_Safe_Custody_${letterNumber || 'draft'}.pdf`
         : `Covering_Letter_Quality_Analysis_${letterNumber || 'draft'}.pdf`;
+      if (wordRecorder) {
+        const { downloadBlob } = await import('../lib/coveringLetterDocx');
+        downloadBlob(await wordRecorder.buildDocx(), fileName.replace(/\.pdf$/, '.docx'));
+        setMessage('Covering Letter downloaded successfully.');
+        return;
+      }
       const blob = doc.output('blob');
       const blobUrl = URL.createObjectURL(blob);
       
@@ -754,24 +762,12 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   </>
                 )}
               </button>
-              <button
-                type="button"
-                onClick={handleDownload}
+              <CoveringLetterExportButton
+                onExport={handleDownload}
                 disabled={!isValid || editedQueue.length === 0 || isGenerating}
+                isGenerating={isGenerating}
                 className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 flex-1 sm:w-auto min-w-0"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Downloading...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-4 h-4" />
-                    Download
-                  </>
-                )}
-              </button>
+              />
             </div>
           </footer>
         </div>
@@ -815,24 +811,12 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
             >
               Close
             </button>
-            <button
-              type="button"
-              onClick={handleDownload}
+            <CoveringLetterExportButton
+              onExport={handleDownload}
               disabled={isGenerating}
+              isGenerating={isGenerating}
               className="inline-flex items-center justify-center gap-2 bg-emerald-600 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto min-w-0"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Downloading...
-                </>
-              ) : (
-                <>
-                  <FileText className="w-4 h-4" />
-                  Download
-                </>
-              )}
-            </button>
+            />
           </footer>
         </div>
       )}

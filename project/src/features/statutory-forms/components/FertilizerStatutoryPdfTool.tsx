@@ -15,7 +15,6 @@ import {
   resolveFertilizerTypeGrade,
 } from '../lib/statutoryFertilizerPdf';
 import { FertilizerInstructionModal } from '../../../shared/components/ui/FertilizerInstructionModal';
-import { PopupHintWrapper } from '../../../shared/components/PopupHint';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { CoveringLetterModal } from  './CoveringLetterModal';
@@ -2394,13 +2393,13 @@ function PdfInput({
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300">{displayLabel}</span>
-      {field.key === 'dealerAddress' ? (
-        <PopupHintWrapper message="Enter only D.NO, Village/Town ;Mandal & District will be autopopulated from Inspector Details">
-          {inputElement}
-        </PopupHintWrapper>
-      ) : (
-        inputElement
+      {field.key === 'dealerAddress' && (
+        <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
+          {(isAssistantDirectorOfAgriculture(values?.designation) ? effectiveLocationValue(values.placeOfCollectionMandal, values.manualPlaceOfCollection) : effectiveLocationValue(values?.mandal, values?.manualMandal)) || 'Mandal'} Mandal,<br />
+          {effectiveLocationValue(values?.district, values?.manualDistrict) || 'District'} District. (auto-added)
+        </span>
       )}
+      {inputElement}
     </label>
   );
 }
