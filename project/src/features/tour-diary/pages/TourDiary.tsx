@@ -2297,7 +2297,8 @@ export function TourDiary() {
                   className="mb-0"
                 />
               ) : (
-              <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
                 <div className="flex items-center gap-4">
                   <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" />
                   <div>
@@ -2691,7 +2692,8 @@ export function TourDiary() {
                 className="mb-0"
               />
             ) : (
-            <div className="rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
               <div className="flex items-center gap-4">
                 <BackButton onClick={() => setShowLandingPage(true)} tone="solid" />
                 <div>

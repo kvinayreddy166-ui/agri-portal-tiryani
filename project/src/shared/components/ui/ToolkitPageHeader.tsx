@@ -135,32 +135,47 @@ const SOLID_STYLES: Record<
   },
 };
 
+const BAR_STYLES: Record<ToolkitHeaderTone, string> = {
+  emerald: 'from-emerald-500 via-green-500 to-teal-400',
+  sky: 'from-sky-400 via-blue-500 to-cyan-400',
+  rose: 'from-rose-500 via-pink-500 to-rose-400',
+  lime: 'from-lime-500 via-green-500 to-emerald-400',
+  indigo: 'from-indigo-500 via-purple-500 to-fuchsia-400',
+  amber: 'from-amber-500 via-orange-500 to-amber-400',
+  'teal-indigo': 'from-teal-500 via-cyan-500 to-indigo-500',
+};
+
 export function CompactToolkitHeader({
   title,
   eyebrow = 'Officer Toolkit',
   subtitle,
+  tone = 'emerald',
   actions,
   className = '',
-}: Pick<ToolkitPageHeaderProps, 'title' | 'eyebrow' | 'subtitle' | 'actions' | 'className'>) {
+}: Pick<ToolkitPageHeaderProps, 'title' | 'eyebrow' | 'subtitle' | 'tone' | 'actions' | 'className'>) {
+  const theme = TONE_STYLES[tone] || TONE_STYLES.emerald;
   return (
     <header className={`mb-5 ${className}`}>
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
-        <div className="min-w-0">
-          {eyebrow && (
-            <p className="text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-              {eyebrow}
-            </p>
-          )}
-          <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-900 dark:text-white sm:text-3xl">
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              {subtitle}
-            </p>
-          )}
+      <div className={`relative overflow-hidden rounded-2xl border p-4 ${theme.container}`}>
+        <div className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${BAR_STYLES[tone] || BAR_STYLES.emerald}`} />
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="min-w-0">
+            {eyebrow && (
+              <p className={`text-[10px] font-black uppercase tracking-widest ${theme.eyebrow}`}>
+                {eyebrow}
+              </p>
+            )}
+            <h1 className={`mt-0.5 text-xl font-black leading-tight sm:text-2xl ${theme.title}`}>
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                {subtitle}
+              </p>
+            )}
+          </div>
+          {actions && <div className="flex shrink-0 items-center gap-2 self-end">{actions}</div>}
         </div>
-        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
     </header>
   );
@@ -188,6 +203,7 @@ export function ToolkitPageHeader({
         title={title}
         eyebrow={eyebrow}
         subtitle={subtitle}
+        tone={tone}
         actions={actions}
         className={className}
       />
@@ -208,7 +224,8 @@ export function ToolkitPageHeader({
   };
 
   return (
-    <div className={`mb-5 rounded-2xl border p-4 ${theme.container} ${className}`}>
+    <div className={`relative mb-5 overflow-hidden rounded-2xl border p-4 ${theme.container} ${className}`}>
+      <div className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${variant === 'solid' ? 'from-white/70 via-white/50 to-white/70' : BAR_STYLES[tone]}`} />
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <div className="flex min-w-0 items-start gap-3">
           <BackButton onClick={handleBack} colors={theme.backBtn} className="self-center" />

@@ -233,9 +233,10 @@ export function StatutoryForms() {
   return (
     <div className="space-y-4">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 p-4 shadow-md dark:border-emerald-800/50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-emerald-900/30 md:flex-row md:items-end md:justify-between">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-400" />
         <div>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-gray-950 dark:text-white">
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-emerald-950 dark:text-emerald-50">
             {t('Statutory Forms', 'Statutory Forms')}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-slate-300">

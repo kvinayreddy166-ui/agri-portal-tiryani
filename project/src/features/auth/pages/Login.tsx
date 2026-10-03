@@ -904,14 +904,14 @@ export function Login() {
             <button
               type="button"
               onClick={openOfficerToolkit}
-              className="group mb-5 flex w-full animate-slide-up items-center gap-3 rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 via-green-50/80 to-emerald-50 px-3.5 py-3 text-left shadow-sm transition delay-100 hover:-translate-y-px hover:border-emerald-200 hover:from-emerald-100/80 hover:to-green-100/70 hover:shadow-md hover:shadow-emerald-500/10 active:translate-y-0 active:scale-[0.99] dark:border-emerald-500/30 dark:from-emerald-950/50 dark:via-green-950/40 dark:to-emerald-950/50 dark:hover:border-emerald-400/50"
+              className="group mb-5 flex w-full animate-slide-up items-center gap-3 rounded-2xl border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 via-green-50/80 to-emerald-50 px-3.5 py-3 text-left shadow-sm transition delay-100 hover:-translate-y-px hover:border-emerald-400 hover:from-emerald-100/80 hover:to-green-100/70 hover:shadow-md hover:shadow-emerald-500/10 active:translate-y-0 active:scale-[0.99] dark:border-emerald-500/50 dark:from-emerald-950/50 dark:via-green-950/40 dark:to-emerald-950/50 dark:hover:border-emerald-400"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-100 transition group-hover:scale-105 dark:bg-slate-800 dark:text-emerald-300 dark:ring-emerald-500/30">
                 <ShieldCheck className="h-[18px] w-[18px]" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-bold text-slate-800 dark:text-slate-100">{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
-                <span className="block text-[11px] font-medium leading-snug text-slate-500 dark:text-slate-400">{t('Inspections, notices & orders — no sign-in needed', 'తనిఖీలు, నోటీసులు & ఆర్డర్లు — సైన్-ఇన్ అవసరం లేదు')}</span>
+                <span className="block text-[11px] font-medium leading-snug text-slate-500 dark:text-slate-400">{t('Inspections, notices & orders', 'తనిఖీలు, నోటీసులు & ఆర్డర్లు')}</span>
               </span>
               <ArrowRight className="h-4 w-4 shrink-0 text-emerald-400 transition-transform group-hover:translate-x-0.5 dark:text-emerald-300" />
             </button>

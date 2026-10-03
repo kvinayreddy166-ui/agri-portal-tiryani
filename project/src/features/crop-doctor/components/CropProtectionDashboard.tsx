@@ -112,7 +112,8 @@ export function CropProtectionDashboard({
           )}
         />
       ) : (
-      <section className="overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-800 via-green-700 to-teal-800 p-4 text-white shadow-sm sm:p-5">
+      <section className="relative overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-800 via-green-700 to-teal-800 p-4 text-white shadow-sm sm:p-5">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex min-w-0 items-start gap-3">
             <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="mt-0.5" />

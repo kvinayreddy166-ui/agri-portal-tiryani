@@ -39,6 +39,7 @@ import { fertilizerSchedules, type FertilizerScheduleEntry } from '../../statuto
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { enforcementDeadlines, enforcementMindMap, type MindMapNode } from '../data/fcoEnforcementMindMap';
 import { BackButton } from '../../../shared/components/ui/BackButton';
+import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { FertilizerFormPdfGenerator } from '../../statutory-forms/components/FertilizerFormPdfGenerator';
 import { FcoImplementationModal } from '../../../shared/components/ui/FcoImplementationModal';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -308,24 +309,19 @@ export function ActsAndOrders() {
   return (
     <div className="mx-auto max-w-7xl space-y-4 px-4 pb-6 pt-4 sm:px-6 sm:pb-8 lg:px-8">
       {!selectedFcoCardId && showCompactHeader && (
-        <header className="mb-1">
-          <p className="text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-            Officer Toolkit
-          </p>
-          <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-900 dark:text-white sm:text-3xl">
-            {activeAreaCard?.title || 'Acts & Orders'}
-          </h1>
-          <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-            {activeAreaCard?.description || 'Agriculture laws, rules, and official procedures for Fertilizer, Seed, and Insecticide.'}
-          </p>
-        </header>
+        <CompactToolkitHeader
+          className="mb-1"
+          title={activeAreaCard?.title || 'Acts & Orders'}
+          subtitle={activeAreaCard?.description || 'Agriculture laws, rules, and official procedures for Fertilizer, Seed, and Insecticide.'}
+        />
       )}
       {!selectedFcoCardId && !showCompactHeader && (
-      <section className={`overflow-hidden rounded-2xl border px-4 py-3 text-white shadow-md ${
+      <section className={`relative overflow-hidden rounded-2xl border px-4 py-3 text-white shadow-md ${
           activeAreaCard
             ? `border-white/20 bg-gradient-to-br ${activeAreaCard.color}`
             : 'border-emerald-700/40 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 dark:border-emerald-800/50'
         }`}>
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
           <div className="flex items-center gap-3">
             <BackButton onClick={handleBack} tone="solid" className="self-center" />
             <div className="flex min-w-0 items-center gap-3">
