@@ -404,9 +404,11 @@ function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: numbe
       <h3 className="relative mt-3 text-[13px] font-bold leading-tight text-slate-800 transition-colors group-hover:text-slate-900 dark:text-slate-100 dark:group-hover:text-white sm:text-sm">
         {t(item.title, translateToolkit(item.title))}
       </h3>
-      <p className="relative mt-1 hidden text-[11px] font-medium leading-snug text-slate-500 line-clamp-2 dark:text-slate-400 lg:block">
-        {t(item.description, translateToolkit(item.description))}
-      </p>
+      <div className="relative mt-1 hidden xl:block">
+        <p className="text-[11px] font-medium leading-snug text-slate-500 line-clamp-2 dark:text-slate-400">
+          {t(item.description, translateToolkit(item.description))}
+        </p>
+      </div>
       {item.statusMessage && (
         <span className="relative mt-2 inline-flex w-fit rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-red-800 dark:bg-red-900/40 dark:text-red-200 sm:text-[10px]">
           {t(item.statusMessage, translateToolkit(item.statusMessage))}
