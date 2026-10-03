@@ -152,8 +152,8 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
 
   const addressLines = form.dealerAddress.split('\n').map((line) => line.trim()).filter(Boolean);
   const dealerItems: NoticeSegment[][] = [
-    [{ text: `M/s. ${firmDisplay}`, bold: true }],
-    ...addressLines.map((line) => [{ text: line.replace(/,+$/, ''), bold: true }] as NoticeSegment[]),
+    [{ text: `M/s. ${firmDisplay},`, bold: true }],
+    ...addressLines.map((line) => [{ text: `${line.replace(/,+$/, '')},`, bold: true }] as NoticeSegment[]),
     [{ text: `${mandalValue} Mandal,`, bold: true }],
     [{ text: `${districtDisplay} District.`, bold: true }],
   ];
@@ -201,14 +201,14 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
     { kind: 'gap', mm: 2 },
     {
       kind: 'memoRow',
-      left: [{ text: 'Order No.: ' }, { text: form.orderNumber || '______________', bold: true }],
+      left: [{ text: 'No: ' }, { text: form.orderNumber || '______________', bold: true }],
       right: [{ text: 'Dt.: ' }, { text: dateValue, bold: true }],
     },
     { kind: 'gap', mm: 3 },
     { kind: 'lines', items: [[{ text: 'To,', bold: true }]] },
     { kind: 'lines', items: dealerItems, indent: 8 },
     { kind: 'gap', mm: 2 },
-    { kind: 'lines', items: [[{ text: 'Form A2 No.: ', bold: true }, { text: a2Number }]] },
+    { kind: 'lines', items: [[{ text: 'Form A2 No: ', bold: true }, { text: a2Number }]] },
     { kind: 'gap', mm: 3 },
     {
       kind: 'para',
@@ -451,7 +451,7 @@ export function FertilizerStopSaleEntry({ onRevoke }: { onRevoke?: (order: Saved
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Officer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
-          <TextInput label="Inspecting Officer" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
+          <TextInput label="Fertilizer Inspector" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
           <SelectInput label="Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
           <SelectInput
             label="District"

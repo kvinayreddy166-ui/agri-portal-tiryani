@@ -155,10 +155,10 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
   const dateValue = form.noticeDate ? formatNoticeDate(form.noticeDate) : '__________';
 
   const dealerItems: NoticeSegment[][] = [
-    [{ text: 'M/s. ', bold: true }, { text: form.firmName.trim() || '____________________________', bold: true }],
-    ...(form.dealerName.trim() ? [[{ text: form.dealerName.trim(), bold: true }] as NoticeSegment[]] : []),
+    [{ text: 'M/s. ', bold: true }, { text: `${form.firmName.trim() || '____________________________'},`, bold: true }],
+    ...(form.dealerName.trim() ? [[{ text: `${form.dealerName.trim().replace(/,+$/, '')},`, bold: true }] as NoticeSegment[]] : []),
     ...(form.dealerAddress.trim()
-      ? form.dealerAddress.split('\n').map((line) => [{ text: line.trim(), bold: true }] as NoticeSegment[])
+      ? form.dealerAddress.split('\n').map((line) => [{ text: `${line.trim().replace(/,+$/, '')},`, bold: true }] as NoticeSegment[])
       : [[{ text: '_______________________________________________________________', bold: true }] as NoticeSegment[]]),
     [{ text: `${mandalValue} Mandal,`, bold: true }],
     [{ text: `${districtDisplay} District.`, bold: true }],
@@ -205,14 +205,14 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
     { kind: 'gap', mm: 2 },
     {
       kind: 'memoRow',
-      left: [{ text: 'Order No.: ' }, { text: form.orderNumber || '______________', bold: true }],
+      left: [{ text: 'No: ' }, { text: form.orderNumber || '______________', bold: true }],
       right: [{ text: 'Dt.: ' }, { text: dateValue, bold: true }],
     },
     { kind: 'gap', mm: 3 },
     { kind: 'lines', items: [[{ text: 'To,', bold: true }]] },
     { kind: 'lines', items: dealerItems, indent: 8 },
     { kind: 'gap', mm: 2 },
-    { kind: 'lines', items: [[{ text: 'Licence No.: ', bold: true }, { text: form.licenceNumber.trim() || '______________' }]] },
+    { kind: 'lines', items: [[{ text: 'Licence No: ', bold: true }, { text: form.licenceNumber.trim() || '______________' }]] },
     { kind: 'gap', mm: 3 },
     {
       kind: 'para',
@@ -450,7 +450,7 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Officer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
-          <TextInput label="Inspecting Officer" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
+          <TextInput label="Seed Inspector" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
           <SelectInput label="Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
           <SelectInput
             label="District"

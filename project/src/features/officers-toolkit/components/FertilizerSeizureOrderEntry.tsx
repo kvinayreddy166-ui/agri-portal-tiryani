@@ -25,19 +25,19 @@ import {
   type NoticeBlock,
   type NoticeSegment,
 } from './ShowCauseNoticeEntry';
-import type { SavedFertStopSaleOrder } from './FertilizerStopSaleEntry';
 
-interface FertRevokeProductRow {
+interface FertSeizureProductRow {
   id: string;
   name: string;
   manufacturer: string;
   quantityMt: string;
+  batchNo: string;
   remarks: string;
 }
 
-interface FertRevokeFormState {
+interface FertSeizureFormState {
   orderNumber: string;
-  revokeDate: string;
+  seizureDate: string;
   officerName: string;
   officerDesignation: string;
   mandal: string;
@@ -47,31 +47,34 @@ interface FertRevokeFormState {
   division: string;
   firmName: string;
   dealerAddress: string;
-  formA2Number: string;
-  noticeNo: string;
-  noticeDate: string;
-  rectifiedDate: string;
-  products: FertRevokeProductRow[];
+  fertilizerDesc: string;
+  contravenedClause: string;
+  premisesSameAsFirm: boolean;
+  premises: string;
+  witness1: string;
+  witness2: string;
+  products: FertSeizureProductRow[];
 }
 
-interface SavedFertRevokeOrder extends FertRevokeFormState {
+interface SavedFertSeizureOrder extends FertSeizureFormState {
   id: string;
   savedAt: string;
 }
 
-const STORAGE_KEY = 'agri-legal-fertilizer-stop-sale-revoke-orders';
+const STORAGE_KEY = 'agri-legal-fertilizer-seizure-orders';
 const today = () => new Date().toISOString().slice(0, 10);
 const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-const emptyProduct = (): FertRevokeProductRow => ({
+const emptyProduct = (): FertSeizureProductRow => ({
   id: uid(),
   name: '',
   manufacturer: '',
   quantityMt: '',
+  batchNo: '',
   remarks: '',
 });
 
-function readSavedOrders(): SavedFertRevokeOrder[] {
+function readSavedOrders(): SavedFertSeizureOrder[] {
   try {
     const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]');
     return Array.isArray(parsed) ? parsed : [];
@@ -80,30 +83,30 @@ function readSavedOrders(): SavedFertRevokeOrder[] {
   }
 }
 
-function writeSavedOrders(orders: SavedFertRevokeOrder[]) {
+function writeSavedOrders(orders: SavedFertSeizureOrder[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
 const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
 
-function readFormDraft(): FertRevokeFormState | null {
+function readFormDraft(): FertSeizureFormState | null {
   try {
     const raw = window.localStorage.getItem(FORM_DRAFT_KEY);
     if (!raw) return null;
-    return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<FertRevokeFormState>) };
+    return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<FertSeizureFormState>) };
   } catch {
     return null;
   }
 }
 
-function makeInitialForm(): FertRevokeFormState {
+function makeInitialForm(): FertSeizureFormState {
   const fy = currentFinancialYear();
   const statutory = readStatutoryDetails('fertiliser');
   const resolvedDistrict = resolveDistrict(statutory.district || 'Kumuram Bheem Asifabad', statutory.manualDistrict || '');
   const resolvedMandal = resolveMandal(resolvedDistrict.district, statutory.mandal || 'Tiryani', statutory.manualMandal || '');
   return {
-    orderNumber: `RSN/F/${fy}`,
-    revokeDate: today(),
+    orderNumber: `SZR/F/${fy}`,
+    seizureDate: today(),
     officerName: statutory.officerName || '',
     officerDesignation: statutory.officerDesignation || 'Mandal Agriculture Officer & Fertilizer Inspector',
     mandal: resolvedMandal.mandal,
@@ -113,65 +116,41 @@ function makeInitialForm(): FertRevokeFormState {
     division: statutory.division || '',
     firmName: statutory.dealerName || '',
     dealerAddress: statutory.dealerAddress || '',
-    formA2Number: '',
-    noticeNo: '',
-    noticeDate: '',
-    rectifiedDate: '',
+    fertilizerDesc: '',
+    contravenedClause: '',
+    premisesSameAsFirm: true,
+    premises: '',
+    witness1: '',
+    witness2: '',
     products: [emptyProduct()],
   };
 }
 
-// Pre-fill a revoke form from a saved stop-sale order — links the revocation
-// back to the original notice no./date, dealer, and stock.
-function makeFormFromOrder(order: SavedFertStopSaleOrder): FertRevokeFormState {
-  const fy = currentFinancialYear();
-  return {
-    orderNumber: `RSN/F/${fy}`,
-    revokeDate: today(),
-    officerName: order.officerName,
-    officerDesignation: order.officerDesignation,
-    mandal: order.mandal,
-    manualMandal: order.manualMandal,
-    district: order.district,
-    manualDistrict: order.manualDistrict,
-    division: order.division,
-    firmName: order.firmName,
-    dealerAddress: order.dealerAddress,
-    formA2Number: order.formA2Number,
-    noticeNo: order.orderNumber,
-    noticeDate: order.noticeDate,
-    rectifiedDate: '',
-    products: order.products.length
-      ? order.products.map((item) => ({ id: uid(), name: item.name, manufacturer: item.manufacturer, quantityMt: item.quantityMt, remarks: item.remarks }))
-      : [emptyProduct()],
-  };
-}
-
-// Revoke of Stop Sale Notice — order under clause 28(1)(a) of the Fertilizer
-// (Control) Order, 1985, revoking a stop sale notice once the contravention is
-// rectified.
-function buildRevokeModel(form: FertRevokeFormState): NoticeBlock[] {
+// Seizure of fertilizer stock — Annexure 'AA' proforma notice issued to the
+// dealer under clause 28(1)(d) of the Fertilizer (Control) Order, 1985.
+function buildSeizureModel(form: FertSeizureFormState): NoticeBlock[] {
   const officerDesignation = form.officerDesignation || 'Fertilizer Inspector';
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || '________________';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || '________________';
   const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
+  const divisionName = form.division.trim() || '________________';
 
   const firmDisplay = form.firmName.trim() || '____________________________';
-  const a2Number = form.formA2Number.trim() || '______________';
-  const placeValue = mandalValue;
-  const dateValue = form.revokeDate ? formatNoticeDate(form.revokeDate) : '__________';
+  const dateValue = form.seizureDate ? formatNoticeDate(form.seizureDate) : '__________';
+  const fertilizerDesc = form.fertilizerDesc.trim() || '________________';
+  const clauseDisplay = form.contravenedClause.trim() || '________';
+  const premisesDisplay = form.premisesSameAsFirm
+    ? [
+        form.dealerAddress.replace(/\s+/g, ' ').trim().replace(/,+$/, ''),
+        `${mandalValue} Mandal`,
+        `${districtDisplay} District`,
+      ].filter(Boolean).join(', ')
+    : form.premises.trim() || '____________________________';
 
-  const divisionName = form.division.trim() || '________________';
   const designationParts = officerDesignation.split('&').map((part) => part.trim()).filter(Boolean);
-  const issuedByPlace = isDaoDesignation(officerDesignation)
-    ? districtDisplay
-    : isAdaDesignation(officerDesignation)
-      ? divisionName
-      : mandalValue;
-  const issuedByDisplay = `${officerDesignation}, ${issuedByPlace}`;
-  const noticeNoDisplay = form.noticeNo.trim() || '__________';
-  const noticeDateDisplay = form.noticeDate ? formatNoticeDate(form.noticeDate) : '__________';
-  const rectifiedDisplay = form.rectifiedDate ? formatNoticeDate(form.rectifiedDate) : '__________';
+  const signatureItems: NoticeSegment[][] = designationParts.length > 1
+    ? [[{ text: `${designationParts[0]} &`, bold: true }], [{ text: designationParts.slice(1).join(' & ').replace(/,+$/, ''), bold: true }]]
+    : [[{ text: officerDesignation, bold: true }]];
 
   const addressLines = form.dealerAddress.split('\n').map((line) => line.trim()).filter(Boolean);
   const dealerItems: NoticeSegment[][] = [
@@ -182,7 +161,7 @@ function buildRevokeModel(form: FertRevokeFormState): NoticeBlock[] {
   ];
 
   const filledProducts = form.products.filter((item) =>
-    [item.name, item.manufacturer, item.quantityMt, item.remarks].some((field) => field.trim())
+    [item.name, item.manufacturer, item.quantityMt, item.batchNo, item.remarks].some((field) => field.trim())
   );
   const productRows = filledProducts.length > 0 ? filledProducts : form.products;
   const tableRows = productRows.map((item, index) => [
@@ -190,76 +169,88 @@ function buildRevokeModel(form: FertRevokeFormState): NoticeBlock[] {
     item.name,
     item.manufacturer,
     item.quantityMt,
+    item.batchNo,
     item.remarks,
   ]);
 
-  const signatureItems: NoticeSegment[][] = designationParts.length > 1
-    ? [[{ text: `${designationParts[0]} &`, bold: true }], [{ text: designationParts.slice(1).join(' & ').replace(/,+$/, ''), bold: true }]]
-    : [[{ text: officerDesignation, bold: true }]];
-
-  const copyLines = (isDaoDesignation(officerDesignation)
-    ? `1. The Commissioner & Director of Agriculture, Telangana State, for favour of information and necessary action.\n2. The Asst. Director of Agriculture (R) concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
-    : isAdaDesignation(officerDesignation)
-      ? `1. The District Agriculture Officer, ${districtDisplay}, for favour of information and necessary action.\n2. The Mandal Agriculture Officer concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
-      : `1. The Asst. Director of Agriculture (R), ${divisionName}, for information and necessary action.\n2. The District Agriculture Officer, ${districtDisplay}, for information and necessary action.\n3. Copy to Stock File.`
-  ).split('\n');
+  const witness1 = form.witness1.trim() || '____________________________';
+  const witness2 = form.witness2.trim() || '____________________________';
 
   return [
-    { kind: 'center', text: 'REVOKE OF STOP SALE NOTICE', bold: true, underline: true, size: 14 },
-    { kind: 'center', text: '(Order under clause 28 of the Fertilizer (Control) Order, 1985)', bold: true },
-    { kind: 'gap', mm: 2 },
+    { kind: 'center', text: `ANNEXURE 'AA'`, bold: true, size: 14 },
+    { kind: 'center', text: '(Proforma of Notice to Dealer for Seizure of Fertiliser Stock — Clause 28(1)(d))', bold: true, size: 13 },
+    { kind: 'gap', mm: 3 },
     {
       kind: 'memoRow',
-      left: [{ text: 'No: ' }, { text: form.orderNumber || '______________', bold: true }],
-      right: [{ text: 'Dt.: ' }, { text: dateValue, bold: true }],
+      ...(form.orderNumber.trim() ? { left: [{ text: 'No: ' }, { text: form.orderNumber.trim(), bold: true }] } : {}),
+      right: [{ text: 'Date: ' }, { text: dateValue, bold: true }],
     },
     { kind: 'gap', mm: 3 },
-    { kind: 'lines', items: [[{ text: 'To,', bold: true }]] },
-    { kind: 'lines', items: dealerItems, indent: 8 },
-    { kind: 'gap', mm: 2 },
-    { kind: 'lines', items: [[{ text: 'Form A2 No: ', bold: true }, { text: a2Number }]] },
+    { kind: 'center', text: 'NOTICE', bold: true, underline: true },
     { kind: 'gap', mm: 3 },
     {
       kind: 'para',
       firstLineIndent: 10,
       segments: [
-        { text: 'Stop sale notice issued by me, ' },
-        { text: issuedByDisplay, bold: true },
-        { text: ' vide No. ' },
-        { text: noticeNoDisplay, bold: true },
-        { text: ' dated ' },
-        { text: noticeDateDisplay, bold: true },
-        { text: ' due to violation / contravention of the provisions of ' },
-        { text: 'FCO, 1985', bold: true },
-        { text: ', is being revoked as the contravention of FCO is rectified on date ' },
-        { text: rectifiedDisplay, bold: true },
+        { text: 'Whereas I have reason to believe that the stock of fertilizer ' },
+        { text: fertilizerDesc, bold: true },
+        { text: ' in your possession, is being distributed, sold or used in contravention of the Clause ' },
+        { text: clauseDisplay, bold: true },
+        { text: ' of the Fertiliser (Control) Order, 1985.' },
+      ],
+    },
+    { kind: 'gap', mm: 2 },
+    {
+      kind: 'para',
+      segments: [
+        { text: 'Under Clause 28(1)(d) of the Fertiliser (Control) Order, I hereby seize the following stock of fertilizer lying at the premises ' },
+        { text: premisesDisplay, bold: true },
         { text: '.' },
       ],
     },
     { kind: 'gap', mm: 2 },
-    { kind: 'lines', items: [[{ text: 'Details of Fertilizer stock kept under stop sale', bold: true }]], keepWithNext: true },
-    { kind: 'gap', mm: 1, keepWithNext: true },
     {
       kind: 'gridTable',
-      header: ['S.No', 'Name of Fertilizer', 'Name of the Manufacturer / Importer', 'Quantity (MT)', 'Remarks'],
-      colWeights: [8, 34, 30, 13, 15],
+      header: ['Sr.No', 'Name of the fertilizer', 'Name of the manufacturer', 'Quantity', 'Batch No if applicable', 'Remarks'],
+      colWeights: [8, 26, 24, 12, 15, 15],
       rows: tableRows,
       keepWithNext: true,
     },
-    { kind: 'gap', mm: 13, keepWithNext: true },
+    { kind: 'gap', mm: 3, keepWithNext: true },
     {
-      kind: 'memoRow',
-      leftLines: [
-        [{ text: 'Place: ' }, { text: `${placeValue},`, bold: true }],
-        [{ text: 'Date: ' }, { text: `${dateValue}.`, bold: true }],
-      ],
-      rightLines: signatureItems,
+      kind: 'para',
+      firstLineIndent: 10,
       keepWithNext: true,
+      segments: [
+        { text: 'You should not sell / dispose off or move the stock from the place where it is stored at present until further orders.' },
+      ],
     },
-    { kind: 'gap', mm: 12, keepWithNext: true },
+    { kind: 'gap', mm: 8, keepWithNext: true },
+    { kind: 'lines', items: signatureItems, align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
+    { kind: 'gap', mm: 4, keepWithNext: true },
+    { kind: 'lines', items: [[{ text: 'To', bold: true }]], keepWithNext: true },
+    { kind: 'lines', items: dealerItems, indent: 8, keepWithNext: true },
+    { kind: 'gap', mm: 4, keepWithNext: true },
+    {
+      kind: 'para',
+      keepWithNext: true,
+      segments: [
+        { text: 'Witness: ', bold: true },
+        { text: 'The above stock seizure notice is issued to the dealer in our presence.' },
+      ],
+    },
+    { kind: 'lines', items: [[{ text: `1. ${witness1}` }], [{ text: `2. ${witness2}` }]], indent: 8, keepWithNext: true },
+    { kind: 'gap', mm: 6, keepWithNext: true },
+    { kind: 'lines', items: [[{ text: 'Signature of the Dealer in token of', bold: true }], [{ text: 'receipt of this notice', bold: true }]], align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
+    { kind: 'gap', mm: 10, keepWithNext: true },
     { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
-    ...copyLines.map((line, index): NoticeBlock => {
-      const keepWithNext = index < copyLines.length - 1;
+    ...(isDaoDesignation(officerDesignation)
+      ? `1. The Commissioner & Director of Agriculture, Telangana State, for favour of information and necessary action.\n2. The Asst. Director of Agriculture (R) concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
+      : isAdaDesignation(officerDesignation)
+        ? `1. The District Agriculture Officer, ${districtDisplay}, for favour of information and necessary action.\n2. The Mandal Agriculture Officer concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
+        : `1. The Asst. Director of Agriculture (R), ${divisionName}, for information and necessary action.\n2. The District Agriculture Officer, ${districtDisplay}, for information and necessary action.\n3. Copy to Stock File.`
+    ).split('\n').map((line, index, arr): NoticeBlock => {
+      const keepWithNext = index < arr.length - 1;
       const match = line.match(/^(\d+\.)\s*(.*)$/);
       return match
         ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
@@ -268,11 +259,9 @@ function buildRevokeModel(form: FertRevokeFormState): NoticeBlock[] {
   ];
 }
 
-export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFertStopSaleOrder | null } = {}) {
-  const [form, setForm] = useState<FertRevokeFormState>(() =>
-    prefill ? makeFormFromOrder(prefill) : readFormDraft() ?? makeInitialForm()
-  );
-  const [savedOrders, setSavedOrders] = useState<SavedFertRevokeOrder[]>(() => readSavedOrders());
+export function FertilizerSeizureOrderEntry() {
+  const [form, setForm] = useState<FertSeizureFormState>(() => readFormDraft() ?? makeInitialForm());
+  const [savedOrders, setSavedOrders] = useState<SavedFertSeizureOrder[]>(() => readSavedOrders());
   const [savedSearch, setSavedSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -282,7 +271,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
 
-  const noticeBlocks = useMemo(() => buildRevokeModel(form), [form]);
+  const noticeBlocks = useMemo(() => buildSeizureModel(form), [form]);
   const previewHtml = useMemo(() => noticeBlocksHtml(noticeBlocks), [noticeBlocks]);
 
   const districtOptions = useMemo(
@@ -316,9 +305,9 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
     } catch {}
   }, [form]);
 
-  const updateForm = (patch: Partial<FertRevokeFormState>) => setForm((current) => ({ ...current, ...patch }));
+  const updateForm = (patch: Partial<FertSeizureFormState>) => setForm((current) => ({ ...current, ...patch }));
 
-  const updateProduct = (id: string, patch: Partial<FertRevokeProductRow>) =>
+  const updateProduct = (id: string, patch: Partial<FertSeizureProductRow>) =>
     setForm((current) => ({
       ...current,
       products: current.products.map((row) => (row.id === id ? { ...row, ...patch } : row)),
@@ -329,24 +318,24 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
     setForm((current) => ({ ...current, products: current.products.filter((row) => row.id !== id) }));
 
   const saveOrder = () => {
-    const entry: SavedFertRevokeOrder = {
+    const entry: SavedFertSeizureOrder = {
       ...form,
       id: editingId || uid(),
       savedAt: new Date().toISOString(),
     };
     setSavedOrders((current) => [entry, ...current.filter((item) => item.id !== entry.id)]);
     setEditingId(entry.id);
-    showSaved('Order saved', entry.orderNumber || 'Revoke of Stop Sale Notice');
+    showSaved('Order saved', entry.orderNumber || 'Seizure of Stock Notice');
   };
 
-  const editSavedOrder = (order: SavedFertRevokeOrder) => {
+  const editSavedOrder = (order: SavedFertSeizureOrder) => {
     setForm({ ...order, products: order.products.length ? order.products : [emptyProduct()] });
     setEditingId(order.id);
     setShowPreview(false);
-    showLoaded('Order loaded', order.orderNumber || 'Revoke of Stop Sale Notice');
+    showLoaded('Order loaded', order.orderNumber || 'Seizure of Stock Notice');
   };
 
-  const deleteSavedOrder = (order: SavedFertRevokeOrder) => {
+  const deleteSavedOrder = (order: SavedFertSeizureOrder) => {
     setSavedOrders((current) => current.filter((item) => item.id !== order.id));
     if (editingId === order.id) setEditingId(null);
     showDeleted('Order deleted', order.orderNumber || 'Untitled order');
@@ -358,7 +347,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
     setForm({
       ...next,
       orderNumber: '',
-      revokeDate: '',
+      seizureDate: '',
       officerName: '',
       officerDesignation: '',
       mandal: '',
@@ -368,10 +357,11 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
       division: '',
       firmName: '',
       dealerAddress: '',
-      formA2Number: '',
-      noticeNo: '',
-      noticeDate: '',
-      rectifiedDate: '',
+      fertilizerDesc: '',
+      contravenedClause: '',
+      premises: '',
+      witness1: '',
+      witness2: '',
     });
     setEditingId(null);
     setShowPreview(false);
@@ -382,14 +372,14 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
     const term = savedSearch.trim().toLowerCase();
     if (!term) return savedOrders;
     return savedOrders.filter((order) =>
-      [order.orderNumber, order.firmName, order.noticeNo, order.revokeDate].join(' ').toLowerCase().includes(term)
+      [order.orderNumber, order.firmName, order.seizureDate].join(' ').toLowerCase().includes(term)
     );
   }, [savedOrders, savedSearch]);
 
-  const fileBase = () => `${form.orderNumber || 'revoke-stop-sale-notice'}`.replace(/[\\/]/g, '-');
+  const fileBase = () => `${form.orderNumber || 'seizure-of-stock-notice'}`.replace(/[\\/]/g, '-');
 
   const downloadPdf = async () => {
-    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Revoke of Stop Sale Notice', 'bookAntiqua');
+    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Seizure of Stock Notice', 'bookAntiqua');
     doc.save(`${fileBase()}.pdf`);
     showSuccess('PDF downloaded', `${fileBase()}.pdf`);
   };
@@ -407,7 +397,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
       showSuccess('Word downloaded', `${fileBase()}.docx`);
     } catch (error) {
-      console.error('Unable to generate revoke notice Word document:', error);
+      console.error('Unable to generate seizure notice Word document:', error);
       showWarning('Word export failed', 'Please try again.');
     }
   };
@@ -458,7 +448,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
             />
           )}
           <SelectInput
-            label={isADAOfficer || isDAOOfficer ? 'Mandal (Place of inspection)' : 'Mandal'}
+            label={isADAOfficer || isDAOOfficer ? 'Mandal (Place of seizure)' : 'Mandal'}
             value={form.mandal}
             onChange={(value) => updateForm({ mandal: value, manualMandal: value === 'Others' ? form.manualMandal : '' })}
             options={mandalOptions}
@@ -466,8 +456,8 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
           {form.mandal === 'Others' && (
             <TextInput label="Enter Mandal Name" value={form.manualMandal} onChange={(value) => updateForm({ manualMandal: value })} />
           )}
-          <TextInput label="Order No." value={form.orderNumber} onChange={(value) => updateForm({ orderNumber: value })} />
-          <TextInput label="Date" type="date" value={form.revokeDate} onChange={(value) => updateForm({ revokeDate: value })} />
+          <TextInput label="Notice No." optional value={form.orderNumber} onChange={(value) => updateForm({ orderNumber: value })} />
+          <TextInput label="Date" type="date" value={form.seizureDate} onChange={(value) => updateForm({ seizureDate: value })} />
         </div>
       </div>
 
@@ -475,7 +465,6 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
         <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
-          <TextInput label="Form A2 / Licence No." value={form.formA2Number} onChange={(value) => updateForm({ formA2Number: value })} />
           <label className="block md:col-span-3">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
             <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
@@ -494,17 +483,47 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
       </div>
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Revocation Details</h3>
+        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Seizure Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
-          <TextInput label="Stop Sale Notice No." value={form.noticeNo} onChange={(value) => updateForm({ noticeNo: value })} />
-          <TextInput label="Notice Dated" type="date" value={form.noticeDate} onChange={(value) => updateForm({ noticeDate: value })} />
-          <TextInput label="Rectified On Date" type="date" value={form.rectifiedDate} onChange={(value) => updateForm({ rectifiedDate: value })} />
+          <TextInput label="Stock of Fertilizer (description)" value={form.fertilizerDesc} onChange={(value) => updateForm({ fertilizerDesc: value })} />
+          <TextInput label="Contravened Clause" value={form.contravenedClause} onChange={(value) => updateForm({ contravenedClause: value })} />
+          <div className="md:col-span-3">
+            <label className="mb-1 flex items-center gap-2 text-xs font-black text-slate-600 dark:text-slate-300">
+              <input
+                type="checkbox"
+                checked={form.premisesSameAsFirm}
+                onChange={(event) => updateForm({ premisesSameAsFirm: event.target.checked, premises: '' })}
+                className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              Premises where stock lying — same as firm address
+            </label>
+            {form.premisesSameAsFirm ? (
+              <p className="ml-6 text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
+                Firm address + Mandal + District will be used in the notice
+              </p>
+            ) : (
+              <div className="ml-6">
+                <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
+                  Enter D.No of Godown / Sale point with complete address
+                </span>
+                <textarea
+                  value={form.premises}
+                  onChange={(event) => updateForm({ premises: event.target.value })}
+                  placeholder="D.No, Road, Village"
+                  rows={2}
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                />
+              </div>
+            )}
+          </div>
+          <TextInput label="Witness 1" value={form.witness1} onChange={(value) => updateForm({ witness1: value })} />
+          <TextInput label="Witness 2" value={form.witness2} onChange={(value) => updateForm({ witness2: value })} />
         </div>
       </div>
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <h3 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Stock Details</h3>
+          <h3 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Seized Stock Details</h3>
           <button
             type="button"
             onClick={addProduct}
@@ -539,8 +558,9 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
                     className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                   />
                 </label>
-                <TextInput label="Manufacturer / Importer" value={row.manufacturer} onChange={(value) => updateProduct(row.id, { manufacturer: value })} />
-                <TextInput label="Quantity (MT)" value={row.quantityMt} onChange={(value) => updateProduct(row.id, { quantityMt: value })} />
+                <TextInput label="Name of the Manufacturer" value={row.manufacturer} onChange={(value) => updateProduct(row.id, { manufacturer: value })} />
+                <TextInput label="Quantity" value={row.quantityMt} onChange={(value) => updateProduct(row.id, { quantityMt: value })} />
+                <TextInput label="Batch No (if applicable)" value={row.batchNo} onChange={(value) => updateProduct(row.id, { batchNo: value })} />
                 <TextInput label="Remarks" value={row.remarks} onChange={(value) => updateProduct(row.id, { remarks: value })} />
               </div>
             </div>
@@ -601,7 +621,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
       {showPreview && (
         <section ref={previewRef} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-base font-black text-slate-900 dark:text-white">Revoke of Stop Sale Notice Preview</h3>
+            <h3 className="text-base font-black text-slate-900 dark:text-white">Seizure of Stock Notice Preview</h3>
             <button
               type="button"
               onClick={() => setShowPreview(false)}
@@ -649,7 +669,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
                 <tr key={order.id}>
                   <td className="px-3 py-2 font-black">{order.orderNumber}</td>
                   <td className="px-3 py-2">{order.firmName || '-'}</td>
-                  <td className="px-3 py-2">{formatNoticeDate(order.revokeDate) || '-'}</td>
+                  <td className="px-3 py-2">{formatNoticeDate(order.seizureDate) || '-'}</td>
                   <td className="px-3 py-2">{order.products.filter((row) => row.name.trim()).length || '-'}</td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex items-center gap-1">

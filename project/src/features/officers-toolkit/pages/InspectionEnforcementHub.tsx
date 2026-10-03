@@ -8,6 +8,9 @@ import { PesticideStopSaleRevokeEntry } from '../components/PesticideStopSaleRev
 import { FertilizerStopSaleEntry, type SavedFertStopSaleOrder } from '../components/FertilizerStopSaleEntry';
 import { SeedStopSaleEntry, type SavedSeedStopSaleOrder } from '../components/SeedStopSaleEntry';
 import { FertilizerStopSaleRevokeEntry } from '../components/FertilizerStopSaleRevokeEntry';
+import { FertilizerSeizureOrderEntry } from '../components/FertilizerSeizureOrderEntry';
+import { SeedSeizureOrderEntry } from '../components/SeedSeizureOrderEntry';
+import { PesticideSeizureOrderEntry } from '../components/PesticideSeizureOrderEntry';
 import { SeedStopSaleRevokeEntry } from '../components/SeedStopSaleRevokeEntry';
 import type { NoticeCategory } from '../data/showCauseViolationData';
 
@@ -73,6 +76,9 @@ export function InspectionEnforcementHub() {
   const [seedRevokePrefill, setSeedRevokePrefill] = useState<SavedSeedStopSaleOrder | null>(null);
   const [pestStopSaleTab, setPestStopSaleTab] = useState<'issue' | 'revoke'>('issue');
   const [pestRevokePrefill, setPestRevokePrefill] = useState<SavedPestStopSaleOrder | null>(null);
+  const [showFertilizerSeizure, setShowFertilizerSeizure] = useState(false);
+  const [showSeedSeizure, setShowSeedSeizure] = useState(false);
+  const [showPesticideSeizure, setShowPesticideSeizure] = useState(false);
 
   const toggleCard = (card: 'inspections' | 'notices' | 'stopSale' | 'seizure') =>
     setOpenCard((current) => (current === card ? null : card));
@@ -267,6 +273,11 @@ export function InspectionEnforcementHub() {
                 <button
                   key={item.label}
                   type="button"
+                  onClick={() => {
+                    if (item.label === 'Fertilizer') setShowFertilizerSeizure(true);
+                    if (item.label === 'Seed') setShowSeedSeizure(true);
+                    if (item.label === 'Pesticide') setShowPesticideSeizure(true);
+                  }}
                   className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left shadow-sm transition ${toneClasses[item.tone]}`}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
@@ -474,6 +485,102 @@ export function InspectionEnforcementHub() {
               ) : (
                 <SeedStopSaleRevokeEntry prefill={seedRevokePrefill} />
               )}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {showFertilizerSeizure && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-0 backdrop-blur-sm sm:p-4">
+          <section className="flex h-full max-h-none w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl dark:bg-slate-900 sm:h-auto sm:max-h-[94vh] sm:rounded-2xl">
+            <header className={`relative flex shrink-0 items-start justify-between gap-3 border-b bg-gradient-to-r px-4 py-4 sm:px-6 ${noticeModalThemes.fertiliser.header}`}>
+              <div className="relative flex min-w-0 flex-1 items-start gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg ${noticeModalThemes.fertiliser.icon}`}>
+                  <PackageX className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.fertiliser.eyebrow}`}>
+                    Seizure of Stock — Annexure 'AA', Clause 28(1)(d)
+                  </p>
+                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                    Fertilizer Seizure Order Entry
+                  </h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFertilizerSeizure(false)}
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+              >
+                Close
+              </button>
+            </header>
+            <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+              <FertilizerSeizureOrderEntry />
+            </div>
+          </section>
+        </div>
+      )}
+
+      {showSeedSeizure && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-0 backdrop-blur-sm sm:p-4">
+          <section className="flex h-full max-h-none w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl dark:bg-slate-900 sm:h-auto sm:max-h-[94vh] sm:rounded-2xl">
+            <header className={`relative flex shrink-0 items-start justify-between gap-3 border-b bg-gradient-to-r px-4 py-4 sm:px-6 ${noticeModalThemes.seed.header}`}>
+              <div className="relative flex min-w-0 flex-1 items-start gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg ${noticeModalThemes.seed.icon}`}>
+                  <PackageX className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.seed.eyebrow}`}>
+                    Receipt of Records — Form IV, Sec. 14(1)(4), Seeds Act 1966
+                  </p>
+                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                    Seed Seizure — Form IV Entry
+                  </h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSeedSeizure(false)}
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+              >
+                Close
+              </button>
+            </header>
+            <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+              <SeedSeizureOrderEntry />
+            </div>
+          </section>
+        </div>
+      )}
+
+      {showPesticideSeizure && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-0 backdrop-blur-sm sm:p-4">
+          <section className="flex h-full max-h-none w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl dark:bg-slate-900 sm:h-auto sm:max-h-[94vh] sm:rounded-2xl">
+            <header className={`relative flex shrink-0 items-start justify-between gap-3 border-b bg-gradient-to-r px-4 py-4 sm:px-6 ${noticeModalThemes.pesticide.header}`}>
+              <div className="relative flex min-w-0 flex-1 items-start gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg ${noticeModalThemes.pesticide.icon}`}>
+                  <PackageX className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.pesticide.eyebrow}`}>
+                    Receipt for Seized Insecticides — Form V(B), Rule 32, Sec. 21(1)(d)
+                  </p>
+                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                    Pesticide Seizure — Form V(B) Entry
+                  </h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPesticideSeizure(false)}
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+              >
+                Close
+              </button>
+            </header>
+            <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+              <PesticideSeizureOrderEntry />
             </div>
           </section>
         </div>

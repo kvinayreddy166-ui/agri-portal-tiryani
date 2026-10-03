@@ -273,6 +273,7 @@ export function isMaoDesignation(designation: string): boolean {
 export interface NoticeSegment {
   text: string;
   bold?: boolean;
+  underline?: boolean;
 }
 
 export type NoticeBlock =
@@ -695,7 +696,10 @@ function escapeHtml(value: string) {
 
 function segmentsHtml(segments: NoticeSegment[]) {
   return segments
-    .map((segment) => (segment.bold ? `<strong>${escapeHtml(segment.text)}</strong>` : escapeHtml(segment.text)))
+    .map((segment) => {
+      const style = segment.underline ? ' style="text-decoration:underline;"' : '';
+      return segment.bold ? `<strong${style}>${escapeHtml(segment.text)}</strong>` : `<span${style}>${escapeHtml(segment.text)}</span>`;
+    })
     .join('');
 }
 
@@ -813,7 +817,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
   const font = { ascii: latinFont, hAnsi: latinFont, eastAsia: latinFont, cs: DOCX_TELUGU_FONT };
   const fontSize = 24;
   const mmToTwips = (mm: number) => Math.round(mm * 56.6929);
-  const runs = (segments: NoticeSegment[]) => segments.map((segment) => new TextRun({ text: segment.text, bold: segment.bold, font, size: fontSize }));
+  const runs = (segments: NoticeSegment[]) => segments.map((segment) => new TextRun({ text: segment.text, bold: segment.bold, underline: segment.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: fontSize }));
   const children: FileChild[] = [];
   const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
   const noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder, insideHorizontal: noBorder, insideVertical: noBorder };
@@ -1107,7 +1111,9 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
       doc.setFont(fontName, run.bold ? 'bold' : 'normal');
       doc.setFontSize(size);
       doc.text(run.text, cx, lineY);
-      cx += doc.getTextWidth(run.text) + gap;
+      const w = doc.getTextWidth(run.text);
+      if (run.underline) doc.line(cx, lineY + 0.8, cx + w, lineY + 0.8);
+      cx += w + gap;
     });
   };
 
@@ -1117,7 +1123,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
       segment.text
         .split(/\s+/)
         .filter(Boolean)
-        .forEach((word) => words.push({ text: word, bold: segment.bold }));
+        .forEach((word) => words.push({ text: word, bold: segment.bold, underline: segment.underline }));
     });
     const lines: NoticeSegment[][] = [];
     let current: NoticeSegment[] = [];
