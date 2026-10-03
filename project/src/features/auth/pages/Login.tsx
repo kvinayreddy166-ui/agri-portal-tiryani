@@ -820,10 +820,10 @@ export function Login() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 lg:grid lg:grid-cols-2">
       <UpdateBanner />
 
-      <aside className="relative hidden flex-col justify-between overflow-hidden bg-emerald-800 p-10 text-white lg:flex">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-600 via-emerald-800 to-[#032b20]" />
-        <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-emerald-400/15 blur-3xl dashboard-float" />
-        <div className="pointer-events-none absolute -bottom-28 -left-20 h-96 w-96 rounded-full bg-teal-400/10 blur-3xl dashboard-float" style={{ animationDelay: '1.5s' }} />
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-indigo-800 p-10 text-white lg:flex">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-600 via-indigo-800 to-[#1e1b4b]" />
+        <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-indigo-400/20 blur-3xl dashboard-float" />
+        <div className="pointer-events-none absolute -bottom-28 -left-20 h-96 w-96 rounded-full bg-violet-400/15 blur-3xl dashboard-float" style={{ animationDelay: '1.5s' }} />
         <div className="pointer-events-none absolute -left-40 top-1/2 h-[28rem] w-[28rem] -translate-y-1/2 rounded-full border border-white/10" />
         <div className="pointer-events-none absolute -left-24 top-1/2 h-[18rem] w-[18rem] -translate-y-1/2 rounded-full border border-white/10" />
         <div className="relative flex items-center gap-3">
@@ -832,53 +832,53 @@ export function Login() {
           </div>
           <div>
             <h2 className="text-2xl font-bold tracking-tight font-[var(--font-stylish)]">AGRONIX</h2>
-            <p className="text-xs text-emerald-200">
+            <p className="text-xs text-indigo-200">
               {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
             </p>
           </div>
         </div>
         <div className="relative space-y-5">
-          <h1 className="max-w-md bg-gradient-to-r from-white via-emerald-100 to-teal-200 bg-clip-text text-3xl font-bold leading-tight tracking-tight text-transparent xl:text-[2.5rem]">
+          <h1 className="max-w-md bg-gradient-to-r from-white via-indigo-100 to-violet-200 bg-clip-text text-3xl font-bold leading-tight tracking-tight text-transparent xl:text-[2.5rem]">
             {t('Field-ready documents for agriculture enforcement.', 'వ్యవసాయ అమలు కోసం సిద్ధమైన పత్రాలు.')}
           </h1>
-          <p className="max-w-md text-sm leading-6 text-emerald-100/90">
+          <p className="max-w-md text-sm leading-6 text-indigo-100/90">
             {t('Inspections, memos, stop sale and seizure orders — prepared in departmental format, ready for PDF and Word.', 'తనిఖీలు, మెమోలు, స్టాప్ సేల్ మరియు జబ్తు ఆర్డర్లు — శాఖా ఫార్మాట్‌లో, PDF మరియు Word కోసం సిద్ధం.')}
           </p>
-          <ul className="space-y-3 text-sm text-emerald-50">
+          <ul className="space-y-3 text-sm text-indigo-50">
             <li className="flex items-center gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
-                <FileText className="h-4 w-4 text-emerald-200" />
+                <FileText className="h-4 w-4 text-indigo-200" />
               </span>
               <span>{t('Statutory forms & covering letters', 'చట్టబద్ధ ఫారాలు & కవరింగ్ లెటర్లు')}</span>
             </li>
             <li className="flex items-center gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
-                <ShieldCheck className="h-4 w-4 text-emerald-200" />
+                <ShieldCheck className="h-4 w-4 text-indigo-200" />
               </span>
               <span>{t('Inspection & enforcement toolkit', 'తనిఖీ & అమలు టూల్‌కిట్')}</span>
             </li>
             <li className="flex items-center gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
-                <Sprout className="h-4 w-4 text-emerald-200" />
+                <Sprout className="h-4 w-4 text-indigo-200" />
               </span>
               <span>{t('Seed, fertilizer & pesticide workflows', 'విత్తన, ఎరువు & పురుగుమందు పనిప్రవాహాలు')}</span>
             </li>
           </ul>
         </div>
-        <div className="relative text-xs leading-5 text-emerald-200/80">
+        <div className="relative text-xs leading-5 text-indigo-200/80">
           <p>version-1.0.1 &middot; &copy; 2026 Agronix — Information Management System</p>
           <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
         </div>
       </aside>
 
-      <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-sky-100/80 via-emerald-50 to-teal-100/90 p-4 pb-28 dark:from-slate-950 dark:via-emerald-950/40 dark:to-teal-950/60 sm:pb-24 lg:min-h-0 lg:p-8">
+      <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-indigo-200/80 via-indigo-100 to-indigo-300/70 p-4 pb-28 dark:from-slate-950 dark:via-indigo-950/50 dark:to-indigo-950/70 sm:pb-24 lg:min-h-0 lg:p-8">
       <div className="flex items-center justify-between">
         <WhatsAppFab whatsappLink="https://wa.me/918308487046" />
-        <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" className="shrink-0" />
+        <LanguageToggle language={language} onClick={toggleLanguage} accent="violet" className="shrink-0" />
       </div>
-      <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl dark:bg-sky-500/10" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-indigo-300/35 blur-3xl dark:bg-indigo-500/10" />
       <div className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-emerald-300/35 blur-3xl dashboard-float dark:bg-emerald-500/10" />
-      <div className="pointer-events-none absolute right-1/4 top-1/3 h-40 w-40 rounded-full bg-amber-200/30 blur-3xl dashboard-float dark:bg-amber-500/10" style={{ animationDelay: '2s' }} />
+      <div className="pointer-events-none absolute right-1/4 top-1/3 h-40 w-40 rounded-full bg-violet-300/30 blur-3xl dashboard-float dark:bg-violet-500/10" style={{ animationDelay: '2s' }} />
       <div className="flex flex-1 items-center justify-center">
       <div className="relative w-full max-w-md">
         <section className="relative flex flex-col justify-start overflow-hidden rounded-3xl border border-white/60 bg-white/85 p-6 shadow-xl shadow-emerald-950/10 backdrop-blur-xl animate-fadeIn dark:border-slate-800 dark:bg-slate-900/85 sm:p-10">
@@ -1291,4 +1291,5 @@ function isMissingPublicLabelColumnError(error: unknown) {
 }
 
 export default Login;
+
 
