@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Download, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Download, Edit3, FileText, FileType, ListOrdered, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear } from '../../../shared/utils/financialYear';
 import { withOthersOption, effectiveLocationValue } from '../../../shared/data/assistantDirectorLocation';
 import {
@@ -269,6 +269,7 @@ export function FertilizerSeizureOrderEntry() {
   const previewRef = useRef<HTMLDivElement>(null);
   const [resetSpinKey, setResetSpinKey] = useState(0);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [stepsGuideOpen, setStepsGuideOpen] = useState(true);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
 
   const noticeBlocks = useMemo(() => buildSeizureModel(form), [form]);
@@ -419,7 +420,37 @@ export function FertilizerSeizureOrderEntry() {
         onCancel={() => setResetConfirmOpen(false)}
       />
 
+      {stepsGuideOpen && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+          onClick={() => setStepsGuideOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/10 dark:bg-slate-900 dark:ring-white/10"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setStepsGuideOpen(false)}
+              aria-label="Close seizure steps guide"
+              className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-white shadow transition hover:bg-red-700"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <img
+              src="/images/seizure-steps.jpg"
+              alt="Steps involved in the seizure of stock"
+              className="max-h-[82vh] w-full object-contain"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-end gap-2">
+        <button type="button" onClick={() => setStepsGuideOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-sky-200 bg-white px-3 py-2 text-xs font-black text-sky-700 shadow-sm transition hover:bg-sky-50 dark:border-sky-800/50 dark:bg-slate-900 dark:text-sky-300 sm:text-sm">
+          <ListOrdered className="h-4 w-4" aria-hidden="true" />
+          Steps
+        </button>
         <button type="button" onClick={() => setResetConfirmOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 shadow-sm transition hover:bg-red-50 dark:border-red-800/50 dark:bg-slate-900 dark:text-red-300 sm:text-sm">
           <RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />
           Reset
