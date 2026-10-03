@@ -905,11 +905,16 @@ export function Login() {
             <button
               type="button"
               onClick={openOfficerToolkit}
-              className="group mb-5 flex w-full animate-slide-up items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition delay-100 hover:border-indigo-300 hover:bg-indigo-50/60 hover:text-indigo-700 hover:shadow-md active:scale-[0.98] dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:border-indigo-500"
+              className="group mb-5 flex w-full animate-slide-up items-center gap-3 rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50 via-violet-50/80 to-indigo-50 px-3.5 py-3 text-left shadow-sm transition delay-100 hover:-translate-y-px hover:border-indigo-200 hover:from-indigo-100/80 hover:to-violet-100/70 hover:shadow-md hover:shadow-indigo-500/10 active:translate-y-0 active:scale-[0.99] dark:border-indigo-500/30 dark:from-indigo-950/50 dark:via-violet-950/40 dark:to-indigo-950/50 dark:hover:border-indigo-400/50"
             >
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              <span>{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100 transition group-hover:scale-105 dark:bg-slate-800 dark:text-indigo-300 dark:ring-indigo-500/30">
+                <ShieldCheck className="h-[18px] w-[18px]" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold text-slate-800 dark:text-slate-100">{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
+                <span className="block text-[11px] font-medium leading-snug text-slate-500 dark:text-slate-400">{t('Inspections, notices & orders — no sign-in needed', 'తనిఖీలు, నోటీసులు & ఆర్డర్లు — సైన్-ఇన్ అవసరం లేదు')}</span>
+              </span>
+              <ArrowRight className="h-4 w-4 shrink-0 text-indigo-400 transition-transform group-hover:translate-x-0.5 dark:text-indigo-300" />
             </button>
 
             <div className="mb-6 grid animate-slide-up grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 text-sm font-semibold ring-1 ring-inset ring-slate-200/70 delay-100 dark:bg-slate-800 dark:ring-slate-700">

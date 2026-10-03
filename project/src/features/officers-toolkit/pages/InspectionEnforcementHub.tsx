@@ -122,30 +122,34 @@ export function InspectionEnforcementHub() {
     subtitle: string;
     icon: typeof Sprout;
     theme: string;
+    chips: { label: string; tone: string }[];
     items: { label: string; icon: typeof Sprout; tone: string; onClick: () => void }[];
   }[] = [
     {
       key: 'inspections',
       title: 'Inspections',
-      subtitle: 'Seed • Fertilizer • Pesticide dealer inspection',
+      subtitle: 'Dealer inspection checklists',
       icon: ClipboardCheck,
       theme: 'teal',
+      chips: INSPECTION_TYPES.map((item) => ({ label: item.label, tone: item.tone })),
       items: INSPECTION_TYPES.map((item) => ({ label: `${item.label} Inspection`, icon: item.icon, tone: item.tone, onClick: () => navigate(item.path) })),
     },
     {
       key: 'notices',
       title: 'Memo & Show Cause Notice',
-      subtitle: 'Seed • Fertilizer • Pesticide notices and memos',
+      subtitle: 'Notices and memos',
       icon: FileText,
       theme: 'cyan',
+      chips: NOTICE_TYPES.map((item) => ({ label: item.label, tone: item.tone })),
       items: NOTICE_TYPES.map((item) => ({ label: `${item.label} Notice`, icon: item.icon, tone: item.tone, onClick: () => setSelectedNoticeCategory(item.category) })),
     },
     {
       key: 'stopSale',
       title: 'Stop Sale Order',
-      subtitle: 'Seed • Fertilizer • Pesticide stop sale orders',
+      subtitle: 'Stop sale orders & revocations',
       icon: Ban,
       theme: 'sky',
+      chips: STOP_SALE_TYPES.map((item) => ({ label: item.label, tone: item.tone })),
       items: STOP_SALE_TYPES.map((item) => ({
         label: `${item.label} Stop Sale`,
         icon: item.icon,
@@ -160,9 +164,10 @@ export function InspectionEnforcementHub() {
     {
       key: 'seizure',
       title: 'Seizure Order',
-      subtitle: 'Seed • Fertilizer • Pesticide seizure orders',
+      subtitle: 'Stock seizure orders',
       icon: PackageX,
       theme: 'indigo',
+      chips: SEIZURE_TYPES.map((item) => ({ label: item.label, tone: item.tone })),
       items: SEIZURE_TYPES.map((item) => ({
         label: `${item.label} Seizure`,
         icon: item.icon,
@@ -200,19 +205,29 @@ export function InspectionEnforcementHub() {
                   : 'border-slate-200 shadow-sm hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800'
               }`}
             >
-              <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${theme.bar}`} />
+              <div className={`absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b ${theme.bar}`} />
               <button
                 type="button"
                 onClick={() => toggleCard(card.key)}
                 aria-expanded={isOpen}
-                className="flex min-h-[88px] w-full items-center gap-4 p-4 pt-5 text-left"
+                className="flex w-full items-center gap-4 py-4 pl-6 pr-4 text-left"
               >
-                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg transition-transform duration-300 group-hover:scale-105 ${theme.tile}`}>
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg ring-4 ring-white transition-transform duration-300 group-hover:scale-105 dark:ring-slate-900 ${theme.tile}`}>
                   <card.icon className="h-6 w-6" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-base font-black leading-tight text-slate-900 dark:text-white">{card.title}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-base font-black leading-tight text-slate-900 dark:text-white">{card.title}</p>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">{card.items.length} tools</span>
+                  </div>
                   <p className="mt-0.5 text-xs font-semibold leading-snug text-slate-500 dark:text-slate-400">{card.subtitle}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {card.chips.map((chip) => (
+                      <span key={chip.label} className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${chipClasses[chip.tone]}`}>
+                        {chip.label}
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${isOpen ? `rotate-180 ${theme.chevronOpen}` : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
                   <ChevronDown className="h-4 w-4" />
