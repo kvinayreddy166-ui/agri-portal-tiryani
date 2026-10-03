@@ -967,7 +967,7 @@ export function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3.5 font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:-translate-y-px hover:from-indigo-500 hover:to-violet-500 hover:shadow-xl hover:shadow-indigo-600/40 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/30 active:translate-y-0 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-60"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#5956eb] to-[#844bf2] py-3.5 font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:-translate-y-px hover:from-indigo-600 hover:to-violet-600 hover:shadow-xl hover:shadow-indigo-500/35 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/30 active:translate-y-0 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-60"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : loginMode === 'dealer' ? <Store className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
                 {loading ? t('Signing in...', 'à°²à°¾à°—à°¿à°¨à± à°…à°µà±à°¤à±‹à°‚à°¦à°¿...') : loginMode === 'dealer' ? t('Dealer Sign In', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Sign In', 'à°²à°¾à°—à°¿à°¨à±')}
@@ -990,7 +990,7 @@ export function Login() {
       <button
         type="button"
         onClick={handleInstallApp}
-        className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-indigo-600/30 ring-1 ring-white/10 backdrop-blur transition hover:-translate-y-0.5 hover:from-indigo-500 hover:to-violet-500"
+        className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-gradient-to-r from-[#5956eb] to-[#844bf2] px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-indigo-500/25 ring-1 ring-white/10 backdrop-blur transition hover:-translate-y-0.5 hover:from-indigo-600 hover:to-violet-600"
       >
         <Smartphone className="h-5 w-5" />
         Install App
@@ -1007,7 +1007,7 @@ export function Login() {
       <button
         type="button"
         onClick={openGrievance}
-        className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-indigo-600/30 ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:from-indigo-500 hover:to-violet-500"
+        className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#5956eb] to-[#844bf2] px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-indigo-500/25 ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:from-indigo-600 hover:to-violet-600"
       >
         <MessageSquareText className="h-5 w-5" />
         {t('Grievances', 'à°«à°¿à°°à±à°¯à°¾à°¦à±à°²à±')}
