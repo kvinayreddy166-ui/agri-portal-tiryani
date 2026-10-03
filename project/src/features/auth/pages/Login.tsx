@@ -876,10 +876,6 @@ export function Login() {
       </aside>
 
       <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-indigo-50 to-violet-100 p-4 pb-28 dark:from-slate-950 dark:via-indigo-950/50 dark:to-indigo-950/70 sm:pb-24 lg:min-h-0 lg:p-8">
-      <div className="flex items-center justify-between">
-        <WhatsAppFab whatsappLink="https://wa.me/918308487046" />
-        <LanguageToggle language={language} onClick={toggleLanguage} accent="violet" className="shrink-0" />
-      </div>
       <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-violet-300/40 blur-3xl dark:bg-indigo-500/10" />
       <div className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-emerald-300/35 blur-3xl dashboard-float dark:bg-emerald-500/10" />
       <div className="pointer-events-none absolute right-1/4 top-1/3 h-40 w-40 rounded-full bg-violet-300/30 blur-3xl dashboard-float dark:bg-violet-500/10" style={{ animationDelay: '2s' }} />
@@ -887,6 +883,9 @@ export function Login() {
       <div className="relative w-full max-w-[28rem]">
         <section className="relative flex flex-col justify-start overflow-hidden rounded-[28px] border border-white/80 bg-white/90 p-6 shadow-2xl shadow-indigo-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl animate-fadeIn dark:border-slate-800 dark:bg-slate-900/85 dark:ring-white/5 sm:p-10">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-emerald-400" />
+          <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
+            <LanguageToggle language={language} onClick={toggleLanguage} accent="violet" />
+          </div>
           <div className="w-full">
             <div className="mb-8 flex flex-col items-center gap-3 text-center animate-slide-up lg:hidden">
               <div className="login-logo-hero inline-flex">
@@ -991,7 +990,7 @@ export function Login() {
       <button
         type="button"
         onClick={handleInstallApp}
-        className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-slate-900/95 px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-slate-900/25 ring-1 ring-white/10 backdrop-blur transition hover:-translate-y-0.5 hover:bg-slate-800"
+        className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-indigo-600/30 ring-1 ring-white/10 backdrop-blur transition hover:-translate-y-0.5 hover:from-indigo-500 hover:to-violet-500"
       >
         <Smartphone className="h-5 w-5" />
         Install App
@@ -1002,6 +1001,9 @@ export function Login() {
         </div>
       )}
 
+      <div className="fixed bottom-[4.5rem] right-4 z-50">
+        <WhatsAppFab whatsappLink="https://wa.me/918308487046" />
+      </div>
       <button
         type="button"
         onClick={openGrievance}
