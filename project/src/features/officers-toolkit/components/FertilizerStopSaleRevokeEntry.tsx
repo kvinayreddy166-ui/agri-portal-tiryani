@@ -241,7 +241,7 @@ function buildRevokeModel(form: FertRevokeFormState): NoticeBlock[] {
     { kind: 'gap', mm: 1, keepWithNext: true },
     {
       kind: 'gridTable',
-      header: ['S.No', 'Name of Fertilizer', 'Name of the Manufacturer / Importer', 'Quantity (MT)', 'Remarks'],
+      header: ['S.No.', 'Name of Fertilizer', 'Name of the Manufacturer / Importer', 'Quantity (MT)', 'Remarks'],
       colWeights: [8, 34, 30, 13, 15],
       rows: tableRows,
       keepWithNext: true,

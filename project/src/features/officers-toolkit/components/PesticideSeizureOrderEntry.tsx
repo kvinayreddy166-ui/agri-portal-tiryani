@@ -209,7 +209,7 @@ function buildSeizureModel(form: PestSeizureFormState): NoticeBlock[] {
     {
       kind: 'gridTable',
       header: [
-        'Sl. No.',
+        'S.No.',
         'Name of the insecticide with complete details, like purity, type of formulation, etc.',
         'Manufactured by',
         'Batch Number',

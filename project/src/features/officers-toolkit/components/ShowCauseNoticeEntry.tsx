@@ -463,7 +463,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: '1.',
-        labelBold: false,
         segments: [
           { text: 'It is informed that during the field inspection of the business premises of ' },
           { text: firmDisplay, bold: true },
@@ -493,7 +492,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: '2.',
-        labelBold: false,
         segments: [
           { text: `The aforesaid irregularities constitute a violation of the mandatory provisions of the ${instrument} and the conditions of ${memoLicencePhrase}.` },
         ],
@@ -501,7 +499,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: '3.',
-        labelBold: false,
         segments: [
           { text: 'In view of the above, ' },
           { text: firmDisplay, bold: true },
@@ -513,7 +510,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: '4.',
-        labelBold: false,
         segments: [
           { text: `If no written explanation is received within the stipulated period of ${explanationPeriod}, it will be construed that the firm has no explanation to offer, and the matter will be reported to the ` },
           { text: 'Notified Authority', bold: true },
@@ -610,7 +606,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'labelPara',
       label: '1.',
-      labelBold: false,
       segments: [
         { text: 'Whereas, ' },
         { text: firmDisplay, bold: true },
@@ -622,7 +617,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'labelPara',
       label: '2.',
-      labelBold: false,
       segments: inspectedByMao
         ? [
             { text: 'And whereas, based on the report of the ' },
@@ -641,7 +635,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'labelPara',
       label: '3.',
-      labelBold: false,
       segments: [
         { text: `The aforesaid irregularities constitute a violation of the mandatory provisions of the ${instrument} and ${licenceConditionPhrase}, warranting statutory and administrative action under the relevant provisions of the Order and applicable Acts/Rules.` },
       ],
@@ -649,7 +642,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'labelPara',
       label: '4.',
-      labelBold: false,
       segments: [
         { text: 'In view of the above, ' },
         { text: firmDisplay, bold: true },
@@ -663,7 +655,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     {
       kind: 'labelPara',
       label: '5.',
-      labelBold: false,
       segments: [
         { text: `If no written explanation is received in this office within the stipulated period of ${explanationPeriod}, it will be construed that the firm has no explanation to offer, and the matter will be examined and decided ` },
         { text: 'ex-parte', bold: true },
@@ -750,7 +741,7 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
             : block.header.map(() => 1);
           const total = weights.reduce((a, b) => a + b, 0);
           const cols = weights.map((w) => `<col style="width:${(w / total) * 100}%;"/>`).join('');
-          return `<table style="width:100%;border-collapse:collapse;margin:2pt 0 4pt;table-layout:fixed;font-size:11pt;">${cols}<thead><tr>${block.header
+          return `<table style="width:100%;border-collapse:collapse;margin:2pt 0 4pt;table-layout:fixed;font-size:10pt;">${cols}<thead><tr>${block.header
             .map((cell) => `<th style="border:1pt solid #000;padding:2pt 4pt;text-align:center;font-weight:700;vertical-align:middle;overflow-wrap:break-word;">${escapeHtml(cell)}</th>`)
             .join('')}</tr></thead><tbody>${block.rows
             .map(
@@ -975,7 +966,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
         const total = weights.reduce((a, b) => a + b, 0);
         const contentWidth = mmToTwips(170);
         const cellPara = (text: string, bold = false) => new Paragraph({
-          children: [new TextRun({ text, bold, font, size: fontSize - 2 })],
+          children: [new TextRun({ text, bold, font, size: fontSize - 4 })],
           alignment: AlignmentType.CENTER,
           spacing: { ...wordGridLine, after: 0 },
         });
@@ -1149,7 +1140,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
     return lines;
   };
 
-  const GRID_FONT_SIZE = 11;
+  const GRID_FONT_SIZE = 10;
   const GRID_LH = (LH * GRID_FONT_SIZE) / 12;
 
   const gridColWidths = (block: Extract<NoticeBlock, { kind: 'gridTable' }>) => {

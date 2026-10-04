@@ -572,7 +572,7 @@ export function PesticideStopSaleRevokeEntry({ prefill }: { prefill?: SavedPestS
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={previewOrder} className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-sky-700 sm:text-sm">
+        <button type="button" onClick={previewOrder} className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-rose-700 sm:text-sm">
           <FileText className="h-4 w-4" aria-hidden="true" />
           Preview
         </button>

@@ -245,7 +245,7 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
     { kind: 'gap', mm: 2 },
     {
       kind: 'gridTable',
-      header: ['Sr. No.', 'Name of the Insecticide with complete details', 'Manufactured by', 'Batch No.', 'Date of Manufacture and Date of Expiry', 'Stock Quantity as on Date (indicate units also)', 'Remarks'],
+      header: ['S.No.', 'Name of the Insecticide with complete details', 'Manufactured by', 'Batch No.', 'Date of Manufacture and Date of Expiry', 'Stock Quantity as on Date (indicate units also)', 'Remarks'],
       colWeights: [6, 26, 15, 10, 15, 14, 14],
       rows: tableRows,
     },
@@ -604,7 +604,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={previewOrder} className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-sky-700 sm:text-sm">
+        <button type="button" onClick={previewOrder} className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-rose-700 sm:text-sm">
           <FileText className="h-4 w-4" aria-hidden="true" />
           Preview
         </button>

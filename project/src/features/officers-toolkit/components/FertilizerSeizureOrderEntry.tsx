@@ -211,7 +211,7 @@ function buildSeizureModel(form: FertSeizureFormState): NoticeBlock[] {
     { kind: 'gap', mm: 2 },
     {
       kind: 'gridTable',
-      header: ['Sr.No', 'Name of the fertilizer', 'Name of the manufacturer', 'Quantity', 'Batch No if applicable', 'Remarks'],
+      header: ['S.No.', 'Name of the fertilizer', 'Name of the manufacturer', 'Quantity', 'Batch No if applicable', 'Remarks'],
       colWeights: [8, 26, 24, 12, 15, 15],
       rows: tableRows,
       keepWithNext: true,
