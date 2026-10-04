@@ -145,7 +145,7 @@ export const insecticideMindMap: MindMapNode[] = [
           { id: 'ia-ss-batch', label: 'Select batch' },
           { id: 'ia-ss-qty', label: 'Enter quantity' },
           { id: 'ia-ss-reason', label: 'Reason' },
-          { id: 'ia-ss-legal', label: 'Legal provision', detail: 'Section 21(1)(d) permits stopping distribution, sale or use for a specified period not exceeding 30 days, subject to statutory conditions.' },
+          { id: 'ia-ss-legal', label: 'Legal provision', detail: 'Section 21(1)(d) permits stopping distribution, sale or use for a specified period not exceeding 20 days, subject to statutory conditions.' },
           { id: 'ia-ss-rule31', label: 'No sale of stock under stop-sale — Rule 31' },
         ],
       },
