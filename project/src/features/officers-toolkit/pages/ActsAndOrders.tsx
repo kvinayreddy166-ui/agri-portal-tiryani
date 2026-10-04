@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Clock,
   Copy,
+  Download,
   FileSearch,
   FileText,
   ClipboardList,
@@ -19,7 +20,6 @@ import {
   Microscope,
   Network,
   PackageCheck,
-  Printer,
   Scale,
   Search,
   Share2,
@@ -29,15 +29,16 @@ import {
   Sprout,
   Store,
   Truck,
-  FileSpreadsheet,
 } from 'lucide-react';
 import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData';
 import { type LegalCategory } from '../data/actsAndOrdersData';
 import { fcoClauseCards, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
+import { insecticideActCards, insecticideForms, insecticideModuleCards, insecticideRuleCards, type InsecticideFormEntry } from '../data/insecticideActData';
 import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory, type FertilizerFormEntry } from '../../statutory-forms/data/fertilizerForms';
 import { fertilizerSchedules, type FertilizerScheduleEntry } from '../../statutory-forms/data/fertilizerSchedules';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
-import { enforcementDeadlines, enforcementMindMap, type MindMapNode } from '../data/fcoEnforcementMindMap';
+import { enforcementDeadlines, enforcementMindMap, type EnforcementDeadline, type MindMapNode } from '../data/fcoEnforcementMindMap';
+import { insecticideDeadlines, insecticideMindMap, insecticideOffenceEntries } from '../data/insecticideEnforcement';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { FertilizerFormPdfGenerator } from '../../statutory-forms/components/FertilizerFormPdfGenerator';
@@ -48,13 +49,97 @@ import { safeStorage } from '../../../shared/lib/safeStorage';
 type ReckonerView = 'powers' | 'notice';
 type MainLegalArea = 'fertilizer' | 'seed' | 'insecticide';
 type FertilizerSection = 'clauses' | 'forms' | 'schedules' | 'duties';
+type InsecticideSection = 'sections' | 'rules' | 'forms' | 'duties';
 
 const BOOKMARK_KEY = 'agri-legal-reckoner-bookmarks';
 
+function clauseRefKey(clause: FcoClause) {
+  return `${(clause.clauseLabel ?? 'clause')} ${clause.clauseNo}`.toLowerCase();
+}
+
+// Accent theme for the shared clause/forms panels — sky for FCO, amber for
+// Insecticides Act & Rules so the section matches its area card.
+type FcoAccent = 'sky' | 'amber';
+
+const fcoAccentThemes = {
+  sky: {
+    gradient: 'from-sky-400 via-sky-500 to-blue-500',
+    gradientDeep: 'from-sky-400 via-sky-500 to-blue-500',
+    shadow: 'shadow-sky-400/20',
+    border: 'border-sky-200 dark:border-sky-800/50',
+    borderSoft: 'border-sky-100 dark:border-sky-900/40',
+    borderMid: 'border-sky-200 dark:border-sky-900/60',
+    hoverBorder: 'hover:border-sky-300',
+    activeTile: 'border-sky-400 dark:border-sky-600',
+    tint: 'from-sky-50/70 via-white to-blue-50/50 dark:from-sky-950/30 dark:via-slate-900 dark:to-blue-950/30',
+    tintActive: 'from-sky-100/80 via-white to-blue-100/60 dark:from-sky-950/40 dark:via-slate-950 dark:to-blue-950/30',
+    tintTile: 'from-sky-50/70 via-white to-blue-50/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20',
+    chip: 'bg-gradient-to-br from-sky-50 to-blue-50 text-sky-800 ring-sky-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-200 dark:ring-sky-800/60',
+    chipCount: 'bg-gradient-to-br from-sky-50 to-blue-50/70 text-sky-800 ring-sky-100 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-200 dark:ring-sky-900',
+    chipAlt: 'bg-gradient-to-br from-blue-50 to-sky-50 text-blue-800 ring-blue-200 dark:from-blue-950/40 dark:to-sky-950/30 dark:text-blue-300 dark:ring-blue-800/60',
+    tabOff: 'border-sky-200 bg-gradient-to-br from-sky-50/60 to-blue-50/40 text-sky-900 hover:border-sky-300 hover:from-sky-100 dark:border-sky-800/50 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-200 dark:hover:from-sky-950/50',
+    labelText: 'text-sky-700 dark:text-sky-300',
+    boldText: 'text-sky-800 dark:text-sky-200',
+    iconText: 'text-sky-600 dark:text-sky-400',
+    altText: 'text-blue-700 dark:text-blue-300',
+    focus: 'focus:border-sky-500 focus:ring-sky-100',
+    related: 'bg-gradient-to-br from-blue-50 to-sky-50 text-blue-700 ring-blue-200 hover:from-blue-100 hover:to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 dark:text-blue-300 dark:ring-blue-900 dark:hover:from-blue-950 dark:hover:to-sky-950',
+    provisoBox: 'border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50/70 dark:border-sky-900/60 dark:from-sky-950/30 dark:to-blue-950/20',
+    provisoTitle: 'text-sky-800 dark:text-sky-300',
+    provisoBody: 'text-sky-900 dark:text-sky-100',
+    provisoSub: 'text-sky-700/80 dark:text-sky-200/70',
+    panelBox: 'border-blue-100 bg-gradient-to-br from-blue-50/60 to-sky-50/40 dark:border-blue-900/50 dark:from-blue-950/20 dark:to-sky-950/10',
+    panelTitle: 'text-blue-700 dark:text-blue-300',
+    panelChip: 'bg-gradient-to-br from-white to-blue-50/60 text-blue-700 ring-blue-200 dark:from-slate-900 dark:to-slate-900 dark:text-blue-300 dark:ring-blue-900',
+    stepperArrow: 'text-blue-400 dark:text-blue-600',
+    stepperBadge: 'from-sky-400 to-blue-500',
+    stepperClock: 'text-blue-600 dark:text-blue-400',
+    stepperBox: 'border-blue-200 dark:border-blue-900',
+    dot: 'from-sky-400 to-blue-400',
+    hoverTint: 'hover:bg-sky-50/70 dark:hover:bg-sky-950/20',
+  },
+  amber: {
+    gradient: 'from-amber-400 via-amber-500 to-orange-500',
+    gradientDeep: 'from-amber-400 via-amber-500 to-orange-500',
+    shadow: 'shadow-amber-400/25',
+    border: 'border-amber-200 dark:border-amber-800/50',
+    borderSoft: 'border-amber-100 dark:border-amber-900/40',
+    borderMid: 'border-amber-200 dark:border-amber-900/60',
+    hoverBorder: 'hover:border-amber-300',
+    activeTile: 'border-amber-400 dark:border-amber-600',
+    tint: 'from-amber-50/70 via-white to-orange-50/50 dark:from-amber-950/30 dark:via-slate-900 dark:to-orange-950/30',
+    tintActive: 'from-amber-100/80 via-white to-orange-100/60 dark:from-amber-950/40 dark:via-slate-950 dark:to-orange-950/30',
+    tintTile: 'from-amber-50/70 via-white to-orange-50/50 dark:from-amber-950/20 dark:via-slate-950 dark:to-orange-950/20',
+    chip: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-800 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60',
+    chipCount: 'bg-gradient-to-br from-amber-50 to-orange-50/70 text-amber-800 ring-amber-100 dark:from-amber-950/30 dark:to-orange-950/20 dark:text-amber-200 dark:ring-amber-900',
+    chipAlt: 'bg-gradient-to-br from-orange-50 to-amber-50 text-orange-800 ring-orange-200 dark:from-orange-950/40 dark:to-amber-950/30 dark:text-orange-300 dark:ring-orange-800/60',
+    tabOff: 'border-amber-200 bg-gradient-to-br from-amber-50/60 to-orange-50/40 text-amber-900 hover:border-amber-300 hover:from-amber-100 dark:border-amber-800/50 dark:from-amber-950/30 dark:to-orange-950/20 dark:text-amber-200 dark:hover:from-amber-950/50',
+    labelText: 'text-amber-700 dark:text-amber-300',
+    boldText: 'text-amber-800 dark:text-amber-200',
+    iconText: 'text-amber-600 dark:text-amber-400',
+    altText: 'text-orange-700 dark:text-orange-300',
+    focus: 'focus:border-amber-500 focus:ring-amber-100',
+    related: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-700 ring-amber-200 hover:from-amber-100 hover:to-orange-100 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-300 dark:ring-amber-900 dark:hover:from-amber-950 dark:hover:to-orange-950',
+    provisoBox: 'border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50/70 dark:border-amber-900/60 dark:from-amber-950/30 dark:to-orange-950/20',
+    provisoTitle: 'text-amber-800 dark:text-amber-300',
+    provisoBody: 'text-amber-900 dark:text-amber-100',
+    provisoSub: 'text-amber-700/80 dark:text-amber-200/70',
+    panelBox: 'border-amber-100 bg-gradient-to-br from-amber-50/60 to-orange-50/40 dark:border-amber-900/50 dark:from-amber-950/20 dark:to-orange-950/10',
+    panelTitle: 'text-amber-700 dark:text-amber-300',
+    panelChip: 'bg-gradient-to-br from-white to-amber-50/60 text-amber-700 ring-amber-200 dark:from-slate-900 dark:to-slate-900 dark:text-amber-300 dark:ring-amber-900',
+    stepperArrow: 'text-amber-400 dark:text-amber-600',
+    stepperBadge: 'from-amber-400 to-orange-400',
+    stepperClock: 'text-amber-600 dark:text-amber-400',
+    stepperBox: 'border-amber-200 dark:border-amber-900',
+    dot: 'from-amber-400 to-orange-400',
+    hoverTint: 'hover:bg-amber-50/70 dark:hover:bg-amber-950/20',
+  },
+} as const;
+
 const fcoClauseLocationByNo = new Map<string, { clauseId: string; cardId: string }>();
-fcoClauseCards.forEach((card) => {
+[...fcoClauseCards, ...insecticideModuleCards].forEach((card) => {
   card.clauses.forEach((clause) => {
-    fcoClauseLocationByNo.set(clause.clauseNo.toLowerCase(), { clauseId: clause.id, cardId: card.id });
+    fcoClauseLocationByNo.set(clauseRefKey(clause), { clauseId: clause.id, cardId: card.id });
   });
 });
 
@@ -77,9 +162,9 @@ const legalAreaCards: Array<{
   chip: string;
   hover: string;
 }> = [
-  { id: 'fertilizer', title: 'Fertilizer', description: 'FCO 1985, ECA, seizure, samples and prosecution references.', icon: PackageCheck, category: 'Fertiliser', color: 'from-sky-500 via-blue-500 to-indigo-700', panel: 'from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30', border: 'border-sky-200 dark:border-sky-800/50', accent: 'text-sky-700 dark:text-sky-300', chip: 'bg-sky-50 text-sky-700 ring-sky-100 dark:bg-sky-950/30 dark:text-sky-300 dark:ring-sky-900', hover: 'hover:border-sky-300 hover:bg-sky-50/60 dark:hover:bg-sky-950/20' },
-  { id: 'seed', title: 'Seed', description: 'Seed Act, Rules, labelling, sampling and penalty actions.', icon: Sprout, category: 'Seeds', color: 'from-lime-500 via-green-500 to-emerald-700', panel: 'from-lime-50 to-emerald-50 dark:from-lime-950/30 dark:to-emerald-950/30', border: 'border-lime-200 dark:border-lime-800/50', accent: 'text-lime-700 dark:text-lime-300', chip: 'bg-lime-50 text-lime-700 ring-lime-100 dark:bg-lime-950/30 dark:text-lime-300 dark:ring-lime-900', hover: 'hover:border-lime-300 hover:bg-lime-50/60 dark:hover:bg-lime-950/20' },
-  { id: 'insecticide', title: 'Insecticide', description: 'Insecticides Act, Rules, stop-sale, seizure and records.', icon: SprayCan, category: 'Insecticides', color: 'from-red-400 via-rose-500 to-red-700', panel: 'from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30', border: 'border-red-200 dark:border-red-800/50', accent: 'text-red-700 dark:text-red-300', chip: 'bg-red-50 text-red-700 ring-red-100 dark:bg-red-950/30 dark:text-red-300 dark:ring-red-900', hover: 'hover:border-red-300 hover:bg-red-50/60 dark:hover:bg-red-950/20' },
+  { id: 'fertilizer', title: 'Fertilizer', description: 'FCO 1985, ECA, seizure, samples and prosecution references.', icon: PackageCheck, category: 'Fertiliser', color: 'from-sky-400 via-sky-500 to-blue-500', panel: 'from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30', border: 'border-sky-200 dark:border-sky-800/50', accent: 'text-sky-700 dark:text-sky-300', chip: 'bg-gradient-to-br from-sky-50 to-blue-50 text-sky-700 ring-sky-100 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-300 dark:ring-sky-900', hover: 'hover:border-sky-300 hover:bg-sky-50/60 dark:hover:bg-sky-950/20' },
+  { id: 'seed', title: 'Seed', description: 'Seed Act, Rules, labelling, sampling and penalty actions.', icon: Sprout, category: 'Seeds', color: 'from-lime-500 via-green-500 to-emerald-700', panel: 'from-lime-50 to-emerald-50 dark:from-lime-950/30 dark:to-emerald-950/30', border: 'border-lime-200 dark:border-lime-800/50', accent: 'text-lime-700 dark:text-lime-300', chip: 'bg-gradient-to-br from-lime-50 to-emerald-50 text-lime-700 ring-lime-100 dark:from-lime-950/30 dark:to-emerald-950/20 dark:text-lime-300 dark:ring-lime-900', hover: 'hover:border-lime-300 hover:bg-lime-50/60 dark:hover:bg-lime-950/20' },
+  { id: 'insecticide', title: 'Insecticide', description: 'Insecticides Act, Rules, stop-sale, seizure and records.', icon: SprayCan, category: 'Insecticides', color: 'from-amber-400 via-amber-500 to-orange-500', panel: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30', border: 'border-amber-200 dark:border-amber-800/50', accent: 'text-amber-700 dark:text-amber-300', chip: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-700 ring-amber-100 dark:from-amber-950/30 dark:to-orange-950/20 dark:text-amber-300 dark:ring-amber-900', hover: 'hover:border-amber-300 hover:bg-amber-50/60 dark:hover:bg-amber-950/20' },
 ];
 
 const legalTopicCards: Record<MainLegalArea, Array<{
@@ -105,6 +190,7 @@ const fcoIconMap = {
   ShieldCheck,
   Microscope,
   Scale,
+  AlertTriangle,
 };
 
 
@@ -136,7 +222,7 @@ function fcoVariationSearchText(note: FcoVariationNote) {
 
 function fcoClauseSearchText(clause: FcoClause) {
   return [
-    `Clause ${clause.clauseNo}`,
+    `${clause.clauseLabel ?? 'Clause'} ${clause.clauseNo}`,
     clause.oldPdf2ClauseNo ? `Old PDF-2 Clause ${clause.oldPdf2ClauseNo}` : '',
     clause.canonicalClauseNo ? `Current PDF-1 Clause ${clause.canonicalClauseNo}` : '',
     clause.title,
@@ -165,11 +251,11 @@ function fcoCardSearchText(card: FcoClauseCard) {
 }
 
 function normalizeFcoReferenceQuery(value: string) {
-  return value.trim().toLowerCase().replace(/^clause\s+/, '').replace(/\s+/g, '');
+  return value.trim().toLowerCase().replace(/^(clause|section|rule)\s+/, '').replace(/\s+/g, '');
 }
 
 function isFcoExactReferenceQuery(value: string) {
-  return /^(clause\s*)?\d+[a-z]*(?:\(\d+[a-z]*\))*$/i.test(value.trim());
+  return /^((clause|section|rule)\s*)?\d+[a-z]*(?:\(\d+[a-z]*\))*$/i.test(value.trim());
 }
 
 function fcoClauseMatchesQuery(clause: FcoClause, rawTerm: string) {
@@ -200,7 +286,7 @@ function filterFcoCardForQuery(card: FcoClauseCard, rawTerm: string): FcoClauseC
     return {
       ...card,
       clauses: matchingClauses,
-      clauseRange: matchingClauses.length === 1 ? `Clause ${matchingClauses[0].clauseNo}` : card.clauseRange,
+      clauseRange: matchingClauses.length === 1 ? `${matchingClauses[0].clauseLabel ?? 'Clause'} ${matchingClauses[0].clauseNo}` : card.clauseRange,
     };
   }
 
@@ -233,9 +319,13 @@ export function ActsAndOrders() {
   const [formSearch, setFormSearch] = useState('');
   const [formCategory, setFormCategory] = useState<'All' | FertilizerFormCategory>('All');
   const [fertilizerSection, setFertilizerSection] = useState<FertilizerSection | null>(null);
+  const [insecticideSection, setInsecticideSection] = useState<InsecticideSection | null>(null);
+  const [insecticideFormSearch, setInsecticideFormSearch] = useState('');
   const [scheduleSearch, setScheduleSearch] = useState('');
   const [showFcoStructureModal, setShowFcoStructureModal] = useState(false);
+  const [showIaStructureModal, setShowIaStructureModal] = useState(false);
   const fcoStructureShownRef = useRef(false);
+  const iaStructureShownRef = useRef(false);
 
   const areaFromPath = useMemo<MainLegalArea | null>(() => {
     const match = location.pathname.match(/\/acts-and-orders\/(fertilizer|seed|insecticide)\b/) || location.pathname.match(/\/legal-ready-reckoner\/(fertilizer|seed|insecticide)\b/);
@@ -271,6 +361,26 @@ export function ActsAndOrders() {
     return filterFcoCardForQuery(card, query.trim().toLowerCase()) || card;
   }, [query, selectedFcoCardId]);
 
+  const filteredInsecticideActCards = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    return insecticideActCards
+      .map((card) => filterFcoCardForQuery(card, term))
+      .filter((card): card is FcoClauseCard => Boolean(card));
+  }, [query]);
+
+  const filteredInsecticideRuleCards = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    return insecticideRuleCards
+      .map((card) => filterFcoCardForQuery(card, term))
+      .filter((card): card is FcoClauseCard => Boolean(card));
+  }, [query]);
+
+  const activeInsecticideCard = useMemo(() => {
+    const card = insecticideModuleCards.find((item) => item.id === selectedFcoCardId);
+    if (!card) return null;
+    return filterFcoCardForQuery(card, query.trim().toLowerCase()) || card;
+  }, [query, selectedFcoCardId]);
+
   const toggleBookmark = (entryId: string) => {
     setBookmarks((current) => current.includes(entryId) ? current.filter((id) => id !== entryId) : [...current, entryId]);
   };
@@ -281,10 +391,15 @@ export function ActsAndOrders() {
       fcoStructureShownRef.current = true;
       setShowFcoStructureModal(true);
     }
+    if (area === 'insecticide' && !iaStructureShownRef.current) {
+      iaStructureShownRef.current = true;
+      setShowIaStructureModal(true);
+    }
     setSelectedLegalArea(area);
     setView('powers');
     setQuery('');
     setSelectedFcoCardId(null);
+    setInsecticideSection(null);
     if (areaCard) setCategory(areaCard.category);
     navigate(`/officer-toolkit/acts-and-orders/${area}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -301,11 +416,18 @@ export function ActsAndOrders() {
     setSelectedLegalArea(null);
     setQuery('');
     setSelectedFcoCardId(null);
+    setInsecticideSection(null);
     setView('powers');
     if (areaFromPath) navigate('/officer-toolkit/acts-and-orders');
   };
 
   const handleBack = () => {
+    if (selectedLegalArea === 'insecticide' && insecticideSection) {
+      setInsecticideSection(null);
+      setSelectedFcoCardId(null);
+      setQuery('');
+      return;
+    }
     if (selectedLegalArea === 'fertilizer' && fertilizerSection) {
       setFertilizerSection(null);
       setSelectedFcoCardId(null);
@@ -404,17 +526,82 @@ export function ActsAndOrders() {
       )}
 
       {selectedLegalArea === 'fertilizer' && fertilizerSection === 'duties' && (
-        <EnforcementDutiesPanel />
+        <EnforcementDutiesPanel config={fertilizerEnforcementConfig} />
       )}
 
-      {selectedLegalArea && selectedLegalArea !== 'fertilizer' && legalTopicCards[selectedLegalArea].length > 0 && (
+      {selectedLegalArea === 'insecticide' && !insecticideSection && (
+        <InsecticideModuleHome onOpenSection={setInsecticideSection} />
+      )}
+
+      {selectedLegalArea === 'insecticide' && insecticideSection === 'sections' && (
+        <FertilizerClausesPanel
+          search={query}
+          cards={filteredInsecticideActCards}
+          activeCard={activeInsecticideCard}
+          activeCardId={selectedFcoCardId}
+          activeTab={fcoActiveTab}
+          bookmarks={bookmarks}
+          badgeLabel="Act Sections"
+          accent="amber"
+          searchPlaceholder="Search Section 21, 21(1)(d), misbranded, Section 29, Schedule..."
+          onTabChange={setFcoActiveTab}
+          onSearchChange={(value) => {
+            setQuery(value);
+            setSelectedFcoCardId(null);
+          }}
+          onBackToCards={() => setSelectedFcoCardId(null)}
+          onSelectCard={(cardId) => {
+            setSelectedFcoCardId(cardId);
+            setFcoActiveTab('plainEnglish');
+          }}
+          onToggleBookmark={toggleBookmark}
+        />
+      )}
+
+      {selectedLegalArea === 'insecticide' && insecticideSection === 'rules' && (
+        <FertilizerClausesPanel
+          search={query}
+          cards={filteredInsecticideRuleCards}
+          activeCard={activeInsecticideCard}
+          activeCardId={selectedFcoCardId}
+          activeTab={fcoActiveTab}
+          bookmarks={bookmarks}
+          badgeLabel="Rules"
+          accent="amber"
+          searchPlaceholder="Search Rule 27, 10A, Form V(A), labelling, Appendix B, expired..."
+          onTabChange={setFcoActiveTab}
+          onSearchChange={(value) => {
+            setQuery(value);
+            setSelectedFcoCardId(null);
+          }}
+          onBackToCards={() => setSelectedFcoCardId(null)}
+          onSelectCard={(cardId) => {
+            setSelectedFcoCardId(cardId);
+            setFcoActiveTab('plainEnglish');
+          }}
+          onToggleBookmark={toggleBookmark}
+        />
+      )}
+
+      {selectedLegalArea === 'insecticide' && insecticideSection === 'forms' && (
+        <InsecticideFormsPanel
+          search={insecticideFormSearch}
+          onSearchChange={setInsecticideFormSearch}
+        />
+      )}
+
+      {selectedLegalArea === 'insecticide' && insecticideSection === 'duties' && (
+        <EnforcementDutiesPanel config={insecticideEnforcementConfig} />
+      )}
+
+      {selectedLegalArea === 'seed' && legalTopicCards.seed.length > 0 && (
         <LegalTopicScreen
           area={selectedLegalArea}
           onOpenTopic={openTopic}
         />
       )}
 
-      {selectedLegalArea && selectedLegalArea !== 'fertilizer' && (
+      {selectedLegalArea === 'seed' && (
         <>
       <div className="grid gap-3 sm:grid-cols-2">
         <ViewButton active={view === 'powers'} icon={ShieldAlert} label="Stop Sale & Seizure" onClick={() => setView('powers')} area={selectedLegalArea || undefined} />
@@ -427,6 +614,12 @@ export function ActsAndOrders() {
         <FertilizerFormPdfGenerator form={selectedFertilizerForm} onClose={() => setSelectedFertilizerForm(null)} />
       )}
       <FcoImplementationModal isOpen={showFcoStructureModal} onClose={() => setShowFcoStructureModal(false)} />
+      <FcoImplementationModal
+        isOpen={showIaStructureModal}
+        onClose={() => setShowIaStructureModal(false)}
+        imageSrc="/images/insecticide-implementation-structure.jpg"
+        imageAlt="Implementation of Insecticides Act, 1968 - Registration, Licensing, Quality Monitoring and Field Enforcement Structure"
+      />
     </div>
   );
 }
@@ -453,10 +646,10 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
               className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm transition group-hover:scale-105">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 via-sky-500 to-blue-500 text-white shadow-sm transition group-hover:scale-105">
                   <Icon className="h-4 w-4" />
                 </span>
-                <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800/60">{card.subtitle}</span>
+                <span className="rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-200 dark:ring-sky-800/60">{card.subtitle}</span>
               </div>
               <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.title}</h3>
               <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.description}</p>
@@ -473,11 +666,114 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
 
 
 
-function FertilizerSectionBadge({ icon: Icon, label, meta, tone = 'gradient' }: { icon: React.ElementType; label: string; meta?: string; tone?: 'gradient' | 'onGradient' }) {
+function InsecticideModuleHome({ onOpenSection }: { onOpenSection: (section: InsecticideSection) => void }) {
+  const cards: Array<{ id: InsecticideSection; title: string; subtitle: string; description: string; icon: React.ElementType }> = [
+    { id: 'sections', title: 'Act Sections', subtitle: '38 Sections', description: 'Insecticides Act, 1968 — section cards, sub-sections, officer action and timelines.', icon: BookOpen },
+    { id: 'rules', title: 'Rules', subtitle: '46 Rules + 3 Schedules', description: 'Insecticides Rules, 1971 — Chapters I-IX: licensing, labelling, inspector duties, Form V(A) stop-sale, seizure, sampling, storage, safety.', icon: ClipboardList },
+    { id: 'forms', title: 'Forms', subtitle: `${insecticideForms.length} Forms`, description: 'First Schedule — Form III licence, Appendix A-E registers, Form IV analyst report, Forms V(A)-V(E) stop-sale / seizure / sampling.', icon: FileText },
+    { id: 'duties', title: 'Enforcement Powers', subtitle: 'Duties & powers', description: 'Stop sale, seizure and sampling powers and procedures for insecticide officers.', icon: ShieldAlert },
+  ];
+
+  return (
+    <section className="space-y-2.5 rounded-lg border border-amber-200 bg-white p-3 shadow-sm dark:border-amber-800/50 dark:bg-slate-900">
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <button
+              key={card.id}
+              type="button"
+              onClick={() => onOpenSection(card.id)}
+              className="group relative flex flex-col overflow-hidden rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50/70 via-white to-orange-50/50 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-md dark:border-amber-800/50 dark:from-amber-950/20 dark:via-slate-950 dark:to-orange-950/20"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-white shadow-sm transition group-hover:scale-105">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="rounded-full bg-gradient-to-br from-amber-50 to-orange-50 px-2 py-0.5 text-[10px] font-black text-amber-800 ring-1 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60">{card.subtitle}</span>
+              </div>
+              <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.title}</h3>
+              <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.description}</p>
+              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-amber-700 transition group-hover:gap-1.5 dark:text-amber-300">
+                Open <ArrowRight className="h-3 w-3" />
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+const insecticideFormUserLabels: Record<InsecticideFormEntry['usedBy'], string> = {
+  dealer: 'Dealer',
+  officer: 'Officer',
+  analyst: 'Analyst',
+  manufacturer: 'Manufacturer / Importer',
+  operator: 'Pest Control Operator',
+};
+
+function insecticideFormSearchText(form: InsecticideFormEntry) {
+  return [form.formNo, form.title, form.rule, form.purpose, insecticideFormUserLabels[form.usedBy]].join(' ').toLowerCase();
+}
+
+function InsecticideFormsPanel({ search, onSearchChange, accent = 'amber' }: { search: string; onSearchChange: (value: string) => void; accent?: FcoAccent }) {
+  const t = fcoAccentThemes[accent];
+  const term = search.trim().toLowerCase();
+  const visibleForms = insecticideForms.filter((form) => !term || insecticideFormSearchText(form).includes(term));
+
+  return (
+    <section className="space-y-3">
+      <FertilizerSectionBadge icon={FileText} label="Forms" meta="First Schedule" accent={accent} />
+      <div className={`rounded-lg border ${t.border} bg-white p-3 shadow-sm dark:bg-slate-900`}>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Search Form III, Form V(A), Appendix B, licence, seizure, register..."
+            className={`w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
+          />
+        </div>
+        <div className="mt-2.5 flex justify-end">
+          <span className={`rounded-full ${t.chipCount} px-3 py-1 text-[11px] font-black ring-1`}>
+            {visibleForms.length} forms
+          </span>
+        </div>
+      </div>
+      <div className="grid gap-2 md:grid-cols-2">
+        {visibleForms.map((form) => (
+          <div key={form.formNo} className={`rounded-lg border ${t.border} bg-gradient-to-br ${t.tintTile} p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md`}>
+            <div className="flex items-start gap-2.5">
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${t.gradientDeep} text-white shadow-sm`}>
+                <FileText className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <p className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>{form.formNo}</p>
+                  <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ring-1`}>{insecticideFormUserLabels[form.usedBy]}</span>
+                </div>
+                <h3 className="mt-0.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{form.title}</h3>
+                <p className="mt-0.5 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.purpose}</p>
+                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">{form.rule}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+        {visibleForms.length === 0 && (
+          <p className={`rounded-lg border border-dashed ${t.border} p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2`}>No forms found</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function FertilizerSectionBadge({ icon: Icon, label, meta, tone = 'gradient', accent = 'sky' }: { icon: React.ElementType; label: string; meta?: string; tone?: 'gradient' | 'onGradient'; accent?: FcoAccent }) {
+  const t = fcoAccentThemes[accent];
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide shadow-md ${
       tone === 'gradient'
-        ? 'bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 text-white shadow-sky-500/25'
+        ? `bg-gradient-to-br ${t.gradient} text-white ${t.shadow}`
         : 'bg-white/20 text-white ring-1 ring-white/30 shadow-none'
     }`}>
       <Icon className="h-3.5 w-3.5" />
@@ -494,6 +790,9 @@ function FertilizerClausesPanel({
   activeCardId,
   activeTab,
   bookmarks,
+  badgeLabel = 'Clauses',
+  searchPlaceholder = 'Search Clause 28, 28(2), stop sale, Form J, Schedule II...',
+  accent = 'sky',
   onSearchChange,
   onTabChange,
   onBackToCards,
@@ -506,17 +805,23 @@ function FertilizerClausesPanel({
   activeCardId: string | null;
   activeTab: FcoTabId;
   bookmarks: string[];
+  badgeLabel?: string;
+  searchPlaceholder?: string;
+  accent?: FcoAccent;
   onSearchChange: (value: string) => void;
   onTabChange: (tab: FcoTabId) => void;
   onBackToCards: () => void;
   onSelectCard: (cardId: string) => void;
   onToggleBookmark: (id: string) => void;
 }) {
+  const t = fcoAccentThemes[accent];
   if (activeCard) {
     return (
       <FcoCardDetailPage
         card={activeCard}
         activeTab={activeTab}
+        badgeLabel={badgeLabel}
+        accent={accent}
         bookmarks={bookmarks}
         onBack={onBackToCards}
         onToggleBookmark={onToggleBookmark}
@@ -533,15 +838,15 @@ function FertilizerClausesPanel({
 
   return (
     <section className="space-y-3">
-      <FertilizerSectionBadge icon={BookOpen} label="Clauses" />
-      <div className="rounded-lg border border-sky-200 bg-white p-3 shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
+      <FertilizerSectionBadge icon={BookOpen} label={badgeLabel} accent={accent} />
+      <div className={`rounded-lg border ${t.border} bg-white p-3 shadow-sm dark:bg-slate-900`}>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search Clause 28, 28(2), stop sale, Form J, Schedule II..."
-            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            placeholder={searchPlaceholder}
+            className={`w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
           />
         </div>
       </div>
@@ -550,11 +855,12 @@ function FertilizerClausesPanel({
           cards={cards}
           activeCardId={activeCardId}
           showFormsCard={false}
+          accent={accent}
           onOpenForms={() => undefined}
           onSelect={onSelectCard}
         />
       ) : (
-        <p className="rounded-lg border border-dashed border-sky-200 p-8 text-center text-sm font-semibold text-slate-500 dark:border-sky-800/50">No clauses found</p>
+        <p className={`rounded-lg border border-dashed ${t.border} p-8 text-center text-sm font-semibold text-slate-500`}>No clauses found</p>
       )}
     </section>
   );
@@ -582,7 +888,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
           />
         </div>
         <div className="mt-2.5 flex justify-end">
-          <span className="rounded-full bg-sky-50 px-3 py-1 text-[11px] font-black text-sky-800 ring-1 ring-sky-100 dark:bg-sky-950/30 dark:text-sky-200 dark:ring-sky-900">
+          <span className="rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-3 py-1 text-[11px] font-black text-sky-800 ring-1 ring-sky-100 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-200 dark:ring-sky-900">
             {visibleSchedules.length} schedules
           </span>
         </div>
@@ -591,7 +897,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
         {visibleSchedules.map((schedule) => (
           <details key={schedule.id} className="group overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20">
             <summary className="flex cursor-pointer list-none items-start gap-2.5 p-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm transition group-hover:scale-105">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 via-sky-500 to-blue-500 text-white shadow-sm transition group-hover:scale-105">
                 <ClipboardList className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
@@ -630,33 +936,63 @@ function filterFcoOffences(entries: FcoOffenceEntry[], search: string) {
   );
 }
 
-function downloadFcoOffencesCsv(entries: FcoOffenceEntry[]) {
-  const rows = [
-    ['Sl.No', 'Type of offence', 'Contravention provision', 'Punishment provision under ECA'],
-    ...entries.map((entry) => [
-      String(entry.serialNumber),
-      entry.offenceType,
-      entry.contraventionProvision,
-      entry.punishmentProvision,
-    ]),
-  ];
-  const csv = rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+function saveBlobAs(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'fco-offences-penal-provisions.csv';
+  link.download = filename;
   link.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-function printFcoOffences(entries: FcoOffenceEntry[]) {
-  const popup = window.open('', '_blank', 'width=1100,height=900');
-  if (!popup) return;
-  popup.document.write(renderFcoOffencesPrintHtml(entries));
-  popup.document.close();
-  popup.focus();
-  popup.print();
+async function exportOffencesExcel(entries: FcoOffenceEntry[], meta: { filename: string; title: string; punishmentHeader: string }) {
+  const ExcelJS = (await import('exceljs')).default;
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'AGRONIX';
+  const sheet = workbook.addWorksheet('Offences');
+  sheet.columns = [
+    { header: 'Sl.No', key: 'sl', width: 8 },
+    { header: 'Type of offence', key: 'type', width: 55 },
+    { header: 'Contravention provision', key: 'contra', width: 42 },
+    { header: meta.punishmentHeader, key: 'punish', width: 48 },
+  ];
+  sheet.mergeCells('A1:D1');
+  const titleCell = sheet.getCell('A1');
+  titleCell.value = meta.title;
+  titleCell.font = { name: 'Times New Roman', size: 13, bold: true };
+  titleCell.alignment = { horizontal: 'center' };
+  const headerRow = sheet.addRow(['Sl.No', 'Type of offence', 'Contravention provision', meta.punishmentHeader]);
+  headerRow.eachCell((cell) => {
+    cell.font = { name: 'Times New Roman', size: 11, bold: true };
+    cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+  });
+  entries.forEach((entry) => {
+    const row = sheet.addRow([entry.serialNumber, entry.offenceType, entry.contraventionProvision, entry.punishmentProvision]);
+    row.eachCell((cell) => {
+      cell.font = { name: 'Times New Roman', size: 11 };
+      cell.alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
+    });
+  });
+  const buffer = await workbook.xlsx.writeBuffer();
+  saveBlobAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), meta.filename);
+}
+
+async function exportOffencesPdf(entries: FcoOffenceEntry[], meta: { filename: string; title: string; punishmentHeader: string }) {
+  const { jsPDF } = await import('jspdf');
+  const autoTable = (await import('jspdf-autotable')).default;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  doc.setFont('times', 'bold');
+  doc.setFontSize(14);
+  doc.text(meta.title, doc.internal.pageSize.getWidth() / 2, 14, { align: 'center' });
+  autoTable(doc, {
+    startY: 20,
+    head: [['Sl.No', 'Type of offence', 'Contravention provision', meta.punishmentHeader]],
+    body: entries.map((entry) => [String(entry.serialNumber), entry.offenceType, entry.contraventionProvision, entry.punishmentProvision]),
+    styles: { font: 'times', fontSize: 9, cellPadding: 1.6 },
+    headStyles: { fontStyle: 'bold' },
+    columnStyles: { 0: { cellWidth: 14 }, 1: { cellWidth: 95 }, 2: { cellWidth: 75 } },
+  });
+  doc.save(meta.filename);
 }
 
 function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => void }) {
@@ -763,17 +1099,14 @@ function ViewButton({ active, icon: Icon, label, onClick, area }: { active: bool
   );
 }
 
-function escapeHtml(value: string) {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-
-
 
 
 function FcoCardDetailPage({
   card,
   activeTab,
   bookmarks,
+  badgeLabel = 'Clauses',
+  accent = 'sky',
   onBack,
   onToggleBookmark,
   onOpenRelated,
@@ -782,18 +1115,21 @@ function FcoCardDetailPage({
   card: FcoClauseCard;
   activeTab: FcoTabId;
   bookmarks: string[];
+  badgeLabel?: string;
+  accent?: FcoAccent;
   onBack: () => void;
   onToggleBookmark: (id: string) => void;
   onOpenRelated: (target: { clauseId: string; cardId: string }) => void;
   onTabChange: (tab: FcoTabId) => void;
 }) {
   const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
+  const t = fcoAccentThemes[accent];
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-md dark:border-slate-700 dark:bg-slate-950">
-      <div className="bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 p-3 text-white">
+    <section className={`overflow-hidden rounded-2xl border ${t.borderSoft} bg-white shadow-md dark:bg-slate-950`}>
+      <div className={`bg-gradient-to-br ${card.gradient} p-3 text-white`}>
         <div className="mb-2">
-          <FertilizerSectionBadge icon={BookOpen} label="Clauses" tone="onGradient" />
+          <FertilizerSectionBadge icon={BookOpen} label={badgeLabel} tone="onGradient" accent={accent} />
         </div>
         <div className="flex items-start gap-2.5">
           <BackButton onClick={onBack} tone="solid" label="Back to cards" className="mt-0.5" />
@@ -822,8 +1158,8 @@ function FcoCardDetailPage({
               onClick={() => onTabChange(tab.id)}
               className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-black transition ${
                 selected
-                  ? 'bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 text-white shadow-md shadow-sky-500/25'
-                  : 'border border-sky-200 bg-sky-50/60 text-sky-900 hover:border-sky-300 hover:bg-sky-100 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200 dark:hover:bg-sky-950/50'
+                  ? `bg-gradient-to-br ${t.gradient} text-white shadow-md ${t.shadow}`
+                  : `border ${t.tabOff}`
               }`}
             >
               <TabIcon className="h-3.5 w-3.5" />
@@ -838,6 +1174,7 @@ function FcoCardDetailPage({
             key={clause.id}
             clause={clause}
             activeTab={activeTab}
+            accent={accent}
             bookmarked={bookmarks.includes(clause.id)}
             onToggleBookmark={() => onToggleBookmark(clause.id)}
             onOpenRelated={onOpenRelated}
@@ -848,16 +1185,24 @@ function FcoCardDetailPage({
   );
 }
 
-const fcoGlanceChipTones = {
-  slate: 'bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
-  amber: 'bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-900',
-  blue: 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900',
-  emerald: 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900',
-} as const;
+const fcoGlanceChipTones: Record<FcoAccent, Record<'slate' | 'amber' | 'blue' | 'emerald', string>> = {
+  sky: {
+    slate: 'bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600 ring-slate-200 dark:from-slate-800 dark:to-slate-800/70 dark:text-slate-300 dark:ring-slate-700',
+    amber: 'bg-gradient-to-br from-sky-50 to-blue-50 text-sky-700 ring-sky-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-300 dark:ring-sky-900',
+    blue: 'bg-gradient-to-br from-blue-50 to-sky-50 text-blue-700 ring-blue-200 dark:from-blue-950/40 dark:to-sky-950/30 dark:text-blue-300 dark:ring-blue-900',
+    emerald: 'bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 ring-blue-200 dark:from-blue-950/40 dark:to-indigo-950/30 dark:text-blue-300 dark:ring-blue-900',
+  },
+  amber: {
+    slate: 'bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600 ring-slate-200 dark:from-slate-800 dark:to-slate-800/70 dark:text-slate-300 dark:ring-slate-700',
+    amber: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-700 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-300 dark:ring-amber-900',
+    blue: 'bg-gradient-to-br from-orange-50 to-amber-50 text-orange-700 ring-orange-200 dark:from-orange-950/40 dark:to-amber-950/30 dark:text-orange-300 dark:ring-orange-900',
+    emerald: 'bg-gradient-to-br from-amber-50 to-yellow-50 text-amber-700 ring-amber-200 dark:from-amber-950/40 dark:to-yellow-950/30 dark:text-amber-300 dark:ring-amber-900',
+  },
+};
 
-function FcoGlanceChip({ icon: Icon, label, tone = 'slate' }: { icon: typeof Clock; label: string; tone?: keyof typeof fcoGlanceChipTones }) {
+function FcoGlanceChip({ icon: Icon, label, tone = 'slate', accent = 'sky' }: { icon: typeof Clock; label: string; tone?: 'slate' | 'amber' | 'blue' | 'emerald'; accent?: FcoAccent }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ring-1 ${fcoGlanceChipTones[tone]}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ring-1 ${fcoGlanceChipTones[accent][tone]}`}>
       <Icon className="h-3 w-3" />
       {label}
     </span>
@@ -869,31 +1214,32 @@ function fcoRealSubClauses(clause: FcoClause) {
   return clause.subClauses.filter((item) => item.no.replace(/\s+/g, '').toLowerCase() !== clauseNo);
 }
 
-function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, onOpenRelated }: { clause: FcoClause; activeTab: FcoTabId; bookmarked: boolean; onToggleBookmark: () => void; onOpenRelated: (target: { clauseId: string; cardId: string }) => void }) {
+function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onToggleBookmark, onOpenRelated }: { clause: FcoClause; activeTab: FcoTabId; bookmarked: boolean; accent?: FcoAccent; onToggleBookmark: () => void; onOpenRelated: (target: { clauseId: string; cardId: string }) => void }) {
+  const t = fcoAccentThemes[accent];
   const subClauses = fcoRealSubClauses(clause);
   const copyClause = () => navigator.clipboard?.writeText(fcoClauseToText(clause));
   const shareClause = async () => {
     const text = fcoClauseToText(clause);
-    if (navigator.share) await navigator.share({ title: `FCO Clause ${clause.clauseNo}`, text });
+    if (navigator.share) await navigator.share({ title: `${clause.clauseLabel ?? 'FCO Clause'} ${clause.clauseNo}`, text });
     else await navigator.clipboard?.writeText(text);
   };
 
   return (
-    <details id={`fco-clause-${clause.id}`} className="group overflow-hidden rounded-lg border border-sky-200 bg-white shadow-sm transition duration-300 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:bg-slate-900" open>
-      <summary className="flex cursor-pointer list-none flex-col gap-2 border-b border-sky-100 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-2.5 dark:border-sky-900/40 dark:from-sky-950/30 dark:via-slate-900 dark:to-blue-950/30 sm:flex-row sm:items-start sm:justify-between">
+    <details id={`fco-clause-${clause.id}`} className={`group overflow-hidden rounded-lg border ${t.border} bg-white shadow-sm transition duration-300 ${t.hoverBorder} hover:shadow-md dark:bg-slate-900`} open>
+      <summary className={`flex cursor-pointer list-none flex-col gap-2 border-b ${t.borderSoft} bg-gradient-to-br ${t.tint} p-2.5 sm:flex-row sm:items-start sm:justify-between`}>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">Clause {clause.clauseNo} - {clause.category}</p>
+          <p className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>{clause.clauseLabel ?? 'Clause'} {clause.clauseNo} - {clause.category}</p>
           <h3 className="mt-0.5 text-sm font-black text-slate-950 dark:text-white">{clause.title}</h3>
           <p className="mt-0.5 text-xs font-bold text-slate-600 dark:text-slate-300">{clause.summary}</p>
         </div>
         <div className="flex gap-1.5">
-          <button type="button" onClick={(event) => { event.preventDefault(); onToggleBookmark(); }} className="rounded-md border border-sky-200 bg-white/80 p-1.5 text-blue-700 transition hover:bg-sky-50 dark:border-sky-800/50 dark:bg-slate-900" aria-label="Bookmark clause">
+          <button type="button" onClick={(event) => { event.preventDefault(); onToggleBookmark(); }} className={`rounded-md border ${t.border} bg-white/80 p-1.5 ${t.altText} transition hover:opacity-80 dark:bg-slate-900`} aria-label="Bookmark clause">
             {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
           </button>
-          <button type="button" onClick={(event) => { event.preventDefault(); copyClause(); }} className="rounded-md border border-sky-200 bg-white/80 p-1.5 text-sky-800 transition hover:bg-sky-50 dark:border-sky-800/50 dark:bg-slate-900 dark:text-sky-200" aria-label="Copy clause">
+          <button type="button" onClick={(event) => { event.preventDefault(); copyClause(); }} className={`rounded-md border ${t.border} bg-white/80 p-1.5 ${t.boldText} transition hover:opacity-80 dark:bg-slate-900`} aria-label="Copy clause">
             <Copy className="h-3.5 w-3.5" />
           </button>
-          <button type="button" onClick={(event) => { event.preventDefault(); void shareClause(); }} className="rounded-md border border-sky-200 bg-white/80 p-1.5 text-sky-800 transition hover:bg-sky-50 dark:border-sky-800/50 dark:bg-slate-900 dark:text-sky-200" aria-label="Share clause">
+          <button type="button" onClick={(event) => { event.preventDefault(); void shareClause(); }} className={`rounded-md border ${t.border} bg-white/80 p-1.5 ${t.boldText} transition hover:opacity-80 dark:bg-slate-900`} aria-label="Share clause">
             <Share2 className="h-3.5 w-3.5" />
           </button>
         </div>
@@ -901,22 +1247,22 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
       <div className="space-y-2.5 p-2.5">
         {(subClauses.length > 0 || clause.provisos.length > 0 || clause.forms.length > 0 || clause.timelines.length > 0) && (
           <div className="flex flex-wrap gap-1.5">
-            {subClauses.length > 0 && <FcoGlanceChip icon={ListOrdered} label={`${subClauses.length} sub-clause${subClauses.length === 1 ? '' : 's'}`} />}
-            {clause.provisos.length > 0 && <FcoGlanceChip icon={AlertTriangle} label={`${clause.provisos.length} proviso${clause.provisos.length === 1 ? '' : 's'}`} tone="amber" />}
-            {clause.forms.length > 0 && <FcoGlanceChip icon={FileText} label={`${clause.forms.length} form${clause.forms.length === 1 ? '' : 's'}`} tone="blue" />}
-            {clause.timelines.length > 0 && <FcoGlanceChip icon={Clock} label={`${clause.timelines.length} timeline${clause.timelines.length === 1 ? '' : 's'}`} tone="emerald" />}
+            {subClauses.length > 0 && <FcoGlanceChip icon={ListOrdered} label={`${subClauses.length} sub-clause${subClauses.length === 1 ? '' : 's'}`} accent={accent} />}
+            {clause.provisos.length > 0 && <FcoGlanceChip icon={AlertTriangle} label={`${clause.provisos.length} proviso${clause.provisos.length === 1 ? '' : 's'}`} tone="amber" accent={accent} />}
+            {clause.forms.length > 0 && <FcoGlanceChip icon={FileText} label={`${clause.forms.length} form${clause.forms.length === 1 ? '' : 's'}`} tone="blue" accent={accent} />}
+            {clause.timelines.length > 0 && <FcoGlanceChip icon={Clock} label={`${clause.timelines.length} timeline${clause.timelines.length === 1 ? '' : 's'}`} tone="emerald" accent={accent} />}
           </div>
         )}
-        <FcoClauseTabContent clause={clause} activeTab={activeTab} />
+        <FcoClauseTabContent clause={clause} activeTab={activeTab} accent={accent} />
         {clause.provisos.length > 0 && (
           <div className="space-y-1.5">
             {clause.provisos.map((proviso) => (
-              <div key={proviso.title} className="flex gap-2 rounded-lg border border-sky-200 bg-sky-50 p-2.5 dark:border-sky-900/60 dark:bg-sky-950/30">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
+              <div key={proviso.title} className={`flex gap-2 rounded-lg border ${t.provisoBox} p-2.5`}>
+                <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${t.iconText}`} />
                 <div className="min-w-0">
-                  <p className="text-[11px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">{proviso.title}</p>
-                  <p className="mt-0.5 text-[12px] font-semibold leading-5 text-sky-900 dark:text-sky-100">{proviso.plainEnglish}</p>
-                  <p className="mt-0.5 text-[11px] font-medium leading-4 text-sky-700/80 dark:text-sky-200/70">{proviso.legalText}</p>
+                  <p className={`text-[11px] font-black uppercase tracking-wide ${t.provisoTitle}`}>{proviso.title}</p>
+                  <p className={`mt-0.5 text-[12px] font-semibold leading-5 ${t.provisoBody}`}>{proviso.plainEnglish}</p>
+                  <p className={`mt-0.5 text-[11px] font-medium leading-4 ${t.provisoSub}`}>{proviso.legalText}</p>
                 </div>
               </div>
             ))}
@@ -925,16 +1271,16 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
         {subClauses.length > 0 && (
           <div className="grid gap-1.5 sm:grid-cols-2">
             {subClauses.map((subClause) => (
-              <details key={subClause.no} className="overflow-hidden rounded-lg border border-sky-100 bg-white dark:border-sky-900/40 dark:bg-slate-900">
+              <details key={subClause.no} className={`overflow-hidden rounded-lg border ${t.borderSoft} bg-white dark:bg-slate-900`}>
                 <summary className="flex cursor-pointer list-none items-center gap-2 p-2">
-                  <span className="flex h-7 min-w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 px-1.5 text-[10px] font-black text-white shadow-sm">{subClause.no}</span>
+                  <span className={`flex h-7 min-w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${t.gradient} px-1.5 text-[10px] font-black text-white shadow-sm`}>{subClause.no}</span>
                   <span className="text-[12px] font-bold leading-4 text-slate-800 dark:text-slate-100">{subClause.plainEnglish}</span>
                 </summary>
-                <div className="space-y-1.5 border-t border-sky-100 px-2.5 py-2 text-[12px] font-semibold text-slate-700 dark:border-sky-900/40 dark:text-slate-200">
+                <div className={`space-y-1.5 border-t ${t.borderSoft} px-2.5 py-2 text-[12px] font-semibold text-slate-700 dark:text-slate-200`}>
                   <p className="text-slate-500 dark:text-slate-400">{subClause.legalText}</p>
-                  {subClause.officerAction && <p><span className="font-black text-sky-700 dark:text-sky-300">Officer:</span> {subClause.officerAction.join('; ')}</p>}
-                  {subClause.dealerObligation && <p><span className="font-black text-blue-700 dark:text-blue-300">Dealer:</span> {subClause.dealerObligation.join('; ')}</p>}
-                  <button type="button" onClick={() => navigator.clipboard?.writeText(`${subClause.no}: ${subClause.legalText}\n${subClause.plainEnglish}`)} className="inline-flex items-center gap-1.5 rounded-md border border-sky-200 bg-white px-2 py-1 text-[11px] font-black text-sky-800 hover:bg-sky-50 dark:border-sky-800/50 dark:bg-slate-900 dark:text-sky-200">
+                  {subClause.officerAction && <p><span className={`font-black ${t.labelText}`}>Officer:</span> {subClause.officerAction.join('; ')}</p>}
+                  {subClause.dealerObligation && <p><span className={`font-black ${t.altText}`}>Dealer:</span> {subClause.dealerObligation.join('; ')}</p>}
+                  <button type="button" onClick={() => navigator.clipboard?.writeText(`${subClause.no}: ${subClause.legalText}\n${subClause.plainEnglish}`)} className={`inline-flex items-center gap-1.5 rounded-md border ${t.border} bg-white px-2 py-1 text-[11px] font-black ${t.boldText} hover:opacity-80 dark:bg-slate-900`}>
                     <Copy className="h-3 w-3" /> Copy sub-clause
                   </button>
                 </div>
@@ -943,18 +1289,18 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
           </div>
         )}
         {clause.related.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 border-t border-sky-100 pt-2 dark:border-sky-900/40">
-            <span className="text-[10px] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">Related</span>
+          <div className={`flex flex-wrap items-center gap-1.5 border-t ${t.borderSoft} pt-2`}>
+            <span className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>Related</span>
             {clause.related.map((item) => {
-              const match = /^clause\s+(.+)$/i.exec(item.trim());
-              const target = match ? fcoClauseLocationByNo.get(match[1].toLowerCase()) : undefined;
+              const match = /^(clause|section|rule)\s+(.+)$/i.exec(item.trim());
+              const target = match ? fcoClauseLocationByNo.get(`${match[1]} ${match[2]}`.toLowerCase()) : undefined;
               if (!target) {
                 return (
                   <span key={item} className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700">{item}</span>
                 );
               }
               return (
-                <button key={item} type="button" onClick={() => onOpenRelated(target)} className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-700 ring-1 ring-blue-200 transition hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900 dark:hover:bg-blue-950">
+                <button key={item} type="button" onClick={() => onOpenRelated(target)} className={`inline-flex items-center gap-1 rounded-full ${t.related} px-2 py-0.5 text-[10px] font-black ring-1 transition`}>
                   {item} <ArrowRight className="h-3 w-3" />
                 </button>
               );
@@ -967,11 +1313,11 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, onToggleBookmark, o
 }
 
 
-function FcoClauseTabContent({ clause, activeTab }: { clause: FcoClause; activeTab: FcoTabId }) {
+function FcoClauseTabContent({ clause, activeTab, accent = 'sky' }: { clause: FcoClause; activeTab: FcoTabId; accent?: FcoAccent }) {
   if (activeTab === 'fullText') return <FcoTextBlock items={[clause.legalText, ...clause.explanations.map((item) => `Explanation: ${item}`)]} />;
   if (activeTab === 'plainEnglish') return <FcoTextBlock items={[clause.plainEnglish, clause.summary]} />;
   if (activeTab === 'officerAction') return <FcoTextBlock items={clause.subClauses.flatMap((item) => item.officerAction || []).concat(clause.subClauses.flatMap((item) => item.dealerObligation?.map((obligationText) => `Dealer obligation: ${obligationText}`) || []))} empty="No specific officer action listed for this clause." />;
-  if (activeTab === 'formsTimelines') return <FcoFormsTimelines clause={clause} />;
+  if (activeTab === 'formsTimelines') return <FcoFormsTimelines clause={clause} accent={accent} />;
   return null;
 }
 
@@ -986,24 +1332,25 @@ function parseTimelineDuration(text: string): { value: number; unit: string; lab
   return { value: Number(match[1]), unit: match[2].replace(/\s+/g, ' '), label: label || text };
 }
 
-function FcoTimelineStepper({ timelines }: { timelines: string[] }) {
+function FcoTimelineStepper({ timelines, accent = 'sky' }: { timelines: string[]; accent?: FcoAccent }) {
+  const t = fcoAccentThemes[accent];
   return (
-    <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-2.5 dark:border-blue-900/50 dark:bg-blue-950/20">
-      <p className="text-[10px] font-black uppercase tracking-wide text-blue-700 dark:text-blue-300">Deadline track</p>
+    <div className={`rounded-lg border ${t.panelBox} p-2.5`}>
+      <p className={`text-[10px] font-black uppercase tracking-wide ${t.panelTitle}`}>Deadline track</p>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {timelines.map((timeline, index) => {
           const parsed = parseTimelineDuration(timeline);
           return (
             <React.Fragment key={timeline}>
-              {index > 0 && <ArrowRight className="h-3.5 w-3.5 shrink-0 text-blue-400 dark:text-blue-600" />}
-              <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-2 py-1.5 shadow-sm dark:border-blue-900 dark:bg-slate-900">
+              {index > 0 && <ArrowRight className={`h-3.5 w-3.5 shrink-0 ${t.stepperArrow}`} />}
+              <div className={`flex items-center gap-2 rounded-lg border ${t.stepperBox} bg-white px-2 py-1.5 shadow-sm dark:bg-slate-900`}>
                 {parsed ? (
-                  <span className="flex h-8 min-w-8 shrink-0 flex-col items-center justify-center rounded-md bg-gradient-to-br from-blue-600 to-indigo-500 px-1 leading-none text-white">
+                  <span className={`flex h-8 min-w-8 shrink-0 flex-col items-center justify-center rounded-md bg-gradient-to-br ${t.stepperBadge} px-1 leading-none text-white`}>
                     <span className="text-[13px] font-black">{parsed.value}</span>
                     <span className="text-[7px] font-black uppercase">{parsed.unit.replace('working ', 'work ')}</span>
                   </span>
                 ) : (
-                  <Clock className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                  <Clock className={`h-4 w-4 shrink-0 ${t.stepperClock}`} />
                 )}
                 <span className="text-[11px] font-bold leading-4 text-slate-700 dark:text-slate-200">{parsed ? parsed.label : timeline}</span>
               </div>
@@ -1015,19 +1362,20 @@ function FcoTimelineStepper({ timelines }: { timelines: string[] }) {
   );
 }
 
-function FcoFormsTimelines({ clause }: { clause: FcoClause }) {
+function FcoFormsTimelines({ clause, accent = 'sky' }: { clause: FcoClause; accent?: FcoAccent }) {
+  const t = fcoAccentThemes[accent];
   if (clause.forms.length === 0 && clause.timelines.length === 0) {
     return <p className="rounded-lg border border-dashed border-slate-200 p-3 text-sm font-semibold text-slate-500">No specific form or timeline listed for this clause.</p>;
   }
   return (
     <div className="space-y-2.5">
-      {clause.timelines.length > 0 && <FcoTimelineStepper timelines={clause.timelines} />}
+      {clause.timelines.length > 0 && <FcoTimelineStepper timelines={clause.timelines} accent={accent} />}
       {clause.forms.length > 0 && (
-        <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-2.5 dark:border-blue-900/50 dark:bg-blue-950/20">
-          <p className="text-[10px] font-black uppercase tracking-wide text-blue-700 dark:text-blue-300">Forms</p>
+        <div className={`rounded-lg border ${t.panelBox} p-2.5`}>
+          <p className={`text-[10px] font-black uppercase tracking-wide ${t.panelTitle}`}>Forms</p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {clause.forms.map((form) => (
-              <span key={form} className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-[11px] font-black text-blue-700 ring-1 ring-blue-200 dark:bg-slate-900 dark:text-blue-300 dark:ring-blue-900">
+              <span key={form} className={`inline-flex items-center gap-1 rounded-full ${t.panelChip} px-2 py-1 text-[11px] font-black ring-1`}>
                 <FileText className="h-3 w-3" /> {form}
               </span>
             ))}
@@ -1050,7 +1398,7 @@ function FcoTextBlock({ items, empty = 'No matter available.' }: { items: string
 
 function fcoClauseToText(clause: FcoClause) {
   return [
-    `FCO Clause ${clause.clauseNo}: ${clause.title}`,
+    `${clause.clauseLabel ?? 'FCO Clause'} ${clause.clauseNo}: ${clause.title}`,
     clause.summary,
     clause.legalText,
     clause.plainEnglish,
@@ -1062,34 +1410,37 @@ function FcoDashboardCards({
   cards,
   activeCardId,
   showFormsCard,
+  accent = 'sky',
   onOpenForms,
   onSelect,
 }: {
   cards: FcoClauseCard[];
   activeCardId: string | null;
   showFormsCard: boolean;
+  accent?: FcoAccent;
   onOpenForms: () => void;
   onSelect: (cardId: string) => void;
 }) {
+  const t = fcoAccentThemes[accent];
   return (
     <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
       {showFormsCard && (
         <button
           type="button"
           onClick={onOpenForms}
-          className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20"
+          className={`group relative flex flex-col overflow-hidden rounded-lg border ${t.border} bg-gradient-to-br ${t.tintTile} p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md`}
         >
           <div className="flex items-start justify-between gap-2">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm transition group-hover:scale-105">
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${t.gradientDeep} text-white shadow-sm transition group-hover:scale-105`}>
               <FileText className="h-4 w-4" />
             </span>
-            <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800/60">27 statutory forms</span>
+            <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>27 statutory forms</span>
           </div>
           <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">Forms</h3>
           <p className="mt-0.5 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">FCO statutory forms grouped for registration, manufacturing, sampling and records.</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {['Search', 'Preview', 'Download'].map((item) => (
-              <span key={item} className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-800 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-800/60">
+              <span key={item} className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[10px] font-black ring-1`}>
                 {item}
               </span>
             ))}
@@ -1104,23 +1455,23 @@ function FcoDashboardCards({
             key={card.id}
             type="button"
             onClick={() => onSelect(card.id)}
-            className={`group relative flex flex-col overflow-hidden rounded-lg border p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md ${
+            className={`group relative flex flex-col overflow-hidden rounded-lg border p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md ${
               active
-                ? 'border-sky-400 bg-gradient-to-br from-sky-100/80 via-white to-blue-100/60 shadow-md dark:border-sky-600 dark:from-sky-950/40 dark:via-slate-950 dark:to-blue-950/30'
-                : 'border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20'
+                ? `${t.activeTile} bg-gradient-to-br ${t.tintActive} shadow-md`
+                : `${t.border} bg-gradient-to-br ${t.tintTile}`
             }`}
           >
             <div className="flex items-start justify-between gap-2">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm transition group-hover:scale-105">
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${card.gradient} text-white shadow-sm transition group-hover:scale-105`}>
                 <Icon className="h-4 w-4" />
               </span>
-              <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800/60">{card.clauseRange}</span>
+              <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>{card.clauseRange}</span>
             </div>
             <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.cardTitle}</h3>
             <p className="mt-0.5 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.summary}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {card.contains.slice(0, 5).map((item) => (
-                <span key={item} className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-800 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-800/60">
+                <span key={item} className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[10px] font-black ring-1`}>
                   {item}
                 </span>
               ))}
@@ -1177,14 +1528,14 @@ function FertilizerFormsPanel({
               onClick={() => onCategoryChange(item)}
               className={`rounded-full px-3 py-1.5 text-[11px] font-black transition sm:text-xs ${
                 category === item
-                  ? 'bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 text-white shadow-md shadow-sky-500/25'
+                  ? 'bg-gradient-to-br from-sky-400 via-sky-500 to-blue-500 text-white shadow-md shadow-sky-400/20'
                   : 'border border-sky-200 bg-sky-50/60 text-sky-900 hover:border-sky-300 hover:bg-sky-100 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200 dark:hover:bg-sky-950/50'
               }`}
             >
               {item}
             </button>
           ))}
-          <span className="ml-auto rounded-full bg-sky-50 px-3 py-1 text-[11px] font-black text-sky-800 ring-1 ring-sky-100 dark:bg-sky-950/30 dark:text-sky-200 dark:ring-sky-900">
+          <span className="ml-auto rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-3 py-1 text-[11px] font-black text-sky-800 ring-1 ring-sky-100 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-200 dark:ring-sky-900">
             {visibleForms.length} forms
           </span>
         </div>
@@ -1194,7 +1545,7 @@ function FertilizerFormsPanel({
         {visibleForms.map((form) => (
           <article key={form.id} className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20">
             <div className="flex items-start gap-2.5">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm transition group-hover:scale-105">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 via-sky-500 to-blue-500 text-white shadow-sm transition group-hover:scale-105">
                 <FileText className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
@@ -1204,20 +1555,20 @@ function FertilizerFormsPanel({
             </div>
             <p className="mt-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.description}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-800 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-800/60">
+              <span className="rounded-full bg-gradient-to-br from-blue-50 to-sky-50 px-2 py-0.5 text-[10px] font-black text-blue-800 ring-1 ring-blue-200 dark:from-blue-950/40 dark:to-sky-950/30 dark:text-blue-300 dark:ring-blue-800/60">
                 {form.category}
               </span>
               {form.clause && (
-                <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800/60">
+                <span className="rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-200 dark:ring-sky-800/60">
                   {form.clause}
                 </span>
               )}
             </div>
             <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-sky-100 pt-2 dark:border-sky-900/50">
-              <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
+              <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-sky-400 via-sky-500 to-blue-500 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
                 <FileSearch className="h-3 w-3" /> View
               </button>
-              <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-sky-200 bg-white px-2.5 py-1 text-[10px] font-black text-sky-800 transition hover:bg-sky-50 dark:border-sky-800/50 dark:bg-slate-900 dark:text-sky-200 dark:hover:bg-sky-950/30">
+              <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-sky-200 bg-gradient-to-br from-white to-sky-50 px-2.5 py-1 text-[10px] font-black text-sky-800 transition hover:to-sky-100 dark:border-sky-800/50 dark:from-slate-900 dark:to-slate-900 dark:text-sky-200 dark:hover:to-sky-950/30">
                 <FileText className="h-3 w-3" /> PDF
               </a>
             </div>
@@ -1232,38 +1583,59 @@ function FertilizerFormsPanel({
     </section>
   );
 }
-function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffenceEntry[]; onDownload: () => void; onPrint: () => void }) {
+function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offence entry matches the current search.', exportMeta }: { entries: FcoOffenceEntry[]; accent?: FcoAccent; emptyText?: string; exportMeta: { excelFilename: string; pdfFilename: string; title: string; punishmentHeader: string } }) {
+  const t = fcoAccentThemes[accent];
+  const [exportOpen, setExportOpen] = useState(false);
+  const handleExport = (kind: 'excel' | 'pdf') => {
+    setExportOpen(false);
+    const meta = { filename: kind === 'excel' ? exportMeta.excelFilename : exportMeta.pdfFilename, title: exportMeta.title, punishmentHeader: exportMeta.punishmentHeader };
+    void (kind === 'excel' ? exportOffencesExcel(entries, meta) : exportOffencesPdf(entries, meta));
+  };
   return (
-    <div className="overflow-hidden rounded-lg border border-sky-200 bg-white shadow-sm dark:border-sky-800/50 dark:bg-slate-950">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sky-100 bg-white px-4 py-3 dark:border-sky-900/50 dark:bg-slate-950">
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onPrint} className="inline-flex items-center gap-2 rounded-lg bg-sky-700 px-3 py-2 text-sm font-black text-white hover:bg-sky-800">
-            <Printer className="h-4 w-4" />
-            Print
+    <div className={`overflow-hidden rounded-lg border ${t.border} bg-white shadow-sm dark:bg-slate-950`}>
+      <div className={`flex flex-wrap items-center justify-between gap-2 border-b ${t.borderSoft} bg-white px-4 py-3 dark:bg-slate-950`}>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setExportOpen((open) => !open)}
+            className={`inline-flex items-center gap-2 rounded-lg bg-gradient-to-br ${t.gradient} px-3 py-2 text-sm font-black text-white shadow-sm transition hover:brightness-105`}
+          >
+            <Download className="h-4 w-4" />
+            Export
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`} />
           </button>
-          <button type="button" onClick={onDownload} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-black text-blue-800 hover:bg-blue-50 dark:border-blue-800 dark:bg-slate-950 dark:text-blue-200">
-            <FileSpreadsheet className="h-4 w-4" />
-            CSV
-          </button>
+          {exportOpen && (
+            <>
+              <button type="button" aria-label="Close export menu" onClick={() => setExportOpen(false)} className="fixed inset-0 z-10 cursor-default" />
+              <div className={`absolute left-0 z-20 mt-1 w-44 overflow-hidden rounded-lg border ${t.border} bg-white shadow-lg dark:bg-slate-900`}>
+                <button type="button" onClick={() => handleExport('excel')} className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-black ${t.boldText} transition ${t.hoverTint}`}>
+                  <FileText className="h-3.5 w-3.5" /> Excel (.xlsx)
+                </button>
+                <button type="button" onClick={() => handleExport('pdf')} className={`flex w-full items-center gap-2 border-t ${t.borderSoft} px-3 py-2 text-left text-xs font-black ${t.boldText} transition ${t.hoverTint}`}>
+                  <FileText className="h-3.5 w-3.5" /> PDF
+                </button>
+              </div>
+            </>
+          )}
         </div>
-        <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-800 ring-1 ring-sky-100 dark:bg-sky-950/30 dark:text-sky-200 dark:ring-sky-900">
+        <span className={`rounded-full ${t.chipCount} px-3 py-1 text-xs font-black ring-1`}>
           {entries.length} offences
         </span>
       </div>
       <div className="grid gap-2 p-3 sm:grid-cols-2 xl:grid-cols-3">
         {entries.map((entry) => (
-          <article key={entry.serialNumber} className="flex flex-col rounded-lg border border-sky-100 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-900/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20">
+          <article key={entry.serialNumber} className={`flex flex-col rounded-lg border ${t.borderSoft} bg-gradient-to-br ${t.tintTile} p-2.5 shadow-sm transition hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md`}>
             <div className="flex items-start gap-2">
-              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-[11px] font-black text-white shadow-sm">
+              <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${t.gradient} text-[11px] font-black text-white shadow-sm`}>
                 {entry.serialNumber}
               </span>
               <p className="min-w-0 flex-1 text-xs font-black leading-4 text-slate-900 dark:text-white">{entry.offenceType}</p>
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800/60">
+              <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>
                 {entry.contraventionProvision}
               </span>
-              <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-black text-red-700 ring-1 ring-red-200 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-800/60">
+              <span className="rounded-full bg-gradient-to-br from-red-50 to-orange-50 px-2 py-0.5 text-[10px] font-black text-red-700 ring-1 ring-red-200 dark:from-red-950/40 dark:to-orange-950/30 dark:text-red-300 dark:ring-red-800/60">
                 {entry.punishmentProvision}
               </span>
             </div>
@@ -1274,7 +1646,7 @@ function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffe
         ))}
         {entries.length === 0 && (
           <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 sm:col-span-2 xl:col-span-3 dark:border-slate-700">
-            No FCO offence entry matches the current search.
+            {emptyText}
           </p>
         )}
       </div>
@@ -1282,10 +1654,6 @@ function FcoOffencesSection({ entries, onDownload, onPrint }: { entries: FcoOffe
   );
 }
 
-function renderFcoOffencesPrintHtml(entries: FcoOffenceEntry[]) {
-  const rows = entries.map((entry) => `<tr><td>${entry.serialNumber}</td><td>${escapeHtml(entry.offenceType)}</td><td>${escapeHtml(entry.contraventionProvision)}</td><td>${escapeHtml(entry.punishmentProvision)}</td></tr>`).join('');
-  return `<!doctype html><html><head><title>FCO Offences With Relevant FCO/ECA Provisions</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111827}h1{text-align:center;color:#075985}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #cbd5e1;padding:7px;vertical-align:top}th{background:#eff6ff}.note{margin-top:12px;background:#fffbeb;border:1px solid #f59e0b;padding:10px;font-weight:800;color:#78350f}</style></head><body><h1>FCO Offences With Relevant FCO/ECA Provisions</h1><table><thead><tr><th>Sl.No</th><th>Type of offence</th><th>Contravention provision</th><th>Punishment under ECA</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
-}
 
 function PowersSection({ area }: { area: MainLegalArea }) {
   const theme = legalAreaCards.find((item) => item.id === area) || legalAreaCards[0];
@@ -1354,12 +1722,64 @@ function collectMindMapNodeIds(nodes: MindMapNode[], bucket: Set<string> = new S
   return bucket;
 }
 
-function EnforcementDutiesPanel() {
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+interface EnforcementDutiesConfig {
+  accent: FcoAccent;
+  badgeLabel: string;
+  deadlines: EnforcementDeadline[];
+  mindMap: MindMapNode[];
+  offences: FcoOffenceEntry[];
+  offencesTitle: string;
+  offencesSubtitle: string;
+  offenceSearchPlaceholder: string;
+  offencesEmpty: string;
+  sourceNote: string;
+  excelFilename: string;
+  pdfFilename: string;
+  exportTitle: string;
+  punishmentHeader: string;
+}
+
+const fertilizerEnforcementConfig: EnforcementDutiesConfig = {
+  accent: 'sky',
+  badgeLabel: 'Enforcement Mind Map',
+  deadlines: enforcementDeadlines,
+  mindMap: enforcementMindMap,
+  offences: fcoOffenceEntries,
+  offencesTitle: 'FCO Offences & Penal Provisions',
+  offencesSubtitle: 'Searchable offence reference with FCO contravention and ECA punishment provisions.',
+  offenceSearchPlaceholder: 'Search offence, FCO provision, ECA punishment...',
+  offencesEmpty: 'No FCO offence entry matches the current search.',
+  sourceNote: 'Source: Central Fertilizer Quality Control & Training Institute (CFQCTI), Faridabad — Duties and Responsibilities of Enforcement Officers.',
+  excelFilename: 'fco-offences-penal-provisions.xlsx',
+  pdfFilename: 'fco-offences-penal-provisions.pdf',
+  exportTitle: 'FCO Offences With Relevant FCO/ECA Provisions',
+  punishmentHeader: 'Punishment provision under ECA',
+};
+
+const insecticideEnforcementConfig: EnforcementDutiesConfig = {
+  accent: 'amber',
+  badgeLabel: 'Enforcement Mind Map',
+  deadlines: insecticideDeadlines,
+  mindMap: insecticideMindMap,
+  offences: insecticideOffenceEntries,
+  offencesTitle: 'Insecticide Offences & Penal Provisions',
+  offencesSubtitle: 'Searchable offence reference with Insecticides Act sections, Rules and departmental enforcement examples.',
+  offenceSearchPlaceholder: 'Search offence, Section 29, Rule 10-A, misbranded...',
+  offencesEmpty: 'No insecticide offence entry matches the current search.',
+  sourceNote: 'Source: Insecticides Act, 1968 (Sec. 20-24, 27-29) and Insecticides Rules, 1971 (Rules 27-34) with departmental enforcement workflow.',
+  excelFilename: 'insecticide-offences-penal-provisions.xlsx',
+  pdfFilename: 'insecticide-offences-penal-provisions.pdf',
+  exportTitle: 'Insecticide Offences With Relevant Act/Rules Provisions',
+  punishmentHeader: 'Punishment provision under Insecticides Act',
+};
+
+function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig }) {
+  const t = fcoAccentThemes[config.accent];
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(collectMindMapNodeIds(config.mindMap)));
   const [offenceSearch, setOffenceSearch] = useState('');
   const [offencesOpen, setOffencesOpen] = useState(false);
-  const allNodeIds = useMemo(() => collectMindMapNodeIds(enforcementMindMap), []);
-  const filteredOffences = useMemo(() => filterFcoOffences(fcoOffenceEntries, offenceSearch), [offenceSearch]);
+  const allNodeIds = useMemo(() => collectMindMapNodeIds(config.mindMap), [config.mindMap]);
+  const filteredOffences = useMemo(() => filterFcoOffences(config.offences, offenceSearch), [config.offences, offenceSearch]);
   const allExpanded = collapsed.size === 0;
 
   const toggleNode = (id: string) => {
@@ -1373,22 +1793,22 @@ function EnforcementDutiesPanel() {
 
   return (
     <div className="space-y-3">
-      <FertilizerSectionBadge icon={Network} label="Enforcement Mind Map" />
-      <section className="rounded-lg border border-sky-200 bg-white p-3 shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
+      <FertilizerSectionBadge icon={Network} label={config.badgeLabel} accent={config.accent} />
+      <section className={`rounded-lg border ${t.border} bg-white p-3 shadow-sm dark:bg-slate-900`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[11px] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">Key deadlines</p>
+          <p className={`text-[11px] font-black uppercase tracking-wide ${t.labelText}`}>Key deadlines</p>
           <button
             type="button"
             onClick={() => setCollapsed(allExpanded ? new Set(allNodeIds) : new Set())}
-            className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[11px] font-black text-sky-800 transition hover:bg-sky-100 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200 dark:hover:bg-sky-950/50"
+            className={`rounded-full border ${t.tabOff} px-3 py-1 text-[11px] font-black transition`}
           >
             {allExpanded ? 'Collapse all' : 'Expand all'}
           </button>
         </div>
         <div className="mt-2 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
-          {enforcementDeadlines.map((item) => (
-            <div key={item.action} className="flex items-start gap-2 rounded-lg border border-sky-100 bg-gradient-to-br from-sky-50 to-blue-50 px-2.5 py-2 dark:border-sky-900/50 dark:from-sky-950/30 dark:to-blue-950/30">
-              <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-600 dark:text-sky-300" />
+          {config.deadlines.map((item) => (
+            <div key={item.action} className={`flex items-start gap-2 rounded-lg border ${t.borderSoft} bg-gradient-to-br ${t.panelBox} px-2.5 py-2`}>
+              <Clock className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${t.iconText}`} />
               <div>
                 <p className="text-[11px] font-black leading-4 text-slate-800 dark:text-slate-100">{item.limit}</p>
                 <p className="text-[10px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{item.action}</p>
@@ -1399,40 +1819,46 @@ function EnforcementDutiesPanel() {
       </section>
 
       <div className="grid gap-3 lg:grid-cols-2">
-        {enforcementMindMap.map((branch) => (
-          <MindMapBranchCard key={branch.id} node={branch} collapsed={collapsed} onToggle={toggleNode} />
+        {config.mindMap.map((branch) => (
+          <MindMapBranchCard key={branch.id} node={branch} collapsed={collapsed} accent={config.accent} onToggle={toggleNode} />
         ))}
 
-        <section className="overflow-hidden rounded-lg border border-sky-200 bg-white shadow-sm dark:border-sky-800/50 dark:bg-slate-900 lg:col-span-2">
+        <section className={`overflow-hidden rounded-lg border ${t.border} bg-white shadow-sm dark:bg-slate-900 lg:col-span-2`}>
           <button
             type="button"
             onClick={() => setOffencesOpen((open) => !open)}
-            className="flex w-full items-start gap-2.5 bg-gradient-to-br from-sky-50 via-white to-blue-50 p-3 text-left transition hover:from-sky-100 dark:from-sky-950/40 dark:via-slate-900 dark:to-blue-950 dark:hover:from-sky-950/60"
+            className={`flex w-full items-start gap-2.5 bg-gradient-to-br ${t.tintTile} p-3 text-left transition hover:brightness-[1.03]`}
           >
-            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm">
+            <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${t.gradient} text-white shadow-sm`}>
               <Scale className="h-3.5 w-3.5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-black text-slate-950 dark:text-white">FCO Offences & Penal Provisions</span>
-              <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">Searchable offence reference with FCO contravention and ECA punishment provisions.</span>
+              <span className="block text-sm font-black text-slate-950 dark:text-white">{config.offencesTitle}</span>
+              <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{config.offencesSubtitle}</span>
             </span>
-            <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-sky-700 transition-transform duration-200 dark:text-sky-300 ${offencesOpen ? '' : '-rotate-90'}`} />
+            <ChevronDown className={`mt-1 h-4 w-4 shrink-0 ${t.labelText} transition-transform duration-200 ${offencesOpen ? '' : '-rotate-90'}`} />
           </button>
           {offencesOpen && (
-            <div className="space-y-3 border-t border-sky-100 p-3 dark:border-sky-900/40">
+            <div className={`space-y-3 border-t ${t.borderSoft} p-3`}>
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   value={offenceSearch}
                   onChange={(event) => setOffenceSearch(event.target.value)}
-                  placeholder="Search offence, FCO provision, ECA punishment..."
-                  className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  placeholder={config.offenceSearchPlaceholder}
+                  className={`w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
                 />
               </div>
               <FcoOffencesSection
                 entries={filteredOffences}
-                onDownload={() => downloadFcoOffencesCsv(filteredOffences)}
-                onPrint={() => printFcoOffences(filteredOffences)}
+                accent={config.accent}
+                emptyText={config.offencesEmpty}
+                exportMeta={{
+                  excelFilename: config.excelFilename,
+                  pdfFilename: config.pdfFilename,
+                  title: config.exportTitle,
+                  punishmentHeader: config.punishmentHeader,
+                }}
               />
             </div>
           )}
@@ -1440,24 +1866,25 @@ function EnforcementDutiesPanel() {
       </div>
 
       <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-        Source: Central Fertilizer Quality Control & Training Institute (CFQCTI), Faridabad — Duties and Responsibilities of Enforcement Officers.
+        {config.sourceNote}
       </p>
     </div>
   );
 }
 
-function MindMapBranchCard({ node, collapsed, onToggle }: { node: MindMapNode; collapsed: Set<string>; onToggle: (id: string) => void }) {
+function MindMapBranchCard({ node, collapsed, accent = 'sky', onToggle }: { node: MindMapNode; collapsed: Set<string>; accent?: FcoAccent; onToggle: (id: string) => void }) {
+  const t = fcoAccentThemes[accent];
   const hasChildren = Boolean(node.children?.length);
   const isCollapsed = collapsed.has(node.id);
 
   return (
-    <section className="overflow-hidden rounded-lg border border-sky-200 bg-white shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
+    <section className={`overflow-hidden rounded-lg border ${t.border} bg-white shadow-sm dark:bg-slate-900`}>
       <button
         type="button"
         onClick={() => hasChildren && onToggle(node.id)}
-        className="flex w-full items-start gap-2.5 bg-gradient-to-br from-sky-50 via-white to-blue-50 p-3 text-left transition hover:from-sky-100 dark:from-sky-950/40 dark:via-slate-900 dark:to-blue-950 dark:hover:from-sky-950/60"
+        className={`flex w-full items-start gap-2.5 bg-gradient-to-br ${t.tintTile} p-3 text-left transition hover:brightness-[1.03]`}
       >
-        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-700 text-white shadow-sm">
+        <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${t.gradient} text-white shadow-sm`}>
           <Network className="h-3.5 w-3.5" />
         </span>
         <span className="min-w-0 flex-1">
@@ -1465,13 +1892,13 @@ function MindMapBranchCard({ node, collapsed, onToggle }: { node: MindMapNode; c
           {node.detail && <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{node.detail}</span>}
         </span>
         {hasChildren && (
-          <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-sky-700 transition-transform duration-200 dark:text-sky-300 ${isCollapsed ? '-rotate-90' : ''}`} />
+          <ChevronDown className={`mt-1 h-4 w-4 shrink-0 ${t.labelText} transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`} />
         )}
       </button>
       {hasChildren && !isCollapsed && (
-        <ul className="space-y-1 border-t border-sky-100 p-3 dark:border-sky-900/40">
+        <ul className={`space-y-1 border-t ${t.borderSoft} p-3`}>
           {node.children!.map((child) => (
-            <MindMapNodeRow key={child.id} node={child} depth={0} collapsed={collapsed} onToggle={onToggle} />
+            <MindMapNodeRow key={child.id} node={child} depth={0} collapsed={collapsed} accent={accent} onToggle={onToggle} />
           ))}
         </ul>
       )}
@@ -1479,24 +1906,25 @@ function MindMapBranchCard({ node, collapsed, onToggle }: { node: MindMapNode; c
   );
 }
 
-function MindMapNodeRow({ node, depth, collapsed, onToggle }: { node: MindMapNode; depth: number; collapsed: Set<string>; onToggle: (id: string) => void }) {
+function MindMapNodeRow({ node, depth, collapsed, accent = 'sky', onToggle }: { node: MindMapNode; depth: number; collapsed: Set<string>; accent?: FcoAccent; onToggle: (id: string) => void }) {
+  const t = fcoAccentThemes[accent];
   const hasChildren = Boolean(node.children?.length);
   const isCollapsed = collapsed.has(node.id);
 
   return (
     <li>
-      <div className="flex items-start gap-1.5 rounded-md px-1 py-1 transition hover:bg-sky-50/70 dark:hover:bg-sky-950/20">
+      <div className={`flex items-start gap-1.5 rounded-md px-1 py-1 transition ${t.hoverTint}`}>
         {hasChildren ? (
           <button
             type="button"
             onClick={() => onToggle(node.id)}
-            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-sky-700 transition hover:bg-sky-100 dark:text-sky-300 dark:hover:bg-sky-950/40"
+            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded ${t.labelText} transition ${t.hoverTint}`}
             aria-label={isCollapsed ? 'Expand' : 'Collapse'}
           >
             <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`} />
           </button>
         ) : (
-          <span className="mt-1.5 ml-0.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+          <span className={`mt-1.5 ml-0.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br ${t.dot}`} />
         )}
         <button
           type="button"
@@ -1512,9 +1940,9 @@ function MindMapNodeRow({ node, depth, collapsed, onToggle }: { node: MindMapNod
         </button>
       </div>
       {hasChildren && !isCollapsed && (
-        <ul className="ml-2.5 space-y-0.5 border-l border-sky-200 pl-2.5 dark:border-sky-800/50">
+        <ul className={`ml-2.5 space-y-0.5 border-l ${t.border} pl-2.5`}>
           {node.children!.map((child) => (
-            <MindMapNodeRow key={child.id} node={child} depth={depth + 1} collapsed={collapsed} onToggle={onToggle} />
+            <MindMapNodeRow key={child.id} node={child} depth={depth + 1} collapsed={collapsed} accent={accent} onToggle={onToggle} />
           ))}
         </ul>
       )}

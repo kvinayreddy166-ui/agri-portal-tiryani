@@ -105,7 +105,6 @@ const toolkitItems: ToolkitItem[] = [
     category: 'internal',
     gradient: 'from-blue-600 to-emerald-700',
     bgGradient: 'from-blue-50 to-emerald-50 dark:from-blue-950/30 dark:to-emerald-950/30',
-    statusMessage: 'Under development',
   },
 ];
 

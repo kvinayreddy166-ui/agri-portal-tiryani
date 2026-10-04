@@ -4,9 +4,16 @@ import { X } from 'lucide-react';
 interface FcoImplementationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  imageSrc?: string;
+  imageAlt?: string;
 }
 
-export function FcoImplementationModal({ isOpen, onClose }: FcoImplementationModalProps) {
+export function FcoImplementationModal({
+  isOpen,
+  onClose,
+  imageSrc = '/images/fco-implementation-structure.jpg',
+  imageAlt = 'Fertilizer Control Order (FCO), 1985 - Implementation Structure and Enforcement Authorities',
+}: FcoImplementationModalProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -55,8 +62,8 @@ export function FcoImplementationModal({ isOpen, onClose }: FcoImplementationMod
         {/* Image container - full screen on mobile */}
         <div className="w-full overflow-auto p-4 sm:max-h-[85vh] sm:p-6">
           <img
-            src="/images/fco-implementation-structure.jpg"
-            alt="Fertilizer Control Order (FCO), 1985 - Implementation Structure and Enforcement Authorities"
+            src={imageSrc}
+            alt={imageAlt}
             loading="lazy"
             decoding="async"
             className="mx-auto w-full rounded-lg shadow-md object-contain"
