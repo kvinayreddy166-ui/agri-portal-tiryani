@@ -32,7 +32,7 @@ import { translateDealerLoginError } from '../lib/dealerLoginMessages';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { supabase } from '../../../shared/lib/supabase';
-import { downloadFileFromUrl } from '../../../shared/lib/fileBlob';
+import { downloadFileFromUrl, fetchBlobUrl, revokeBlobUrl } from '../../../shared/lib/fileBlob';
 import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
 import { recordSiteHit } from '../../../shared/lib/siteHits';
 import { getMandalsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
@@ -151,6 +151,8 @@ export function Login() {
   const [pdfToolOpen, setPdfToolOpen] = useState(false);
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
   const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
   const [statutoryView, setStatutoryView] = useState<'generate' | 'library'>('generate');
   const [searchQuery, setSearchQuery] = useState('');
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -309,9 +311,31 @@ export function Login() {
     }
   }, [statutoryFolder, searchQuery]);
 
-  const openPublicPreview = (form: FormDownload) => {
+  const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  const openPublicPreview = async (form: FormDownload) => {
     if (!form.file_url) return;
-    setPreviewForm(form);
+    // Mobile keeps the remote URL so the Google Docs embed viewer can load it inline.
+    if (isMobileDevice) {
+      setPreviewForm(form);
+      return;
+    }
+    setPreviewLoadingId(form.id);
+    try {
+      const blobUrl = await fetchBlobUrl(form.file_url, form.title);
+      setPreviewBlobUrl(blobUrl);
+      setPreviewForm({ ...form, file_url: blobUrl });
+    } catch {
+      setPreviewForm(form);
+    } finally {
+      setPreviewLoadingId(null);
+    }
+  };
+
+  const closePublicPreview = () => {
+    setPreviewForm(null);
+    revokeBlobUrl(previewBlobUrl);
+    setPreviewBlobUrl(null);
   };
 
   const handlePublicDownload = async (form: FormDownload) => {
@@ -668,12 +692,17 @@ export function Login() {
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             type="button"
-                            onClick={() => openPublicPreview(form)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-emerald-700 dark:text-emerald-300 transition hover:bg-emerald-100"
+                            onClick={() => void openPublicPreview(form)}
+                            disabled={previewLoadingId === form.id}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-emerald-700 dark:text-emerald-300 transition hover:bg-emerald-100 disabled:opacity-50"
                             aria-label={t('Preview file', 'ఫైల్‌ను ప్రివ్యూ చేయండి')}
                             title={t('Preview', 'ప్రివ్యూ')}
                           >
-                            <Eye className="h-4 w-4" />
+                            {previewLoadingId === form.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
                           </button>
                           <button
                             type="button"
@@ -1105,7 +1134,7 @@ export function Login() {
           fileUrl={previewForm.file_url}
           fileName={previewForm.label || previewForm.title}
           fileType={previewForm.file_type}
-          onClose={() => setPreviewForm(null)}
+          onClose={closePublicPreview}
         />
       )}
     </div>
