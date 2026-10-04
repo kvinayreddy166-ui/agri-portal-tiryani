@@ -53,7 +53,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-  const isBlobPdf = isPdf && fileUrl.startsWith('blob:');
+  const isBlobPdf = isPdf && fileUrl.startsWith('blob:') && !isMobile;
   const useClientPreview = (isPdf && !isBlobPdf) || isOfficeDoc || isSpreadsheet;
   // On mobile, use direct PDF opening instead of embed preview
   const useEmbedPreview = isDriveLink || (pdfUseEmbed && !isMobile);
