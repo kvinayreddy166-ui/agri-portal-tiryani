@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { X, ExternalLink, ChevronLeft, ChevronRight, FileSpreadsheet } from 'lucide-react';
-import * as XLSX from 'xlsx';
 
 interface ExcelPreviewProps {
   file: File;
@@ -35,6 +34,7 @@ export function ExcelPreview({ file, onClose, onDownload, className = '' }: Exce
         setFallbackUrl(url);
 
         const arrayBuffer = await file.arrayBuffer();
+        const XLSX = await import('xlsx');
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
 
         const sheetData: SheetData[] = workbook.SheetNames.map(sheetName => {

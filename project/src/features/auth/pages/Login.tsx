@@ -76,7 +76,6 @@ const PUBLIC_FORM_CATEGORY_VALUES = Array.from(new Set(Object.values(PUBLIC_FORM
 const PUBLIC_TOOLKIT_STATE_KEY = 'tiryani-public-officer-toolkit-state';
 const PUBLIC_FORMS_CACHE_KEY = 'tiryani-public-statutory-forms-cache';
 const PUBLIC_FORMS_PAGE_SIZE = 20;
-const PUBLIC_FORM_COLUMNS = 'id, title, label, description, file_url, file_type, category, created_at';
 const PUBLIC_FORM_COLUMNS_WITHOUT_LABEL = 'id, title, description, file_url, file_type, category, created_at';
 
 const TELANGANA_DISTRICTS = [
@@ -1287,26 +1286,14 @@ function calculateAcreValues(input: string) {
 }
 
 async function fetchPublicFormsFromDatabase() {
-  const initialResult = await supabase
+  const { data, error } = await supabase
     .from('forms_downloads')
-    .select(PUBLIC_FORM_COLUMNS)
+    .select(PUBLIC_FORM_COLUMNS_WITHOUT_LABEL)
     .in('category', PUBLIC_FORM_CATEGORY_VALUES)
     .order('created_at', { ascending: false });
-  let data = initialResult.data as FormDownload[] | null;
-  let error: unknown = initialResult.error;
-
-  if (error && isMissingPublicLabelColumnError(error)) {
-    const fallback = await supabase
-      .from('forms_downloads')
-      .select(PUBLIC_FORM_COLUMNS_WITHOUT_LABEL)
-      .in('category', PUBLIC_FORM_CATEGORY_VALUES)
-      .order('created_at', { ascending: false });
-    data = fallback.data as FormDownload[] | null;
-    error = fallback.error;
-  }
 
   if (error) throw error;
-  return (data || []).map(normalizePublicFormRow);
+  return ((data || []) as FormDownload[]).map(normalizePublicFormRow);
 }
 
 function normalizePublicFormCategory(category: string) {
@@ -1335,16 +1322,6 @@ function writeCachedPublicForms(forms: FormDownload[]) {
   } catch {
     // Cache is best effort; statutory forms can still render empty if storage is unavailable.
   }
-}
-
-function isMissingPublicLabelColumnError(error: unknown) {
-  const message = typeof error === 'object' && error && 'message' in error
-    ? String((error as { message?: unknown }).message || '')
-    : String(error || '');
-  const code = typeof error === 'object' && error && 'code' in error
-    ? String((error as { code?: unknown }).code || '')
-  : '';
-  return code === 'PGRST204' || (/label/i.test(message) && /column|schema|cache|not found|does not exist/i.test(message));
 }
 
 export default Login;

@@ -15,6 +15,7 @@ export default defineConfig({
   esbuild: {
     legalComments: 'none',
     drop: ['debugger'],
+    pure: ['console.log', 'console.debug'],
   },
   optimizeDeps: {
     include: [
@@ -71,7 +72,7 @@ export default defineConfig({
             return 'vendor-xlsx';
           }
           // Group React libraries
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+          if (/node_modules[\/\\](react|react-dom|react-router|react-router-dom|scheduler)[\/\\]/.test(id)) {
             return 'vendor-react';
           }
           // Group chart libraries
