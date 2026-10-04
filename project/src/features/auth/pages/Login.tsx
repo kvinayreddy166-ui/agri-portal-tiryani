@@ -33,12 +33,12 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { supabase } from '../../../shared/lib/supabase';
 import { downloadFileFromUrl } from '../../../shared/lib/fileBlob';
+import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
 import { recordSiteHit } from '../../../shared/lib/siteHits';
 import { getMandalsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
 import { FormDownload } from '../../../shared/types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../../../shared/hooks/useBackButtonOverlay';
-import { getGoogleViewerTabUrl, getOfficeViewerTabUrl } from '../../../shared/lib/filePreviewUrls';
 const FertilizerStatutoryPdfTool = lazy(() =>
   import('../../statutory-forms/components/FertilizerStatutoryPdfTool')
     .then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
@@ -150,6 +150,7 @@ export function Login() {
   const [formsLoading, setFormsLoading] = useState(false);
   const [pdfToolOpen, setPdfToolOpen] = useState(false);
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
+  const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
   const [statutoryView, setStatutoryView] = useState<'generate' | 'library'>('generate');
   const [searchQuery, setSearchQuery] = useState('');
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -310,24 +311,7 @@ export function Login() {
 
   const openPublicPreview = (form: FormDownload) => {
     if (!form.file_url) return;
-    // Check if it's an image file
-    const isImage = /\.(jpg|jpeg|png|webp|gif|bmp|svg)$/i.test(form.file_url) || form.file_type?.startsWith('image/');
-    // Check if it's a PDF file
-    const isPdf = /\.pdf$/i.test(form.file_url) || form.file_type === 'application/pdf' || form.file_type?.includes('pdf');
-    // Check if it's an Excel file
-    const isExcel = /\.(xlsx|xls|csv)$/i.test(form.file_url) || form.file_type?.includes('excel') || form.file_type?.includes('spreadsheet');
-    if (isImage) {
-      window.open(form.file_url, '_blank', 'noopener,noreferrer');
-    } else if (isPdf) {
-      // Open PDF directly in browser's native PDF viewer
-      window.open(form.file_url, '_blank', 'noopener,noreferrer');
-    } else if (isExcel) {
-      const viewerUrl = getOfficeViewerTabUrl(form.file_url);
-      window.open(viewerUrl, '_blank', 'noopener,noreferrer');
-    } else {
-      const viewerUrl = getGoogleViewerTabUrl(form.file_url);
-      window.open(viewerUrl, '_blank', 'noopener,noreferrer');
-    }
+    setPreviewForm(form);
   };
 
   const handlePublicDownload = async (form: FormDownload) => {
@@ -1114,6 +1098,15 @@ export function Login() {
             </form>
           </div>
         </div>
+      )}
+
+      {previewForm?.file_url && (
+        <FilePreviewModal
+          fileUrl={previewForm.file_url}
+          fileName={previewForm.label || previewForm.title}
+          fileType={previewForm.file_type}
+          onClose={() => setPreviewForm(null)}
+        />
       )}
     </div>
   );
