@@ -1,9 +1,10 @@
-import React from 'react';
-import { Copy, ImageOff, MessageCircle, ShieldCheck, FileText } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Copy, Globe, ImageOff, MessageCircle, ShieldCheck, FileText } from 'lucide-react';
 import type { CropProtectionCrop, CropProtectionItem, LanguageCode } from '../services/cropProtectionService';
 import { advisoryText, hasTelugu, pickLang } from '../services/cropProtectionService';
 import { label } from '../../../shared/services/translationService';
 import { downloadAdvisoryPdf } from '../services/pdfAdvisoryService';
+import { getGbifOccurrenceInfo, GbifOccurrenceInfo } from '../services/gbifService';
 import { RecommendationPanel } from './RecommendationPanel';
 
 export function ProtectionItemCard({
@@ -20,6 +21,17 @@ export function ProtectionItemCard({
     (!hasTelugu(item.name_te) || !hasTelugu(item.symptoms_te) || !hasTelugu(item.damage_te));
   const advisory = advisoryText(crop, item, language);
   const imageUrls = item.image_urls || [];
+  const [gbif, setGbif] = useState<GbifOccurrenceInfo | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void getGbifOccurrenceInfo(item.scientific_name).then((info) => {
+      if (active) setGbif(info);
+    });
+    return () => {
+      active = false;
+    };
+  }, [item.scientific_name]);
 
   const openImage = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -75,6 +87,18 @@ export function ProtectionItemCard({
               </p>
               <h3 className="text-base font-black text-slate-950 dark:text-white">{pickLang(item.name_en, item.name_te, language)}</h3>
               <p className="text-xs font-semibold italic text-slate-500 dark:text-slate-400">{item.scientific_name || 'Scientific name will be updated soon'}</p>
+              {gbif && gbif.indiaCount > 0 && (
+                <a
+                  href={gbif.gbifUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700 transition hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300"
+                  title={label('GBIF occurrence records in India (reference data, not field surveillance)', language)}
+                >
+                  <Globe className="h-3 w-3" />
+                  GBIF: {gbif.indiaCount.toLocaleString('en-IN')} {label('India records', language)}
+                </a>
+              )}
             </div>
             <div className="flex flex-wrap gap-1">
               <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-1 text-[10px] font-black uppercase text-slate-600 dark:text-slate-300">
