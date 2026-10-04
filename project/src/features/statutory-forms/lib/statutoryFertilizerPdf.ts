@@ -487,13 +487,20 @@ function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
   drawDealerReceipt(cursor);
 }
 
+function drawInspectorSealSignature(doc: JsPdfInstance, y: number) {
+  const line1 = 'Signature and Metallic Seal';
+  const line2 = 'Impression of Fertilizer Inspector';
+  const maxWidth = Math.max(doc.getTextWidth(line1), doc.getTextWidth(line2));
+  const centerX = SIGNATURE_RIGHT_X - maxWidth / 2;
+  doc.text(line1, centerX, y, { align: 'center' });
+  doc.text(line2, centerX, y + 5, { align: 'center' });
+}
+
 function drawPreReceiptInspectorSignature(cursor: PdfCursor) {
   const { doc } = cursor;
   cursor.y += FORM_J_INSPECTOR_SIGNATURE_GAP;
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], SIGNATURE_RIGHT_X, cursor.y - FORM_J_PRE_RECEIPT_SIGNATURE_LIFT, {
-    align: 'right',
-  });
+  drawInspectorSealSignature(doc, cursor.y - FORM_J_PRE_RECEIPT_SIGNATURE_LIFT);
   doc.setFont(PDF_FONT, 'normal');
   cursor.y += 87;
 }
@@ -523,9 +530,7 @@ function drawDealerReceipt(cursor: PdfCursor) {
 
   doc.setFont(PDF_FONT, 'bold');
   doc.text('Signature of Dealer', PAGE.marginX + 33, signatureY, { align: 'center' });
-  doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], SIGNATURE_RIGHT_X, signatureY, {
-    align: 'right',
-  });
+  drawInspectorSealSignature(doc, signatureY);
   doc.setFont(PDF_FONT, 'normal');
 }
 
@@ -616,12 +621,7 @@ function drawPlaceDateAndInspectorSignature(
     doc.text(dateValue, PAGE.marginX + dateLabelWidth + 2, cursor.y + 5);
   }
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(
-    ['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'],
-    SIGNATURE_RIGHT_X,
-    cursor.y + 22,
-    { align: 'right' }
-  );
+  drawInspectorSealSignature(doc, cursor.y + 22);
   doc.setFont(PDF_FONT, 'normal');
 }
 
@@ -630,9 +630,7 @@ function drawInspectorSignatureOnly(cursor: PdfCursor) {
   cursor.y = Math.min(cursor.y + 8, PAGE.bottom - blockHeight);
   ensure(cursor, blockHeight);
   cursor.doc.setFont(PDF_FONT, 'bold');
-  cursor.doc.text(['Signature and Metallic Seal', 'Impression of Fertilizer Inspector'], SIGNATURE_RIGHT_X, cursor.y, {
-    align: 'right',
-  });
+  drawInspectorSealSignature(cursor.doc, cursor.y);
   cursor.doc.setFont(PDF_FONT, 'normal');
 }
 

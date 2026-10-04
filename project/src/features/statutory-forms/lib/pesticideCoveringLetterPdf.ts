@@ -610,20 +610,24 @@ function drawSignature(cursor: PdfCursor, officerDetails?: OfficerDetails) {
   cursor.y -= 5;
   
   const signatureX = PAGE.width - PAGE.marginRight;
-  
+
+  const isADA = isAssistantDirectorOfAgriculture(officerDetails?.designation || '');
+  const designationText = isADA ? statutoryDesignationDisplay(officerDetails?.designation || 'Asst. Director of Agriculture') : 'Mandal Agriculture Officer';
+  doc.setFont(PDF_FONT, 'bold');
+  const signatureCenterX = signatureX - doc.getTextWidth(designationText) / 2;
+
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(FONT_SIZES.body);
-  doc.text('Yours faithfully,', signatureX, cursor.y, { align: 'right' });
+  doc.text('Yours faithfully,', signatureCenterX, cursor.y, { align: 'center' });
   cursor.y += LINE_HEIGHT;
-  
+
   cursor.y += LINE_HEIGHT + 5; // Extra space
-  
-  const isADA = isAssistantDirectorOfAgriculture(officerDetails?.designation || '');
+
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(isADA ? statutoryDesignationDisplay(officerDetails?.designation || 'Asst. Director of Agriculture') : 'Mandal Agriculture Officer', signatureX, cursor.y, { align: 'right' });
+  doc.text(designationText, signatureX, cursor.y, { align: 'right' });
   cursor.y += LINE_HEIGHT;
-  
-  doc.text('& Insecticide Inspector', signatureX, cursor.y, { align: 'right' });
+
+  doc.text('& Insecticide Inspector', signatureCenterX, cursor.y, { align: 'center' });
   cursor.y += LINE_HEIGHT + PARAGRAPH_SPACING;
 }
 
@@ -636,7 +640,7 @@ function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, m
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
-  doc.text('Copies submitted to:', PAGE.marginLeft, cursor.y);
+  doc.text('Copy submitted to:', PAGE.marginLeft, cursor.y);
   cursor.y += LINE_HEIGHT;
   
   doc.setFont(PDF_FONT, 'normal');

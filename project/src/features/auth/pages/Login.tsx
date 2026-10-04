@@ -75,7 +75,7 @@ const PUBLIC_FORM_CATEGORY_VALUES = Array.from(new Set(Object.values(PUBLIC_FORM
 
 const PUBLIC_TOOLKIT_STATE_KEY = 'tiryani-public-officer-toolkit-state';
 const PUBLIC_FORMS_CACHE_KEY = 'tiryani-public-statutory-forms-cache';
-const PUBLIC_FORMS_PAGE_SIZE = 10;
+const PUBLIC_FORMS_PAGE_SIZE = 20;
 const PUBLIC_FORM_COLUMNS = 'id, title, label, description, file_url, file_type, category, created_at';
 const PUBLIC_FORM_COLUMNS_WITHOUT_LABEL = 'id, title, description, file_url, file_type, category, created_at';
 

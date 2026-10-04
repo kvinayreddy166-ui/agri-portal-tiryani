@@ -1528,9 +1528,9 @@ function seedSignatureLines(designation: any, firstLine = 'Seed Inspector/') {
 function signatureRight(doc: any, y: any, label: any) {
   doc.setFont(PDF_FONT, 'bold');
   const labelLines = Array.isArray(label) ? label : [label];
-  const lines = ['Signature', ...labelLines];
+  const lines = [...labelLines];
   lines.forEach((line, i) => {
-    doc.text(line, 162, y + i * 5, { align: 'center' });
+    doc.text(line, 162, y + (i + 1) * 5, { align: 'center' });
   });
   doc.setFont(PDF_FONT, 'normal');
 }

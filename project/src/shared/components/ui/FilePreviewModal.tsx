@@ -53,17 +53,17 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-  const isBlobPdf = isPdf && fileUrl.startsWith('blob:') && !isMobile;
-  const useClientPreview = (isPdf && !isBlobPdf) || isOfficeDoc || isSpreadsheet;
-  // On mobile, use direct PDF opening instead of embed preview
-  const useEmbedPreview = isDriveLink || (pdfUseEmbed && !isMobile);
+  const isDirectPdf = isPdf && !isDriveLink;
+  const useClientPreview = isOfficeDoc || isSpreadsheet;
+  // On mobile, remote PDFs can still preview via the Google Docs embed viewer
+  const useEmbedPreview = isDriveLink || (isPdf && !fileUrl.startsWith('blob:') && (pdfUseEmbed || isMobile));
 
   const officeEmbedSrc = getOfficeViewerEmbedUrl(fileUrl);
   const googleEmbedSrc = getGoogleViewerEmbedUrl(fileUrl);
   const activeEmbedSrc = embedViewer === 'google' ? googleEmbedSrc : officeEmbedSrc;
 
   const showImageInline = isImage && previewSrc && !loading && !loadFailed;
-  const showBlobPdf = isBlobPdf && !loading && !loadFailed;
+  const showBlobPdf = isDirectPdf && !isMobile && !loading && !loadFailed;
   const showPdfPreview = isPdf && pdfFile && !loading && !loadFailed && !pdfUseEmbed;
   const showDocxPreview = isOfficeDoc && docxFile && !loading && !loadFailed;
   const showExcelPreview = isSpreadsheet && excelFile && !loading && !loadFailed;
@@ -291,7 +291,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
 
           {!loading && showBlobPdf && (
             <iframe
-              src={`${fileUrl}#toolbar=0&navpanes=0`}
+              src={hideDownload ? `${fileUrl}#toolbar=0&navpanes=0` : fileUrl}
               title={fileName || 'PDF preview'}
               className="min-h-[60vh] flex-1 border-0 bg-white"
             />

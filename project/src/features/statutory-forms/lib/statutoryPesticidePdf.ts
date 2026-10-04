@@ -581,7 +581,7 @@ function drawFormVD(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.y += 8;
   cursor.y += 18;
   signatureLineMixed(cursor, [{ label: 'Date:', value: formatDate(values.sampleDrawnDate) }], 'Insecticide Inspector');
-  cursor.doc.text('(Signature & seal)', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
+  centeredSealLine(cursor, 'Insecticide Inspector');
   cursor.y += LINE_HEIGHT;
 }
 
@@ -610,7 +610,7 @@ function drawFormVE(cursor: PdfCursor, values: PesticidePdfValues) {
     { label: 'Place:', value: resolvedMandal || '________________' },
     { label: 'Date:', value: formatDate(values.sampleDrawnDate) },
   ], 'Insecticide Inspector');
-  cursor.doc.text('(Signature & seal)', PAGE.width - PAGE.marginX, cursor.y, { align: 'right' });
+  centeredSealLine(cursor, 'Insecticide Inspector');
   cursor.y += LINE_HEIGHT;
 }
 
@@ -1107,6 +1107,11 @@ function signatureLineMixed(cursor: PdfCursor, leftLines: { label: string; value
   });
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.y += LINE_HEIGHT;
+}
+
+function centeredSealLine(cursor: PdfCursor, rightText: string) {
+  const centerX = PAGE.width - PAGE.marginX - cursor.doc.getTextWidth(rightText) / 2;
+  cursor.doc.text('(Signature & seal)', centerX, cursor.y, { align: 'center' });
 }
 
 function paragraph(cursor: PdfCursor, value: string) {
