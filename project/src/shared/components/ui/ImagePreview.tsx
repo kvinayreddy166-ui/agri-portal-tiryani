@@ -158,6 +158,8 @@ export function ImagePreview({ fileUrl, fileName, onClose, onDownload, className
               ref={imgRef}
               src={fileUrl}
               alt={fileName || 'Preview'}
+              loading="lazy"
+              decoding="async"
               onLoad={handleImageLoad}
               onError={handleImageError}
               className="max-w-full shadow-lg transition-transform"

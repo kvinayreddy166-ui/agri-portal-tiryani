@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 
+import { safeStorage } from './safeStorage';
 const VISITOR_ID_KEY = 'tiryani-site-visitor-id';
 const SESSION_HIT_KEY = 'tiryani-site-hit-recorded';
 const PREVIOUS_SITE_VISIT_BASELINE = 1000;
@@ -76,12 +77,12 @@ export async function fetchSiteHitSummary(): Promise<SiteHitSummary> {
 }
 
 function getVisitorId() {
-  const existing = window.localStorage.getItem(VISITOR_ID_KEY);
+  const existing = safeStorage.getItem(VISITOR_ID_KEY);
   if (existing) return existing;
 
   const generated =
     window.crypto?.randomUUID?.() ||
     `visitor-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  window.localStorage.setItem(VISITOR_ID_KEY, generated);
+  safeStorage.setItem(VISITOR_ID_KEY, generated);
   return generated;
 }

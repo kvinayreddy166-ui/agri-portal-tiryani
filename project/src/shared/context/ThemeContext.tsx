@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
+import { safeStorage } from '../lib/safeStorage';
 type Theme = 'light' | 'dark';
 
 interface ThemeContextValue {
@@ -15,7 +16,7 @@ const STORAGE_KEY = 'tiryani-portal-theme';
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === 'undefined') return 'light';
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
+    const stored = safeStorage.getItem(STORAGE_KEY) as Theme | null;
     if (stored === 'dark' || stored === 'light') return stored;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
@@ -27,7 +28,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       root.classList.remove('dark');
     }
-    localStorage.setItem(STORAGE_KEY, theme);
+    safeStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));

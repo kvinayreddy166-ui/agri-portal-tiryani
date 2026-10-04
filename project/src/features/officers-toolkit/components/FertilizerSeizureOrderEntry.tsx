@@ -26,6 +26,7 @@ import {
   type NoticeSegment,
 } from './ShowCauseNoticeEntry';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 interface FertSeizureProductRow {
   id: string;
   name: string;
@@ -76,7 +77,7 @@ const emptyProduct = (): FertSeizureProductRow => ({
 
 function readSavedOrders(): SavedFertSeizureOrder[] {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]');
+    const parsed = JSON.parse(safeStorage.getItem(STORAGE_KEY) || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -84,14 +85,14 @@ function readSavedOrders(): SavedFertSeizureOrder[] {
 }
 
 function writeSavedOrders(orders: SavedFertSeizureOrder[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  safeStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
 const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
 
 function readFormDraft(): FertSeizureFormState | null {
   try {
-    const raw = window.localStorage.getItem(FORM_DRAFT_KEY);
+    const raw = safeStorage.getItem(FORM_DRAFT_KEY);
     if (!raw) return null;
     return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<FertSeizureFormState>) };
   } catch {
@@ -302,7 +303,7 @@ export function FertilizerSeizureOrderEntry() {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
+      safeStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
     } catch {}
   }, [form]);
 
@@ -440,6 +441,8 @@ export function FertilizerSeizureOrderEntry() {
             <img
               src="/images/seizure-steps.jpg"
               alt="Steps involved in the seizure of stock"
+              loading="lazy"
+              decoding="async"
               className="max-h-[82vh] w-full object-contain"
             />
           </div>

@@ -14,6 +14,7 @@ import {
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
 const LAST_GENERATED_KEY = 'tiryani-seed-forms-last-generated';
@@ -132,7 +133,7 @@ export function SeedForms() {
   const [addToCoveringLetterChecked, setAddToCoveringLetterChecked] = useState(true);
   const [form, setForm] = useState(() => {
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
+      const saved = safeStorage.getItem(STORAGE_KEY);
       const loaded = saved ? { ...initialSeedForm, ...JSON.parse(saved) } : initialSeedForm;
       // Ensure manual edit flags are initialized for old saved drafts
       return {
@@ -147,7 +148,7 @@ export function SeedForms() {
   });
   const [coveringLetterDetails, setCoveringLetterDetails] = useState(() => {
     try {
-      const saved = window.localStorage.getItem('tiryani-seed-covering-letter-details');
+      const saved = safeStorage.getItem('tiryani-seed-covering-letter-details');
       return saved ? JSON.parse(saved) : {
         financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
         letterNumber: '',
@@ -182,7 +183,7 @@ export function SeedForms() {
   const [confirmAction, setConfirmAction] = useState<{ title: string; message?: string; action: () => void } | null>(null);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+    safeStorage.setItem(STORAGE_KEY, JSON.stringify(form));
   }, [form]);
 
   // Fetch mandals for Place of Collection when ADA and district changes (for ADA, load based on District like MAO)
@@ -333,7 +334,7 @@ export function SeedForms() {
       // Exclude covering letter fields from draft - they are independently persisted
       const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftForm } = form;
       const nextDrafts = upsertSeedDraft(savedDrafts, { name, form: draftForm, updatedAt: Date.now() });
-      window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+      safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
       showSaved('Draft Saved Successfully', `Draft saved as ${name}`, 4000);
     } finally {
@@ -347,7 +348,7 @@ export function SeedForms() {
       message: 'All entered data will be cleared.',
       action: () => {
         setForm(initialSeedForm);
-        window.localStorage.removeItem(STORAGE_KEY);
+        safeStorage.removeItem(STORAGE_KEY);
         setSelectedDraftName('');
         setMessage('Draft reset successfully.');
         showReset('Draft Reset', 'The form has been cleared.', 4000);
@@ -383,10 +384,10 @@ export function SeedForms() {
       action: () => {
         // Use case-insensitive comparison for deletion
         const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
-        window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+        safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
         setSavedDrafts(nextDrafts);
         // Clear auto-save storage to prevent the deleted draft from reappearing
-        window.localStorage.removeItem(STORAGE_KEY);
+        safeStorage.removeItem(STORAGE_KEY);
         // Reset ALL draft-owned state to initial values (excluding covering letter details)
         setForm(initialSeedForm);
         setSelectedDraftName('');
@@ -440,7 +441,7 @@ export function SeedForms() {
     
     if (addToCoveringLetterChecked) {
       try {
-        const queue = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
+        const queue = JSON.parse(safeStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
         
         const existingIndex = queue.findIndex((item: any) => item.sampleCode === form.codeNo.trim());
         const sampleCode = form.codeNo.trim();
@@ -459,7 +460,7 @@ export function SeedForms() {
               isCotton: (form.crop || '').toLowerCase().includes('cotton'),
             };
             queue.push(newItem);
-            window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+            safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
             window.dispatchEvent(new Event('local-storage-update'));
             showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 4000);
           } else {
@@ -485,7 +486,7 @@ export function SeedForms() {
             if (hasChanged) {
               // Update existing sample
               queue[existingIndex] = newItem;
-              window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+              safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
               window.dispatchEvent(new Event('local-storage-update'));
               showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 4000);
             } else {
@@ -1641,7 +1642,7 @@ function seedFileName(kind: any, form: any) {
 
 function loadSeedDrafts() {
   try {
-    const raw = window.localStorage.getItem(DRAFTS_KEY);
+    const raw = safeStorage.getItem(DRAFTS_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {
@@ -1681,7 +1682,7 @@ function seedGenerationSnapshot(form: any) {
 
 function rememberSeedGeneratedData(form: any) {
   try {
-    window.localStorage.setItem(LAST_GENERATED_KEY, seedGenerationSnapshot(form));
+    safeStorage.setItem(LAST_GENERATED_KEY, seedGenerationSnapshot(form));
   } catch {
     // Duplicate warning is best-effort only.
   }

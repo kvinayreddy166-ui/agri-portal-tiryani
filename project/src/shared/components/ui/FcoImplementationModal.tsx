@@ -57,6 +57,8 @@ export function FcoImplementationModal({ isOpen, onClose }: FcoImplementationMod
           <img
             src="/images/fco-implementation-structure.jpg"
             alt="Fertilizer Control Order (FCO), 1985 - Implementation Structure and Enforcement Authorities"
+            loading="lazy"
+            decoding="async"
             className="mx-auto w-full rounded-lg shadow-md object-contain"
           />
         </div>

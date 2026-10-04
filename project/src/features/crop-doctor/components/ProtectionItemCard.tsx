@@ -55,6 +55,7 @@ export function ProtectionItemCard({
                     alt={`${item.name_en} ${index + 1}`}
                     className={`${index === 0 ? 'h-24 sm:h-28' : 'h-11 sm:h-[3.375rem]'} w-full object-cover transition duration-300 group-hover:scale-110`}
                     loading="lazy"
+                    decoding="async"
                   />
                 </button>
               ))}

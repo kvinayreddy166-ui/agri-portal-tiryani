@@ -1,3 +1,4 @@
+import { safeStorage } from './safeStorage';
 const OFFLINE_CACHE_PREFIX = 'tiryani-offline-cache:';
 const DEFAULT_TTL_MS = 12 * 60 * 60 * 1000;
 
@@ -11,12 +12,12 @@ type SupabaseResult = PromiseLike<{ data: unknown | null; error: unknown }>;
 export function readOfflineCache<T>(key: string): T | null {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return null;
-    const raw = window.localStorage.getItem(`${OFFLINE_CACHE_PREFIX}${key}`);
+    const raw = safeStorage.getItem(`${OFFLINE_CACHE_PREFIX}${key}`);
     if (!raw) return null;
 
     const cached = JSON.parse(raw) as CachedValue<T>;
     if (!cached || cached.expiresAt < Date.now()) {
-      window.localStorage.removeItem(`${OFFLINE_CACHE_PREFIX}${key}`);
+      safeStorage.removeItem(`${OFFLINE_CACHE_PREFIX}${key}`);
       return null;
     }
 
@@ -29,7 +30,7 @@ export function readOfflineCache<T>(key: string): T | null {
 export function writeOfflineCache<T>(key: string, value: T, ttlMs = DEFAULT_TTL_MS) {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return;
-    window.localStorage.setItem(
+    safeStorage.setItem(
       `${OFFLINE_CACHE_PREFIX}${key}`,
       JSON.stringify({ value, expiresAt: Date.now() + ttlMs })
     );

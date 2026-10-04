@@ -26,6 +26,7 @@ import {
 } from './ShowCauseNoticeEntry';
 import { CROP_OPTIONS } from '../pages/SeedDealerInspection';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 interface SeedSeizureProductRow {
   id: string;
   crop: string;
@@ -75,7 +76,7 @@ const emptyProduct = (): SeedSeizureProductRow => ({
 
 function readSavedOrders(): SavedSeedSeizureOrder[] {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]');
+    const parsed = JSON.parse(safeStorage.getItem(STORAGE_KEY) || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -83,7 +84,7 @@ function readSavedOrders(): SavedSeedSeizureOrder[] {
 }
 
 function writeSavedOrders(orders: SavedSeedSeizureOrder[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  safeStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
 const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
@@ -102,7 +103,7 @@ function normalizeProducts(rows: (Partial<SeedSeizureProductRow> & { name?: stri
 
 function readFormDraft(): SeedSeizureFormState | null {
   try {
-    const raw = window.localStorage.getItem(FORM_DRAFT_KEY);
+    const raw = safeStorage.getItem(FORM_DRAFT_KEY);
     if (!raw) return null;
     const parsed = { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<SeedSeizureFormState>) };
     parsed.products = normalizeProducts(parsed.products);
@@ -305,7 +306,7 @@ export function SeedSeizureOrderEntry() {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
+      safeStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
     } catch {}
   }, [form]);
 

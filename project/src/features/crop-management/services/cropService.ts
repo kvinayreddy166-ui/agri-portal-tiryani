@@ -1,6 +1,7 @@
 import { supabase } from '../../../shared/lib/supabase';
 import { getContentType, validateImageUploadFile } from '../../../shared/lib/fileTypes';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 let cropDatasetCache: any = null;
 let cropListCache: any = null;
 const CROP_CACHE_PREFIX = 'tiryani-crop-cache:';
@@ -391,12 +392,12 @@ function readCropCache(key: any) {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return null;
     const storageKey = `${CROP_CACHE_PREFIX}${key}`;
-    const raw = window.localStorage.getItem(storageKey);
+    const raw = safeStorage.getItem(storageKey);
     if (!raw) return null;
 
     const cached = JSON.parse(raw);
     if (!cached || cached.expiresAt < Date.now()) {
-      window.localStorage.removeItem(storageKey);
+      safeStorage.removeItem(storageKey);
       return null;
     }
 
@@ -409,7 +410,7 @@ function readCropCache(key: any) {
 function writeCropCache(key: any, value: any) {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return;
-    window.localStorage.setItem(
+    safeStorage.setItem(
       `${CROP_CACHE_PREFIX}${key}`,
       JSON.stringify({
         value,
@@ -426,10 +427,10 @@ function invalidateCropCaches() {
 
   try {
     if (typeof window === 'undefined' || !window.localStorage) return;
-    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
-      const key = window.localStorage.key(index);
+    for (let index = safeStorage.length - 1; index >= 0; index -= 1) {
+      const key = safeStorage.key(index);
       if (key?.startsWith(CROP_CACHE_PREFIX)) {
-        window.localStorage.removeItem(key);
+        safeStorage.removeItem(key);
       }
     }
   } catch {

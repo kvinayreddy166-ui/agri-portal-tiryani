@@ -57,6 +57,8 @@ export function SeedInstructionModal({ isOpen, onClose }: SeedInstructionModalPr
           <img
             src="/images/Cotton Seed sample drawl procedure .png"
             alt="Cotton Seed Sample Drawl Procedure"
+            loading="lazy"
+            decoding="async"
             className="mx-auto w-full rounded-lg shadow-md object-contain"
           />
         </div>

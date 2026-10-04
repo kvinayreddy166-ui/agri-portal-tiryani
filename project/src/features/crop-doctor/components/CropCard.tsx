@@ -25,7 +25,7 @@ export function CropCard({
     >
       <div className="aspect-[4/2.4] bg-slate-100 dark:bg-slate-800">
         {crop.image_url ? (
-          <img src={crop.image_url} alt={crop.name_en} className="h-full w-full object-cover" loading="lazy" />
+          <img src={crop.image_url} alt={crop.name_en} className="h-full w-full object-cover" loading="lazy" decoding="async" />
         ) : (
           <div className="flex h-full items-center justify-center px-3 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400">
             No official image available

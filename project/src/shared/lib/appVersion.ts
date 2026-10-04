@@ -1,3 +1,4 @@
+import { safeStorage } from './safeStorage';
 export const APP_BUILD_TIMESTAMP =
   (import.meta.env.VITE_APP_BUILD_TIMESTAMP as string | undefined) || 'dev';
 
@@ -31,7 +32,7 @@ const UPDATE_DISMISSED_KEY = 'tiryani-update-dismissed-timestamp';
 
 export function getCachedAppVersion() {
   try {
-    return window.localStorage.getItem(BUILD_VERSION_KEY);
+    return safeStorage.getItem(BUILD_VERSION_KEY);
   } catch {
     return null;
   }
@@ -39,9 +40,9 @@ export function getCachedAppVersion() {
 
 export function rememberCurrentAppVersion() {
   try {
-    window.localStorage.setItem(BUILD_VERSION_KEY, APP_VERSION);
+    safeStorage.setItem(BUILD_VERSION_KEY, APP_VERSION);
     // Clear the dismissed flag when we remember the current version
-    window.localStorage.removeItem(UPDATE_DISMISSED_KEY);
+    safeStorage.removeItem(UPDATE_DISMISSED_KEY);
   } catch {
     // Version persistence is best-effort only.
   }
@@ -49,7 +50,7 @@ export function rememberCurrentAppVersion() {
 
 export function dismissUpdateBanner() {
   try {
-    window.localStorage.setItem(UPDATE_DISMISSED_KEY, String(Date.now()));
+    safeStorage.setItem(UPDATE_DISMISSED_KEY, String(Date.now()));
   } catch {
     // Dismissal persistence is best-effort only.
   }
@@ -61,7 +62,7 @@ export function hasNewAppVersion() {
 
   // Check if the banner was dismissed in the last 5 minutes
   try {
-    const dismissed = window.localStorage.getItem(UPDATE_DISMISSED_KEY);
+    const dismissed = safeStorage.getItem(UPDATE_DISMISSED_KEY);
     if (dismissed) {
       const dismissedTime = parseInt(dismissed, 10);
       const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
@@ -95,7 +96,7 @@ export async function clearAppCacheAndReload() {
     }
 
     try {
-      window.localStorage.removeItem(BUILD_VERSION_KEY);
+      safeStorage.removeItem(BUILD_VERSION_KEY);
       window.sessionStorage.removeItem('tiryani-startup-recovery-v4');
       window.sessionStorage.removeItem('tiryani-pwa-recovery-attempted-at');
     } catch {

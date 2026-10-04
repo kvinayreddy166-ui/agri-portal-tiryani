@@ -26,6 +26,7 @@ import {
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 const showCoveringLetter = true;
 
 const currentYear = new Date().getFullYear();
@@ -607,7 +608,7 @@ const fertilizerFieldSections: SectionConfig[] = [
 export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void }) {
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
     try {
-      const stored = window.localStorage.getItem('tiryani-watermark-enabled');
+      const stored = safeStorage.getItem('tiryani-watermark-enabled');
       return stored === 'true';
     } catch {
       return false;
@@ -633,7 +634,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [addToCoveringLetterChecked, setAddToCoveringLetterChecked] = useState(true);
   const [values, setValues] = useState<FertilizerPdfValues>(() => {
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
+      const saved = safeStorage.getItem(STORAGE_KEY);
       const loaded = saved ? { ...initialFertilizerPdfValues, ...JSON.parse(saved) } : initialFertilizerPdfValues;
       // Only reset compositionDisplayFlags to empty for new forms (no saved data)
       if (!saved) {
@@ -725,7 +726,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+      safeStorage.setItem(STORAGE_KEY, JSON.stringify(values));
     } catch (error) {
       console.error('Error in useEffect:', error);
       setError('Failed to save form data to localStorage');
@@ -1021,7 +1022,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       // Exclude covering letter fields from draft - they are independently persisted
       const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftValues } = values;
       const nextDrafts = upsertFertilizerDraft(savedDrafts, { name, values: draftValues, updatedAt: String(Date.now()) });
-      window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+      safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
       showSaved('Draft Saved Successfully', `Draft saved as ${name}`, 4000);
     } finally {
@@ -1035,7 +1036,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       message: 'All entered data will be cleared.',
       action: () => {
         setValues(initialFertilizerPdfValues);
-        window.localStorage.removeItem(STORAGE_KEY);
+        safeStorage.removeItem(STORAGE_KEY);
         setSelectedDraftName('');
         setPreviewError(null);
         showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.', 4000);
@@ -1072,10 +1073,10 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       action: () => {
         // Use case-insensitive comparison for deletion
         const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
-        window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+        safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
         setSavedDrafts(nextDrafts);
         // Clear auto-save storage to prevent the deleted draft from reappearing
-        window.localStorage.removeItem(STORAGE_KEY);
+        safeStorage.removeItem(STORAGE_KEY);
         // Reset ALL draft-owned state to initial values (excluding covering letter details)
         setValues(initialFertilizerPdfValues);
         setSelectedDraftName('');
@@ -1260,7 +1261,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     
     if (addToCoveringLetterChecked) {
       try {
-        const queue: CoveringLetterQueueItem[] = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
+        const queue: CoveringLetterQueueItem[] = JSON.parse(safeStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
         
         const existingIndex = queue.findIndex(item => item.sampleCode === values.sampleCode.trim());
         const sampleCode = values.sampleCode.trim();
@@ -1275,7 +1276,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               dateOfSampling: values.samplingDate.trim(),
             };
             queue.push(newItem);
-            window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+            safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
             window.dispatchEvent(new Event('local-storage-update'));
             showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 4000);
           } else {
@@ -1296,7 +1297,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
             if (hasChanged) {
               // Update existing sample
               queue[existingIndex] = newItem;
-              window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+              safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
               window.dispatchEvent(new Event('local-storage-update'));
               showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 4000);
             } else {
@@ -1923,7 +1924,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
 function loadFertilizerDrafts(): SavedFertilizerDraft[] {
   try {
-    const raw = window.localStorage.getItem(DRAFTS_KEY);
+    const raw = safeStorage.getItem(DRAFTS_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {

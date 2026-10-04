@@ -19,6 +19,7 @@ import {
   type ShowCauseViolation,
 } from '../data/showCauseViolationData';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 type NoticeStatus = 'Draft' | 'Issued' | 'Explanation Received' | 'Closed' | 'Action Proposed';
 
 interface NoticeFormState {
@@ -108,7 +109,7 @@ export function readStatutoryDetails(category: NoticeCategory) {
       ? 'tiryani-seed-forms-draft'
       : 'tiryani-pesticide-forms-draft';
   try {
-    const saved = JSON.parse(window.localStorage.getItem(storageKey) || '{}') as Record<string, string>;
+    const saved = JSON.parse(safeStorage.getItem(storageKey) || '{}') as Record<string, string>;
     return {
       officerName: saved.officerName || '',
       officerDesignation: saved.designation || saved.officerDesignation || 'Mandal Agriculture Officer',
@@ -158,7 +159,7 @@ export function resolveMandal(district: string, value: string, manual = '') {
 
 function readSavedNotices(): SavedNotice[] {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]');
+    const parsed = JSON.parse(safeStorage.getItem(STORAGE_KEY) || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -166,7 +167,7 @@ function readSavedNotices(): SavedNotice[] {
 }
 
 function writeSavedNotices(notices: SavedNotice[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notices));
+  safeStorage.setItem(STORAGE_KEY, JSON.stringify(notices));
 }
 
 const FORM_DRAFT_PREFIX = `${STORAGE_KEY}-draft-`;
@@ -174,7 +175,7 @@ const FORM_DRAFT_PREFIX = `${STORAGE_KEY}-draft-`;
 // Persist the in-progress form per category so it survives app/session closure
 function readFormDraft(category: NoticeCategory): NoticeFormState | null {
   try {
-    const raw = window.localStorage.getItem(`${FORM_DRAFT_PREFIX}${category}`);
+    const raw = safeStorage.getItem(`${FORM_DRAFT_PREFIX}${category}`);
     if (!raw) return null;
     return { ...makeInitialForm(category), ...(JSON.parse(raw) as Partial<NoticeFormState>), category };
   } catch {
@@ -1493,7 +1494,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(`${FORM_DRAFT_PREFIX}${form.category}`, JSON.stringify(form));
+      safeStorage.setItem(`${FORM_DRAFT_PREFIX}${form.category}`, JSON.stringify(form));
     } catch {}
   }, [form]);
 

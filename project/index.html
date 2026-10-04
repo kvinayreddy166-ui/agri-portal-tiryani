@@ -35,9 +35,10 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://www.tiryaniagriportal.in/images/agri-emerald-512.webp" />
     <script>
+      // Pre-boot watchdog only. All post-boot service-worker/cache management
+      // lives in src/shared/lib/pwaRecovery.ts — keep it that way.
       (function () {
         var recoveryKey = 'tiryani-startup-recovery-v4';
-        var resetKey = 'tiryani-html-sw-reset-v2';
         window.__TIRYANI_APP_BOOTED__ = false;
 
         function safeSessionGet(key) {
@@ -56,41 +57,23 @@
             sessionStorage.removeItem('tiryani-startup-recovery-v3');
             if (resetStartupRecovery) {
               sessionStorage.removeItem(recoveryKey);
-              sessionStorage.removeItem(resetKey);
               sessionStorage.removeItem('tiryani-pwa-recovery-attempted-at');
             }
           } catch (error) {}
         }
 
-        function syncRescueServiceWorker() {
-          if (!('serviceWorker' in navigator)) return Promise.resolve(false);
-          var isDevHost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
-          if (isDevHost) {
-            // Dev server: never register the SW; it would serve stale cached modules.
-            return navigator.serviceWorker.getRegistrations().then(function (registrations) {
-              return Promise.all(registrations.map(function (registration) { return registration.unregister(); }));
-            }).then(function () { return false; }).catch(function () { return false; });
-          }
-          var hadController = Boolean(navigator.serviceWorker.controller);
-          return navigator.serviceWorker.getRegistrations().then(function (registrations) {
-            return Promise.all(registrations.map(function (registration) {
-              try { registration.active && registration.active.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch (error) {}
-              try { registration.waiting && registration.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (error) {}
-              try { return registration.update(); } catch (error) { return Promise.resolve(); }
-            })).then(function () {
-              var hasRootRegistration = registrations.some(function (registration) {
-                try { return new URL(registration.scope).pathname === '/'; } catch (error) { return false; }
-              });
-              if (hasRootRegistration) return false;
-              return navigator.serviceWorker.register('/service-worker.js', { scope: '/' }).then(function () { return true; });
-            }).then(function (registered) { return hadController || registrations.length > 0 || registered; });
-          }).catch(function () { return hadController; });
-        }
         function clearCachesOnly() {
           if (!('caches' in window)) return Promise.resolve();
           return caches.keys().then(function (keys) {
             return Promise.all(keys.map(function (key) { return caches.delete(key); }));
           });
+        }
+
+        function unregisterServiceWorkers() {
+          if (!('serviceWorker' in navigator)) return Promise.resolve();
+          return navigator.serviceWorker.getRegistrations().then(function (registrations) {
+            return Promise.all(registrations.map(function (registration) { return registration.unregister(); }));
+          }).catch(function () {});
         }
 
         function reloadWithBust(reason, forceRoot) {
@@ -107,7 +90,7 @@
           var manualReset = reason === 'manual' || reason === 'cache-reset';
           return Promise.resolve()
             .then(function () { clearAppBuildMetadata(manualReset); })
-            .then(syncRescueServiceWorker)
+            .then(unregisterServiceWorkers)
             .then(clearCachesOnly)
             .finally(function () { reloadWithBust(reason || 'cache-reset', manualReset); });
         }
@@ -130,27 +113,19 @@
           hardRefresh(reason || 'startup');
         }
 
-        function releaseServiceWorkerControl() {
-          syncRescueServiceWorker()
-            .then(clearCachesOnly)
-            .then(function (hadServiceWorker) {
-              if (!hadServiceWorker || safeSessionGet(resetKey) === '1') return;
-              safeSessionSet(resetKey, '1');
-              reloadWithBust('sw-reset', true);
-            })
-            .catch(function () {});
-        }
+        // Dev server: never allow a SW — it serves stale Vite modules. Must run
+        // before main.tsx because a controlled page can be served stale bundles.
+        var isDevHost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
+        if (isDevHost) unregisterServiceWorkers();
 
-        releaseServiceWorkerControl();
         window.__TIRYANI_FORCE_REFRESH__ = hardRefresh;
         window.setTimeout(function () {
           if (!window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('timeout');
         }, 8000);
 
-        window.addEventListener('error', function (event) {
-          var target = event && event.target;
-          var isScriptFailure = target && target.tagName === 'SCRIPT';
-          if (isScriptFailure || !window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('error');
+        // Once the app has booted, chunk/script errors are pwaRecovery.ts's job.
+        window.addEventListener('error', function () {
+          if (!window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('error');
         }, true);
 
         window.addEventListener('unhandledrejection', function () {

@@ -1,5 +1,6 @@
 import type { DraftRecord } from './types';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 export const INSPECTION_SCHEMA_VERSION = 1;
 
 type VersionedPayload<T> = { v: number; data: T };
@@ -19,7 +20,7 @@ export function loadPersistedForm<T extends object>(
   migrate?: (parsed: Partial<T>) => Partial<T>,
 ): T {
   try {
-    const raw = window.localStorage.getItem(key);
+    const raw = safeStorage.getItem(key);
     if (!raw) return initial();
     const parsed = JSON.parse(raw) as unknown;
     const data = (isVersioned(parsed) ? parsed.data : parsed) as Partial<T>;
@@ -32,7 +33,7 @@ export function loadPersistedForm<T extends object>(
 
 export function savePersistedForm<T>(key: string, form: T): void {
   const payload: VersionedPayload<T> = { v: INSPECTION_SCHEMA_VERSION, data: form };
-  window.localStorage.setItem(key, JSON.stringify(payload));
+  safeStorage.setItem(key, JSON.stringify(payload));
 }
 
 /**
@@ -43,7 +44,7 @@ export function loadPersistedDrafts<T extends object>(
   migrate?: (parsed: Partial<T>) => Partial<T>,
 ): DraftRecord<T>[] {
   try {
-    const raw = window.localStorage.getItem(key);
+    const raw = safeStorage.getItem(key);
     if (!raw) return [];
     const drafts = JSON.parse(raw) as DraftRecord<Partial<T>>[];
     if (!Array.isArray(drafts)) return [];
@@ -59,7 +60,7 @@ export function loadPersistedDrafts<T extends object>(
 
 export function persistDraftRecords<T>(key: string, drafts: DraftRecord<T>[]): void {
   const versioned = drafts.map((draft) => ({ ...draft, v: INSPECTION_SCHEMA_VERSION }));
-  window.localStorage.setItem(key, JSON.stringify(versioned));
+  safeStorage.setItem(key, JSON.stringify(versioned));
 }
 
 export interface DraftsExportFile<T = unknown> {

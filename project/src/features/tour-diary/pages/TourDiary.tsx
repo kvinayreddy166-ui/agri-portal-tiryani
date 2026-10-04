@@ -11,6 +11,7 @@ import { statutoryDesignationDisplay } from '../../../shared/data/assistantDirec
 import { deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
 import { getAllSavedDiaries, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft } from '../lib/diaryStorage';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 // Types
 interface TourDiary {
   id: string;
@@ -272,7 +273,7 @@ function generateDraftId(officerName: string, year: number, month: number): stri
 
 function getRecoveryState(): TourDiaryDraft | null {
   try {
-    const stored = localStorage.getItem(RECOVERY_STORAGE_KEY);
+    const stored = safeStorage.getItem(RECOVERY_STORAGE_KEY);
     if (!stored) return null;
     return JSON.parse(stored);
   } catch (error) {
@@ -283,7 +284,7 @@ function getRecoveryState(): TourDiaryDraft | null {
 
 function saveRecoveryState(draft: TourDiaryDraft): boolean {
   try {
-    localStorage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify(draft));
+    safeStorage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify(draft));
     return true;
   } catch (error) {
     console.error('Error saving recovery state:', error);
@@ -2230,7 +2231,7 @@ export function TourDiary() {
 
   // Recovery state functions
   const discardRecoveryState = () => {
-    localStorage.removeItem(RECOVERY_STORAGE_KEY);
+    safeStorage.removeItem(RECOVERY_STORAGE_KEY);
     setRecoveryDraft(null);
     setShowRecoveryPrompt(false);
   };
@@ -2264,7 +2265,7 @@ export function TourDiary() {
         district: recoveryDraft.district,
         mandal: recoveryDraft.mandal
       });
-      localStorage.removeItem(RECOVERY_STORAGE_KEY);
+      safeStorage.removeItem(RECOVERY_STORAGE_KEY);
       setRecoveryDraft(null);
       setShowRecoveryPrompt(false);
       setShowLandingPage(false);

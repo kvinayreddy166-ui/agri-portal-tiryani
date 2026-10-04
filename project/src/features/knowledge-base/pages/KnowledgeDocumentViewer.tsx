@@ -1,15 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import * as pdfjsLib from 'pdfjs-dist';
+import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Loader2, FileText, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import { fetchDocument, getDocumentSignedUrl } from '../services/knowledgeService';
+import { getPdfJs, PDFJS_DOC_OPTIONS } from '../../../shared/utils/pdfHelpers';
 import type { KnowledgeDocument } from '../types/index';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export function KnowledgeDocumentViewer() {
   const location = useLocation();
@@ -19,14 +18,14 @@ export function KnowledgeDocumentViewer() {
   const documentId = state.documentId;
 
   const [doc, setDoc] = useState<KnowledgeDocument | null>(null);
-  const [pdf, setPdf] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
+  const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [pageNum, setPageNum] = useState(state.page ?? 1);
   const [numPages, setNumPages] = useState(0);
   const [scale, setScale] = useState(1.2);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const renderTaskRef = useRef<pdfjsLib.RenderTask | null>(null);
+  const renderTaskRef = useRef<RenderTask | null>(null);
 
   // Load document metadata + file
   useEffect(() => {
@@ -42,7 +41,8 @@ export function KnowledgeDocumentViewer() {
         if (!res.ok) throw new Error('Could not download document file.');
         const buf = await res.arrayBuffer();
         if (cancelled) return;
-        const loadingTask = pdfjsLib.getDocument({ data: buf });
+        const pdfjsLib = await getPdfJs();
+        const loadingTask = pdfjsLib.getDocument({ data: buf, useWorkerFetch: false, ...PDFJS_DOC_OPTIONS });
         const pdfDoc = await loadingTask.promise;
         if (cancelled) return;
         setPdf(pdfDoc);

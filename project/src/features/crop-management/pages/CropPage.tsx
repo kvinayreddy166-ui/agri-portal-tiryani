@@ -16,6 +16,7 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { getCropIntelligence } from '../../crop-doctor/lib/cropIntelligence';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 interface CropPageProps {
   cropType: string;
 }
@@ -390,6 +391,8 @@ export function CropPage({ cropType }: CropPageProps) {
             <img
               src={selectedImage}
               alt="Pest/Disease"
+              loading="lazy"
+              decoding="async"
               className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
             />
           </div>
@@ -405,12 +408,12 @@ function text(value: LocalizedText, locale: 'en' | 'te') {
 
 function readCropPageCache(slug: string) {
   try {
-    const raw = window.localStorage.getItem(`${CROP_PAGE_CACHE_PREFIX}${slug}`);
+    const raw = safeStorage.getItem(`${CROP_PAGE_CACHE_PREFIX}${slug}`);
     if (!raw) return null;
 
     const cached = JSON.parse(raw);
     if (!cached || cached.expiresAt < Date.now()) {
-      window.localStorage.removeItem(`${CROP_PAGE_CACHE_PREFIX}${slug}`);
+      safeStorage.removeItem(`${CROP_PAGE_CACHE_PREFIX}${slug}`);
       return null;
     }
 
@@ -422,7 +425,7 @@ function readCropPageCache(slug: string) {
 
 function writeCropPageCache(slug: string, value: CropIntelligenceRecord) {
   try {
-    window.localStorage.setItem(
+    safeStorage.setItem(
       `${CROP_PAGE_CACHE_PREFIX}${slug}`,
       JSON.stringify({
         value,
@@ -436,7 +439,7 @@ function writeCropPageCache(slug: string, value: CropIntelligenceRecord) {
 
 function clearCropPageCache(slug: string) {
   try {
-    window.localStorage.removeItem(`${CROP_PAGE_CACHE_PREFIX}${slug}`);
+    safeStorage.removeItem(`${CROP_PAGE_CACHE_PREFIX}${slug}`);
   } catch {
     // Cache cleanup should not block writes.
   }

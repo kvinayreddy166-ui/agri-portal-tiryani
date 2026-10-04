@@ -62,13 +62,13 @@ const TARGET_READABLE_PRESETS: RasterPreset[] = [
 
 const RASTERIZING_LEVELS = new Set<CompressionLevel>(['extreme', 'ultra', 'maximum', 'extreme100']);
 
-const PDFJS_DOC_OPTIONS = {
+export const PDFJS_DOC_OPTIONS = {
   standardFontDataUrl: '/pdfjs/standard_fonts/',
   cMapUrl: '/pdfjs/cmaps/',
   cMapPacked: true,
 } as const;
 
-async function getPdfJs() {
+export async function getPdfJs() {
   const pdfjs = await import('pdfjs-dist');
   if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     pdfjs.GlobalWorkerOptions.workerSrc = new URL(

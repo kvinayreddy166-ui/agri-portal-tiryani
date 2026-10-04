@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import type { CropProtectionCrop } from '../services/cropProtectionService';
 import { loadCropProtectionData } from '../services/cropProtectionService';
-import { CropProtectionDashboard } from './CropProtectionDashboard';
+import { CropProtectionDashboard } from '../components/CropProtectionDashboard';
 
 export function CropProtectionTool() {
   const [crops, setCrops] = useState<CropProtectionCrop[]>([]);

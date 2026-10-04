@@ -153,7 +153,7 @@ export function CropProtectionAdmin({
             <Save className="h-4 w-4" /> {savingCrop ? 'Saving' : 'Save labels'}
           </button>
           {cropPreviewUrl && (
-            <img src={cropPreviewUrl} alt="Crop preview" className="h-16 w-24 rounded-lg border border-slate-200 dark:border-slate-700 object-cover" />
+            <img src={cropPreviewUrl} alt="Crop preview" className="h-16 w-24 rounded-lg border border-slate-200 dark:border-slate-700 object-cover" loading="lazy" decoding="async" />
           )}
         </div>
         {cropMessage && <p className="mt-2 text-xs font-bold text-slate-700 dark:text-slate-200">{cropMessage}</p>}

@@ -3,6 +3,7 @@ import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 const SEED_COVERING_LETTER_DETAILS_KEY = 'tiryani-seed-covering-letter-details';
 
@@ -123,7 +124,7 @@ const financialYears = [
 export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, onMetadataChange, laboratoryAddress }: SeedCoveringLetterModalProps) {
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
     try {
-      const stored = window.localStorage.getItem('tiryani-watermark-enabled');
+      const stored = safeStorage.getItem('tiryani-watermark-enabled');
       return stored === 'true';
     } catch {
       return false;
@@ -162,7 +163,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
 
   // Auto-save Covering Letter Details to localStorage and sync with parent
   useEffect(() => {
-    window.localStorage.setItem(SEED_COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
+    safeStorage.setItem(SEED_COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
     if (onMetadataChange) {
       onMetadataChange(metadata);
     }
@@ -174,7 +175,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
       loadQueue();
       // Only load from localStorage if parent didn't provide coveringLetterDetails
       if (!coveringLetterDetails) {
-        const savedDetails = window.localStorage.getItem(SEED_COVERING_LETTER_DETAILS_KEY);
+        const savedDetails = safeStorage.getItem(SEED_COVERING_LETTER_DETAILS_KEY);
         if (savedDetails) {
           try {
             const parsedDetails = JSON.parse(savedDetails);
@@ -200,7 +201,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
 
   const loadQueue = () => {
     try {
-      const savedQueue = JSON.parse(window.localStorage.getItem(SEED_COVERING_LETTER_QUEUE_KEY) || '[]');
+      const savedQueue = JSON.parse(safeStorage.getItem(SEED_COVERING_LETTER_QUEUE_KEY) || '[]');
       setEditedQueue(savedQueue);
     } catch (error) {
       console.error('Error loading seed covering letter queue:', error);
@@ -231,7 +232,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], sampleCode: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
     
     if (validationErrors[index]) {
       const newErrors = { ...validationErrors };
@@ -244,35 +245,35 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], seedName: value, isCotton: value.toLowerCase().includes('cotton') };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleVarietyChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], variety: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleQuantityChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], quantity: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleDateChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], dateOfSampling: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleDeleteSample = (index: number) => {
     const updatedQueue = editedQueue.filter((_, i) => i !== index);
     setEditedQueue(updatedQueue);
     
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
     
     if (validationErrors[index]) {
       const newErrors = { ...validationErrors };
@@ -284,7 +285,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   const handleClearQueue = () => {
     setEditedQueue([]);
     setValidationErrors({});
-    window.localStorage.removeItem(SEED_COVERING_LETTER_QUEUE_KEY);
+    safeStorage.removeItem(SEED_COVERING_LETTER_QUEUE_KEY);
     setMessage('Queue cleared successfully.');
     setTimeout(() => setMessage(null), 3000);
   };
@@ -300,7 +301,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     };
     const updatedQueue = [...editedQueue, newSample];
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handlePreview = async () => {

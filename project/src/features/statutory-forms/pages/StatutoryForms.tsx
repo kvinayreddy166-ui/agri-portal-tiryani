@@ -10,6 +10,7 @@ import { inferFileTypeFromName } from '../../../shared/lib/fileTypes';
 import { uploadPortalFile } from '../../../shared/lib/uploadFile';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 const folders = [
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
   { id: 'fertilizers', label: 'Fertilizers', telugu: 'ఎరువులు' },
@@ -52,7 +53,7 @@ export function StatutoryForms() {
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
   const [selectedFolder, setSelectedFolder] = useState(() => {
     try {
-      const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
+      const stored = JSON.parse(safeStorage.getItem(STATE_KEY) || '{}');
       return folders.some((folder) => folder.id === stored.selectedFolder) ? stored.selectedFolder : 'fertilizers';
     } catch {
       return 'fertilizers';
@@ -69,17 +70,17 @@ export function StatutoryForms() {
 
   useEffect(() => {
     try {
-      const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
-      window.localStorage.setItem(STATE_KEY, JSON.stringify({ ...stored, selectedFolder }));
+      const stored = JSON.parse(safeStorage.getItem(STATE_KEY) || '{}');
+      safeStorage.setItem(STATE_KEY, JSON.stringify({ ...stored, selectedFolder }));
     } catch {
-      window.localStorage.setItem(STATE_KEY, JSON.stringify({ selectedFolder }));
+      safeStorage.setItem(STATE_KEY, JSON.stringify({ selectedFolder }));
     }
   }, [selectedFolder]);
 
   useEffect(() => {
     let restoreTimer: number | undefined;
     try {
-      const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
+      const stored = JSON.parse(safeStorage.getItem(STATE_KEY) || '{}');
       if (typeof stored.scrollY === 'number') {
         restoreTimer = window.setTimeout(() => window.scrollTo({ top: stored.scrollY, left: 0 }), 80);
       }
@@ -90,10 +91,10 @@ export function StatutoryForms() {
     return () => {
       if (restoreTimer) window.clearTimeout(restoreTimer);
       try {
-        const stored = JSON.parse(window.localStorage.getItem(STATE_KEY) || '{}');
-        window.localStorage.setItem(STATE_KEY, JSON.stringify({ ...stored, selectedFolder, scrollY: window.scrollY }));
+        const stored = JSON.parse(safeStorage.getItem(STATE_KEY) || '{}');
+        safeStorage.setItem(STATE_KEY, JSON.stringify({ ...stored, selectedFolder, scrollY: window.scrollY }));
       } catch {
-        window.localStorage.setItem(STATE_KEY, JSON.stringify({ selectedFolder, scrollY: window.scrollY }));
+        safeStorage.setItem(STATE_KEY, JSON.stringify({ selectedFolder, scrollY: window.scrollY }));
       }
     };
   }, [selectedFolder]);

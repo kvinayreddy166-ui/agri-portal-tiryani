@@ -4,6 +4,7 @@ import { isCombinationProductFromActiveIngredient } from '../lib/statutoryPestic
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
 const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';
 
@@ -74,7 +75,7 @@ const financialYears = [
 export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, onMetadataChange }: PesticideCoveringLetterModalProps) {
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
     try {
-      const stored = window.localStorage.getItem('tiryani-watermark-enabled');
+      const stored = safeStorage.getItem('tiryani-watermark-enabled');
       return stored === 'true';
     } catch {
       return false;
@@ -124,7 +125,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
 
   // Auto-save Covering Letter Details to localStorage and sync with parent
   useEffect(() => {
-    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
+    safeStorage.setItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
     if (onMetadataChange) {
       onMetadataChange(metadata);
     }
@@ -136,7 +137,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
       loadQueue();
       // Only load from localStorage if parent didn't provide coveringLetterDetails
       if (!coveringLetterDetails) {
-        const savedDetails = window.localStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
+        const savedDetails = safeStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
         if (savedDetails) {
           try {
             const parsedDetails = JSON.parse(savedDetails);
@@ -162,7 +163,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
 
   const loadQueue = () => {
     try {
-      const savedQueue = JSON.parse(window.localStorage.getItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY) || '[]');
+      const savedQueue = JSON.parse(safeStorage.getItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY) || '[]');
       setEditedQueue(savedQueue);
     } catch (error) {
       console.error('Error loading pesticide covering letter queue:', error);
@@ -193,7 +194,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], sampleCode: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
     
     if (validationErrors[index]) {
       const newErrors = { ...validationErrors };
@@ -206,7 +207,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], tradeName: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleTechnicalNameChange = (index: number, value: string) => {
@@ -214,7 +215,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = parseTechnicalNameInput(value, updatedQueue[index]);
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleTechnicalNameFocus = (index: number, item: PesticideCoveringLetterQueueItem) => {
@@ -276,7 +277,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], dateOfSampling: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleDeleteSample = (index: number) => {
@@ -284,7 +285,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     const updatedQueue = editedQueue.filter((_, i) => i !== index);
     setEditedQueue(updatedQueue);
     
-    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
     
     if (validationErrors[index]) {
       const newErrors = { ...validationErrors };
@@ -304,14 +305,14 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     };
     const updatedQueue = [...editedQueue, newItem];
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleClearQueue = () => {
     setEditedQueue([]);
     setEditingTechnicalNames({});
     setValidationErrors({});
-    window.localStorage.removeItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY);
+    safeStorage.removeItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY);
     showMessage('Queue cleared successfully.');
   };
 

@@ -3,6 +3,7 @@ import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 const COVERING_LETTER_DETAILS_KEY = 'tiryani-covering-letter-details';
 
@@ -128,7 +129,7 @@ function incrementSerialNumber(letterNumber: string): string {
 export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, onMetadataChange }: CoveringLetterModalProps) {
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
     try {
-      const stored = window.localStorage.getItem('tiryani-watermark-enabled');
+      const stored = safeStorage.getItem('tiryani-watermark-enabled');
       return stored === 'true';
     } catch {
       return false;
@@ -168,7 +169,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
   // Auto-save Covering Letter Details to localStorage
   useEffect(() => {
-    window.localStorage.setItem(COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
+    safeStorage.setItem(COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
   }, [metadata]);
 
   // Load Covering Letter Details from localStorage when modal opens (if not provided via props)
@@ -176,7 +177,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     if (isOpen) {
       loadQueue();
       // Try to load from localStorage first
-      const savedDetails = window.localStorage.getItem(COVERING_LETTER_DETAILS_KEY);
+      const savedDetails = safeStorage.getItem(COVERING_LETTER_DETAILS_KEY);
       if (savedDetails && !coveringLetterDetails) {
         try {
           const parsedDetails = JSON.parse(savedDetails);
@@ -235,7 +236,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
   const loadQueue = () => {
     try {
-      const savedQueue = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
+      const savedQueue = JSON.parse(safeStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
       setEditedQueue(savedQueue);
     } catch (error) {
       console.error('Error loading covering letter queue:', error);
@@ -266,7 +267,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], sampleCode: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
     
     // Clear validation error for this field
     if (validationErrors[index]) {
@@ -280,21 +281,21 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], fertilizerName: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleQuantityChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], quantity: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleDateChange = (index: number, value: string) => {
     const updatedQueue = [...editedQueue];
     updatedQueue[index] = { ...updatedQueue[index], dateOfSampling: value };
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleDeleteSample = (index: number) => {
@@ -302,7 +303,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     setEditedQueue(updatedQueue);
     
     // Update localStorage to maintain single source of truth
-    window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
     
     // Clear validation error for this index if it exists
     if (validationErrors[index]) {
@@ -321,13 +322,13 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
     };
     const updatedQueue = [...editedQueue, newItem];
     setEditedQueue(updatedQueue);
-    window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+    safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
   };
 
   const handleClearQueue = () => {
     setEditedQueue([]);
     setValidationErrors({});
-    window.localStorage.removeItem(COVERING_LETTER_QUEUE_KEY);
+    safeStorage.removeItem(COVERING_LETTER_QUEUE_KEY);
     setMessage('Queue cleared successfully.');
   };
 

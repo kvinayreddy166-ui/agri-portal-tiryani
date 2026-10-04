@@ -49,7 +49,7 @@ export default defineConfig({
     sourcemap: false,
     target: 'es2020',
     reportCompressedSize: false,
-    chunkSizeWarningLimit: 650,
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         // Add hash to chunk filenames for cache busting

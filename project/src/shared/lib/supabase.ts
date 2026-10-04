@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
+import { safeStorage } from './safeStorage';
 const FALLBACK_SUPABASE_URL = 'https://szxtfeiswxugxukztnst.supabase.co';
 const FALLBACK_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6eHRmZWlzd3h1Z3h1a3p0bnN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTM0MDcsImV4cCI6MjA5NTM4OTQwN30.tWylZO0WSSLmfWJ8o0R5Rmw16Dh5KRlrWKcshomhL7c';
 
@@ -43,10 +44,10 @@ export const supabaseAnonKey = isValidAnonKey(envSupabaseAnonKey)
 export const clearPersistedSupabaseAuth = () => {
   if (typeof window === 'undefined') return;
 
-  for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
-    const key = window.localStorage.key(index);
+  for (let index = safeStorage.length - 1; index >= 0; index -= 1) {
+    const key = safeStorage.key(index);
     if (key?.startsWith('sb-') && key.endsWith('-auth-token')) {
-      window.localStorage.removeItem(key);
+      safeStorage.removeItem(key);
     }
   }
 };

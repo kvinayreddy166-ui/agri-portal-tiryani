@@ -24,6 +24,7 @@ import {
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, withOthersOption, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 type FieldConfig = {
   key: keyof PesticidePdfValues;
   label: string;
@@ -162,7 +163,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
 export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) {
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
     try {
-      const stored = window.localStorage.getItem('tiryani-watermark-enabled');
+      const stored = safeStorage.getItem('tiryani-watermark-enabled');
       return stored === 'true';
     } catch {
       return false;
@@ -182,7 +183,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const [showCoveringLetterModal, setShowCoveringLetterModal] = useState(false);
   const [values, setValues] = useState<PesticidePdfValues>(() => {
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
+      const saved = safeStorage.getItem(STORAGE_KEY);
       return saved ? { ...initialPesticidePdfValues, ...JSON.parse(saved) } : initialPesticidePdfValues;
     } catch {
       return initialPesticidePdfValues;
@@ -190,7 +191,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   });
   const [coveringLetterDetails, setCoveringLetterDetails] = useState(() => {
     try {
-      const saved = window.localStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
+      const saved = safeStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
       return saved ? JSON.parse(saved) : {
         financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
         letterNumber: '',
@@ -303,7 +304,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    safeStorage.setItem(STORAGE_KEY, JSON.stringify(values));
   }, [values]);
 
   const setField = (key: keyof PesticidePdfValues, value: string) => {
@@ -454,7 +455,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       // Exclude covering letter fields from draft - they are independently persisted
       const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftValues } = values as any;
       const nextDrafts = upsertDraft(savedDrafts, { name, values: draftValues, updatedAt: String(Date.now()) });
-      window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+      safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
       showSaved('Draft Saved Successfully', `Draft saved as ${name}`, 4000);
     } finally {
@@ -468,7 +469,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       message: 'All entered data will be cleared.',
       action: () => {
         setValues(initialPesticidePdfValues);
-        window.localStorage.removeItem(STORAGE_KEY);
+        safeStorage.removeItem(STORAGE_KEY);
         setSelectedDraftName('');
         setPreviewError(null);
         showReset('Draft Reset Successfully', 'All entered data has been cleared successfully.', 4000);
@@ -527,10 +528,10 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       action: () => {
         // Use case-insensitive comparison for deletion
         const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
-        window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+        safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
         setSavedDrafts(nextDrafts);
         // Clear auto-save storage to prevent the deleted draft from reappearing
-        window.localStorage.removeItem(STORAGE_KEY);
+        safeStorage.removeItem(STORAGE_KEY);
         // Reset ALL draft-owned state to initial values (excluding covering letter details)
         setValues(initialPesticidePdfValues);
         setSelectedDraftName('');
@@ -718,7 +719,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     
     if (addToCoveringLetterChecked) {
       try {
-        const queue = JSON.parse(window.localStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
+        const queue = JSON.parse(safeStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
         
         const existingIndex = queue.findIndex((item: any) => item.sampleCode === values.cdaCode.trim());
         const sampleCode = values.cdaCode.trim();
@@ -735,7 +736,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               dateOfSampling: values.sampleDrawnDate.trim(),
             };
             queue.push(newItem);
-            window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+            safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
             window.dispatchEvent(new Event('local-storage-update'));
             showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 4000);
           } else {
@@ -760,7 +761,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             if (hasChanged) {
               // Update existing sample
               queue[existingIndex] = newItem;
-              window.localStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
+              safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
               window.dispatchEvent(new Event('local-storage-update'));
               showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 4000);
             } else {
@@ -1262,7 +1263,7 @@ function PesticidePdfAction({ label, onPreview, onDownload, busy, primary = fals
 
 function loadDrafts(): SavedPesticideDraft[] {
   try {
-    const raw = window.localStorage.getItem(DRAFTS_KEY);
+    const raw = safeStorage.getItem(DRAFTS_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {

@@ -27,6 +27,7 @@ import {
 } from './ShowCauseNoticeEntry';
 import type { SavedFertStopSaleOrder } from './FertilizerStopSaleEntry';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 interface FertRevokeProductRow {
   id: string;
   name: string;
@@ -73,7 +74,7 @@ const emptyProduct = (): FertRevokeProductRow => ({
 
 function readSavedOrders(): SavedFertRevokeOrder[] {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]');
+    const parsed = JSON.parse(safeStorage.getItem(STORAGE_KEY) || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -81,14 +82,14 @@ function readSavedOrders(): SavedFertRevokeOrder[] {
 }
 
 function writeSavedOrders(orders: SavedFertRevokeOrder[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  safeStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
 const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
 
 function readFormDraft(): FertRevokeFormState | null {
   try {
-    const raw = window.localStorage.getItem(FORM_DRAFT_KEY);
+    const raw = safeStorage.getItem(FORM_DRAFT_KEY);
     if (!raw) return null;
     return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<FertRevokeFormState>) };
   } catch {
@@ -312,7 +313,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
+      safeStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
     } catch {}
   }, [form]);
 

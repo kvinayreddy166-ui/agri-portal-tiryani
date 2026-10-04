@@ -28,6 +28,7 @@ import {
 } from './ShowCauseNoticeEntry';
 import type { SavedSeedStopSaleOrder } from './SeedStopSaleEntry';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 interface SeedRevokeProductRow {
   id: string;
   crop: string;
@@ -80,7 +81,7 @@ const emptyProduct = (): SeedRevokeProductRow => ({
 
 function readSavedOrders(): SavedSeedRevokeOrder[] {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]');
+    const parsed = JSON.parse(safeStorage.getItem(STORAGE_KEY) || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -88,14 +89,14 @@ function readSavedOrders(): SavedSeedRevokeOrder[] {
 }
 
 function writeSavedOrders(orders: SavedSeedRevokeOrder[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  safeStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
 const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
 
 function readFormDraft(): SeedRevokeFormState | null {
   try {
-    const raw = window.localStorage.getItem(FORM_DRAFT_KEY);
+    const raw = safeStorage.getItem(FORM_DRAFT_KEY);
     if (!raw) return null;
     return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<SeedRevokeFormState>) };
   } catch {
@@ -323,7 +324,7 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
+      safeStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
     } catch {}
   }, [form]);
 

@@ -27,6 +27,7 @@ import { GlobalAppLoader, PageLoader, SafeSuspense } from './router/loading';
 import { PageSwitch, PublicPageSwitch } from './router/PageSwitch';
 import { Layout, Login } from './router/lazyPages';
 
+import { safeStorage } from '../shared/lib/safeStorage';
 function AppContent() {
   const { user, loading, authChecked, appReady, isAdminUser, isTestUser, isDealerUser } = useAuth();
   const location = useLocation();
@@ -84,7 +85,7 @@ function AppContent() {
 
   useEffect(() => {
     pageRef.current = currentPage;
-    window.localStorage.setItem('tiryani-current-page', currentPage);
+    safeStorage.setItem('tiryani-current-page', currentPage);
   }, [currentPage]);
 
   const handleBack = useCallback(() => {
@@ -127,7 +128,7 @@ function AppContent() {
     }
 
     if (user && isAdminUser && isDefaultAuthRoute) {
-      window.localStorage.removeItem('tiryani-post-login-page');
+      safeStorage.removeItem('tiryani-post-login-page');
       navigateToPage('dashboard', { replace: true });
     }
   }, [location.pathname, user, isAdminUser, isDealerUser, navigateToPage]);

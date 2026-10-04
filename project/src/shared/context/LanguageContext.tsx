@@ -1,6 +1,7 @@
 ﻿import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { repairTeluguText } from '../utils/textRepair';
 
+import { safeStorage } from '../lib/safeStorage';
 function hasValidTelugu(text?: string | null): boolean {
   if (!text?.trim()) return false;
   return /[\u0C00-\u0C7F]/.test(text);
@@ -42,10 +43,10 @@ function scopedLanguageKey(userKey?: string, sectionKey?: string) {
 }
 
 function readStoredLanguage(storageKey: string): Language {
-  const scoped = window.localStorage.getItem(storageKey);
+  const scoped = safeStorage.getItem(storageKey);
   if (scoped === 'te' || scoped === 'en') return scoped;
 
-  const legacy = window.localStorage.getItem(LANGUAGE_KEY);
+  const legacy = safeStorage.getItem(LANGUAGE_KEY);
   return legacy === 'te' ? 'te' : 'en';
 }
 
@@ -64,7 +65,7 @@ export function LanguageProvider({ children, sectionKey = 'default', userKey = '
       toggleLanguage: () =>
         setLanguage((current) => {
           const next = current === 'en' ? 'te' : 'en';
-          window.localStorage.setItem(storageKey, next);
+          safeStorage.setItem(storageKey, next);
           return next;
         }),
       t: (english: string, telugu: string) => {

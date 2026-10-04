@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Loader2, FileText } from 'lucide-react';
 import type { PDFDocumentLoadingTask } from 'pdfjs-dist';
+import { getPdfJs, PDFJS_DOC_OPTIONS } from '../../../shared/utils/pdfHelpers';
 import type { FertilizerFormEntry } from '../data/fertilizerForms';
 
 export function FertilizerFormPdfGenerator({ form, onClose }: { form: FertilizerFormEntry; onClose: () => void }) {
@@ -20,22 +21,15 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
         setError(null);
         setRenderedPages(0);
 
-        const pdfjs = await import('pdfjs-dist');
+        const pdfjs = await getPdfJs();
         if (cancelled) return;
-
-        if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-          pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-            'pdfjs-dist/build/pdf.worker.min.mjs',
-            import.meta.url
-          ).toString();
-        }
 
         const response = await fetch(form.pdfPath);
         if (!response.ok) throw new Error(`Unable to load PDF (HTTP ${response.status}).`);
         const arrayBuffer = await response.arrayBuffer();
         if (cancelled) return;
 
-        const task = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer), useWorkerFetch: false });
+        const task = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer), useWorkerFetch: false, ...PDFJS_DOC_OPTIONS });
         loadingTask = task;
         const loadedDoc = await task.promise;
         if (cancelled) return;

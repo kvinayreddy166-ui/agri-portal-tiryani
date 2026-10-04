@@ -57,6 +57,8 @@ export function FertilizerInstructionModal({ isOpen, onClose }: FertilizerInstru
           <img
             src="/images/Fertilizer Drawal Procedure.png"
             alt="Fertilizer Drawal Procedure"
+            loading="lazy"
+            decoding="async"
             className="mx-auto w-full rounded-lg shadow-md object-contain"
           />
         </div>

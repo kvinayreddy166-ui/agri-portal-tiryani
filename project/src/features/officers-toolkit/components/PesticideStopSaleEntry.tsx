@@ -26,6 +26,7 @@ import {
   type NoticeSegment,
 } from './ShowCauseNoticeEntry';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 interface StopSaleProductRow {
   id: string;
   name: string;
@@ -97,7 +98,7 @@ const emptyProduct = (): StopSaleProductRow => ({
 
 function readSavedOrders(): SavedPestStopSaleOrder[] {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]');
+    const parsed = JSON.parse(safeStorage.getItem(STORAGE_KEY) || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -105,7 +106,7 @@ function readSavedOrders(): SavedPestStopSaleOrder[] {
 }
 
 function writeSavedOrders(orders: SavedPestStopSaleOrder[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  safeStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
 const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
@@ -113,7 +114,7 @@ const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
 // Persist the in-progress form so it survives app/session closure (like statutory forms)
 function readFormDraft(): StopSaleFormState | null {
   try {
-    const raw = window.localStorage.getItem(FORM_DRAFT_KEY);
+    const raw = safeStorage.getItem(FORM_DRAFT_KEY);
     if (!raw) return null;
     return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<StopSaleFormState>) };
   } catch {
@@ -343,7 +344,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
+      safeStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
     } catch {}
   }, [form]);
 

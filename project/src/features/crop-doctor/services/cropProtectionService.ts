@@ -1,6 +1,7 @@
 ﻿import { supabase } from '../../../shared/lib/supabase';
 import { repairTeluguText } from '../../../shared/utils/textRepair';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 export type CropProtectionCategory = 'weed' | 'pest' | 'disease' | 'nutrient';
 export type ControlType = 'cultural' | 'mechanical' | 'biological' | 'chemical' | 'general_ipm';
 export type SeverityLevel = 'low' | 'medium' | 'high';
@@ -235,7 +236,7 @@ export async function uploadCropProtectionCropImage(cropKey: string, file: File,
 
 export function clearCropProtectionCache() {
   try {
-    window.localStorage.removeItem(CACHE_KEY);
+    safeStorage.removeItem(CACHE_KEY);
   } catch {
     // Ignore storage quota/private mode failures.
   }
@@ -494,7 +495,7 @@ function defaultSeedData(): CropProtectionCrop[] {
 
 function cacheCropProtectionData(crops: CropProtectionCrop[]) {
   try {
-    window.localStorage.setItem(CACHE_KEY, JSON.stringify({ crops, savedAt: Date.now() }));
+    safeStorage.setItem(CACHE_KEY, JSON.stringify({ crops, savedAt: Date.now() }));
   } catch {
     // Ignore storage quota/private mode failures.
   }
@@ -502,7 +503,7 @@ function cacheCropProtectionData(crops: CropProtectionCrop[]) {
 
 function readCachedCropProtectionData(): CropProtectionCrop[] {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(CACHE_KEY) || '{}');
+    const parsed = JSON.parse(safeStorage.getItem(CACHE_KEY) || '{}');
     return Array.isArray(parsed.crops) ? parsed.crops : [];
   } catch {
     return [];

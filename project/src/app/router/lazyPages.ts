@@ -21,7 +21,7 @@ export const FertilizerCalculator = lazy(() => import('../../features/calculator
 export const OfficersToolkit = lazy(() => import('../../features/officers-toolkit/pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
 export const LicenseServices = lazy(() => import('../../features/statutory-forms/pages/LicenseServices').then((m) => ({ default: m.LicenseServices })));
 export const FarmCalculators = lazy(() => import('../../features/calculators/pages/FarmCalculators').then((m) => ({ default: m.FarmCalculators })));
-export const CropProtectionTool = lazy(() => import('../../features/crop-doctor/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
+export const CropProtectionTool = lazy(() => import('../../features/crop-doctor/pages/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
 export const PesticideCalculator = lazy(() => import('../../features/calculators/pages/PesticideCalculator').then((m) => ({ default: m.PesticideCalculator })));
 export const PlantPopulationCalculator = lazy(() => import('../../features/calculators/pages/PlantPopulationCalculator').then((m) => ({ default: m.PlantPopulationCalculator })));
 export const SeedRateCalculator = lazy(() => import('../../features/calculators/pages/SeedRateCalculator').then((m) => ({ default: m.SeedRateCalculator })));

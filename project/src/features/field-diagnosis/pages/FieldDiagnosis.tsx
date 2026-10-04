@@ -42,6 +42,7 @@ import {
   scoreDisease,
 } from '../data/fieldDiagnosisData';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 const SAVED_KEY = 'agronix-fd-diagnoses';
 
 interface SavedDiagnosis {
@@ -77,7 +78,7 @@ const FEATURE_CHIPS: { icon: LucideIcon; label: string }[] = [
 
 function loadSaved(): SavedDiagnosis[] {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(SAVED_KEY) || '[]');
+    const parsed = JSON.parse(safeStorage.getItem(SAVED_KEY) || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -221,14 +222,14 @@ export function FieldDiagnosis() {
     };
     const next = [record, ...saved];
     setSaved(next);
-    window.localStorage.setItem(SAVED_KEY, JSON.stringify(next));
+    safeStorage.setItem(SAVED_KEY, JSON.stringify(next));
     showSuccess('Report saved', 'Diagnosis saved to this device.');
   };
 
   const deleteSaved = (id: string) => {
     const next = saved.filter((s) => s.id !== id);
     setSaved(next);
-    window.localStorage.setItem(SAVED_KEY, JSON.stringify(next));
+    safeStorage.setItem(SAVED_KEY, JSON.stringify(next));
     showDeleted('Diagnosis deleted');
   };
 
@@ -755,7 +756,7 @@ export function FieldDiagnosis() {
             <div className="grid grid-cols-3 gap-2.5">
               {photos.map((p) => (
                 <div key={p.id} className="group relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
-                  <img src={p.dataUrl} alt={p.name} className="h-24 w-full object-cover sm:h-28" />
+                  <img src={p.dataUrl} alt={p.name} className="h-24 w-full object-cover sm:h-28" loading="lazy" decoding="async" />
                   <button
                     type="button"
                     onClick={() => setPhotos((prev) => prev.filter((x) => x.id !== p.id))}

@@ -179,7 +179,7 @@ export function CropProtectionDashboard({
               >
                 <span className={`h-14 w-14 overflow-hidden rounded-full border-2 bg-slate-100 shadow-sm transition group-hover:scale-105 ${selected ? 'border-emerald-600 ring-4 ring-emerald-100' : 'border-white'}`}>
                   {crop.image_url ? (
-                    <img src={crop.image_url} alt={crop.name_en} className="h-full w-full object-cover" loading="lazy" />
+                    <img src={crop.image_url} alt={crop.name_en} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <span className="flex h-full w-full items-center justify-center bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
                       <Sprout className="h-5 w-5" />

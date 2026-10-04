@@ -27,6 +27,7 @@ import {
 } from './ShowCauseNoticeEntry';
 import type { SavedPestStopSaleOrder } from './PesticideStopSaleEntry';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 interface PestRevokeProductRow {
   id: string;
   name: string;
@@ -79,7 +80,7 @@ const emptyProduct = (): PestRevokeProductRow => ({
 
 function readSavedOrders(): SavedPestRevokeOrder[] {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]');
+    const parsed = JSON.parse(safeStorage.getItem(STORAGE_KEY) || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -87,14 +88,14 @@ function readSavedOrders(): SavedPestRevokeOrder[] {
 }
 
 function writeSavedOrders(orders: SavedPestRevokeOrder[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  safeStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
 const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
 
 function readFormDraft(): PestRevokeFormState | null {
   try {
-    const raw = window.localStorage.getItem(FORM_DRAFT_KEY);
+    const raw = safeStorage.getItem(FORM_DRAFT_KEY);
     if (!raw) return null;
     return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<PestRevokeFormState>) };
   } catch {
@@ -332,7 +333,7 @@ export function PesticideStopSaleRevokeEntry({ prefill }: { prefill?: SavedPestS
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
+      safeStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form));
     } catch {}
   }, [form]);
 

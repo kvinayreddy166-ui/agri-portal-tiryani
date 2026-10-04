@@ -44,6 +44,7 @@ import { FertilizerFormPdfGenerator } from '../../statutory-forms/components/Fer
 import { FcoImplementationModal } from '../../../shared/components/ui/FcoImplementationModal';
 import { useAuth } from '../../../shared/context/AuthContext';
 
+import { safeStorage } from '../../../shared/lib/safeStorage';
 type ReckonerView = 'powers' | 'notice';
 type MainLegalArea = 'fertilizer' | 'seed' | 'insecticide';
 type FertilizerSection = 'clauses' | 'forms' | 'schedules' | 'duties';
@@ -209,7 +210,7 @@ function filterFcoCardForQuery(card: FcoClauseCard, rawTerm: string): FcoClauseC
 
 function readBookmarks() {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(BOOKMARK_KEY) || '[]');
+    const parsed = JSON.parse(safeStorage.getItem(BOOKMARK_KEY) || '[]');
     return Array.isArray(parsed) ? parsed as string[] : [];
   } catch {
     return [];
@@ -250,7 +251,7 @@ export function ActsAndOrders() {
   }, [areaFromPath]);
 
   useEffect(() => {
-    window.localStorage.setItem(BOOKMARK_KEY, JSON.stringify(bookmarks));
+    safeStorage.setItem(BOOKMARK_KEY, JSON.stringify(bookmarks));
   }, [bookmarks]);
 
   useEffect(() => {
