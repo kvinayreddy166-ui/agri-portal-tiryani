@@ -107,7 +107,7 @@ const PAGE_SEO: Record<string, { title: string; description: string }> = {
     title: 'Fertilizer Calculator | AGRONIX',
     description: 'Calculate fertilizer requirements based on crop, soil, and area for Tiryani farmers.',
   },
-  '/officer-toolkit/crop-protection': {
+  '/officer-toolkit/crop-doctor': {
     title: 'Crop Protection Tool | AGRONIX',
     description: 'Pesticide calculator and crop protection guidance for Tiryani farmers.',
   },
@@ -131,7 +131,7 @@ const PAGE_SEO: Record<string, { title: string; description: string }> = {
     title: 'Fertilizer inspection | AGRONIX',
     description: 'Inspection proforma of fertilizer dealer for fertilizer inspectors with draft, preview and PDF.',
   },
-  '/officer-toolkit/legal-ready-reckoner': {
+  '/officer-toolkit/acts-and-orders': {
     title: 'Acts & Orders | AGRONIX',
     description: 'Agriculture laws, FCO clauses, offences, and legal reference for officers and farmers.',
   },

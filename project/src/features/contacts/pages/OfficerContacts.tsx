@@ -612,7 +612,7 @@ export function OfficerContacts() {
         <div className="absolute bottom-20 left-1/3 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl animate-pulse delay-2000" />
       </div>
 
-      <div className="relative mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+      <div className="relative mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
         <div className={`mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <ToolkitPageHeader

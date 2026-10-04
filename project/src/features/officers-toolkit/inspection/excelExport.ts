@@ -127,7 +127,7 @@ export async function exportInspectionExcel(options: InspectionExcelOptions) {
     const columnCount = table.head.length;
     const widths = table.head.map((head, column) => {
       const longest = Math.max(head.length, ...table.body.map((row) => String(row[column] ?? '').length));
-      return Math.min(40, Math.max(14, longest + 4));
+      return Math.min(40, Math.max(8, longest + 4));
     });
     detail.columns = widths.map((width) => ({ width }));
 

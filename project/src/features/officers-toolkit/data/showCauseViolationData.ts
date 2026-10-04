@@ -1,4 +1,4 @@
-import type { LegalReferenceType, VerificationStatus } from './legalReadyReckonerData';
+import type { LegalReferenceType, VerificationStatus } from './actsAndOrdersData';
 
 export type NoticeCategory = 'fertiliser' | 'seed' | 'pesticide';
 export type RecommendedAction =

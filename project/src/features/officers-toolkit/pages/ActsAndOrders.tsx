@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   ArrowRight,
@@ -32,7 +32,7 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData';
-import { type LegalCategory } from '../data/legalReadyReckonerData';
+import { type LegalCategory } from '../data/actsAndOrdersData';
 import { fcoClauseCards, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
 import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory, type FertilizerFormEntry } from '../../statutory-forms/data/fertilizerForms';
 import { fertilizerSchedules, type FertilizerScheduleEntry } from '../../statutory-forms/data/fertilizerSchedules';
@@ -218,6 +218,7 @@ function readBookmarks() {
 
 export function ActsAndOrders() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAdminUser, isTestUser } = useAuth();
   const showCompactHeader = isAdminUser || isTestUser;
   const [view, setView] = useState<ReckonerView>('powers');
@@ -234,6 +235,19 @@ export function ActsAndOrders() {
   const [scheduleSearch, setScheduleSearch] = useState('');
   const [showFcoStructureModal, setShowFcoStructureModal] = useState(false);
   const fcoStructureShownRef = useRef(false);
+
+  const areaFromPath = useMemo<MainLegalArea | null>(() => {
+    const match = location.pathname.match(/\/acts-and-orders\/(fertilizer|seed|insecticide)\b/) || location.pathname.match(/\/legal-ready-reckoner\/(fertilizer|seed|insecticide)\b/);
+    return (match?.[1] as MainLegalArea | undefined) ?? null;
+  }, [location.pathname]);
+
+  useEffect(() => {
+    setSelectedLegalArea(areaFromPath);
+    if (areaFromPath) {
+      const card = legalAreaCards.find((item) => item.id === areaFromPath);
+      if (card) setCategory(card.category);
+    }
+  }, [areaFromPath]);
 
   useEffect(() => {
     window.localStorage.setItem(BOOKMARK_KEY, JSON.stringify(bookmarks));
@@ -271,6 +285,7 @@ export function ActsAndOrders() {
     setQuery('');
     setSelectedFcoCardId(null);
     if (areaCard) setCategory(areaCard.category);
+    navigate(`/officer-toolkit/acts-and-orders/${area}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -286,6 +301,7 @@ export function ActsAndOrders() {
     setQuery('');
     setSelectedFcoCardId(null);
     setView('powers');
+    if (areaFromPath) navigate('/officer-toolkit/acts-and-orders');
   };
 
   const handleBack = () => {

@@ -2,16 +2,16 @@ export const PUBLIC_VIEW_PAGES = new Set(['dealers']);
 export const PUBLIC_AUTH_ROUTES = new Set([
   '/login',
   '/officer-toolkit',
-  '/officer-toolkit/license-application-generator',
+  '/officer-toolkit/license-services',
   '/officer-toolkit/statutory-forms',
   '/officer-toolkit/acreage-calculator',
   '/officer-toolkit/farm-calculators',
   '/officer-toolkit/fertilizer-calculator',
-  '/officer-toolkit/crop-protection',
+  '/officer-toolkit/crop-doctor',
   '/officer-toolkit/pesticide-calculator',
   '/officer-toolkit/plant-population-calculator',
   '/officer-toolkit/seed-rate-calculator',
-  '/officer-toolkit/legal-ready-reckoner',
+  '/officer-toolkit/acts-and-orders',
   '/officer-toolkit/officer-contacts',
   '/officer-toolkit/tour-diary',
   '/officer-toolkit/seed-dealer-inspection',
@@ -25,15 +25,15 @@ export const PUBLIC_AUTH_ROUTES = new Set([
 export const PUBLIC_PAGES = new Set([
   'dealers',
   'officer-toolkit',
-  'license-application-generator',
+  'license-services',
   'farm-calculators',
   'acreage-calculator',
   'fertilizer-calculator',
-  'crop-protection',
+  'crop-doctor',
   'pesticide-calculator',
   'plant-population-calculator',
   'seed-rate-calculator',
-  'legal-ready-reckoner',
+  'acts-and-orders',
   'officer-contacts',
   'tour-diary',
   'seed-dealer-inspection',
@@ -63,15 +63,15 @@ export const PAGE_PATHS: Record<string, string> = {
   'subsidy-nfsm': '/subsidy-nfsm',
   'subsidy-state-seed': '/subsidy-state-seed',
   'officer-toolkit': '/officer-toolkit',
-  'license-application-generator': '/officer-toolkit/license-application-generator',
+  'license-services': '/officer-toolkit/license-services',
   'acreage-calculator': '/acreage-calculator',
   'farm-calculators': '/officer-toolkit/farm-calculators',
   'fertilizer-calculator': '/officer-toolkit/fertilizer-calculator',
-  'crop-protection': '/officer-toolkit/crop-protection',
+  'crop-doctor': '/officer-toolkit/crop-doctor',
   'pesticide-calculator': '/officer-toolkit/pesticide-calculator',
   'plant-population-calculator': '/officer-toolkit/plant-population-calculator',
   'seed-rate-calculator': '/officer-toolkit/seed-rate-calculator',
-  'legal-ready-reckoner': '/officer-toolkit/legal-ready-reckoner',
+  'acts-and-orders': '/officer-toolkit/acts-and-orders',
   'officer-contacts': '/officer-toolkit/officer-contacts',
   'officer-contacts-admin': '/admin/officer-contacts',
   'tour-diary': '/officer-toolkit/tour-diary',
@@ -103,10 +103,10 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
   if (pathname.startsWith('/officer-toolkit/')) {
     return null;
   }
-  if (pathname === '/officer-toolkit/legal-ready-reckoner') {
+  if (pathname === '/officer-toolkit/acts-and-orders') {
     return '/officer-toolkit';
   }
-  if (pathname === '/officer-toolkit/license-application-generator') {
+  if (pathname === '/officer-toolkit/license-services') {
     return '/officer-toolkit';
   }
   if (
@@ -122,7 +122,7 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
     pathname === '/officer-toolkit/statutory-forms' ||
     pathname === '/officer-toolkit/acreage-calculator' ||
     pathname === '/officer-toolkit/farm-calculators' ||
-    pathname === '/officer-toolkit/crop-protection'
+    pathname === '/officer-toolkit/crop-doctor'
   ) {
     return '/officer-toolkit';
   }
@@ -139,11 +139,11 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
 }
 
 export function getPageBackFallback(page: string, isDealerUser: boolean) {
-  if (page === 'forms' || page === 'acreage-calculator' || page === 'crop-protection') return '/officer-toolkit';
-  if (page === 'license-application-generator') return '/officer-toolkit';
+  if (page === 'forms' || page === 'acreage-calculator' || page === 'crop-doctor') return '/officer-toolkit';
+  if (page === 'license-services') return '/officer-toolkit';
   if (page === 'farm-calculators') return '/officer-toolkit';
   if (page === 'fertilizer-calculator' || page === 'pesticide-calculator' || page === 'plant-population-calculator' || page === 'seed-rate-calculator') return '/officer-toolkit/farm-calculators';
-  if (page === 'legal-ready-reckoner') return '/officer-toolkit';
+  if (page === 'acts-and-orders') return '/officer-toolkit';
   if (page.startsWith('knowledge-')) return '/knowledge';
   if (page === 'knowledge') return '/dashboard';
   if (page === 'officer-toolkit') return '/dashboard';
@@ -172,15 +172,15 @@ export const VALID_PAGES = new Set([
   'subsidy-nfsm',
   'subsidy-state-seed',
   'officer-toolkit',
-  'license-application-generator',
+  'license-services',
   'farm-calculators',
   'acreage-calculator',
   'fertilizer-calculator',
-  'crop-protection',
+  'crop-doctor',
   'pesticide-calculator',
   'plant-population-calculator',
   'seed-rate-calculator',
-  'legal-ready-reckoner',
+  'acts-and-orders',
   'officer-contacts',
   'officer-contacts-admin',
   'tour-diary',
@@ -208,12 +208,15 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'farm-calculators',
   'acreage-calculator',
   'statutory-forms',
+  'license-services',
   'license-application-generator',
   'fertilizer-calculator',
+  'crop-doctor',
   'crop-protection',
   'pesticide-calculator',
   'plant-population-calculator',
   'seed-rate-calculator',
+  'acts-and-orders',
   'legal-ready-reckoner',
   'officer-contacts',
   'tour-diary',
@@ -223,7 +226,7 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'inspection-enforcement',
   'field-diagnosis',
 ]);
-const SUBPAGE_ALIASES: Record<string, string> = { 'statutory-forms': 'forms' };
+const SUBPAGE_ALIASES: Record<string, string> = { 'statutory-forms': 'forms', 'legal-ready-reckoner': 'acts-and-orders', 'license-application-generator': 'license-services', 'crop-protection': 'crop-doctor' };
 
 export function resolvePageFromLocation(location: { pathname: string; search: string; hash: string }): string {
   try {
@@ -235,8 +238,9 @@ export function resolvePageFromLocation(location: { pathname: string; search: st
     let page = routePage !== 'dashboard' ? routePage : legacyPage || routePage || hashPage;
     if (page.startsWith(OFFICER_TOOLKIT_PAGE_PREFIX)) {
       const sub = page.slice(OFFICER_TOOLKIT_PAGE_PREFIX.length);
-      if (OFFICER_TOOLKIT_SUBPAGES.has(sub)) {
-        page = SUBPAGE_ALIASES[sub] || sub;
+      const base = sub.split('/')[0];
+      if (OFFICER_TOOLKIT_SUBPAGES.has(base)) {
+        page = SUBPAGE_ALIASES[base] || base;
       }
     }
 

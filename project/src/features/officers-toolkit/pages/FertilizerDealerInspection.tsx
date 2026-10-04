@@ -341,7 +341,7 @@ export function FertilizerDealerInspection() {
         onConfirm={() => { const action = confirmAction?.action; setConfirmAction(null); action?.(); }}
         onCancel={() => setConfirmAction(null)}
       />
-      <div className="relative mx-auto max-w-5xl p-4 pb-28 sm:p-6 lg:p-8">
+      <div className="relative mx-auto max-w-7xl p-4 pb-28 sm:p-6 lg:p-8">
         <ToolkitPageHeader
           icon={ClipboardCheck}
           tone="sky"
@@ -554,7 +554,7 @@ export function FertilizerDealerInspection() {
               <table className="w-full border-collapse border border-slate-300 dark:border-slate-600 text-xs">
                 <thead>
                   <tr className="bg-sky-50 dark:bg-sky-950/40">
-                    <th className="border border-slate-300 dark:border-slate-600 px-2 py-1 text-left font-bold">Sl. no.</th>
+                    <th className="border border-slate-300 dark:border-slate-600 px-2 py-1 text-left font-bold">S.No.</th>
                     <th className="border border-slate-300 dark:border-slate-600 px-2 py-1 text-left font-bold">Product</th>
                     <th className="border border-slate-300 dark:border-slate-600 px-2 py-1 text-left font-bold">Current stock</th>
                   </tr>
@@ -687,7 +687,7 @@ function buildRows(form: InspectionForm, stockTotal: number): { items: string[][
   if (form.stockDetained.status === 'yes' && form.detentionRows.length) subTables.push({ title: `Item ${itemNo(23)} - Detention details`, head: ['Fertilizer', 'Batch / Lot No.', 'Quantity', 'Reason for Detention', 'Detention Memo No. & Date'], body: form.detentionRows.map((r) => [r.fertilizer, r.batchLotNo, r.quantity, r.reasonDetention, r.detentionMemo]) });
   if (form.majorOffences.status === 'yes' && form.seizureRows.length) subTables.push({ title: `Item ${itemNo(24)} - Stock seized details`, head: ['Fertilizer', 'Batch / Lot No.', 'Quantity Seized', 'Reason / Violation', 'Seizure Memo No. & Date'], body: form.seizureRows.map((r) => [r.fertilizer, r.batchLotNo, r.quantitySeized, r.reasonViolation, r.seizureMemo]) });
   if (form.sampleRows.length) subTables.push({ title: `Item ${itemNo(25)} - Samples drawn`, head: ['Fertilizer', 'Company', 'Batch / Lot No.', 'Quantity', 'Sample details'], body: form.sampleRows.map((r) => [r.product, r.company, r.batchNo, r.quantity, r.sampleDetails]) });
-  subTables.push({ title: `Fertilizer stock position as on ${formatDate(form.inspectionDate)}`, head: ['Sl. no.', 'Product', `Current stock (${form.stockUnit || 'Bags'})`], body: [...form.stockRows.map((r, i) => [String(i + 1), r.product, r.currentStock]), ['', 'Total', String(stockTotal)]] });
+  subTables.push({ title: `Fertilizer stock position as on ${formatDate(form.inspectionDate)}`, head: ['S.No.', 'Product', `Current stock (${form.stockUnit || 'Bags'})`], body: [...form.stockRows.map((r, i) => [String(i + 1), r.product, r.currentStock]), ['', 'Total', String(stockTotal)]] });
   return { items, subTables };
 }
 
@@ -739,9 +739,10 @@ async function buildPdf(form: InspectionForm) {
       margin: { top: 16, left: margin, right: margin, bottom: 14 },
       rowPageBreak: 'avoid',
       theme: 'grid',
+      tableWidth: 'auto',
       head: [table.head],
       body: table.body,
-      styles: { font: 'times', fontSize: 9.5, cellPadding: 1.2, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0] },
+      styles: { font: 'times', fontSize: 9.5, cellPadding: 1.2, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0], halign: 'center' },
       headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2 },
     });
     y = (doc as any).lastAutoTable.finalY;
@@ -790,11 +791,11 @@ function Preview({ form, stockTotal }: { form: InspectionForm; stockTotal: numbe
     <div className="text-slate-900 dark:text-white">
       <h3 className="mb-3 text-center text-base font-black">Fertilizer Dealer Inspection Report</h3>
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-slate-400 text-xs">
+        <table className="w-full table-fixed border-collapse border border-slate-400 text-xs">
           <thead>
             <tr className="bg-sky-50 dark:bg-sky-950/40">
-              <th className="border border-slate-400 px-2 py-1 text-left font-bold">No.</th>
-              <th className="border border-slate-400 px-2 py-1 text-left font-bold">Particulars</th>
+              <th className="w-12 border border-slate-400 px-2 py-1 text-left font-bold">No.</th>
+              <th className="w-[42%] border border-slate-400 px-2 py-1 text-left font-bold">Particulars</th>
               <th className="border border-slate-400 px-2 py-1 text-left font-bold">Observation / Remarks</th>
             </tr>
           </thead>
@@ -813,13 +814,13 @@ function Preview({ form, stockTotal }: { form: InspectionForm; stockTotal: numbe
         <div key={table.title} className="mt-4">
           <p className="mb-1 text-xs font-black">{table.title}</p>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-slate-400 text-xs">
+            <table className="w-auto border-collapse border border-slate-400 text-xs">
               <thead>
-                <tr className="bg-slate-100 dark:bg-slate-800">{table.head.map((h) => <th key={h} className="border border-slate-400 px-2 py-1 text-left font-bold">{h}</th>)}</tr>
+                <tr className="bg-slate-100 dark:bg-slate-800">{table.head.map((h) => <th key={h} className="border border-slate-400 px-4 py-1 text-center font-bold">{h}</th>)}</tr>
               </thead>
               <tbody>
                 {table.body.map((row, i) => (
-                  <tr key={i}>{row.map((cell, j) => <td key={j} className="border border-slate-400 px-2 py-1">{cell || '-'}</td>)}</tr>
+                  <tr key={i}>{row.map((cell, j) => <td key={j} className="border border-slate-400 px-4 py-1 text-center">{cell || '-'}</td>)}</tr>
                 ))}
               </tbody>
             </table>

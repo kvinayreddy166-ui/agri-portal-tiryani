@@ -101,7 +101,7 @@ export function PesticideCalculator() {
             subtitle={t('Selected tank dose, total water and total product.', 'ఎంచుకున్న ట్యాంక్ మోతాదు, మొత్తం నీరు మరియు మొత్తం ఉత్పత్తి.')}
           />
         ) : (
-        <section className="relative rounded-2xl border border-amber-300/60 bg-gradient-to-br from-red-600 via-amber-600 to-orange-700 p-4 shadow-lg dark:border-amber-700/60 sm:p-4">
+        <section className="relative rounded-2xl border border-rose-300/60 bg-gradient-to-br from-rose-600 via-pink-600 to-fuchsia-700 p-4 shadow-lg dark:border-rose-700/60 sm:p-4">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
             <div>
@@ -122,7 +122,7 @@ export function PesticideCalculator() {
       </div>
 
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
-        <section className="rounded-xl border border-amber-300 bg-gradient-to-br from-amber-100 to-orange-100 p-4 text-sm font-semibold text-amber-950 shadow-md dark:border-amber-900 dark:from-amber-950/50 dark:to-orange-950/30 dark:text-amber-100">
+        <section className="rounded-xl border border-rose-300 bg-gradient-to-br from-rose-100 to-pink-100 p-4 text-sm font-semibold text-rose-950 shadow-md dark:border-rose-900 dark:from-rose-950/50 dark:to-pink-950/30 dark:text-rose-100">
           <div className="grid gap-2 sm:grid-cols-3">
             <p><span className="font-black">1.</span> {t('Choose active ingredient or direct dose mode.', 'క్రియాశీల పదార్థం లేదా ప్రత్యక్ష మోతాదు మోడ్‌ను ఎంచుకోండి.')}</p>
             <p><span className="font-black">2.</span> {t('Enter area, water and tank size.', 'విస్తీర్ణం, నీరు మరియు ట్యాంక్ పరిమాణం నమోదు చేయండి.')}</p>
@@ -130,8 +130,8 @@ export function PesticideCalculator() {
           </div>
         </section>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-300 bg-gradient-to-br from-white via-amber-50 to-orange-100 p-3 shadow-md dark:border-amber-900/60 dark:from-slate-900 dark:via-amber-950/30 dark:to-orange-950/20">
-          <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-amber-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-rose-300 bg-gradient-to-br from-white via-rose-50 to-pink-100 p-3 shadow-md dark:border-rose-900/60 dark:from-slate-900 dark:via-rose-950/30 dark:to-pink-950/20">
+          <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-rose-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-rose-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
             <Copy className="h-4 w-4" />
             {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'టెక్స్ట్ కాపీ')}
           </button>
@@ -146,7 +146,7 @@ export function PesticideCalculator() {
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="space-y-3">
-            <div className="rounded-xl border border-amber-300 bg-gradient-to-br from-white via-amber-50 to-orange-100 p-3 shadow-md dark:border-amber-900/60 dark:from-slate-900 dark:via-amber-950/30 dark:to-orange-950/20">
+            <div className="rounded-xl border border-rose-300 bg-gradient-to-br from-white via-rose-50 to-pink-100 p-3 shadow-md dark:border-rose-900/60 dark:from-slate-900 dark:via-rose-950/30 dark:to-pink-950/20">
               <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
                 <ModeButton active={mode === 'activeIngredient'} onClick={() => setMode('activeIngredient')} label={t('Active Ingredient', 'యాక్టివ్ ఇంగ్రిడియెంట్')} />
                 <ModeButton active={mode === 'directDose'} onClick={() => setMode('directDose')} label={t('Direct Dose', 'ప్రత్యక్ష మోతాదు')} />
@@ -162,13 +162,13 @@ export function PesticideCalculator() {
                   <div className="grid grid-cols-2 gap-2">
                     <label className={radioCardClass(form.unitType === 'liquid')}>
                       <input type="radio" className="sr-only" checked={form.unitType === 'liquid'} onChange={() => updateForm('unitType', 'liquid')} />
-                      {form.unitType === 'liquid' && <Check className="absolute right-2 top-2 h-4 w-4 text-amber-600 dark:text-amber-400" />}
+                      {form.unitType === 'liquid' && <Check className="absolute right-2 top-2 h-4 w-4 text-rose-600 dark:text-rose-400" />}
                       <span className="text-sm font-black">{t('Liquid', 'ద్రవం')}</span>
                       <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">mL, mL/L</span>
                     </label>
                     <label className={radioCardClass(form.unitType === 'solid')}>
                       <input type="radio" className="sr-only" checked={form.unitType === 'solid'} onChange={() => updateForm('unitType', 'solid')} />
-                      {form.unitType === 'solid' && <Check className="absolute right-2 top-2 h-4 w-4 text-amber-600 dark:text-amber-400" />}
+                      {form.unitType === 'solid' && <Check className="absolute right-2 top-2 h-4 w-4 text-rose-600 dark:text-rose-400" />}
                       <span className="text-sm font-black">{t('Solid', 'ఘన పదార్థం')}</span>
                       <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">g, g/L</span>
                     </label>
@@ -240,10 +240,10 @@ export function PesticideCalculator() {
           {calculation.result && (
             <>
               <ResultGrid result={calculation.result} unitLabels={unitLabels} t={t} />
-              <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
+              <div className="rounded-lg border border-rose-300 bg-rose-50 p-4 shadow-sm dark:border-rose-900/60 dark:bg-rose-950/30">
                 <div className="flex gap-3">
-                  <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-300" />
-                  <p className="text-sm font-bold text-amber-900 dark:text-amber-100">
+                  <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-rose-700 dark:text-rose-300" />
+                  <p className="text-sm font-bold text-rose-900 dark:text-rose-100">
                     {t('Always verify pesticide label recommendation, crop, pest stage, waiting period and local agriculture officer advisory before spraying.', 'స్ప్రే చేసే ముందు పురుగుమందు లేబుల్ సిఫార్సు, పంట, పురుగు దశ, వెయిటింగ్ పీరియడ్ మరియు స్థానిక వ్యవసాయ అధికారి సూచనను తప్పనిసరిగా ధృవీకరించండి.')}
                   </p>
                 </div>
@@ -267,7 +267,7 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 
 function ModeButton({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className={`min-h-10 rounded-md px-3 py-2 text-sm font-black transition ${active ? 'bg-white text-amber-800 shadow-sm dark:bg-slate-950 dark:text-amber-300' : 'text-slate-600 hover:bg-white/70 dark:text-slate-300 dark:hover:bg-slate-950/70'}`}>
+    <button type="button" onClick={onClick} className={`min-h-10 rounded-md px-3 py-2 text-sm font-black transition ${active ? 'bg-white text-rose-800 shadow-sm dark:bg-slate-950 dark:text-rose-300' : 'text-slate-600 hover:bg-white/70 dark:text-slate-300 dark:hover:bg-slate-950/70'}`}>
       <span className="inline-flex items-center justify-center gap-1.5">
         {active && <Check className="h-4 w-4" />}
         {label}
@@ -277,7 +277,7 @@ function ModeButton({ active, label, onClick }: { active: boolean; label: string
 }
 
 const resultCardPalette = [
-  'from-amber-100 to-orange-100 border-amber-200',
+  'from-rose-100 to-pink-100 border-rose-200',
   'from-sky-100 to-cyan-100 border-sky-200',
   'from-emerald-100 to-lime-100 border-emerald-200',
   'from-pink-100 to-rose-100 border-pink-200',
@@ -285,7 +285,7 @@ const resultCardPalette = [
 
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-amber-300 bg-gradient-to-br from-white via-amber-50 to-orange-100 p-4 shadow-md dark:border-amber-900/60 dark:from-slate-900 dark:via-amber-950/30 dark:to-orange-950/20">
+    <section className="rounded-xl border border-rose-300 bg-gradient-to-br from-white via-rose-50 to-pink-100 p-4 shadow-md dark:border-rose-900/60 dark:from-slate-900 dark:via-rose-950/30 dark:to-pink-950/20">
       <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">{title}</h2>
       {children}
     </section>
@@ -326,10 +326,10 @@ function ResultGrid({ result, unitLabels, t }: { result: PesticideResult; unitLa
   );
 }
 
-const inputClass = 'min-h-11 w-full rounded-lg border border-amber-300 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-100 dark:border-amber-900 dark:bg-slate-950 dark:text-white dark:focus:ring-amber-900/40';
+const inputClass = 'min-h-11 w-full rounded-lg border border-rose-300 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-rose-500 focus:bg-white focus:ring-4 focus:ring-rose-100 dark:border-rose-900 dark:bg-slate-950 dark:text-white dark:focus:ring-rose-900/40';
 
 function radioCardClass(active: boolean) {
-  return `relative flex min-h-16 cursor-pointer flex-col justify-center rounded-lg border p-3 transition ${active ? 'border-amber-500 bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-100' : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'}`;
+  return `relative flex min-h-16 cursor-pointer flex-col justify-center rounded-lg border p-3 transition ${active ? 'border-rose-500 bg-rose-50 text-rose-900 dark:bg-rose-950/40 dark:text-rose-100' : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'}`;
 }
 
 interface PesticideResult {

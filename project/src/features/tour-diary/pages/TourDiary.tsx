@@ -519,7 +519,6 @@ export function TourDiary() {
   // Preview state
   const [showPreview, setShowPreview] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [editablePreviewData, setEditablePreviewData] = useState<any[]>([]);
   
   // Draft state
   const [, setLastSaved] = useState<Date | null>(null);
@@ -2186,7 +2185,6 @@ export function TourDiary() {
   }
 
   function openEditablePreview() {
-    setEditablePreviewData(generateTourDiaryData().map(row => [...row]));
     setShowPreview(true);
   }
 
@@ -3705,7 +3703,7 @@ export function TourDiary() {
                     </tr>
                   </thead>
                   <tbody>
-                    {(editablePreviewData.length > 0 ? editablePreviewData : generateTourDiaryData()).map((row, rowIndex) => {
+                    {generateTourDiaryData().map((row, rowIndex) => {
                       const specialDateStatus = getSpecialDateStatusForRow(row);
 
                       return (
@@ -3713,36 +3711,16 @@ export function TourDiary() {
                           {specialDateStatus ? (
                             <>
                               <td className="border border-gray-900 px-2 py-1 text-center align-middle">
-                                <input
-                                  type="text"
-                                  readOnly
-                                  value={row[0] || ''}
-                                  className="w-full bg-transparent text-center text-xs outline-none"
-                                />
+                                {row[0] || ''}
                               </td>
-                              <td colSpan={TOUR_DIARY_COLUMN_COUNT - 1} className="border border-gray-900 px-2 py-1 text-center align-middle">
-                                <input
-                                  type="text"
-                                  readOnly
-                                  value={specialDateStatus.label}
-                                  className="w-full bg-transparent text-center text-xs font-bold outline-none"
-                                />
+                              <td colSpan={TOUR_DIARY_COLUMN_COUNT - 1} className="border border-gray-900 px-2 py-1 text-center align-middle font-bold">
+                                {specialDateStatus.label}
                               </td>
                             </>
                           ) : (
                             row.map((cell: any, cellIndex: number) => (
                               <td key={cellIndex} className="border border-gray-900 px-2 py-1 text-center">
-                                <input
-                                  type="text"
-                                  defaultValue={cell}
-                                  className="w-full bg-transparent text-center text-xs outline-none focus:bg-blue-50"
-                                  onChange={(e) => {
-                                    const newData = [...editablePreviewData];
-                                    if (!newData[rowIndex]) newData[rowIndex] = [...row];
-                                    newData[rowIndex][cellIndex] = e.target.value;
-                                    setEditablePreviewData(newData);
-                                  }}
-                                />
+                                {cell}
                               </td>
                             ))
                           )}
@@ -3810,11 +3788,7 @@ export function TourDiary() {
                 type="button"
                 onClick={() => {
                   setShowPreview(false);
-                  if (editablePreviewData.length > 0) {
-                    generatePDF(editablePreviewData);
-                  } else {
-                    generatePDF();
-                  }
+                  generatePDF();
                 }}
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
               >

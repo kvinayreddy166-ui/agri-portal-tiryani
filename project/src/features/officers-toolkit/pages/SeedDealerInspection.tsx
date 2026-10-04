@@ -337,7 +337,7 @@ export function SeedDealerInspection() {
         onConfirm={() => { const action = confirmAction?.action; setConfirmAction(null); action?.(); }}
         onCancel={() => setConfirmAction(null)}
       />
-      <div className="relative mx-auto max-w-5xl p-4 pb-28 sm:p-6 lg:p-8">
+      <div className="relative mx-auto max-w-7xl p-4 pb-28 sm:p-6 lg:p-8">
         <ToolkitPageHeader
           icon={ClipboardCheck}
           tone="emerald"
@@ -709,9 +709,10 @@ async function buildPdf(form: InspectionForm) {
       margin: { top: 16, left: margin, right: margin, bottom: 14 },
       rowPageBreak: 'avoid',
       theme: 'grid',
+      tableWidth: 'auto',
       head: [table.head],
       body: table.body,
-      styles: { font: 'times', fontSize: 9.5, cellPadding: 1.2, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0] },
+      styles: { font: 'times', fontSize: 9.5, cellPadding: 1.2, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0], halign: 'center' },
       headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2 },
     });
     y = (doc as any).lastAutoTable.finalY;
@@ -760,11 +761,11 @@ function Preview({ form }: { form: InspectionForm }) {
     <div className="text-slate-900 dark:text-white">
       <h3 className="mb-3 text-center text-base font-black">Seed Dealer Inspection Report</h3>
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-slate-400 text-xs">
+        <table className="w-full table-fixed border-collapse border border-slate-400 text-xs">
           <thead>
             <tr className="bg-emerald-50 dark:bg-emerald-950/40">
-              <th className="border border-slate-400 px-2 py-1 text-left font-bold">No.</th>
-              <th className="border border-slate-400 px-2 py-1 text-left font-bold">Particulars</th>
+              <th className="w-12 border border-slate-400 px-2 py-1 text-left font-bold">No.</th>
+              <th className="w-[42%] border border-slate-400 px-2 py-1 text-left font-bold">Particulars</th>
               <th className="border border-slate-400 px-2 py-1 text-left font-bold">Observation / Remarks</th>
             </tr>
           </thead>
@@ -783,13 +784,13 @@ function Preview({ form }: { form: InspectionForm }) {
         <div key={table.title} className="mt-4">
           <p className="mb-1 text-xs font-black">{table.title}</p>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-slate-400 text-xs">
+            <table className="w-auto border-collapse border border-slate-400 text-xs">
               <thead>
-                <tr className="bg-slate-100 dark:bg-slate-800">{table.head.map((h) => <th key={h} className="border border-slate-400 px-2 py-1 text-left font-bold">{h}</th>)}</tr>
+                <tr className="bg-slate-100 dark:bg-slate-800">{table.head.map((h) => <th key={h} className="border border-slate-400 px-4 py-1 text-center font-bold">{h}</th>)}</tr>
               </thead>
               <tbody>
                 {table.body.map((row, i) => (
-                  <tr key={i}>{row.map((cell, j) => <td key={j} className="border border-slate-400 px-2 py-1">{cell || '-'}</td>)}</tr>
+                  <tr key={i}>{row.map((cell, j) => <td key={j} className="border border-slate-400 px-4 py-1 text-center">{cell || '-'}</td>)}</tr>
                 ))}
               </tbody>
             </table>

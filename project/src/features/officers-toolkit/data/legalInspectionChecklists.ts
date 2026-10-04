@@ -1,4 +1,4 @@
-import type { VerificationStatus } from './legalReadyReckonerData';
+import type { VerificationStatus } from './actsAndOrdersData';
 
 export interface LegalChecklistItem {
   id: string;

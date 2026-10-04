@@ -44,7 +44,7 @@ const toolkitItems: ToolkitItem[] = [
   {
     title: 'License Services',
     description: 'Fertilizer • Seed • Pesticide',
-    path: '/officer-toolkit/license-application-generator',
+    path: '/officer-toolkit/license-services',
     icon: FileCheck,
     category: 'internal',
     gradient: 'from-teal-500 to-emerald-600',
@@ -80,7 +80,7 @@ const toolkitItems: ToolkitItem[] = [
   {
     title: 'Crop Doctor',
     description: 'Crop-wise pests, diseases, weeds and nutrient deficiencies.',
-    path: '/officer-toolkit/crop-protection',
+    path: '/officer-toolkit/crop-doctor',
     icon: Stethoscope,
     category: 'internal',
     gradient: 'from-red-500 to-amber-600',
@@ -100,7 +100,7 @@ const toolkitItems: ToolkitItem[] = [
   {
     title: 'Acts & Orders',
     description: 'FCO, Seed Act, Insecticide Act, clauses, Rules.',
-    path: '/officer-toolkit/legal-ready-reckoner',
+    path: '/officer-toolkit/acts-and-orders',
     icon: Scale,
     category: 'internal',
     gradient: 'from-blue-600 to-emerald-700',
@@ -442,7 +442,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         <div className="absolute bottom-20 left-1/3 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl animate-pulse delay-2000" />
       </div>
 
-      <div className="relative mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+      <div className="relative mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
           <div className={`mb-5 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>

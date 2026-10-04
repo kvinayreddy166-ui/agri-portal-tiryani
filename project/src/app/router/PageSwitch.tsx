@@ -121,7 +121,7 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       );
     case 'officer-toolkit':
       return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} />;
-    case 'license-application-generator':
+    case 'license-services':
       return <LicenseServices />;
     case 'farm-calculators':
       return <FarmCalculators />;
@@ -129,7 +129,7 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       return <AcreageCalculator />;
     case 'fertilizer-calculator':
       return <FertilizerCalculator />;
-    case 'crop-protection':
+    case 'crop-doctor':
       return <CropProtectionTool />;
     case 'pesticide-calculator':
       return <PesticideCalculator />;
@@ -137,7 +137,7 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       return <PlantPopulationCalculator />;
     case 'seed-rate-calculator':
       return <SeedRateCalculator />;
-    case 'legal-ready-reckoner':
+    case 'acts-and-orders':
       return <ActsAndOrders />;
     case 'officer-contacts':
       return <OfficerContacts />;
@@ -260,7 +260,7 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
           <AgronixBrandMark />
         </SafeSuspense>
       );
-    case 'license-application-generator':
+    case 'license-services':
       return <PublicToolkitPage><LicenseServices /></PublicToolkitPage>;
     case 'farm-calculators':
       return <PublicToolkitPage><FarmCalculators /></PublicToolkitPage>;
@@ -268,7 +268,7 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return <PublicToolkitPage hideLogo><AcreageCalculator /></PublicToolkitPage>;
     case 'fertilizer-calculator':
       return <PublicToolkitPage hideLogo><FertilizerCalculator /></PublicToolkitPage>;
-    case 'crop-protection':
+    case 'crop-doctor':
       return <PublicToolkitPage><CropProtectionTool /></PublicToolkitPage>;
     case 'pesticide-calculator':
       return <PublicToolkitPage><PesticideCalculator /></PublicToolkitPage>;
@@ -276,7 +276,7 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return <PublicToolkitPage><PlantPopulationCalculator /></PublicToolkitPage>;
     case 'seed-rate-calculator':
       return <PublicToolkitPage><SeedRateCalculator /></PublicToolkitPage>;
-    case 'legal-ready-reckoner':
+    case 'acts-and-orders':
       return <PublicToolkitPage><ActsAndOrders /></PublicToolkitPage>;
     case 'officer-contacts':
       return <PublicToolkitPage><OfficerContacts /></PublicToolkitPage>;

@@ -1,4 +1,4 @@
-import type { LegalCategory, VerificationStatus } from './legalReadyReckonerData';
+import type { LegalCategory, VerificationStatus } from './actsAndOrdersData';
 
 export interface StopSaleSeizureMapping {
   id: string;
