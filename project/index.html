@@ -64,6 +64,13 @@
 
         function syncRescueServiceWorker() {
           if (!('serviceWorker' in navigator)) return Promise.resolve(false);
+          var isDevHost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
+          if (isDevHost) {
+            // Dev server: never register the SW; it would serve stale cached modules.
+            return navigator.serviceWorker.getRegistrations().then(function (registrations) {
+              return Promise.all(registrations.map(function (registration) { return registration.unregister(); }));
+            }).then(function () { return false; }).catch(function () { return false; });
+          }
           var hadController = Boolean(navigator.serviceWorker.controller);
           return navigator.serviceWorker.getRegistrations().then(function (registrations) {
             return Promise.all(registrations.map(function (registration) {

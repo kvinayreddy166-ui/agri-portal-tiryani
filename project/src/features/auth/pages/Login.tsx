@@ -315,17 +315,21 @@ export function Login() {
 
   const openPublicPreview = async (form: FormDownload) => {
     if (!form.file_url) return;
-    // Mobile keeps the remote URL so the Google Docs embed viewer can load it inline.
-    if (isMobileDevice) {
-      setPreviewForm(form);
-      return;
-    }
+    // Mobile browsers cannot render PDFs inside the page, so open the blob in the
+    // native viewer. The tab is opened synchronously to avoid popup blocking.
+    const mobileTab = isMobileDevice ? window.open('', '_blank') : null;
     setPreviewLoadingId(form.id);
     try {
       const blobUrl = await fetchBlobUrl(form.file_url, form.title);
+      if (mobileTab) {
+        mobileTab.location.href = blobUrl;
+        window.setTimeout(() => revokeBlobUrl(blobUrl), 60_000);
+        return;
+      }
       setPreviewBlobUrl(blobUrl);
       setPreviewForm({ ...form, file_url: blobUrl });
     } catch {
+      mobileTab?.close();
       setPreviewForm(form);
     } finally {
       setPreviewLoadingId(null);
@@ -825,6 +829,14 @@ export function Login() {
             )}
           </Suspense>
           </>
+        )}
+        {previewForm?.file_url && (
+          <FilePreviewModal
+            fileUrl={previewForm.file_url}
+            fileName={previewForm.label || previewForm.title}
+            fileType={previewForm.file_type}
+            onClose={closePublicPreview}
+          />
         )}
       </div>
     );
