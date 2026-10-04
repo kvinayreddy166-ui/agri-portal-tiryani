@@ -62,6 +62,12 @@ const TARGET_READABLE_PRESETS: RasterPreset[] = [
 
 const RASTERIZING_LEVELS = new Set<CompressionLevel>(['extreme', 'ultra', 'maximum', 'extreme100']);
 
+const PDFJS_DOC_OPTIONS = {
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  cMapUrl: '/pdfjs/cmaps/',
+  cMapPacked: true,
+} as const;
+
 async function getPdfJs() {
   const pdfjs = await import('pdfjs-dist');
   if (!pdfjs.GlobalWorkerOptions.workerSrc) {
@@ -277,7 +283,7 @@ async function rasterizePdf(
   const started = performance.now();
   const pdfjs = await getPdfJs();
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjs.getDocument({ data: copyBuffer(arrayBuffer), useWorkerFetch: false }).promise;
+  const pdf = await pdfjs.getDocument({ data: copyBuffer(arrayBuffer), useWorkerFetch: false, ...PDFJS_DOC_OPTIONS }).promise;
   const PDFDocument = await getPdfLib();
   const output = await PDFDocument.create();
 
@@ -434,7 +440,7 @@ export async function splitPdf(file: File, pageRanges: Array<{ start: number; en
 export async function extractPdfText(file: File, maxPages = Infinity): Promise<string> {
   const pdfjs = await getPdfJs();
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjs.getDocument({ data: copyBuffer(arrayBuffer), useWorkerFetch: false }).promise;
+  const pdf = await pdfjs.getDocument({ data: copyBuffer(arrayBuffer), useWorkerFetch: false, ...PDFJS_DOC_OPTIONS }).promise;
   const pageLimit = Math.min(pdf.numPages, maxPages);
   const pages: string[] = [];
   for (let pageNumber = 1; pageNumber <= pageLimit; pageNumber += 1) {
@@ -458,7 +464,7 @@ export const extractTextFromPdf = extractPdfText;
 export async function renderPdfPage(file: File, pageNumber: number, scale = 1.5): Promise<HTMLCanvasElement> {
   const pdfjs = await getPdfJs();
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjs.getDocument({ data: copyBuffer(arrayBuffer), useWorkerFetch: false }).promise;
+  const pdf = await pdfjs.getDocument({ data: copyBuffer(arrayBuffer), useWorkerFetch: false, ...PDFJS_DOC_OPTIONS }).promise;
   const page = await pdf.getPage(pageNumber);
   const viewport = page.getViewport({ scale });
   const canvas = document.createElement('canvas');
@@ -468,7 +474,7 @@ export async function renderPdfPage(file: File, pageNumber: number, scale = 1.5)
   if (context) {
     context.fillStyle = '#ffffff';
     context.fillRect(0, 0, canvas.width, canvas.height);
-    await page.render({ canvasContext: context, viewport, canvas }).promise;
+    await page.render({ canvas, viewport }).promise;
   }
   return canvas;
 }

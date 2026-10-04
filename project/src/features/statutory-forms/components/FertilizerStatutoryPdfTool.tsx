@@ -1106,12 +1106,19 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     // Validation removed - users can preview PDFs even with empty fields
     setBusyAction('preview');
     setPreviewError(null);
+    const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
     try {
       const doc = await generateFertilizerStatutoryPdf(type, documentValues, watermarkEnabled);
       const fileName = getFertilizerPdfFileName(type, documentValues);
-      setPdfPreview({ url: URL.createObjectURL(doc.output('blob')), name: fileName });
+      const blobUrl = URL.createObjectURL(doc.output('blob'));
+      if (mobileTab) {
+        mobileTab.opener = null;
+        mobileTab.location.href = blobUrl;
+      } else {
+        setPdfPreview({ url: blobUrl, name: fileName });
+      }
       setFormType(type);
-      showInfo('Preview Opened', 'PDF preview opened.', 4000);
+      showInfo('Preview Opened', mobileTab ? 'PDF preview opened in a new tab.' : 'PDF preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview fertilizer PDF:', error);
       setPreviewError('PDF preview could not open. Please try downloading the PDF instead.');
@@ -1146,11 +1153,18 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     // Validation removed - users can preview PDFs even with empty fields
     setBusyAction('preview');
     setPreviewError(null);
+    const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
     try {
       const doc = await generateAllFertilizerStatutoryPdf(documentValues, watermarkEnabled);
       const fileName = getAllFertilizerPdfFileName(documentValues);
-      setPdfPreview({ url: URL.createObjectURL(doc.output('blob')), name: fileName });
-      showInfo('Preview Opened', 'All forms preview opened.', 4000);
+      const blobUrl = URL.createObjectURL(doc.output('blob'));
+      if (mobileTab) {
+        mobileTab.opener = null;
+        mobileTab.location.href = blobUrl;
+      } else {
+        setPdfPreview({ url: blobUrl, name: fileName });
+      }
+      showInfo('Preview Opened', mobileTab ? 'All forms preview opened in a new tab.' : 'All forms preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview all fertilizer PDFs:', error);
       setPreviewError('PDF preview could not open. Please try downloading the PDF instead.');

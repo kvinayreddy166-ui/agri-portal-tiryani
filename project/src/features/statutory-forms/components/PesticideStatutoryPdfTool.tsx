@@ -562,11 +562,18 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     
     // Validation removed - users can preview PDFs even with empty fields
     setBusy(true);
+    const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
     try {
       const doc = await generatePesticideStatutoryPdf(formType, documentValues, watermarkEnabled);
       const fileName = getPesticidePdfFileName(formType, documentValues);
-      setPdfPreview({ url: URL.createObjectURL(doc.output('blob')), name: fileName });
-      showInfo('Preview Opened', 'PDF preview opened.', 4000);
+      const blobUrl = URL.createObjectURL(doc.output('blob'));
+      if (mobileTab) {
+        mobileTab.opener = null;
+        mobileTab.location.href = blobUrl;
+      } else {
+        setPdfPreview({ url: blobUrl, name: fileName });
+      }
+      showInfo('Preview Opened', mobileTab ? 'PDF preview opened in a new tab.' : 'PDF preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview pesticide PDF:', error);
       setPreviewError('PDF preview could not open. Please try again.');
@@ -642,11 +649,18 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     
     // Validation removed - users can preview PDFs even with empty fields
     setBusy(true);
+    const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
     try {
       const doc = await generateAllPesticideStatutoryPdf(values, watermarkEnabled);
       const fileName = getAllPesticidePdfFileName(values);
-      setPdfPreview({ url: URL.createObjectURL(doc.output('blob')), name: fileName });
-      showInfo('All Forms Previewed', 'All pesticide forms preview opened.', 4000);
+      const blobUrl = URL.createObjectURL(doc.output('blob'));
+      if (mobileTab) {
+        mobileTab.opener = null;
+        mobileTab.location.href = blobUrl;
+      } else {
+        setPdfPreview({ url: blobUrl, name: fileName });
+      }
+      showInfo('All Forms Previewed', mobileTab ? 'All pesticide forms preview opened in a new tab.' : 'All pesticide forms preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview all pesticide PDFs:', error);
       setPreviewError('Preview All could not open. Please try again.');

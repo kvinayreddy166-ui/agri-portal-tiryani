@@ -503,12 +503,22 @@ export function SeedForms() {
   };
 
   const completePreview = async (kind: any) => {
+    const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
     const doc = await buildValidatedPdf(kind);
-    if (!doc) return;
+    if (!doc) {
+      mobileTab?.close();
+      return;
+    }
     const fileName = seedFileName(kind, form);
-    setPdfPreview({ url: URL.createObjectURL(doc.output('blob')), name: fileName });
+    const blobUrl = URL.createObjectURL(doc.output('blob'));
+    if (mobileTab) {
+      mobileTab.opener = null;
+      mobileTab.location.href = blobUrl;
+    } else {
+      setPdfPreview({ url: blobUrl, name: fileName });
+    }
     rememberSeedGeneratedData(form);
-    showInfo('Preview Opened', 'PDF preview opened.', 4000);
+    showInfo('Preview Opened', mobileTab ? 'PDF preview opened in a new tab.' : 'PDF preview opened.', 4000);
   };
 
   const preview = async (kind: any) => {
