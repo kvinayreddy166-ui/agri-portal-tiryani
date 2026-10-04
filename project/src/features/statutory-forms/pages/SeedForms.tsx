@@ -3,6 +3,7 @@ import { Eye, FileText, RotateCcw, Save } from 'lucide-react';
 import { SeedInstructionModal } from '../../../shared/components/ui/SeedInstructionModal';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
 import { SeedCoveringLetterModal } from '../components/SeedCoveringLetterModal';
 import { 
   QUALIFICATION_OPTIONS,
@@ -120,6 +121,11 @@ const initialSeedForm = {
 };
 
 export function SeedForms() {
+  const [pdfPreview, setPdfPreview] = useState<{ url: string; name: string } | null>(null);
+  const closePdfPreview = () => {
+    if (pdfPreview?.url.startsWith('blob:')) URL.revokeObjectURL(pdfPreview.url);
+    setPdfPreview(null);
+  };
   const [showInstructionModal, setShowInstructionModal] = useState(true);
   const [showCoveringLetterModal, setShowCoveringLetterModal] = useState(false);
   const [showDownloadAllDialog, setShowDownloadAllDialog] = useState(false);
@@ -497,15 +503,12 @@ export function SeedForms() {
   };
 
   const completePreview = async (kind: any) => {
-    const targetWindow = openBlankSeedPdfTab();
     const doc = await buildValidatedPdf(kind);
-    if (!doc) {
-      targetWindow?.close();
-      return;
-    }
-    openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
+    if (!doc) return;
+    const fileName = seedFileName(kind, form);
+    setPdfPreview({ url: URL.createObjectURL(doc.output('blob')), name: fileName });
     rememberSeedGeneratedData(form);
-    showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
+    showInfo('Preview Opened', 'PDF preview opened.', 4000);
   };
 
   const preview = async (kind: any) => {
@@ -826,6 +829,15 @@ export function SeedForms() {
           });
         }}
       />
+      {pdfPreview && (
+        <FilePreviewModal
+          fileUrl={pdfPreview.url}
+          fileName={pdfPreview.name}
+          fileType="application/pdf"
+          hideDownload
+          onClose={closePdfPreview}
+        />
+      )}
     </>
   );
 }

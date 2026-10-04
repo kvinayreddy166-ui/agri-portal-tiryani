@@ -19,6 +19,7 @@ interface FilePreviewModalProps {
   fileName?: string;
   fileType?: string;
   hideOpenInNewTab?: boolean;
+  hideDownload?: boolean;
   onClose: () => void;
 }
 
@@ -26,7 +27,7 @@ type EmbedViewer = 'office' | 'google';
 
 const EMBED_TIMEOUT_MS = 6000;
 
-export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab = false, onClose }: FilePreviewModalProps) {
+export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab = false, hideDownload = false, onClose }: FilePreviewModalProps) {
   const { displayName, resolvedType } = resolveFileIdentity(fileName, fileType, fileUrl);
 
   const isImage = resolvedType === 'image';
@@ -51,8 +52,9 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
   const embedTimerRef = useRef<number | null>(null);
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  
-  const useClientPreview = isPdf || isOfficeDoc || isSpreadsheet;
+
+  const isBlobPdf = isPdf && fileUrl.startsWith('blob:');
+  const useClientPreview = (isPdf && !isBlobPdf) || isOfficeDoc || isSpreadsheet;
   // On mobile, use direct PDF opening instead of embed preview
   const useEmbedPreview = isDriveLink || (pdfUseEmbed && !isMobile);
 
@@ -61,6 +63,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
   const activeEmbedSrc = embedViewer === 'google' ? googleEmbedSrc : officeEmbedSrc;
 
   const showImageInline = isImage && previewSrc && !loading && !loadFailed;
+  const showBlobPdf = isBlobPdf && !loading && !loadFailed;
   const showPdfPreview = isPdf && pdfFile && !loading && !loadFailed && !pdfUseEmbed;
   const showDocxPreview = isOfficeDoc && docxFile && !loading && !loadFailed;
   const showExcelPreview = isSpreadsheet && excelFile && !loading && !loadFailed;
@@ -74,11 +77,12 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
     !showDocxPreview &&
     !showExcelPreview &&
     !showPptxPreview &&
+    !showBlobPdf &&
     useEmbedPreview &&
     !embedFailed;
   const showDownloadFallback =
     !loading &&
-    (loadFailed || embedFailed || (!showImageInline && !showPdfPreview && !showDocxPreview && !showExcelPreview && !showPptxPreview && !showEmbed));
+    (loadFailed || embedFailed || (!showImageInline && !showBlobPdf && !showPdfPreview && !showDocxPreview && !showExcelPreview && !showPptxPreview && !showEmbed));
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -225,16 +229,18 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
             {fileName || displayName || 'File preview'}
           </h2>
           <div className="flex shrink-0 items-center gap-0.5">
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={downloading}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600 text-white transition hover:bg-sky-700 disabled:opacity-50 dark:bg-sky-500 dark:hover:bg-sky-600"
-              title="Download file"
-              aria-label="Download file"
-            >
-              {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <DownloadIcon className="h-4 w-4" />}
-            </button>
+            {!hideDownload && (
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={downloading}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600 text-white transition hover:bg-sky-700 disabled:opacity-50 dark:bg-sky-500 dark:hover:bg-sky-600"
+                title="Download file"
+                aria-label="Download file"
+              >
+                {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <DownloadIcon className="h-4 w-4" />}
+              </button>
+            )}
             {!hideOpenInNewTab && !isSpreadsheet && (
               <a
                 href={isPdf ? fileUrl : googleViewerTabSrc}
@@ -281,6 +287,14 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
                 }}
               />
             </div>
+          )}
+
+          {!loading && showBlobPdf && (
+            <iframe
+              src={`${fileUrl}#toolbar=0&navpanes=0`}
+              title={fileName || 'PDF preview'}
+              className="min-h-[60vh] flex-1 border-0 bg-white"
+            />
           )}
 
           {!loading && showPdfPreview && pdfFile && (
@@ -350,15 +364,17 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
                 Inline preview could not load. Download the file or try opening in a new tab.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleDownload}
-                  disabled={downloading}
-                  className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white hover:bg-sky-700 disabled:opacity-50"
-                >
-                  {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <DownloadIcon className="h-5 w-5" />}
-                  Download file
-                </button>
+                {!hideDownload && (
+                  <button
+                    type="button"
+                    onClick={handleDownload}
+                    disabled={downloading}
+                    className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white hover:bg-sky-700 disabled:opacity-50"
+                  >
+                    {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <DownloadIcon className="h-5 w-5" />}
+                    Download file
+                  </button>
+                )}
                 {!hideOpenInNewTab && (
                   <a
                     href={googleViewerTabSrc}
@@ -392,19 +408,21 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
 
         <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-600 dark:text-slate-300">
-            {showPdfPreview && <span>PDF preview</span>}
+            {(showPdfPreview || showBlobPdf) && <span>PDF preview</span>}
             {showDocxPreview && <span>Word document preview</span>}
             {showExcelPreview && <span>Excel spreadsheet preview</span>}
             {showPptxPreview && <span>PowerPoint preview</span>}
             {showEmbed && <span>Document viewer embed</span>}
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={downloading}
-              className="font-bold text-sky-700 hover:underline dark:text-sky-300"
-            >
-              Download
-            </button>
+            {!hideDownload && (
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={downloading}
+                className="font-bold text-sky-700 hover:underline dark:text-sky-300"
+              >
+                Download
+              </button>
+            )}
             {!hideOpenInNewTab && isDriveLink && (
               <a
                 href={getViewerFileUrl(fileUrl)}

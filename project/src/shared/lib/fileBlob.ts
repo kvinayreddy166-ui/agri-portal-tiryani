@@ -30,6 +30,13 @@ function normalizeBlob(blob: Blob, fileName?: string): Blob {
 
 async function downloadBlob(fileUrl: string, fileName?: string): Promise<Blob> {
   const errors: string[] = [];
+
+  if (fileUrl.startsWith('blob:')) {
+    const res = await fetch(fileUrl);
+    if (res.ok) return normalizeBlob(await res.blob(), fileName);
+    throw new Error(`blob fetch ${res.status}`);
+  }
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout for initial fetch
 

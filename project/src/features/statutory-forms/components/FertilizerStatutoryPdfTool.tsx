@@ -17,6 +17,7 @@ import {
 import { FertilizerInstructionModal } from '../../../shared/components/ui/FertilizerInstructionModal';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
 import { CoveringLetterModal } from  './CoveringLetterModal';
 import {
   QUALIFICATION_OPTIONS,
@@ -645,6 +646,11 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     }
   });
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [pdfPreview, setPdfPreview] = useState<{ url: string; name: string } | null>(null);
+  const closePdfPreview = () => {
+    if (pdfPreview?.url.startsWith('blob:')) URL.revokeObjectURL(pdfPreview.url);
+    setPdfPreview(null);
+  };
   const [message, setMessage] = useState<string | null>(null);
   const [placeOfCollectionMandals, setPlaceOfCollectionMandals] = useState<string[]>([]);
   const isSavingDraft = useRef(false);
@@ -1098,18 +1104,17 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     }
     
     // Validation removed - users can preview PDFs even with empty fields
-    const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
     try {
       const doc = await generateFertilizerStatutoryPdf(type, documentValues, watermarkEnabled);
-      openFertilizerDocInTab(doc, getFertilizerPdfFileName(type, documentValues), targetWindow);
+      const fileName = getFertilizerPdfFileName(type, documentValues);
+      setPdfPreview({ url: URL.createObjectURL(doc.output('blob')), name: fileName });
       setFormType(type);
-      showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
+      showInfo('Preview Opened', 'PDF preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview fertilizer PDF:', error);
-      targetWindow?.close();
-      setPreviewError('PDF preview could not open. Your browser PDF plugin may have failed. Please try downloading the PDF instead.');
+      setPreviewError('PDF preview could not open. Please try downloading the PDF instead.');
     } finally {
       setBusyAction(null);
     }
@@ -1139,17 +1144,16 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     }
     
     // Validation removed - users can preview PDFs even with empty fields
-    const targetWindow = openBlankPdfTab();
     setBusyAction('preview');
     setPreviewError(null);
     try {
       const doc = await generateAllFertilizerStatutoryPdf(documentValues, watermarkEnabled);
-      openFertilizerDocInTab(doc, getAllFertilizerPdfFileName(documentValues), targetWindow);
-      showInfo('Preview Opened', 'All forms preview opened in a new tab.', 4000);
+      const fileName = getAllFertilizerPdfFileName(documentValues);
+      setPdfPreview({ url: URL.createObjectURL(doc.output('blob')), name: fileName });
+      showInfo('Preview Opened', 'All forms preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview all fertilizer PDFs:', error);
-      targetWindow?.close();
-      setPreviewError('PDF preview could not open. Your browser PDF plugin may have failed. Please try downloading the PDF instead.');
+      setPreviewError('PDF preview could not open. Please try downloading the PDF instead.');
     } finally {
       setBusyAction(null);
     }
@@ -1890,6 +1894,15 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
           }}
         />
       )}
+      {pdfPreview && (
+        <FilePreviewModal
+          fileUrl={pdfPreview.url}
+          fileName={pdfPreview.name}
+          fileType="application/pdf"
+          hideDownload
+          onClose={closePdfPreview}
+        />
+      )}
     </>
   );
 }
@@ -2402,44 +2415,6 @@ function PdfInput({
       {inputElement}
     </label>
   );
-}
-
-function openBlankPdfTab() {
-  const targetWindow = window.open('', '_blank');
-  if (targetWindow) {
-    targetWindow.opener = null;
-    targetWindow.document.title = 'Preparing PDF...';
-    targetWindow.document.body.innerHTML = '<p style="font-family: system-ui; padding: 24px;">Preparing PDF...</p>';
-  }
-  return targetWindow;
-}
-
-function openFertilizerDocInTab(
-  doc: { output: (type: 'blob') => Blob },
-  fileName: string,
-  targetWindow: Window | null
-) {
-  const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
-  const blobUrl = URL.createObjectURL(blob);
-  
-  if (targetWindow && !targetWindow.closed) {
-    try {
-      targetWindow.location.href = blobUrl;
-      // Add error listener to detect if PDF plugin fails
-      targetWindow.onerror = () => {
-        console.warn('PDF preview failed, falling back to download');
-        targetWindow.close();
-        downloadFertilizerDoc(doc, fileName);
-      };
-    } catch (error) {
-      console.warn('Failed to open PDF in tab, falling back to download:', error);
-      targetWindow.close();
-      downloadFertilizerDoc(doc, fileName);
-    }
-  } else {
-    window.open(blobUrl, '_blank', 'noopener,noreferrer');
-  }
-  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 
 function downloadFertilizerDoc(doc: { output: (type: 'blob') => Blob }, fileName: string) {

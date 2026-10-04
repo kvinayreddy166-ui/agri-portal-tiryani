@@ -15,6 +15,7 @@ import {
 } from '../lib/statutoryPesticidePdf';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
 import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
@@ -215,6 +216,11 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   });
   const [message, setMessage] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [pdfPreview, setPdfPreview] = useState<{ url: string; name: string } | null>(null);
+  const closePdfPreview = () => {
+    if (pdfPreview?.url.startsWith('blob:')) URL.revokeObjectURL(pdfPreview.url);
+    setPdfPreview(null);
+  };
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedPesticideDraft[]>(() => loadDrafts());
   const [selectedDraftName, setSelectedDraftName] = useState('');
@@ -555,15 +561,14 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     }
     
     // Validation removed - users can preview PDFs even with empty fields
-    const targetWindow = openBlankPdfTab();
     setBusy(true);
     try {
       const doc = await generatePesticideStatutoryPdf(formType, documentValues, watermarkEnabled);
-      openDocInTab(doc, getPesticidePdfFileName(formType, documentValues), targetWindow);
-      showInfo('Preview Opened', 'PDF preview opened in a new tab.', 4000);
+      const fileName = getPesticidePdfFileName(formType, documentValues);
+      setPdfPreview({ url: URL.createObjectURL(doc.output('blob')), name: fileName });
+      showInfo('Preview Opened', 'PDF preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview pesticide PDF:', error);
-      targetWindow?.close();
       setPreviewError('PDF preview could not open. Please try again.');
     } finally {
       setBusy(false);
@@ -636,15 +641,14 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     }
     
     // Validation removed - users can preview PDFs even with empty fields
-    const targetWindow = openBlankPdfTab();
     setBusy(true);
     try {
       const doc = await generateAllPesticideStatutoryPdf(values, watermarkEnabled);
-      openDocInTab(doc, getAllPesticidePdfFileName(values), targetWindow);
-      showInfo('All Forms Previewed', 'All pesticide forms preview opened in a new tab.', 4000);
+      const fileName = getAllPesticidePdfFileName(values);
+      setPdfPreview({ url: URL.createObjectURL(doc.output('blob')), name: fileName });
+      showInfo('All Forms Previewed', 'All pesticide forms preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview all pesticide PDFs:', error);
-      targetWindow?.close();
       setPreviewError('Preview All could not open. Please try again.');
     } finally {
       setBusy(false);
@@ -1129,6 +1133,15 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
         }}
       />
     </div>
+      {pdfPreview && (
+        <FilePreviewModal
+          fileUrl={pdfPreview.url}
+          fileName={pdfPreview.name}
+          fileType="application/pdf"
+          hideDownload
+          onClose={closePdfPreview}
+        />
+      )}
     </>
   );
 }
@@ -1246,40 +1259,6 @@ function loadDrafts(): SavedPesticideDraft[] {
 function upsertDraft(drafts: SavedPesticideDraft[], draft: SavedPesticideDraft) {
   // Use case-insensitive comparison to prevent duplicates
   return [draft, ...drafts.filter((item) => item.name.trim().toLowerCase() !== draft.name.trim().toLowerCase())].slice(0, 30);
-}
-
-function openBlankPdfTab() {
-  const targetWindow = window.open('', '_blank');
-  if (targetWindow) {
-    targetWindow.opener = null;
-    targetWindow.document.title = 'Preparing PDF...';
-    targetWindow.document.body.innerHTML = '<p style="font-family: system-ui; padding: 24px;">Preparing PDF...</p>';
-  }
-  return targetWindow;
-}
-
-function openDocInTab(doc: { output: (type: 'blob') => Blob }, fileName: string, targetWindow: Window | null) {
-  const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
-  const blobUrl = URL.createObjectURL(blob);
-  
-  if (targetWindow && !targetWindow.closed) {
-    try {
-      targetWindow.location.href = blobUrl;
-      // Add error listener to detect if PDF plugin fails
-      targetWindow.onerror = () => {
-        console.warn('PDF preview failed, falling back to download');
-        targetWindow.close();
-        downloadDoc(doc, fileName);
-      };
-    } catch (error) {
-      console.warn('Failed to open PDF in tab, falling back to download:', error);
-      targetWindow.close();
-      downloadDoc(doc, fileName);
-    }
-  } else {
-    window.open(blobUrl, '_blank', 'noopener,noreferrer');
-  }
-  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 
 function downloadDoc(doc: { output: (type: 'blob') => Blob }, fileName: string) {
