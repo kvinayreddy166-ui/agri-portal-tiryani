@@ -2274,7 +2274,7 @@ export function TourDiary() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-950 flex items-center justify-center">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-700" />
       </div>
     );
@@ -2283,7 +2283,7 @@ export function TourDiary() {
   // Landing Page
   if (showLandingPage) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-950">
         {/* Header */}
         <div className="sticky top-0 z-40 border-b border-emerald-200/50 bg-white/80 backdrop-blur-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
           <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
@@ -2295,7 +2295,7 @@ export function TourDiary() {
                   className="mb-0"
                 />
               ) : (
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-500 to-orange-500 p-4 shadow-lg">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
                 <div className="flex items-center gap-4">
                   <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" />
@@ -2678,7 +2678,7 @@ export function TourDiary() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-950">
       {/* Header */}
       <div className="sticky top-0 z-40 border-b border-emerald-200/50 bg-white/80 backdrop-blur-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
@@ -2690,7 +2690,7 @@ export function TourDiary() {
                 className="mb-0"
               />
             ) : (
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-orange-500 p-4 shadow-lg">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-500 to-orange-500 p-4 shadow-lg">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
               <div className="flex items-center gap-4">
                 <BackButton onClick={() => setShowLandingPage(true)} tone="solid" />
@@ -3055,7 +3055,7 @@ export function TourDiary() {
               className="h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
             >
               <div
-                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-500 transition-all duration-500"
                 style={{ width: `${monthProgress.required > 0 ? Math.round((monthProgress.filled / monthProgress.required) * 100) : 0}%` }}
               />
             </div>

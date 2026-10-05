@@ -46,7 +46,8 @@ import {
   Settings,
   StockAnalytics,
   StockReceiptsSales,
-  StatutoryForms,
+  SamplingHub,
+  FormsLibrary,
   SubsidyTracking,
   TourDiary,
 } from './lazyPages';
@@ -94,7 +95,9 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
     case 'crop-oilseeds':
       return <CropPage cropType="oilseeds" />;
     case 'forms':
-      return <StatutoryForms />;
+      return <SamplingHub />;
+    case 'forms-library':
+      return <FormsLibrary />;
     case 'gos-circulars':
       return <GosCirculars />;
     case 'quality':

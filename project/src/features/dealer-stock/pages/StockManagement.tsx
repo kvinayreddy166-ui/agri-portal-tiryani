@@ -321,7 +321,7 @@ export function StockManagement() {
         </div>
       ) : (
         <>
-          <div className="rounded-lg bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 p-3 text-white shadow-md md:p-4">
+          <div className="rounded-lg bg-gradient-to-r from-emerald-700 via-emerald-700 to-cyan-700 p-3 text-white shadow-md md:p-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide text-emerald-100">Stock Management</p>

@@ -416,9 +416,9 @@ export function OfficerContacts() {
     const TabIcon = TABS.find(tab => tab.id === activeTab)?.icon || User;
     
     return (
-      <div key={ contact.id } className="rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-5 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80">
+      <div key={ contact.id } className="rounded-2xl border border-emerald-200/60 bg-white p-5 shadow-md shadow-emerald-950/5 dark:border-emerald-800/50 dark:bg-slate-900/80">
         <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white shadow-lg shadow-emerald-950/20">
             <TabIcon className="h-6 w-6" />
           </div>
           <div className="min-w-0 flex-1">
@@ -469,7 +469,7 @@ export function OfficerContacts() {
                 {isValidIndianMobile(contact.phone) && (
                   <button
                     onClick={() => handleWhatsApp(contact.phone)}
-                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-600 px-3 py-2 text-sm font-bold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-green-950/20 transition-all hover:scale-105 hover:shadow-xl"
                     title="WhatsApp"
                   >
                     <MessageCircle className="h-4 w-4" />
@@ -477,7 +477,7 @@ export function OfficerContacts() {
                 )}
                 <button
                   onClick={() => handleCall(contact.phone)}
-                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-3 py-2 text-sm font-bold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-800 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-950/20 transition-all hover:scale-105 hover:shadow-xl"
                   title="Call"
                 >
                   <Phone className="h-4 w-4" />
@@ -604,12 +604,12 @@ export function OfficerContacts() {
   }, [activeTab, searchQuery, selectedDistrict, selectedDivision, selectedMandal, selectedCluster, dropdownOptions, resetFilters]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
+    <div className="min-h-screen bg-[#eef6f0] dark:bg-slate-950">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl animate-pulse" />
-        <div className="absolute top-40 right-20 h-96 w-96 rounded-full bg-teal-400/10 blur-3xl animate-pulse delay-1000" />
-        <div className="absolute bottom-20 left-1/3 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl animate-pulse delay-2000" />
+        <div className="absolute top-40 right-20 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl animate-pulse delay-1000" />
+        <div className="absolute bottom-20 left-1/3 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl animate-pulse delay-2000" />
       </div>
 
       <div className="relative mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
@@ -641,7 +641,7 @@ export function OfficerContacts() {
                   }}
                   className={`flex shrink-0 items-center gap-2 rounded-2xl border px-5 py-3 text-base font-bold transition-all ${
                     activeTab === tab.id
-                      ? 'border-emerald-500 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg dark:border-emerald-400'
+                      ? 'border-emerald-800 bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-lg shadow-emerald-950/20 dark:border-emerald-500'
                       : 'border-emerald-200/50 bg-white/80 text-slate-700 hover:border-emerald-400 hover:bg-emerald-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:bg-emerald-950/30'
                   }`}
                 >
@@ -668,7 +668,7 @@ export function OfficerContacts() {
           {loading && contacts.length === 0 ? (
             // Skeleton loaders for initial load
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-5 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80">
+              <div key={i} className="rounded-2xl border border-emerald-200/60 bg-white p-5 shadow-md shadow-emerald-950/5 dark:border-emerald-800/50 dark:bg-slate-900/80">
                 <div className="flex items-start gap-4">
                   <div className="h-12 w-12 animate-pulse rounded-xl bg-emerald-200 dark:bg-emerald-800" />
                   <div className="min-w-0 flex-1 space-y-2">

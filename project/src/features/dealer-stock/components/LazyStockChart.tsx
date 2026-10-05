@@ -16,7 +16,7 @@ export default function StockChart({ data }: StockChartProps) {
         <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
         <Bar dataKey="Total" fill="#2563eb" radius={[5, 5, 0, 0]} />
         <Bar dataKey="Sales" fill="#f59e0b" radius={[5, 5, 0, 0]} />
-        <Bar dataKey="Closing" fill="#0b7a5c" radius={[5, 5, 0, 0]} />
+        <Bar dataKey="Closing" fill="#166534" radius={[5, 5, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

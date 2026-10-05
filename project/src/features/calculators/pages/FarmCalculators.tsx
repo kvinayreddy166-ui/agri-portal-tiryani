@@ -26,8 +26,8 @@ const calculatorItems = [
     descriptionTe: 'వరుస మరియు మొక్కల మధ్య దూరంతో మొక్కల సంఖ్యను లెక్కించండి.',
     path: '/officer-toolkit/plant-population-calculator',
     icon: Sprout,
-    accent: 'from-green-600 to-teal-700',
-    panel: 'from-green-50 to-teal-50 dark:from-green-950/30 dark:to-teal-950/30',
+    accent: 'from-green-600 to-emerald-700',
+    panel: 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
     border: 'border-green-300 dark:border-green-800/60',
   },
   {

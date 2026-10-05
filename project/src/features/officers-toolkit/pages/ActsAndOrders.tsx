@@ -34,14 +34,14 @@ import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData
 import { type LegalCategory } from '../data/actsAndOrdersData';
 import { fcoClauseCards, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
 import { insecticideActCards, insecticideForms, insecticideModuleCards, insecticideRuleCards, type InsecticideFormEntry } from '../data/insecticideActData';
-import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory, type FertilizerFormEntry } from '../../statutory-forms/data/fertilizerForms';
-import { fertilizerSchedules, type FertilizerScheduleEntry } from '../../statutory-forms/data/fertilizerSchedules';
+import { fertilizerFormCategories, fertilizerForms, type FertilizerFormCategory, type FertilizerFormEntry } from '../../sampling-hub/data/fertilizerForms';
+import { fertilizerSchedules, type FertilizerScheduleEntry } from '../../sampling-hub/data/fertilizerSchedules';
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { enforcementDeadlines, enforcementMindMap, type EnforcementDeadline, type MindMapNode } from '../data/fcoEnforcementMindMap';
 import { insecticideDeadlines, insecticideMindMap, insecticideOffenceEntries } from '../data/insecticideEnforcement';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
-import { FertilizerFormPdfGenerator } from '../../statutory-forms/components/FertilizerFormPdfGenerator';
+import { FertilizerFormPdfGenerator } from '../../sampling-hub/components/FertilizerFormPdfGenerator';
 import { FcoImplementationModal } from '../../../shared/components/ui/FcoImplementationModal';
 import { useAuth } from '../../../shared/context/AuthContext';
 
@@ -64,75 +64,77 @@ type FcoAccent = 'sky' | 'amber';
 const fcoAccentThemes = {
   sky: {
     gradient: 'from-sky-400 via-sky-500 to-blue-500',
-    gradientDeep: 'from-sky-400 via-sky-500 to-blue-500',
-    shadow: 'shadow-sky-400/20',
-    border: 'border-sky-200 dark:border-sky-800/50',
-    borderSoft: 'border-sky-100 dark:border-sky-900/40',
-    borderMid: 'border-sky-200 dark:border-sky-900/60',
-    hoverBorder: 'hover:border-sky-300',
+    gradientDeep: 'from-sky-500 via-sky-600 to-blue-600',
+    shadow: 'shadow-sky-500/20',
+    border: 'border-slate-200 dark:border-slate-700',
+    borderSoft: 'border-slate-200 dark:border-slate-800',
+    borderMid: 'border-slate-200 dark:border-slate-700',
+    hoverBorder: 'hover:border-sky-300 dark:hover:border-sky-700',
     activeTile: 'border-sky-400 dark:border-sky-600',
-    tint: 'from-sky-50/70 via-white to-blue-50/50 dark:from-sky-950/30 dark:via-slate-900 dark:to-blue-950/30',
-    tintActive: 'from-sky-100/80 via-white to-blue-100/60 dark:from-sky-950/40 dark:via-slate-950 dark:to-blue-950/30',
-    tintTile: 'from-sky-50/70 via-white to-blue-50/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20',
-    chip: 'bg-gradient-to-br from-sky-50 to-blue-50 text-sky-800 ring-sky-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-200 dark:ring-sky-800/60',
-    chipCount: 'bg-gradient-to-br from-sky-50 to-blue-50/70 text-sky-800 ring-sky-100 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-200 dark:ring-sky-900',
-    chipAlt: 'bg-gradient-to-br from-blue-50 to-sky-50 text-blue-800 ring-blue-200 dark:from-blue-950/40 dark:to-sky-950/30 dark:text-blue-300 dark:ring-blue-800/60',
-    tabOff: 'border-sky-200 bg-gradient-to-br from-sky-50/60 to-blue-50/40 text-sky-900 hover:border-sky-300 hover:from-sky-100 dark:border-sky-800/50 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-200 dark:hover:from-sky-950/50',
-    labelText: 'text-sky-700 dark:text-sky-300',
-    boldText: 'text-sky-800 dark:text-sky-200',
+    tint: 'from-sky-50/70 via-white to-white dark:from-sky-950/20 dark:via-slate-900 dark:to-slate-900',
+    tintActive: 'from-sky-100/70 via-sky-50 to-white dark:from-sky-950/30 dark:via-slate-900 dark:to-slate-900',
+    tintTile: 'from-sky-50/80 via-white to-blue-50/50 dark:from-sky-950/25 dark:via-slate-900 dark:to-blue-950/15',
+    chip: 'bg-slate-50 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700',
+    chipCount: 'bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
+    chipAlt: 'bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/60',
+    tabOff: 'border-slate-200 bg-white text-slate-600 hover:border-sky-200 hover:bg-sky-50/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-sky-800 dark:hover:bg-sky-950/20',
+    labelText: 'text-slate-500 dark:text-slate-400',
+    boldText: 'text-slate-800 dark:text-slate-100',
     iconText: 'text-sky-600 dark:text-sky-400',
-    altText: 'text-blue-700 dark:text-blue-300',
+    iconTile: 'bg-sky-50 text-sky-600 ring-1 ring-sky-200/70 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/50',
+    altText: 'text-slate-700 dark:text-slate-200',
     focus: 'focus:border-sky-500 focus:ring-sky-100',
-    related: 'bg-gradient-to-br from-blue-50 to-sky-50 text-blue-700 ring-blue-200 hover:from-blue-100 hover:to-sky-100 dark:from-blue-950/40 dark:to-sky-950/30 dark:text-blue-300 dark:ring-blue-900 dark:hover:from-blue-950 dark:hover:to-sky-950',
-    provisoBox: 'border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50/70 dark:border-sky-900/60 dark:from-sky-950/30 dark:to-blue-950/20',
-    provisoTitle: 'text-sky-800 dark:text-sky-300',
-    provisoBody: 'text-sky-900 dark:text-sky-100',
-    provisoSub: 'text-sky-700/80 dark:text-sky-200/70',
-    panelBox: 'border-blue-100 bg-gradient-to-br from-blue-50/60 to-sky-50/40 dark:border-blue-900/50 dark:from-blue-950/20 dark:to-sky-950/10',
-    panelTitle: 'text-blue-700 dark:text-blue-300',
-    panelChip: 'bg-gradient-to-br from-white to-blue-50/60 text-blue-700 ring-blue-200 dark:from-slate-900 dark:to-slate-900 dark:text-blue-300 dark:ring-blue-900',
-    stepperArrow: 'text-blue-400 dark:text-blue-600',
+    related: 'bg-slate-50 text-slate-700 ring-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-700 dark:hover:text-white',
+    provisoBox: 'border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-800/40',
+    provisoTitle: 'text-slate-800 dark:text-slate-100',
+    provisoBody: 'text-slate-700 dark:text-slate-200',
+    provisoSub: 'text-slate-500 dark:text-slate-400',
+    panelBox: 'border-slate-200 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800/40',
+    panelTitle: 'text-slate-700 dark:text-slate-200',
+    panelChip: 'bg-white text-slate-700 ring-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700',
+    stepperArrow: 'text-slate-300 dark:text-slate-600',
     stepperBadge: 'from-sky-400 to-blue-500',
-    stepperClock: 'text-blue-600 dark:text-blue-400',
-    stepperBox: 'border-blue-200 dark:border-blue-900',
+    stepperClock: 'text-slate-500 dark:text-slate-400',
+    stepperBox: 'border-slate-200 dark:border-slate-700',
     dot: 'from-sky-400 to-blue-400',
-    hoverTint: 'hover:bg-sky-50/70 dark:hover:bg-sky-950/20',
+    hoverTint: 'hover:bg-slate-50 dark:hover:bg-slate-800/50',
   },
   amber: {
     gradient: 'from-amber-400 via-amber-500 to-orange-500',
-    gradientDeep: 'from-amber-400 via-amber-500 to-orange-500',
-    shadow: 'shadow-amber-400/25',
-    border: 'border-amber-200 dark:border-amber-800/50',
-    borderSoft: 'border-amber-100 dark:border-amber-900/40',
-    borderMid: 'border-amber-200 dark:border-amber-900/60',
-    hoverBorder: 'hover:border-amber-300',
+    gradientDeep: 'from-amber-500 via-amber-600 to-orange-600',
+    shadow: 'shadow-amber-500/20',
+    border: 'border-slate-200 dark:border-slate-700',
+    borderSoft: 'border-slate-200 dark:border-slate-800',
+    borderMid: 'border-slate-200 dark:border-slate-700',
+    hoverBorder: 'hover:border-amber-300 dark:hover:border-amber-700',
     activeTile: 'border-amber-400 dark:border-amber-600',
-    tint: 'from-amber-50/70 via-white to-orange-50/50 dark:from-amber-950/30 dark:via-slate-900 dark:to-orange-950/30',
-    tintActive: 'from-amber-100/80 via-white to-orange-100/60 dark:from-amber-950/40 dark:via-slate-950 dark:to-orange-950/30',
-    tintTile: 'from-amber-50/70 via-white to-orange-50/50 dark:from-amber-950/20 dark:via-slate-950 dark:to-orange-950/20',
-    chip: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-800 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60',
-    chipCount: 'bg-gradient-to-br from-amber-50 to-orange-50/70 text-amber-800 ring-amber-100 dark:from-amber-950/30 dark:to-orange-950/20 dark:text-amber-200 dark:ring-amber-900',
-    chipAlt: 'bg-gradient-to-br from-orange-50 to-amber-50 text-orange-800 ring-orange-200 dark:from-orange-950/40 dark:to-amber-950/30 dark:text-orange-300 dark:ring-orange-800/60',
-    tabOff: 'border-amber-200 bg-gradient-to-br from-amber-50/60 to-orange-50/40 text-amber-900 hover:border-amber-300 hover:from-amber-100 dark:border-amber-800/50 dark:from-amber-950/30 dark:to-orange-950/20 dark:text-amber-200 dark:hover:from-amber-950/50',
-    labelText: 'text-amber-700 dark:text-amber-300',
-    boldText: 'text-amber-800 dark:text-amber-200',
+    tint: 'from-amber-50/70 via-white to-white dark:from-amber-950/20 dark:via-slate-900 dark:to-slate-900',
+    tintActive: 'from-amber-100/70 via-amber-50 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900',
+    tintTile: 'from-amber-50/80 via-white to-orange-50/50 dark:from-amber-950/25 dark:via-slate-900 dark:to-orange-950/15',
+    chip: 'bg-slate-50 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700',
+    chipCount: 'bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
+    chipAlt: 'bg-amber-50 text-amber-800 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800/60',
+    tabOff: 'border-slate-200 bg-white text-slate-600 hover:border-amber-200 hover:bg-amber-50/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-amber-800 dark:hover:bg-amber-950/20',
+    labelText: 'text-slate-500 dark:text-slate-400',
+    boldText: 'text-slate-800 dark:text-slate-100',
     iconText: 'text-amber-600 dark:text-amber-400',
-    altText: 'text-orange-700 dark:text-orange-300',
+    iconTile: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/70 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50',
+    altText: 'text-slate-700 dark:text-slate-200',
     focus: 'focus:border-amber-500 focus:ring-amber-100',
-    related: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-700 ring-amber-200 hover:from-amber-100 hover:to-orange-100 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-300 dark:ring-amber-900 dark:hover:from-amber-950 dark:hover:to-orange-950',
-    provisoBox: 'border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50/70 dark:border-amber-900/60 dark:from-amber-950/30 dark:to-orange-950/20',
-    provisoTitle: 'text-amber-800 dark:text-amber-300',
-    provisoBody: 'text-amber-900 dark:text-amber-100',
-    provisoSub: 'text-amber-700/80 dark:text-amber-200/70',
-    panelBox: 'border-amber-100 bg-gradient-to-br from-amber-50/60 to-orange-50/40 dark:border-amber-900/50 dark:from-amber-950/20 dark:to-orange-950/10',
-    panelTitle: 'text-amber-700 dark:text-amber-300',
-    panelChip: 'bg-gradient-to-br from-white to-amber-50/60 text-amber-700 ring-amber-200 dark:from-slate-900 dark:to-slate-900 dark:text-amber-300 dark:ring-amber-900',
-    stepperArrow: 'text-amber-400 dark:text-amber-600',
+    related: 'bg-slate-50 text-slate-700 ring-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-700 dark:hover:text-white',
+    provisoBox: 'border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-800/40',
+    provisoTitle: 'text-slate-800 dark:text-slate-100',
+    provisoBody: 'text-slate-700 dark:text-slate-200',
+    provisoSub: 'text-slate-500 dark:text-slate-400',
+    panelBox: 'border-slate-200 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800/40',
+    panelTitle: 'text-slate-700 dark:text-slate-200',
+    panelChip: 'bg-white text-slate-700 ring-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700',
+    stepperArrow: 'text-slate-300 dark:text-slate-600',
     stepperBadge: 'from-amber-400 to-orange-400',
-    stepperClock: 'text-amber-600 dark:text-amber-400',
-    stepperBox: 'border-amber-200 dark:border-amber-900',
+    stepperClock: 'text-slate-500 dark:text-slate-400',
+    stepperBox: 'border-slate-200 dark:border-slate-700',
     dot: 'from-amber-400 to-orange-400',
-    hoverTint: 'hover:bg-amber-50/70 dark:hover:bg-amber-950/20',
+    hoverTint: 'hover:bg-slate-50 dark:hover:bg-slate-800/50',
   },
 } as const;
 
@@ -162,9 +164,9 @@ const legalAreaCards: Array<{
   chip: string;
   hover: string;
 }> = [
-  { id: 'fertilizer', title: 'Fertilizer', description: 'FCO 1985, ECA, seizure, samples and prosecution references.', icon: PackageCheck, category: 'Fertiliser', color: 'from-sky-400 via-sky-500 to-blue-500', panel: 'from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30', border: 'border-sky-200 dark:border-sky-800/50', accent: 'text-sky-700 dark:text-sky-300', chip: 'bg-gradient-to-br from-sky-50 to-blue-50 text-sky-700 ring-sky-100 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-300 dark:ring-sky-900', hover: 'hover:border-sky-300 hover:bg-sky-50/60 dark:hover:bg-sky-950/20' },
-  { id: 'seed', title: 'Seed', description: 'Seed Act, Rules, labelling, sampling and penalty actions.', icon: Sprout, category: 'Seeds', color: 'from-lime-500 via-green-500 to-emerald-700', panel: 'from-lime-50 to-emerald-50 dark:from-lime-950/30 dark:to-emerald-950/30', border: 'border-lime-200 dark:border-lime-800/50', accent: 'text-lime-700 dark:text-lime-300', chip: 'bg-gradient-to-br from-lime-50 to-emerald-50 text-lime-700 ring-lime-100 dark:from-lime-950/30 dark:to-emerald-950/20 dark:text-lime-300 dark:ring-lime-900', hover: 'hover:border-lime-300 hover:bg-lime-50/60 dark:hover:bg-lime-950/20' },
-  { id: 'insecticide', title: 'Insecticide', description: 'Insecticides Act, Rules, stop-sale, seizure and records.', icon: SprayCan, category: 'Insecticides', color: 'from-amber-400 via-amber-500 to-orange-500', panel: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30', border: 'border-amber-200 dark:border-amber-800/50', accent: 'text-amber-700 dark:text-amber-300', chip: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-700 ring-amber-100 dark:from-amber-950/30 dark:to-orange-950/20 dark:text-amber-300 dark:ring-amber-900', hover: 'hover:border-amber-300 hover:bg-amber-50/60 dark:hover:bg-amber-950/20' },
+  { id: 'fertilizer', title: 'Fertilizer', description: 'FCO 1985, ECA, seizure, samples and prosecution references.', icon: PackageCheck, category: 'Fertiliser', color: 'from-sky-400 via-sky-500 to-blue-500', panel: 'from-sky-50 via-white to-blue-50/70 dark:from-sky-950/40 dark:via-slate-900 dark:to-blue-950/30', border: 'border-sky-200/80 dark:border-sky-800/60', accent: 'text-sky-700 dark:text-sky-300', chip: 'bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/60', hover: 'hover:border-sky-400 hover:bg-sky-50/60 dark:hover:bg-sky-950/30' },
+  { id: 'seed', title: 'Seed', description: 'Seed Act, Rules, labelling, sampling and penalty actions.', icon: Sprout, category: 'Seeds', color: 'from-lime-500 via-green-500 to-emerald-700', panel: 'from-lime-50 via-white to-emerald-50/70 dark:from-lime-950/40 dark:via-slate-900 dark:to-emerald-950/30', border: 'border-lime-200/80 dark:border-lime-800/60', accent: 'text-lime-700 dark:text-lime-300', chip: 'bg-lime-50 text-lime-700 ring-lime-200 dark:bg-lime-950/40 dark:text-lime-300 dark:ring-lime-800/60', hover: 'hover:border-lime-400 hover:bg-lime-50/60 dark:hover:bg-lime-950/30' },
+  { id: 'insecticide', title: 'Insecticide', description: 'Insecticides Act, Rules, stop-sale, seizure and records.', icon: SprayCan, category: 'Insecticides', color: 'from-amber-400 via-amber-500 to-orange-500', panel: 'from-amber-50 via-white to-orange-50/70 dark:from-amber-950/40 dark:via-slate-900 dark:to-orange-950/30', border: 'border-amber-200/80 dark:border-amber-800/60', accent: 'text-amber-700 dark:text-amber-300', chip: 'bg-amber-50 text-amber-800 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800/60', hover: 'hover:border-amber-400 hover:bg-amber-50/60 dark:hover:bg-amber-950/30' },
 ];
 
 const legalTopicCards: Record<MainLegalArea, Array<{
@@ -458,7 +460,7 @@ export function ActsAndOrders() {
       <section className={`relative overflow-hidden rounded-2xl border px-4 py-3 text-white shadow-md ${
           activeAreaCard
             ? `border-white/20 bg-gradient-to-br ${activeAreaCard.color}`
-            : 'border-emerald-700/40 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 dark:border-emerald-800/50'
+            : 'border-emerald-700/40 bg-gradient-to-br from-emerald-600 via-green-600 to-emerald-700 dark:border-emerald-800/50'
         }`}>
           <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
           <div className="flex items-center gap-3">
@@ -634,7 +636,7 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
   ];
 
   return (
-    <section className="space-y-2.5 rounded-lg border border-sky-200 bg-white p-3 shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
+    <section className="space-y-2.5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -643,17 +645,17 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
               key={card.id}
               type="button"
               onClick={() => onOpenSection(card.id)}
-              className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20"
+              className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/60 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-400 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/25 dark:via-slate-950 dark:to-blue-950/20"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 via-sky-500 to-blue-500 text-white shadow-sm transition group-hover:scale-105">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 ring-1 ring-sky-200/70 transition group-hover:scale-105 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/50">
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-200 dark:ring-sky-800/60">{card.subtitle}</span>
               </div>
               <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.title}</h3>
               <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.description}</p>
-              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-sky-700 transition group-hover:gap-1.5 dark:text-sky-300">
+              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-slate-700 transition group-hover:gap-1.5 dark:text-slate-300">
                 Open <ArrowRight className="h-3 w-3" />
               </span>
             </button>
@@ -675,7 +677,7 @@ function InsecticideModuleHome({ onOpenSection }: { onOpenSection: (section: Ins
   ];
 
   return (
-    <section className="space-y-2.5 rounded-lg border border-amber-200 bg-white p-3 shadow-sm dark:border-amber-800/50 dark:bg-slate-900">
+    <section className="space-y-2.5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -684,17 +686,17 @@ function InsecticideModuleHome({ onOpenSection }: { onOpenSection: (section: Ins
               key={card.id}
               type="button"
               onClick={() => onOpenSection(card.id)}
-              className="group relative flex flex-col overflow-hidden rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50/70 via-white to-orange-50/50 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-md dark:border-amber-800/50 dark:from-amber-950/20 dark:via-slate-950 dark:to-orange-950/20"
+              className="group relative flex flex-col overflow-hidden rounded-lg border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-orange-50/60 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-md dark:border-amber-800/50 dark:from-amber-950/25 dark:via-slate-950 dark:to-orange-950/20"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-white shadow-sm transition group-hover:scale-105">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-700 ring-1 ring-amber-200/70 transition group-hover:scale-105 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50">
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="rounded-full bg-gradient-to-br from-amber-50 to-orange-50 px-2 py-0.5 text-[10px] font-black text-amber-800 ring-1 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60">{card.subtitle}</span>
               </div>
               <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.title}</h3>
               <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.description}</p>
-              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-amber-700 transition group-hover:gap-1.5 dark:text-amber-300">
+              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-slate-700 transition group-hover:gap-1.5 dark:text-slate-300">
                 Open <ArrowRight className="h-3 w-3" />
               </span>
             </button>
@@ -745,7 +747,7 @@ function InsecticideFormsPanel({ search, onSearchChange, accent = 'amber' }: { s
         {visibleForms.map((form) => (
           <div key={form.formNo} className={`rounded-lg border ${t.border} bg-gradient-to-br ${t.tintTile} p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md`}>
             <div className="flex items-start gap-2.5">
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${t.gradientDeep} text-white shadow-sm`}>
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile}`}>
                 <FileText className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
@@ -773,7 +775,7 @@ function FertilizerSectionBadge({ icon: Icon, label, meta, tone = 'gradient', ac
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide shadow-md ${
       tone === 'gradient'
-        ? `bg-gradient-to-br ${t.gradient} text-white ${t.shadow}`
+        ? `${t.iconTile}`
         : 'bg-white/20 text-white ring-1 ring-white/30 shadow-none'
     }`}>
       <Icon className="h-3.5 w-3.5" />
@@ -877,7 +879,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
   return (
     <section className="space-y-3">
       <FertilizerSectionBadge icon={ClipboardList} label="Schedules" />
-      <div className="rounded-lg border border-sky-200 bg-white p-3 shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
+      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -888,29 +890,29 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
           />
         </div>
         <div className="mt-2.5 flex justify-end">
-          <span className="rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-3 py-1 text-[11px] font-black text-sky-800 ring-1 ring-sky-100 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-200 dark:ring-sky-900">
+          <span className="rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-3 py-1 text-[11px] font-black text-sky-800 ring-1 ring-sky-200/80 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-200 dark:ring-sky-900">
             {visibleSchedules.length} schedules
           </span>
         </div>
       </div>
       <div className="grid gap-2 md:grid-cols-2">
         {visibleSchedules.map((schedule) => (
-          <details key={schedule.id} className="group overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20">
+          <details key={schedule.id} className="group overflow-hidden rounded-lg border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/60 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-400 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/25 dark:via-slate-950 dark:to-blue-950/20">
             <summary className="flex cursor-pointer list-none items-start gap-2.5 p-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 via-sky-500 to-blue-500 text-white shadow-sm transition group-hover:scale-105">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 ring-1 ring-sky-200/70 transition group-hover:scale-105 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/50">
                 <ClipboardList className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">{schedule.scheduleNo}</p>
+                <p className="text-[10px] font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">{schedule.scheduleNo}</p>
                 <h3 className="mt-0.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{schedule.title}</h3>
                 <p className="mt-0.5 line-clamp-2 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{schedule.subtitle}</p>
               </div>
-              <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-sky-700 transition-transform group-open:rotate-180 dark:text-sky-300" />
+              <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-slate-700 transition-transform group-open:rotate-180 dark:text-slate-300" />
             </summary>
-            <ul className="space-y-1.5 border-t border-sky-100 px-3 pb-3 pt-2.5 dark:border-sky-900/40">
+            <ul className="space-y-1.5 border-t border-slate-100 px-3 pb-3 pt-2.5 dark:border-slate-900/40">
               {schedule.parts.map((part) => (
-                <li key={part.id} className="flex items-start gap-2 rounded-md border border-sky-100 bg-white/70 px-2.5 py-1.5 text-[11px] font-semibold leading-4 text-slate-700 dark:border-sky-900/40 dark:bg-slate-900/60 dark:text-slate-200">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-sky-500 to-blue-500" />
+                <li key={part.id} className="flex items-start gap-2 rounded-md border border-slate-100 bg-white/70 px-2.5 py-1.5 text-[11px] font-semibold leading-4 text-slate-700 dark:border-slate-900/40 dark:bg-slate-900/60 dark:text-slate-200">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600" />
                   {part.label}
                 </li>
               ))}
@@ -918,7 +920,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
           </details>
         ))}
         {visibleSchedules.length === 0 && (
-          <p className="rounded-lg border border-dashed border-sky-200 p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 dark:border-sky-800/50">No schedules found</p>
+          <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 dark:border-slate-800/50">No schedules found</p>
         )}
       </div>
     </section>
@@ -1188,15 +1190,15 @@ function FcoCardDetailPage({
 const fcoGlanceChipTones: Record<FcoAccent, Record<'slate' | 'amber' | 'blue' | 'emerald', string>> = {
   sky: {
     slate: 'bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600 ring-slate-200 dark:from-slate-800 dark:to-slate-800/70 dark:text-slate-300 dark:ring-slate-700',
-    amber: 'bg-gradient-to-br from-sky-50 to-blue-50 text-sky-700 ring-sky-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-300 dark:ring-sky-900',
-    blue: 'bg-gradient-to-br from-blue-50 to-sky-50 text-blue-700 ring-blue-200 dark:from-blue-950/40 dark:to-sky-950/30 dark:text-blue-300 dark:ring-blue-900',
-    emerald: 'bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 ring-blue-200 dark:from-blue-950/40 dark:to-indigo-950/30 dark:text-blue-300 dark:ring-blue-900',
+    amber: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-800 ring-amber-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-slate-300 dark:ring-slate-900',
+    blue: 'bg-gradient-to-br from-sky-50 to-blue-50 text-sky-700 ring-sky-200 dark:from-blue-950/40 dark:to-sky-950/30 dark:text-slate-300 dark:ring-slate-900',
+    emerald: 'bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-700 ring-emerald-200 dark:from-blue-950/40 dark:to-indigo-950/30 dark:text-slate-300 dark:ring-slate-900',
   },
   amber: {
     slate: 'bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600 ring-slate-200 dark:from-slate-800 dark:to-slate-800/70 dark:text-slate-300 dark:ring-slate-700',
-    amber: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-700 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-300 dark:ring-amber-900',
-    blue: 'bg-gradient-to-br from-orange-50 to-amber-50 text-orange-700 ring-orange-200 dark:from-orange-950/40 dark:to-amber-950/30 dark:text-orange-300 dark:ring-orange-900',
-    emerald: 'bg-gradient-to-br from-amber-50 to-yellow-50 text-amber-700 ring-amber-200 dark:from-amber-950/40 dark:to-yellow-950/30 dark:text-amber-300 dark:ring-amber-900',
+    amber: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-800 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-slate-300 dark:ring-slate-900',
+    blue: 'bg-gradient-to-br from-orange-50 to-amber-50 text-orange-800 ring-orange-200 dark:from-orange-950/40 dark:to-amber-950/30 dark:text-slate-300 dark:ring-slate-900',
+    emerald: 'bg-gradient-to-br from-yellow-50 to-amber-50 text-yellow-800 ring-yellow-200 dark:from-amber-950/40 dark:to-yellow-950/30 dark:text-slate-300 dark:ring-slate-900',
   },
 };
 
@@ -1431,7 +1433,7 @@ function FcoDashboardCards({
           className={`group relative flex flex-col overflow-hidden rounded-lg border ${t.border} bg-gradient-to-br ${t.tintTile} p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md`}
         >
           <div className="flex items-start justify-between gap-2">
-            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${t.gradientDeep} text-white shadow-sm transition group-hover:scale-105`}>
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile} transition group-hover:scale-105`}>
               <FileText className="h-4 w-4" />
             </span>
             <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>27 statutory forms</span>
@@ -1462,7 +1464,7 @@ function FcoDashboardCards({
             }`}
           >
             <div className="flex items-start justify-between gap-2">
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${card.gradient} text-white shadow-sm transition group-hover:scale-105`}>
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile} transition group-hover:scale-105`}>
                 <Icon className="h-4 w-4" />
               </span>
               <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>{card.clauseRange}</span>
@@ -1510,7 +1512,7 @@ function FertilizerFormsPanel({
   return (
     <section className="space-y-3">
       <FertilizerSectionBadge icon={FileText} label="Forms" />
-      <div className="rounded-lg border border-sky-200 bg-white p-3 shadow-sm dark:border-sky-800/50 dark:bg-slate-900">
+      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -1529,13 +1531,13 @@ function FertilizerFormsPanel({
               className={`rounded-full px-3 py-1.5 text-[11px] font-black transition sm:text-xs ${
                 category === item
                   ? 'bg-gradient-to-br from-sky-400 via-sky-500 to-blue-500 text-white shadow-md shadow-sky-400/20'
-                  : 'border border-sky-200 bg-sky-50/60 text-sky-900 hover:border-sky-300 hover:bg-sky-100 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200 dark:hover:bg-sky-950/50'
+                  : 'border border-slate-200 bg-slate-50/60 text-slate-900 hover:border-sky-300 hover:bg-slate-100 dark:border-slate-800/50 dark:bg-slate-900/30 dark:text-slate-200 dark:hover:bg-slate-900/50'
               }`}
             >
               {item}
             </button>
           ))}
-          <span className="ml-auto rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-3 py-1 text-[11px] font-black text-sky-800 ring-1 ring-sky-100 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-200 dark:ring-sky-900">
+          <span className="ml-auto rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-3 py-1 text-[11px] font-black text-sky-800 ring-1 ring-sky-200/80 dark:from-sky-950/30 dark:to-blue-950/20 dark:text-sky-200 dark:ring-sky-900">
             {visibleForms.length} forms
           </span>
         </div>
@@ -1543,39 +1545,39 @@ function FertilizerFormsPanel({
 
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
         {visibleForms.map((form) => (
-          <article key={form.id} className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/20 dark:via-slate-950 dark:to-blue-950/20">
+          <article key={form.id} className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/60 p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-400 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/25 dark:via-slate-950 dark:to-blue-950/20">
             <div className="flex items-start gap-2.5">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 via-sky-500 to-blue-500 text-white shadow-sm transition group-hover:scale-105">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 ring-1 ring-sky-200/70 transition group-hover:scale-105 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/50">
                 <FileText className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">{form.formNo}</p>
+                <p className="text-[10px] font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">{form.formNo}</p>
                 <h3 className="mt-0.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{form.title}</h3>
               </div>
             </div>
             <p className="mt-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.description}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className="rounded-full bg-gradient-to-br from-blue-50 to-sky-50 px-2 py-0.5 text-[10px] font-black text-blue-800 ring-1 ring-blue-200 dark:from-blue-950/40 dark:to-sky-950/30 dark:text-blue-300 dark:ring-blue-800/60">
+              <span className="rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:from-blue-950/40 dark:to-sky-950/30 dark:text-sky-200 dark:ring-sky-800/60">
                 {form.category}
               </span>
               {form.clause && (
-                <span className="rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-200 dark:ring-sky-800/60">
+                <span className="rounded-full bg-gradient-to-br from-blue-50 to-sky-50 px-2 py-0.5 text-[10px] font-black text-blue-800 ring-1 ring-blue-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-200 dark:ring-sky-800/60">
                   {form.clause}
                 </span>
               )}
             </div>
-            <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-sky-100 pt-2 dark:border-sky-900/50">
+            <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-900/50">
               <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-sky-400 via-sky-500 to-blue-500 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
                 <FileSearch className="h-3 w-3" /> View
               </button>
-              <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-sky-200 bg-gradient-to-br from-white to-sky-50 px-2.5 py-1 text-[10px] font-black text-sky-800 transition hover:to-sky-100 dark:border-sky-800/50 dark:from-slate-900 dark:to-slate-900 dark:text-sky-200 dark:hover:to-sky-950/30">
+              <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-slate-200 bg-gradient-to-br from-white to-slate-50 px-2.5 py-1 text-[10px] font-black text-slate-800 transition hover:to-slate-100 dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-900 dark:text-slate-200 dark:hover:to-sky-950/30">
                 <FileText className="h-3 w-3" /> PDF
               </a>
             </div>
           </article>
         ))}
         {visibleForms.length === 0 && (
-          <p className="rounded-lg border border-dashed border-sky-200 p-8 text-center text-sm font-semibold text-slate-500 sm:col-span-2 xl:col-span-3 dark:border-sky-800/50">
+          <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 sm:col-span-2 xl:col-span-3 dark:border-slate-800/50">
             No forms found
           </p>
         )}
@@ -1626,7 +1628,7 @@ function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offen
         {entries.map((entry) => (
           <article key={entry.serialNumber} className={`flex flex-col rounded-lg border ${t.borderSoft} bg-gradient-to-br ${t.tintTile} p-2.5 shadow-sm transition hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md`}>
             <div className="flex items-start gap-2">
-              <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${t.gradient} text-[11px] font-black text-white shadow-sm`}>
+              <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${t.iconTile} text-[11px] font-black`}>
                 {entry.serialNumber}
               </span>
               <p className="min-w-0 flex-1 text-xs font-black leading-4 text-slate-900 dark:text-white">{entry.offenceType}</p>
@@ -1635,7 +1637,7 @@ function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offen
               <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>
                 {entry.contraventionProvision}
               </span>
-              <span className="rounded-full bg-gradient-to-br from-red-50 to-orange-50 px-2 py-0.5 text-[10px] font-black text-red-700 ring-1 ring-red-200 dark:from-red-950/40 dark:to-orange-950/30 dark:text-red-300 dark:ring-red-800/60">
+              <span className="rounded-full bg-gradient-to-br from-red-50 to-slate-50 px-2 py-0.5 text-[10px] font-black text-red-700 ring-1 ring-red-200 dark:from-red-950/40 dark:to-orange-950/30 dark:text-red-300 dark:ring-red-800/60">
                 {entry.punishmentProvision}
               </span>
             </div>
@@ -1829,7 +1831,7 @@ function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig })
             onClick={() => setOffencesOpen((open) => !open)}
             className={`flex w-full items-start gap-2.5 bg-gradient-to-br ${t.tintTile} p-3 text-left transition hover:brightness-[1.03]`}
           >
-            <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${t.gradient} text-white shadow-sm`}>
+            <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${t.iconTile}`}>
               <Scale className="h-3.5 w-3.5" />
             </span>
             <span className="min-w-0 flex-1">
@@ -1884,7 +1886,7 @@ function MindMapBranchCard({ node, collapsed, accent = 'sky', onToggle }: { node
         onClick={() => hasChildren && onToggle(node.id)}
         className={`flex w-full items-start gap-2.5 bg-gradient-to-br ${t.tintTile} p-3 text-left transition hover:brightness-[1.03]`}
       >
-        <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${t.gradient} text-white shadow-sm`}>
+        <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${t.iconTile}`}>
           <Network className="h-3.5 w-3.5" />
         </span>
         <span className="min-w-0 flex-1">

@@ -49,7 +49,7 @@ export function KnowledgeDashboard() {
       )}
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <ModernStatCard label="Total Documents" value={stats?.totalDocuments ?? 0} icon={FileText} gradient="from-emerald-500 to-teal-600" />
+        <ModernStatCard label="Total Documents" value={stats?.totalDocuments ?? 0} icon={FileText} gradient="from-emerald-500 to-emerald-600" />
         <ModernStatCard label="Active" value={stats?.activeDocuments ?? 0} icon={CheckCircle2} gradient="from-green-500 to-emerald-600" />
         <ModernStatCard label="Processing" value={stats?.processing ?? 0} icon={Loader2} gradient="from-blue-500 to-cyan-600" />
         <ModernStatCard label="Failed" value={stats?.failed ?? 0} icon={AlertTriangle} gradient="from-red-500 to-rose-600" />

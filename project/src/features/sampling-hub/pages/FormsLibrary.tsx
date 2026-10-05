@@ -43,7 +43,7 @@ async function withNetworkRetry<T>(fn: () => PromiseLike<T>, retries = 3): Promi
   }
 }
 
-export function StatutoryForms() {
+export function FormsLibrary() {
   const { isAdminUser } = useAuth();
   const { t } = useLanguage();
   const [forms, setForms] = useState<FormDownload[]>([]);
@@ -235,14 +235,14 @@ export function StatutoryForms() {
     <div className="mx-auto w-full max-w-7xl space-y-4">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 p-4 shadow-md dark:border-emerald-800/50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-emerald-900/30 md:flex-row md:items-end md:justify-between">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-400" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400" />
         <div>
           <h1 className="mt-1 text-2xl font-black tracking-tight text-emerald-950 dark:text-emerald-50">
-            {t('Statutory Forms', 'Statutory Forms')}
+            {t('Forms & Library', 'ఫారాలు & లైబ్రరీ')}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-slate-300">
             {t(
-              'Files uploaded here appear on the public Statutory Forms page before login.',
+              'Files uploaded here appear on the public Forms & Library page before login.',
               'చట్టబద్ధ ఫారాలు మరియు టెంప్లేట్లను అప్లోడ్, సవరించు, తొలగించు, చూడండి మరియు డౌన్‌లోడ్ చేయండి.'
             )}
           </p>
@@ -252,10 +252,10 @@ export function StatutoryForms() {
           {isAdminUser && (
             <button
               onClick={openAddForm}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-950/20 transition hover:from-emerald-900 hover:to-emerald-800 hover:shadow-lg"
             >
               <Plus className="h-5 w-5" />
-              {t('Upload Statutory Form', 'Upload Statutory Form')}
+              {t('Upload Form', 'Upload Form')}
             </button>
           )}
         </div>
@@ -267,29 +267,32 @@ export function StatutoryForms() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {folders.map((folder) => (
           <button
             key={folder.id}
             type="button"
             onClick={() => setSelectedFolder(folder.id)}
-            className={`rounded-lg border px-2.5 py-2 text-left transition ${
+            className={`relative overflow-hidden rounded-2xl border p-3.5 text-left transition-all duration-200 ${
               selectedFolder === folder.id
-                ? 'border-emerald-300 bg-emerald-700 text-white shadow-md shadow-emerald-900/10'
-                : 'border-gray-100 bg-white text-gray-900 shadow-sm hover:border-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
+                ? 'border-emerald-700 bg-gradient-to-br from-emerald-800 to-emerald-900 text-white shadow-md shadow-emerald-950/20'
+                : 'border-slate-200/90 bg-white text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100'
             }`}
           >
+            {selectedFolder === folder.id && (
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-gold-400 via-gold-300 to-gold-400" />
+            )}
             <div className="flex items-center justify-between gap-2">
-              <div className={`rounded-md p-2 ${selectedFolder === folder.id ? 'bg-white/15' : 'bg-slate-100'}`}>
-                <Folder className={`h-4 w-4 ${selectedFolder === folder.id ? 'text-white' : 'text-slate-600'}`} />
+              <div className={`rounded-xl p-2.5 ${selectedFolder === folder.id ? 'bg-white/15 text-white' : 'bg-emerald-50 text-emerald-800 dark:bg-slate-800 dark:text-emerald-300'}`}>
+                <Folder className="h-4 w-4" />
               </div>
-              <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${
-                selectedFolder === folder.id ? 'bg-white/15 text-white' : 'bg-gray-100 text-gray-700'
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                selectedFolder === folder.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
               }`}>
                 {folderCounts[folder.id] || 0}
               </span>
             </div>
-            <h2 className="mt-1.5 truncate text-sm font-black">{t(folder.label, folder.telugu)}</h2>
+            <h2 className="mt-2.5 truncate text-sm font-black font-[var(--font-heading)]">{t(folder.label, folder.telugu)}</h2>
           </button>
         ))}
       </div>
@@ -300,7 +303,7 @@ export function StatutoryForms() {
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-black text-gray-950 dark:text-white">
-                  {editingFormId ? t('Edit Statutory Form', 'Edit Statutory Form') : t('Upload Statutory Form', 'Upload Statutory Form')}
+                  {editingFormId ? t('Edit Form', 'Edit Form') : t('Upload Form', 'Upload Form')}
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-slate-400">{t('This will be visible to the public on the login page.', 'This will be visible to the public on the login page.')}</p>
               </div>
@@ -331,7 +334,7 @@ export function StatutoryForms() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('Statutory section', 'Statutory section')}</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('Category', 'వర్గం')}</label>
                 <select
                   value={newForm.category}
                   onChange={(e) => setNewForm({ ...newForm, category: e.target.value })}
@@ -391,28 +394,28 @@ export function StatutoryForms() {
         </div>
       )}
 
-      <section className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <div className="mb-3">
-          <h2 className="text-xl font-black text-gray-950 dark:text-white">{t(activeFolder.label, activeFolder.telugu)}</h2>
-          <p className="text-sm text-gray-500 dark:text-slate-300">
+      <section className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-4">
+          <h2 className="text-xl font-black text-slate-900 dark:text-white font-[var(--font-heading)]">{t(activeFolder.label, activeFolder.telugu)}</h2>
+          <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
             {selectedForms.length} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
           </p>
         </div>
 
         {selectedForms.length > 0 ? (
-          <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-slate-700">
+          <div className="overflow-x-auto rounded-xl border border-slate-200/80 dark:border-slate-700/80">
             <table className="min-w-[720px] w-full border-collapse text-left">
-              <thead className="bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+              <thead className="bg-slate-50 text-xs font-black uppercase tracking-wider text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                 <tr>
-                  <th className="w-20 px-3 py-2.5">{t('S.No.', 'S.No.')}</th>
-                  <th className="px-3 py-2.5">{t('Proforma / Form Name', 'Proforma / Form Name')}</th>
-                  <th className="w-36 px-3 py-2.5">{t('Date', 'తేదీ')}</th>
-                  <th className="w-36 px-3 py-2.5 text-right">{t('Action', 'చర్య')}</th>
+                  <th className="w-20 px-3.5 py-3">{t('S.No.', 'S.No.')}</th>
+                  <th className="px-3.5 py-3">{t('Proforma / Form Name', 'Proforma / Form Name')}</th>
+                  <th className="w-36 px-3.5 py-3">{t('Date', 'తేదీ')}</th>
+                  <th className="w-36 px-3.5 py-3 text-right">{t('Action', 'చర్య')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {selectedForms.map((form, index) => (
-                  <tr key={form.id} className="transition hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                  <tr key={form.id} className="transition hover:bg-emerald-50/40 dark:hover:bg-slate-800/60">
                     <td className="px-3 py-2 text-sm font-bold text-slate-600 dark:text-slate-300">{index + 1}</td>
                     <td className="px-3 py-2">
                       <div className="flex min-w-0 items-center gap-3">

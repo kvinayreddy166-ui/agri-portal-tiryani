@@ -13,13 +13,42 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Brand remap: the app standardised on emerald-* classes; the emerald
+        // scale is re-pointed to a deep leaf-green scale so every emerald
+        // utility resolves to the AGRONIX primary family (#166534 at -800).
+        emerald: {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
+          950: '#052e16',
+        },
+        gold: {
+          50: '#fbf6e9',
+          100: '#f6ebcd',
+          200: '#eed9a0',
+          300: '#e5c166',
+          400: '#deab3a',
+          500: '#d89b18',
+          600: '#b77f14',
+          700: '#8f6113',
+          800: '#6d4a12',
+          900: '#4f350e',
+        },
         agri: {
-          primary: '#0B7A5C',
-          secondary: '#0F9D58',
+          primary: '#166534',
+          secondary: '#15803D',
+          accent: '#D89B18',
           blue: '#2563EB',
           danger: '#DC2626',
-          warning: '#F59E0B',
-          bg: '#F4F8F5',
+          warning: '#D89B18',
+          bg: '#F2F7F3',
           card: '#FFFFFF',
           text: '#0F172A',
           muted: '#64748B',

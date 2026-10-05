@@ -27,7 +27,7 @@ const toneStyles: Record<InspectionTone, ToneStyles> = {
     inputFocus: 'focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100',
     sectionBorder: 'border-emerald-200/60 dark:border-emerald-800/50',
     sectionDivider: 'border-emerald-100 dark:border-emerald-900',
-    badgeGradient: 'from-emerald-500 to-teal-600',
+    badgeGradient: 'from-emerald-500 to-emerald-600',
     chevron: 'text-emerald-700',
     chip: 'border-emerald-100 bg-emerald-50/60 dark:border-emerald-900/50 dark:bg-emerald-950/20',
     chipValue: 'text-emerald-700 dark:text-emerald-300',

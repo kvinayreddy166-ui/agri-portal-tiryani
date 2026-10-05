@@ -217,7 +217,7 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
       {/* Additional SEO */}
       <meta name="keywords" content="Tiryani, AGRONIX, Agriculture Department Tiryani, Kumuram Bheem Asifabad, Telangana Agriculture, Crop Advisory, Weather, Farmer Services, Agriculture Portal, Government Schemes" />
       <meta name="author" content="Department of Agriculture, Telangana" />
-      <meta name="theme-color" content="#0f766e" />
+      <meta name="theme-color" content="#15803d" />
       
       {/* Structured Data */}
       <script type="application/ld+json">

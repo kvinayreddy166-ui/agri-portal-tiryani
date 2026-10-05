@@ -100,22 +100,63 @@
 @tailwind utilities;
 
 :root {
-  --font-heading: "Inter", "Noto Sans Telugu", "Nirmala UI", "Gautami", system-ui, sans-serif;
+  /* Typography — Atkinson Hyperlegible Next for headings, Inter for body */
+  --font-heading: "Atkinson Hyperlegible Next", "Inter", "Noto Sans Telugu", "Nirmala UI", "Gautami", system-ui, sans-serif;
   --font-body: "Inter", "Noto Sans Telugu", "Nirmala UI", "Gautami", system-ui, sans-serif;
-  --agri-primary: #0b7a5c;
-  --agri-secondary: #0f9d58;
+
+  /* Brand: deep leaf green + marigold gold accent */
+  --primary: #166534;
+  --primary-hover: #14532d;
+  --primary-soft: #dcfce7;
+  --primary-dark: #052e16;
+  --accent: #d89b18;
+  --accent-soft: #fbf3dd;
+
+  --background: #f2f7f3;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+
+  --border: rgba(15, 23, 42, 0.09);
+  --border-subtle: rgba(15, 23, 42, 0.06);
+
+  --success: #16a34a;
+  --warning: #d89b18;
+  --error: #dc2626;
+  --info: #2563eb;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 2px 10px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Legacy aliases kept for existing component classes */
+  --agri-primary: #166534;
+  --agri-secondary: #15803d;
+  --agri-accent: #d89b18;
   --agri-blue: #2563eb;
   --agri-danger: #dc2626;
-  --agri-warning: #f59e0b;
-  --agri-bg: #f4f8f5;
+  --agri-warning: #d89b18;
+  --agri-bg: #f2f7f3;
   --agri-card: #ffffff;
   --agri-text: #0f172a;
   --agri-muted: #64748b;
-  --agri-border: rgba(15, 23, 42, 0.08);
+  --agri-border: rgba(15, 23, 42, 0.09);
   --agri-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
   --agri-radius: 16px;
   --agri-radius-mobile: 14px;
-  --agri-focus: 0 0 0 4px rgba(11, 122, 92, 0.14);
+  --agri-focus: 0 0 0 4px rgba(22, 101, 52, 0.14);
 }
 
 html,
@@ -185,8 +226,8 @@ textarea {
 }
 
 .dark .stat-card {
-  border-color: rgba(15, 157, 88, 0.25);
-  background: linear-gradient(135deg, #0f172a 0%, rgba(15, 157, 88, 0.14) 100%);
+  border-color: rgba(22, 101, 52, 0.25);
+  background: linear-gradient(135deg, #0f172a 0%, rgba(22, 101, 52, 0.14) 100%);
   color: #e2e8f0;
 }
 
@@ -242,7 +283,7 @@ main,
 
   .table-scroll th,
   .overflow-x-auto > table th {
-    background: #0f172a;
+    background: #14532d;
     color: #ffffff;
     font-size: 0.75rem;
     font-weight: 800;
@@ -258,12 +299,12 @@ main,
 
   .table-scroll tbody tr:nth-child(even),
   .overflow-x-auto > table tbody tr:nth-child(even) {
-    background: rgba(244, 248, 245, 0.75);
+    background: rgba(242, 247, 243, 0.75);
   }
 
   .table-scroll tbody tr:hover,
   .overflow-x-auto > table tbody tr:hover {
-    background: rgba(15, 157, 88, 0.08);
+    background: rgba(22, 101, 52, 0.07);
   }
 
   .portal-card {
@@ -307,21 +348,22 @@ main,
   }
 
   .modern-card {
-    border-radius: 1.5rem;
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    background: linear-gradient(135deg, #ffffff 0%, rgba(16, 185, 129, 0.03) 100%);
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+    border-radius: 1.25rem;
+    border: 1px solid rgba(22, 101, 52, 0.16);
+    background: linear-gradient(135deg, #ffffff 0%, rgba(22, 101, 52, 0.03) 100%);
+    box-shadow: 0 4px 20px rgba(22, 101, 52, 0.07);
     transition: all 0.3s ease;
   }
 
   .modern-card:hover {
-    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.12);
+    border-color: rgba(22, 101, 52, 0.28);
+    box-shadow: 0 8px 30px rgba(22, 101, 52, 0.11);
     transform: translateY(-2px);
   }
 
   .dark .modern-card {
-    border-color: rgba(16, 185, 129, 0.3);
-    background: linear-gradient(135deg, #0f172a 0%, rgba(16, 185, 129, 0.08) 100%);
+    border-color: rgba(74, 222, 128, 0.25);
+    background: linear-gradient(135deg, #0f172a 0%, rgba(22, 101, 52, 0.12) 100%);
     box-shadow: 0 4px 20px rgba(2, 6, 23, 0.4);
   }
 
@@ -353,23 +395,34 @@ main,
 
   .stat-card {
     border-radius: var(--agri-radius);
-    border: 1px solid rgba(15, 157, 88, 0.16);
-    background: linear-gradient(135deg, #ffffff 0%, rgba(15, 157, 88, 0.08) 100%);
+    border: 1px solid rgba(22, 101, 52, 0.14);
+    background: linear-gradient(135deg, #ffffff 0%, rgba(22, 101, 52, 0.07) 100%);
     box-shadow: var(--agri-shadow);
     padding: 1rem;
     transition: all 0.3s ease;
   }
 
   .modern-stat-card {
-    border-radius: 1.5rem;
-    border: 1px solid rgba(16, 185, 129, 0.25);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);
+    position: relative;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(22, 101, 52, 0.2);
+    box-shadow: 0 4px 15px rgba(22, 101, 52, 0.09);
     transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .modern-stat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--agri-accent) 0%, rgba(216, 155, 24, 0.25) 100%);
   }
 
   .modern-stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+    box-shadow: 0 8px 25px rgba(22, 101, 52, 0.14);
   }
 
   .filter-panel {
@@ -410,12 +463,12 @@ main,
   }
 
   .modern-action-button {
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+    box-shadow: 0 2px 8px rgba(22, 101, 52, 0.15);
     transition: all 0.2s ease;
   }
 
   .modern-action-button:hover {
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
     transform: translateY(-1px);
   }
 
@@ -426,7 +479,7 @@ main,
     align-items: center;
     justify-content: center;
     border-radius: 0.75rem;
-    border: 1px solid rgba(11, 122, 92, 0.2);
+    border: 1px solid rgba(22, 101, 52, 0.2);
     background: #ffffff;
     color: var(--agri-primary);
     font-weight: 900;
@@ -434,8 +487,8 @@ main,
   }
 
   .icon-action:hover {
-    border-color: rgba(11, 122, 92, 0.42);
-    background: rgba(236, 253, 245, 0.92);
+    border-color: rgba(22, 101, 52, 0.42);
+    background: rgba(220, 252, 231, 0.9);
   }
 
   .icon-action:active {
@@ -457,19 +510,28 @@ main,
 
   .filter-select:focus {
     border-color: var(--agri-primary);
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.14);
+    box-shadow: 0 0 0 4px rgba(22, 101, 52, 0.14);
   }
 
   .action-button-primary {
     border: 1px solid var(--agri-primary);
-    background: var(--agri-primary);
+    background: linear-gradient(180deg, #15803d 0%, var(--agri-primary) 100%);
     color: #ffffff;
   }
 
+  .action-button-primary:hover {
+    background: linear-gradient(180deg, var(--agri-primary) 0%, #14532d 100%);
+  }
+
   .action-button-secondary {
-    border: 1px solid rgba(11, 122, 92, 0.25);
+    border: 1px solid rgba(22, 101, 52, 0.28);
     background: #ffffff;
     color: var(--agri-primary);
+  }
+
+  .action-button-secondary:hover {
+    background: rgba(220, 252, 231, 0.55);
+    border-color: rgba(22, 101, 52, 0.45);
   }
 
   .action-button-danger {
@@ -659,17 +721,17 @@ button {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #eef4ef;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: #b9d2c0;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: #8fb89b;
 }
 
 /* Line clamp utility */
@@ -687,7 +749,7 @@ button {
 
 /* Focus visible */
 :focus-visible {
-  outline: 2px solid #059669;
+  outline: 2px solid #166534;
   outline-offset: 2px;
 }
 
@@ -818,17 +880,17 @@ button {
   0% {
     opacity: 0;
     transform: translateY(12px) scale(0.86) rotate(-2deg);
-    filter: drop-shadow(0 0 0 rgba(4, 120, 87, 0));
+    filter: drop-shadow(0 0 0 rgba(22, 101, 52, 0));
   }
   55% {
     opacity: 1;
     transform: translateY(-3px) scale(1.08) rotate(1deg);
-    filter: drop-shadow(0 12px 18px rgba(4, 120, 87, 0.22));
+    filter: drop-shadow(0 12px 18px rgba(22, 101, 52, 0.22));
   }
   100% {
     opacity: 1;
     transform: translateY(0) scale(1) rotate(0);
-    filter: drop-shadow(0 8px 14px rgba(4, 120, 87, 0.16));
+    filter: drop-shadow(0 8px 14px rgba(22, 101, 52, 0.16));
   }
 }
 
@@ -897,12 +959,12 @@ button {
 
 @keyframes pulse-border {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
-    border-color: rgb(16, 185, 129);
+    box-shadow: 0 0 0 0 rgba(22, 101, 52, 0.4);
+    border-color: rgb(22, 163, 74);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
-    border-color: rgb(5, 150, 105);
+    box-shadow: 0 0 0 8px rgba(22, 101, 52, 0);
+    border-color: rgb(21, 128, 61);
   }
 }
 

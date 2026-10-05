@@ -60,7 +60,7 @@ export const OfflineScreen = React.memo(function OfflineScreen() {
   if (online) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-[#eef6f0] p-6 text-center dark:bg-slate-950">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-[#f2f7f3] p-6 text-center dark:bg-slate-950">
       <div
         className={`flex max-w-md flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
           visible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-10 scale-95 opacity-0'

@@ -98,7 +98,8 @@ export function Login() {
   const [grievanceOpen, setGrievanceOpen] = useState(false);
   const [grievanceStatus, setGrievanceStatus] = useState<string | null>(null);
   const showOfficerToolkit = location.pathname === '/officer-toolkit';
-  const showStatutoryForms = location.pathname === '/officer-toolkit/statutory-forms';
+  const showStatutoryForms = location.pathname === '/officer-toolkit/smart-sampling' || location.pathname === '/officer-toolkit/sampling-hub' || location.pathname === '/officer-toolkit/statutory-forms';
+  const showFormsLibrary = location.pathname === '/officer-toolkit/forms-library';
   const calculatorOpen = location.pathname === '/officer-toolkit/acreage-calculator';
   const fertilizerCalculatorOpen = location.pathname === '/officer-toolkit/fertilizer-calculator';
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -244,7 +245,7 @@ export function Login() {
         setInstallMessage(
           choice.outcome === 'accepted'
             ? t('Installing app...', 'Installing app...')
-            : t('Install cancelled. Tap Install App again when the browser prompt is available.', 'à°‡à°¨à±â€Œà°¸à±à°Ÿà°¾à°²à± à°°à°¦à±à°¦à± à°šà±‡à°¯à°¬à°¡à°¿à°‚à°¦à°¿. à°¬à±à°°à±Œà°œà°°à± à°ªà±à°°à°¾à°‚à°ªà±à°Ÿà± à°…à°‚à°¦à±à°¬à°¾à°Ÿà±à°²à±‹ à°‰à°¨à±à°¨à°ªà±à°ªà±à°¡à± à°®à°³à±à°²à±€ Install App à°¨à±Šà°•à±à°•à°‚à°¡à°¿.')
+            : t('Install cancelled. Tap Install App again when the browser prompt is available.', 'ఇన్‌స్టాల్ రద్దు చేయబడింది. బ్రౌజర్ ప్రాంప్ట్ అందుబాటులో ఉన్నప్పుడు మళ్లీ Install App నొక్కండి.')
         );
       } catch {
         setInstallMessage(t('Use your browser menu and choose Install app.', 'బ్రౌజర్ మెనూలో Install app ఎంచుకోండి.'));
@@ -261,7 +262,7 @@ export function Login() {
 
     const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
     if (!isIos) {
-      setInstallMessage(t('Use your browser menu and choose Install app. If it is not visible, refresh once and tap Install App again.', 'à°¬à±à°°à±Œà°œà°°à± à°®à±†à°¨à±‚à°²à±‹ Install app à°Žà°‚à°šà±à°•à±‹à°‚à°¡à°¿. à°•à°¨à°¿à°ªà°¿à°‚à°šà°•à°ªà±‹à°¤à±‡ à°’à°•à°¸à°¾à°°à°¿ à°°à°¿à°«à±à°°à±†à°·à± à°šà±‡à°¸à°¿ à°®à°³à±à°²à±€ Install App à°¨à±Šà°•à±à°•à°‚à°¡à°¿.'));
+      setInstallMessage(t('Use your browser menu and choose Install app. If it is not visible, refresh once and tap Install App again.', 'బ్రౌజర్ మెనూలో Install app ఎంచుకోండి. కనిపించకపోతే ఒకసారి రిఫ్రెష్ చేసి మళ్లీ Install App నొక్కండి.'));
       return;
     }
 
@@ -275,7 +276,7 @@ export function Login() {
   }
 
 
-  if (showStatutoryForms || calculatorOpen || fertilizerCalculatorOpen) {
+  if (showStatutoryForms || showFormsLibrary || calculatorOpen || fertilizerCalculatorOpen) {
     return <PublicOfficerTools />;
   }
 
@@ -283,13 +284,13 @@ export function Login() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
       <UpdateBanner />
 
-      <aside className="relative hidden flex-col justify-between overflow-hidden bg-emerald-600 p-10 text-white lg:flex xl:p-14">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-500 via-emerald-600 to-green-800" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-emerald-200/25" />
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-emerald-950 p-10 text-white lg:flex xl:p-14">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-gold-300/10" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.12] [background-image:radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:22px_22px]" />
-        <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-sky-300/30 blur-3xl dashboard-float" />
-        <div className="pointer-events-none absolute -bottom-28 -left-20 h-96 w-96 rounded-full bg-emerald-300/35 blur-3xl dashboard-float" style={{ animationDelay: '1.5s' }} />
-        <div className="pointer-events-none absolute right-10 top-1/2 h-44 w-44 rounded-full bg-green-300/30 blur-3xl dashboard-float" style={{ animationDelay: '2.5s' }} />
+        <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-gold-400/20 blur-3xl dashboard-float" />
+        <div className="pointer-events-none absolute -bottom-28 -left-20 h-96 w-96 rounded-full bg-emerald-400/15 blur-3xl dashboard-float" style={{ animationDelay: '1.5s' }} />
+        <div className="pointer-events-none absolute right-10 top-1/2 h-44 w-44 rounded-full bg-gold-300/15 blur-3xl dashboard-float" style={{ animationDelay: '2.5s' }} />
         <div className="pointer-events-none absolute -left-40 top-1/2 h-[28rem] w-[28rem] -translate-y-1/2 rounded-full border border-white/10" />
         <div className="pointer-events-none absolute -left-24 top-1/2 h-[18rem] w-[18rem] -translate-y-1/2 rounded-full border border-white/10" />
         <div className="relative flex items-center gap-3">
@@ -298,7 +299,7 @@ export function Login() {
           </div>
           <div>
             <h2 className="text-2xl font-bold tracking-tight font-[var(--font-stylish)]">AGRONIX</h2>
-            <p className="text-xs text-emerald-200">
+            <p className="text-xs text-gold-200">
               {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
             </p>
           </div>
@@ -312,20 +313,20 @@ export function Login() {
           </p>
           <ul className="max-w-md space-y-3 text-sm font-medium text-white">
             <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-emerald-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30 transition group-hover:scale-105">
-                <FileText className="h-4 w-4 text-white" />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold-300/15 ring-1 ring-gold-200/30 transition group-hover:scale-105">
+                <FileText className="h-4 w-4 text-gold-100" />
               </span>
-              <span>{t('Statutory forms & covering letters', 'చట్టబద్ధ ఫారాలు & కవరింగ్ లెటర్లు')}</span>
+              <span>{t('Sampling forms & covering letters', 'నమూనా ఫారాలు & కవరింగ్ లెటర్లు')}</span>
             </li>
             <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-emerald-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30 transition group-hover:scale-105">
-                <ShieldCheck className="h-4 w-4 text-white" />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold-300/15 ring-1 ring-gold-200/30 transition group-hover:scale-105">
+                <ShieldCheck className="h-4 w-4 text-gold-100" />
               </span>
               <span>{t('Inspection & enforcement toolkit', 'తనిఖీ & అమలు టూల్‌కిట్')}</span>
             </li>
             <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-emerald-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30 transition group-hover:scale-105">
-                <Sprout className="h-4 w-4 text-emerald-100" />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold-300/15 ring-1 ring-gold-200/30 transition group-hover:scale-105">
+                <Sprout className="h-4 w-4 text-gold-100" />
               </span>
               <span>{t('Seed, fertilizer & pesticide workflows', 'విత్తన, ఎరువు & పురుగుమందు పనిప్రవాహాలు')}</span>
             </li>
@@ -338,13 +339,13 @@ export function Login() {
       </aside>
 
       <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-emerald-50 to-green-100 p-4 pb-28 dark:from-slate-950 dark:via-emerald-950/50 dark:to-emerald-950/70 sm:pb-24 lg:min-h-0 lg:p-8">
-      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-green-300/40 blur-3xl dark:bg-emerald-500/10" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-gold-300/30 blur-3xl dark:bg-emerald-500/10" />
       <div className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-emerald-300/35 blur-3xl dashboard-float dark:bg-emerald-500/10" />
-      <div className="pointer-events-none absolute right-1/4 top-1/3 h-40 w-40 rounded-full bg-green-300/30 blur-3xl dashboard-float dark:bg-green-500/10" style={{ animationDelay: '2s' }} />
+      <div className="pointer-events-none absolute right-1/4 top-1/3 h-40 w-40 rounded-full bg-gold-300/25 blur-3xl dashboard-float dark:bg-green-500/10" style={{ animationDelay: '2s' }} />
       <div className="flex flex-1 items-center justify-center">
       <div className="relative w-full max-w-[28rem]">
         <section className="relative flex flex-col justify-start overflow-hidden rounded-[28px] border border-white/80 bg-white/90 p-6 shadow-2xl shadow-emerald-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl animate-fadeIn dark:border-slate-800 dark:bg-slate-900/85 dark:ring-white/5 sm:p-10">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-800 via-gold-400 to-emerald-800" />
           <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
             <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
           </div>
@@ -358,7 +359,7 @@ export function Login() {
                   {t('AGRONIX', 'AGRONIX')}
                 </h2>
                 <p className="mt-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                  {t('Information Management System', 'à°¸à°®à°¾à°šà°¾à°° à°¨à°¿à°°à±à°µà°¹à°£ à°µà±à°¯à°µà°¸à±à°¥')}
+                  {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
                 </p>
               </div>
             </div>
@@ -366,9 +367,9 @@ export function Login() {
             <button
               type="button"
               onClick={openOfficerToolkit}
-              className="group mb-5 flex w-full animate-slide-up items-center gap-3 rounded-2xl border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 via-green-50/80 to-emerald-50 px-3.5 py-3 text-left shadow-sm transition delay-100 hover:-translate-y-px hover:border-emerald-400 hover:from-emerald-100/80 hover:to-green-100/70 hover:shadow-md hover:shadow-emerald-500/10 active:translate-y-0 active:scale-[0.99] dark:border-emerald-500/50 dark:from-emerald-950/50 dark:via-green-950/40 dark:to-emerald-950/50 dark:hover:border-emerald-400"
+              className="group mb-5 flex w-full animate-slide-up items-center gap-3 rounded-2xl border-2 lg:mt-12 border-emerald-300 bg-gradient-to-r from-emerald-50 via-green-50/80 to-emerald-50 px-3.5 py-3 text-left shadow-sm transition delay-100 hover:-translate-y-px hover:border-emerald-400 hover:from-emerald-100/80 hover:to-green-100/70 hover:shadow-md hover:shadow-emerald-500/10 active:translate-y-0 active:scale-[0.99] dark:border-emerald-500/50 dark:from-emerald-950/50 dark:via-green-950/40 dark:to-emerald-950/50 dark:hover:border-emerald-400 lg:mt-12"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-100 transition group-hover:scale-105 dark:bg-slate-800 dark:text-emerald-300 dark:ring-emerald-500/30">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-emerald-900 text-gold-300 shadow-md shadow-emerald-900/25 transition group-hover:scale-105">
                 <ShieldCheck className="h-[18px] w-[18px]" />
               </span>
               <span className="min-w-0 flex-1">
@@ -382,14 +383,14 @@ export function Login() {
               <button
                 type="button"
                 onClick={() => setLoginMode('staff')}
-                className={`rounded-lg px-3 py-2.5 transition-all ${loginMode === 'staff' ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-emerald-300 dark:ring-slate-700' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                className={`rounded-lg px-3 py-2.5 transition-all ${loginMode === 'staff' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
               >
                 {t('Staff / Test', 'సిబ్బంది / పరీక్ష')}
               </button>
               <button
                 type="button"
                 onClick={() => setLoginMode('dealer')}
-                className={`rounded-lg px-3 py-2.5 transition-all ${loginMode === 'dealer' ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-emerald-300 dark:ring-slate-700' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                className={`rounded-lg px-3 py-2.5 transition-all ${loginMode === 'dealer' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
               >
                 {t('Dealer', 'డీలర్')}
               </button>
@@ -414,25 +415,25 @@ export function Login() {
             <form onSubmit={handleSubmit} className="space-y-4 animate-slide-up delay-200">
               {loginMode === 'dealer' ? (
                 <>
-                  <LoginField label={t('Registered phone (Dealers Directory)', 'à°¨à°®à±‹à°¦à±ˆà°¨ à°«à±‹à°¨à± (à°¡à±€à°²à°°à±à°² à°¡à±ˆà°°à±†à°•à±à°Ÿà°°à±€)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
-                  <LoginField label={t('Guest Password', 'à°—à±†à°¸à±à°Ÿà± à°ªà°¾à°¸à±à°µà°°à±à°¡à±')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
+                  <LoginField label={t('Registered phone (Dealers Directory)', 'నమోదైన ఫోన్ (డీలర్ల డైరెక్టరీ)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
+                  <LoginField label={t('Guest Password', 'గెస్ట్ పాస్వర్డ్')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
                   <p className="-mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {t(`Guest password: ${DEALER_DEFAULT_PASSWORD}`, `à°—à±†à°¸à±à°Ÿà± à°ªà°¾à°¸à±à°µà°°à±à°¡à±: ${DEALER_DEFAULT_PASSWORD}`)}
+                    {t(`Guest password: ${DEALER_DEFAULT_PASSWORD}`, `గెస్ట్ పాస్వర్డ్: ${DEALER_DEFAULT_PASSWORD}`)}
                   </p>
                 </>
               ) : (
                 <>
-                  <LoginField label={t('Email Address', 'à°‡à°®à±†à°¯à°¿à°²à± à°šà°¿à°°à±à°¨à°¾à°®à°¾')} icon={<Mail />} type="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'à°‡à°®à±†à°¯à°¿à°²à± à°šà°¿à°°à±à°¨à°¾à°®à°¾ à°¨à°®à±‹à°¦à± à°šà±‡à°¯à°‚à°¡à°¿')} />
-                  <LoginField label={t('Password', 'à°ªà°¾à°¸à±à°µà°°à±à°¡à±')} icon={<LockKeyhole />} type="password" value={password} onChange={setPassword} placeholder={t('Enter password', 'à°ªà°¾à°¸à±à°µà°°à±à°¡à± à°¨à°®à±‹à°¦à± à°šà±‡à°¯à°‚à°¡à°¿')} />
+                  <LoginField label={t('Email Address', 'ఇమెయిల్ చిరునామా')} icon={<Mail />} type="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'ఇమెయిల్ చిరునామా నమోదు చేయండి')} />
+                  <LoginField label={t('Password', 'పాస్వర్డ్')} icon={<LockKeyhole />} type="password" value={password} onChange={setPassword} placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')} />
                 </>
               )}
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0aa775] to-[#1cb454] py-3.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:-translate-y-px hover:from-emerald-600 hover:to-green-600 hover:shadow-xl hover:shadow-emerald-500/35 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/30 active:translate-y-0 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-60"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 py-3.5 font-semibold text-white shadow-lg shadow-emerald-900/25 transition hover:-translate-y-px hover:from-emerald-600 hover:via-emerald-700 hover:to-emerald-800 hover:shadow-xl hover:shadow-emerald-900/35 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/30 active:translate-y-0 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-60"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : loginMode === 'dealer' ? <Store className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
-                {loading ? t('Signing in...', 'à°²à°¾à°—à°¿à°¨à± à°…à°µà±à°¤à±‹à°‚à°¦à°¿...') : loginMode === 'dealer' ? t('Dealer Sign In', 'à°¡à±€à°²à°°à± à°²à°¾à°—à°¿à°¨à±') : t('Sign In', 'à°²à°¾à°—à°¿à°¨à±')}
+                {loading ? t('Signing in...', 'లాగిన్ అవుతోంది...') : loginMode === 'dealer' ? t('Dealer Sign In', 'డీలర్ లాగిన్') : t('Sign In', 'లాగిన్')}
               </button>
             </form>
 
@@ -452,7 +453,7 @@ export function Login() {
       <button
         type="button"
         onClick={handleInstallApp}
-        className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-gradient-to-r from-[#0aa775] to-[#1cb454] px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-emerald-500/25 ring-1 ring-white/10 backdrop-blur transition hover:-translate-y-0.5 hover:from-emerald-600 hover:to-green-600"
+        className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-emerald-900/30 ring-1 ring-white/10 backdrop-blur transition hover:-translate-y-0.5 hover:from-emerald-600 hover:via-emerald-700 hover:to-emerald-800"
       >
         <Smartphone className="h-5 w-5" />
         Install App
@@ -469,10 +470,10 @@ export function Login() {
       <button
         type="button"
         onClick={openGrievance}
-        className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#0aa775] to-[#1cb454] px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-emerald-500/25 ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:from-emerald-600 hover:to-green-600"
+        className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-emerald-900/30 ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:from-emerald-600 hover:via-emerald-700 hover:to-emerald-800"
       >
         <MessageSquareText className="h-5 w-5" />
-        {t('Grievances', 'à°«à°¿à°°à±à°¯à°¾à°¦à±à°²à±')}
+        {t('Grievances', 'ఫిర్యాదులు')}
       </button>
 
       {grievanceOpen && (
@@ -481,20 +482,20 @@ export function Login() {
             <div className="mb-4 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-black text-emerald-900 dark:text-emerald-200">
                 <MessageSquareText className="h-5 w-5" />
-                {t('Farmer Grievance', 'à°°à±ˆà°¤à± à°«à°¿à°°à±à°¯à°¾à°¦à±')}
+                {t('Farmer Grievance', 'రైతు ఫిర్యాదు')}
               </h3>
               <button type="button" onClick={grievanceOverlay.closeOverlay} className="rounded-lg p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <form onSubmit={handleGrievanceSubmit} className="space-y-4">
-              <p className="text-sm font-black text-slate-900 dark:text-white">{t('Farmer details', 'à°°à±ˆà°¤à± à°µà°¿à°µà°°à°¾à°²à±')}</p>
+              <p className="text-sm font-black text-slate-900 dark:text-white">{t('Farmer details', 'రైతు వివరాలు')}</p>
               <div className="grid gap-4 sm:grid-cols-2">
-                <input value={grievance.farmer_name} onChange={(e) => setGrievance({ ...grievance, farmer_name: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Farmer name', 'à°°à±ˆà°¤à± à°ªà±‡à°°à±')} required />
-                <input value={grievance.mobile} onChange={(e) => setGrievance({ ...grievance, mobile: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Mobile number', 'à°®à±Šà°¬à±ˆà°²à± à°¨à°‚à°¬à°°à±')} required />
+                <input value={grievance.farmer_name} onChange={(e) => setGrievance({ ...grievance, farmer_name: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Farmer name', 'రైతు పేరు')} required />
+                <input value={grievance.mobile} onChange={(e) => setGrievance({ ...grievance, mobile: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Mobile number', 'మొబైల్ నంబర్')} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <input type="email" value={grievance.email} onChange={(e) => setGrievance({ ...grievance, email: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Email (optional)', 'à°‡à°®à±†à°¯à°¿à°²à± (à°à°šà±à°šà°¿à°•à°‚)')} />
+                <input type="email" value={grievance.email} onChange={(e) => setGrievance({ ...grievance, email: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Email (optional)', 'ఇమెయిల్ (ఐచ్చికం)')} />
                 <select value={grievance.district} onChange={(e) => setGrievance({ ...grievance, district: e.target.value, mandal: '' })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
                   {TELANGANA_DISTRICTS.map((district) => (
                     <option key={district} value={district}>{district}</option>
@@ -509,21 +510,21 @@ export function Login() {
                 </select>
               </div>
 
-              <p className="pt-2 text-sm font-black text-slate-900 dark:text-white">{t('Complaint details', 'à°«à°¿à°°à±à°¯à°¾à°¦à± à°µà°¿à°µà°°à°¾à°²à±')}</p>
+              <p className="pt-2 text-sm font-black text-slate-900 dark:text-white">{t('Complaint details', 'ఫిర్యాదు వివరాలు')}</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <select value={grievance.issue_type} onChange={(e) => setGrievance({ ...grievance, issue_type: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
-                  <option value="fertilizer">{t('Fertilizer', 'à°Žà°°à±à°µà±à°²à±')}</option>
-                  <option value="seed">{t('Seed', 'à°µà°¿à°¤à±à°¤à°¨à°¾à°²à±')}</option>
-                  <option value="pesticide">{t('Pesticide', 'à°ªà±à°°à±à°—à±à°®à°‚à°¦à±à°²à±')}</option>
-                  <option value="govt_schemes">{t('Govt schemes', 'à°ªà±à°°à°­à±à°¤à±à°µ à°ªà°¥à°•à°¾à°²à±')}</option>
-                  <option value="others">{t('Others', 'à°‡à°¤à°°à±à°²à±')}</option>
+                  <option value="fertilizer">{t('Fertilizer', 'ఎరువులు')}</option>
+                  <option value="seed">{t('Seed', 'విత్తనాలు')}</option>
+                  <option value="pesticide">{t('Pesticide', 'పురుగుమందులు')}</option>
+                  <option value="govt_schemes">{t('Govt schemes', 'ప్రభుత్వ పథకాలు')}</option>
+                  <option value="others">{t('Others', 'ఇతరులు')}</option>
                 </select>
-                <input value={grievance.subject} onChange={(e) => setGrievance({ ...grievance, subject: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Subject', 'à°µà°¿à°·à°¯à°‚')} required />
+                <input value={grievance.subject} onChange={(e) => setGrievance({ ...grievance, subject: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Subject', 'విషయం')} required />
               </div>
-              <textarea value={grievance.description} onChange={(e) => setGrievance({ ...grievance, description: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Description', 'à°µà°¿à°µà°°à°£')} required />
-              <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-700 py-3.5 font-bold text-white shadow-lg">
+              <textarea value={grievance.description} onChange={(e) => setGrievance({ ...grievance, description: e.target.value })} rows={4} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Description', 'వివరణ')} required />
+              <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-900 py-3.5 font-bold text-white shadow-lg shadow-emerald-900/25 transition hover:from-emerald-600 hover:to-emerald-800">
                 <Send className="h-5 w-5" />
-                {t('Submit Complaint', 'à°«à°¿à°°à±à°¯à°¾à°¦à± à°ªà°‚à°ªà°‚à°¡à°¿')}
+                {t('Submit Complaint', 'ఫిర్యాదు పంపండి')}
               </button>
               {grievanceStatus && <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{grievanceStatus}</p>}
             </form>

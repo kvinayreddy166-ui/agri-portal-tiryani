@@ -12,8 +12,8 @@ interface ModernCardProps {
 
 export function ModernCard({
   children,
-  gradient = 'from-emerald-500 to-teal-600',
-  bgGradient = 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
+  gradient = 'from-emerald-500 to-emerald-600',
+  bgGradient = 'from-emerald-50 to-emerald-50 dark:from-emerald-950/30 dark:to-emerald-950/30',
   className = '',
   hover = true,
   delay = 0,
@@ -61,8 +61,8 @@ export function IconCard({
   icon: Icon,
   title,
   description,
-  gradient = 'from-emerald-500 to-teal-600',
-  bgGradient = 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
+  gradient = 'from-emerald-500 to-emerald-600',
+  bgGradient = 'from-emerald-50 to-emerald-50 dark:from-emerald-950/30 dark:to-emerald-950/30',
   onClick,
   delay = 0,
   external = false,
@@ -107,8 +107,8 @@ export function ModernStatCard({
   label,
   value,
   helper,
-  gradient = 'from-emerald-500 to-teal-600',
-  bgGradient = 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
+  gradient = 'from-emerald-500 to-emerald-600',
+  bgGradient = 'from-emerald-50 to-emerald-50 dark:from-emerald-950/30 dark:to-emerald-950/30',
   icon: Icon,
   delay = 0,
 }: StatCardProps) {

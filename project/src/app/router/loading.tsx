@@ -12,7 +12,7 @@ export function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] p-6 text-center dark:bg-slate-950">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#f2f7f3] p-6 text-center dark:bg-slate-950">
       {!hideLogo && <PortalLogo size="xl" />}
       <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
       {!hideLogo && (
@@ -120,7 +120,7 @@ class LazyLoadBoundary extends Component<LazyLoadBoundaryProps, LazyLoadBoundary
 
     if (this.state.showUpdateScreen) {
       return (
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#eef6f0] p-6 text-center">
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#f2f7f3] p-6 text-center">
           <PortalLogo size="lg" />
           <div className="mt-8 max-w-md">
             <h1 className="text-2xl font-black text-slate-900">
@@ -146,7 +146,7 @@ class LazyLoadBoundary extends Component<LazyLoadBoundaryProps, LazyLoadBoundary
 
     // Non-recoverable errors show a generic error message without technical details
     return (
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] p-6 text-center dark:bg-slate-950">
+      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#f2f7f3] p-6 text-center dark:bg-slate-950">
         <PortalLogo size="xl" />
         <div className="max-w-md rounded-2xl border border-red-200 bg-white/95 p-5 shadow-sm dark:border-red-900 dark:bg-slate-900">
           <h2 className="text-base font-black text-slate-950 dark:text-white">Something went wrong</h2>
@@ -185,8 +185,8 @@ export function PublicReadOnlyShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#eef6f0] dark:bg-slate-950">
-      <header className="sticky top-0 z-40 border-b border-emerald-800/20 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-700 text-white shadow-lg">
+    <div className="min-h-screen bg-[#f2f7f3] dark:bg-slate-950">
+      <header className="sticky top-0 z-40 border-b border-emerald-800/20 bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-700 text-white shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
             <PortalLogo size="sm" />

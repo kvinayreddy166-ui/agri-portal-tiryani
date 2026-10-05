@@ -72,11 +72,11 @@ const TONE_STYLES: Record<
     backBtn: 'text-amber-800 hover:text-amber-950 dark:text-amber-200 dark:hover:text-white',
   },
   'teal-indigo': {
-    container: 'border-indigo-300 bg-gradient-to-r from-teal-200 via-cyan-200 to-indigo-200 shadow-md dark:border-indigo-800/50 dark:from-teal-950/40 dark:via-slate-900 dark:to-indigo-950/40',
-    iconBg: 'bg-gradient-to-br from-teal-600 to-indigo-600 text-white',
-    eyebrow: 'text-teal-800 dark:text-teal-300',
+    container: 'border-indigo-300 bg-gradient-to-r from-emerald-200 via-cyan-200 to-indigo-200 shadow-md dark:border-indigo-800/50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-indigo-950/40',
+    iconBg: 'bg-gradient-to-br from-emerald-600 to-indigo-600 text-white',
+    eyebrow: 'text-emerald-800 dark:text-emerald-300',
     title: 'text-indigo-950 dark:text-indigo-50',
-    backBtn: 'text-teal-800 hover:text-indigo-950 dark:text-teal-200 dark:hover:text-white',
+    backBtn: 'text-emerald-800 hover:text-indigo-950 dark:text-emerald-200 dark:hover:text-white',
   },
 };
 
@@ -85,11 +85,11 @@ const SOLID_STYLES: Record<
   { container: string; iconBg: string; eyebrow: string; title: string; backBtn: string }
 > = {
   emerald: {
-    container: 'border-emerald-700/40 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 shadow-lg dark:border-emerald-800/50',
-    iconBg: 'bg-white/20 text-white ring-1 ring-white/30',
-    eyebrow: 'text-emerald-100',
+    container: 'border-emerald-900/40 bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-800 shadow-lg dark:border-emerald-800/50',
+    iconBg: 'bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-sm',
+    eyebrow: 'text-gold-300 font-bold tracking-widest',
     title: 'text-white',
-    backBtn: 'text-white hover:text-white/80',
+    backBtn: 'text-white hover:text-gold-300',
   },
   sky: {
     container: 'border-sky-700/40 bg-gradient-to-br from-sky-600 via-blue-600 to-cyan-700 shadow-lg dark:border-sky-800/50',
@@ -127,22 +127,22 @@ const SOLID_STYLES: Record<
     backBtn: 'text-white hover:text-white/80',
   },
   'teal-indigo': {
-    container: 'border-teal-700/40 bg-gradient-to-br from-teal-600 via-cyan-600 to-indigo-600 shadow-lg dark:border-indigo-800/50',
+    container: 'border-emerald-700/40 bg-gradient-to-br from-emerald-600 via-cyan-600 to-indigo-600 shadow-lg dark:border-indigo-800/50',
     iconBg: 'bg-white/20 text-white ring-1 ring-white/30',
-    eyebrow: 'text-teal-100',
+    eyebrow: 'text-emerald-100',
     title: 'text-white',
     backBtn: 'text-white hover:text-white/80',
   },
 };
 
 const BAR_STYLES: Record<ToolkitHeaderTone, string> = {
-  emerald: 'from-emerald-500 via-green-500 to-teal-400',
+  emerald: 'from-emerald-700 via-gold-400 to-emerald-600',
   sky: 'from-sky-400 via-blue-500 to-cyan-400',
   rose: 'from-rose-500 via-pink-500 to-rose-400',
   lime: 'from-lime-500 via-green-500 to-emerald-400',
   indigo: 'from-indigo-500 via-purple-500 to-fuchsia-400',
   amber: 'from-amber-500 via-orange-500 to-amber-400',
-  'teal-indigo': 'from-teal-500 via-cyan-500 to-indigo-500',
+  'teal-indigo': 'from-emerald-500 via-cyan-500 to-indigo-500',
 };
 
 export function CompactToolkitHeader({

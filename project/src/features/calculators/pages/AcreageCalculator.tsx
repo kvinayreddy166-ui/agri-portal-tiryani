@@ -94,7 +94,7 @@ export function AcreageCalculator() {
             actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
           />
         ) : (
-        <section className="relative rounded-2xl border border-sky-300/60 bg-gradient-to-br from-sky-600 via-cyan-600 to-teal-700 p-4 shadow-lg dark:border-sky-700/60">
+        <section className="relative rounded-2xl border border-sky-300/60 bg-gradient-to-br from-sky-600 via-cyan-600 to-emerald-700 p-4 shadow-lg dark:border-sky-700/60">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
             <div>

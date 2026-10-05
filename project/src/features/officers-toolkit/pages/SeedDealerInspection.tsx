@@ -328,7 +328,7 @@ export function SeedDealerInspection() {
 
   return (
     <InspectionTheme tone="emerald">
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-950">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <ConfirmDialog
         open={confirmAction !== null}

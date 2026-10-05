@@ -412,14 +412,14 @@ export function FieldDiagnosis() {
   };
 
   const stepCard =
-    'rounded-2xl border border-teal-200/60 bg-gradient-to-br from-white to-teal-50/50 p-4 shadow-sm dark:border-teal-900/50 dark:bg-none dark:bg-slate-900 sm:p-5';
+    'rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-white to-emerald-50/50 p-4 shadow-sm dark:border-emerald-900/50 dark:bg-none dark:bg-slate-900 sm:p-5';
   const primaryBtn =
-    'inline-flex items-center justify-center gap-2 rounded-lg bg-teal-700 px-6 py-2.5 text-sm font-black text-white shadow-md transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-40';
+    'inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-6 py-2.5 text-sm font-black text-white shadow-md transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40';
   const ghostBtn =
     'inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800';
 
   const stepBadge = (n: number) => (
-    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-600 text-[11px] font-black text-white">{n}</span>
+    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-black text-white">{n}</span>
   );
 
   const renderStepContent = (s: number) => {
@@ -429,13 +429,13 @@ export function FieldDiagnosis() {
           <div className={stepCard}>
             <div className="mb-3 flex items-center gap-2">
               {stepBadge(1)}
-              <Leaf className="h-4 w-4 text-teal-600" aria-hidden="true" />
+              <Leaf className="h-4 w-4 text-emerald-600" aria-hidden="true" />
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Select Crop</h2>
             </div>
             <select
               value={cropId}
               onChange={(e) => setCropId(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-teal-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               aria-label="Select crop"
             >
               <option value="">Select crop…</option>
@@ -471,7 +471,7 @@ export function FieldDiagnosis() {
                         <button
                           type="button"
                           onClick={() => loadSavedRecord(s)}
-                          className="rounded-md p-1.5 text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/40"
+                          className="rounded-md p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
                           aria-label="Open saved diagnosis"
                         >
                           <Eye className="h-4 w-4" />
@@ -497,7 +497,7 @@ export function FieldDiagnosis() {
           <div className={stepCard}>
             <div className="mb-1 flex items-center gap-2">
               {stepBadge(2)}
-              <Sprout className="h-4 w-4 text-teal-600" aria-hidden="true" />
+              <Sprout className="h-4 w-4 text-emerald-600" aria-hidden="true" />
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Select Growth Stage</h2>
             </div>
             <p className="mb-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
@@ -510,14 +510,14 @@ export function FieldDiagnosis() {
                   <label
                     key={s.code}
                     className={`flex cursor-pointer items-center gap-3 border-b border-slate-100 px-3 py-2.5 transition last:border-b-0 dark:border-slate-800 ${
-                      checked ? 'bg-teal-50 dark:bg-teal-950/40' : 'bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800'
+                      checked ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800'
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggle(stagesSel, s.code, setStagesSel)}
-                      className="h-4 w-4 shrink-0 rounded border-slate-300 accent-teal-600"
+                      className="h-4 w-4 shrink-0 rounded border-slate-300 accent-emerald-600"
                     />
                     <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                       {s.label}
@@ -528,7 +528,7 @@ export function FieldDiagnosis() {
               })}
             </div>
             {stagesSel.length > 0 && (
-              <p className="mt-2 text-[11px] font-bold text-teal-700 dark:text-teal-300">
+              <p className="mt-2 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
                 Selected: {stagesLabel(stagesSel)}
               </p>
             )}
@@ -539,7 +539,7 @@ export function FieldDiagnosis() {
           <div className={stepCard}>
             <div className="mb-1 flex items-center gap-2">
               {stepBadge(3)}
-              <Leaf className="h-4 w-4 text-teal-600" aria-hidden="true" />
+              <Leaf className="h-4 w-4 text-emerald-600" aria-hidden="true" />
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Select Affected Plant Part</h2>
             </div>
             <p className="mb-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
@@ -552,14 +552,14 @@ export function FieldDiagnosis() {
                   <label
                     key={p.code}
                     className={`flex cursor-pointer items-center gap-3 border-b border-slate-100 px-3 py-2.5 transition last:border-b-0 dark:border-slate-800 ${
-                      checked ? 'bg-teal-50 dark:bg-teal-950/40' : 'bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800'
+                      checked ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800'
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggle(parts, p.code, setParts)}
-                      className="h-4 w-4 shrink-0 rounded border-slate-300 accent-teal-600"
+                      className="h-4 w-4 shrink-0 rounded border-slate-300 accent-emerald-600"
                     />
                     <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{p.label}</span>
                   </label>
@@ -567,7 +567,7 @@ export function FieldDiagnosis() {
               })}
             </div>
             {parts.length > 0 && (
-              <p className="mt-2 text-[11px] font-bold text-teal-700 dark:text-teal-300">
+              <p className="mt-2 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
                 Selected: {parts.map(plantPartLabel).join(', ')}
               </p>
             )}
@@ -578,7 +578,7 @@ export function FieldDiagnosis() {
           <div className={stepCard}>
             <div className="mb-1 flex items-center gap-2">
               {stepBadge(4)}
-              <Stethoscope className="h-4 w-4 text-teal-600" aria-hidden="true" />
+              <Stethoscope className="h-4 w-4 text-emerald-600" aria-hidden="true" />
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Select Observed Symptoms</h2>
             </div>
             <p className="mb-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
@@ -598,17 +598,17 @@ export function FieldDiagnosis() {
                     value={symptomQuery}
                     onChange={(e) => setSymptomQuery(e.target.value)}
                     placeholder="Search symptoms…"
-                    className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:border-teal-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                    className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                     aria-label="Search symptoms"
                   />
-                  <span className="shrink-0 rounded-full bg-teal-50 px-2.5 py-1 text-[10px] font-black text-teal-700 dark:bg-teal-950/40 dark:text-teal-300">
+                  <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                     {symptomGroups.reduce((n, g) => n + g.items.length, 0)} shown · {symptomIds.length} selected
                   </span>
                 </div>
                 <div className="grid gap-4">
                   {symptomGroups.map((group) => (
                     <div key={group.code}>
-                      <p className="mb-1.5 text-[10px] font-black uppercase tracking-wide text-teal-700 dark:text-teal-400">
+                      <p className="mb-1.5 text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
                         {plantPartLabel(group.code)}
                       </p>
                       <div className="grid gap-2">
@@ -623,8 +623,8 @@ export function FieldDiagnosis() {
                                 isRuledOut
                                   ? 'border-red-300 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20'
                                   : checked
-                                    ? 'border-teal-600 bg-teal-50 dark:border-teal-500 dark:bg-teal-950/40'
-                                    : 'border-slate-200 bg-white hover:border-teal-300 dark:border-slate-700 dark:bg-slate-900'
+                                    ? 'border-emerald-600 bg-emerald-50 dark:border-emerald-500 dark:bg-emerald-950/40'
+                                    : 'border-slate-200 bg-white hover:border-emerald-300 dark:border-slate-700 dark:bg-slate-900'
                               }`}
                             >
                               <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5">
@@ -639,7 +639,7 @@ export function FieldDiagnosis() {
                                       setRuledOutIds((prev) => prev.filter((id) => id !== s.id));
                                     }
                                   }}
-                                  className="h-4 w-4 shrink-0 rounded border-slate-300 accent-teal-600"
+                                  className="h-4 w-4 shrink-0 rounded border-slate-300 accent-emerald-600"
                                 />
                                 <span className={`flex-1 text-sm font-semibold ${isRuledOut ? 'text-slate-500 line-through dark:text-slate-400' : 'text-slate-800 dark:text-slate-100'}`}>
                                   {s.label}
@@ -701,7 +701,7 @@ export function FieldDiagnosis() {
           <div className={stepCard}>
             <div className="mb-1 flex items-center gap-2">
               {stepBadge(5)}
-              <ClipboardList className="h-4 w-4 text-teal-600" aria-hidden="true" />
+              <ClipboardList className="h-4 w-4 text-emerald-600" aria-hidden="true" />
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Additional Details</h2>
             </div>
             <p className="mb-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Select symptom characteristics</p>
@@ -720,8 +720,8 @@ export function FieldDiagnosis() {
                         key={opt}
                         className={`flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
                           traitAnswers[q.key] === opt
-                            ? 'border-teal-600 bg-teal-50 text-teal-800 dark:border-teal-500 dark:bg-teal-950/40 dark:text-teal-200'
-                            : 'border-slate-200 bg-white text-slate-600 hover:border-teal-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
+                            ? 'border-emerald-600 bg-emerald-50 text-emerald-800 dark:border-emerald-500 dark:bg-emerald-950/40 dark:text-emerald-200'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
                         }`}
                       >
                         <input
@@ -729,7 +729,7 @@ export function FieldDiagnosis() {
                           name={`fd-${q.key}`}
                           checked={traitAnswers[q.key] === opt}
                           onChange={() => setTraitAnswers((prev) => ({ ...prev, [q.key]: opt }))}
-                          className="h-3.5 w-3.5 accent-teal-600"
+                          className="h-3.5 w-3.5 accent-emerald-600"
                         />
                         {opt}
                       </label>
@@ -746,7 +746,7 @@ export function FieldDiagnosis() {
           <div className={stepCard}>
             <div className="mb-1 flex items-center gap-2">
               {stepBadge(6)}
-              <ImagePlus className="h-4 w-4 text-teal-600" aria-hidden="true" />
+              <ImagePlus className="h-4 w-4 text-emerald-600" aria-hidden="true" />
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Upload Photos (Optional)</h2>
             </div>
             <p className="mb-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
@@ -771,7 +771,7 @@ export function FieldDiagnosis() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex h-24 w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 text-slate-400 transition hover:border-teal-400 hover:text-teal-600 dark:border-slate-700 sm:h-28"
+                  className="flex h-24 w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 text-slate-400 transition hover:border-emerald-400 hover:text-emerald-600 dark:border-slate-700 sm:h-28"
                 >
                   <ImagePlus className="h-6 w-6" />
                   <span className="text-[10px] font-bold">{photos.length === 0 ? 'Add photos' : 'Add more'}</span>
@@ -835,7 +835,7 @@ export function FieldDiagnosis() {
           return (
             <div key={r.disease.id} className={stepCard}>
               <div className="flex items-start gap-3">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-600 dark:bg-teal-950/40 dark:text-teal-300">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
                   <Stethoscope className="h-6 w-6" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -858,7 +858,7 @@ export function FieldDiagnosis() {
                   </p>
                   {r.matchedSymptoms.length > 0 && (
                     <div className="mt-2">
-                      <p className="text-[10px] font-black uppercase tracking-wide text-teal-700 dark:text-teal-400">Matched symptoms</p>
+                      <p className="text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400">Matched symptoms</p>
                       <ul className="mt-0.5 list-inside list-disc text-[11px] font-semibold text-slate-600 dark:text-slate-300">
                         {r.matchedSymptoms.slice(0, 4).map((m) => (
                           <li key={m}>{m}</li>
@@ -878,7 +878,7 @@ export function FieldDiagnosis() {
                                 type="button"
                                 title="Observed — add to symptoms"
                                 onClick={() => markSymptom(sid, 'present')}
-                                className="px-2 py-1 text-teal-700 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-950/40"
+                                className="px-2 py-1 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
                               >
                                 + {label.length > 46 ? `${label.slice(0, 46)}…` : label}
                               </button>
@@ -918,7 +918,7 @@ export function FieldDiagnosis() {
                         setDetailTab('overview');
                         setView('details');
                       }}
-                      className="inline-flex items-center gap-1 rounded-lg bg-teal-600 px-3 py-1.5 text-[11px] font-black text-white hover:bg-teal-700"
+                      className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-black text-white hover:bg-emerald-700"
                     >
                       <Eye className="h-3.5 w-3.5" />
                       View Details
@@ -1002,7 +1002,7 @@ export function FieldDiagnosis() {
                 onClick={() => setDetailTab(t.id)}
                 className={`px-3 py-2 text-xs font-bold transition ${
                   detailTab === t.id
-                    ? 'border-b-2 border-teal-600 text-teal-700 dark:text-teal-300'
+                    ? 'border-b-2 border-emerald-600 text-emerald-700 dark:text-emerald-300'
                     : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
                 }`}
               >
@@ -1059,7 +1059,7 @@ export function FieldDiagnosis() {
                   <ul className="grid gap-1">
                     {detailDisease.references.map((r) => (
                       <li key={r.url}>
-                        <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-teal-700 underline dark:text-teal-400">
+                        <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-emerald-700 underline dark:text-emerald-400">
                           {r.label}
                         </a>
                       </li>
@@ -1081,7 +1081,7 @@ export function FieldDiagnosis() {
                       setDetailId(r.disease.id);
                       setDetailTab('overview');
                     }}
-                    className="rounded-full border border-slate-200 px-3 py-1 text-[11px] font-bold text-slate-600 hover:border-teal-400 hover:text-teal-700 dark:border-slate-700 dark:text-slate-300"
+                    className="rounded-full border border-slate-200 px-3 py-1 text-[11px] font-bold text-slate-600 hover:border-emerald-400 hover:text-emerald-700 dark:border-slate-700 dark:text-slate-300"
                   >
                     {r.disease.name}
                   </button>
@@ -1153,8 +1153,8 @@ export function FieldDiagnosis() {
                   onClick={() => setCompareIds((prev) => (active ? prev.filter((id) => id !== r.disease.id) : [...prev, r.disease.id]))}
                   className={`rounded-full border px-3 py-1 text-[11px] font-bold transition ${
                     active
-                      ? 'border-teal-600 bg-teal-50 text-teal-800 dark:border-teal-500 dark:bg-teal-950/40 dark:text-teal-200'
-                      : 'border-slate-200 text-slate-500 hover:border-teal-300 dark:border-slate-700 dark:text-slate-400'
+                      ? 'border-emerald-600 bg-emerald-50 text-emerald-800 dark:border-emerald-500 dark:bg-emerald-950/40 dark:text-emerald-200'
+                      : 'border-slate-200 text-slate-500 hover:border-emerald-300 dark:border-slate-700 dark:text-slate-400'
                   }`}
                 >
                   {r.disease.name}
@@ -1171,7 +1171,7 @@ export function FieldDiagnosis() {
                   <tr>
                     <th className="border-b border-slate-200 px-3 py-2 font-black text-slate-500 dark:border-slate-700 dark:text-slate-400">Feature</th>
                     {compareDiseases.map((d) => (
-                      <th key={d.id} className="border-b border-slate-200 px-3 py-2 font-black text-teal-700 dark:border-slate-700 dark:text-teal-300">
+                      <th key={d.id} className="border-b border-slate-200 px-3 py-2 font-black text-emerald-700 dark:border-slate-700 dark:text-emerald-300">
                         {d.name}
                       </th>
                     ))}
@@ -1234,7 +1234,7 @@ export function FieldDiagnosis() {
           {FEATURE_CHIPS.map(({ icon: Icon, label }) => (
             <span
               key={label}
-              className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-[10px] font-bold text-teal-700 ring-1 ring-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800"
+              className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-800"
             >
               <Icon className="h-3 w-3" aria-hidden="true" />
               {label}

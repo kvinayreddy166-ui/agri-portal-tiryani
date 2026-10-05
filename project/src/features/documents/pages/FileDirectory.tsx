@@ -133,7 +133,7 @@ export function FileDirectory() {
           title: row.title,
           fileUrl: row.file_url,
           fileType: inferFileTypeFromName(row.title, row.file_type || undefined),
-          folder: t('Statutory Forms', 'Statutory Forms'),
+          folder: t('Forms & Library', 'Forms & Library'),
           subfolder: row.category || undefined,
           createdAt: row.created_at,
         });

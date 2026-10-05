@@ -922,7 +922,7 @@ function createFertilizerReportElement(html: string) {
         margin-bottom: 12px;
         padding: 12px 16px;
         border-radius: 10px;
-        background: linear-gradient(120deg, #047857 0%, #0f766e 60%, #115e59 100%);
+        background: linear-gradient(120deg, #15803d 0%, #15803d 60%, #14532d 100%);
       }
       .fertilizer-pdf .header-inner {
         display: flex;
@@ -965,7 +965,7 @@ function createFertilizerReportElement(html: string) {
         margin: 0;
         padding: 6px 12px;
         background: #ffffff;
-        color: #065f46;
+        color: #14532d;
         font-size: 12px;
         font-weight: 800;
         letter-spacing: 0.3px;
@@ -994,7 +994,7 @@ function createFertilizerReportElement(html: string) {
       }
       .fertilizer-pdf .info-label {
         font-weight: 800;
-        color: #065f46;
+        color: #14532d;
         width: 42%;
         background: #ecfdf5;
       }
@@ -1079,7 +1079,7 @@ function createFertilizerReportElement(html: string) {
       }
       .fertilizer-pdf .footer-label {
         font-weight: 900;
-        color: #065f46;
+        color: #14532d;
         width: 32%;
       }
       .fertilizer-pdf .footer-officer {
@@ -1092,7 +1092,7 @@ function createFertilizerReportElement(html: string) {
       }
       .fertilizer-pdf .footer-portal {
         font-weight: 800;
-        color: #047857;
+        color: #15803d;
         text-align: center;
         padding-top: 6px;
       }
@@ -1865,7 +1865,7 @@ export function FertilizerCalculator() {
             subtitle={language === 'te' ? 'పంటకు అవసరమైన ఎరువుల లెక్కింపు' : 'Calculate crop fertilizer requirements'}
           />
         ) : (
-        <section className="overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-4 text-white shadow-lg dark:border-emerald-800/50 sm:p-5">
+        <section className="overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-green-600 to-emerald-700 p-4 text-white shadow-lg dark:border-emerald-800/50 sm:p-5">
           <div className="flex items-start gap-3">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-0.5" />
             <div>

@@ -19,7 +19,7 @@ import { FormDownload } from '../../../shared/types/database';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../../../shared/hooks/useBackButtonOverlay';
 const FertilizerStatutoryPdfTool = lazy(() =>
-  import('../../statutory-forms/components/FertilizerStatutoryPdfTool')
+  import('../../sampling-hub/components/FertilizerStatutoryPdfTool')
     .then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
     .catch((error) => {
       console.error('Failed to load FertilizerStatutoryPdfTool:', error);
@@ -27,10 +27,10 @@ const FertilizerStatutoryPdfTool = lazy(() =>
     })
 );
 const PesticideStatutoryPdfTool = lazy(() =>
-  import('../../statutory-forms/components/PesticideStatutoryPdfTool').then((module) => ({ default: module.PesticideStatutoryPdfTool }))
+  import('../../sampling-hub/components/PesticideStatutoryPdfTool').then((module) => ({ default: module.PesticideStatutoryPdfTool }))
 );
 const SeedForms = lazy(() =>
-  import('../../statutory-forms/pages/SeedForms').then((module) => ({ default: module.SeedForms }))
+  import('../../sampling-hub/pages/SeedForms').then((module) => ({ default: module.SeedForms }))
 );
 const FertilizerCalculator = lazy(() =>
   import('../../calculators/pages/FertilizerCalculator').then((module) => ({ default: module.FertilizerCalculator }))
@@ -58,7 +58,9 @@ export function PublicOfficerTools() {
   const location = useLocation();
   const navigate = useNavigate();
   const { language, t } = useLanguage();
-  const showStatutoryForms = location.pathname === '/officer-toolkit/statutory-forms';
+  const samplingHubOpen = location.pathname === '/officer-toolkit/smart-sampling' || location.pathname === '/officer-toolkit/sampling-hub' || location.pathname === '/officer-toolkit/statutory-forms';
+  const formsLibraryOpen = location.pathname === '/officer-toolkit/forms-library';
+  const showToolPage = samplingHubOpen || formsLibraryOpen;
   const calculatorOpen = location.pathname === '/officer-toolkit/acreage-calculator';
   const fertilizerCalculatorOpen = location.pathname === '/officer-toolkit/fertilizer-calculator';
   const [acreInput, setAcreInput] = useState(() => loadPublicToolkitState().acreInput || '');
@@ -71,7 +73,7 @@ export function PublicOfficerTools() {
   const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
   const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
-  const [statutoryView, setStatutoryView] = useState<'generate' | 'library'>('generate');
+
   const [searchQuery, setSearchQuery] = useState('');
   const pdfToolOverlay = useBackButtonOverlay('public-pdf-tool', () => setPdfToolOpen(false));
 
@@ -89,7 +91,11 @@ export function PublicOfficerTools() {
   };
 
   const openStatutoryForms = () => {
-    navigate('/officer-toolkit/statutory-forms', { state: { from: 'officer-toolkit' } });
+    navigate('/officer-toolkit/smart-sampling', { state: { from: 'officer-toolkit' } });
+  };
+
+  const openFormsLibrary = () => {
+    navigate('/officer-toolkit/forms-library', { state: { from: 'officer-toolkit' } });
   };
 
   const openAcreageCalculator = () => {
@@ -111,7 +117,7 @@ export function PublicOfficerTools() {
   };
 
   useEffect(() => {
-    if (!showStatutoryForms) return;
+    if (!formsLibraryOpen) return;
     let isCancelled = false;
 
     const fetchForms = async () => {
@@ -140,7 +146,7 @@ export function PublicOfficerTools() {
     return () => {
       isCancelled = true;
     };
-  }, [showStatutoryForms]);
+  }, [formsLibraryOpen]);
 
   const selectedStatutoryForms = useMemo(
     () => statutoryForms.filter((form) => normalizePublicFormCategory(form.category) === statutoryFolder),
@@ -212,7 +218,7 @@ export function PublicOfficerTools() {
       console.error('Download failed:', error);
       // Fallback: open in new tab
       window.open(form.file_url, '_blank', 'noopener,noreferrer');
-      alert(t('Download started in new tab. If it does not download, try right-clicking and "Save as".', 'à°¡à±Œà°¨à±à°²à±‹à°¡à± à°•à±Šà°¤à±à°¤ à°Ÿà±à°¯à°¾à°¬à±â€Œà°²à±‹ à°ªà±à°°à°¾à°°à°‚à°­à°®à±ˆà°‚à°¦à°¿. à°¡à±Œà°¨à±à°²à±‹à°¡à± à°•à°¾à°•à°ªà±‹à°¤à±‡, à°•à±à°¡à°¿-à°•à±à°²à°¿à°•à± à°šà±‡à°¸à°¿ "à°¸à±‡à°µà± à°¯à°¾à°œà±" à°ªà±à°°à°¯à°¤à±à°¨à°¿à°‚à°šà°‚à°¡à°¿.'));
+      alert(t('Download started in new tab. If it does not download, try right-clicking and "Save as".', 'డౌన్లోడ్ కొత్త ట్యాబ్‌లో ప్రారంభమైంది. డౌన్లోడ్ కాకపోతే, కుడి-క్లిక్ చేసి "సేవ్ యాజ్" ప్రయత్నించండి.'));
     } finally {
       setDownloadingFormId(null);
     }
@@ -222,25 +228,27 @@ export function PublicOfficerTools() {
 
     return (
       <div className="min-h-screen bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24">
-        <div className="mx-auto w-full max-w-4xl space-y-4">
-          {showStatutoryForms ? (
+        <div className="mx-auto w-full max-w-7xl space-y-4">
+          {showToolPage ? (
             <div className="mb-4">
               <div className="rounded-2xl bg-gradient-to-r from-emerald-700 via-green-700 to-teal-700 p-4 shadow-lg border border-emerald-800/60">
                 <div className="flex items-start gap-3">
                   <BackButton onClick={closeToolPage} tone="solid" label={t('Back', 'వెనుకకు')} className="mt-0.5" />
                   <div className="flex items-start gap-3">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 dark:bg-slate-900/15 shadow-sm ring-1 ring-white/25">
-                      <FileText className="h-6 w-6 text-white" aria-label="Statutory Forms" />
+                      <FileText className="h-6 w-6 text-white" aria-label={samplingHubOpen ? 'Smart Sampling' : 'Forms & Library'} />
                     </div>
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100">
                         {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                       </p>
                       <h1 className="text-xl font-black text-white">
-                        {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
+                        {samplingHubOpen ? t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్') : t('Forms & Library', 'ఫారాలు & లైబ్రరీ')}
                       </h1>
                       <p className="text-sm font-semibold text-emerald-50">
-                        {t('Generate and manage official documents', 'అధికారిక పత్రాలను సృష్టించండి మరియు నిర్వహించండి')}
+                        {samplingHubOpen
+                          ? t('Create sample drawal forms for seed, fertilizer & pesticide', 'విత్తనం, ఎరువు & పురుగుమందు నమూనా డ్రాయింగ్ ఫారాలను సృష్టించండి')
+                          : t('Download statutory forms, proformas and official documents', 'చట్టబద్ధ ఫారాలు, ప్రొఫార్మాలు మరియు అధికారిక పత్రాలను డౌన్‌లోడ్ చేయండి')}
                       </p>
                     </div>
                   </div>
@@ -272,11 +280,21 @@ export function PublicOfficerTools() {
               type="button"
               onClick={openStatutoryForms}
               className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 transition ${
-                showStatutoryForms ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600 hover:bg-white/70'
+                samplingHubOpen ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600 hover:bg-white/70'
               }`}
             >
               <FileText className="h-4 w-4" />
-              {t('Statutory Forms', 'చట్టబద్ధ ఫారాలు')}
+              {t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్')}
+            </button>
+            <button
+              type="button"
+              onClick={openFormsLibrary}
+              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 transition ${
+                formsLibraryOpen ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600 hover:bg-white/70'
+              }`}
+            >
+              <Download className="h-4 w-4" />
+              {t('Forms & Library', 'ఫారాలు & లైబ్రరీ')}
             </button>
             <button
               type="button"
@@ -286,7 +304,7 @@ export function PublicOfficerTools() {
               }`}
             >
               <Calculator className="h-4 w-4" />
-              {t('Area Calculator', 'à°Žà°•à°°à°¾à°² à°•à°¾à°²à°¿à°•à±à°¯à±à°²à±‡à°Ÿà°°à±')}
+              {t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్')}
             </button>
             <button
               type="button"
@@ -300,56 +318,7 @@ export function PublicOfficerTools() {
             </button>
           </div>
           <div className={calculatorOpen || fertilizerCalculatorOpen ? 'hidden' : ''}>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => setStatutoryView('generate')}
-              className={`group relative overflow-hidden rounded-xl border p-3 shadow-sm transition-all hover:shadow-md ${
-                statutoryView === 'generate'
-                  ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-green-50'
-                  : 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50 hover:border-emerald-300'
-              }`}
-            >
-              <div className="flex items-start gap-2.5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1 text-left">
-                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                    {t('Generate Forms', 'ఫారాలను సృష్టించండి')}
-                  </h3>
-                  <p className="mt-0.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 line-clamp-2">
-                    {t('Create statutory forms automatically for sample drawal.', 'నమూనా డ్రాయింగ్ కోసం చట్టబద్ధ ఫారాలను స్వయంచాలకంగా సృష్టించండి.')}
-                  </p>
-                </div>
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setStatutoryView('library')}
-              className={`group relative overflow-hidden rounded-xl border p-3 shadow-sm transition-all hover:shadow-md ${
-                statutoryView === 'library'
-                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50'
-                  : 'border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 hover:border-blue-300'
-              }`}
-            >
-              <div className="flex items-start gap-2.5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg">
-                  <Download className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1 text-left">
-                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                    {t('Forms Library', 'ఫారాలు లైబ్రరీ')}
-                  </h3>
-                  <p className="mt-0.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 line-clamp-2">
-                    {t('View and download uploaded statutory forms and documents.', 'అప్‌లోడ్ చేసిన చట్టబద్ధ ఫారాలు మరియు పత్రాలను చూడండి మరియు డౌన్‌లోడ్ చేయండి.')}
-                  </p>
-                </div>
-              </div>
-            </button>
-          </div>
-
-          <section className="mt-4 rounded-xl border border-white/70 bg-gradient-to-br from-emerald-100 dark:from-emerald-900 via-lime-50 dark:via-lime-950/60 to-cyan-100 dark:to-cyan-900 p-4 shadow-md">
+          <section className="rounded-xl border border-white/70 bg-gradient-to-br from-emerald-100 dark:from-emerald-900 via-lime-50 dark:via-lime-950/60 to-cyan-100 dark:to-cyan-900 p-4 shadow-md">
               <div className="mb-4">
                 <h2 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">
                   {t('Select Category', 'వర్గాన్ని ఎంచుకోండి')}
@@ -378,7 +347,7 @@ export function PublicOfficerTools() {
                   </button>
                 ))}
               </div>
-              {statutoryView === 'generate' && (
+              {samplingHubOpen && (
                 <div className="mt-4">
                   <button
                     type="button"
@@ -395,7 +364,7 @@ export function PublicOfficerTools() {
               )}
             </section>
 
-          {statutoryView === 'library' && (
+          {formsLibraryOpen && (
             <div className="mt-4">
               <div className="mb-3">
                 <input
@@ -490,7 +459,7 @@ export function PublicOfficerTools() {
           {calculatorOpen && (
             <div className="rounded-xl border border-sky-100 dark:border-sky-900 bg-white dark:bg-slate-900 p-4">
               <label className="block">
-                <span className="mb-1.5 block text-sm font-bold text-slate-700 dark:text-slate-200">{t('Type or paste acre values', 'à°Žà°•à°°à°¾à°² à°µà°¿à°²à±à°µà°²à°¨à± à°Ÿà±ˆà°ªà± à°šà±‡à°¯à°‚à°¡à°¿ à°²à±‡à°¦à°¾ à°…à°¤à°¿à°•à°¿à°‚à°šà°‚à°¡à°¿')}</span>
+                <span className="mb-1.5 block text-sm font-bold text-slate-700 dark:text-slate-200">{t('Type or paste acre values', 'ఎకరాల విలువలను టైప్ చేయండి లేదా అతికించండి')}</span>
                 <textarea
                   value={acreInput}
                   onChange={(event) => setAcreInput(event.target.value)}
@@ -504,20 +473,20 @@ export function PublicOfficerTools() {
               </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-4">
-                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°²à±')}</p>
+                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Total acres', 'మొత్తం ఎకరాలు')}</p>
                   <p className="mt-1 text-3xl font-black text-emerald-950 dark:text-emerald-100">{acreCalculation.formatted}</p>
                   <p className="mt-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
                     {acreCalculation.acres} acres {acreCalculation.guntas} guntas
                   </p>
                 </div>
                 <div className="rounded-xl border border-sky-200 dark:border-sky-800/50 bg-sky-50 dark:bg-sky-950/40 p-4">
-                  <p className="text-xs font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">{t('Hectares', 'à°¹à±†à°•à±à°Ÿà°¾à°°à±à°²à±')}</p>
+                  <p className="text-xs font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">{t('Hectares', 'హెక్టార్లు')}</p>
                   <p className="mt-1 text-3xl font-black text-sky-950 dark:text-sky-100">{acreCalculation.hectares}</p>
-                  <p className="mt-1 text-xs font-semibold text-sky-800 dark:text-sky-300">{t('Converted from total acres', 'à°®à±Šà°¤à±à°¤à°‚ à°Žà°•à°°à°¾à°² à°¨à±à°‚à°¡à°¿ à°®à°¾à°°à±à°šà°¬à°¡à°¿à°‚à°¦à°¿')}</p>
+                  <p className="mt-1 text-xs font-semibold text-sky-800 dark:text-sky-300">{t('Converted from total acres', 'మొత్తం ఎకరాల నుండి మార్చబడింది')}</p>
                 </div>
               </div>
               <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                {t('Read values', 'à°šà°¦à°¿à°µà°¿à°¨ à°µà°¿à°²à±à°µà°²à±')}: {acreCalculation.count} {t(acreCalculation.count === 1 ? 'item' : 'items', acreCalculation.count === 1 ? 'à°…à°‚à°¶à°‚' : 'à°…à°‚à°¶à°¾à°²à±')}
+                {t('Read values', 'చదివిన విలువలు')}: {acreCalculation.count} {t(acreCalculation.count === 1 ? 'item' : 'items', acreCalculation.count === 1 ? 'అంశం' : 'అంశాలు')}
               </div>
             </div>
           )}
@@ -527,7 +496,7 @@ export function PublicOfficerTools() {
             </Suspense>
           )}
         </div>
-        {showStatutoryForms && pdfToolOpen && (
+        {samplingHubOpen && pdfToolOpen && (
           <>
             <Suspense
               fallback={
@@ -637,7 +606,7 @@ function PublicFormsPagination({
         Previous
       </button>
       <span className="uppercase tracking-wide">
-        {t('Page', 'à°ªà±‡à°œà±€')} {currentPage + 1} / {pageCount}
+        {t('Page', 'పేజీ')} {currentPage + 1} / {pageCount}
       </span>
       <button
         type="button"

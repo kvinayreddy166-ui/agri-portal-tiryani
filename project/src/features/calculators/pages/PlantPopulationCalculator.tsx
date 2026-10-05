@@ -84,7 +84,7 @@ export function PlantPopulationCalculator() {
             subtitle={t('Calculate plant stand from row and plant spacing.', 'వరుసల మధ్య మరియు మొక్కల మధ్య దూరం ఆధారంగా మొక్కల సంఖ్యను లెక్కించండి.')}
           />
         ) : (
-        <section className="relative rounded-2xl border border-green-300/60 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-700 p-4 shadow-lg dark:border-green-700/60 sm:p-4">
+        <section className="relative rounded-2xl border border-green-300/60 bg-gradient-to-br from-green-600 via-emerald-600 to-emerald-700 p-4 shadow-lg dark:border-green-700/60 sm:p-4">
           <div className="flex items-center gap-4">
             <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
             <div>

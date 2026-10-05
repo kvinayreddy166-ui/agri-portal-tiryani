@@ -113,10 +113,10 @@ function translateDealerUi(label: string) {
 }
 
 const COLORS = {
-  primary: '#0B7A5C',
-  secondary: '#0F9D58',
+  primary: '#166534',
+  secondary: '#16A34A',
   danger: '#C62828',
-  bg: '#F4F8F5',
+  bg: '#F2F7F3',
   text: '#0F172A',
   muted: '#64748B',
 };
@@ -570,7 +570,7 @@ export function DealerStockPortal() {
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: COLORS.bg, color: COLORS.text }}>
-      <div className="sticky top-0 z-30 border-b border-emerald-900/10 bg-[#F4F8F5]/95 px-2 py-2 backdrop-blur sm:px-3">
+      <div className="sticky top-0 z-30 border-b border-emerald-900/10 bg-[#F2F7F3]/95 px-2 py-2 backdrop-blur sm:px-3">
         <div className="mb-1.5 flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Welcome', 'స్వాగతం')}</p>

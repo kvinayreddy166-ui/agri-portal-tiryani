@@ -81,7 +81,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       if (this.state.showUpdateScreen) {
         return (
-          <div className="flex min-h-screen flex-col items-center justify-center bg-[#eef6f0] p-6 text-center">
+          <div className="flex min-h-screen flex-col items-center justify-center bg-[#f2f7f3] p-6 text-center">
             <PortalLogo size="lg" />
             <div className="mt-8 max-w-md">
               <h1 className="text-2xl font-black text-slate-900">
@@ -107,7 +107,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Non-recoverable errors still show the original error page
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#eef6f0] p-6 text-center dark:bg-slate-950">
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#f2f7f3] p-6 text-center dark:bg-slate-950">
           <PortalLogo size="md" />
           <div>
             <h1 className="text-xl font-black text-slate-900 dark:text-white">

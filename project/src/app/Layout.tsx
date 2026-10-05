@@ -94,9 +94,10 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
       });
 
   return (
-    <div className="min-h-screen bg-[#eef6f0] dark:bg-slate-950">
-      <header className="sticky top-0 z-50 border-b border-emerald-800/20 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-700 text-white shadow-lg">
-        <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-1.5 sm:px-4 lg:px-6">
+    <div className="min-h-screen bg-[#f2f7f3] dark:bg-slate-950">
+      <header className="sticky top-0 z-50 border-b border-emerald-900/30 bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-lg">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400/80 to-transparent" />
+        <div className="relative flex min-w-0 items-center justify-between gap-2 px-3 py-1.5 sm:px-4 lg:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <button
               type="button"
@@ -155,12 +156,13 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
             {profileOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={profileOverlay.closeOverlay} aria-hidden />
+
                 <div
                   className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-950/15 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                   role="menu"
                 >
                   <div className="flex items-center gap-2.5 border-b border-slate-100 px-3.5 py-3 dark:border-slate-800">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 text-sm font-black text-white">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-emerald-800 text-sm font-black text-white">
                       {user?.email?.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -212,7 +214,8 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="border-b border-slate-200 bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900 px-3.5 pb-3 pt-4 text-white dark:border-slate-800">
+        <div className="relative border-b border-slate-200 bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950 px-3.5 pb-3 pt-4 text-white dark:border-slate-800">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400/70 to-transparent" />
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <PortalLogo size="sm" />
@@ -235,7 +238,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
         <nav className="flex-1 overflow-y-auto px-2.5 py-3">
           {menuSections(visibleMenuItems, t).map((section) => (
             <div key={section.title} className="mb-3 last:mb-0">
-              <p className="mb-1.5 px-2.5 text-[9px] font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
+              <p className="mb-1.5 px-2.5 text-[9px] font-black uppercase tracking-[0.18em] text-emerald-800/60 dark:text-emerald-400/60">
                 {t(section.title, translateMenu(section.title))}
               </p>
               <div className="space-y-0.5">
@@ -246,9 +249,9 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                       key={item.id}
                       type="button"
                       onClick={() => handleNavigation(item.id)}
-                      className={`group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-left text-[13px] font-bold transition focus:outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900/50 ${
+                      className={`group relative flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-left text-[13px] font-bold transition focus:outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900/50 ${
                         isActive
-                          ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-900/15'
+                          ? 'bg-emerald-800 text-white shadow-lg shadow-emerald-950/25 before:absolute before:left-0.5 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-gold-400 before:content-[\'\']'
                           : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-slate-900 dark:hover:text-emerald-200'
                       }`}
                     >
@@ -264,7 +267,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                       <span className="min-w-0 flex-1 truncate">{t(item.label, translateMenu(item.label))}</span>
                       <ChevronRight
                         className={`h-4 w-4 shrink-0 transition ${
-                          isActive ? 'text-white/80' : 'text-slate-300 opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 dark:text-slate-600'
+                          isActive ? 'text-gold-300' : 'text-slate-300 opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 dark:text-slate-600'
                         }`}
                       />
                     </button>
@@ -277,7 +280,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
 
         <div className="border-t border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/70">
           <div className="mb-2 flex items-center gap-2.5 rounded-xl border border-white bg-white px-2.5 py-2 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-xs font-black text-white shadow-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 text-xs font-black text-white shadow-sm">
               {user?.email?.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
@@ -414,7 +417,8 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'farmer-database': { title: t('Farmer Database', 'రైతుల డేటాబేస్'), breadcrumbs: [dashboard] },
     'officer-toolkit': { title: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), breadcrumbs: [dashboard] },
     knowledge: { title: t('Knowledge Base', 'జ్ఞాన భాండాగారం'), breadcrumbs: [dashboard] },
-    forms: { title: t('Statutory Forms', 'చట్టబద్ధ ఫారాలు'), breadcrumbs: [dashboard, toolkit] },
+    forms: { title: t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్'), breadcrumbs: [dashboard, toolkit] },
+    'forms-library': { title: t('Forms & Library', 'ఫారాలు & లైబ్రరీ'), breadcrumbs: [dashboard, toolkit] },
     'acreage-calculator': { title: t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'farm-calculators': { title: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), breadcrumbs: [dashboard, toolkit] },
     'crop-doctor': { title: t('Crop Doctor', 'పంట డాక్టర్'), breadcrumbs: [dashboard, toolkit] },
@@ -473,7 +477,8 @@ function translateMenu(label: string) {
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
     'Farmer Database': 'రైతుల డేటాబేస్',
     'Officer Toolkit': 'ఆఫీసర్ టూల్‌కిట్',
-    'Statutory Forms': 'చట్టబద్ధ ఫారాలు',
+    'Smart Sampling': 'స్మార్ట్ సాంప్లింగ్',
+    'Forms & Library': 'ఫారాలు & లైబ్రరీ',
     'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
     'Fertilizer Calculator': 'ఎరువుల కాలిక్యులేటర్',
     'Acts & Orders': 'చట్టాలు & ఉత్తర్వులు',

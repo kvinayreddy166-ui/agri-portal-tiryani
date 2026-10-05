@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2, CalendarDays, Leaf } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../../dealer-stock/lib/fertilizerStock';
@@ -203,7 +203,7 @@ export const Dashboard = React.memo(function Dashboard() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#eef6f0] dark:bg-slate-950">
+      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#f2f7f3] dark:bg-slate-950">
         <PortalLogo size="xl" />
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
         <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">{t('Loading AGRONIX...', 'AGRONIX లోడ్ అవుతోంది...')}</p>
@@ -255,78 +255,98 @@ export const Dashboard = React.memo(function Dashboard() {
         <>
           {/* Mandal Overview */}
           {mandalData ? (
-            <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <MapPin className="w-6 h-6 text-emerald-600" />
-            {t('Mandal Overview', 'మండల వివరాలు')}
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
-                <Building2 className="w-14 h-14" />
+            <div className="dashboard-rise dashboard-delay-2 portal-card p-4 sm:p-5">
+              <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-[var(--font-heading)]">
+                  <MapPin className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
+                  {t('Mandal Overview', 'మండల వివరాలు')}
+                </h2>
               </div>
-              <p className="text-xs opacity-90 relative z-10">{t('Gram Panchayats', 'గ్రామ పంచాయతీలు')}</p>
-              <p className="text-2xl font-bold mt-1 relative z-10">{mandalData.total_gram_panchayats}</p>
-            </div>
-            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
-                <Layers className="w-14 h-14" />
-              </div>
-              <p className="text-xs opacity-90 relative z-10">{t('Revenue Villages', 'రెవెన్యూ గ్రామాలు')}</p>
-              <p className="text-2xl font-bold mt-1 relative z-10">{dashboardRevenueVillages}</p>
-            </div>
-            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
-                <Users className="w-14 h-14" />
-              </div>
-              <p className="text-xs opacity-90 relative z-10">{t('Total Farmers', 'మొత్తం రైతులు')}</p>
-              <p className="text-2xl font-bold mt-1 relative z-10">{dashboardTotalFarmers.toLocaleString('en-IN')}</p>
-            </div>
-            <div className="relative overflow-hidden rounded-lg p-3 bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="absolute top-0 right-0 opacity-10 -mr-3 -mt-3">
-                <TrendingUp className="w-14 h-14" />
-              </div>
-              <p className="text-xs opacity-90 relative z-10">{t('Cultivable Area', 'సాగు విస్తీర్ణం')}</p>
-              <p className="text-2xl font-bold mt-1 relative z-10">{formatDashboardNumber(dashboardCultivableArea)}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-            <div className="rounded-lg p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-slate-700 dark:text-slate-200" />
-                <div>
-                  <p className="text-xs text-gray-600 dark:text-slate-300">{t('Geographical Area', 'భౌగోళిక విస్తీర్ణం')}</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{mandalData.geographical_area.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">{mandalData.area_unit}</p>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 to-emerald-600" />
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Gram Panchayats', 'గ్రామ పంచాయతీలు')}</p>
+                    <div className="rounded-lg bg-emerald-50 p-1.5 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                      <Building2 className="h-4 w-4" />
+                    </div>
+                  </div>
+                  <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white font-[var(--font-heading)]">{mandalData.total_gram_panchayats}</p>
+                </div>
+                <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 to-emerald-600" />
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Revenue Villages', 'రెవెన్యూ గ్రామాలు')}</p>
+                    <div className="rounded-lg bg-emerald-50 p-1.5 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                      <Layers className="h-4 w-4" />
+                    </div>
+                  </div>
+                  <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white font-[var(--font-heading)]">{dashboardRevenueVillages}</p>
+                </div>
+                <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-gold-500 to-gold-600" />
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Total Farmers', 'మొత్తం రైతులు')}</p>
+                    <div className="rounded-lg bg-gold-50 p-1.5 text-gold-700 dark:bg-gold-950/60 dark:text-gold-300">
+                      <Users className="h-4 w-4" />
+                    </div>
+                  </div>
+                  <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white font-[var(--font-heading)]">{dashboardTotalFarmers.toLocaleString('en-IN')}</p>
+                </div>
+                <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 to-emerald-600" />
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Cultivable Area', 'సాగు విస్తీర్ణం')}</p>
+                    <div className="rounded-lg bg-emerald-50 p-1.5 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                      <TrendingUp className="h-4 w-4" />
+                    </div>
+                  </div>
+                  <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white font-[var(--font-heading)]">{formatDashboardNumber(dashboardCultivableArea)}</p>
                 </div>
               </div>
-            </div>
-            <div className="rounded-lg p-3 bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-950/60 dark:to-cyan-900/40">
-              <div className="flex items-center gap-2">
-                <CloudRain className="w-5 h-5 text-cyan-700 dark:text-cyan-300" />
-                <div>
-                  <p className="text-xs text-gray-600 dark:text-slate-300">{t('Normal Rainfall', 'సాధారణ వర్షపాతం')}</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{mandalData.normal_rainfall}</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">{mandalData.rainfall_unit}</p>
+              <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-800/60">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-lg bg-white p-2 text-slate-700 shadow-sm dark:bg-slate-900 dark:text-slate-200">
+                      <MapPin className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{t('Geographical Area', 'భౌగోళిక విస్తీర్ణం')}</p>
+                      <p className="text-lg font-bold text-slate-900 dark:text-white">{mandalData.geographical_area.toLocaleString()}</p>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500">{mandalData.area_unit}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="rounded-lg p-3 bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-900/50 dark:to-stone-800/50">
-              <div className="flex items-center gap-2">
-                <Droplets className="w-5 h-5 text-stone-700 dark:text-stone-300" />
-                <div>
-                  <p className="text-xs text-gray-600 dark:text-slate-300">{t('Soil Types', 'నేల రకాలు')}</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {mandalData.soil_types.map((soil, i) => (
-                      <span key={i} className="bg-white/90 text-stone-700 dark:bg-slate-700 dark:text-slate-100 px-2 py-0.5 rounded text-xs font-medium">
-                        {soil}
-                      </span>
-                    ))}
+                <div className="rounded-xl border border-emerald-200/70 bg-emerald-50/50 p-3.5 dark:border-emerald-800/40 dark:bg-emerald-950/30">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-lg bg-white p-2 text-emerald-700 shadow-sm dark:bg-slate-900 dark:text-emerald-300">
+                      <CloudRain className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{t('Normal Rainfall', 'సాధారణ వర్షపాతం')}</p>
+                      <p className="text-lg font-bold text-slate-900 dark:text-white">{mandalData.normal_rainfall}</p>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500">{mandalData.rainfall_unit}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-800/60">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-lg bg-white p-2 text-slate-700 shadow-sm dark:bg-slate-900 dark:text-slate-200">
+                      <Droplets className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{t('Soil Types', 'నేల రకాలు')}</p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {mandalData.soil_types.map((soil, i) => (
+                          <span key={i} className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                            {soil}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
             </div>
           ) : (
             <DashboardEmptyState message={t('No mandal overview data available', 'మండల వివరాల డేటా అందుబాటులో లేదు')} />
@@ -334,39 +354,44 @@ export const Dashboard = React.memo(function Dashboard() {
 
           {/* Crop Statistics */}
           {dashboardCrops.length > 0 ? (
-            <div className="dashboard-rise dashboard-delay-2 portal-card p-4">
-          <div className="mb-4 flex items-center">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-emerald-600" />
-              {t('Major Crops', 'ప్రధాన పంటలు')} - {t('Total', 'మొత్తం')}: {formatDashboardNumber(totalAcreage)} {t('acres', 'ఎకరాలు')}
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {dashboardCrops.map((crop, idx) => {
-            const gradients = [
-              'from-emerald-500 to-emerald-600',
-              'from-teal-500 to-teal-600',
-              'from-cyan-500 to-cyan-600',
-              'from-blue-500 to-blue-600',
-              'from-purple-500 to-purple-600'
-            ];
-            return (
-              <div key={crop.id} className={`group relative overflow-hidden rounded-lg bg-gradient-to-br ${gradients[idx % gradients.length]} p-3 text-white shadow-md cursor-pointer hover:shadow-lg transition-all`}>
-                {isAdminUser && !farmerStats?.cropRows.length && (
-                  <button
-                    onClick={() => setEditingCrop(editingCrop === crop.id ? null : crop.id)}
-                    className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 bg-white/20 p-1 rounded transition-opacity"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                <p className="text-xs opacity-90">{crop.crop_name}</p>
-                <p className="text-2xl font-bold mt-1">{formatDashboardNumber(crop.acreage)}</p>
-                <p className="text-[10px] opacity-75">{t('acres', 'ఎకరాలు')}</p>
+            <div className="dashboard-rise dashboard-delay-2 portal-card p-4 sm:p-5">
+              <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-[var(--font-heading)]">
+                  <TrendingUp className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
+                  {t('Major Crops', 'ప్రధాన పంటలు')}
+                </h2>
+                <span className="rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300">
+                  {t('Total', 'మొత్తం')}: {formatDashboardNumber(totalAcreage)} {t('acres', 'ఎకరాలు')}
+                </span>
               </div>
-            );
-          })}
-        </div>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                {dashboardCrops.map((crop) => (
+                  <div
+                    key={crop.id}
+                    className="group relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 cursor-pointer"
+                  >
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 to-emerald-600 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    {isAdminUser && !farmerStats?.cropRows.length && (
+                      <button
+                        onClick={() => setEditingCrop(editingCrop === crop.id ? null : crop.id)}
+                        className="absolute right-2 top-2 rounded-md bg-slate-100 p-1 text-slate-500 opacity-0 transition-opacity hover:bg-slate-200 group-hover:opacity-100 dark:bg-slate-800 dark:text-slate-300"
+                        title={t('Edit crop', 'పంటను సవరించండి')}
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </button>
+                    )}
+                    <p className="truncate text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      {crop.crop_name}
+                    </p>
+                    <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white font-[var(--font-heading)]">
+                      {formatDashboardNumber(crop.acreage)}
+                    </p>
+                    <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+                      {t('acres', 'ఎకరాలు')}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <DashboardEmptyState message={t('No crop data available', 'No crop data available')} />
@@ -440,7 +465,7 @@ export const Dashboard = React.memo(function Dashboard() {
                 </div>
                 <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-700">
                   <div
-                    className="dashboard-bar h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
+                    className="dashboard-bar h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-500"
                     style={{ width: `${percentage}%` }}
                   />
                 </div>

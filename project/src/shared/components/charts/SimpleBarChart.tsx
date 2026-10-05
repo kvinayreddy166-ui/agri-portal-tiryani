@@ -28,7 +28,7 @@ export const SimpleBarChart = React.memo(function SimpleBarChart({
             <XAxis dataKey={nameKey} tick={{ fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={64} />
             <YAxis tick={{ fontSize: 10 }} />
             <Tooltip />
-            <Bar dataKey={dataKey} fill="#0b7a5c" radius={[5, 5, 0, 0]} />
+            <Bar dataKey={dataKey} fill="#166534" radius={[5, 5, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -7,20 +7,20 @@ interface ToolkitLoaderProps {
 
 export function ToolkitLoader({ message = 'Loading Officer Toolkit...' }: ToolkitLoaderProps) {
   return (
-    <div className="fixed inset-0 z-[100] flex min-h-screen flex-col items-center justify-center gap-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
+    <div className="fixed inset-0 z-[100] flex min-h-screen flex-col items-center justify-center gap-6 bg-gradient-to-br from-emerald-50 via-emerald-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-950">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl animate-pulse" />
-        <div className="absolute top-40 right-20 h-96 w-96 rounded-full bg-teal-400/10 blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-40 right-20 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl animate-pulse delay-1000" />
         <div className="absolute bottom-20 left-1/3 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl animate-pulse delay-2000" />
       </div>
 
       {/* Main Content */}
       <div className="relative flex flex-col items-center gap-6">
         {/* Logo with Animation */}
-        <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-2xl animate-scale-in">
+        <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-2xl animate-scale-in">
           <ShieldCheck className="h-12 w-12" />
-          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 opacity-0 blur-xl animate-pulse" />
+          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-emerald-500 to-emerald-600 opacity-0 blur-xl animate-pulse" />
         </div>
 
         {/* Loading Spinner */}
@@ -41,7 +41,7 @@ export function ToolkitLoader({ message = 'Loading Officer Toolkit...' }: Toolki
 
       {/* Progress Bar */}
       <div className="relative w-64 h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-        <div className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full animate-loading-bar" />
+        <div className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full animate-loading-bar" />
       </div>
     </div>
   );

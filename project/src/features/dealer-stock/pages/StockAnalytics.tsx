@@ -45,11 +45,11 @@ type AdminFilters = {
 };
 
 const THEME = {
-  primary: '#0B7A5C',
-  secondary: '#0F9D58',
+  primary: '#166534',
+  secondary: '#16A34A',
   danger: '#C62828',
   warning: '#F59E0B',
-  bg: '#F4F8F5',
+  bg: '#F2F7F3',
   text: '#0F172A',
   muted: '#64748B',
 };
@@ -67,8 +67,7 @@ function today() {
 export default function StockAnalytics() {
   const { isDealerUser } = useAuth();
   const [stockTab, setStockTab] = useState<StockTab>('fertilizer');
-  const [commandOpen, setCommandOpen] = useState(true);
-  const [dealerMonitoringOpen, setDealerMonitoringOpen] = useState(true);
+  const [dealerMonitoringOpen, setDealerMonitoringOpen] = useState(false);
   const [stockToolsOpen, setStockToolsOpen] = useState(false);
 
   if (isDealerUser) {
@@ -77,78 +76,65 @@ export default function StockAnalytics() {
 
   return (
     <div className="max-w-full space-y-4 overflow-hidden" style={{ background: THEME.bg }}>
-      <section className="overflow-hidden rounded-2xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 shadow-sm">
+      <section className="rounded-2xl border border-emerald-200/70 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-emerald-50/25 px-4 py-3 shadow-sm shadow-emerald-100/50 dark:border-emerald-900/50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-slate-900">
+        <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Command Center</p>
+        <h2 className="text-lg font-black text-slate-950 dark:text-white">Officer Command Center</h2>
+      </section>
+
+      <section className="overflow-hidden rounded-xl border border-indigo-200/70 bg-gradient-to-br from-indigo-50 via-indigo-50/60 to-indigo-50/25 shadow-sm shadow-indigo-100/40 dark:border-indigo-900/50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900">
         <button
           type="button"
-          onClick={() => setCommandOpen((value) => !value)}
+          onClick={() => setDealerMonitoringOpen((value) => !value)}
+          className={`flex w-full items-center justify-between gap-3 bg-indigo-100/50 px-4 py-3 text-left dark:bg-indigo-950/60 ${dealerMonitoringOpen ? 'border-b border-indigo-100 dark:border-indigo-900/50' : ''}`}
+        >
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-wide text-indigo-600 dark:text-indigo-300">Command Center</p>
+            <h3 className="text-base font-black text-slate-950 dark:text-white">Dealer Monitoring</h3>
+          </div>
+          <ChevronDown className={`h-5 w-5 text-indigo-600 transition dark:text-indigo-300 ${dealerMonitoringOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {dealerMonitoringOpen && (
+          <div className="p-2 sm:p-3">
+            <CommandCenter />
+          </div>
+        )}
+      </section>
+
+      <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/70">
+        <button
+          type="button"
+          onClick={() => setStockToolsOpen((value) => !value)}
           className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
         >
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Command Center</p>
-            <h2 className="text-lg font-black text-slate-950 dark:text-white">Officer Command Center</h2>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Stock Analytics</p>
+            <h3 className="text-base font-black text-slate-950 dark:text-white">Fertilizer Tracking & Stock Inventory</h3>
           </div>
-          <ChevronDown className={`h-5 w-5 text-emerald-800 transition ${commandOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-5 w-5 text-slate-700 transition ${stockToolsOpen ? 'rotate-180' : ''}`} />
         </button>
 
-        {commandOpen && (
-          <div className="space-y-3 border-t border-emerald-50 p-2 sm:p-3">
-            <section className="overflow-hidden rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 shadow-sm">
-              <button
-                type="button"
-                onClick={() => setDealerMonitoringOpen((value) => !value)}
-                className="flex w-full items-center justify-between gap-3 bg-gradient-to-r from-white to-emerald-50/70 dark:to-emerald-950/70 px-3 py-3 text-left"
-              >
-                <div>
-                  <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Dealer Monitoring</p>
-                  <h3 className="text-base font-black text-slate-950 dark:text-white">Dealer Monitoring</h3>
-                </div>
-                <ChevronDown className={`h-5 w-5 text-emerald-800 transition ${dealerMonitoringOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {dealerMonitoringOpen && (
-                <div className="border-t border-emerald-100 dark:border-emerald-900 bg-[#fbfdfb] p-2 sm:p-3">
-                  <CommandCenter />
-                </div>
-              )}
-            </section>
-
-            <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/70">
-              <button
-                type="button"
-                onClick={() => setStockToolsOpen((value) => !value)}
-                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
-              >
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Stock Analytics</p>
-                  <h3 className="text-base font-black text-slate-950 dark:text-white">Fertilizer Tracking & Stock Inventory</h3>
-                </div>
-                <ChevronDown className={`h-5 w-5 text-slate-700 transition ${stockToolsOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {stockToolsOpen && (
-                <div className="space-y-3 border-t border-slate-200 dark:border-slate-700 p-2 sm:p-3">
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    <StockSwitch
-                      title="Fertilizer Tracking"
-                      description="Track fertilizer stock and movements"
-                      active={stockTab === 'fertilizer'}
-                      tone="red"
-                      icon={<PackageCheck className="h-5 w-5" />}
-                      onClick={() => setStockTab('fertilizer')}
-                    />
-                    <StockSwitch
-                      title="Stock Inventory"
-                      description="View and manage stock inventory"
-                      active={stockTab === 'inventory'}
-                      tone="green"
-                      icon={<ClipboardList className="h-5 w-5" />}
-                      onClick={() => setStockTab('inventory')}
-                    />
-                  </div>
-                  {stockTab === 'fertilizer' ? <StockManagement /> : <StockInventory />}
-                </div>
-              )}
-            </section>
+        {stockToolsOpen && (
+          <div className="space-y-3 border-t border-slate-200 dark:border-slate-700 p-2 sm:p-3">
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              <StockSwitch
+                title="Fertilizer Tracking"
+                description="Track fertilizer stock and movements"
+                active={stockTab === 'fertilizer'}
+                tone="red"
+                icon={<PackageCheck className="h-5 w-5" />}
+                onClick={() => setStockTab('fertilizer')}
+              />
+              <StockSwitch
+                title="Stock Inventory"
+                description="View and manage stock inventory"
+                active={stockTab === 'inventory'}
+                tone="green"
+                icon={<ClipboardList className="h-5 w-5" />}
+                onClick={() => setStockTab('inventory')}
+              />
+            </div>
+            {stockTab === 'fertilizer' ? <StockManagement /> : <StockInventory />}
           </div>
         )}
       </section>
@@ -273,7 +259,7 @@ function CommandCenter() {
 
   return (
     <div className="space-y-3">
-      <section className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 p-3 shadow-sm shadow-emerald-100/50">
+      <section className="rounded-xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 via-emerald-50/60 to-emerald-50/25 p-3 shadow-sm shadow-emerald-100/50 dark:border-emerald-900/50 dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Filters</p>
@@ -303,19 +289,7 @@ function CommandCenter() {
       {loading && <div className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 p-4 text-sm font-bold text-slate-500 dark:text-slate-400 shadow-sm">Loading command center...</div>}
 
       <section className="grid gap-3 xl:grid-cols-2">
-        <section className="overflow-hidden rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 shadow-sm shadow-emerald-100/40">
-          <div className="flex items-center justify-between border-b border-emerald-50 bg-emerald-50/50 dark:bg-emerald-950/50 px-3 py-2">
-            <div>
-              <h2 className="text-sm font-black text-slate-950 dark:text-white">Dealer Submission List</h2>
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Today: {today()}</p>
-            </div>
-            <div className="grid grid-cols-2 rounded-lg border border-slate-200 dark:border-slate-700 p-1 text-xs font-black">
-              <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'updated' ? 'bg-emerald-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('updated')}>Updated</button>
-              <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'pending' ? 'bg-red-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('pending')}>Pending</button>
-            </div>
-          </div>
-          <SimpleTable headers={['S.No', 'Dealer/Firm', 'Last Submitted Date', 'Status']} rows={submissionRows.map((row, index) => [index + 1, row.name, row.lastDate || '-', row.status])} />
-        </section>
+        <DealerSubmissionCard rows={submissionRows} submissionTab={submissionTab} setSubmissionTab={setSubmissionTab} />
         <LicenseCounterCard counters={licenseCounters} />
       </section>
 
@@ -328,7 +302,7 @@ function CommandCenter() {
         />
         <DashboardListCard
           title="Expiring Soon (60 Days)"
-          tone="green"
+          tone="amber"
           headers={['Dealer', 'Valid Upto']}
           rows={expiringLicenses.map((row) => [row.name, formatShortDate(row.date)])}
         />
@@ -392,65 +366,121 @@ function StockSwitch({ title, description, active, tone, icon, onClick }: { titl
   );
 }
 
-function LicenseCounterCard({ counters }: { counters: { label: string; value: number }[] }) {
+function DealerSubmissionCard({ rows, submissionTab, setSubmissionTab }: { rows: { name: string; lastDate: string; status: string }[]; submissionTab: SubmissionTab; setSubmissionTab: (tab: SubmissionTab) => void }) {
+  const [open, setOpen] = useState(false);
   return (
-    <section className="rounded-xl border border-emerald-50 bg-white dark:bg-slate-900 p-3 shadow-sm shadow-slate-100/70">
-      <h2 className="mb-2 border-b border-emerald-50 pb-2 text-sm font-black text-slate-950 dark:text-white">License Counter</h2>
-      <div className="space-y-2">
-        {counters.map((item) => (
-          <div key={item.label} className="flex items-center justify-between rounded-lg border border-emerald-50 bg-emerald-50/30 dark:bg-emerald-950/30 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200">
-            <span className="truncate">{item.label}</span>
-            <span className="rounded-md bg-white dark:bg-slate-900 px-2 py-0.5 text-sm font-black text-emerald-700 dark:text-emerald-300 shadow-sm">{item.value}</span>
+    <section className="overflow-hidden rounded-xl border border-indigo-200/70 bg-gradient-to-br from-indigo-50 via-indigo-50/60 to-indigo-50/25 shadow-sm shadow-indigo-100/40 dark:border-indigo-900/50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900">
+      <div className={`flex items-center justify-between bg-indigo-100/50 px-3 py-2 dark:bg-indigo-950/60 ${open ? 'border-b border-indigo-100 dark:border-indigo-900/50' : ''}`}>
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-wide text-indigo-600 dark:text-indigo-300">Dealer Monitoring</p>
+          <h2 className="text-sm font-black text-slate-950 dark:text-white">Dealer Submission List</h2>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Today: {today()}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="grid grid-cols-2 rounded-lg border border-slate-200 dark:border-slate-700 p-1 text-xs font-black">
+            <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'updated' ? 'bg-emerald-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('updated')}>Updated</button>
+            <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'pending' ? 'bg-red-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('pending')}>Pending</button>
           </div>
-        ))}
+          <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? 'Collapse Dealer Submission List' : 'Expand Dealer Submission List'} className="rounded-md p-1 text-indigo-600 transition hover:bg-white/70 dark:text-indigo-300 dark:hover:bg-slate-800">
+            <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
       </div>
+      {open && (
+        <SimpleTable headers={['S.No', 'Dealer/Firm', 'Last Submitted Date', 'Status']} rows={rows.map((row, index) => [index + 1, row.name, row.lastDate || '-', row.status])} />
+      )}
     </section>
   );
 }
 
-function DashboardListCard({ title, tone, headers, rows }: { title: string; tone: 'red' | 'green' | 'blue'; headers?: string[]; rows: React.ReactNode[][] }) {
+function LicenseCounterCard({ counters }: { counters: { label: string; value: number }[] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="rounded-xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-violet-50/60 to-violet-50/25 p-3 shadow-sm shadow-violet-100/70 dark:border-violet-900/50 dark:from-violet-950/30 dark:via-slate-900 dark:to-slate-900">
+      <div className={`flex items-center justify-between gap-2 ${open ? 'mb-2 border-b border-violet-100 pb-2 dark:border-violet-900/50' : ''}`}>
+        <div className="min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-wide text-violet-600 dark:text-violet-300">Dealer Monitoring</p>
+          <h2 className="text-sm font-black text-slate-950 dark:text-white">License Counter</h2>
+        </div>
+        <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? 'Collapse License Counter' : 'Expand License Counter'} className="shrink-0 rounded-md p-1 text-violet-600 transition hover:bg-white/70 dark:text-violet-300 dark:hover:bg-slate-800">
+          <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+      {open && (
+        <div className="space-y-2">
+          {counters.map((item) => (
+            <div key={item.label} className="flex items-center justify-between rounded-lg border border-violet-100 bg-violet-50/50 px-3 py-1.5 text-xs font-bold text-slate-700 dark:border-violet-900/50 dark:bg-violet-950/30 dark:text-slate-200">
+              <span className="truncate">{item.label}</span>
+              <span className="rounded-md bg-white px-2 py-0.5 text-sm font-black text-violet-700 shadow-sm dark:bg-slate-900 dark:text-violet-300">{item.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function DashboardListCard({ title, tone, headers, rows }: { title: string; tone: 'red' | 'green' | 'blue' | 'amber'; headers?: string[]; rows: React.ReactNode[][] }) {
+  const [open, setOpen] = useState(false);
   const toneClass = cardTone(tone);
   return (
-    <section className={`overflow-hidden rounded-xl border bg-white p-3 shadow-sm shadow-slate-100/70 ${toneClass.card}`}>
-      <div className="mb-2 flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+    <section className={`overflow-hidden rounded-xl border p-3 shadow-sm shadow-slate-100/70 ${toneClass.card}`}>
+      <div className={`flex items-center justify-between gap-2 ${open ? `mb-2 border-b ${toneClass.header} pb-2` : ''}`}>
         <div className="min-w-0">
           <p className={`text-[10px] font-black uppercase tracking-wide ${toneClass.eyebrow}`}>Dealer Monitoring</p>
           <h2 className="truncate text-sm font-black text-slate-950 dark:text-white">{title}</h2>
         </div>
-        {rows.length > 0 && <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${toneClass.badge}`}>{rows.length}</span>}
-      </div>
-      {headers && (
-        <div className="mb-1.5 grid grid-cols-[1fr_auto] gap-3 rounded-md bg-slate-50 dark:bg-slate-800/60 px-2 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          <span>{headers[0]}</span>
-          <span className="text-right">{headers[1]}</span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {rows.length > 0 && <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${toneClass.badge}`}>{rows.length}</span>}
+          <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? `Collapse ${title}` : `Expand ${title}`} className={`rounded-md p-1 transition hover:bg-white/70 dark:hover:bg-slate-800 ${toneClass.eyebrow}`}>
+            <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
+          </button>
         </div>
-      )}
-      <div className="max-h-72 overflow-y-auto pr-1">
-        {rows.length ? rows.map((row, index) => (
-          <div key={index} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-xs hover:border-emerald-50 hover:bg-emerald-50/30">
-            <div className="min-w-0 break-words font-extrabold leading-snug text-slate-900 dark:text-white">
-              {row[0]}
-              {row[2] && <div className="mt-0.5 break-words text-[11px] font-bold text-slate-500 dark:text-slate-400">{row[1]}</div>}
-            </div>
-            <div className="shrink-0 text-right font-black text-slate-800 dark:text-slate-100">{row[2] || row[1]}</div>
-          </div>
-        )) : <EmptyCardMessage />}
       </div>
+      {open && (
+        <>
+          {headers && (
+            <div className={`mb-1.5 grid grid-cols-[1fr_auto] gap-3 rounded-md px-2 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 ${toneClass.tableHead}`}>
+              <span>{headers[0]}</span>
+              <span className="text-right">{headers[1]}</span>
+            </div>
+          )}
+          <div className="max-h-72 overflow-y-auto pr-1">
+            {rows.length ? rows.map((row, index) => (
+              <div key={index} className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-xs ${toneClass.rowHover}`}>
+                <div className="min-w-0 break-words font-extrabold leading-snug text-slate-900 dark:text-white">
+                  {row[0]}
+                  {row[2] && <div className="mt-0.5 break-words text-[11px] font-bold text-slate-500 dark:text-slate-400">{row[1]}</div>}
+                </div>
+                <div className="shrink-0 text-right font-black text-slate-800 dark:text-slate-100">{row[2] || row[1]}</div>
+              </div>
+            )) : <EmptyCardMessage />}
+          </div>
+        </>
+      )}
     </section>
   );
 }
 
 function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRows> }) {
+  const [open, setOpen] = useState(false);
   return (
-    <section className="overflow-hidden rounded-xl border border-rose-50 bg-white dark:bg-slate-900 p-3 shadow-sm shadow-slate-100/70">
-      <div className="mb-2 flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+    <section className="overflow-hidden rounded-xl border border-rose-200/70 bg-gradient-to-br from-rose-50 via-rose-50/60 to-rose-50/25 p-3 shadow-sm shadow-rose-100/70 dark:border-rose-900/50 dark:from-rose-950/30 dark:via-slate-900 dark:to-slate-900">
+      <div className={`flex items-center justify-between gap-2 ${open ? 'mb-2 border-b border-rose-100 pb-2 dark:border-rose-900/50' : ''}`}>
         <div>
           <p className="text-[10px] font-black uppercase tracking-wide text-rose-600 dark:text-rose-300">Dealer Monitoring</p>
           <h2 className="text-sm font-black text-slate-950 dark:text-white">Urea: No Sales Alert</h2>
         </div>
-        <span className="rounded-full bg-rose-50/70 dark:bg-rose-950/70 px-2.5 py-1 text-[11px] font-black text-rose-600 dark:text-rose-300">{rows.length}</span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span className="rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-black text-rose-700 dark:bg-rose-950/70 dark:text-rose-300">{rows.length}</span>
+          <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? 'Collapse Urea: No Sales Alert' : 'Expand Urea: No Sales Alert'} className="rounded-md p-1 text-rose-600 transition hover:bg-white/70 dark:text-rose-300 dark:hover:bg-slate-800">
+            <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
       </div>
-      <div className="grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] gap-2 rounded-md bg-slate-50 dark:bg-slate-800/60 px-2 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      {open && (
+        <>
+      <div className="grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] gap-2 rounded-md bg-rose-50/80 px-2 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500 dark:bg-rose-950/40 dark:text-slate-400">
         <span>Dealer Name</span>
         <span className="text-right">Current Stock</span>
         <span className="text-center">Last Sale Date</span>
@@ -458,7 +488,7 @@ function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRow
       </div>
       <div className="mt-1.5 max-h-80 overflow-y-auto pr-1">
         {rows.length ? rows.map((row) => (
-          <div key={row.id} className="grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-xs hover:border-emerald-50 hover:bg-emerald-50/30">
+          <div key={row.id} className="grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-xs hover:border-rose-200/60 hover:bg-rose-100/50 dark:hover:bg-rose-950/30">
             <div className="min-w-0">
               <p className="break-words font-extrabold leading-snug text-slate-950 dark:text-white">{row.name}</p>
               <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{row.mobile || '-'}</p>
@@ -469,22 +499,34 @@ function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRow
           </div>
         )) : <EmptyCardMessage />}
       </div>
+        </>
+      )}
     </section>
   );
 }
 
 function WeeklyTopSellersCard({ rows }: { rows: ReturnType<typeof buildWeeklyTopSellers> }) {
+  const [open, setOpen] = useState(false);
   return (
-    <section className="rounded-xl border border-emerald-50 bg-white dark:bg-slate-900 p-3 shadow-sm shadow-slate-100/70">
-      <div className="mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
-        <p className="text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Dealer Monitoring</p>
-        <h2 className="text-sm font-black text-slate-950 dark:text-white">Week&apos;s Top Sellers By Category</h2>
+    <section className="rounded-xl border border-teal-200/70 bg-gradient-to-br from-teal-50 via-teal-50/60 to-teal-50/25 p-3 shadow-sm shadow-teal-100/70 dark:border-teal-900/50 dark:from-teal-950/30 dark:via-slate-900 dark:to-slate-900">
+      <div className={`flex items-center justify-between gap-2 ${open ? 'mb-2 border-b border-teal-100 pb-2 dark:border-teal-900/50' : ''}`}>
+        <div className="min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-wide text-teal-700 dark:text-teal-300">Dealer Monitoring</p>
+          <h2 className="truncate text-sm font-black text-slate-950 dark:text-white">Week&apos;s Top Sellers By Category</h2>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {rows.length > 0 && <span className="rounded-full bg-teal-100 px-2.5 py-1 text-[11px] font-black text-teal-700 dark:bg-teal-950/70 dark:text-teal-300">{rows.length}</span>}
+          <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? "Collapse Week's Top Sellers" : "Expand Week's Top Sellers"} className="rounded-md p-1 text-teal-700 transition hover:bg-white/70 dark:text-teal-300 dark:hover:bg-slate-800">
+            <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
       </div>
+      {open && (
       <div className="space-y-1.5">
         {rows.length ? rows.map((row, index) => (
           <div key={`${row.category}-${row.product}`} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-emerald-50/30">
             <div className="flex min-w-0 items-center gap-2 font-extrabold text-slate-900 dark:text-white">
-              <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${['bg-emerald-600', 'bg-teal-600', 'bg-lime-600', 'bg-cyan-600', 'bg-slate-500'][index % 5]}`} />
+              <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${['bg-emerald-600', 'bg-emerald-600', 'bg-lime-600', 'bg-cyan-600', 'bg-slate-500'][index % 5]}`} />
               <span className="break-words">
               {CATEGORY_LABELS[row.category]}: {row.product}
               </span>
@@ -496,6 +538,7 @@ function WeeklyTopSellersCard({ rows }: { rows: ReturnType<typeof buildWeeklyTop
           </div>
         )) : <EmptyCardMessage />}
       </div>
+      )}
     </section>
   );
 }
@@ -513,10 +556,39 @@ function EmptyCardMessage() {
   return <div className="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-center text-xs font-bold text-slate-500 dark:text-slate-400">No records found.</div>;
 }
 
-function cardTone(tone: 'red' | 'green' | 'blue') {
-  if (tone === 'red') return { card: 'border-rose-50', eyebrow: 'text-rose-600', badge: 'bg-rose-50/70 text-rose-600' };
-  if (tone === 'blue') return { card: 'border-sky-50', eyebrow: 'text-sky-700', badge: 'bg-sky-50/70 text-sky-700' };
-  return { card: 'border-emerald-50', eyebrow: 'text-emerald-700', badge: 'bg-emerald-50/70 text-emerald-700' };
+function cardTone(tone: 'red' | 'green' | 'blue' | 'amber') {
+  if (tone === 'red') return {
+    card: 'border-rose-200/70 bg-gradient-to-br from-rose-50 via-rose-50/60 to-rose-50/25 dark:border-rose-900/50 dark:from-rose-950/30 dark:via-slate-900 dark:to-slate-900',
+    header: 'border-rose-100 dark:border-rose-900/50',
+    eyebrow: 'text-rose-600 dark:text-rose-300',
+    badge: 'bg-rose-100 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300',
+    tableHead: 'bg-rose-50/80 dark:bg-rose-950/40',
+    rowHover: 'hover:border-rose-200/60 hover:bg-rose-100/50 dark:hover:bg-rose-950/30',
+  };
+  if (tone === 'blue') return {
+    card: 'border-sky-200/70 bg-gradient-to-br from-sky-50 via-sky-50/60 to-sky-50/25 dark:border-sky-900/50 dark:from-sky-950/30 dark:via-slate-900 dark:to-slate-900',
+    header: 'border-sky-100 dark:border-sky-900/50',
+    eyebrow: 'text-sky-700 dark:text-sky-300',
+    badge: 'bg-sky-100 text-sky-700 dark:bg-sky-950/70 dark:text-sky-300',
+    tableHead: 'bg-sky-50/80 dark:bg-sky-950/40',
+    rowHover: 'hover:border-sky-200/60 hover:bg-sky-100/50 dark:hover:bg-sky-950/30',
+  };
+  if (tone === 'amber') return {
+    card: 'border-amber-200/70 bg-gradient-to-br from-amber-50 via-amber-50/60 to-amber-50/25 dark:border-amber-900/50 dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900',
+    header: 'border-amber-100 dark:border-amber-900/50',
+    eyebrow: 'text-amber-700 dark:text-amber-300',
+    badge: 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300',
+    tableHead: 'bg-amber-50/80 dark:bg-amber-950/40',
+    rowHover: 'hover:border-amber-200/60 hover:bg-amber-100/50 dark:hover:bg-amber-950/30',
+  };
+  return {
+    card: 'border-emerald-200/70 bg-gradient-to-br from-emerald-50 via-emerald-50/60 to-emerald-50/25 dark:border-emerald-900/50 dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900',
+    header: 'border-emerald-100 dark:border-emerald-900/50',
+    eyebrow: 'text-emerald-700 dark:text-emerald-300',
+    badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300',
+    tableHead: 'bg-emerald-50/80 dark:bg-emerald-950/40',
+    rowHover: 'hover:border-emerald-200/60 hover:bg-emerald-100/50 dark:hover:bg-emerald-950/30',
+  };
 }
 
 function SimpleTable({ headers, rows }: { headers: string[]; rows: React.ReactNode[][] }) {

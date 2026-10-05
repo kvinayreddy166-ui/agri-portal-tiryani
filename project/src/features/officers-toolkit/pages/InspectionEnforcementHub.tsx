@@ -49,11 +49,11 @@ type HubCardKey = 'inspections' | 'notices' | 'stopSale' | 'seizure';
 
 const cardThemes: Record<string, { bar: string; tile: string; openBorder: string; openShadow: string; chevronOpen: string }> = {
   teal: {
-    bar: 'from-teal-400 to-emerald-500',
-    tile: 'from-teal-500 to-emerald-600 shadow-teal-500/30',
-    openBorder: 'border-teal-300 dark:border-teal-600',
-    openShadow: 'shadow-teal-500/10',
-    chevronOpen: 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300',
+    bar: 'from-emerald-400 to-emerald-500',
+    tile: 'from-emerald-500 to-emerald-600 shadow-emerald-500/30',
+    openBorder: 'border-emerald-300 dark:border-emerald-600',
+    openShadow: 'shadow-emerald-500/10',
+    chevronOpen: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
   },
   cyan: {
     bar: 'from-cyan-400 to-blue-500',

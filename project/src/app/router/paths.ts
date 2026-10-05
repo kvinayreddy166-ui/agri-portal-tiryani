@@ -3,6 +3,9 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   '/login',
   '/officer-toolkit',
   '/officer-toolkit/license-services',
+  '/officer-toolkit/smart-sampling',
+  '/officer-toolkit/sampling-hub',
+  '/officer-toolkit/forms-library',
   '/officer-toolkit/statutory-forms',
   '/officer-toolkit/acreage-calculator',
   '/officer-toolkit/farm-calculators',
@@ -51,6 +54,7 @@ export const PAGE_PATHS: Record<string, string> = {
   dealers: '/dealers',
   'farmer-database': '/farmer-database',
   forms: '/forms',
+  'forms-library': '/officer-toolkit/forms-library',
   'gos-circulars': '/gos-circulars',
   quality: '/quality',
   'quality-seeds': '/quality-seeds',
@@ -119,6 +123,9 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
     return '/officer-toolkit/farm-calculators';
   }
   if (
+    pathname === '/officer-toolkit/smart-sampling' ||
+    pathname === '/officer-toolkit/sampling-hub' ||
+    pathname === '/officer-toolkit/forms-library' ||
     pathname === '/officer-toolkit/statutory-forms' ||
     pathname === '/officer-toolkit/acreage-calculator' ||
     pathname === '/officer-toolkit/farm-calculators' ||
@@ -139,7 +146,7 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
 }
 
 export function getPageBackFallback(page: string, isDealerUser: boolean) {
-  if (page === 'forms' || page === 'acreage-calculator' || page === 'crop-doctor') return '/officer-toolkit';
+  if (page === 'forms' || page === 'forms-library' || page === 'acreage-calculator' || page === 'crop-doctor') return '/officer-toolkit';
   if (page === 'license-services') return '/officer-toolkit';
   if (page === 'farm-calculators') return '/officer-toolkit';
   if (page === 'fertilizer-calculator' || page === 'pesticide-calculator' || page === 'plant-population-calculator' || page === 'seed-rate-calculator') return '/officer-toolkit/farm-calculators';
@@ -160,6 +167,7 @@ export const VALID_PAGES = new Set([
   'dealers',
   'farmer-database',
   'forms',
+  'forms-library',
   'gos-circulars',
   'quality',
   'quality-seeds',
@@ -207,6 +215,9 @@ const OFFICER_TOOLKIT_PAGE_PREFIX = 'officer-toolkit/';
 const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'farm-calculators',
   'acreage-calculator',
+  'smart-sampling',
+  'sampling-hub',
+  'forms-library',
   'statutory-forms',
   'license-services',
   'license-application-generator',
@@ -226,7 +237,7 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'inspection-enforcement',
   'field-diagnosis',
 ]);
-const SUBPAGE_ALIASES: Record<string, string> = { 'statutory-forms': 'forms', 'legal-ready-reckoner': 'acts-and-orders', 'license-application-generator': 'license-services', 'crop-protection': 'crop-doctor' };
+const SUBPAGE_ALIASES: Record<string, string> = { 'smart-sampling': 'forms', 'sampling-hub': 'forms', 'statutory-forms': 'forms', 'legal-ready-reckoner': 'acts-and-orders', 'license-application-generator': 'license-services', 'crop-protection': 'crop-doctor' };
 
 export function resolvePageFromLocation(location: { pathname: string; search: string; hash: string }): string {
   try {

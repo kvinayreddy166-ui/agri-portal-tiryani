@@ -4,7 +4,8 @@ export const Login = lazy(() => import('../../features/auth/pages/Login').then((
 export const Layout = lazy(() => import('../Layout').then((m) => ({ default: m.Layout })));
 export const Dashboard = lazy(() => import('../../features/dashboard/pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 export const DealerManagement = lazy(() => import('../../features/dealer-stock/pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));
-export const StatutoryForms = lazy(() => import('../../features/statutory-forms/pages/StatutoryForms').then((m) => ({ default: m.StatutoryForms })));
+export const SamplingHub = lazy(() => import('../../features/sampling-hub/pages/SamplingHub').then((m) => ({ default: m.SamplingHub })));
+export const FormsLibrary = lazy(() => import('../../features/sampling-hub/pages/FormsLibrary').then((m) => ({ default: m.FormsLibrary })));
 export const ExcelUploads = lazy(() => import('../../features/farmer-database/pages/ExcelUploads').then((m) => ({ default: m.ExcelUploads })));
 export const Analytics = lazy(() => import('../../features/dashboard/pages/Analytics').then((m) => ({ default: m.Analytics })));
 export const FarmerDatabase = lazy(() => import('../../features/farmer-database/pages/FarmerDatabase').then((m) => ({ default: m.FarmerDatabase })));
@@ -19,7 +20,7 @@ export const DealerStockPortal = lazy(() => import('../../features/dealer-stock/
 export const AcreageCalculator = lazy(() => import('../../features/calculators/pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 export const FertilizerCalculator = lazy(() => import('../../features/calculators/pages/FertilizerCalculator').then((m) => ({ default: m.FertilizerCalculator })));
 export const OfficersToolkit = lazy(() => import('../../features/officers-toolkit/pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
-export const LicenseServices = lazy(() => import('../../features/statutory-forms/pages/LicenseServices').then((m) => ({ default: m.LicenseServices })));
+export const LicenseServices = lazy(() => import('../../features/sampling-hub/pages/LicenseServices').then((m) => ({ default: m.LicenseServices })));
 export const FarmCalculators = lazy(() => import('../../features/calculators/pages/FarmCalculators').then((m) => ({ default: m.FarmCalculators })));
 export const CropProtectionTool = lazy(() => import('../../features/crop-doctor/pages/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
 export const PesticideCalculator = lazy(() => import('../../features/calculators/pages/PesticideCalculator').then((m) => ({ default: m.PesticideCalculator })));

@@ -1023,7 +1023,7 @@ export function LicenseServices() {
               <select
                 value={fertilizerAmendmentType}
                 onChange={(e) => handleFertilizerAmendmentTypeChange(e.target.value as FertilizerAmendmentType)}
-                className="w-full rounded-2xl border border-teal-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 dark:border-teal-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-teal-900/30"
+                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
                 <option value="">Amendment Type</option>
                 {Object.entries(FERTILIZER_AMENDMENT_TYPES).map(([key, label]) => (
