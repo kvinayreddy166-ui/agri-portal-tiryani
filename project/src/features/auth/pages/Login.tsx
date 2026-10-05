@@ -306,10 +306,10 @@ export function Login() {
         </div>
         <div className="relative space-y-6">
           <h1 className="max-w-md bg-gradient-to-r from-white via-emerald-50 to-emerald-100 bg-clip-text text-3xl font-bold leading-tight tracking-tight text-transparent xl:text-[2.5rem]">
-            {t('Field-ready documents for Quality enforcement.', 'నాణ్యత అమలు కోసం సిద్ధమైన పత్రాలు.')}
+            {t('Field-Ready Enforcement Documents', 'ఫీల్డ్-రెడీ ఎన్ఫోర్స్‌మెంట్ పత్రాలు')}
           </h1>
           <p className="max-w-md text-[15px] leading-7 text-emerald-50/95">
-            {t('Inspections, memos, stop sale and seizure orders — prepared in departmental format, ready for PDF and Word.', 'తనిఖీలు, మెమోలు, స్టాప్ సేల్ మరియు జబ్తు ఆర్డర్లు — శాఖా ఫార్మాట్‌లో, PDF మరియు Word కోసం సిద్ధం.')}
+            {t('Inspections, notices, sample drawal memos, stop-sale & seizure orders — prepared in departmental format and ready for PDF/Word generation.', 'తనిఖీలు, నోటీసులు, నమూనా డ్రాయింగ్ మెమోలు, స్టాప్-సేల్ & జబ్తు ఆర్డర్లు — శాఖా ఫార్మాట్‌లో సిద్ధం చేయబడి PDF/Word రూపంలో సిద్ధం.')}
           </p>
           <ul className="max-w-md space-y-3 text-sm font-medium text-white">
             <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-emerald-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">

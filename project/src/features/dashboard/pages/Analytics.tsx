@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Eye, FileSpreadsheet, FileText, Filter, RefreshCw } from 'lucide-react';
+import { ChevronDown, Download, Eye, FileSpreadsheet, FileText, Filter, RefreshCw } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { savePdfDocument, saveWorkbookFile } from '../../documents/lib/documentActions';
@@ -124,6 +124,7 @@ export function Analytics() {
   const [product, setProduct] = useState('all');
   const [reportType, setReportType] = useState<ReportKey>('stock-inventory');
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const loadData = useCallback(async () => {
     if (dataLoaded) return;
@@ -333,12 +334,29 @@ export function Analytics() {
             <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-black text-slate-700 dark:text-slate-200">
               <Eye className="h-4 w-4" /> Preview
             </button>
-            <button type="button" onClick={downloadPdf} className="inline-flex items-center gap-2 rounded-lg bg-red-700 px-3 py-2 text-xs font-black text-white">
-              <FileText className="h-4 w-4" /> Download PDF
-            </button>
-            <button type="button" onClick={downloadExcel} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white">
-              <FileSpreadsheet className="h-4 w-4" /> Download Excel
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setExportOpen((open) => !open)}
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white transition hover:bg-emerald-800"
+              >
+                <Download className="h-4 w-4" /> Export
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {exportOpen && (
+                <>
+                  <button type="button" aria-label="Close export menu" onClick={() => setExportOpen(false)} className="fixed inset-0 z-10 cursor-default" />
+                  <div className="absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                    <button type="button" onClick={() => { setExportOpen(false); void downloadExcel(); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-black text-slate-800 transition hover:bg-emerald-50 dark:text-slate-100 dark:hover:bg-slate-800">
+                      <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" /> Excel (.xlsx)
+                    </button>
+                    <button type="button" onClick={() => { setExportOpen(false); void downloadPdf(); }} className="flex w-full items-center gap-2 border-t border-slate-200 px-3 py-2 text-left text-xs font-black text-slate-800 transition hover:bg-rose-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800">
+                      <FileText className="h-3.5 w-3.5 text-rose-600" /> PDF
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
         {previewRows.length ? (

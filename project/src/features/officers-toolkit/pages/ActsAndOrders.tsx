@@ -63,25 +63,25 @@ type FcoAccent = 'sky' | 'amber';
 
 const fcoAccentThemes = {
   sky: {
-    gradient: 'from-sky-400 via-sky-500 to-blue-500',
-    gradientDeep: 'from-sky-500 via-sky-600 to-blue-600',
+    gradient: 'from-sky-500 via-sky-600 to-blue-700',
+    gradientDeep: 'from-sky-600 via-blue-600 to-blue-700',
     shadow: 'shadow-sky-500/20',
     border: 'border-slate-200 dark:border-slate-700',
     borderSoft: 'border-slate-200 dark:border-slate-800',
     borderMid: 'border-slate-200 dark:border-slate-700',
     hoverBorder: 'hover:border-sky-300 dark:hover:border-sky-700',
     activeTile: 'border-sky-400 dark:border-sky-600',
-    tint: 'from-sky-50/70 via-white to-white dark:from-sky-950/20 dark:via-slate-900 dark:to-slate-900',
-    tintActive: 'from-sky-100/70 via-sky-50 to-white dark:from-sky-950/30 dark:via-slate-900 dark:to-slate-900',
-    tintTile: 'from-sky-50/80 via-white to-blue-50/50 dark:from-sky-950/25 dark:via-slate-900 dark:to-blue-950/15',
+    tint: 'from-sky-50/70 via-white to-blue-50/40 dark:from-sky-950/20 dark:via-slate-900 dark:to-blue-950/15',
+    tintActive: 'from-sky-100/70 via-sky-50 to-blue-50/60 dark:from-sky-950/30 dark:via-slate-900 dark:to-blue-950/20',
+    tintTile: 'from-sky-50/80 via-white to-blue-50/70 dark:from-sky-950/25 dark:via-slate-900 dark:to-blue-950/20',
     chip: 'bg-slate-50 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700',
     chipCount: 'bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
-    chipAlt: 'bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/60',
+    chipAlt: 'bg-gradient-to-br from-sky-50 to-blue-50 text-sky-700 ring-sky-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-300 dark:ring-sky-800/60',
     tabOff: 'border-slate-200 bg-white text-slate-600 hover:border-sky-200 hover:bg-sky-50/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-sky-800 dark:hover:bg-sky-950/20',
     labelText: 'text-slate-500 dark:text-slate-400',
     boldText: 'text-slate-800 dark:text-slate-100',
     iconText: 'text-sky-600 dark:text-sky-400',
-    iconTile: 'bg-sky-50 text-sky-600 ring-1 ring-sky-200/70 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/50',
+    iconTile: 'bg-gradient-to-br from-sky-50 to-blue-50 text-sky-700 ring-1 ring-sky-200/70 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-300 dark:ring-sky-800/50',
     altText: 'text-slate-700 dark:text-slate-200',
     focus: 'focus:border-sky-500 focus:ring-sky-100',
     related: 'bg-slate-50 text-slate-700 ring-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-700 dark:hover:text-white',
@@ -93,32 +93,32 @@ const fcoAccentThemes = {
     panelTitle: 'text-slate-700 dark:text-slate-200',
     panelChip: 'bg-white text-slate-700 ring-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700',
     stepperArrow: 'text-slate-300 dark:text-slate-600',
-    stepperBadge: 'from-sky-400 to-blue-500',
+    stepperBadge: 'from-sky-500 to-blue-600',
     stepperClock: 'text-slate-500 dark:text-slate-400',
     stepperBox: 'border-slate-200 dark:border-slate-700',
     dot: 'from-sky-400 to-blue-400',
     hoverTint: 'hover:bg-slate-50 dark:hover:bg-slate-800/50',
   },
   amber: {
-    gradient: 'from-amber-400 via-amber-500 to-orange-500',
-    gradientDeep: 'from-amber-500 via-amber-600 to-orange-600',
+    gradient: 'from-amber-500 via-orange-500 to-orange-600',
+    gradientDeep: 'from-amber-600 via-orange-500 to-orange-700',
     shadow: 'shadow-amber-500/20',
     border: 'border-slate-200 dark:border-slate-700',
     borderSoft: 'border-slate-200 dark:border-slate-800',
     borderMid: 'border-slate-200 dark:border-slate-700',
     hoverBorder: 'hover:border-amber-300 dark:hover:border-amber-700',
     activeTile: 'border-amber-400 dark:border-amber-600',
-    tint: 'from-amber-50/70 via-white to-white dark:from-amber-950/20 dark:via-slate-900 dark:to-slate-900',
-    tintActive: 'from-amber-100/70 via-amber-50 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900',
-    tintTile: 'from-amber-50/80 via-white to-orange-50/50 dark:from-amber-950/25 dark:via-slate-900 dark:to-orange-950/15',
+    tint: 'from-amber-50/70 via-white to-orange-50/40 dark:from-amber-950/20 dark:via-slate-900 dark:to-orange-950/15',
+    tintActive: 'from-amber-100/70 via-amber-50 to-orange-50/60 dark:from-amber-950/30 dark:via-slate-900 dark:to-orange-950/20',
+    tintTile: 'from-amber-50/80 via-white to-orange-50/70 dark:from-amber-950/25 dark:via-slate-900 dark:to-orange-950/20',
     chip: 'bg-slate-50 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700',
     chipCount: 'bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
-    chipAlt: 'bg-amber-50 text-amber-800 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800/60',
+    chipAlt: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-800 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60',
     tabOff: 'border-slate-200 bg-white text-slate-600 hover:border-amber-200 hover:bg-amber-50/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-amber-800 dark:hover:bg-amber-950/20',
     labelText: 'text-slate-500 dark:text-slate-400',
     boldText: 'text-slate-800 dark:text-slate-100',
     iconText: 'text-amber-600 dark:text-amber-400',
-    iconTile: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/70 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50',
+    iconTile: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-700 ring-1 ring-amber-200/70 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-300 dark:ring-amber-800/50',
     altText: 'text-slate-700 dark:text-slate-200',
     focus: 'focus:border-amber-500 focus:ring-amber-100',
     related: 'bg-slate-50 text-slate-700 ring-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-700 dark:hover:text-white',
@@ -130,7 +130,7 @@ const fcoAccentThemes = {
     panelTitle: 'text-slate-700 dark:text-slate-200',
     panelChip: 'bg-white text-slate-700 ring-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700',
     stepperArrow: 'text-slate-300 dark:text-slate-600',
-    stepperBadge: 'from-amber-400 to-orange-400',
+    stepperBadge: 'from-amber-500 to-orange-600',
     stepperClock: 'text-slate-500 dark:text-slate-400',
     stepperBox: 'border-slate-200 dark:border-slate-700',
     dot: 'from-amber-400 to-orange-400',
@@ -164,9 +164,9 @@ const legalAreaCards: Array<{
   chip: string;
   hover: string;
 }> = [
-  { id: 'fertilizer', title: 'Fertilizer', description: 'FCO 1985, ECA, seizure, samples and prosecution references.', icon: PackageCheck, category: 'Fertiliser', color: 'from-sky-400 via-sky-500 to-blue-500', panel: 'from-sky-50 via-white to-blue-50/70 dark:from-sky-950/40 dark:via-slate-900 dark:to-blue-950/30', border: 'border-sky-200/80 dark:border-sky-800/60', accent: 'text-sky-700 dark:text-sky-300', chip: 'bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/60', hover: 'hover:border-sky-400 hover:bg-sky-50/60 dark:hover:bg-sky-950/30' },
-  { id: 'seed', title: 'Seed', description: 'Seed Act, Rules, labelling, sampling and penalty actions.', icon: Sprout, category: 'Seeds', color: 'from-lime-500 via-green-500 to-emerald-700', panel: 'from-lime-50 via-white to-emerald-50/70 dark:from-lime-950/40 dark:via-slate-900 dark:to-emerald-950/30', border: 'border-lime-200/80 dark:border-lime-800/60', accent: 'text-lime-700 dark:text-lime-300', chip: 'bg-lime-50 text-lime-700 ring-lime-200 dark:bg-lime-950/40 dark:text-lime-300 dark:ring-lime-800/60', hover: 'hover:border-lime-400 hover:bg-lime-50/60 dark:hover:bg-lime-950/30' },
-  { id: 'insecticide', title: 'Insecticide', description: 'Insecticides Act, Rules, stop-sale, seizure and records.', icon: SprayCan, category: 'Insecticides', color: 'from-amber-400 via-amber-500 to-orange-500', panel: 'from-amber-50 via-white to-orange-50/70 dark:from-amber-950/40 dark:via-slate-900 dark:to-orange-950/30', border: 'border-amber-200/80 dark:border-amber-800/60', accent: 'text-amber-700 dark:text-amber-300', chip: 'bg-amber-50 text-amber-800 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800/60', hover: 'hover:border-amber-400 hover:bg-amber-50/60 dark:hover:bg-amber-950/30' },
+  { id: 'fertilizer', title: 'Fertilizer', description: 'FCO 1985, ECA, seizure, samples and prosecution references.', icon: PackageCheck, category: 'Fertiliser', color: 'from-sky-500 via-sky-600 to-blue-700', panel: 'from-sky-50 via-white to-blue-50 dark:from-sky-950/40 dark:via-slate-900 dark:to-blue-950/40', border: 'border-sky-200/80 dark:border-sky-800/60', accent: 'text-sky-700 dark:text-sky-300', chip: 'bg-gradient-to-br from-sky-50 to-blue-50 text-sky-700 ring-sky-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-300 dark:ring-sky-800/60', hover: 'hover:border-sky-400 hover:bg-sky-50/60 dark:hover:bg-sky-950/30' },
+  { id: 'seed', title: 'Seed', description: 'Seed Act, Rules, labelling, sampling and penalty actions.', icon: Sprout, category: 'Seeds', color: 'from-lime-500 via-emerald-600 to-teal-700', panel: 'from-lime-50 via-white to-emerald-50 dark:from-lime-950/40 dark:via-slate-900 dark:to-emerald-950/40', border: 'border-lime-200/80 dark:border-lime-800/60', accent: 'text-lime-700 dark:text-lime-300', chip: 'bg-gradient-to-br from-lime-50 to-emerald-50 text-lime-700 ring-lime-200 dark:from-lime-950/40 dark:to-emerald-950/30 dark:text-lime-300 dark:ring-lime-800/60', hover: 'hover:border-lime-400 hover:bg-lime-50/60 dark:hover:bg-lime-950/30' },
+  { id: 'insecticide', title: 'Insecticide', description: 'Insecticides Act, Rules, stop-sale, seizure and records.', icon: SprayCan, category: 'Insecticides', color: 'from-amber-500 via-orange-500 to-orange-600', panel: 'from-amber-50 via-white to-orange-50 dark:from-amber-950/40 dark:via-slate-900 dark:to-orange-950/40', border: 'border-amber-200/80 dark:border-amber-800/60', accent: 'text-amber-700 dark:text-amber-300', chip: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-800 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60', hover: 'hover:border-amber-400 hover:bg-amber-50/60 dark:hover:bg-amber-950/30' },
 ];
 
 const legalTopicCards: Record<MainLegalArea, Array<{
@@ -648,7 +648,7 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
               className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/60 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-400 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/25 dark:via-slate-950 dark:to-blue-950/20"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 ring-1 ring-sky-200/70 transition group-hover:scale-105 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/50">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-50 to-blue-50 text-sky-700 ring-1 ring-sky-200/70 transition group-hover:scale-105 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-300 dark:ring-sky-800/50">
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="rounded-full bg-gradient-to-br from-sky-50 to-blue-50 px-2 py-0.5 text-[10px] font-black text-sky-800 ring-1 ring-sky-200 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-200 dark:ring-sky-800/60">{card.subtitle}</span>
@@ -689,7 +689,7 @@ function InsecticideModuleHome({ onOpenSection }: { onOpenSection: (section: Ins
               className="group relative flex flex-col overflow-hidden rounded-lg border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-orange-50/60 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-md dark:border-amber-800/50 dark:from-amber-950/25 dark:via-slate-950 dark:to-orange-950/20"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-700 ring-1 ring-amber-200/70 transition group-hover:scale-105 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-50 to-orange-50 text-amber-700 ring-1 ring-amber-200/70 transition group-hover:scale-105 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-300 dark:ring-amber-800/50">
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="rounded-full bg-gradient-to-br from-amber-50 to-orange-50 px-2 py-0.5 text-[10px] font-black text-amber-800 ring-1 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60">{card.subtitle}</span>
@@ -899,7 +899,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
         {visibleSchedules.map((schedule) => (
           <details key={schedule.id} className="group overflow-hidden rounded-lg border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/60 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-400 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/25 dark:via-slate-950 dark:to-blue-950/20">
             <summary className="flex cursor-pointer list-none items-start gap-2.5 p-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 ring-1 ring-sky-200/70 transition group-hover:scale-105 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/50">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-50 to-blue-50 text-sky-700 ring-1 ring-sky-200/70 transition group-hover:scale-105 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-300 dark:ring-sky-800/50">
                 <ClipboardList className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
@@ -1547,7 +1547,7 @@ function FertilizerFormsPanel({
         {visibleForms.map((form) => (
           <article key={form.id} className="group relative flex flex-col overflow-hidden rounded-lg border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/60 p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-sky-400 hover:shadow-md dark:border-sky-800/50 dark:from-sky-950/25 dark:via-slate-950 dark:to-blue-950/20">
             <div className="flex items-start gap-2.5">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 ring-1 ring-sky-200/70 transition group-hover:scale-105 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/50">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-50 to-blue-50 text-sky-700 ring-1 ring-sky-200/70 transition group-hover:scale-105 dark:from-sky-950/40 dark:to-blue-950/30 dark:text-sky-300 dark:ring-sky-800/50">
                 <FileText className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
