@@ -26,7 +26,7 @@ export const insecticideActCards: FcoClauseCard[] = [
     cardNo: '01',
     icon: 'BookOpen',
     color: 'amber',
-    gradient: 'from-amber-500 via-orange-500 to-orange-600',
+    gradient: 'from-orange-500 via-amber-500 to-amber-600',
     clauseRange: 'Sections 1-3',
     range: [1, 3],
     summary: 'Short title, extent, other laws and definitions — including "misbranded", "insecticide", "premises" and "sale".',
@@ -80,7 +80,7 @@ export const insecticideActCards: FcoClauseCard[] = [
     cardNo: '02',
     icon: 'ShieldCheck',
     color: 'amber',
-    gradient: 'from-amber-500 via-orange-500 to-orange-600',
+    gradient: 'from-orange-500 via-amber-500 to-amber-600',
     clauseRange: 'Sections 4-11',
     range: [4, 11],
     summary: 'Central Insecticides Board, Registration Committee, registration of insecticides, appeals and Central Government revision.',
@@ -176,7 +176,7 @@ export const insecticideActCards: FcoClauseCard[] = [
     cardNo: '03',
     icon: 'Store',
     color: 'amber',
-    gradient: 'from-amber-500 via-orange-500 to-orange-600',
+    gradient: 'from-orange-500 via-amber-500 to-amber-600',
     clauseRange: 'Sections 12-15',
     range: [12, 15],
     summary: 'Licensing officers, grant of licence, revocation/suspension/amendment and appeals.',
@@ -240,7 +240,7 @@ export const insecticideActCards: FcoClauseCard[] = [
     cardNo: '04',
     icon: 'ShieldAlert',
     color: 'amber',
-    gradient: 'from-amber-500 via-orange-500 to-orange-600',
+    gradient: 'from-orange-500 via-amber-500 to-amber-600',
     clauseRange: 'Sections 16-18',
     range: [16, 18],
     summary: 'Central Insecticides Laboratory and the prohibitions that drive stop-sale, seizure and prosecution.',
@@ -296,7 +296,7 @@ export const insecticideActCards: FcoClauseCard[] = [
     cardNo: '05',
     icon: 'Microscope',
     color: 'amber',
-    gradient: 'from-amber-500 via-orange-500 to-orange-600',
+    gradient: 'from-orange-500 via-amber-500 to-amber-600',
     clauseRange: 'Sections 19-20',
     range: [19, 20],
     summary: 'Appointment, qualifications and status of Analysts and Inspectors.',
@@ -333,7 +333,7 @@ export const insecticideActCards: FcoClauseCard[] = [
     cardNo: '06',
     icon: 'FlaskConical',
     color: 'amber',
-    gradient: 'from-amber-500 via-orange-500 to-orange-600',
+    gradient: 'from-orange-500 via-amber-500 to-amber-600',
     clauseRange: 'Sections 21-24',
     range: [21, 24],
     summary: 'The field-enforcement core — entry/search, records, stop-sale up to 20 days, seizure, sampling, receipts, analyst report.',
@@ -418,7 +418,7 @@ export const insecticideActCards: FcoClauseCard[] = [
     cardNo: '07',
     icon: 'AlertTriangle',
     color: 'amber',
-    gradient: 'from-amber-500 via-orange-500 to-orange-600',
+    gradient: 'from-orange-500 via-amber-500 to-amber-600',
     clauseRange: 'Sections 25-28',
     range: [25, 28],
     summary: 'Confiscation of offending stock, poisoning notification, emergency prohibitions and cancellation publicity.',
@@ -472,7 +472,7 @@ export const insecticideActCards: FcoClauseCard[] = [
     cardNo: '08',
     icon: 'Scale',
     color: 'amber',
-    gradient: 'from-amber-500 via-orange-500 to-orange-600',
+    gradient: 'from-orange-500 via-amber-500 to-amber-600',
     clauseRange: 'Sections 29-33',
     range: [29, 33],
     summary: 'Punishment for misbranding, unlicensed dealing, obstruction and other contraventions; defences, cognizance and company offences.',
@@ -554,7 +554,7 @@ export const insecticideActCards: FcoClauseCard[] = [
     cardNo: '09',
     icon: 'BookOpen',
     color: 'amber',
-    gradient: 'from-amber-500 via-orange-500 to-orange-600',
+    gradient: 'from-orange-500 via-amber-500 to-amber-600',
     clauseRange: 'Sections 34-38 + Schedule',
     range: [34, 38],
     summary: 'Central directions, good-faith protection, rule-making powers, exemptions and the Schedule of insecticides.',
@@ -622,7 +622,7 @@ export const insecticideActCards: FcoClauseCard[] = [
 // ---------------------------------------------------------------------
 const E = (): Pick<IEntry, 'provisos' | 'explanations' | 'forms' | 'timelines'> => ({ provisos: [], explanations: [], forms: [], timelines: [] });
 const sch = (clause: IEntry): FcoClause => ({ clauseLabel: 'Schedule', ...clause });
-const ruleCard = (card: Omit<FcoClauseCard, 'color' | 'gradient'>): FcoClauseCard => ({ color: 'amber', gradient: 'from-amber-500 via-orange-500 to-orange-600', ...card });
+const ruleCard = (card: Omit<FcoClauseCard, 'color' | 'gradient'>): FcoClauseCard => ({ color: 'amber', gradient: 'from-orange-500 via-amber-500 to-amber-600', ...card });
 
 export const insecticideRuleCards: FcoClauseCard[] = [
   ruleCard({
