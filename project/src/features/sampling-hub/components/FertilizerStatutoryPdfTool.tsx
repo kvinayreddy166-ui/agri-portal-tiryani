@@ -433,9 +433,9 @@ function reorderMicroNutrientCheckboxesToTop(fields: FieldConfig[]): FieldConfig
   return checkboxField ? [checkboxField, ...otherFields] : fields;
 }
 
-function reorderCompositionFieldsBySelectionOrder(fields: FieldConfig[], compositionDisplayFlags: string): FieldConfig[] {
+function reorderCompositionFieldsBySelectionOrder(fields: FieldConfig[], compositionDisplayFlags: string, checkboxFieldKey = 'compositionDisplayFlags'): FieldConfig[] {
   const selectedFlags = compositionDisplayFlags.split(',').map(f => f.trim()).filter(Boolean);
-  
+
   if (selectedFlags.length === 0) {
     return fields;
   }
@@ -445,7 +445,7 @@ function reorderCompositionFieldsBySelectionOrder(fields: FieldConfig[], composi
   const remainingFields: FieldConfig[] = [];
 
   // Add checkbox field first
-  const checkboxField = fieldMap.get('compositionDisplayFlags');
+  const checkboxField = fieldMap.get(checkboxFieldKey);
   if (checkboxField) {
     orderedFields.push(checkboxField);
   }
@@ -1597,9 +1597,11 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                           ? (values.microNutrientTypeGrade && values.microNutrientTypeGrade !== 'Other'
                               ? reorderMicroNutrientFields(section.fields, values.microNutrientTypeGrade)
                               : reorderMicroNutrientCheckboxesToTop(section.fields))
-                          : (values.fertilizerCategory === 'Macro Nutrient Fertilizers'
-                              ? reorderCompositionFieldsBySelectionOrder(section.fields, values.compositionDisplayFlags)
-                              : section.fields))
+                          : (values.fertilizerCategory === 'Water Soluble Fertilizers'
+                              ? reorderCompositionFieldsBySelectionOrder(section.fields, values.waterSolubleCheckboxes, 'waterSolubleCheckboxes')
+                              : values.fertilizerCategory === 'Macro Nutrient Fertilizers'
+                                ? reorderCompositionFieldsBySelectionOrder(section.fields, values.compositionDisplayFlags)
+                                : section.fields))
                       : section.fields
                     ).map((field: FieldConfig) => {
                       // Hide place of collection field unless designation is ADA
