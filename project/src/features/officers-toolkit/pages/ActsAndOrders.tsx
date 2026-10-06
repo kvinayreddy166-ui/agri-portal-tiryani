@@ -42,6 +42,8 @@ import { insecticideDeadlines, insecticideMindMap, insecticideOffenceEntries } f
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { FertilizerFormPdfGenerator } from '../../sampling-hub/components/FertilizerFormPdfGenerator';
+import { FcoExplorer, type FcoExplorerSection } from '../components/FcoExplorer';
+import { InsecticideExplorer, type InsecticideExplorerSection } from '../components/InsecticideExplorer';
 import { FcoImplementationModal } from '../../../shared/components/ui/FcoImplementationModal';
 import { useAuth } from '../../../shared/context/AuthContext';
 
@@ -486,7 +488,19 @@ export function ActsAndOrders() {
       )}
 
       {selectedLegalArea === 'fertilizer' && !fertilizerSection && (
-        <FertilizerModuleHome onOpenSection={setFertilizerSection} />
+        <FcoExplorer
+          onOpenCard={(cardId) => {
+            setFertilizerSection('clauses');
+            setSelectedFcoCardId(cardId);
+            setFcoActiveTab('plainEnglish');
+          }}
+          onOpenSection={(section: FcoExplorerSection, presetSearch) => {
+            setSelectedFcoCardId(null);
+            setFertilizerSection(section);
+            if (presetSearch && section === 'schedules') setScheduleSearch(presetSearch);
+          }}
+          onViewForm={setSelectedFertilizerForm}
+        />
       )}
 
       {selectedLegalArea === 'fertilizer' && fertilizerSection === 'clauses' && (
@@ -533,7 +547,18 @@ export function ActsAndOrders() {
       )}
 
       {selectedLegalArea === 'insecticide' && !insecticideSection && (
-        <InsecticideModuleHome onOpenSection={setInsecticideSection} />
+        <InsecticideExplorer
+          onOpenCard={(cardId, section) => {
+            setInsecticideSection(section);
+            setSelectedFcoCardId(cardId);
+            setFcoActiveTab('plainEnglish');
+          }}
+          onOpenSection={(section: InsecticideExplorerSection) => {
+            setSelectedFcoCardId(null);
+            setInsecticideSection(section);
+          }}
+          onViewForm={setSelectedInsecticideForm}
+        />
       )}
 
       {selectedLegalArea === 'insecticide' && insecticideSection === 'sections' && (
@@ -631,91 +656,6 @@ export function ActsAndOrders() {
   );
 }
 
-
-function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: FertilizerSection) => void }) {
-  const cards: Array<{ id: FertilizerSection; title: string; subtitle: string; description: string; icon: React.ElementType }> = [
-    { id: 'clauses', title: 'Clauses', subtitle: '39 Clauses', description: 'FCO clause cards, sub-clauses, officer action and timelines.', icon: BookOpen },
-    { id: 'forms', title: 'Forms', subtitle: '28 Forms', description: 'Registration, manufacturing, sampling and business record forms.', icon: FileText },
-    { id: 'schedules', title: 'Schedules', subtitle: '8 Schedules', description: 'Specifications, sampling procedures, tolerance limits and analysis methods.', icon: ClipboardList },
-    { id: 'duties', title: 'Enforcement Mind Map', subtitle: 'Duties & powers', description: 'Duties of enforcement officers — authorities, sampling, seizure and prosecution.', icon: Network },
-  ];
-
-  return (
-    <section className="space-y-2.5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <button
-              key={card.id}
-              type="button"
-              onClick={() => onOpenSection(card.id)}
-              className="group relative flex flex-col overflow-hidden rounded-lg border border-indigo-200/70 bg-gradient-to-br from-indigo-50/90 via-white to-violet-50/60 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-md dark:border-indigo-800/50 dark:from-indigo-950/25 dark:via-slate-950 dark:to-violet-950/20"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-700 ring-1 ring-indigo-200/70 transition group-hover:scale-105 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-300 dark:ring-indigo-800/50">
-                  <Icon className="h-4 w-4" />
-                </span>
-                <span className="rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 px-2 py-0.5 text-[10px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-200 dark:ring-indigo-800/60">{card.subtitle}</span>
-              </div>
-              <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.title}</h3>
-              <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.description}</p>
-              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-slate-700 transition group-hover:gap-1.5 dark:text-slate-300">
-                Open <ArrowRight className="h-3 w-3" />
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-
-
-function InsecticideModuleHome({ onOpenSection }: { onOpenSection: (section: InsecticideSection) => void }) {
-  const cards: Array<{ id: InsecticideSection; title: string; subtitle: string; extraBadges?: string[]; description: string; icon: React.ElementType }> = [
-    { id: 'sections', title: 'Act Sections', subtitle: '38 Sections', description: 'Insecticides Act, 1968 — section cards, sub-sections, officer action and timelines.', icon: BookOpen },
-    { id: 'rules', title: 'Rules', subtitle: '46 Rules + 3 Schedules', extraBadges: ['9 Chapters'], description: 'Insecticides Rules, 1971 — Chapters I-IX: licensing, labelling, inspector duties, Form V(A) stop-sale, seizure, sampling, storage, safety.', icon: ClipboardList },
-    { id: 'forms', title: 'Forms', subtitle: `${insecticideForms.length} Forms`, description: 'First Schedule — Form III licence, Appendix A-E registers, Form IV analyst report, Forms V(A)-V(E) stop-sale / seizure / sampling.', icon: FileText },
-    { id: 'duties', title: 'Enforcement Powers', subtitle: 'Duties & powers', description: 'Stop sale, seizure and sampling powers and procedures for insecticide officers.', icon: ShieldAlert },
-  ];
-
-  return (
-    <section className="space-y-2.5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <button
-              key={card.id}
-              type="button"
-              onClick={() => onOpenSection(card.id)}
-              className="group relative flex flex-col overflow-hidden rounded-lg border border-orange-200/70 bg-gradient-to-br from-orange-50/90 via-white to-amber-50/60 p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-orange-400 hover:shadow-md dark:border-orange-800/50 dark:from-orange-950/25 dark:via-slate-950 dark:to-amber-950/20"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 text-orange-700 ring-1 ring-orange-200/70 transition group-hover:scale-105 dark:from-orange-950/40 dark:to-amber-950/30 dark:text-orange-300 dark:ring-orange-800/50">
-                  <Icon className="h-4 w-4" />
-                </span>
-                <span className="flex max-w-[60%] flex-col items-end gap-1">
-                  {card.extraBadges?.map((badge) => (
-                    <span key={badge} className="rounded-full bg-gradient-to-br from-amber-50 to-orange-50 px-2 py-0.5 text-[10px] font-black text-amber-800 ring-1 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60">{badge}</span>
-                  ))}
-                  <span className="rounded-full bg-gradient-to-br from-orange-50 to-amber-50 px-2 py-0.5 text-[10px] font-black text-orange-800 ring-1 ring-orange-200 dark:from-orange-950/40 dark:to-amber-950/30 dark:text-orange-200 dark:ring-orange-800/60">{card.subtitle}</span>
-                </span>
-              </div>
-              <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.title}</h3>
-              <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.description}</p>
-              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-slate-700 transition group-hover:gap-1.5 dark:text-slate-300">
-                Open <ArrowRight className="h-3 w-3" />
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
 
 const insecticideFormUserLabels: Record<InsecticideFormEntry['usedBy'], string> = {
   dealer: 'Dealer',
