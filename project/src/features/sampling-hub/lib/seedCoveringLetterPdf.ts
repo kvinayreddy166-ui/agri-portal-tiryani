@@ -81,7 +81,7 @@ export async function generateSeedCoveringLetterPdf(
 
   const cursor = {
     doc,
-    y: PAGE.marginTop - 6,
+    y: 12, // 12mm top margin — emblem starts here
     contentWidth: PAGE.contentWidth,
   };
 
@@ -159,24 +159,12 @@ function calculateFooterHeight(): number {
 
 async function drawGovernmentHeader(cursor: PdfCursor) {
   const { doc } = cursor;
-  
+
+  // Emblem centred above the GOVERNMENT OF TELANGANA heading
   const emblemWidth = 23.72;
   const emblemHeight = 15.81;
-  const horizontalGap = 1;
-  
-  doc.setFont(PDF_FONT, 'bold');
-  doc.setFontSize(FONT_SIZES.governmentHeading);
-  const govTextWidth = doc.getTextWidth('GOVERNMENT OF TELANGANA');
-  
-  doc.setFontSize(FONT_SIZES.departmentHeading);
-  const deptTextWidth = doc.getTextWidth('DEPARTMENT OF AGRICULTURE');
-  
-  const maxTextWidth = Math.max(govTextWidth, deptTextWidth);
-  const totalGroupWidth = emblemWidth + horizontalGap + maxTextWidth;
-  const groupStartX = (PAGE.width - totalGroupWidth) / 2;
-  
-  const emblemY = cursor.y + LINE_HEIGHT / 2 - emblemHeight / 2 - 2;
-  
+  const emblemX = (PAGE.width - emblemWidth) / 2;
+
   try {
     const response = await fetch('/images/telangana-govt_emblem.webp');
     const blob = await response.blob();
@@ -184,7 +172,7 @@ async function drawGovernmentHeader(cursor: PdfCursor) {
     await new Promise((resolve, reject) => {
       reader.onload = () => {
         const dataUrl = reader.result as string;
-        doc.addImage(dataUrl, 'WEBP', groupStartX, emblemY, emblemWidth, emblemHeight);
+        doc.addImage(dataUrl, 'WEBP', emblemX, cursor.y, emblemWidth, emblemHeight);
         resolve(null);
       };
       reader.onerror = reject;
@@ -193,22 +181,18 @@ async function drawGovernmentHeader(cursor: PdfCursor) {
   } catch (error) {
     console.error('Error loading emblem image:', error);
   }
-  
-  const textStartX = groupStartX + emblemWidth + horizontalGap;
-  
+
+  cursor.y += emblemHeight + 2;
+
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.governmentHeading);
-  doc.text('GOVERNMENT OF TELANGANA', textStartX, cursor.y);
-  
-  // Calculate offset to align "D" of "DEPARTMENT" with "O" of "GOVERNMENT"
-  const alignmentOffset = govTextWidth - deptTextWidth - 3; // Move left by one letter gap
-  
+  doc.text('GOVERNMENT OF TELANGANA', PAGE.width / 2, cursor.y, { align: 'center' });
   cursor.y += LINE_HEIGHT;
-  
+
   doc.setFontSize(FONT_SIZES.departmentHeading);
-  doc.text('DEPARTMENT OF AGRICULTURE', textStartX + alignmentOffset, cursor.y);
+  doc.text('DEPARTMENT OF AGRICULTURE', PAGE.width / 2, cursor.y, { align: 'center' });
   cursor.y += LINE_HEIGHT + 2;
-  
+
   doc.setFont(PDF_FONT, 'normal');
 }
 

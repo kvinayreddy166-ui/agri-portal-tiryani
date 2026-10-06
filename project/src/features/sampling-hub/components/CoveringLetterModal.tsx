@@ -741,7 +741,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                 className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-w-0"
               >
                 <option value="quality-analysis">Quality Analysis (Portion-I)</option>
-                <option value="safe-custody">Safe Custody (III Portion)</option>
+                <option value="safe-custody">Safe Custody (Portion-III)</option>
               </select>
             </div>
             <div className="flex flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">

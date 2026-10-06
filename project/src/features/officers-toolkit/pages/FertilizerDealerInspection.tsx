@@ -169,7 +169,6 @@ export function FertilizerDealerInspection() {
 
   const validate = () => {
     if (!form.inspectionDate) return 'Please enter the date of inspection.';
-    if (!form.dealerName.trim()) return 'Please enter the name of the dealer.';
     if (!form.licenceNo.trim()) return 'Please enter the license number.';
     return '';
   };

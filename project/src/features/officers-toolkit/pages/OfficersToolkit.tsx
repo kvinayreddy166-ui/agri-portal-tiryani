@@ -433,21 +433,21 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
           <div className={`mb-5 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="relative overflow-hidden rounded-2xl border border-emerald-200/80 bg-gradient-to-r from-emerald-50/90 via-white/80 to-emerald-50/90 px-4 py-3.5 shadow-md shadow-emerald-900/5 backdrop-blur-sm dark:border-emerald-800/50 dark:from-emerald-950/50 dark:via-slate-900 dark:to-emerald-950/40">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-800 via-gold-400 to-emerald-800" />
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-300/80 bg-gradient-to-r from-emerald-200 via-emerald-100 to-teal-200 px-4 py-3.5 shadow-md shadow-emerald-900/15 backdrop-blur-sm dark:border-emerald-800/60 dark:from-emerald-900/60 dark:via-emerald-950/50 dark:to-teal-900/60">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 via-gold-400 to-emerald-700" />
               <div className="relative flex min-w-0 items-center gap-3">
                 <BackButton
                   onClick={() => navigate('/login')}
-                  colors="text-emerald-700 hover:text-emerald-950 dark:text-emerald-300 dark:hover:text-white"
+                  colors="text-emerald-800 hover:text-emerald-950 dark:text-emerald-200 dark:hover:text-white"
                 />
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-emerald-900 text-gold-300 shadow-lg shadow-emerald-900/25">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-emerald-900 text-gold-300 shadow-lg shadow-emerald-900/30">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="truncate text-lg font-black tracking-tight text-slate-900 dark:text-white sm:text-xl">
+                  <h1 className="truncate text-lg font-black tracking-tight text-emerald-950 dark:text-white sm:text-xl">
                     {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                   </h1>
-                  <p className="truncate text-xs font-medium text-slate-500 dark:text-slate-400">
+                  <p className="truncate text-xs font-semibold text-emerald-800 dark:text-emerald-300">
                     {t('Agricultural Tools & Government Portals', 'వ్యవసాయ పనిముట్లు & ప్రభుత్వ పోర్టల్స్')}
                   </p>
                 </div>

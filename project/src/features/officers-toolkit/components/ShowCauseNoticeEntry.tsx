@@ -59,6 +59,19 @@ interface SavedNotice extends NoticeFormState {
 
 const STORAGE_KEY = 'agri-legal-show-cause-notices';
 const today = () => new Date().toISOString().slice(0, 10);
+const ENCLOSURE_OPTIONS = [
+  `'O' forms`,
+  'Principal certificates',
+  'Invoices/bills',
+  'Cash/Credit Memo',
+  'Stock Register',
+  'Photo of Product',
+  'Source Certificates',
+  'Inspection report',
+  'License Copy',
+  'Authorization Letter',
+  'Farmer Complaint',
+];
 
 // Sort key for a legal reference like "Rule 10(4)(i)", "Section 18(2)", "Clause 8A"
 // Order: Sections first, then Clauses, then Rules, then Terms & Conditions / other refs.
@@ -519,7 +532,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       },
       { kind: 'gap', mm: 4, keepWithNext: true },
       ...(form.enclosures.trim()
-        ? [{ kind: 'lines', items: [[{ text: 'Encl: ' }, { text: form.enclosures.trim(), bold: true }]], keepWithNext: true } as NoticeBlock]
+        ? [{ kind: 'lines', items: [[{ text: 'Encl: ', bold: true }, { text: form.enclosures.trim() }]], keepWithNext: true } as NoticeBlock]
         : []),
       { kind: 'gap', mm: 4, keepWithNext: true },
       { kind: 'lines', items: memoSignatureItems, align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
@@ -663,7 +676,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       ],
     },
     ...(form.enclosures.trim()
-      ? [{ kind: 'lines', items: [[{ text: 'Encl: ' }, { text: form.enclosures.trim(), bold: true }]], keepWithNext: true } as NoticeBlock]
+      ? [{ kind: 'lines', items: [[{ text: 'Encl: ', bold: true }, { text: form.enclosures.trim() }]], keepWithNext: true } as NoticeBlock]
       : []),
     { kind: 'gap', mm: 8, keepWithNext: true },
     { kind: 'lines', items: signatureItems, align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
@@ -783,7 +796,7 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
 }
 
 export function noticeDocumentHtml(blocks: NoticeBlock[]) {
-  return `<html><head><style>@page{size:A4;margin:18mm 20mm;}body{font-family:${NOTICE_FONT_STACK};font-size:12pt;line-height:1.5;color:#000;}</style></head><body>${noticeBlocksHtml(blocks)}</body></html>`;
+  return `<html><head><style>@page{size:A4;margin:18mm 15mm;}body{font-family:${NOTICE_FONT_STACK};font-size:12pt;line-height:1.5;color:#000;}</style></head><body>${noticeBlocksHtml(blocks)}</body></html>`;
 }
 
 export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: NoticeDocFont = 'bookAntiqua') {
@@ -965,7 +978,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           ? block.colWeights
           : block.header.map(() => 1);
         const total = weights.reduce((a, b) => a + b, 0);
-        const contentWidth = mmToTwips(170);
+        const contentWidth = mmToTwips(180);
         const cellPara = (text: string, bold = false) => new Paragraph({
           children: [new TextRun({ text, bold, font, size: fontSize - 4 })],
           alignment: AlignmentType.CENTER,
@@ -1030,7 +1043,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
       properties: {
         page: {
           size: { width: 11906, height: 16838, orientation: PageOrientation.PORTRAIT },
-          margin: { top: mmToTwips(18), right: mmToTwips(20), bottom: mmToTwips(18), left: mmToTwips(20) },
+          margin: { top: mmToTwips(18), right: mmToTwips(15), bottom: mmToTwips(18), left: mmToTwips(15) },
         },
       },
       children,
@@ -1082,8 +1095,8 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
 
   const PAGE_W = 210;
   const PAGE_H = 297;
-  const ML = 20;
-  const MR = 20;
+  const ML = 15;
+  const MR = 15;
   const MT = 15;
   const MB = 18;
   const CW = PAGE_W - ML - MR;
@@ -1122,7 +1135,21 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
       segment.text
         .split(/\s+/)
         .filter(Boolean)
-        .forEach((word) => words.push({ text: word, bold: segment.bold, underline: segment.underline }));
+        .forEach((word) => {
+          if (measure(word, !!segment.bold, size) <= width) {
+            words.push({ text: word, bold: segment.bold, underline: segment.underline });
+            return;
+          }
+          let chunk = '';
+          for (const ch of word) {
+            if (chunk && measure(chunk + ch, !!segment.bold, size) > width) {
+              words.push({ text: chunk, bold: segment.bold, underline: segment.underline });
+              chunk = '';
+            }
+            chunk += ch;
+          }
+          if (chunk) words.push({ text: chunk, bold: segment.bold, underline: segment.underline });
+        });
     });
     const lines: NoticeSegment[][] = [];
     let current: NoticeSegment[] = [];
@@ -1416,6 +1443,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const [showProductDetails, setShowProductDetails] = useState(false);
   const [showNoticePreview, setShowNoticePreview] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [enclosuresOpen, setEnclosuresOpen] = useState(false);
+  const [otherEnclosureEnabled, setOtherEnclosureEnabled] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const previewRef = useRef<HTMLDivElement>(null);
   const [resetSpinKey, setResetSpinKey] = useState(0);
@@ -1499,6 +1528,34 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   }, [form]);
 
   const updateForm = (patch: Partial<NoticeFormState>) => setForm((current) => ({ ...current, ...patch }));
+
+  const selectedEnclosures = useMemo(
+    () => form.enclosures.split(',').map((item) => item.trim()).filter(Boolean),
+    [form.enclosures]
+  );
+  const checkedEnclosures = selectedEnclosures.filter((item) => ENCLOSURE_OPTIONS.includes(item));
+  const otherEnclosureText = selectedEnclosures.filter((item) => !ENCLOSURE_OPTIONS.includes(item)).join(', ');
+  const otherEnclosureActive = otherEnclosureEnabled || otherEnclosureText.length > 0;
+
+  const writeEnclosures = (items: string[], otherText: string) => {
+    const parts = [...items];
+    if (otherText.trim()) parts.push(otherText.trim());
+    updateForm({ enclosures: parts.join(', ') });
+  };
+  const toggleEnclosure = (option: string) => {
+    const next = checkedEnclosures.includes(option)
+      ? checkedEnclosures.filter((item) => item !== option)
+      : [...checkedEnclosures, option];
+    writeEnclosures(next, otherEnclosureText);
+  };
+  const toggleOtherEnclosure = () => {
+    if (otherEnclosureActive) {
+      setOtherEnclosureEnabled(false);
+      writeEnclosures(checkedEnclosures, '');
+    } else {
+      setOtherEnclosureEnabled(true);
+    }
+  };
 
   const changeCategory = (category: NoticeCategory) => {
     const draft = readFormDraft(category);
@@ -1830,20 +1887,67 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                 { label: '15 (fifteen) days', value: '15 (fifteen) days' },
               ]}
             />
-            <SelectInput
-              label="Enclosures"
-              value={form.enclosures}
-              onChange={(value) => updateForm({ enclosures: value })}
-              options={[
-                ...(form.enclosures && !['Inspection report', 'License Copy', 'Authorization Letter', 'Farmer Complaint'].includes(form.enclosures)
-                  ? [{ label: form.enclosures, value: form.enclosures }]
-                  : []),
-                { label: 'Inspection report', value: 'Inspection report' },
-                { label: 'License Copy', value: 'License Copy' },
-                { label: 'Authorization Letter', value: 'Authorization Letter' },
-                { label: 'Farmer Complaint', value: 'Farmer Complaint' },
-              ]}
-            />
+            <div className="md:col-span-2">
+              <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Enclosures</span>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setEnclosuresOpen((open) => !open)}
+                  className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                >
+                  <span className={`truncate ${selectedEnclosures.length ? '' : 'text-slate-400 dark:text-slate-500'}`}>
+                    {selectedEnclosures.length ? `${selectedEnclosures.length} selected` : 'Select enclosures'}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${enclosuresOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                </button>
+                {enclosuresOpen && (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Close enclosures menu"
+                      onClick={() => setEnclosuresOpen(false)}
+                      className="fixed inset-0 z-40 cursor-default"
+                    />
+                    <div className="absolute left-0 right-0 z-50 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                      {ENCLOSURE_OPTIONS.map((option) => (
+                        <label key={option} className="flex cursor-pointer items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-slate-800">
+                          <input
+                            type="checkbox"
+                            checked={checkedEnclosures.includes(option)}
+                            onChange={() => toggleEnclosure(option)}
+                            className="h-4 w-4 rounded border-slate-300 accent-emerald-600"
+                          />
+                          {option}
+                        </label>
+                      ))}
+                      <label className="flex cursor-pointer items-center gap-2 border-t border-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-emerald-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800">
+                        <input
+                          type="checkbox"
+                          checked={otherEnclosureActive}
+                          onChange={toggleOtherEnclosure}
+                          className="h-4 w-4 rounded border-slate-300 accent-emerald-600"
+                        />
+                        Others
+                      </label>
+                      {otherEnclosureActive && (
+                        <div className="border-t border-slate-100 px-3 py-2 dark:border-slate-800">
+                          <input
+                            type="text"
+                            value={otherEnclosureText}
+                            onChange={(event) => writeEnclosures(checkedEnclosures, event.target.value)}
+                            placeholder="Specify other enclosures"
+                            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+              {selectedEnclosures.length > 0 && (
+                <p className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">{selectedEnclosures.join(', ')}</p>
+              )}
+            </div>
             </div>
           </div>
 

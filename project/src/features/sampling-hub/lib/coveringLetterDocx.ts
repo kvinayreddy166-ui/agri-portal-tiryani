@@ -2,7 +2,7 @@ import type { jsPDF as JsPdfInstance } from 'jspdf';
 
 import { DOCX_TELUGU_FONT } from '../../../shared/lib/pdfUnicodeFonts';
 
-const MARGIN_LEFT = 20;
+const MARGIN_LEFT = 15;
 const MARGIN_RIGHT = 15;
 const PAGE_WIDTH = 210;
 const PAGE_HEIGHT = 297;
@@ -193,8 +193,6 @@ export function createCoveringLetterRecorder(): CoveringLetterRecorder {
       font,
       size: Math.round(run.size * 2),
     }));
-    const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
-    const noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
     const lineBorder = { style: BorderStyle.SINGLE, size: 6, color: '000000' };
     const gridBorders = { top: lineBorder, bottom: lineBorder, left: lineBorder, right: lineBorder };
 
@@ -289,51 +287,30 @@ export function createCoveringLetterRecorder(): CoveringLetterRecorder {
       if (/^GOVERNMENT OF TELANGANA/.test(text) && firstEmblem && rows[index + 1]) {
         const govRow = row;
         const deptRow = rows[index + 1];
-        const govSeg = govRow.segs[0];
-        const deptSeg = deptRow.segs[0];
         const emblemData = await toPng(firstEmblem.data);
-        const emblemWidth = mmToTwips(firstEmblem.w + 1.5);
-        const textWidth = mmToTwips(Math.max(govSeg.right - govSeg.left, deptSeg.right - govSeg.left) + 3);
-        const cellPara = (seg: Segment, indent: number) => new Paragraph({
-          spacing: { before: 0, after: 0, ...lineSpacing(seg.runs[0].size, 5.2) },
-          indent: { left: mmToTwips(Math.max(0, indent)) },
-          children: makeRuns(seg.runs),
-        });
         const { before, newPage } = spacingFor(firstEmblem.y, govRow.page);
         if (before > 0.2 || newPage) {
           blocks.push({ node: new Paragraph({ children: [], spacing: { before: 0, after: 0, line: Math.max(20, mmToTwips(before)), lineRule: LineRuleType.EXACT } }) });
         }
         blocks.push({
-          node: new Table({
-            rows: [new TableRow({
-              cantSplit: true,
-              children: [
-                new TableCell({
-                  width: { size: emblemWidth, type: WidthType.DXA },
-                  borders: noBorders,
-                  verticalAlign: VerticalAlign.CENTER,
-                  children: [new Paragraph({
-                    spacing: { before: 0, after: 0 },
-                    children: emblemData
-                      ? [new ImageRun({ type: 'png', data: emblemData, transformation: { width: mmToPx(firstEmblem.w), height: mmToPx(firstEmblem.h) } })]
-                      : [],
-                  })],
-                }),
-                new TableCell({
-                  width: { size: textWidth, type: WidthType.DXA },
-                  borders: noBorders,
-                  verticalAlign: VerticalAlign.CENTER,
-                  children: [cellPara(govSeg, 0), cellPara(deptSeg, deptSeg.left - govSeg.left)],
-                }),
-              ],
-            })],
-            width: { size: emblemWidth + textWidth, type: WidthType.DXA },
-            columnWidths: [emblemWidth, textWidth],
-            indent: { size: mmToTwips(Math.max(0, firstEmblem.x - MARGIN_LEFT)), type: WidthType.DXA },
-            layout: TableLayoutType.FIXED,
-            borders: { ...noBorders, insideHorizontal: noBorder, insideVertical: noBorder },
+          node: new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 0, after: 0 },
+            children: emblemData
+              ? [new ImageRun({ type: 'png', data: emblemData, transformation: { width: mmToPx(firstEmblem.w), height: mmToPx(firstEmblem.h) } })]
+              : [],
           }),
         });
+        for (const headingRow of [govRow, deptRow]) {
+          const seg = headingRow.segs[0];
+          blocks.push({
+            node: new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 0, after: 0, ...lineSpacing(seg.runs[0].size, 5.2) },
+              children: makeRuns(seg.runs),
+            }),
+          });
+        }
         previousBottom = Math.max(firstEmblem.y + firstEmblem.h, deptRow.y + 1.2);
         previousPage = govRow.page;
         index += 2;

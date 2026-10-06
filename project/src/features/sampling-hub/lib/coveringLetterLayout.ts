@@ -5,9 +5,9 @@ export const PAGE = {
   height: 297,
   marginTop: 20,
   marginBottom: 1,
-  marginLeft: 20,
+  marginLeft: 15,
   marginRight: 15,
-  contentWidth: 175, // 210 - 20 - 15
+  contentWidth: 180, // 210 - 15 - 15
 };
 
 export const PDF_FONT = 'times';
