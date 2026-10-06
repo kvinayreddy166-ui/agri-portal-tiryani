@@ -40,6 +40,13 @@
       (function () {
         var recoveryKey = 'tiryani-startup-recovery-v4';
         window.__TIRYANI_APP_BOOTED__ = false;
+        // Set by App.tsx once React mounts — proves the bundle executed even if
+        // auth/network are still settling.
+        window.__TIRYANI_REACT_MOUNTED__ = false;
+
+        function appBooted() {
+          return Boolean(window.__TIRYANI_APP_BOOTED__ || window.__TIRYANI_REACT_MOUNTED__);
+        }
 
         function safeSessionGet(key) {
           try { return sessionStorage.getItem(key); } catch (error) { return null; }
@@ -88,22 +95,36 @@
 
         function hardRefresh(reason) {
           var manualReset = reason === 'manual' || reason === 'cache-reset';
-          return Promise.resolve()
+          var finished = false;
+          var finish = function () {
+            if (finished) return;
+            finished = true;
+            try {
+              reloadWithBust(reason || 'cache-reset', manualReset);
+            } catch (error) {
+              window.location.reload();
+            }
+          };
+          // Never let a hung service-worker/cache promise block the reload —
+          // cap cleanup at 3s then force navigation regardless.
+          window.setTimeout(finish, 3000);
+          Promise.resolve()
             .then(function () { clearAppBuildMetadata(manualReset); })
             .then(unregisterServiceWorkers)
             .then(clearCachesOnly)
-            .finally(function () { reloadWithBust(reason || 'cache-reset', manualReset); });
+            .then(finish, finish);
+          return;
         }
 
         function showRecoveryOptions() {
-          if (window.__TIRYANI_APP_BOOTED__) return;
+          if (appBooted()) return;
           var loader = document.getElementById('startup-loader');
           if (!loader) return;
-          loader.innerHTML = '<img src="/images/agronix-logo-original.jpeg" alt="Agronix" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:16px;font-weight:900">New Update Available</div><div style="max-width:380px;text-align:center;font-size:13px;font-weight:600;color:#475569">A new version of Agronix is ready to install.</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px"><button type="button" onclick="window.__TIRYANI_FORCE_REFRESH__ && window.__TIRYANI_FORCE_REFRESH__(\'manual\')" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Update</button><button type="button" onclick="window.location.reload()" style="border:1px solid #a7f3d0;border-radius:12px;background:white;color:#047857;padding:10px 16px;font-weight:800">Later</button></div>';
+          loader.innerHTML = '<img src="/images/agronix-logo-original.jpeg" alt="Agronix" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:16px;font-weight:900">New Update Available</div><div style="max-width:380px;text-align:center;font-size:13px;font-weight:600;color:#475569">A new version of Agronix is ready to install.</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px"><button type="button" onclick="(window.__TIRYANI_FORCE_REFRESH__ || function(){window.location.reload()})(\'manual\')" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Update</button><button type="button" onclick="window.location.reload()" style="border:1px solid #a7f3d0;border-radius:12px;background:white;color:#047857;padding:10px 16px;font-weight:800">Later</button></div>';
         }
 
         function recoverFromStartupFailure(reason) {
-          if (window.__TIRYANI_APP_BOOTED__) return;
+          if (appBooted()) return;
           var attempts = Number(safeSessionGet(recoveryKey) || 0);
           if (attempts >= 2) {
             showRecoveryOptions();
@@ -120,16 +141,16 @@
 
         window.__TIRYANI_FORCE_REFRESH__ = hardRefresh;
         window.setTimeout(function () {
-          if (!window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('timeout');
-        }, 8000);
+          if (!appBooted()) recoverFromStartupFailure('timeout');
+        }, 12000);
 
         // Once the app has booted, chunk/script errors are pwaRecovery.ts's job.
         window.addEventListener('error', function () {
-          if (!window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('error');
+          if (!appBooted()) recoverFromStartupFailure('error');
         }, true);
 
         window.addEventListener('unhandledrejection', function () {
-          if (!window.__TIRYANI_APP_BOOTED__) recoverFromStartupFailure('promise');
+          if (!appBooted()) recoverFromStartupFailure('promise');
         });
       })();
     </script>

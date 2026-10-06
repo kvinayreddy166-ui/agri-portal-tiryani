@@ -9,6 +9,7 @@ import './index.css';
 declare global {
   interface Window {
     __TIRYANI_APP_BOOTED__?: boolean;
+    __TIRYANI_REACT_MOUNTED__?: boolean;
   }
 }
 

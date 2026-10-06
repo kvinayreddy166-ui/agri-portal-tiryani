@@ -48,6 +48,11 @@ function AppContent() {
 
   // Wait for hydration to complete before rendering
   useEffect(() => {
+    // Signal the index.html pre-boot watchdog that the bundle executed and React
+    // mounted — even if auth/network are still settling. Without this, a slow
+    // auth check makes the watchdog fire before the 8s shell fallback and the
+    // app reload-loops into the "New Update Available" screen.
+    window.__TIRYANI_REACT_MOUNTED__ = true;
     setIsHydrated(true);
   }, []);
 
