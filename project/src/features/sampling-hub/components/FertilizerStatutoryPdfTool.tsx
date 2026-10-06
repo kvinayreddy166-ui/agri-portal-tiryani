@@ -218,6 +218,7 @@ const waterSolubleCompositionMap: Record<string, { N?: string; P_WS?: string; K?
   'NPK 11:0:37': { N: '11%', P_WS: '0%', K: '37%' },
   'NPK 15:05:30': { N: '15%', P_WS: '5%', K: '30%' },
   'NPK 24:24:24': { N: '24%', P_WS: '24%', K: '24%' },
+  'NPK 28:28:0': { N: '28%', P_WS: '28%', K: '0%' },
   'Potassium Magnesium Sulphate (K2O 22%, MgO 18%, S 20%)': { N: '0%', P_WS: '0%', K2O: '22%', MgO: '18%', S: '20%' },
   'Potassium Nitrate (13:0:45)': { N: '13%', P_WS: '0%', K: '45%' },
   'Potassium Sulphate (SOP)(00:00:50)': { N: '0%', P_WS: '0%', K: '50%' },
@@ -269,7 +270,9 @@ const dealerManufacturerImporterOptions = [
   { label: 'Mangalore Chemicals & Fertilizers Ltd. (MCFL)', value: 'Mangalore Chemicals & Fertilizers Ltd. (MCFL)' },
   { label: 'Matix Fertilisers & Chemicals Ltd.', value: 'Matix Fertilisers & Chemicals Ltd.' },
   { label: 'Madhya Bharat Agro Products Ltd.', value: 'Madhya Bharat Agro Products Ltd.' },
+  { label: 'Mosaic India Pvt. Ltd.', value: 'Mosaic India Pvt. Ltd.' },
   { label: 'Nagarjuna Fertilizers & Chemicals Ltd.', value: 'Nagarjuna Fertilizers & Chemicals Ltd.' },
+  { label: 'Narmada Bio-Chem Limited.', value: 'Narmada Bio-Chem Limited.' },
   { label: 'National Fertilizers Ltd. (NFL)', value: 'National Fertilizers Ltd. (NFL)' },
   { label: 'Paradeep Phosphates Ltd. (PPL)', value: 'Paradeep Phosphates Ltd. (PPL)' },
   { label: 'Ramagundam Fertilizers & Chemicals Ltd. (RFCL)', value: 'Ramagundam Fertilizers & Chemicals Ltd. (RFCL)' },
@@ -303,6 +306,7 @@ const waterSolubleTypeGradeOptions = [
   { label: 'NPK 11:0:37', value: 'NPK 11:0:37' },
   { label: 'NPK 15:05:30', value: 'NPK 15:05:30' },
   { label: 'NPK 24:24:24', value: 'NPK 24:24:24' },
+  { label: 'NPK 28:28:0', value: 'NPK 28:28:0' },
   { label: 'Potassium Magnesium Sulphate (K2O 22%, MgO 18%, S 20%)', value: 'Potassium Magnesium Sulphate (K2O 22%, MgO 18%, S 20%)' },
   { label: 'Potassium Nitrate (13:0:45)', value: 'Potassium Nitrate (13:0:45)' },
   { label: 'Potassium Sulphate (SOP)(00:00:50)', value: 'Potassium Sulphate (SOP)(00:00:50)' },
@@ -316,7 +320,11 @@ const compositionFields: FieldConfig[] = [
   { key: 'compositionN_T', label: 'N(T) %', displayFlag: 'N_T' },
   { key: 'compositionN_NO3', label: 'N(NO3) %', displayFlag: 'N_NO3' },
   { key: 'compositionN_NH4', label: 'N(NH4) %', displayFlag: 'N_NH4' },
+  { key: 'compositionN_NH2', label: 'N(NH2) %', displayFlag: 'N_NH2' },
   { key: 'compositionN_Urea', label: 'N(Urea) %', displayFlag: 'N_Urea' },
+  { key: 'compositionNO3', label: 'NO3 %', displayFlag: 'NO3' },
+  { key: 'compositionNH4', label: 'NH4 %', displayFlag: 'NH4' },
+  { key: 'compositionNH2', label: 'NH2 %', displayFlag: 'NH2' },
   { key: 'compositionP', label: 'P %', displayFlag: 'P' },
   { key: 'compositionP_T', label: 'P(T) %', displayFlag: 'P_T' },
   { key: 'compositionP_WS', label: 'P(WS) %', displayFlag: 'P_WS' },
@@ -488,12 +496,18 @@ const waterSolubleCheckboxOptions = [
   { key: 'N_T', label: 'N(T)' },
   { key: 'N_NO3', label: 'N(NO3)' },
   { key: 'N_NH4', label: 'N(NH4)' },
+  { key: 'N_NH2', label: 'N(NH2)' },
   { key: 'N_Urea', label: 'N(Urea)' },
+  { key: 'NO3', label: 'NO3' },
+  { key: 'NH4', label: 'NH4' },
+  { key: 'NH2', label: 'NH2' },
   { key: 'P', label: 'P' },
   { key: 'P_T', label: 'P(T)' },
   { key: 'P_WS', label: 'P(WS)' },
   { key: 'P_available', label: 'P(available)' },
+  { key: 'P_available_as_P2O5', label: 'P(Available as P2O5)' },
   { key: 'P_CS', label: 'P(CS)' },
+  { key: 'P2O5', label: 'P2O5' },
   { key: 'P2O5_T', label: 'P2O5(T)' },
   { key: 'P2O5_WS', label: 'P2O5(WS)' },
   { key: 'P2O5_CS', label: 'P2O5(CS)' },
@@ -875,17 +889,26 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         // Clear all water soluble composition fields first
         next.compositionN = '';
         next.compositionN_T = '';
+        next.compositionN_NO3 = '';
+        next.compositionN_NH4 = '';
+        next.compositionN_NH2 = '';
+        next.compositionN_Urea = '';
+        next.compositionNO3 = '';
+        next.compositionNH4 = '';
+        next.compositionNH2 = '';
         next.compositionP = '';
         next.compositionP_T = '';
         next.compositionP_WS = '';
         next.compositionP_available = '';
         next.compositionP_available_as_P2O5 = '';
         next.compositionP_CS = '';
+        next.compositionP2O5 = '';
         next.compositionP2O5_T = '';
         next.compositionP2O5_WS = '';
         next.compositionP2O5_CS = '';
         next.compositionK = '';
         next.compositionK_T = '';
+        next.compositionK_WS = '';
         next.compositionK2O = '';
         next.compositionK2O_T = '';
         next.compositionS = '';
@@ -1710,13 +1733,18 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                           compositionN_T: 'N_T',
                           compositionN_NO3: 'N_NO3',
                           compositionN_NH4: 'N_NH4',
+                          compositionN_NH2: 'N_NH2',
                           compositionN_Urea: 'N_Urea',
+                          compositionNO3: 'NO3',
+                          compositionNH4: 'NH4',
+                          compositionNH2: 'NH2',
                           compositionP: 'P',
                           compositionP_T: 'P_T',
                           compositionP_WS: 'P_WS',
                           compositionP_available: 'P_available',
                           compositionP_available_as_P2O5: 'P_available_as_P2O5',
                           compositionP_CS: 'P_CS',
+                          compositionP2O5: 'P2O5',
                           compositionP2O5_T: 'P2O5_T',
                           compositionP2O5_WS: 'P2O5_WS',
                           compositionP2O5_CS: 'P2O5_CS',

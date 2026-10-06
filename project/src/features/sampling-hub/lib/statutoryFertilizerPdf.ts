@@ -28,7 +28,11 @@ export type FertilizerPdfValues = {
   compositionN_T: string;
   compositionN_NO3: string;
   compositionN_NH4: string;
+  compositionN_NH2: string;
   compositionN_Urea: string;
+  compositionNO3: string;
+  compositionNH4: string;
+  compositionNH2: string;
   compositionP: string;
   compositionP_T: string;
   compositionP_WS: string;
@@ -150,7 +154,11 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   batchDetails: '',
   compositionN_NO3: '',
   compositionN_NH4: '',
+  compositionN_NH2: '',
   compositionN_Urea: '',
+  compositionNO3: '',
+  compositionNH4: '',
+  compositionNH2: '',
   composition: '',
   compositionN: '',
   compositionN_T: '',
@@ -828,12 +836,18 @@ function formatComposition(values: FertilizerPdfValues) {
       'N_T': { label: 'N(T)', value: values.compositionN_T },
       'N_NO3': { label: 'N(NO3)', value: values.compositionN_NO3 },
       'N_NH4': { label: 'N(NH4)', value: values.compositionN_NH4 },
+      'N_NH2': { label: 'N(NH2)', value: values.compositionN_NH2 },
       'N_Urea': { label: 'N(Urea)', value: values.compositionN_Urea },
+      'NO3': { label: 'NO3', value: values.compositionNO3 },
+      'NH4': { label: 'NH4', value: values.compositionNH4 },
+      'NH2': { label: 'NH2', value: values.compositionNH2 },
       'P': { label: 'P', value: values.compositionP },
       'P_T': { label: 'P(T)', value: values.compositionP_T },
       'P_WS': { label: 'P (WS)', value: values.compositionP_WS },
       'P_available': { label: 'P(available)', value: values.compositionP_available },
+      'P_available_as_P2O5': { label: 'P(Available as P2O5)', value: values.compositionP_available_as_P2O5 },
       'P_CS': { label: 'P(CS)', value: values.compositionP_CS },
+      'P2O5': { label: 'P2O5', value: values.compositionP2O5 },
       'P2O5_T': { label: 'P2O5(T)', value: values.compositionP2O5_T },
       'P2O5_WS': { label: 'P2O5(WS)', value: values.compositionP2O5_WS },
       'P2O5_CS': { label: 'P2O5(CS)', value: values.compositionP2O5_CS },
@@ -915,7 +929,11 @@ function formatComposition(values: FertilizerPdfValues) {
     'N_T': { label: 'N(T)', value: values.compositionN_T },
     'N_NO3': { label: 'N(NO3)', value: values.compositionN_NO3 },
     'N_NH4': { label: 'N(NH4)', value: values.compositionN_NH4 },
+    'N_NH2': { label: 'N(NH2)', value: values.compositionN_NH2 },
     'N_Urea': { label: 'N(Urea)', value: values.compositionN_Urea },
+    'NO3': { label: 'NO3', value: values.compositionNO3 },
+    'NH4': { label: 'NH4', value: values.compositionNH4 },
+    'NH2': { label: 'NH2', value: values.compositionNH2 },
     'P': { label: 'P', value: values.compositionP },
     'P_T': { label: 'P(T)', value: values.compositionP_T },
     'P_WS': { label: 'P(WS)', value: values.compositionP_WS },
