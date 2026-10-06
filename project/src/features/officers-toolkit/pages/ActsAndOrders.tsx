@@ -11,7 +11,7 @@ import {
   Clock,
   Copy,
   Download,
-  FileSearch,
+  Eye,
   FileText,
   ClipboardList,
   FlaskConical,
@@ -318,6 +318,7 @@ export function ActsAndOrders() {
   const [fcoActiveTab, setFcoActiveTab] = useState<FcoTabId>('plainEnglish');
   const [bookmarks, setBookmarks] = useState<string[]>(() => readBookmarks());
   const [selectedFertilizerForm, setSelectedFertilizerForm] = useState<FertilizerFormEntry | null>(null);
+  const [selectedInsecticideForm, setSelectedInsecticideForm] = useState<InsecticideFormEntry | null>(null);
   const [formSearch, setFormSearch] = useState('');
   const [formCategory, setFormCategory] = useState<'All' | FertilizerFormCategory>('All');
   const [fertilizerSection, setFertilizerSection] = useState<FertilizerSection | null>(null);
@@ -589,6 +590,7 @@ export function ActsAndOrders() {
         <InsecticideFormsPanel
           search={insecticideFormSearch}
           onSearchChange={setInsecticideFormSearch}
+          onViewForm={setSelectedInsecticideForm}
         />
       )}
 
@@ -614,6 +616,9 @@ export function ActsAndOrders() {
       )}
       {selectedFertilizerForm && (
         <FertilizerFormPdfGenerator form={selectedFertilizerForm} onClose={() => setSelectedFertilizerForm(null)} />
+      )}
+      {selectedInsecticideForm && (
+        <FertilizerFormPdfGenerator form={selectedInsecticideForm} onClose={() => setSelectedInsecticideForm(null)} />
       )}
       <FcoImplementationModal isOpen={showFcoStructureModal} onClose={() => setShowFcoStructureModal(false)} />
       <FcoImplementationModal
@@ -669,9 +674,9 @@ function FertilizerModuleHome({ onOpenSection }: { onOpenSection: (section: Fert
 
 
 function InsecticideModuleHome({ onOpenSection }: { onOpenSection: (section: InsecticideSection) => void }) {
-  const cards: Array<{ id: InsecticideSection; title: string; subtitle: string; description: string; icon: React.ElementType }> = [
+  const cards: Array<{ id: InsecticideSection; title: string; subtitle: string; extraBadges?: string[]; description: string; icon: React.ElementType }> = [
     { id: 'sections', title: 'Act Sections', subtitle: '38 Sections', description: 'Insecticides Act, 1968 — section cards, sub-sections, officer action and timelines.', icon: BookOpen },
-    { id: 'rules', title: 'Rules', subtitle: '46 Rules + 3 Schedules', description: 'Insecticides Rules, 1971 — Chapters I-IX: licensing, labelling, inspector duties, Form V(A) stop-sale, seizure, sampling, storage, safety.', icon: ClipboardList },
+    { id: 'rules', title: 'Rules', subtitle: '46 Rules + 3 Schedules', extraBadges: ['9 Chapters'], description: 'Insecticides Rules, 1971 — Chapters I-IX: licensing, labelling, inspector duties, Form V(A) stop-sale, seizure, sampling, storage, safety.', icon: ClipboardList },
     { id: 'forms', title: 'Forms', subtitle: `${insecticideForms.length} Forms`, description: 'First Schedule — Form III licence, Appendix A-E registers, Form IV analyst report, Forms V(A)-V(E) stop-sale / seizure / sampling.', icon: FileText },
     { id: 'duties', title: 'Enforcement Powers', subtitle: 'Duties & powers', description: 'Stop sale, seizure and sampling powers and procedures for insecticide officers.', icon: ShieldAlert },
   ];
@@ -692,7 +697,12 @@ function InsecticideModuleHome({ onOpenSection }: { onOpenSection: (section: Ins
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 text-orange-700 ring-1 ring-orange-200/70 transition group-hover:scale-105 dark:from-orange-950/40 dark:to-amber-950/30 dark:text-orange-300 dark:ring-orange-800/50">
                   <Icon className="h-4 w-4" />
                 </span>
-                <span className="rounded-full bg-gradient-to-br from-orange-50 to-amber-50 px-2 py-0.5 text-[10px] font-black text-orange-800 ring-1 ring-orange-200 dark:from-orange-950/40 dark:to-amber-950/30 dark:text-orange-200 dark:ring-orange-800/60">{card.subtitle}</span>
+                <span className="flex max-w-[60%] flex-col items-end gap-1">
+                  {card.extraBadges?.map((badge) => (
+                    <span key={badge} className="rounded-full bg-gradient-to-br from-amber-50 to-orange-50 px-2 py-0.5 text-[10px] font-black text-amber-800 ring-1 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60">{badge}</span>
+                  ))}
+                  <span className="rounded-full bg-gradient-to-br from-orange-50 to-amber-50 px-2 py-0.5 text-[10px] font-black text-orange-800 ring-1 ring-orange-200 dark:from-orange-950/40 dark:to-amber-950/30 dark:text-orange-200 dark:ring-orange-800/60">{card.subtitle}</span>
+                </span>
               </div>
               <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.title}</h3>
               <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.description}</p>
@@ -719,7 +729,7 @@ function insecticideFormSearchText(form: InsecticideFormEntry) {
   return [form.formNo, form.title, form.rule, form.purpose, insecticideFormUserLabels[form.usedBy]].join(' ').toLowerCase();
 }
 
-function InsecticideFormsPanel({ search, onSearchChange, accent = 'amber' }: { search: string; onSearchChange: (value: string) => void; accent?: FcoAccent }) {
+function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'amber' }: { search: string; onSearchChange: (value: string) => void; onViewForm: (form: InsecticideFormEntry) => void; accent?: FcoAccent }) {
   const t = fcoAccentThemes[accent];
   const term = search.trim().toLowerCase();
   const visibleForms = insecticideForms.filter((form) => !term || insecticideFormSearchText(form).includes(term));
@@ -738,27 +748,37 @@ function InsecticideFormsPanel({ search, onSearchChange, accent = 'amber' }: { s
           />
         </div>
         <div className="mt-2.5 flex justify-end">
-          <span className={`rounded-full ${t.chipCount} px-3 py-1 text-[11px] font-black ring-1`}>
+          <span className={`rounded-full ${t.chipAlt} px-3 py-1 text-[11px] font-black ring-1`}>
             {visibleForms.length} forms
           </span>
         </div>
       </div>
       <div className="grid gap-2 md:grid-cols-2">
-        {visibleForms.map((form) => (
-          <div key={form.formNo} className={`rounded-lg border ${t.border} bg-gradient-to-br ${t.tintTile} p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md`}>
-            <div className="flex items-start gap-2.5">
+        {visibleForms.map((form, index) => (
+          <div key={`${form.formNo}-${index}`} className={`flex flex-col rounded-lg border ${t.border} bg-gradient-to-br ${t.tintTile} p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md`}>
+            <div className="flex flex-1 items-start gap-2.5">
               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile}`}>
                 <FileText className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <p className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>{form.formNo}</p>
-                  <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ring-1`}>{insecticideFormUserLabels[form.usedBy]}</span>
+                  <span className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ring-1`}>{insecticideFormUserLabels[form.usedBy]}</span>
                 </div>
                 <h3 className="mt-0.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{form.title}</h3>
                 <p className="mt-0.5 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.purpose}</p>
-                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">{form.rule}</p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  <span className="rounded-full bg-gradient-to-br from-amber-50 to-orange-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-800 ring-1 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60">{form.rule}</span>
+                </div>
               </div>
+            </div>
+            <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-900/50">
+              <button type="button" onClick={() => onViewForm(form)} aria-label="View" title="View" className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-orange-500 via-amber-500 to-amber-600 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
+                <Eye className="h-3.5 w-3.5" />
+              </button>
+              <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-slate-200 bg-gradient-to-br from-white to-slate-50 px-2.5 py-1 text-[10px] font-black text-slate-800 transition hover:to-slate-100 dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-900 dark:text-slate-200 dark:hover:to-orange-950/30">
+                <FileText className="h-3 w-3" /> PDF
+              </a>
             </div>
           </div>
         ))}
@@ -1567,8 +1587,8 @@ function FertilizerFormsPanel({
               )}
             </div>
             <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-900/50">
-              <button type="button" onClick={() => onViewForm(form)} className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-indigo-400 via-indigo-500 to-violet-500 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
-                <FileSearch className="h-3 w-3" /> View
+              <button type="button" onClick={() => onViewForm(form)} aria-label="View" title="View" className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-indigo-400 via-indigo-500 to-violet-500 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
+                <Eye className="h-3.5 w-3.5" />
               </button>
               <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-slate-200 bg-gradient-to-br from-white to-slate-50 px-2.5 py-1 text-[10px] font-black text-slate-800 transition hover:to-slate-100 dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-900 dark:text-slate-200 dark:hover:to-indigo-950/30">
                 <FileText className="h-3 w-3" /> PDF

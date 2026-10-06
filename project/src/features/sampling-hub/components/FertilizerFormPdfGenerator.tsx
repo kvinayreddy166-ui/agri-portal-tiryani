@@ -2,9 +2,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import { X, Loader2, FileText } from 'lucide-react';
 import type { PDFDocumentLoadingTask } from 'pdfjs-dist';
 import { getPdfJs, PDFJS_DOC_OPTIONS } from '../../../shared/utils/pdfHelpers';
-import type { FertilizerFormEntry } from '../data/fertilizerForms';
 
-export function FertilizerFormPdfGenerator({ form, onClose }: { form: FertilizerFormEntry; onClose: () => void }) {
+// Minimal shape shared by fertilizer and insecticide statutory form entries.
+export interface PdfFormEntry {
+  formNo: string;
+  title: string;
+  pdfPath: string;
+  page?: number;
+  category?: string;
+  rule?: string;
+}
+
+export function FertilizerFormPdfGenerator({ form, onClose }: { form: PdfFormEntry; onClose: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +117,7 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: Fertilizer
       <section className="flex max-h-[96vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-slate-950">
         <header className="flex shrink-0 flex-col gap-3 border-b border-slate-200 px-3 py-2.5 dark:border-slate-800 sm:flex-row sm:items-start sm:justify-between sm:px-4">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.category}</p>
+            <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.category ?? form.rule}</p>
             <h2 className="max-w-full whitespace-normal text-sm font-black leading-snug text-slate-950 dark:text-white sm:text-base">
               {form.formNo} - {form.title}
             </h2>
