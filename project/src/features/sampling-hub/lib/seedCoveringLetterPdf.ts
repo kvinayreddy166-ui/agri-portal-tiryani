@@ -81,7 +81,7 @@ export async function generateSeedCoveringLetterPdf(
 
   const cursor = {
     doc,
-    y: 12, // 12mm top margin — emblem starts here
+    y: 6, // 6mm top margin — emblem starts here
     contentWidth: PAGE.contentWidth,
   };
 
@@ -182,7 +182,7 @@ async function drawGovernmentHeader(cursor: PdfCursor) {
     console.error('Error loading emblem image:', error);
   }
 
-  cursor.y += emblemHeight + 2;
+  cursor.y += emblemHeight + 6; // clear the emblem bottom before the heading baseline
 
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.governmentHeading);

@@ -87,7 +87,7 @@ export async function generateCoveringLetterPdf(
   
   const cursor = {
     doc,
-    y: 12, // 12mm top margin — emblem starts here for both letter types
+    y: 6, // 6mm top margin — emblem starts here for both letter types
     contentWidth: PAGE.contentWidth,
   };
 
@@ -216,7 +216,7 @@ async function drawGovernmentHeader(cursor: PdfCursor) {
     // Continue without emblem if image fails to load
   }
 
-  cursor.y += emblemHeight + 2;
+  cursor.y += emblemHeight + 6; // clear the emblem bottom before the heading baseline
 
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.governmentHeading);
