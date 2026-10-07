@@ -383,14 +383,14 @@ export function Login() {
               <button
                 type="button"
                 onClick={() => setLoginMode('staff')}
-                className={`rounded-lg px-3 py-2.5 transition-all ${loginMode === 'staff' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
+                className={`rounded-lg px-3 py-2.5 transition ${loginMode === 'staff' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
               >
                 {t('Staff / Test', 'సిబ్బంది / పరీక్ష')}
               </button>
               <button
                 type="button"
                 onClick={() => setLoginMode('dealer')}
-                className={`rounded-lg px-3 py-2.5 transition-all ${loginMode === 'dealer' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
+                className={`rounded-lg px-3 py-2.5 transition ${loginMode === 'dealer' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
               >
                 {t('Dealer', 'డీలర్')}
               </button>

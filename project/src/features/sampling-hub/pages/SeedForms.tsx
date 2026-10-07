@@ -623,7 +623,7 @@ export function SeedForms() {
           <select
             value={selectedDraftName}
             onChange={(event) => loadDraft(event.target.value)}
-            className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition-all ${
+            className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition ${
               selectedDraftName
                 ? 'border-orange-400 bg-orange-50 text-orange-700 focus:border-orange-500 focus:bg-orange-100 focus:ring-2 focus:ring-orange-100/50'
                 : 'border-orange-200 bg-white/90 text-slate-900 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-100/50'
@@ -640,7 +640,7 @@ export function SeedForms() {
           <button
             type="button"
             onClick={deleteDraft}
-            className="rounded-lg border border-red-200 dark:border-red-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-xs font-black text-red-600 dark:text-red-300 hover:bg-red-50 hover:border-red-300 transition-all backdrop-blur-sm"
+            className="rounded-lg border border-red-200 dark:border-red-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-xs font-black text-red-600 dark:text-red-300 hover:bg-red-50 hover:border-red-300 transition backdrop-blur-sm"
           >
             Delete
           </button>
@@ -756,7 +756,7 @@ export function SeedForms() {
           <button
             type="button"
             onClick={() => setShowCoveringLetterModal(true)}
-            className="group relative w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-0.5 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 active:scale-95 active:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-500/50 focus:ring-offset-2 min-h-[44px]"
+            className="group relative w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition duration-300 ease-out hover:shadow-xl hover:-translate-y-0.5 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 active:scale-95 active:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-500/50 focus:ring-offset-2 min-h-[44px]"
           >
             <FileText className="h-5 w-5" />
             <span>Generate Official Covering Letter</span>

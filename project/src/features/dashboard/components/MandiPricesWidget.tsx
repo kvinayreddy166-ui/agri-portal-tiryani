@@ -60,20 +60,21 @@ export function MandiPricesWidget() {
 
   if (state === 'loading') {
     return (
-      <div className="portal-card flex h-48 items-center justify-center p-6">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-200 border-t-amber-600" />
+      <div className="portal-card flex h-48 items-center justify-center rounded-2xl p-6">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-600" />
       </div>
     );
   }
 
   return (
-    <div className="portal-card overflow-hidden">
-      <div className="bg-gradient-to-r from-amber-600 to-orange-600 px-5 py-4 text-white">
+    <div className="portal-card overflow-hidden rounded-2xl">
+      <div className="relative rounded-t-2xl bg-gradient-to-br from-emerald-800 via-emerald-700 to-green-600 px-5 py-4 text-white">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400/80 to-transparent" />
         <h3 className="flex items-center gap-2 text-lg font-black">
-          <Store className="h-6 w-6" />
+          <Store className="h-5 w-5 text-gold-200" />
           {t('Mandi Prices — Telangana', 'మండి ధరలు — తెలంగాణ')}
         </h3>
-        <p className="mt-1 text-xs text-amber-100/90">
+        <p className="mt-1 text-xs text-emerald-100/90">
           {t('Agmarknet daily prices via data.gov.in (₹/quintal)', 'data.gov.in ద్వారా అగ్మార్క్‌నెట్ రోజువారీ ధరలు (₹/క్వింటాల్)')}
         </p>
       </div>
@@ -116,7 +117,7 @@ export function MandiPricesWidget() {
             )}
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border border-slate-200/80 bg-slate-50/50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-200 text-[10px] font-black uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400">

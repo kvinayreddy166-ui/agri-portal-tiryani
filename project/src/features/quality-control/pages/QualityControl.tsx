@@ -265,28 +265,26 @@ export function QualityControl({ category }: QualityControlProps) {
 
   return (
     <div className="space-y-3">
-      <div className={`rounded-lg border p-3 shadow-md md:p-4 ${theme.header}`}>
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className={`text-xs font-bold uppercase tracking-wide ${theme.accent}`}>Quality Control</p>
-            <h1 className={`text-2xl font-black tracking-tight ${theme.title}`}>{categoryTitle}</h1>
-            <p className={`mt-0.5 max-w-2xl text-xs ${theme.sub}`}>
-              Track dealer samples, uploaded sample-drawn forms, and financial-year targets.
-            </p>
-          </div>
-          <div className="min-w-52">
-            <label className={`mb-1 block text-xs font-bold ${theme.accent}`}>Financial Year</label>
-            <select
-              value={financialYear}
-              onChange={(e) => setFinancialYear(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 font-bold text-gray-950 dark:text-white outline-none"
-            >
-              {financialYearOptions().map((year) => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+      <div>
+        <h1 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">{categoryTitle}</h1>
+        <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+          Track dealer samples, uploaded sample-drawn forms, and financial-year targets.
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <label className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
+          FY
+          <select
+            value={financialYear}
+            onChange={(e) => setFinancialYear(e.target.value)}
+            className="bg-transparent font-black text-slate-950 outline-none dark:text-white"
+          >
+            {financialYearOptions().map((year) => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">

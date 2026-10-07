@@ -138,31 +138,31 @@ export function FarmMechanization() {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-lg bg-gradient-to-r from-emerald-700 via-lime-700 to-cyan-700 p-3 text-white shadow-md md:p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-emerald-100">Admin Uploads</p>
-            <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight">
-              <Tractor className="h-6 w-6" />
-              Farm Mechanization
-            </h1>
-            <p className="mt-0.5 max-w-2xl text-xs text-emerald-50">
-              Maintain applications received and proceedings generated for each financial year.
-            </p>
-          </div>
-          <div className="min-w-52">
-            <label className="mb-1 block text-xs font-bold text-emerald-50">Financial Year</label>
-            <select
-              value={financialYear}
-              onChange={(e) => setFinancialYear(e.target.value)}
-              className="w-full rounded-lg border border-white/20 bg-white dark:bg-slate-900 px-3 py-2 font-bold text-gray-950 dark:text-white outline-none"
-            >
-              {financialYears.map((year) => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="flex items-center gap-2 text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
+            <Tractor className="h-6 w-6 text-emerald-600" />
+            Farm Mechanization
+          </h1>
+          <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+            Maintain applications received and proceedings generated for each financial year.
+          </p>
         </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-2">
+        <label className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
+          FY
+          <select
+            value={financialYear}
+            onChange={(e) => setFinancialYear(e.target.value)}
+            className="bg-transparent font-black text-slate-950 outline-none dark:text-white"
+          >
+            {financialYears.map((year) => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2">

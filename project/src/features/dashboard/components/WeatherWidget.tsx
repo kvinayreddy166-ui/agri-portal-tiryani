@@ -126,7 +126,7 @@ export function WeatherWidget() {
 
   if (loading) {
     return (
-      <div className="portal-card flex h-48 items-center justify-center p-6">
+      <div className="portal-card flex h-48 items-center justify-center rounded-2xl p-6">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-600" />
       </div>
     );
@@ -134,30 +134,31 @@ export function WeatherWidget() {
 
   if (error || !weather) {
     return (
-      <div className="portal-card p-5 text-sm text-red-600 dark:text-red-400">
+      <div className="portal-card rounded-2xl p-5 text-sm text-red-600 dark:text-red-400">
         {t('Unable to load weather data.', 'వాతావరణ డేటా లోడ్ కాలేదు.')}
       </div>
     );
   }
 
   return (
-    <div className="portal-card overflow-hidden">
-      <div className="bg-gradient-to-r from-sky-600 to-cyan-600 px-5 py-4 text-white">
+    <div className="portal-card overflow-hidden rounded-2xl">
+      <div className="relative rounded-t-2xl bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-800 px-5 py-4 text-white">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400/80 to-transparent" />
         <h3 className="flex items-center gap-2 text-lg font-black">
-          <CloudRain className="h-6 w-6" />
+          <CloudRain className="h-5 w-5 text-gold-300" />
           {t('Live Weather — Tiryani Mandal', 'లైవ్ వాతావరణం — తిర్యాని మండలం')}
         </h3>
-        <p className="mt-1 text-sm capitalize text-sky-100">{weather.description}</p>
+        <p className="mt-1 text-sm capitalize text-emerald-100/90">{weather.description}</p>
         {(weather.source === 'fallback' || !openWeatherKey) && (
-          <p className="mt-1 text-xs text-sky-200/80">
+          <p className="mt-1 text-xs text-emerald-200/70">
             {weather.source === 'fallback'
               ? t('Live weather is temporarily unavailable. Showing local fallback estimate.', 'ప్రత్యక్ష వాతావరణం తాత్కాలికంగా అందుబాటులో లేదు. స్థానిక అంచనా చూపిస్తున్నాం.')
               : t('Powered by Open-Meteo (free). Add VITE_OPENWEATHER_API_KEY for OpenWeather.', 'Open-Meteo ద్వారా. OpenWeather కోసం API కీ జోడించండి.')}
           </p>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-4">
-        <div className="flex items-center gap-3">
+      <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/60">
           <Thermometer className="h-8 w-8 text-orange-500" />
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400">{t('Temperature', 'ఉష్ణోగ్రత')}</p>
@@ -167,14 +168,14 @@ export function WeatherWidget() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/60">
           <Droplets className="h-8 w-8 text-blue-500" />
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400">{t('Humidity', 'తేమ')}</p>
             <p className="text-2xl font-black text-slate-900 dark:text-white">{weather.humidity}%</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/60">
           <CloudRain className="h-8 w-8 text-cyan-600" />
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -194,7 +195,7 @@ export function WeatherWidget() {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/60">
           <Wind className="h-8 w-8 text-slate-500" />
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400">{t('Wind', 'గాలి')}</p>

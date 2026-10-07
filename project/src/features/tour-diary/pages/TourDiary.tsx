@@ -2295,7 +2295,7 @@ export function TourDiary() {
                   className="mb-0"
                 />
               ) : (
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-500 to-orange-500 p-4 shadow-lg">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-700 to-teal-800 p-4 shadow-lg">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
                 <div className="flex items-center gap-4">
                   <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" />
@@ -2325,7 +2325,7 @@ export function TourDiary() {
               return latestDraft ? (
                 <button
                   onClick={() => loadDraft(latestDraft)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-amber-100/50 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-amber-300 hover:shadow-md dark:border-amber-800 dark:from-amber-950/50 dark:to-amber-900/30 dark:hover:border-amber-700"
+                  className="flex w-full items-center gap-3 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-amber-100/50 px-4 py-3 shadow-sm transition active:scale-[0.98] hover:border-amber-300 hover:shadow-md dark:border-amber-800 dark:from-amber-950/50 dark:to-amber-900/30 dark:hover:border-amber-700"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-200 to-amber-300 text-amber-800 shadow-sm dark:from-amber-900 dark:to-amber-800 dark:text-amber-200">
                     <Clock className="h-5 w-5" />
@@ -2369,7 +2369,7 @@ export function TourDiary() {
                 setCurrentYear(new Date().getFullYear());
                 setCurrentMonth(new Date().getMonth() + 1);
               }}
-              className="flex w-full items-center gap-3 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-emerald-100/50 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-emerald-300 hover:shadow-md dark:border-emerald-800 dark:from-emerald-950/50 dark:to-emerald-900/30 dark:hover:border-emerald-700"
+              className="flex w-full items-center gap-3 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-emerald-100/50 px-4 py-3 shadow-sm transition active:scale-[0.98] hover:border-emerald-300 hover:shadow-md dark:border-emerald-800 dark:from-emerald-950/50 dark:to-emerald-900/30 dark:hover:border-emerald-700"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-200 to-emerald-300 text-emerald-800 shadow-sm dark:from-emerald-900 dark:to-emerald-800 dark:text-emerald-200">
                 <Plus className="h-5 w-5" />
@@ -2388,7 +2388,7 @@ export function TourDiary() {
             {/* My Diaries Card */}
             <button
               onClick={handleMyDiaries}
-              className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100/50 px-4 py-3 shadow-sm transition-all active:scale-[0.98] hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:from-slate-950/50 dark:to-slate-900/30 dark:hover:border-slate-700"
+              className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100/50 px-4 py-3 shadow-sm transition active:scale-[0.98] hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:from-slate-950/50 dark:to-slate-900/30 dark:hover:border-slate-700"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 shadow-sm dark:from-slate-900 dark:to-slate-800 dark:text-slate-200">
                 <ClipboardList className="h-5 w-5" />
@@ -2457,7 +2457,7 @@ export function TourDiary() {
                           {items.map(item => (
                             <div
                               key={item.id}
-                              className={`relative rounded-xl border p-3 text-left shadow-sm transition-all hover:shadow-md ${
+                              className={`relative rounded-xl border p-3 text-left shadow-sm transition hover:shadow-md ${
                                 item.type === 'draft'
                                   ? 'border-amber-200 bg-white hover:border-amber-400 dark:border-amber-800 dark:bg-slate-900 dark:hover:border-amber-600'
                                   : 'border-emerald-200 bg-white hover:border-emerald-400 dark:border-emerald-800 dark:bg-slate-900 dark:hover:border-emerald-600'
@@ -2690,7 +2690,7 @@ export function TourDiary() {
                 className="mb-0"
               />
             ) : (
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-500 to-orange-500 p-4 shadow-lg">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-700 to-teal-800 p-4 shadow-lg">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
               <div className="flex items-center gap-4">
                 <BackButton onClick={() => setShowLandingPage(true)} tone="solid" />
@@ -2713,7 +2713,7 @@ export function TourDiary() {
 
       <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         {/* Officer Details */}
-        <div className={`mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="mb-4 text-sm font-bold text-slate-900 dark:text-white">Officer Details</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div>
@@ -2850,7 +2850,7 @@ export function TourDiary() {
         </div>
 
         {/* Month/Year Selection */}
-        <div className={`relative z-20 mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`relative z-20 mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <button
@@ -2970,7 +2970,7 @@ export function TourDiary() {
         </div>
 
         {/* Monthly Summary */}
-        <details className={`group mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-lg backdrop-blur-sm transition-all duration-700 delay-100 dark:border-emerald-800/50 dark:bg-slate-900/80 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+        <details className={`group mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-lg backdrop-blur-sm transition duration-700 delay-100 dark:border-emerald-800/50 dark:bg-slate-900/80 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-slate-900 dark:text-white">
             <span>Monthly Summary</span>
             <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true" />
@@ -3036,7 +3036,7 @@ export function TourDiary() {
         </details>
 
         {/* Month Overview: progress + mini calendar */}
-        <details className={`group mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-lg backdrop-blur-sm transition-all duration-700 delay-200 dark:border-emerald-800/50 dark:bg-slate-900/80 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+        <details className={`group mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-lg backdrop-blur-sm transition duration-700 delay-200 dark:border-emerald-800/50 dark:bg-slate-900/80 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-slate-900 dark:text-white">
             <span>Daily Progress</span>
             <span className="flex items-center gap-2">
@@ -3055,7 +3055,7 @@ export function TourDiary() {
               className="h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
             >
               <div
-                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-500 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-500 transition duration-500"
                 style={{ width: `${monthProgress.required > 0 ? Math.round((monthProgress.filled / monthProgress.required) * 100) : 0}%` }}
               />
             </div>
@@ -3139,7 +3139,7 @@ export function TourDiary() {
         </details>
 
         {/* Monthly Diary */}
-        <div className={`transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">Daily Entries</h2>
             <div className="flex gap-1">

@@ -76,10 +76,10 @@ export default function StockAnalytics() {
 
   return (
     <div className="max-w-full space-y-4 overflow-hidden" style={{ background: THEME.bg }}>
-      <section className="rounded-2xl border border-emerald-200/70 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-emerald-50/25 px-4 py-3 shadow-sm shadow-emerald-100/50 dark:border-emerald-900/50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-slate-900">
-        <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Command Center</p>
-        <h2 className="text-lg font-black text-slate-950 dark:text-white">Officer Command Center</h2>
-      </section>
+      <div>
+        <h2 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">Officer Command Center</h2>
+        <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">Dealer monitoring and stock analytics at a glance.</p>
+      </div>
 
       <section className="overflow-hidden rounded-xl border border-indigo-200/70 bg-gradient-to-br from-indigo-50 via-indigo-50/60 to-indigo-50/25 shadow-sm shadow-indigo-100/40 dark:border-indigo-900/50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900">
         <button
@@ -372,7 +372,6 @@ function DealerSubmissionCard({ rows, submissionTab, setSubmissionTab }: { rows:
     <section className="overflow-hidden rounded-xl border border-indigo-200/70 bg-gradient-to-br from-indigo-50 via-indigo-50/60 to-indigo-50/25 shadow-sm shadow-indigo-100/40 dark:border-indigo-900/50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900">
       <div className={`flex items-center justify-between bg-indigo-100/50 px-3 py-2 dark:bg-indigo-950/60 ${open ? 'border-b border-indigo-100 dark:border-indigo-900/50' : ''}`}>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-wide text-indigo-600 dark:text-indigo-300">Dealer Monitoring</p>
           <h2 className="text-sm font-black text-slate-950 dark:text-white">Dealer Submission List</h2>
           <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Today: {today()}</p>
         </div>
@@ -399,7 +398,6 @@ function LicenseCounterCard({ counters }: { counters: { label: string; value: nu
     <section className="rounded-xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-violet-50/60 to-violet-50/25 p-3 shadow-sm shadow-violet-100/70 dark:border-violet-900/50 dark:from-violet-950/30 dark:via-slate-900 dark:to-slate-900">
       <div className={`flex items-center justify-between gap-2 ${open ? 'mb-2 border-b border-violet-100 pb-2 dark:border-violet-900/50' : ''}`}>
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-wide text-violet-600 dark:text-violet-300">Dealer Monitoring</p>
           <h2 className="text-sm font-black text-slate-950 dark:text-white">License Counter</h2>
         </div>
         <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? 'Collapse License Counter' : 'Expand License Counter'} className="shrink-0 rounded-md p-1 text-violet-600 transition hover:bg-white/70 dark:text-violet-300 dark:hover:bg-slate-800">
@@ -427,7 +425,6 @@ function DashboardListCard({ title, tone, headers, rows }: { title: string; tone
     <section className={`overflow-hidden rounded-xl border p-3 shadow-sm shadow-slate-100/70 ${toneClass.card}`}>
       <div className={`flex items-center justify-between gap-2 ${open ? `mb-2 border-b ${toneClass.header} pb-2` : ''}`}>
         <div className="min-w-0">
-          <p className={`text-[10px] font-black uppercase tracking-wide ${toneClass.eyebrow}`}>Dealer Monitoring</p>
           <h2 className="truncate text-sm font-black text-slate-950 dark:text-white">{title}</h2>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -468,7 +465,6 @@ function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRow
     <section className="overflow-hidden rounded-xl border border-rose-200/70 bg-gradient-to-br from-rose-50 via-rose-50/60 to-rose-50/25 p-3 shadow-sm shadow-rose-100/70 dark:border-rose-900/50 dark:from-rose-950/30 dark:via-slate-900 dark:to-slate-900">
       <div className={`flex items-center justify-between gap-2 ${open ? 'mb-2 border-b border-rose-100 pb-2 dark:border-rose-900/50' : ''}`}>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-wide text-rose-600 dark:text-rose-300">Dealer Monitoring</p>
           <h2 className="text-sm font-black text-slate-950 dark:text-white">Urea: No Sales Alert</h2>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -511,7 +507,6 @@ function WeeklyTopSellersCard({ rows }: { rows: ReturnType<typeof buildWeeklyTop
     <section className="rounded-xl border border-teal-200/70 bg-gradient-to-br from-teal-50 via-teal-50/60 to-teal-50/25 p-3 shadow-sm shadow-teal-100/70 dark:border-teal-900/50 dark:from-teal-950/30 dark:via-slate-900 dark:to-slate-900">
       <div className={`flex items-center justify-between gap-2 ${open ? 'mb-2 border-b border-teal-100 pb-2 dark:border-teal-900/50' : ''}`}>
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-wide text-teal-700 dark:text-teal-300">Dealer Monitoring</p>
           <h2 className="truncate text-sm font-black text-slate-950 dark:text-white">Week&apos;s Top Sellers By Category</h2>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">

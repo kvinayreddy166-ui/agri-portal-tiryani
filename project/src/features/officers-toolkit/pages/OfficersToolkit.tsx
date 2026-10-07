@@ -29,7 +29,7 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/tour-diary',
     icon: CalendarDays,
     category: 'internal',
-    gradient: 'from-cyan-500 to-blue-600',
+    gradient: 'from-cyan-600 to-blue-700',
     bgGradient: 'from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30',
   },
   {
@@ -38,7 +38,7 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/officer-contacts',
     icon: Phone,
     category: 'internal',
-    gradient: 'from-emerald-500 to-teal-600',
+    gradient: 'from-emerald-600 to-teal-700',
     bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
   },
   {
@@ -47,8 +47,8 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/license-services',
     icon: FileCheck,
     category: 'internal',
-    gradient: 'from-teal-500 to-emerald-600',
-    bgGradient: 'from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30',
+    gradient: 'from-indigo-600 to-blue-700',
+    bgGradient: 'from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30',
   },
   {
     title: 'Smart Sampling',
@@ -56,7 +56,7 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/smart-sampling',
     icon: Files,
     category: 'internal',
-    gradient: 'from-amber-500 to-orange-600',
+    gradient: 'from-amber-600 to-orange-700',
     bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
   },
   {
@@ -65,8 +65,8 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/forms-library',
     icon: FolderOpen,
     category: 'internal',
-    gradient: 'from-sky-500 to-blue-600',
-    bgGradient: 'from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30',
+    gradient: 'from-sky-600 to-cyan-700',
+    bgGradient: 'from-sky-50 to-cyan-50 dark:from-sky-950/30 dark:to-cyan-950/30',
   },
   {
     title: 'Inspection & Enforcement',
@@ -74,8 +74,8 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/inspection-enforcement',
     icon: ClipboardCheck,
     category: 'internal',
-    gradient: 'from-lime-500 to-green-600',
-    bgGradient: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
+    gradient: 'from-emerald-700 to-green-800',
+    bgGradient: 'from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30',
   },
   {
     title: 'Farm Calculators',
@@ -92,8 +92,8 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/crop-doctor',
     icon: Stethoscope,
     category: 'internal',
-    gradient: 'from-red-500 to-amber-600',
-    bgGradient: 'from-red-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30',
+    gradient: 'from-rose-600 to-red-700',
+    bgGradient: 'from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30',
     statusMessage: 'Under development',
   },
   {
@@ -102,8 +102,8 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/field-diagnosis',
     icon: Microscope,
     category: 'internal',
-    gradient: 'from-emerald-500 to-teal-600',
-    bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
+    gradient: 'from-lime-600 to-green-700',
+    bgGradient: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
     statusMessage: 'Under development',
   },
   {
@@ -112,8 +112,8 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/acts-and-orders',
     icon: Scale,
     category: 'internal',
-    gradient: 'from-blue-600 to-emerald-700',
-    bgGradient: 'from-blue-50 to-emerald-50 dark:from-blue-950/30 dark:to-emerald-950/30',
+    gradient: 'from-indigo-700 to-violet-800',
+    bgGradient: 'from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30',
   },
 ];
 
@@ -123,7 +123,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Telangana Crop Loan Waiver Portal',
     externalUrl: 'https://clw.telangana.gov.in/Login.aspx',
     icon: HandCoins,
-    gradient: 'from-rose-500 to-red-600',
+    gradient: 'from-rose-600 to-red-700',
     bgGradient: 'from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30',
   },
   {
@@ -131,7 +131,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Soil Health Card Portal',
     externalUrl: 'https://soilhealth.dac.gov.in/admin/',
     icon: Globe2,
-    gradient: 'from-amber-500 to-orange-600',
+    gradient: 'from-amber-700 to-orange-800',
     bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
   },
   {
@@ -139,7 +139,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Online License Management System',
     externalUrl: 'https://agriolms.telangana.gov.in/Default.aspx',
     icon: BarChart3,
-    gradient: 'from-teal-500 to-cyan-600',
+    gradient: 'from-teal-600 to-cyan-700',
     bgGradient: 'from-teal-50 to-cyan-50 dark:from-teal-950/30 dark:to-cyan-950/30',
   },
   {
@@ -147,7 +147,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Integrated Fertilizer Management System',
     externalUrl: 'https://dbtfert.nic.in/mFMS/loginNew.action',
     icon: Database,
-    gradient: 'from-indigo-500 to-purple-600',
+    gradient: 'from-indigo-600 to-purple-700',
     bgGradient: 'from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30',
   },
   {
@@ -155,15 +155,15 @@ const externalPortals: ToolkitItem[] = [
     description: 'Telangana IFMIS e-Challan Portal',
     externalUrl: 'https://ifmis.telangana.gov.in/echallan',
     icon: Landmark,
-    gradient: 'from-slate-600 to-emerald-700',
-    bgGradient: 'from-slate-50 to-emerald-50 dark:from-slate-950/30 dark:to-emerald-950/30',
+    gradient: 'from-teal-600 to-emerald-700',
+    bgGradient: 'from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30',
   },
   {
     title: 'Agromet Advisories',
     description: 'Agricultural Meteorological Advisories',
     externalUrl: 'https://pjtau.edu.in/agromet-advisories/',
     icon: Sprout,
-    gradient: 'from-sky-500 to-blue-600',
+    gradient: 'from-sky-600 to-blue-700',
     bgGradient: 'from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30',
   },
   {
@@ -171,7 +171,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Telangana Development Planning Society Weather',
     externalUrl: 'https://tgdps.telangana.gov.in/districtdata.jsp',
     icon: CloudSunRain,
-    gradient: 'from-cyan-500 to-teal-600',
+    gradient: 'from-cyan-600 to-teal-700',
     bgGradient: 'from-cyan-50 to-teal-50 dark:from-cyan-950/30 dark:to-teal-950/30',
   },
   {
@@ -179,7 +179,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Fertilizer Control Order Court Judgements',
     externalUrl: 'https://indiankanoon.org/search/?formInput=fertilizer+control+order+&filters=doctypes%3A+judgments&filters=sortby%3A+mostrecent',
     icon: Gavel,
-    gradient: 'from-violet-500 to-purple-600',
+    gradient: 'from-violet-600 to-purple-700',
     bgGradient: 'from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30',
   },
   {
@@ -187,15 +187,15 @@ const externalPortals: ToolkitItem[] = [
     description: 'Telangana Government Agriculture Portal',
     externalUrl: 'https://rythubharosa.telangana.gov.in/Login.aspx',
     icon: UserRound,
-    gradient: 'from-orange-500 to-red-600',
-    bgGradient: 'from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30',
+    gradient: 'from-emerald-600 to-green-700',
+    bgGradient: 'from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30',
   },
   {
     title: 'PM-Kisan',
     description: 'Pradhan Mantri Kisan Samman Nidhi',
     externalUrl: 'https://fw.pmkisan.gov.in/',
     icon: IndianRupee,
-    gradient: 'from-yellow-500 to-amber-600',
+    gradient: 'from-yellow-600 to-amber-700',
     bgGradient: 'from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/30',
   },
   {
@@ -203,7 +203,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Telangana Seed Portal',
     externalUrl: 'https://ossds.telangana.gov.in/Tseedlogin.aspx',
     icon: Wheat,
-    gradient: 'from-lime-500 to-green-600',
+    gradient: 'from-lime-600 to-green-700',
     bgGradient: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
   },
   {
@@ -211,7 +211,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Online Procurement Management System',
     externalUrl: 'https://pps.telangana.gov.in/View/Login.aspx',
     icon: PackageCheck,
-    gradient: 'from-blue-500 to-indigo-600',
+    gradient: 'from-blue-600 to-indigo-700',
     bgGradient: 'from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30',
   },
   {
@@ -227,7 +227,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Telangana Farmer Registry',
     externalUrl: 'https://tlfr.agristack.gov.in/farmer-registry-tl/#/',
     icon: UsersRound,
-    gradient: 'from-cyan-500 to-blue-600',
+    gradient: 'from-cyan-600 to-blue-700',
     bgGradient: 'from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30',
   },
   {
@@ -235,7 +235,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Krishi Decision Support System',
     externalUrl: 'https://krishi-dss.gov.in/krishi-dss/auth/login',
     icon: MapPin,
-    gradient: 'from-emerald-500 to-teal-600',
+    gradient: 'from-emerald-600 to-teal-700',
     bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
   },
   {
@@ -243,7 +243,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Central Fertilizer Quality Control & Training Institute',
     externalUrl: 'https://cfqcti.da.gov.in/',
     icon: ShieldCheck,
-    gradient: 'from-amber-500 to-orange-600',
+    gradient: 'from-amber-600 to-orange-700',
     bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
   },
   {
@@ -251,7 +251,7 @@ const externalPortals: ToolkitItem[] = [
     description: 'Fertilizer Statistics & Analysis (DA&FW)',
     externalUrl: 'https://fsas.agriwelfare.gov.in/fertilizer/#/',
     icon: BarChart3,
-    gradient: 'from-blue-500 to-indigo-600',
+    gradient: 'from-blue-600 to-indigo-700',
     bgGradient: 'from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30',
   },
   {
@@ -259,32 +259,32 @@ const externalPortals: ToolkitItem[] = [
     description: 'Central Insecticide Board & Registration Committee',
     externalUrl: 'https://ppqs.gov.in/divisions/central-insecticide-board-registration-committee',
     icon: Bug,
-    gradient: 'from-lime-500 to-green-600',
-    bgGradient: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
+    gradient: 'from-orange-600 to-amber-700',
+    bgGradient: 'from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30',
   },
   {
     title: 'IRAC',
     description: 'Insecticide Resistance Action Committee',
     externalUrl: 'https://irac-online.org/',
     icon: Bug,
-    gradient: 'from-red-500 to-amber-600',
-    bgGradient: 'from-red-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30',
+    gradient: 'from-red-600 to-rose-700',
+    bgGradient: 'from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30',
   },
   {
     title: 'FRAC',
     description: 'Fungicide Resistance Action Committee',
     externalUrl: 'https://www.frac.info/',
     icon: Microscope,
-    gradient: 'from-violet-500 to-purple-600',
-    bgGradient: 'from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30',
+    gradient: 'from-violet-600 to-indigo-700',
+    bgGradient: 'from-violet-50 to-indigo-50 dark:from-violet-950/30 dark:to-indigo-950/30',
   },
   {
     title: 'HRAC',
     description: 'Herbicide Resistance Action Committee',
     externalUrl: 'https://hracglobal.com/herbicide-resistance',
     icon: Leaf,
-    gradient: 'from-green-600 to-emerald-700',
-    bgGradient: 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
+    gradient: 'from-lime-600 to-emerald-700',
+    bgGradient: 'from-lime-50 to-emerald-50 dark:from-lime-950/30 dark:to-emerald-950/30',
   },
 ];
 
@@ -376,7 +376,7 @@ function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: numbe
   return (
     <div
       onClick={onClick}
-      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-600/40 hover:shadow-xl hover:shadow-emerald-900/10 dark:border-slate-800 dark:bg-slate-900 sm:p-5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-600/40 hover:shadow-xl hover:shadow-emerald-900/10 dark:border-slate-800 dark:bg-slate-900 sm:p-5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
     >
       <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-800 via-gold-400 to-emerald-800 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <div className="flex items-start justify-between gap-2">
@@ -384,7 +384,7 @@ function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: numbe
           <item.icon className="h-5 w-5 sm:h-6 sm:w-6" />
         </div>
         {item.externalUrl && (
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-400 ring-1 ring-slate-200/80 transition-all duration-300 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:ring-emerald-200 dark:bg-slate-800 dark:text-slate-500 dark:ring-slate-700 dark:group-hover:bg-emerald-950/50 dark:group-hover:text-emerald-300 dark:group-hover:ring-emerald-700/50">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-400 ring-1 ring-slate-200/80 transition duration-300 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:ring-emerald-200 dark:bg-slate-800 dark:text-slate-500 dark:ring-slate-700 dark:group-hover:bg-emerald-950/50 dark:group-hover:text-emerald-300 dark:group-hover:ring-emerald-700/50">
             <ExternalLink className="h-3.5 w-3.5" />
           </span>
         )}
@@ -434,29 +434,29 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
       <div className="relative mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
-          <div className={`mb-5 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="relative overflow-hidden rounded-2xl border border-emerald-300/80 bg-gradient-to-r from-emerald-200 via-emerald-100 to-teal-200 px-4 py-3.5 shadow-md shadow-emerald-900/15 backdrop-blur-sm dark:border-emerald-800/60 dark:from-emerald-900/60 dark:via-emerald-950/50 dark:to-teal-900/60">
+          <div className={`mb-5 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-800/60 bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-900 px-4 py-3.5 shadow-lg shadow-emerald-900/25 backdrop-blur-sm">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 via-gold-400 to-emerald-700" />
               <div className="relative flex min-w-0 items-center gap-3">
                 <BackButton
                   onClick={() => navigate('/login')}
-                  colors="text-emerald-800 hover:text-emerald-950 dark:text-emerald-200 dark:hover:text-white"
+                  colors="text-emerald-100 hover:text-white"
                 />
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-emerald-900 text-gold-300 shadow-lg shadow-emerald-900/30">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-gold-300 shadow-sm ring-1 ring-white/25">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="truncate text-lg font-black tracking-tight text-emerald-950 dark:text-white sm:text-xl">
+                  <h1 className="truncate text-lg font-black tracking-tight text-white sm:text-xl">
                     {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                   </h1>
-                  <p className="truncate text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                  <p className="truncate text-xs font-semibold text-gold-200">
                     {t('Agricultural Tools & Government Portals', 'వ్యవసాయ పనిముట్లు & ప్రభుత్వ పోర్టల్స్')}
                   </p>
                 </div>
                 <LanguageToggle
                   language={language}
                   onClick={toggleLanguage}
-                  className="h-9 shrink-0 rounded-xl !border-emerald-200 !bg-white/80 !text-emerald-800 shadow-sm backdrop-blur px-3 hover:!bg-white dark:!border-emerald-800/60 dark:!bg-slate-900/80 dark:!text-emerald-300 dark:hover:!bg-slate-800"
+                  className="h-9 shrink-0 rounded-xl !border-white/25 !bg-white/10 !text-white shadow-sm backdrop-blur px-3 hover:!bg-white/20"
                 />
               </div>
             </div>
@@ -464,7 +464,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         )}
 
         {shouldHideHeader && (
-          <header className={`mb-4 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <header className={`mb-4 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <p className="text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
               Officer Toolkit
             </p>
@@ -478,7 +478,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         )}
 
         {/* Section Switcher — Field Tools / Government Portals */}
-        <div className={`mb-5 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mb-5 transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="inline-flex w-full max-w-md items-stretch gap-1 rounded-2xl border border-emerald-900/10 bg-white/80 p-1 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/80">
             {(
               [
@@ -490,7 +490,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition-all duration-200 sm:text-sm ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition duration-200 sm:text-sm ${
                   activeTab === tab.id
                     ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25'
                     : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-400 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300'
@@ -515,7 +515,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         {/* Active Section Grid */}
         <div
           key={activeTab}
-          className={`transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          className={`transition duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
         >
           {activeTab === 'tools' ? (
             <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
@@ -550,7 +550,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         </div>
 
         {/* Footer */}
-        <div className={`mt-8 text-center transition-all duration-700 delay-600 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mt-8 text-center transition duration-700 delay-600 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
             {t('Empowering Agriculture with Digital Tools', 'డిజిటల్ టూల్స్‌తో వ్యవసాయాన్ని శక్తివంతం చేయడం')}
           </p>

@@ -3,9 +3,9 @@ import {
   ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
   Archive, BarChart3, Settings, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen, LogOut,
+  Globe, Check,
 } from 'lucide-react';
 import { PortalLogo } from '../shared/components/ui/PortalLogo';
-import { LanguageToggle } from '../shared/components/ui/LanguageToggle';
 import { useAuth } from '../shared/context/AuthContext';
 import { useLanguage } from '../shared/context/LanguageContext';
 import { useTheme } from '../shared/context/ThemeContext';
@@ -46,8 +46,10 @@ const menuItems = adminMenuItems;
 export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
   const sidebarOverlay = useBackButtonOverlay('app-sidebar', () => setSidebarOpen(false));
   const profileOverlay = useBackButtonOverlay('profile-menu', () => setProfileOpen(false));
+  const langOverlay = useBackButtonOverlay('lang-menu', () => setLangOpen(false));
   const { user, isAdminUser, isDealerUser, dealerName, signOut } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
@@ -79,6 +81,20 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
     setProfileOpen(true);
   };
 
+  const toggleLangMenu = () => {
+    if (langOpen) {
+      langOverlay.closeOverlay();
+      return;
+    }
+    langOverlay.pushOverlay();
+    setLangOpen(true);
+  };
+
+  const selectLanguage = (lang: 'en' | 'te') => {
+    if (language !== lang) toggleLanguage();
+    langOverlay.closeOverlay();
+  };
+
   const userMeta = (user?.user_metadata ?? {}) as { name?: string; full_name?: string; display_name?: string; designation?: string };
   const profileName = userMeta.name || userMeta.full_name || userMeta.display_name || user?.email?.split('@')[0] || 'User';
   const profileRole = userMeta.designation || (isAdminUser ? t('Administrator', 'నిర్వాహకుడు') : isDealerUser ? dealerName || t('Dealer', 'డీలర్') : t('View access', 'చూడే ప్రవేశం'));
@@ -95,9 +111,9 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
 
   return (
     <div className="min-h-screen bg-[#f2f7f3] dark:bg-slate-950">
-      <header className="sticky top-0 z-50 border-b border-emerald-900/30 bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-lg">
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400/80 to-transparent" />
-        <div className="relative flex min-w-0 items-center justify-between gap-2 px-3 py-1.5 sm:px-4 lg:px-6">
+      <header className="sticky top-1 z-50 mx-1.5 rounded-2xl border border-emerald-900/30 bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-lg sm:mx-2">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] rounded-b-2xl bg-gradient-to-r from-transparent via-gold-400/80 to-transparent" />
+        <div className="relative flex min-w-0 items-center justify-between gap-2 px-4 py-2.5 sm:px-5 lg:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <button
               type="button"
@@ -120,7 +136,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                 <h1 className="truncate text-sm font-black tracking-tight sm:text-base font-[var(--font-stylish)]">
                   {t('Agronix', 'తిర్యాని వ్యవసాయ పోర్టల్')}
                 </h1>
-                <p className="truncate text-[10px] font-medium text-emerald-100">
+                <p className="truncate text-[10px] font-semibold text-gold-300">
                   {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
                 </p>
               </div>
@@ -137,12 +153,45 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
             >
               {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
             </button>
-            <LanguageToggle
-              language={language}
-              onClick={toggleLanguage}
-              tone="solid"
-              label={t('Change language', 'భాష మార్చండి')}
-            />
+            <button
+              type="button"
+              onClick={toggleLangMenu}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-bold transition hover:bg-white/30 focus:outline-none focus:ring-4 focus:ring-white/25"
+              aria-label={t('Change language', 'భాష మార్చండి')}
+              aria-expanded={langOpen}
+              aria-haspopup="menu"
+              title={t('Change language', 'భాష మార్చండి')}
+            >
+              <Globe className="h-4 w-4" />
+            </button>
+            {langOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={langOverlay.closeOverlay} aria-hidden />
+                <div
+                  className="animate-pop-in absolute right-0 top-full z-50 mt-2 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-950/15 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                  role="menu"
+                >
+                  {([
+                    { id: 'en', label: 'English', sub: 'Default' },
+                    { id: 'te', label: 'తెలుగు', sub: 'Telugu' },
+                  ] as const).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => selectLanguage(opt.id)}
+                      className="flex w-full items-center justify-between gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-bold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <span>
+                        <span className="block">{opt.label}</span>
+                        <span className="block text-[10px] font-semibold text-slate-400">{opt.sub}</span>
+                      </span>
+                      {language === opt.id && <Check className="h-4 w-4 shrink-0 text-emerald-600" />}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
             <button
               type="button"
               onClick={toggleProfile}
@@ -210,7 +259,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-80 max-w-[86vw] flex-col border-r border-emerald-100 bg-white text-slate-900 shadow-2xl shadow-slate-950/25 transition-transform duration-300 ease-out dark:border-slate-800 dark:bg-slate-950 dark:text-white ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-80 max-w-[86vw] flex-col overflow-hidden rounded-r-3xl border-r border-emerald-100 bg-white text-slate-900 shadow-2xl shadow-slate-950/25 transition-transform duration-300 ease-out dark:border-slate-800 dark:bg-slate-950 dark:text-white ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -221,7 +270,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
               <PortalLogo size="sm" />
               <div className="min-w-0">
                 <h2 className="truncate text-base font-black tracking-tight font-[var(--font-stylish)]">{t('Agronix', 'తిర్యాని')}</h2>
-                <p className="truncate text-[11px] font-semibold text-emerald-100">{t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}</p>
+                <p className="truncate text-[11px] font-semibold text-gold-300">{t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}</p>
               </div>
             </div>
             <button
@@ -238,7 +287,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
         <nav className="flex-1 overflow-y-auto px-2.5 py-3">
           {menuSections(visibleMenuItems, t).map((section) => (
             <div key={section.title} className="mb-3 last:mb-0">
-              <p className="mb-1.5 px-2.5 text-[9px] font-black uppercase tracking-[0.18em] text-emerald-800/60 dark:text-emerald-400/60">
+              <p className="mb-1.5 px-2.5 text-[9px] font-black uppercase tracking-[0.18em] text-gold-600 dark:text-gold-400">
                 {t(section.title, translateMenu(section.title))}
               </p>
               <div className="space-y-0.5">

@@ -806,7 +806,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+              className="inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               title="Close"
             >
               Close
@@ -847,7 +847,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               <select
                 value={selectedDraftName}
                 onChange={(event) => loadDraft(event.target.value)}
-                className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition-all ${
+                className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition ${
                   selectedDraftName
                     ? 'border-red-400 bg-red-50 text-red-700 focus:border-red-500 focus:bg-red-100 focus:ring-2 focus:ring-red-100/50'
                     : 'border-red-200 bg-white/90 text-slate-900 focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-100/50'
@@ -857,7 +857,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                 <option value="">Load saved draft...</option>
                 {savedDrafts.map((draft) => <option key={draft.name} value={draft.name} className={selectedDraftName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-red-50 text-red-700 font-bold' : ''}>{draft.name}</option>)}
               </select>
-              <button type="button" onClick={deleteDraft} className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition-all backdrop-blur-sm">Delete</button>
+              <button type="button" onClick={deleteDraft} className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition backdrop-blur-sm">Delete</button>
             </div>
           </div>
 
@@ -1066,7 +1066,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               <button
                 type="button"
                 onClick={() => setShowCoveringLetterModal(true)}
-                className="group relative w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-0.5 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 active:scale-95 active:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-500/50 focus:ring-offset-2 min-h-[44px]"
+                className="group relative w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition duration-300 ease-out hover:shadow-xl hover:-translate-y-0.5 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 active:scale-95 active:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-500/50 focus:ring-offset-2 min-h-[44px]"
               >
                 <FileText className="h-5 w-5" />
                 <span>Generate Official Covering Letter</span>

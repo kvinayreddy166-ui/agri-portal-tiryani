@@ -34,12 +34,14 @@ export function KnowledgeDashboard() {
         eyebrow="Knowledge Base"
         title="Dashboard"
         description="Overview of the AGRONIX Knowledge Base — documents, processing and queries."
-        actions={isAdminUser ? (
+      />
+      {isAdminUser && (
+        <div className="mb-4 flex justify-end">
           <button onClick={() => go('upload')} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">
             <UploadCloud className="h-4 w-4" /> Upload Document
           </button>
-        ) : undefined}
-      />
+        </div>
+      )}
       <KnowledgeNav isAdmin={isAdminUser} />
 
       {error && (

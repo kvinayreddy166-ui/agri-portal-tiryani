@@ -106,7 +106,7 @@ export function AiDocumentEnhancer() {
                 <span>{progress.percent}%</span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-emerald-100 dark:bg-emerald-900/40">
-                <div className="h-full bg-emerald-700 transition-all" style={{ width: `${progress.percent}%` }} />
+                <div className="h-full bg-emerald-700 transition-[width]" style={{ width: `${progress.percent}%` }} />
               </div>
             </div>
           )}

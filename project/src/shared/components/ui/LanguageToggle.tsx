@@ -38,7 +38,7 @@ export function LanguageToggle({ language, onClick, tone = 'light', accent = 'vi
       aria-label={label}
       title={label}
       className={[
-        'inline-flex h-8 min-w-[72px] items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-bold transition-all duration-200 active:scale-95 focus:outline-none focus:ring-4',
+        'inline-flex h-8 min-w-[72px] items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-bold transition duration-200 active:scale-95 focus:outline-none focus:ring-4',
         accentFocusClass[accent],
         tone === 'solid' ? 'border-white/25 bg-white/15 text-white hover:bg-white/25' : lightAccentClass[accent],
         className,

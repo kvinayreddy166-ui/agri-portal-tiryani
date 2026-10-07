@@ -522,7 +522,7 @@ export function PublicOfficerTools() {
                     <button
                       type="button"
                       onClick={closePdfTool}
-                      className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+                      className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
                       aria-label="Close seed PDF generator"
                     >
                       Close

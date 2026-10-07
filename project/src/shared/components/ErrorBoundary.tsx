@@ -97,7 +97,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.handleRefreshNow}
-              className="mt-8 rounded-xl bg-emerald-700 px-8 py-3 text-base font-bold text-white hover:bg-emerald-800 transition-colors"
+              className="mt-8 rounded-xl bg-emerald-700 px-8 py-3 text-base font-bold text-white transition-[background-color,transform] duration-150 hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50 focus-visible:ring-offset-2 active:scale-[0.97]"
             >
               Refresh Now
             </button>
@@ -122,14 +122,14 @@ export class ErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-800"
+              className="rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white transition-[background-color,transform] duration-150 hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50 focus-visible:ring-offset-2 active:scale-[0.97]"
             >
               Retry
             </button>
             <button
               type="button"
               onClick={() => void clearAppCacheAndReload()}
-              className="rounded-xl border border-emerald-200 bg-white px-5 py-2.5 text-sm font-bold text-emerald-800 hover:bg-emerald-50"
+              className="rounded-xl border border-emerald-200 bg-white px-5 py-2.5 text-sm font-bold text-emerald-800 transition-[background-color,transform] duration-150 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50 focus-visible:ring-offset-2 active:scale-[0.97]"
             >
               Clear cache
             </button>

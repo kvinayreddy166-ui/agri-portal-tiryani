@@ -25,3 +25,6 @@ vite.config.*.timestamp-*.mjs
 *.sln
 *.sw?
 .env
+
+# Devin local MCP config (contains API keys)
+.devin/mcp_config.local.json

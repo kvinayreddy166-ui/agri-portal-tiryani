@@ -89,7 +89,7 @@ export function GoogleMapWidget() {
   if (!apiKey || loadError) {
     const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(TIRYANI_QUERY)}&ll=${TIRYANI_CENTER.lat},${TIRYANI_CENTER.lng}&z=16&t=k&output=embed`;
     return (
-      <div className="portal-card overflow-hidden">
+      <div className="portal-card overflow-hidden rounded-2xl">
         <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
           <MapPin className="h-5 w-5 text-emerald-600" />
           <h3 className="font-black text-slate-900 dark:text-white">
@@ -117,7 +117,7 @@ export function GoogleMapWidget() {
   }
 
   return (
-    <div className="portal-card overflow-hidden">
+    <div className="portal-card overflow-hidden rounded-2xl">
       <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
         <MapPin className="h-5 w-5 text-emerald-600" />
         <h3 className="font-black text-slate-900 dark:text-white">

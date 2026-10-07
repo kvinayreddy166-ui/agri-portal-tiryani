@@ -234,13 +234,12 @@ export function FormsLibrary() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-4">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      <div className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 p-4 shadow-md dark:border-emerald-800/50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-emerald-900/30 md:flex-row md:items-end md:justify-between">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400" />
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-emerald-950 dark:text-emerald-50">
+          <h1 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
             {t('Forms & Library', 'ఫారాలు & లైబ్రరీ')}
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-slate-300">
+          <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
             {t(
               'Files uploaded here appear on the public Forms & Library page before login.',
               'చట్టబద్ధ ఫారాలు మరియు టెంప్లేట్లను అప్లోడ్, సవరించు, తొలగించు, చూడండి మరియు డౌన్‌లోడ్ చేయండి.'
@@ -273,7 +272,7 @@ export function FormsLibrary() {
             key={folder.id}
             type="button"
             onClick={() => setSelectedFolder(folder.id)}
-            className={`relative overflow-hidden rounded-2xl border p-3.5 text-left transition-all duration-200 ${
+            className={`relative overflow-hidden rounded-2xl border p-3.5 text-left transition duration-200 ${
               selectedFolder === folder.id
                 ? 'border-emerald-700 bg-gradient-to-br from-emerald-800 to-emerald-900 text-white shadow-md shadow-emerald-950/20'
                 : 'border-slate-200/90 bg-white text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100'

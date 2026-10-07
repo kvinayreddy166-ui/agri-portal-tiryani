@@ -49,29 +49,29 @@ type HubCardKey = 'inspections' | 'notices' | 'stopSale' | 'seizure';
 
 const cardThemes: Record<string, { bar: string; tile: string; openBorder: string; openShadow: string; chevronOpen: string }> = {
   teal: {
-    bar: 'from-emerald-400 to-emerald-500',
-    tile: 'from-emerald-500 to-emerald-600 shadow-emerald-500/30',
+    bar: 'from-emerald-500 to-emerald-600',
+    tile: 'from-emerald-600 to-emerald-700 shadow-emerald-600/30',
     openBorder: 'border-emerald-300 dark:border-emerald-600',
     openShadow: 'shadow-emerald-500/10',
     chevronOpen: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
   },
   cyan: {
-    bar: 'from-cyan-400 to-blue-500',
-    tile: 'from-cyan-500 to-blue-600 shadow-cyan-500/30',
+    bar: 'from-cyan-500 to-blue-600',
+    tile: 'from-cyan-600 to-blue-700 shadow-cyan-600/30',
     openBorder: 'border-cyan-300 dark:border-cyan-600',
     openShadow: 'shadow-cyan-500/10',
     chevronOpen: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300',
   },
   sky: {
-    bar: 'from-sky-400 to-indigo-500',
-    tile: 'from-sky-500 to-blue-600 shadow-sky-500/30',
+    bar: 'from-sky-500 to-indigo-600',
+    tile: 'from-sky-600 to-blue-700 shadow-sky-600/30',
     openBorder: 'border-sky-300 dark:border-sky-600',
     openShadow: 'shadow-sky-500/10',
     chevronOpen: 'bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300',
   },
   indigo: {
-    bar: 'from-indigo-400 to-violet-500',
-    tile: 'from-indigo-500 to-violet-600 shadow-indigo-500/30',
+    bar: 'from-indigo-500 to-violet-600',
+    tile: 'from-indigo-600 to-violet-700 shadow-indigo-600/30',
     openBorder: 'border-indigo-300 dark:border-indigo-600',
     openShadow: 'shadow-indigo-500/10',
     chevronOpen: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300',
@@ -198,7 +198,7 @@ export function InspectionEnforcementHub() {
           return (
             <div
               key={card.key}
-              className={`group relative overflow-hidden rounded-2xl border bg-white transition-all duration-300 dark:bg-slate-900 ${
+              className={`group relative overflow-hidden rounded-2xl border bg-white transition duration-300 dark:bg-slate-900 ${
                 isOpen
                   ? `${theme.openBorder} shadow-xl ${theme.openShadow}`
                   : 'border-slate-200 shadow-sm hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800'
@@ -218,7 +218,7 @@ export function InspectionEnforcementHub() {
                   <p className="text-[15px] font-black leading-tight text-slate-900 dark:text-white">{card.title}</p>
                   <p className="mt-0.5 text-[11px] font-semibold leading-snug text-slate-500 dark:text-slate-400">{card.subtitle}</p>
                 </div>
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${isOpen ? `rotate-180 ${theme.chevronOpen}` : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition duration-300 ${isOpen ? `rotate-180 ${theme.chevronOpen}` : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
                   <ChevronDown className="h-4 w-4" />
                 </span>
               </button>
@@ -229,13 +229,13 @@ export function InspectionEnforcementHub() {
                       key={item.label}
                       type="button"
                       onClick={item.onClick}
-                      className="group/item flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm transition-all hover:-translate-y-px hover:border-slate-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-600"
+                      className="group/item flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm transition hover:-translate-y-px hover:border-slate-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-600"
                     >
                       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${chipClasses[item.tone]}`}>
                         <item.icon className="h-5 w-5" />
                       </span>
                       <span className="flex-1 text-sm font-black text-slate-800 dark:text-slate-100">{item.label}</span>
-                      <ArrowRight className="h-4 w-4 text-slate-300 transition-all group-hover/item:translate-x-0.5 group-hover/item:text-slate-500 dark:text-slate-600" />
+                      <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover/item:translate-x-0.5 group-hover/item:text-slate-500 dark:text-slate-600" />
                     </button>
                   ))}
                 </div>
@@ -263,7 +263,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setSelectedNoticeCategory(null)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -295,7 +295,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowPesticideStopSale(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -352,7 +352,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowFertilizerStopSale(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -409,7 +409,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowSeedStopSale(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -466,7 +466,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowFertilizerSeizure(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -498,7 +498,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowSeedSeizure(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -530,7 +530,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowPesticideSeizure(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>

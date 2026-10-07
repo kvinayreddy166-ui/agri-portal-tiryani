@@ -59,7 +59,7 @@ export function FileActionButtons({
         <button
           type="button"
           onClick={handleView}
-          className={`inline-flex items-center justify-center ${btnClass} text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-slate-800`}
+          className={`inline-flex items-center justify-center ${btnClass} text-emerald-700 transition-[background-color,transform] duration-150 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50 active:scale-90 dark:text-emerald-400 dark:hover:bg-slate-800`}
           aria-label="View file"
           title="Preview"
         >
@@ -69,7 +69,7 @@ export function FileActionButtons({
           type="button"
           onClick={handleDownload}
           disabled={downloading}
-          className={`inline-flex items-center justify-center ${btnClass} text-sky-700 transition hover:bg-sky-50 disabled:opacity-50 dark:text-sky-400 dark:hover:bg-slate-800`}
+          className={`inline-flex items-center justify-center ${btnClass} text-sky-700 transition-[background-color,transform] duration-150 hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50 active:scale-90 disabled:opacity-50 dark:text-sky-400 dark:hover:bg-slate-800`}
           aria-label="Download file"
           title="Download"
         >

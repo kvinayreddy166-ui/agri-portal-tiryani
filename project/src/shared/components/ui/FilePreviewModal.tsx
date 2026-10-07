@@ -214,14 +214,14 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
+      className="animate-overlay-in fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="File preview"
     >
       <div
-        className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+        className="animate-pop-in flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
@@ -234,7 +234,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
                 type="button"
                 onClick={handleDownload}
                 disabled={downloading}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600 text-white transition hover:bg-sky-700 disabled:opacity-50 dark:bg-sky-500 dark:hover:bg-sky-600"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600 text-white transition-[background-color,transform] duration-150 hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 active:scale-95 disabled:opacity-50 dark:bg-sky-500 dark:hover:bg-sky-600"
                 title="Download file"
                 aria-label="Download file"
               >
@@ -246,8 +246,9 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
                 href={isPdf ? fileUrl : googleViewerTabSrc}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg p-2 text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-slate-800"
+                className="rounded-lg p-2 text-emerald-700 transition-[background-color,transform] duration-150 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50 active:scale-95 dark:text-emerald-300 dark:hover:bg-slate-800"
                 title="Open in new tab"
+                aria-label="Open in new tab"
               >
                 <ExternalLink className="h-5 w-5" />
               </a>
@@ -255,7 +256,7 @@ export function FilePreviewModal({ fileUrl, fileName, fileType, hideOpenInNewTab
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="rounded-lg p-2 text-slate-600 transition-[background-color,transform] duration-150 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/60 active:scale-95 dark:text-slate-200 dark:hover:bg-slate-800"
               aria-label="Close preview"
             >
               <X className="h-5 w-5" />

@@ -1,4 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  AlertTriangle,
+  ClipboardList,
+  FileCheck2,
+  FolderOpen,
+  Info,
+  RotateCcw,
+  Save,
+  Trash2,
+  type LucideIcon,
+} from 'lucide-react';
 
 export type ToastType = 'success' | 'info' | 'reset' | 'saved' | 'deleted' | 'loaded' | 'queue' | 'warning';
 
@@ -10,45 +21,45 @@ interface ToastProps {
   onClose: () => void;
 }
 
-const toastConfig: Record<ToastType, { icon: string; bgColor: string; borderColor: string }> = {
+const toastConfig: Record<ToastType, { icon: LucideIcon; gradient: string; borderColor: string }> = {
   success: {
-    icon: '📄',
-    bgColor: 'bg-emerald-500/90',
+    icon: FileCheck2,
+    gradient: 'linear-gradient(135deg, rgba(16,185,129,0.92), rgba(5,150,105,0.88))',
     borderColor: 'border-emerald-400',
   },
   info: {
-    icon: '👁️',
-    bgColor: 'bg-blue-500/90',
+    icon: Info,
+    gradient: 'linear-gradient(135deg, rgba(59,130,246,0.92), rgba(37,99,235,0.88))',
     borderColor: 'border-blue-400',
   },
   reset: {
-    icon: '🔄',
-    bgColor: 'bg-amber-500/90',
+    icon: RotateCcw,
+    gradient: 'linear-gradient(135deg, rgba(245,158,11,0.92), rgba(217,119,6,0.88))',
     borderColor: 'border-amber-400',
   },
   saved: {
-    icon: '💾',
-    bgColor: 'bg-green-500/90',
+    icon: Save,
+    gradient: 'linear-gradient(135deg, rgba(34,197,94,0.92), rgba(22,163,74,0.88))',
     borderColor: 'border-green-400',
   },
   deleted: {
-    icon: '🗑️',
-    bgColor: 'bg-red-500/90',
+    icon: Trash2,
+    gradient: 'linear-gradient(135deg, rgba(239,68,68,0.92), rgba(220,38,38,0.88))',
     borderColor: 'border-red-400',
   },
   loaded: {
-    icon: '📂',
-    bgColor: 'bg-violet-500/90',
+    icon: FolderOpen,
+    gradient: 'linear-gradient(135deg, rgba(139,92,246,0.92), rgba(124,58,237,0.88))',
     borderColor: 'border-violet-400',
   },
   queue: {
-    icon: '📋',
-    bgColor: 'bg-indigo-500/90',
+    icon: ClipboardList,
+    gradient: 'linear-gradient(135deg, rgba(99,102,241,0.92), rgba(79,70,229,0.88))',
     borderColor: 'border-indigo-400',
   },
   warning: {
-    icon: '⚠️',
-    bgColor: 'bg-orange-500/90',
+    icon: AlertTriangle,
+    gradient: 'linear-gradient(135deg, rgba(249,115,22,0.92), rgba(234,88,12,0.88))',
     borderColor: 'border-orange-400',
   },
 };
@@ -86,27 +97,29 @@ export function Toast({ type, title, subtitle, duration = 4000, onClose }: Toast
   }, [duration]);
 
   const config = toastConfig[type];
+  const Icon = config.icon;
 
   return (
     <div
-      className={`max-w-sm overflow-hidden rounded-xl ${config.bgColor} backdrop-blur-md ${config.borderColor} border shadow-2xl transition-all duration-300 ${
+      role="status"
+      className={`max-w-sm overflow-hidden rounded-xl backdrop-blur-md ${config.borderColor} border shadow-2xl transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
-      style={{
-        background: `linear-gradient(135deg, ${config.bgColor.replace('/90', '')}dd, ${config.bgColor.replace('/90', '')}99)`,
-      }}
+      style={{ background: config.gradient }}
     >
       <div className="relative p-4">
         {/* Progress bar */}
-        <div className="absolute top-0 left-0 h-1 bg-white/30 dark:bg-slate-900/30 rounded-full overflow-hidden">
+        <div className="absolute top-0 left-0 h-1 w-full bg-white/20 dark:bg-slate-900/30 overflow-hidden">
           <div
-            className="h-full bg-white/80 dark:bg-slate-900/80 transition-all duration-50 ease-linear"
+            className="h-full bg-white/80 dark:bg-slate-900/80 transition-[width] duration-100 ease-linear"
             style={{ width: `${progress}%` }}
           />
         </div>
 
         <div className="flex items-start gap-3">
-          <span className="text-2xl flex-shrink-0">{config.icon}</span>
+          <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25">
+            <Icon className="h-4 w-4 text-white" aria-hidden="true" />
+          </span>
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-bold text-white tracking-wide">{title}</h4>
             {subtitle && (
@@ -118,8 +131,8 @@ export function Toast({ type, title, subtitle, duration = 4000, onClose }: Toast
               setIsVisible(false);
               setTimeout(() => onCloseRef.current(), 300);
             }}
-            className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
-            aria-label="Close"
+            className="flex-shrink-0 rounded-md p-1 text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-95"
+            aria-label="Close notification"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

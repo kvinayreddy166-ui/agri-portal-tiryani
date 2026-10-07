@@ -457,6 +457,7 @@ export function ActsAndOrders() {
           className="mb-1"
           title={activeAreaCard?.title || 'Acts & Orders'}
           subtitle={activeAreaCard?.description || 'Agriculture laws, rules, and official procedures for Fertilizer, Seed, and Insecticide.'}
+          onBack={handleBack}
         />
       )}
       {!selectedFcoCardId && !showCompactHeader && (
@@ -510,6 +511,7 @@ export function ActsAndOrders() {
           activeCard={activeFcoCard}
           activeCardId={selectedFcoCardId}
           activeTab={fcoActiveTab}
+          bare simpleHeader={showCompactHeader}
           bookmarks={bookmarks}
           onTabChange={setFcoActiveTab}
           onSearchChange={(value) => {
@@ -568,6 +570,7 @@ export function ActsAndOrders() {
           activeCard={activeInsecticideCard}
           activeCardId={selectedFcoCardId}
           activeTab={fcoActiveTab}
+          bare simpleHeader={showCompactHeader}
           bookmarks={bookmarks}
           badgeLabel="Act Sections"
           accent="amber"
@@ -593,6 +596,7 @@ export function ActsAndOrders() {
           activeCard={activeInsecticideCard}
           activeCardId={selectedFcoCardId}
           activeTab={fcoActiveTab}
+          bare simpleHeader={showCompactHeader}
           bookmarks={bookmarks}
           badgeLabel="Rules"
           accent="amber"
@@ -755,6 +759,8 @@ function FertilizerClausesPanel({
   badgeLabel = 'Clauses',
   searchPlaceholder = 'Search Clause 28, 28(2), stop sale, Form J, Schedule II...',
   accent = 'sky',
+  bare = false,
+  simpleHeader = false,
   onSearchChange,
   onTabChange,
   onBackToCards,
@@ -770,6 +776,8 @@ function FertilizerClausesPanel({
   badgeLabel?: string;
   searchPlaceholder?: string;
   accent?: FcoAccent;
+  bare?: boolean;
+  simpleHeader?: boolean;
   onSearchChange: (value: string) => void;
   onTabChange: (tab: FcoTabId) => void;
   onBackToCards: () => void;
@@ -784,6 +792,8 @@ function FertilizerClausesPanel({
         activeTab={activeTab}
         badgeLabel={badgeLabel}
         accent={accent}
+        bare={bare}
+        simpleHeader={simpleHeader}
         bookmarks={bookmarks}
         onBack={onBackToCards}
         onToggleBookmark={onToggleBookmark}
@@ -1069,6 +1079,8 @@ function FcoCardDetailPage({
   bookmarks,
   badgeLabel = 'Clauses',
   accent = 'sky',
+  bare = false,
+  simpleHeader = false,
   onBack,
   onToggleBookmark,
   onOpenRelated,
@@ -1079,6 +1091,8 @@ function FcoCardDetailPage({
   bookmarks: string[];
   badgeLabel?: string;
   accent?: FcoAccent;
+  bare?: boolean;
+  simpleHeader?: boolean;
   onBack: () => void;
   onToggleBookmark: (id: string) => void;
   onOpenRelated: (target: { clauseId: string; cardId: string }) => void;
@@ -1088,8 +1102,23 @@ function FcoCardDetailPage({
   const t = fcoAccentThemes[accent];
 
   return (
-    <section className={`overflow-hidden rounded-2xl border ${t.borderSoft} bg-white shadow-md dark:bg-slate-950`}>
-      <div className={`bg-gradient-to-br ${card.gradient} p-3 text-white`}>
+    <section className={bare ? 'space-y-2' : `overflow-hidden rounded-2xl border ${t.borderSoft} bg-white shadow-md dark:bg-slate-950`}>
+      {simpleHeader ? (
+        <div className="flex items-start gap-2.5">
+          <BackButton onClick={onBack} label="Back to cards" className="mt-0.5" />
+          <div className="flex min-w-0 items-start gap-2.5">
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${card.gradient} text-white shadow-sm`}>
+              <Icon className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{badgeLabel} {card.cardNo} - {card.clauseRange}</p>
+              <h2 className="mt-0.5 text-lg font-black leading-tight text-slate-950 dark:text-white sm:text-xl">{card.cardTitle}</h2>
+              <p className="mt-0.5 max-w-3xl text-xs font-semibold text-slate-600 dark:text-slate-400">{card.summary}</p>
+            </div>
+          </div>
+        </div>
+      ) : (
+      <div className={`bg-gradient-to-br ${card.gradient} p-3 text-white ${bare ? 'rounded-2xl' : ''}`}>
         <div className="mb-2">
           <FertilizerSectionBadge icon={BookOpen} label={badgeLabel} tone="onGradient" accent={accent} />
         </div>
@@ -1107,9 +1136,10 @@ function FcoCardDetailPage({
           </div>
         </div>
       </div>
+      )}
 
 
-      <div className="flex gap-1 overflow-x-auto border-b border-slate-100 bg-white px-2 py-2 dark:border-slate-800 dark:bg-slate-950">
+      <div className={`flex gap-1 overflow-x-auto bg-white px-2 py-2 dark:bg-slate-950 ${bare ? 'rounded-xl border border-slate-200 dark:border-slate-800' : 'border-b border-slate-100 dark:border-slate-800'}`}>
         {fcoTabs.map((tab) => {
           const TabIcon = tab.icon;
           const selected = activeTab === tab.id;
@@ -1130,7 +1160,7 @@ function FcoCardDetailPage({
           );
         })}
       </div>
-      <div className="space-y-2 p-2">
+      <div className={`space-y-2 ${bare ? '' : 'p-2'}`}>
         {card.clauses.map((clause) => (
           <FcoClauseAccordion
             key={clause.id}
@@ -1385,7 +1415,7 @@ function FcoDashboardCards({
 }) {
   const t = fcoAccentThemes[accent];
   return (
-    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-2 sm:grid-cols-2">
       {showFormsCard && (
         <button
           type="button"

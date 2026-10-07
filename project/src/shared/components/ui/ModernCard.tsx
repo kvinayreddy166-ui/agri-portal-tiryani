@@ -27,18 +27,33 @@ export function ModernCard({
   }, [delay]);
 
   const baseClasses = `
-    group relative overflow-hidden rounded-2xl border border-emerald-200/50 
-    bg-gradient-to-br ${bgGradient} p-5 shadow-lg 
-    transition-all duration-300 
+    group relative overflow-hidden rounded-2xl border border-emerald-200/50
+    bg-gradient-to-br ${bgGradient} p-5 shadow-sm
+    transition-[transform,opacity,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]
     dark:border-emerald-800/50
-    ${hover ? 'hover:shadow-2xl hover:scale-105 cursor-pointer' : ''}
-    ${onClick ? 'cursor-pointer' : ''}
+    ${hover ? 'hover-lift cursor-pointer' : ''}
+    ${onClick ? 'cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50 focus-visible:ring-offset-2' : ''}
     ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
     ${className}
   `;
 
   return (
-    <div onClick={onClick} className={baseClasses}>
+    <div
+      onClick={onClick}
+      className={baseClasses}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+    >
       <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-10`} />
       {children}
       <div className={`absolute -right-4 -bottom-4 h-20 w-20 rounded-full bg-gradient-to-br ${gradient} opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-20`} />
@@ -70,7 +85,7 @@ export function IconCard({
   return (
     <ModernCard gradient={gradient} bgGradient={bgGradient} onClick={onClick} delay={delay}>
       <div className="relative flex items-start gap-4">
-        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-md transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-2`}>
           <Icon className="h-7 w-7" />
         </div>
         <div className="min-w-0 flex-1">

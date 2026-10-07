@@ -153,7 +153,7 @@ export function IconButton({
       type="button"
       title={label}
       aria-label={label}
-      className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-sm font-black shadow-sm transition disabled:opacity-50 ${toneClass} ${className}`}
+      className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-sm font-black shadow-sm transition-[background-color,border-color,transform,box-shadow] duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50 focus-visible:ring-offset-1 disabled:opacity-50 ${toneClass} ${className}`}
       {...props}
     >
       {children}

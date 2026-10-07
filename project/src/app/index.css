@@ -104,15 +104,15 @@
   --font-heading: "Atkinson Hyperlegible Next", "Inter", "Noto Sans Telugu", "Nirmala UI", "Gautami", system-ui, sans-serif;
   --font-body: "Inter", "Noto Sans Telugu", "Nirmala UI", "Gautami", system-ui, sans-serif;
 
-  /* Brand: deep leaf green + marigold gold accent */
-  --primary: #166534;
-  --primary-hover: #14532d;
+  /* Brand: leaf green + harvest gold (Organic Biophilic palette) */
+  --primary: #15803d;
+  --primary-hover: #166534;
   --primary-soft: #dcfce7;
   --primary-dark: #052e16;
-  --accent: #d89b18;
+  --accent: #a16207;
   --accent-soft: #fbf3dd;
 
-  --background: #f2f7f3;
+  --background: #f0fdf4;
   --surface: #ffffff;
   --surface-elevated: #ffffff;
 
@@ -120,11 +120,11 @@
   --text-secondary: #334155;
   --text-muted: #64748b;
 
-  --border: rgba(15, 23, 42, 0.09);
-  --border-subtle: rgba(15, 23, 42, 0.06);
+  --border: rgba(21, 128, 61, 0.10);
+  --border-subtle: rgba(21, 128, 61, 0.06);
 
   --success: #16a34a;
-  --warning: #d89b18;
+  --warning: #a16207;
   --error: #dc2626;
   --info: #2563eb;
 
@@ -137,26 +137,30 @@
   --shadow-md: 0 2px 10px rgba(15, 23, 42, 0.08);
   --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
 
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* Motion — strong ease-out for entering/interacting, ease-in-out for on-screen movement */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --transition-fast: 150ms var(--ease-out);
+  --transition-normal: 200ms var(--ease-out);
+  --transition-slow: 300ms var(--ease-out);
 
   /* Legacy aliases kept for existing component classes */
-  --agri-primary: #166534;
-  --agri-secondary: #15803d;
-  --agri-accent: #d89b18;
+  --agri-primary: #15803d;
+  --agri-secondary: #166534;
+  --agri-accent: #a16207;
   --agri-blue: #2563eb;
   --agri-danger: #dc2626;
-  --agri-warning: #d89b18;
-  --agri-bg: #f2f7f3;
+  --agri-warning: #a16207;
+  --agri-bg: #f0fdf4;
   --agri-card: #ffffff;
   --agri-text: #0f172a;
   --agri-muted: #64748b;
-  --agri-border: rgba(15, 23, 42, 0.09);
+  --agri-border: rgba(21, 128, 61, 0.10);
   --agri-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
   --agri-radius: 16px;
   --agri-radius-mobile: 14px;
-  --agri-focus: 0 0 0 4px rgba(22, 101, 52, 0.14);
+  --agri-focus: 0 0 0 4px rgba(21, 128, 61, 0.15);
 }
 
 html,
@@ -188,7 +192,12 @@ body {
   font-family: var(--font-body);
   font-weight: 400;
   color: var(--agri-text);
-  background: var(--agri-bg);
+  background:
+    radial-gradient(1100px 500px at 90% -8%, rgba(21, 128, 61, 0.08), transparent 60%),
+    radial-gradient(900px 480px at -12% 4%, rgba(161, 98, 7, 0.055), transparent 55%),
+    radial-gradient(700px 600px at 50% 115%, rgba(21, 128, 61, 0.05), transparent 60%),
+    var(--agri-bg);
+  background-attachment: fixed;
   font-synthesis-weight: none;
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
@@ -302,16 +311,34 @@ main,
     background: rgba(242, 247, 243, 0.75);
   }
 
-  .table-scroll tbody tr:hover,
-  .overflow-x-auto > table tbody tr:hover {
-    background: rgba(22, 101, 52, 0.07);
+  @media (hover: hover) and (pointer: fine) {
+    .table-scroll tbody tr:hover,
+    .overflow-x-auto > table tbody tr:hover {
+      background: rgba(22, 101, 52, 0.07);
+    }
+  }
+
+  /* Pointer-gated hover lift for interactive surfaces — prevents the
+     "stuck lifted" state touch devices get from :hover firing on tap */
+  .hover-lift {
+    transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(21, 128, 61, 0.14);
+    }
   }
 
   .portal-card {
     border-radius: var(--agri-radius);
     border: 1px solid var(--agri-border);
     background: var(--agri-card);
-    box-shadow: var(--agri-shadow);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 10px 28px -14px rgba(15, 23, 42, 0.14);
     color: var(--agri-text);
   }
 
@@ -342,23 +369,31 @@ main,
     border-radius: var(--agri-radius);
     border: 1px solid var(--agri-border);
     background: var(--agri-card);
-    box-shadow: var(--agri-shadow);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 10px 28px -14px rgba(15, 23, 42, 0.14);
     padding: 1rem;
     color: var(--agri-text);
   }
 
   .modern-card {
     border-radius: 1.25rem;
-    border: 1px solid rgba(22, 101, 52, 0.16);
-    background: linear-gradient(135deg, #ffffff 0%, rgba(22, 101, 52, 0.03) 100%);
-    box-shadow: 0 4px 20px rgba(22, 101, 52, 0.07);
-    transition: all 0.3s ease;
+    border: 1px solid rgba(22, 101, 52, 0.14);
+    background: linear-gradient(135deg, #ffffff 0%, rgba(21, 128, 61, 0.025) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 12px 28px -16px rgba(21, 128, 61, 0.18);
+    transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 200ms ease;
   }
 
-  .modern-card:hover {
-    border-color: rgba(22, 101, 52, 0.28);
-    box-shadow: 0 8px 30px rgba(22, 101, 52, 0.11);
-    transform: translateY(-2px);
+  @media (hover: hover) and (pointer: fine) {
+    .modern-card:hover {
+      border-color: rgba(22, 101, 52, 0.28);
+      box-shadow: 0 8px 30px rgba(22, 101, 52, 0.11);
+      transform: translateY(-2px);
+    }
   }
 
   .dark .modern-card {
@@ -399,7 +434,7 @@ main,
     background: linear-gradient(135deg, #ffffff 0%, rgba(22, 101, 52, 0.07) 100%);
     box-shadow: var(--agri-shadow);
     padding: 1rem;
-    transition: all 0.3s ease;
+    transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
   }
 
   .modern-stat-card {
@@ -407,7 +442,7 @@ main,
     border-radius: 1.25rem;
     border: 1px solid rgba(22, 101, 52, 0.2);
     box-shadow: 0 4px 15px rgba(22, 101, 52, 0.09);
-    transition: all 0.3s ease;
+    transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 200ms ease;
     overflow: hidden;
   }
 
@@ -417,19 +452,24 @@ main,
     inset: 0 auto auto 0;
     width: 100%;
     height: 3px;
-    background: linear-gradient(90deg, var(--agri-accent) 0%, rgba(216, 155, 24, 0.25) 100%);
+    background: linear-gradient(90deg, var(--agri-accent) 0%, rgba(161, 98, 7, 0.25) 100%);
   }
 
-  .modern-stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(22, 101, 52, 0.14);
+  @media (hover: hover) and (pointer: fine) {
+    .modern-stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(22, 101, 52, 0.14);
+    }
   }
 
   .filter-panel {
     border-radius: var(--agri-radius);
     border: 1px solid var(--agri-border);
     background: var(--agri-card);
-    box-shadow: var(--agri-shadow);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 10px 28px -14px rgba(15, 23, 42, 0.14);
     padding: 1rem;
   }
 
@@ -459,17 +499,24 @@ main,
   }
 
   .action-button:active {
-    transform: scale(0.985);
+    transform: scale(0.97);
+  }
+
+  .action-button:focus-visible {
+    box-shadow: 0 0 0 3px var(--agri-card), 0 0 0 6px rgba(21, 128, 61, 0.45);
+    outline: none;
   }
 
   .modern-action-button {
     box-shadow: 0 2px 8px rgba(22, 101, 52, 0.15);
-    transition: all 0.2s ease;
+    transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out), background-color 160ms ease, border-color 160ms ease;
   }
 
-  .modern-action-button:hover {
-    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
-    transform: translateY(-1px);
+  @media (hover: hover) and (pointer: fine) {
+    .modern-action-button:hover {
+      box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
+      transform: translateY(-1px);
+    }
   }
 
   .icon-action {
@@ -486,13 +533,20 @@ main,
     transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
   }
 
-  .icon-action:hover {
-    border-color: rgba(22, 101, 52, 0.42);
-    background: rgba(220, 252, 231, 0.9);
+  @media (hover: hover) and (pointer: fine) {
+    .icon-action:hover {
+      border-color: rgba(22, 101, 52, 0.42);
+      background: rgba(220, 252, 231, 0.9);
+    }
   }
 
   .icon-action:active {
-    transform: scale(0.985);
+    transform: scale(0.95);
+  }
+
+  .icon-action:focus-visible {
+    box-shadow: 0 0 0 3px var(--agri-card), 0 0 0 6px rgba(21, 128, 61, 0.45);
+    outline: none;
   }
 
   .filter-select {
@@ -721,17 +775,22 @@ button {
 }
 
 ::-webkit-scrollbar-track {
-  background: #eef4ef;
+  background: #e8f5ec;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #b9d2c0;
+  background: #a8cfae;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #8fb89b;
+  background: #7fb389;
+}
+
+::selection {
+  background: rgba(21, 128, 61, 0.18);
+  color: #052e16;
 }
 
 /* Line clamp utility */
@@ -742,9 +801,9 @@ button {
   overflow: hidden;
 }
 
-/* Smooth transitions */
+/* Smooth transitions — strong ease-out for instant-feeling UI response */
 * {
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-timing-function: var(--ease-out);
 }
 
 /* Focus visible */
@@ -810,7 +869,35 @@ button {
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.3s ease-out forwards;
+  animation: scaleIn 0.3s var(--ease-out, ease-out) forwards;
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-overlay-in {
+  animation: overlayIn 180ms ease-out forwards;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-pop-in {
+  animation: popIn 220ms var(--ease-out, ease-out) forwards;
 }
 
 /* Staggered animation delays */
@@ -992,11 +1079,30 @@ button {
   .animate-fadeIn,
   .animate-slide-up,
   .animate-scale-in,
+  .animate-overlay-in,
+  .animate-pop-in,
   .animate-shake,
   .dashboard-float,
   .login-logo-hero,
   .pulse-border-animation {
     animation: none !important;
+  }
+
+  /* Keep comprehension aids, remove movement */
+  .hover-lift,
+  .modern-card,
+  .modern-stat-card,
+  .action-button,
+  .icon-action {
+    transition-property: opacity, background-color, border-color, color, box-shadow;
+  }
+
+  .hover-lift:hover,
+  .modern-card:hover,
+  .modern-stat-card:hover,
+  .action-button:active,
+  .icon-action:active {
+    transform: none;
   }
 }
 

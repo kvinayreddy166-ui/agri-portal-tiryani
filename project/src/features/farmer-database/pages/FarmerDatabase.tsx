@@ -592,8 +592,8 @@ export function FarmerDatabase() {
           </div>
           <div className="flex flex-wrap gap-2">
             <LanguageToggle language={showTelugu ? 'te' : 'en'} onClick={() => setShowTelugu((value) => !value)} accent="emerald" />
-            <button type="button" onClick={loadRows} className="icon-action" aria-label="Refresh"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <ExportMenu onExportExcel={() => void exportFiltered()} showTelugu={showTelugu} />
+            <button type="button" onClick={loadRows} className="icon-action" aria-label="Refresh"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /></button>
           </div>
         </div>
         <div className="mt-3 grid gap-2 lg:grid-cols-[1.5fr_0.8fr_0.8fr_0.8fr]">
@@ -720,26 +720,26 @@ export function FarmerDatabase() {
       </section>
 
       <section className="grid gap-3 xl:grid-cols-3">
-        <ChartCard title={uiLabel('Village-wise Total Farmers', showTelugu)}>
+        <ChartCard title={uiLabel('Village-wise Total Farmers', showTelugu)} tone="emerald">
           <DeferredBarChart data={villageFarmerChart} dataKey="farmers" nameKey="name" />
         </ChartCard>
-        <ChartCard title={uiLabel('Crop-wise Total Extent', showTelugu)}>
+        <ChartCard title={uiLabel('Crop-wise Total Extent', showTelugu)} tone="sky">
           <DeferredBarChart data={cropExtentChart} dataKey="extent" nameKey="name" />
         </ChartCard>
-        <ChartCard title={uiLabel('Crop-wise Farmer Count', showTelugu)}>
+        <ChartCard title={uiLabel('Crop-wise Farmer Count', showTelugu)} tone="violet">
           <DeferredBarChart data={cropFarmerChart} dataKey="farmers" nameKey="name" />
         </ChartCard>
-        <ChartCard title={uiLabel('Village-wise Cultivated Extent', showTelugu)}>
+        <ChartCard title={uiLabel('Village-wise Cultivated Extent', showTelugu)} tone="teal">
           <DeferredBarChart data={villageExtentChart} dataKey="extent" nameKey="name" />
         </ChartCard>
       </section>
 
       <section className="grid gap-3 xl:grid-cols-2">
-        <ChartCard title={uiLabel('Crop-wise Urea Requirement (MT)', showTelugu)}>
+        <ChartCard title={uiLabel('Crop-wise Urea Requirement (MT)', showTelugu)} tone="amber">
           <DeferredBarChart data={cropUreaChart} dataKey="mt" nameKey="name" />
           <RequirementTable rows={cropUreaChart} showTelugu={showTelugu} nameLabel={uiLabel('Crop', showTelugu)} />
         </ChartCard>
-        <ChartCard title={uiLabel('Village-wise Urea Requirement (MT)', showTelugu)}>
+        <ChartCard title={uiLabel('Village-wise Urea Requirement (MT)', showTelugu)} tone="indigo">
           <DeferredBarChart data={villageUreaChart} dataKey="mt" nameKey="name" />
           <RequirementTable rows={villageUreaChart} showTelugu={showTelugu} nameLabel={uiLabel('Village', showTelugu)} />
         </ChartCard>
@@ -988,10 +988,19 @@ function useNearViewport<T extends Element>() {
   return { ref, isVisible };
 }
 
-function ChartCard({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+const CHART_TONES = {
+  emerald: 'border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-white to-white dark:border-emerald-900/50 dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900',
+  sky: 'border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-white dark:border-sky-900/50 dark:from-sky-950/30 dark:via-slate-900 dark:to-slate-900',
+  violet: 'border-violet-200/70 bg-gradient-to-br from-violet-50/90 via-white to-white dark:border-violet-900/50 dark:from-violet-950/30 dark:via-slate-900 dark:to-slate-900',
+  teal: 'border-teal-200/70 bg-gradient-to-br from-teal-50/90 via-white to-white dark:border-teal-900/50 dark:from-teal-950/30 dark:via-slate-900 dark:to-slate-900',
+  amber: 'border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-white dark:border-amber-900/50 dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900',
+  indigo: 'border-indigo-200/70 bg-gradient-to-br from-indigo-50/90 via-white to-white dark:border-indigo-900/50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900',
+} as const;
+
+function ChartCard({ title, children, defaultOpen = false, tone }: { title: string; children: React.ReactNode; defaultOpen?: boolean; tone?: keyof typeof CHART_TONES }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+    <section className={`rounded-xl border shadow-sm ${tone ? CHART_TONES[tone] : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'}`}>
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}

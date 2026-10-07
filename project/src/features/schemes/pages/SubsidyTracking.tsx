@@ -157,8 +157,8 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
 
       <div className="grid gap-2 md:grid-cols-2">
         {([
-          { id: 'nfsm' as const, title: 'NFSM', desc: 'National Food Security Mission', icon: Landmark },
-          { id: 'state_seed_cell' as const, title: 'State Seed Cell', desc: 'Seed subsidy and distribution', icon: Sprout },
+          { id: 'nfsm' as const, title: 'NFSM', desc: 'National Food Security Mission', icon: Landmark, activeCard: 'border-emerald-700 bg-emerald-700 text-white shadow-md shadow-emerald-900/15', activeIcon: 'bg-white/15 text-white', activePill: 'bg-white/20 text-white', activeSub: 'text-emerald-50', idleIcon: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' },
+          { id: 'state_seed_cell' as const, title: 'State Seed Cell', desc: 'Seed subsidy and distribution', icon: Sprout, activeCard: 'border-green-700 bg-green-700 text-white shadow-md shadow-green-900/15', activeIcon: 'bg-white/15 text-white', activePill: 'bg-white/20 text-white', activeSub: 'text-green-50', idleIcon: 'bg-green-50 text-green-700 dark:bg-green-950/60 dark:text-green-300' },
         ]).map((item) => {
           const Icon = item.icon;
           const active = program === item.id;
@@ -167,22 +167,22 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
               key={item.id}
               type="button"
               onClick={() => switchProgram(item.id)}
-              className={`rounded-lg border p-3 text-left transition ${
+              className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition ${
                 active
-                  ? 'border-emerald-300 bg-emerald-700 text-white shadow-lg shadow-emerald-900/10'
-                  : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                  ? item.activeCard
+                  : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-300 hover:bg-emerald-50/40 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
               }`}
             >
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <div className={`rounded-lg p-2 ${active ? 'bg-white/15' : 'bg-emerald-50 text-emerald-700'}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${active ? 'bg-white/15' : 'bg-slate-100 text-slate-600'}`}>
-                  {active ? 'Open' : 'Select'}
-                </span>
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${active ? item.activeIcon : item.idleIcon}`}>
+                <Icon className="h-4 w-4" />
               </div>
-              <h2 className="text-base font-black">{item.title}</h2>
-              <p className={`mt-1 text-sm ${active ? 'text-emerald-50' : 'text-slate-500'}`}>{item.desc}</p>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-sm font-black">{item.title}</h2>
+                <p className={`truncate text-xs font-semibold ${active ? item.activeSub : 'text-slate-500 dark:text-slate-400'}`}>{item.desc}</p>
+              </div>
+              <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${active ? item.activePill : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                {active ? 'Open' : 'Select'}
+              </span>
             </button>
           );
         })}
@@ -255,28 +255,32 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
               <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">
                 {t('Beneficiary list (Excel/PDF)', 'లబ్ధిదారుల జాబితా')}
               </label>
-              <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 p-4 dark:border-slate-600">
-                <Upload className="h-5 w-5 text-emerald-600" />
-                <span className="text-sm">{beneficiaryFile?.name || t('Upload file', 'ఫైల్ అప్లోడ్')}</span>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".xlsx,.xls,.csv,.pdf"
-                  multiple
-                  onChange={(e) => setBeneficiaryFile(e.target.files?.[0] || null)}
-                />
-              </label>
+              <div className="flex flex-wrap items-stretch gap-2">
+                <label className="flex w-auto max-w-xs cursor-pointer items-center gap-2 rounded-lg border border-emerald-300 bg-gradient-to-r from-emerald-100 via-emerald-50 to-teal-50 px-3 py-2 shadow-sm shadow-emerald-100 transition hover:border-emerald-400 hover:from-emerald-200 hover:via-emerald-100 hover:to-teal-100 dark:border-emerald-700 dark:from-emerald-950/60 dark:via-emerald-950/40 dark:to-teal-950/40">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-700 text-white shadow-sm">
+                    <Upload className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="truncate text-xs font-bold text-emerald-900 dark:text-emerald-100">{beneficiaryFile?.name || t('Upload file', 'ఫైల్ అప్లోడ్')}</span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".xlsx,.xls,.csv,.pdf"
+                    multiple
+                    onChange={(e) => setBeneficiaryFile(e.target.files?.[0] || null)}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-800 disabled:opacity-60"
+                >
+                  <Save className="h-3.5 w-3.5" />
+                  {saving ? t('Saving...', 'సేవ్...') : t('Save Entry', 'సేవ్ చేయండి')}
+                </button>
+              </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60"
-          >
-            <Save className="h-4 w-4" />
-            {saving ? t('Saving...', 'సేవ్...') : t('Save Entry', 'సేవ్ చేయండి')}
-          </button>
         </div>
       )}
 

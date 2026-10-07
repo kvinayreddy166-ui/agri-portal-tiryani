@@ -16,8 +16,9 @@ const calculatorItems = [
     path: '/officer-toolkit/acreage-calculator',
     icon: Ruler,
     accent: 'from-sky-600 to-cyan-700',
-    panel: 'from-sky-50 to-cyan-50 dark:from-sky-950/30 dark:to-cyan-950/30',
+    panel: 'from-sky-100 via-sky-50 to-cyan-100 dark:from-sky-950/40 dark:via-slate-900 dark:to-cyan-950/40',
     border: 'border-sky-300 dark:border-sky-800/60',
+    text: 'text-sky-800 dark:text-sky-200',
   },
   {
     title: 'Plant Population Calculator',
@@ -27,8 +28,9 @@ const calculatorItems = [
     path: '/officer-toolkit/plant-population-calculator',
     icon: Sprout,
     accent: 'from-green-600 to-emerald-700',
-    panel: 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
+    panel: 'from-green-100 via-green-50 to-emerald-100 dark:from-green-950/40 dark:via-slate-900 dark:to-emerald-950/40',
     border: 'border-green-300 dark:border-green-800/60',
+    text: 'text-green-800 dark:text-green-200',
   },
   {
     title: 'Seed Rate Calculator',
@@ -38,8 +40,9 @@ const calculatorItems = [
     path: '/officer-toolkit/seed-rate-calculator',
     icon: Wheat,
     accent: 'from-lime-600 to-emerald-700',
-    panel: 'from-lime-50 to-emerald-50 dark:from-lime-950/30 dark:to-emerald-950/30',
+    panel: 'from-lime-100 via-lime-50 to-emerald-100 dark:from-lime-950/40 dark:via-slate-900 dark:to-emerald-950/40',
     border: 'border-lime-300 dark:border-lime-800/60',
+    text: 'text-lime-800 dark:text-lime-200',
   },
   {
     title: 'Fertilizer Calculator',
@@ -49,8 +52,9 @@ const calculatorItems = [
     path: '/officer-toolkit/fertilizer-calculator',
     icon: PackageCheck,
     accent: 'from-emerald-600 to-green-700',
-    panel: 'from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30',
+    panel: 'from-emerald-100 via-emerald-50 to-green-100 dark:from-emerald-950/40 dark:via-slate-900 dark:to-green-950/40',
     border: 'border-emerald-300 dark:border-emerald-800/60',
+    text: 'text-emerald-800 dark:text-emerald-200',
   },
   {
     title: 'Pesticide Calculator',
@@ -60,8 +64,9 @@ const calculatorItems = [
     path: '/officer-toolkit/pesticide-calculator',
     icon: Bug,
     accent: 'from-red-500 to-amber-600',
-    panel: 'from-red-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30',
+    panel: 'from-red-100 via-red-50 to-amber-100 dark:from-red-950/40 dark:via-slate-900 dark:to-amber-950/40',
     border: 'border-red-300 dark:border-red-800/60',
+    text: 'text-red-800 dark:text-red-200',
   },
 ];
 
@@ -99,15 +104,15 @@ export function FarmCalculators() {
             <article
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`min-h-[104px] cursor-pointer rounded-lg border ${item.border} bg-gradient-to-br ${item.panel} p-3 text-center shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md`}
+              className={`min-h-[104px] cursor-pointer rounded-xl border ${item.border} bg-gradient-to-br ${item.panel} p-3 text-center shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md`}
             >
               <div className="flex h-full flex-col items-center justify-center gap-1.5">
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.accent} text-white shadow-md`}>
-                  <item.icon className="h-4 w-4" />
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.accent} text-white shadow-md`}>
+                  <item.icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-[13px] font-black leading-4 text-slate-950 dark:text-white">{t(item.title, item.titleTe)}</h2>
-                  <p className="mt-0.5 text-[10px] font-semibold leading-4 text-slate-700 dark:text-slate-300">{t(item.description, item.descriptionTe)}</p>
+                  <h2 className={`text-[13px] font-black leading-4 ${item.text}`}>{t(item.title, item.titleTe)}</h2>
+                  <p className="mt-0.5 text-[10px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{t(item.description, item.descriptionTe)}</p>
                 </div>
               </div>
             </article>

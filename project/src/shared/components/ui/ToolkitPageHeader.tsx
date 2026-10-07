@@ -145,37 +145,49 @@ const BAR_STYLES: Record<ToolkitHeaderTone, string> = {
   'teal-indigo': 'from-emerald-500 via-cyan-500 to-indigo-500',
 };
 
+const COMPACT_ICON_STYLES: Record<ToolkitHeaderTone, string> = {
+  emerald: 'text-emerald-600 dark:text-emerald-400',
+  sky: 'text-sky-600 dark:text-sky-400',
+  rose: 'text-rose-600 dark:text-rose-400',
+  lime: 'text-lime-600 dark:text-lime-400',
+  indigo: 'text-indigo-600 dark:text-indigo-400',
+  amber: 'text-amber-600 dark:text-amber-400',
+  'teal-indigo': 'text-emerald-600 dark:text-emerald-400',
+};
+
 export function CompactToolkitHeader({
   title,
   eyebrow = 'Officer Toolkit',
   subtitle,
+  icon: Icon,
   tone = 'emerald',
   actions,
+  onBack,
   className = '',
-}: Pick<ToolkitPageHeaderProps, 'title' | 'eyebrow' | 'subtitle' | 'tone' | 'actions' | 'className'>) {
-  const theme = TONE_STYLES[tone] || TONE_STYLES.emerald;
+}: Pick<ToolkitPageHeaderProps, 'title' | 'eyebrow' | 'subtitle' | 'icon' | 'tone' | 'actions' | 'onBack' | 'className'>) {
   return (
-    <header className={`mb-5 ${className}`}>
-      <div className={`relative overflow-hidden rounded-2xl border p-4 ${theme.container}`}>
-        <div className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${BAR_STYLES[tone] || BAR_STYLES.emerald}`} />
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+    <header className={`mb-4 ${className}`}>
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <div className="flex min-w-0 items-start gap-1">
+          {onBack && <BackButton onClick={onBack} className="mt-0.5" />}
           <div className="min-w-0">
             {eyebrow && (
-              <p className={`text-[10px] font-black uppercase tracking-widest ${theme.eyebrow}`}>
+              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">
                 {eyebrow}
               </p>
             )}
-            <h1 className={`mt-0.5 text-xl font-black leading-tight sm:text-2xl ${theme.title}`}>
+            <h1 className="flex items-center gap-2 text-xl font-black leading-tight text-slate-950 dark:text-white sm:text-2xl">
+              {Icon && <Icon className={`h-6 w-6 ${COMPACT_ICON_STYLES[tone] || COMPACT_ICON_STYLES.emerald}`} />}
               {title}
             </h1>
             {subtitle && (
-              <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
+              <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
                 {subtitle}
               </p>
             )}
           </div>
-          {actions && <div className="flex shrink-0 items-center gap-2 self-end">{actions}</div>}
         </div>
+        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
     </header>
   );
@@ -203,8 +215,10 @@ export function ToolkitPageHeader({
         title={title}
         eyebrow={eyebrow}
         subtitle={subtitle}
+        icon={Icon}
         tone={tone}
         actions={actions}
+        onBack={onBack}
         className={className}
       />
     );

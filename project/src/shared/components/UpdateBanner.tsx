@@ -142,7 +142,7 @@ export function UpdateBanner() {
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-[9999] max-w-sm transition-all duration-300 ${
+      className={`fixed bottom-4 right-4 z-[9999] max-w-sm transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
@@ -168,7 +168,7 @@ export function UpdateBanner() {
             <button
               type="button"
               onClick={handleLater}
-              className="flex-1 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl transition-colors"
+              className="flex-1 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50 active:scale-[0.97]"
             >
               Later
             </button>
@@ -176,7 +176,7 @@ export function UpdateBanner() {
               type="button"
               onClick={handleUpdate}
               disabled={isUpdating}
-              className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 rounded-xl shadow-md shadow-emerald-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 rounded-xl shadow-md shadow-emerald-500/25 transition-[transform,background-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isUpdating ? (
                 <>

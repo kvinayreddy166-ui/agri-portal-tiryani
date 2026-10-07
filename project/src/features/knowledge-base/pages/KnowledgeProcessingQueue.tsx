@@ -72,7 +72,7 @@ export function KnowledgeProcessingQueue() {
                 </div>
               </div>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-                <div className="h-full bg-emerald-600 transition-all" style={{ width: `${job.progress}%` }} />
+                <div className="h-full bg-emerald-600 transition-[width]" style={{ width: `${job.progress}%` }} />
               </div>
               {job.error_message && (
                 <div className="mt-2 flex items-start gap-2 rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700 dark:bg-red-950/30">

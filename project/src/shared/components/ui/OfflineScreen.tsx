@@ -62,12 +62,12 @@ export const OfflineScreen = React.memo(function OfflineScreen() {
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-[#f2f7f3] p-6 text-center dark:bg-slate-950">
       <div
-        className={`flex max-w-md flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+        className={`flex max-w-md flex-col items-center transition duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
           visible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-10 scale-95 opacity-0'
         }`}
       >
         <div
-          className={`relative mb-10 transition-all delay-100 duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+          className={`relative mb-10 transition delay-100 duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
             visible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
           }`}
         >
@@ -83,7 +83,7 @@ export const OfflineScreen = React.memo(function OfflineScreen() {
         </div>
 
         <p
-          className={`text-xl font-black leading-snug tracking-tight text-slate-950 transition-all delay-200 duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] dark:text-white sm:text-2xl ${
+          className={`text-xl font-black leading-snug tracking-tight text-slate-950 transition delay-200 duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] dark:text-white sm:text-2xl ${
             visible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'
           }`}
         >

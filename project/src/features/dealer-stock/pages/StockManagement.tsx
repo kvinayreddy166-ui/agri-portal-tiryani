@@ -321,32 +321,37 @@ export function StockManagement() {
         </div>
       ) : (
         <>
-          <div className="rounded-lg bg-gradient-to-r from-emerald-700 via-emerald-700 to-cyan-700 p-3 text-white shadow-md md:p-4">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-emerald-100">Stock Management</p>
-                <h1 className="text-2xl font-black tracking-tight">Fertilizer Tracking</h1>
-                <p className="mt-0.5 max-w-2xl text-xs text-emerald-50">
-                  Fertilizer receipts, dealer load entries, and current balance.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <IconButton label="Refresh fertilizer tracking" tone="secondary" onClick={fetchData}>
-                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                </IconButton>
-                <IconButton label="Export filtered Excel" tone="excel" onClick={exportFilteredReceipts} disabled={filteredStock.length === 0}>
-                  <FileSpreadsheet className="h-4 w-4" />
-                </IconButton>
-                {isAdminUser && (
-                  <button
-                    onClick={() => setShowAddForm(true)}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-bold text-emerald-800 shadow-sm transition hover:bg-emerald-50"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Manual Receipt
-                  </button>
-                )}
-              </div>
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h1 className="flex items-center gap-2 text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
+                <Package className="h-6 w-6 text-emerald-600" />
+                Fertilizer Tracking
+              </h1>
+              <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                Fertilizer receipts, dealer load entries, and current balance.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={exportFilteredReceipts}
+                disabled={filteredStock.length === 0}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800 disabled:opacity-50"
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                Export
+              </button>
+              {isAdminUser && (
+                <button
+                  onClick={() => setShowAddForm(true)}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Manual Receipt
+                </button>
+              )}
+              <IconButton label="Refresh fertilizer tracking" tone="secondary" onClick={fetchData}>
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </IconButton>
             </div>
           </div>
 

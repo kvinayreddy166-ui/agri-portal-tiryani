@@ -44,7 +44,7 @@ export function FcoImplementationModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
       <div
-        className={`relative w-full max-w-4xl rounded-xl bg-white shadow-2xl transition-all duration-300 ${
+        className={`relative w-full max-w-4xl rounded-xl bg-white shadow-2xl transition duration-300 ${
           isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         } sm:max-h-[85vh] sm:overflow-hidden`}
         onClick={(e) => e.stopPropagation()}

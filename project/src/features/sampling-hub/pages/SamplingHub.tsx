@@ -58,19 +58,16 @@ export function SamplingHub() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-4">
-      <div className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 p-4 shadow-md dark:border-emerald-800/50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-emerald-900/30 md:flex-row md:items-end md:justify-between">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-800 via-gold-400 to-emerald-700" />
-        <div>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-emerald-950 dark:text-emerald-50">
-            {t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్')}
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-slate-300">
-            {t(
-              'Create sample drawal details and generate the required statutory forms.',
-              'నమూనా వివరాలను సృష్టించండి మరియు అవసరమైన చట్టబద్ధ ఫారాలను సృష్టించండి.'
-            )}
-          </p>
-        </div>
+      <div>
+        <h1 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
+          {t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్')}
+        </h1>
+        <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+          {t(
+            'Create sample drawal details and generate the required statutory forms.',
+            'నమూనా వివరాలను సృష్టించండి మరియు అవసరమైన చట్టబద్ధ ఫారాలను సృష్టించండి.'
+          )}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -82,25 +79,22 @@ export function SamplingHub() {
               key={item.id}
               type="button"
               onClick={() => setCategory(item.id)}
-              className={`relative overflow-hidden rounded-2xl border p-3.5 text-left transition-all duration-200 ${
+              className={`relative overflow-hidden rounded-xl border px-3 py-2.5 text-left transition duration-200 ${
                 selected
                   ? 'border-emerald-700 bg-gradient-to-br from-emerald-800 to-emerald-900 text-white shadow-md shadow-emerald-950/20'
-                  : 'border-slate-200/90 bg-white text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100'
+                  : 'border-slate-200/90 bg-white text-slate-800 shadow-sm hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100'
               }`}
             >
               {selected && (
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-gold-400 via-gold-300 to-gold-400" />
               )}
-              <div className="flex items-center justify-between gap-2">
-                <div className={`rounded-xl p-2.5 ${selected ? 'bg-white/15 text-white' : item.tile}`}>
+              <div className="flex items-center gap-2.5">
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${selected ? 'bg-white/15 text-white' : item.tile}`}>
                   <Icon className="h-4 w-4" />
                 </div>
-                {selected && <span className="text-xs font-black text-gold-300">✓</span>}
+                <h2 className="min-w-0 flex-1 truncate text-sm font-black font-[var(--font-heading)]">{t(item.label, item.telugu)}</h2>
+                {selected && <span className="shrink-0 text-xs font-black text-gold-300">✓</span>}
               </div>
-              <h2 className="mt-2.5 truncate text-sm font-black font-[var(--font-heading)]">{t(item.label, item.telugu)}</h2>
-              <p className={`mt-0.5 text-[11px] font-semibold ${selected ? 'text-emerald-100' : 'text-slate-500 dark:text-slate-400'}`}>
-                {item.forms}
-              </p>
             </button>
           );
         })}
@@ -150,7 +144,7 @@ export function SamplingHub() {
                   <button
                     type="button"
                     onClick={closeTool}
-                    className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-all hover:border-red-700 hover:bg-red-700"
+                    className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:border-red-700 hover:bg-red-700"
                     aria-label="Close seed PDF generator"
                   >
                     Close

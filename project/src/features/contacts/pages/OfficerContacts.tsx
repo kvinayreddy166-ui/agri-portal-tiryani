@@ -469,7 +469,7 @@ export function OfficerContacts() {
                 {isValidIndianMobile(contact.phone) && (
                   <button
                     onClick={() => handleWhatsApp(contact.phone)}
-                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-green-950/20 transition-all hover:scale-105 hover:shadow-xl"
+                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-green-950/20 transition hover:scale-105 hover:shadow-xl"
                     title="WhatsApp"
                   >
                     <MessageCircle className="h-4 w-4" />
@@ -477,7 +477,7 @@ export function OfficerContacts() {
                 )}
                 <button
                   onClick={() => handleCall(contact.phone)}
-                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-800 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-950/20 transition-all hover:scale-105 hover:shadow-xl"
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-800 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-950/20 transition hover:scale-105 hover:shadow-xl"
                   title="Call"
                 >
                   <Phone className="h-4 w-4" />
@@ -505,7 +505,7 @@ export function OfficerContacts() {
             placeholder="Search contacts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 pl-12 pr-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+            className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 pl-12 pr-4 py-3 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
           />
         </div>
 
@@ -521,7 +521,7 @@ export function OfficerContacts() {
                 setSelectedMandal('');
                 setSelectedCluster('');
               }}
-              className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+              className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
             >
               <option value="">Select District</option>
               {dropdownOptions.districts.map(district => (
@@ -541,7 +541,7 @@ export function OfficerContacts() {
                   setSelectedCluster('');
                 }}
                 disabled={!selectedDistrict}
-                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
                 <option value="">Select Division</option>
                 {dropdownOptions.divisions.map(division => (
@@ -561,7 +561,7 @@ export function OfficerContacts() {
                   setSelectedCluster('');
                 }}
                 disabled={showDivision ? !selectedDivision : !selectedDistrict}
-                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
                 <option value="">Select Mandal</option>
                 {dropdownOptions.mandals.map(mandal => (
@@ -578,7 +578,7 @@ export function OfficerContacts() {
                 value={selectedCluster}
                 onChange={(e) => setSelectedCluster(e.target.value)}
                 disabled={!selectedMandal}
-                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
                 <option value="">Select Cluster</option>
                 {dropdownOptions.clusters.map(cluster => (
@@ -614,7 +614,7 @@ export function OfficerContacts() {
 
       <div className="relative mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
-        <div className={`mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mb-8 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <ToolkitPageHeader
             icon={Users}
             tone="emerald"
@@ -628,7 +628,7 @@ export function OfficerContacts() {
         </div>
 
         {/* Tabs */}
-        <div className={`mb-6 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mb-6 transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {TABS.map((tab) => {
               const TabIcon = tab.icon;
@@ -639,7 +639,7 @@ export function OfficerContacts() {
                     setActiveTab(tab.id);
                     resetFilters();
                   }}
-                  className={`flex shrink-0 items-center gap-2 rounded-2xl border px-5 py-3 text-base font-bold transition-all ${
+                  className={`flex shrink-0 items-center gap-2 rounded-2xl border px-5 py-3 text-base font-bold transition ${
                     activeTab === tab.id
                       ? 'border-emerald-800 bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-lg shadow-emerald-950/20 dark:border-emerald-500'
                       : 'border-emerald-200/50 bg-white/80 text-slate-700 hover:border-emerald-400 hover:bg-emerald-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:bg-emerald-950/30'
@@ -657,14 +657,14 @@ export function OfficerContacts() {
         {renderFilters()}
 
         {/* Results Count */}
-        <div className={`mb-4 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mb-4 transition duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
             {loading ? 'Loading...' : `Showing ${totalCount} ${activeTab} contact${totalCount !== 1 ? 's' : ''} across ${dropdownOptions.districts.length} district${dropdownOptions.districts.length !== 1 ? 's' : ''}`}
           </p>
         </div>
 
         {/* Contact Cards */}
-        <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 transition duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {loading && contacts.length === 0 ? (
             // Skeleton loaders for initial load
             Array.from({ length: 6 }).map((_, i) => (
@@ -699,7 +699,7 @@ export function OfficerContacts() {
                   <button
                     onClick={loadMore}
                     disabled={loadingMore}
-                    className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-200/50 bg-white/80 px-6 py-3 text-base font-semibold text-emerald-600 transition-all hover:border-emerald-500 hover:bg-emerald-50 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-200/50 bg-white/80 px-6 py-3 text-base font-semibold text-emerald-600 transition hover:border-emerald-500 hover:bg-emerald-50 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
                   >
                     {loadingMore ? (
                       <>

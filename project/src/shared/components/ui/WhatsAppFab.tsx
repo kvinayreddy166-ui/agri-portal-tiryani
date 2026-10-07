@@ -19,7 +19,7 @@ export function WhatsAppFab({ whatsappLink = 'https://whatsapp.com/channel/your-
     <button
       type="button"
       onClick={handleClick}
-      className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-green-500/30 transition-all duration-300 hover:scale-110 hover:shadow-xl hover:shadow-green-500/40 active:scale-95 focus:outline-none focus:ring-4 focus:ring-green-500/50"
+      className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-green-500/30 transition duration-300 hover:scale-110 hover:shadow-xl hover:shadow-green-500/40 active:scale-95 focus:outline-none focus:ring-4 focus:ring-green-500/50"
       aria-label="Join AGRONIX WhatsApp Channel"
     >
       <div className="h-6 w-6">

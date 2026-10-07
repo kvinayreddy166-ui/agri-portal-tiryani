@@ -1028,6 +1028,24 @@ function createFertilizerReportElement(html: string) {
       .fertilizer-pdf .data-table tbody tr:nth-child(even) td {
         background: #f0fdf4;
       }
+      .fertilizer-pdf .info-table tr:first-child td,
+      .fertilizer-pdf .data-table thead th {
+        border-top: none;
+      }
+      .fertilizer-pdf .info-table tr:last-child td,
+      .fertilizer-pdf .data-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+      .fertilizer-pdf .info-table td:first-child,
+      .fertilizer-pdf .data-table th:first-child,
+      .fertilizer-pdf .data-table td:first-child {
+        border-left: none;
+      }
+      .fertilizer-pdf .info-table td:last-child,
+      .fertilizer-pdf .data-table th:last-child,
+      .fertilizer-pdf .data-table td:last-child {
+        border-right: none;
+      }
       .fertilizer-pdf .row-label {
         font-weight: 800;
         color: #064e3b;

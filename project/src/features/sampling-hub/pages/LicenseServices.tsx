@@ -482,7 +482,7 @@ export function LicenseServices() {
                 <select
                   value={licenseType}
                   onChange={(e) => handleLicenseTypeChange(e.target.value as LicenseType)}
-                  className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                  className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
                 >
                   <option value="">Select License Type</option>
                   <option value="fertilizer">Fertilizer</option>
@@ -515,7 +515,7 @@ export function LicenseServices() {
                       key={option.value}
                       type="button"
                       onClick={() => handleDealerTypeChange(option.value as DealerType)}
-                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition duration-200 ${
                         dealerType === option.value
                           ? 'bg-blue-600 text-white shadow-md'
                           : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
@@ -554,7 +554,7 @@ export function LicenseServices() {
                       key={option.value}
                       type="button"
                       onClick={() => handleApplicationTypeChange(option.value as ApplicationType)}
-                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition duration-200 ${
                         applicationType === option.value
                           ? 'bg-blue-600 text-white shadow-md'
                           : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
@@ -584,7 +584,7 @@ export function LicenseServices() {
                       key={option.value}
                       type="button"
                       onClick={() => handleAreaTypeChange(option.value as AreaType)}
-                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition duration-200 ${
                         areaType === option.value
                           ? 'bg-blue-600 text-white shadow-md'
                           : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
@@ -607,7 +607,7 @@ export function LicenseServices() {
                   <select
                     value={district}
                     onChange={(e) => handleDistrictChange(e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                    className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
                   >
                     <option value="">Select District</option>
                     {TELANGANA_DISTRICTS.map((dist) => (
@@ -634,7 +634,7 @@ export function LicenseServices() {
                   <select
                     value={division}
                     onChange={(e) => handleDivisionChange(e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                    className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
                   >
                     <option value="">Select Division</option>
                     {getDivisionsForDistrict(district).map((div) => (
@@ -662,7 +662,7 @@ export function LicenseServices() {
                   value={numberOfProducts}
                   onChange={(e) => handleNumberOfProductsChange(e.target.value)}
                   min="1"
-                  className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                  className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
                   placeholder="Enter number of products"
                 />
               </div>
@@ -720,7 +720,7 @@ export function LicenseServices() {
                 </div>
                 <button
                   onClick={() => handleCopy(getChallanCodeOnly(), 'Challan Code')}
-                  className="inline-flex items-center gap-2 rounded-lg border border-blue-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-blue-600 shadow-sm transition-all hover:bg-blue-50 dark:border-blue-800/50 dark:bg-slate-800/80 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                  className="inline-flex items-center gap-2 rounded-lg border border-blue-200/50 bg-white/80 px-3 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:bg-blue-50 dark:border-blue-800/50 dark:bg-slate-800/80 dark:text-blue-400 dark:hover:bg-blue-900/30"
                 >
                   {copiedField === 'Challan Code' ? (
                     <>
@@ -764,7 +764,7 @@ export function LicenseServices() {
                 <button
                   onClick={() => handleCopy(ddoCode, 'DDO Code')}
                   disabled={!ddoCode}
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200/50 bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800/50 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200/50 bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800/50 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
                 >
                   {copiedField === 'DDO Code' ? (
                     <>
@@ -960,7 +960,7 @@ export function LicenseServices() {
             {/* Proceed Button */}
             <button
               onClick={handleProceedToChallan}
-              className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-base font-bold text-white shadow-lg transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600"
+              className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-base font-bold text-white shadow-lg transition duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600"
               style={{ minHeight: '52px' }}
             >
               <ExternalLink className="h-5 w-5" />
@@ -995,13 +995,13 @@ export function LicenseServices() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="flex-1 rounded-xl border border-slate-200/50 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200 dark:border-slate-800/50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                  className="flex-1 rounded-xl border border-slate-200/50 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-200 dark:border-slate-800/50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmProceed}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg transition hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600"
                 >
                   <ArrowUpRight className="h-4 w-4" />
                   <span>Proceed</span>
@@ -1013,7 +1013,7 @@ export function LicenseServices() {
 
         {/* Amendment Type Selections - Hidden for now */}
         {showFertilizerAmendmentType && (
-          <div className={`mb-4 transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className={`mb-4 transition duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="mb-2">
               <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
                 Fertilizer Amendment Type
@@ -1023,7 +1023,7 @@ export function LicenseServices() {
               <select
                 value={fertilizerAmendmentType}
                 onChange={(e) => handleFertilizerAmendmentTypeChange(e.target.value as FertilizerAmendmentType)}
-                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition duration-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
                 <option value="">Amendment Type</option>
                 {Object.entries(FERTILIZER_AMENDMENT_TYPES).map(([key, label]) => (
@@ -1036,7 +1036,7 @@ export function LicenseServices() {
 
         {/* Seed Amendment Type Selection - Hidden for now */}
         {showSeedAmendmentType && (
-          <div className={`mb-4 transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className={`mb-4 transition duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="mb-2">
               <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
                 Seed Amendment Type
@@ -1046,7 +1046,7 @@ export function LicenseServices() {
               <select
                 value={seedAmendmentType}
                 onChange={(e) => handleSeedAmendmentTypeChange(e.target.value as SeedAmendmentType)}
-                className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
               >
                 <option value="">Amendment Type</option>
                 {Object.entries(SEED_AMENDMENT_TYPES).map(([key, label]) => (
@@ -1059,7 +1059,7 @@ export function LicenseServices() {
 
         {/* Insecticide Amendment Type Selection - Hidden for now */}
         {showInsecticideAmendmentType && (
-          <div className={`mb-4 transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className={`mb-4 transition duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="mb-2">
               <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
                 Insecticide Amendment Type
@@ -1069,7 +1069,7 @@ export function LicenseServices() {
               <select
                 value={insecticideAmendmentType}
                 onChange={(e) => handleInsecticideAmendmentTypeChange(e.target.value as InsecticideAmendmentType)}
-                className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
               >
                 <option value="">Amendment Type</option>
                 {Object.entries(INSECTICIDE_AMENDMENT_TYPES).map(([key, label]) => (

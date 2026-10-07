@@ -354,12 +354,6 @@ export function StockInventory() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <IconButton label={t('Export to Excel', 'Export to Excel')} tone="excel" onClick={exportToExcel} disabled={!filteredRows.length}>
-            <FileSpreadsheet className="h-4 w-4" />
-          </IconButton>
-          <IconButton label={t('Refresh', 'Refresh')} tone="secondary" onClick={fetchData}>
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          </IconButton>
           <label className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
             FY
             <select
@@ -372,6 +366,17 @@ export function StockInventory() {
               ))}
             </select>
           </label>
+          <button
+            onClick={exportToExcel}
+            disabled={!filteredRows.length}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800 disabled:opacity-50"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            {t('Export', 'Export')}
+          </button>
+          <IconButton label={t('Refresh', 'Refresh')} tone="secondary" onClick={fetchData}>
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </IconButton>
         </div>
       </div>
 

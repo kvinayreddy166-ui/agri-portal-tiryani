@@ -368,7 +368,7 @@ export const Dashboard = React.memo(function Dashboard() {
                 {dashboardCrops.map((crop) => (
                   <div
                     key={crop.id}
-                    className="group relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 cursor-pointer"
+                    className="group relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 cursor-pointer"
                   >
                     <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 to-emerald-600 opacity-60 group-hover:opacity-100 transition-opacity" />
                     {isAdminUser && !farmerStats?.cropRows.length && (
@@ -498,11 +498,11 @@ export const Dashboard = React.memo(function Dashboard() {
                 ? 'Age between 18-59 years'
                 : scheme.eligibility;
             return (
-              <div key={scheme.id} className={`${schemeColors[idx % 4]} bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 hover:shadow-md transition-all group`}>
+              <div key={scheme.id} className={`${schemeColors[idx % 4]} bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 hover:shadow-md transition group`}>
                 <div className="flex justify-between items-start gap-2">
                   <h3 className="font-bold text-base text-gray-900 dark:text-white">{scheme.scheme_name}</h3>
                   {isAdminUser && (
-                    <div className="flex shrink-0 gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
+                    <div className="flex shrink-0 gap-0.5 opacity-0 group-hover:opacity-100 transition">
                       <button
                         onClick={() => openBeneficiaryForm(scheme.id)}
                         className="text-blue-600 hover:bg-blue-50 p-2 rounded"

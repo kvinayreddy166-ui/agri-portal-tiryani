@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 interface ConfirmDialogProps {
@@ -22,15 +22,24 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCancel();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onCancel]);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+    <div className="animate-overlay-in fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
       <div
         role="alertdialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+        className="animate-pop-in w-full max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
       >
         <div className="flex items-start gap-3 p-4 pb-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-300">
@@ -47,7 +56,7 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50 active:scale-[0.97] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             {cancelLabel}
           </button>
@@ -55,7 +64,7 @@ export function ConfirmDialog({
             type="button"
             autoFocus
             onClick={onConfirm}
-            className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-xs font-black text-white transition hover:bg-red-700"
+            className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-xs font-black text-white transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600/50 active:scale-[0.97]"
           >
             {confirmLabel}
           </button>

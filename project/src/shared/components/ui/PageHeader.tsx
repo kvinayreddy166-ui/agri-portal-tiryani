@@ -10,7 +10,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ eyebrow, title, description, actions, badge }: PageHeaderProps) {
   return (
-    <div className="relative mb-5 flex flex-col gap-3 overflow-hidden rounded-2xl border border-emerald-900/10 bg-white/95 p-4 shadow-sm backdrop-blur-md transition-all duration-200 animate-fadeIn dark:border-emerald-500/20 dark:bg-slate-900/90 md:flex-row md:items-end md:justify-between sm:p-5">
+    <div className="animate-fadeIn relative mb-5 flex flex-col gap-3 overflow-hidden rounded-2xl border border-emerald-900/10 bg-white/95 p-4 shadow-sm backdrop-blur-md transition-[box-shadow,border-color] duration-200 dark:border-emerald-500/20 dark:bg-slate-900/90 sm:p-5 md:flex-row md:items-end md:justify-between">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-emerald-800 via-gold-400 to-emerald-700" />
       <div className="min-w-0">
         {eyebrow && (
