@@ -313,14 +313,7 @@ export async function generateFertilizerStatutoryPdf(
   await setupPdfUnicodeFonts(doc);
   await drawWatermark(doc);
 
-  if (formType === 'P') {
-    drawForm(doc, 'P', values);
-    doc.addPage();
-    await drawWatermark(doc);
-    drawForm(doc, 'P', values);
-  } else {
-    drawForm(doc, formType, values);
-  }
+  drawForm(doc, formType, values);
 
   return doc;
 }
@@ -338,9 +331,6 @@ export async function generateAllFertilizerStatutoryPdf(values: FertilizerPdfVal
   doc.addPage();
   await drawWatermark(doc);
   drawForm(doc, 'K_JDA', values);
-  doc.addPage();
-  await drawWatermark(doc);
-  drawForm(doc, 'P', values);
   doc.addPage();
   await drawWatermark(doc);
   drawForm(doc, 'P', values);

@@ -196,7 +196,7 @@ export function InsecticideExplorer({
               onChange={(event) => setTerm(event.target.value)}
               onKeyDown={(event) => { if (event.key === 'Enter' && term.trim()) saveRecent(term.trim()); }}
               placeholder="Search sections, rules, definitions, forms, keywords..."
-              className="w-full bg-transparent text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100"
+              className="w-full min-w-0 bg-transparent text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100"
             />
             {term && (
               <button type="button" onClick={() => setTerm('')} aria-label="Clear search" className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
@@ -208,8 +208,9 @@ export function InsecticideExplorer({
                 <Mic className="h-4 w-4" />
               </button>
             )}
-            <button type="button" onClick={() => term.trim() && saveRecent(term.trim())} className="rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-black text-white transition hover:bg-orange-700">
-              Search
+            <button type="button" onClick={() => term.trim() && saveRecent(term.trim())} aria-label="Search" className="shrink-0 rounded-lg bg-orange-600 px-2.5 py-1.5 text-xs font-black text-white transition hover:bg-orange-700 sm:px-3">
+              <Search className="h-4 w-4 sm:hidden" />
+              <span className="hidden sm:inline">Search</span>
             </button>
           </div>
 
