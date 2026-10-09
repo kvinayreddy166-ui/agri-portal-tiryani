@@ -381,42 +381,49 @@ function AccessibleModal({ onClose, labelledBy, className, children }: {
   );
 }
 
-const TOAST_STYLES: Record<ToastType, { icon: React.ReactNode; classes: string }> = {
+const TOAST_STYLES: Record<ToastType, { icon: React.ReactNode; accent: string; chip: string }> = {
   success: {
-    icon: <CheckCircle className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />,
-    classes: 'border-emerald-300 bg-white dark:border-emerald-700 dark:bg-slate-800'
+    icon: <CheckCircle className="h-4 w-4" aria-hidden="true" />,
+    accent: 'bg-emerald-500',
+    chip: 'bg-emerald-50 text-emerald-600 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-900/60'
   },
   error: {
-    icon: <AlertCircle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" aria-hidden="true" />,
-    classes: 'border-red-300 bg-white dark:border-red-700 dark:bg-slate-800'
+    icon: <AlertCircle className="h-4 w-4" aria-hidden="true" />,
+    accent: 'bg-red-500',
+    chip: 'bg-red-50 text-red-600 ring-red-200 dark:bg-red-950/50 dark:text-red-300 dark:ring-red-900/60'
   },
   warning: {
-    icon: <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />,
-    classes: 'border-amber-300 bg-white dark:border-amber-700 dark:bg-slate-800'
+    icon: <AlertTriangle className="h-4 w-4" aria-hidden="true" />,
+    accent: 'bg-orange-500',
+    chip: 'bg-orange-50 text-orange-600 ring-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:ring-orange-900/60'
   },
   info: {
-    icon: <Info className="h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />,
-    classes: 'border-blue-300 bg-white dark:border-blue-700 dark:bg-slate-800'
+    icon: <Info className="h-4 w-4" aria-hidden="true" />,
+    accent: 'bg-blue-500',
+    chip: 'bg-blue-50 text-blue-600 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-900/60'
   }
 };
 
 function ToastStack({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: (id: number) => void }) {
   if (toasts.length === 0) return null;
   return (
-    <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-4 z-[70] flex flex-col items-center gap-2 px-4 sm:items-end sm:px-6">
+    <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem_+_env(safe-area-inset-bottom))] z-[70] flex flex-col items-center gap-2 px-4 sm:items-end sm:px-6">
       {toasts.map(toast => (
         <div
           key={toast.id}
           role="status"
-          className={`pointer-events-auto flex w-full max-w-sm items-center gap-2 rounded-xl border px-4 py-3 shadow-lg ${TOAST_STYLES[toast.type].classes}`}
+          className={`pointer-events-auto relative flex w-full max-w-sm items-center gap-2.5 overflow-hidden rounded-xl border border-slate-200/80 bg-white/95 py-3 pl-4 pr-3 shadow-xl shadow-slate-950/10 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95`}
         >
-          {TOAST_STYLES[toast.type].icon}
+          <span className={`absolute inset-y-0 left-0 w-1 ${TOAST_STYLES[toast.type].accent}`} aria-hidden="true" />
+          <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 ${TOAST_STYLES[toast.type].chip}`}>
+            {TOAST_STYLES[toast.type].icon}
+          </span>
           <p className="flex-1 text-sm font-semibold text-slate-900 dark:text-white">{toast.message}</p>
           <button
             type="button"
             aria-label="Dismiss notification"
             onClick={() => onDismiss(toast.id)}
-            className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+            className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>

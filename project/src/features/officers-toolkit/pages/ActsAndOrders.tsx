@@ -653,7 +653,7 @@ export function ActsAndOrders() {
       <FcoImplementationModal
         isOpen={showIaStructureModal}
         onClose={() => setShowIaStructureModal(false)}
-        imageSrc="/images/insecticide-implementation-structure.jpg"
+        imageSrc="/images/insecticide-implementation-structure.webp"
         imageAlt="Implementation of Insecticides Act, 1968 - Registration, Licensing, Quality Monitoring and Field Enforcement Structure"
       />
     </div>

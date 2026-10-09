@@ -28,6 +28,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       root.classList.remove('dark');
     }
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', theme === 'dark' ? '#020617' : '#f0fdf4');
     safeStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 

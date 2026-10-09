@@ -415,16 +415,16 @@ export function Login() {
             <form onSubmit={handleSubmit} className="space-y-4 animate-slide-up delay-200">
               {loginMode === 'dealer' ? (
                 <>
-                  <LoginField label={t('Registered phone (Dealers Directory)', 'నమోదైన ఫోన్ (డీలర్ల డైరెక్టరీ)')} icon={<Phone />} type="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
-                  <LoginField label={t('Guest Password', 'గెస్ట్ పాస్వర్డ్')} icon={<LockKeyhole />} type="password" value={dealerPassword} onChange={setDealerPassword} />
+                  <LoginField label={t('Registered phone (Dealers Directory)', 'నమోదైన ఫోన్ (డీలర్ల డైరెక్టరీ)')} icon={<Phone />} type="tel" inputMode="tel" autoComplete="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
+                  <LoginField label={t('Guest Password', 'గెస్ట్ పాస్వర్డ్')} icon={<LockKeyhole />} type="password" autoComplete="current-password" value={dealerPassword} onChange={setDealerPassword} />
                   <p className="-mt-1 text-xs text-slate-500 dark:text-slate-400">
                     {t(`Guest password: ${DEALER_DEFAULT_PASSWORD}`, `గెస్ట్ పాస్వర్డ్: ${DEALER_DEFAULT_PASSWORD}`)}
                   </p>
                 </>
               ) : (
                 <>
-                  <LoginField label={t('Email Address', 'ఇమెయిల్ చిరునామా')} icon={<Mail />} type="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'ఇమెయిల్ చిరునామా నమోదు చేయండి')} />
-                  <LoginField label={t('Password', 'పాస్వర్డ్')} icon={<LockKeyhole />} type="password" value={password} onChange={setPassword} placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')} />
+                  <LoginField label={t('Email Address', 'ఇమెయిల్ చిరునామా')} icon={<Mail />} type="email" inputMode="email" autoComplete="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'ఇమెయిల్ చిరునామా నమోదు చేయండి')} />
+                  <LoginField label={t('Password', 'పాస్వర్డ్')} icon={<LockKeyhole />} type="password" autoComplete="current-password" value={password} onChange={setPassword} placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')} />
                 </>
               )}
               <button
@@ -492,7 +492,7 @@ export function Login() {
               <p className="text-sm font-black text-slate-900 dark:text-white">{t('Farmer details', 'రైతు వివరాలు')}</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <input value={grievance.farmer_name} onChange={(e) => setGrievance({ ...grievance, farmer_name: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Farmer name', 'రైతు పేరు')} required />
-                <input value={grievance.mobile} onChange={(e) => setGrievance({ ...grievance, mobile: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Mobile number', 'మొబైల్ నంబర్')} required />
+                <input type="tel" inputMode="tel" autoComplete="tel-national" value={grievance.mobile} onChange={(e) => setGrievance({ ...grievance, mobile: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Mobile number', 'మొబైల్ నంబర్')} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <input type="email" value={grievance.email} onChange={(e) => setGrievance({ ...grievance, email: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={t('Email (optional)', 'ఇమెయిల్ (ఐచ్చికం)')} />
@@ -541,10 +541,14 @@ function LoginField({
   value,
   onChange,
   placeholder,
+  inputMode,
+  autoComplete,
 }: {
   label: string;
   icon: React.ReactElement;
   type: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
+  autoComplete?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -562,6 +566,8 @@ function LoginField({
           type={isPassword && revealed ? 'text' : type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          inputMode={inputMode}
+          autoComplete={autoComplete}
           className={`w-full rounded-xl border border-slate-200 bg-slate-50/70 py-3.5 pl-11 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:hover:border-slate-600 dark:focus:ring-emerald-500/20 ${isPassword ? 'pr-12' : 'pr-4'}`}
           placeholder={placeholder}
           required

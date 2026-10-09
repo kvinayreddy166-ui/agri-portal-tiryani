@@ -21,46 +21,46 @@ interface ToastProps {
   onClose: () => void;
 }
 
-const toastConfig: Record<ToastType, { icon: LucideIcon; gradient: string; borderColor: string }> = {
+const toastConfig: Record<ToastType, { icon: LucideIcon; accent: string; chip: string }> = {
   success: {
     icon: FileCheck2,
-    gradient: 'linear-gradient(135deg, rgba(16,185,129,0.92), rgba(5,150,105,0.88))',
-    borderColor: 'border-emerald-400',
+    accent: 'bg-emerald-500',
+    chip: 'bg-emerald-50 text-emerald-600 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-900/60',
   },
   info: {
     icon: Info,
-    gradient: 'linear-gradient(135deg, rgba(59,130,246,0.92), rgba(37,99,235,0.88))',
-    borderColor: 'border-blue-400',
+    accent: 'bg-blue-500',
+    chip: 'bg-blue-50 text-blue-600 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-900/60',
   },
   reset: {
     icon: RotateCcw,
-    gradient: 'linear-gradient(135deg, rgba(245,158,11,0.92), rgba(217,119,6,0.88))',
-    borderColor: 'border-amber-400',
+    accent: 'bg-amber-500',
+    chip: 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-900/60',
   },
   saved: {
     icon: Save,
-    gradient: 'linear-gradient(135deg, rgba(34,197,94,0.92), rgba(22,163,74,0.88))',
-    borderColor: 'border-green-400',
+    accent: 'bg-emerald-500',
+    chip: 'bg-emerald-50 text-emerald-600 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-900/60',
   },
   deleted: {
     icon: Trash2,
-    gradient: 'linear-gradient(135deg, rgba(239,68,68,0.92), rgba(220,38,38,0.88))',
-    borderColor: 'border-red-400',
+    accent: 'bg-red-500',
+    chip: 'bg-red-50 text-red-600 ring-red-200 dark:bg-red-950/50 dark:text-red-300 dark:ring-red-900/60',
   },
   loaded: {
     icon: FolderOpen,
-    gradient: 'linear-gradient(135deg, rgba(139,92,246,0.92), rgba(124,58,237,0.88))',
-    borderColor: 'border-violet-400',
+    accent: 'bg-violet-500',
+    chip: 'bg-violet-50 text-violet-600 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-900/60',
   },
   queue: {
     icon: ClipboardList,
-    gradient: 'linear-gradient(135deg, rgba(99,102,241,0.92), rgba(79,70,229,0.88))',
-    borderColor: 'border-indigo-400',
+    accent: 'bg-indigo-500',
+    chip: 'bg-indigo-50 text-indigo-600 ring-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:ring-indigo-900/60',
   },
   warning: {
     icon: AlertTriangle,
-    gradient: 'linear-gradient(135deg, rgba(249,115,22,0.92), rgba(234,88,12,0.88))',
-    borderColor: 'border-orange-400',
+    accent: 'bg-orange-500',
+    chip: 'bg-orange-50 text-orange-600 ring-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:ring-orange-900/60',
   },
 };
 
@@ -102,28 +102,30 @@ export function Toast({ type, title, subtitle, duration = 4000, onClose }: Toast
   return (
     <div
       role="status"
-      className={`max-w-sm overflow-hidden rounded-xl backdrop-blur-md ${config.borderColor} border shadow-2xl transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+      className={`max-w-sm overflow-hidden rounded-xl border border-slate-200/80 bg-white/95 shadow-xl shadow-slate-950/10 backdrop-blur-md transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:border-slate-800 dark:bg-slate-900/95 ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
-      style={{ background: config.gradient }}
     >
       <div className="relative p-4">
+        {/* Type accent bar */}
+        <span className={`absolute inset-y-0 left-0 w-1 ${config.accent}`} aria-hidden="true" />
+
         {/* Progress bar */}
-        <div className="absolute top-0 left-0 h-1 w-full bg-white/20 dark:bg-slate-900/30 overflow-hidden">
+        <div className="absolute top-0 left-0 h-1 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
           <div
-            className="h-full bg-white/80 dark:bg-slate-900/80 transition-[width] duration-100 ease-linear"
+            className={`h-full opacity-70 transition-[width] duration-100 ease-linear ${config.accent}`}
             style={{ width: `${progress}%` }}
           />
         </div>
 
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25">
-            <Icon className="h-4 w-4 text-white" aria-hidden="true" />
+          <span className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ring-1 ${config.chip}`}>
+            <Icon className="h-4 w-4" aria-hidden="true" />
           </span>
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-bold text-white tracking-wide">{title}</h4>
+            <h4 className="text-sm font-bold tracking-wide text-slate-900 dark:text-white">{title}</h4>
             {subtitle && (
-              <p className="text-xs text-white/90 mt-0.5 leading-snug">{subtitle}</p>
+              <p className="mt-0.5 text-xs leading-snug text-slate-500 dark:text-slate-400">{subtitle}</p>
             )}
           </div>
           <button
@@ -131,7 +133,7 @@ export function Toast({ type, title, subtitle, duration = 4000, onClose }: Toast
               setIsVisible(false);
               setTimeout(() => onCloseRef.current(), 300);
             }}
-            className="flex-shrink-0 rounded-md p-1 text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-95"
+            className="flex-shrink-0 rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 active:scale-95 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
             aria-label="Close notification"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,7 +154,7 @@ interface ToastContainerProps {
 
 export function ToastContainer({ toasts, removeToast }: ToastContainerProps) {
   return (
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
+    <div className="fixed right-4 top-[calc(1rem_+_env(safe-area-inset-top))] z-[9999] flex flex-col gap-2 pointer-events-none">
       {toasts.map((toast) => (
         <div key={toast.id} className="pointer-events-auto">
           <Toast

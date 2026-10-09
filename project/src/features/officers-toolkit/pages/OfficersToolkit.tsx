@@ -355,7 +355,7 @@ function translateToolkit(label?: string) {
     HRAC: 'హెచ్‌ఆర్‌ఏసీ',
     'Herbicide Resistance Action Committee': 'కలుపుమందుల నిరోధక చర్య కమిటీ',
     'Officer Toolkit': 'అధికారుల టూల్‌కిట్',
-    'Agricultural Tools & Government Portals': 'వ్యవసాయ సాధనాలు & ప్రభుత్వ పోర్టళ్లు',
+    'Field Tools & Government Portals': 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు',
     'Field Tools': 'క్షేత్ర సాధనాలు',
     'Government Portals': 'ప్రభుత్వ పోర్టళ్లు',
     'Empowering Agriculture with Digital Tools': 'డిజిటల్ సాధనాలతో వ్యవసాయాన్ని శక్తివంతం చేయడం',
@@ -450,7 +450,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                     {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                   </h1>
                   <p className="truncate text-xs font-semibold text-gold-200">
-                    {t('Agricultural Tools & Government Portals', 'వ్యవసాయ పనిముట్లు & ప్రభుత్వ పోర్టల్స్')}
+                    {t('Field Tools & Government Portals', 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు')}
                   </p>
                 </div>
                 <LanguageToggle
@@ -472,7 +472,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
               {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
             </h1>
             <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              {t('Agricultural Tools & Government Portals', 'వ్యవసాయ పనిముట్లు & ప్రభుత్వ పోర్టల్స్')}
+              {t('Field Tools & Government Portals', 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు')}
             </p>
           </header>
         )}

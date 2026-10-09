@@ -9,6 +9,7 @@ import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
 import { useVirtualRows } from '../../../shared/hooks/useVirtualRows';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue, type ExcelRow } from '../../../shared/utils/excelTotals';
+import { createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 
 const LazyFertilizerChart = lazy(() => import('../components/LazyFertilizerChart'));
 
@@ -744,13 +745,12 @@ async function downloadWorkbook(
   summaryRows: Array<[string, string | number]>
 ) {
   if (!rows.length) return;
-  const XLSX = await import('xlsx');
-  const workbook = XLSX.utils.book_new();
-  await appendSheetWithTotals(workbook, sheetName, rows, totalColumns);
-  await appendSummarySheet(workbook, `${sheetName} Summary`, [
+  const workbook = await createExcelWorkbook();
+  appendSheetWithTotals(workbook, sheetName, rows, totalColumns);
+  appendSummarySheet(workbook, `${sheetName} Summary`, [
     ...summaryRows,
     ...totalColumns.map((column): [string, number] => [`Total ${column}`, totalValue(rows, column)]),
     ['Generated On', new Date().toLocaleString('en-IN')],
   ]);
-  XLSX.writeFile(workbook, fileName);
+  await saveStyledWorkbook(workbook, fileName);
 }

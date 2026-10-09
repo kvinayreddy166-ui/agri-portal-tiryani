@@ -1,4 +1,5 @@
 import { StockCategory } from '../../features/dealer-stock/lib/stockInventory';
+import { addTableSheet, createExcelWorkbook, saveStyledWorkbook, type ExcelCellValue } from './styledExcel';
 
 type Metadata = {
   firmName: string;
@@ -17,28 +18,27 @@ const categoryLabel: Record<StockCategory, string> = {
 };
 
 export async function writeProfessionalWorkbook(filename: string, sheetName: string, rows: Record<string, unknown>[], metadata: Metadata) {
-  const XLSX = await import('xlsx');
-  const metaRows: unknown[][] = [
+  const meta: ExcelCellValue[][] = [
     ['Firm Name', metadata.firmName],
     ['Dealer Name', metadata.dealerName],
     ['Relevant License Number', metadata.licenseNumber],
   ];
   if (metadata.category === 'fertilizer') {
-    metaRows.push(['IFMS ID', metadata.ifmsId || '']);
+    meta.push(['IFMS ID', metadata.ifmsId || '']);
   }
-  metaRows.push(
+  meta.push(
     ['Category', categoryLabel[metadata.category]],
     ['Financial Year', metadata.financialYear],
     ['Filter Range', metadata.filterRange],
-    ['Generated Date', new Date().toLocaleString('en-IN')],
-    []
+    ['Generated Date', new Date().toLocaleString('en-IN')]
   );
 
-  const header = rows.length ? Object.keys(rows[0]) : ['No Records'];
-  const body = rows.length ? rows.map((row) => header.map((key) => row[key])) : [['No matching records']];
-  const worksheet = XLSX.utils.aoa_to_sheet([...metaRows, header, ...body]);
-  worksheet['!cols'] = header.map((key) => ({ wch: Math.max(14, key.length + 2) }));
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.slice(0, 31));
-  XLSX.writeFile(workbook, filename);
+  const header = rows.length ? Object.keys(rows[0]) : ['Details'];
+  const body = rows.length
+    ? rows.map((row) => header.map((key) => row[key] as ExcelCellValue))
+    : [['No matching records']];
+
+  const workbook = await createExcelWorkbook();
+  addTableSheet(workbook, { name: sheetName, meta, headers: header, rows: body });
+  await saveStyledWorkbook(workbook, filename);
 }

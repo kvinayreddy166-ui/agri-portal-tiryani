@@ -439,7 +439,7 @@ export function FertilizerSeizureOrderEntry() {
               <X className="h-4 w-4" />
             </button>
             <img
-              src="/images/seizure-steps.jpg"
+              src="/images/seizure-steps.webp"
               alt="Steps involved in the seizure of stock"
               loading="lazy"
               decoding="async"

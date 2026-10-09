@@ -479,8 +479,8 @@ function findLocalCropItem(cropDataset: any, slug: any) {
 }
 
 export async function exportCropWorkbook(crop: any) {
-  const XLSX = await import('xlsx');
-  const workbook = XLSX.utils.book_new();
+  const { addTableSheet, createExcelWorkbook, saveStyledWorkbook } = await import('../../../shared/utils/styledExcel');
+  const workbook = await createExcelWorkbook();
   const sheets = {
     profile: [crop],
     varieties: crop.crop_varieties || [],
@@ -491,11 +491,16 @@ export async function exportCropWorkbook(crop: any) {
     faqs: crop.crop_faqs || [],
   };
 
-  Object.entries(sheets).forEach(([name, rows]) => {
-    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), name.slice(0, 31));
+  Object.entries(sheets).forEach(([name, rows]: [string, any[]]) => {
+    const headers = rows.length ? Object.keys(rows[0]) : ['Details'];
+    addTableSheet(workbook, {
+      name,
+      headers,
+      rows: rows.length ? rows.map((row) => headers.map((key) => row[key])) : [['No records']],
+    });
   });
 
-  XLSX.writeFile(workbook, `${crop.slug || crop.crop_name}-crop-intelligence.xlsx`);
+  await saveStyledWorkbook(workbook, `${crop.slug || crop.crop_name}-crop-intelligence.xlsx`);
 }
 
 async function loadLocalCropDataset() {

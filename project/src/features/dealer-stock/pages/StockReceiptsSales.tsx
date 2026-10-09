@@ -10,6 +10,7 @@ import {
 } from '../lib/stockInventory';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../../../shared/utils/excelTotals';
+import { createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 
 type DealerProfile = {
   id: string;
@@ -154,7 +155,6 @@ export default function StockReceiptsSales() {
       alert('No data to export');
       return;
     }
-    const XLSX = await import('xlsx');
     const rows = filteredRecords.map((record) => ({
       'Financial Year': record.financial_year || financialYearForDate(record.report_date),
       'Entry Date': record.report_date || '',
@@ -180,7 +180,7 @@ export default function StockReceiptsSales() {
       Supplier: record.supplier || '',
       Remarks: record.remarks || '',
     }));
-    const workbook = XLSX.utils.book_new();
+    const workbook = await createExcelWorkbook();
     const totalColumns = ['Opening Stock', 'Received Quantity', 'Sold Quantity', 'Closing Stock'];
     appendSheetWithTotals(workbook, 'Stock Receipts Sales', rows, totalColumns);
     appendSummarySheet(workbook, 'Stock Receipts & Sales Summary', [
@@ -197,7 +197,7 @@ export default function StockReceiptsSales() {
       ['Total Closing Stock', totalValue(rows, 'Closing Stock')],
       ['Generated On', new Date().toLocaleString('en-IN')],
     ]);
-    XLSX.writeFile(workbook, `stock-receipts-sales-${financialYear}.xlsx`);
+    await saveStyledWorkbook(workbook, `stock-receipts-sales-${financialYear}.xlsx`);
   };
 
   return (

@@ -758,6 +758,7 @@ button {
     transform-origin: left top;
     overflow-y: auto;
     overflow-x: hidden;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
 }
@@ -1117,4 +1118,52 @@ button {
 
 .reset-ccw-spin {
   animation: resetCcwSpin 0.45s ease-in-out;
+}
+
+/* ---- Mobile-native baseline (PWA) ---- */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  overscroll-behavior: none;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+button:not(:disabled),
+[role='button'],
+a,
+select,
+summary {
+  touch-action: manipulation;
+}
+
+button,
+[role='button'],
+summary {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  transition: scale 140ms var(--ease-out);
+}
+
+button:not(:disabled):active,
+[role='button']:active,
+summary:active {
+  scale: 0.97;
+}
+
+.min-h-screen {
+  min-height: 100dvh;
+}
+
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='button']):not([type='submit']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }

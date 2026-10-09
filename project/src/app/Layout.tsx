@@ -111,7 +111,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
 
   return (
     <div className="min-h-screen bg-[#f2f7f3] dark:bg-slate-950">
-      <header className="sticky top-1 z-50 mx-1.5 rounded-2xl border border-emerald-900/30 bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-lg sm:mx-2">
+      <header className="sticky top-[calc(0.25rem_+_env(safe-area-inset-top))] z-50 mx-1.5 rounded-2xl border border-emerald-900/30 bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-lg sm:mx-2">
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] rounded-b-2xl bg-gradient-to-r from-transparent via-gold-400/80 to-transparent" />
         <div className="relative flex min-w-0 items-center justify-between gap-2 px-4 py-2.5 sm:px-5 lg:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -168,7 +168,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
               <>
                 <div className="fixed inset-0 z-40" onClick={langOverlay.closeOverlay} aria-hidden />
                 <div
-                  className="animate-pop-in absolute right-0 top-full z-50 mt-2 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-950/15 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                  className="animate-pop-in absolute right-0 top-full z-50 mt-2 w-44 origin-top-right overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-950/15 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                   role="menu"
                 >
                   {([
@@ -207,7 +207,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                 <div className="fixed inset-0 z-40" onClick={profileOverlay.closeOverlay} aria-hidden />
 
                 <div
-                  className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-950/15 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                  className="animate-pop-in absolute right-0 top-full z-50 mt-2 w-60 origin-top-right overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-950/15 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                   role="menu"
                 >
                   <div className="flex items-center gap-2.5 border-b border-slate-100 px-3.5 py-3 dark:border-slate-800">
@@ -252,18 +252,18 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
 
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-[3px]"
+          className="animate-overlay-in fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-[3px]"
           onClick={sidebarOverlay.closeOverlay}
           aria-hidden
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-80 max-w-[86vw] flex-col overflow-hidden rounded-r-3xl border-r border-emerald-100 bg-white text-slate-900 shadow-2xl shadow-slate-950/25 transition-transform duration-300 ease-out dark:border-slate-800 dark:bg-slate-950 dark:text-white ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-80 max-w-[86vw] flex-col overflow-hidden rounded-r-3xl border-r border-emerald-100 bg-white text-slate-900 shadow-2xl shadow-slate-950/25 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] dark:border-slate-800 dark:bg-slate-950 dark:text-white ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="relative border-b border-slate-200 bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950 px-3.5 pb-3 pt-4 text-white dark:border-slate-800">
+        <div className="relative border-b border-slate-200 bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950 px-3.5 pb-3 pt-[calc(1rem_+_env(safe-area-inset-top))] text-white dark:border-slate-800">
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400/70 to-transparent" />
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
@@ -284,7 +284,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-2.5 py-3">
+        <nav className="flex-1 overflow-y-auto overscroll-y-contain px-2.5 py-3">
           {menuSections(visibleMenuItems, t).map((section) => (
             <div key={section.title} className="mb-3 last:mb-0">
               <p className="mb-1.5 px-2.5 text-[9px] font-black uppercase tracking-[0.18em] text-gold-600 dark:text-gold-400">
@@ -327,7 +327,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
           ))}
         </nav>
 
-        <div className="border-t border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/70">
+        <div className="border-t border-slate-200 bg-slate-50 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-900/70">
           <div className="mb-2 flex items-center gap-2.5 rounded-xl border border-white bg-white px-2.5 py-2 shadow-sm dark:border-slate-800 dark:bg-slate-950">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 text-xs font-black text-white shadow-sm">
               {user?.email?.charAt(0).toUpperCase()}

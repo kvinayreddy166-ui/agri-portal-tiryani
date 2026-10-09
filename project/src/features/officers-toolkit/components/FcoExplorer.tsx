@@ -372,12 +372,12 @@ function ResultRow({ chip, title, context, onOpen }: { chip: string; title: stri
     <button
       type="button"
       onClick={onOpen}
-      className="group flex w-full items-center gap-2.5 rounded-lg p-2 text-left transition hover:bg-indigo-50 dark:hover:bg-slate-800"
+      className="group flex w-full flex-col items-start gap-1.5 rounded-lg p-2 text-left transition hover:bg-indigo-50 sm:flex-row sm:items-center sm:gap-2.5 dark:hover:bg-slate-800"
     >
       <span className="shrink-0 rounded-full bg-indigo-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800/60">{chip}</span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-xs font-bold text-slate-800 dark:text-slate-100">{title}</span>
-        {context && <span className="block truncate text-[10px] font-medium text-slate-500 dark:text-slate-400">{context}</span>}
+        <span className="block text-xs font-bold text-slate-800 sm:truncate dark:text-slate-100">{title}</span>
+        {context && <span className="block text-[10px] font-medium text-slate-500 sm:truncate dark:text-slate-400">{context}</span>}
       </span>
       <span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-indigo-600 opacity-0 transition group-hover:opacity-100 dark:text-indigo-300">Open</span>
     </button>

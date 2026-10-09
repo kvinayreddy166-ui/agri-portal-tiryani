@@ -1,32 +1,34 @@
+import type { Workbook } from 'exceljs';
+import { addSummarySheet, addTableSheet } from './styledExcel';
 
 export type ExcelCell = string | number | boolean | null | undefined;
 export type ExcelRow = Record<string, ExcelCell>;
 
-export async function appendSheetWithTotals(
-  workbook: any,
+export function appendSheetWithTotals(
+  workbook: Workbook,
   sheetName: string,
   rows: ExcelRow[],
   totalColumns: string[],
   labelColumn = 'S.No'
 ) {
-  const XLSX = await import('xlsx');
   const rowsWithTotals = rows.length
     ? [...rows, buildTotalsRow(rows, totalColumns, labelColumn)]
     : rows;
-  const worksheet = XLSX.utils.json_to_sheet(rowsWithTotals);
-  worksheet['!cols'] = columnWidths(rowsWithTotals);
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.slice(0, 31));
+  const keys = Object.keys(rowsWithTotals[0] || {});
+  addTableSheet(workbook, {
+    name: sheetName,
+    headers: keys,
+    rows: rowsWithTotals.map((row) => keys.map((key) => row[key])),
+    totalsRow: rows.length > 0,
+  });
 }
 
-export async function appendSummarySheet(
-  workbook: any,
+export function appendSummarySheet(
+  workbook: Workbook,
   title: string,
   rows: Array<[string, ExcelCell]>
 ) {
-  const XLSX = await import('xlsx');
-  const worksheet = XLSX.utils.aoa_to_sheet([[title], [], ...rows]);
-  worksheet['!cols'] = [{ wch: 28 }, { wch: 24 }];
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Summary');
+  addSummarySheet(workbook, title, rows.map(([label, value]) => [label, value]));
 }
 
 export function totalValue(rows: ExcelRow[], key: string) {
@@ -42,20 +44,6 @@ function buildTotalsRow(rows: ExcelRow[], totalColumns: string[], labelColumn: s
     else totalRow[key] = '';
   });
   return totalRow;
-}
-
-function columnWidths(rows: ExcelRow[]) {
-  const keys = Object.keys(rows[0] || {});
-  return keys.map((key) => ({
-    wch: Math.min(
-      42,
-      Math.max(
-        12,
-        key.length + 2,
-        ...rows.map((row) => String(row[key] ?? '').length + 2)
-      )
-    ),
-  }));
 }
 
 function numericValue(value: ExcelCell) {

@@ -14,7 +14,7 @@ import {
   productTypesForCategory,
 } from '../lib/stockInventory';
 import { supabase } from '../../../shared/lib/supabase';
-import { saveWorkbookFile } from '../../documents/lib/documentActions';
+import { addTableSheet, createExcelWorkbook, saveStyledWorkbook, type ExcelCellValue } from '../../../shared/utils/styledExcel';
 import { bagsToMt, formatBags, formatMt, mtToBags } from '../../../shared/utils/fertilizerUnits';
 import { currentFinancialYear } from '../../../shared/utils/financialYear';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
@@ -1274,12 +1274,6 @@ async function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryL
   const excelRows = rows.map((row, index) => type === 'receipts'
     ? receiptExcelRow(row, index, category, unit)
     : dailyExcelRow(row, index, category, unit));
-  const metadata = [
-    ['TIRYANI PORTAL EMBLEM', '', '', '', 'AGRONIX'],
-    ['Firm Name', firmName, '', '', 'Official Dealer Stock Register'],
-    ['Category', CATEGORY_LABELS[category], '', '', `Generated: ${new Date().toLocaleString('en-IN')}`],
-  ];
-  if (category === 'fertilizer') metadata.push(['IFMS ID', ifmsId || '']);
   const headers = Object.keys(excelRows[0]);
   const totalColumns = type === 'receipts'
     ? headers.filter((header) => header.includes('Quantity'))
@@ -1288,15 +1282,22 @@ async function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryL
     row[header] = header === 'S.No' ? 'TOTAL' : totalColumns.includes(header) ? totalValue(excelRows, header) : '';
     return row;
   }, {} as Record<string, string | number>);
-  const XLSX = await import('xlsx');
-  const worksheet = XLSX.utils.aoa_to_sheet([...metadata, [], headers, ...[...excelRows, totalRow].map((row) => headers.map((header) => row[header]))]);
-  worksheet['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
-    { s: { r: 0, c: 4 }, e: { r: 0, c: Math.max(4, headers.length - 1) } },
+  const workbook = await createExcelWorkbook();
+  const meta: ExcelCellValue[][] = [
+    ['Firm Name', firmName],
+    ['Category', CATEGORY_LABELS[category]],
+    ['Unit', unit],
+    ['Generated', new Date().toLocaleString('en-IN')],
   ];
-  worksheet['!cols'] = headers.map((header) => ({ wch: Math.max(12, header.length + 2) }));
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, type === 'receipts' ? 'Saved Receipts' : 'Daily Stock');
+  if (category === 'fertilizer') meta.splice(2, 0, ['IFMS ID', ifmsId || '']);
+  addTableSheet(workbook, {
+    name: type === 'receipts' ? 'Saved Receipts' : 'Daily Stock',
+    title: 'AGRONIX — Official Dealer Stock Register',
+    meta,
+    headers,
+    rows: [...excelRows, totalRow].map((row) => headers.map((header) => row[header])),
+    totalsRow: true,
+  });
   appendSummarySheet(workbook, `${CATEGORY_LABELS[category]} ${type === 'receipts' ? 'Receipts' : 'Daily Stock'} Summary`, [
     ['Firm Name', firmName],
     ['Category', CATEGORY_LABELS[category]],
@@ -1306,7 +1307,7 @@ async function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryL
     ...totalColumns.map((column): [string, number] => [`Total ${column}`, totalValue(excelRows, column)]),
     ['Generated On', new Date().toLocaleString('en-IN')],
   ]);
-  await saveWorkbookFile(XLSX, workbook, `${CATEGORY_LABELS[category].toLowerCase()}-${type}-${Date.now()}.xlsx`);
+  await saveStyledWorkbook(workbook, `${CATEGORY_LABELS[category].toLowerCase()}-${type}-${Date.now()}.xlsx`);
   } catch (error) {
     console.error('Excel export failed:', error);
     alert('Excel export failed. Please check your connection and try again.');

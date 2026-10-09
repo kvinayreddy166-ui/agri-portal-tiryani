@@ -11,7 +11,7 @@ interface FcoImplementationModalProps {
 export function FcoImplementationModal({
   isOpen,
   onClose,
-  imageSrc = '/images/fco-implementation-structure.jpg',
+  imageSrc = '/images/fco-implementation-structure.webp',
   imageAlt = 'Fertilizer Control Order (FCO), 1985 - Implementation Structure and Enforcement Authorities',
 }: FcoImplementationModalProps) {
   const [isVisible, setIsVisible] = useState(false);

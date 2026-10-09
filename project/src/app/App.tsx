@@ -151,6 +151,23 @@ function AppContent() {
     navigateToPage('dashboard', { replace: true });
   }, [currentPage, loading, location.pathname, navigateToPage, user]);
 
+  // On sign-out, always land on the login screen — even when the current page
+  // is publicly viewable. The ref ensures this only fires for the
+  // authenticated → signed-out transition, so visitors who never logged in can
+  // keep browsing public pages undisturbed.
+  const wasAuthenticatedRef = useRef(false);
+  useEffect(() => {
+    if (user) {
+      wasAuthenticatedRef.current = true;
+      return;
+    }
+    if (!wasAuthenticatedRef.current) return;
+    wasAuthenticatedRef.current = false;
+    if (location.pathname !== '/login' && location.pathname !== '/') {
+      navigate('/login', { replace: true });
+    }
+  }, [location.pathname, navigate, user]);
+
   useEffect(() => {
     if (loading || user) return;
     // This effect is no longer needed since PUBLIC_AUTH_ROUTES handles all officer-toolkit routes

@@ -55,7 +55,7 @@ export function FertilizerInstructionModal({ isOpen, onClose }: FertilizerInstru
         {/* Image container - full screen on mobile */}
         <div className="w-full overflow-auto p-4 sm:max-h-[85vh] sm:p-6">
           <img
-            src="/images/Fertilizer Drawal Procedure.png"
+            src="/images/Fertilizer Drawal Procedure.webp"
             alt="Fertilizer Drawal Procedure"
             loading="lazy"
             decoding="async"

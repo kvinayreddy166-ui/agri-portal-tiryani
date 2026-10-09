@@ -7,6 +7,7 @@ import { FERTILIZER_TYPES } from '../../../shared/lib/constants';
 import { cachedSupabaseRows } from '../../../shared/lib/offlineCache';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
 import { totalValue } from '../../../shared/utils/excelTotals';
+import { addTableSheet, createExcelWorkbook, saveStyledWorkbook, type ExcelCellValue } from '../../../shared/utils/styledExcel';
 import {
   STOCK_CATEGORIES,
   StockCategory,
@@ -253,11 +254,8 @@ export function StockInventory() {
       return;
     }
 
-    const XLSX = await import('xlsx');
     const quantityUnit = category === 'fertilizer' ? (fertilizerQtyUnit === 'bags' ? 'Bags' : 'MT') : '';
-    const metadataRows = [
-      ['AGRONIX'],
-      ['Dealer Daily Stock Inventory'],
+    const meta: ExcelCellValue[][] = [
       ['Category', titleCase(category)],
       ['Financial Year', financialYear],
       ['Report Mode', viewMode === 'day' ? 'Day' : 'Month'],
@@ -268,7 +266,6 @@ export function StockInventory() {
       ['Product Filter', category === 'fertilizer' ? fertilizerFilter : 'All'],
       ['Unit', quantityUnit || 'As submitted'],
       ['Generated On', new Date().toLocaleString('en-IN')],
-      [],
     ];
 
     const tableRows = filteredRows.map((line, index) => ({
@@ -313,32 +310,27 @@ export function StockInventory() {
       Closing: totalValue(summaryRows, 'Closing'),
     };
 
-    const workbook = XLSX.utils.book_new();
-    const stockSheet = XLSX.utils.aoa_to_sheet(metadataRows);
-    XLSX.utils.sheet_add_json(stockSheet, [...tableRows, totalRow], { origin: `A${metadataRows.length + 1}`, skipHeader: false });
-    stockSheet['!cols'] = [
-      { wch: 8 },
-      { wch: 14 },
-      { wch: 12 },
-      { wch: 10 },
-      { wch: 12 },
-      { wch: 28 },
-      { wch: 18 },
-      { wch: 10 },
-      { wch: 12 },
-      { wch: 12 },
-      { wch: 12 },
-      { wch: 12 },
-      { wch: 12 },
-    ];
-    XLSX.utils.book_append_sheet(workbook, stockSheet, 'Daily Stock');
-
-    const summarySheet = XLSX.utils.json_to_sheet([...summaryRows, summaryTotalRow]);
-    summarySheet['!cols'] = [{ wch: 8 }, { wch: 22 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
-    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+    const workbook = await createExcelWorkbook();
+    const tableHeaders = Object.keys(tableRows[0]);
+    addTableSheet(workbook, {
+      name: 'Daily Stock',
+      title: 'AGRONIX — Dealer Daily Stock Inventory',
+      meta,
+      headers: tableHeaders,
+      rows: [...tableRows, totalRow].map((row) => tableHeaders.map((key) => (row as Record<string, string | number>)[key])),
+      totalsRow: true,
+    });
+    const summaryHeaders = Object.keys(summaryRows[0]);
+    addTableSheet(workbook, {
+      name: 'Summary',
+      title: 'Product-wise Summary',
+      headers: summaryHeaders,
+      rows: [...summaryRows, summaryTotalRow].map((row) => summaryHeaders.map((key) => (row as Record<string, string | number>)[key])),
+      totalsRow: true,
+    });
 
     const safePeriod = (viewMode === 'day' ? reportDate : reportMonth).replace(/[^0-9-]/g, '');
-    XLSX.writeFile(workbook, `dealer_daily_stock_${category}_${safePeriod}.xlsx`);
+    await saveStyledWorkbook(workbook, `dealer_daily_stock_${category}_${safePeriod}.xlsx`);
   };
 
   return (
