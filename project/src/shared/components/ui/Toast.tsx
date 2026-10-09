@@ -21,46 +21,54 @@ interface ToastProps {
   onClose: () => void;
 }
 
-const toastConfig: Record<ToastType, { icon: LucideIcon; accent: string; chip: string }> = {
+const toastConfig: Record<ToastType, { icon: LucideIcon; accent: string; surface: string; chip: string }> = {
   success: {
     icon: FileCheck2,
     accent: 'bg-emerald-500',
-    chip: 'bg-emerald-50 text-emerald-600 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-900/60',
+    surface: 'border-emerald-200/70 bg-emerald-50/95 dark:border-emerald-800/50 dark:bg-emerald-950/50',
+    chip: 'bg-white/80 text-emerald-600 ring-emerald-200/80 dark:bg-emerald-900/50 dark:text-emerald-300 dark:ring-emerald-700/50',
   },
   info: {
     icon: Info,
     accent: 'bg-blue-500',
-    chip: 'bg-blue-50 text-blue-600 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-900/60',
+    surface: 'border-blue-200/70 bg-blue-50/95 dark:border-blue-800/50 dark:bg-blue-950/50',
+    chip: 'bg-white/80 text-blue-600 ring-blue-200/80 dark:bg-blue-900/50 dark:text-blue-300 dark:ring-blue-700/50',
   },
   reset: {
     icon: RotateCcw,
     accent: 'bg-amber-500',
-    chip: 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-900/60',
+    surface: 'border-amber-200/70 bg-amber-50/95 dark:border-amber-800/50 dark:bg-amber-950/50',
+    chip: 'bg-white/80 text-amber-700 ring-amber-200/80 dark:bg-amber-900/50 dark:text-amber-300 dark:ring-amber-700/50',
   },
   saved: {
     icon: Save,
     accent: 'bg-emerald-500',
-    chip: 'bg-emerald-50 text-emerald-600 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-900/60',
+    surface: 'border-emerald-200/70 bg-emerald-50/95 dark:border-emerald-800/50 dark:bg-emerald-950/50',
+    chip: 'bg-white/80 text-emerald-600 ring-emerald-200/80 dark:bg-emerald-900/50 dark:text-emerald-300 dark:ring-emerald-700/50',
   },
   deleted: {
     icon: Trash2,
     accent: 'bg-red-500',
-    chip: 'bg-red-50 text-red-600 ring-red-200 dark:bg-red-950/50 dark:text-red-300 dark:ring-red-900/60',
+    surface: 'border-red-200/70 bg-red-50/95 dark:border-red-800/50 dark:bg-red-950/50',
+    chip: 'bg-white/80 text-red-600 ring-red-200/80 dark:bg-red-900/50 dark:text-red-300 dark:ring-red-700/50',
   },
   loaded: {
     icon: FolderOpen,
     accent: 'bg-violet-500',
-    chip: 'bg-violet-50 text-violet-600 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-900/60',
+    surface: 'border-violet-200/70 bg-violet-50/95 dark:border-violet-800/50 dark:bg-violet-950/50',
+    chip: 'bg-white/80 text-violet-600 ring-violet-200/80 dark:bg-violet-900/50 dark:text-violet-300 dark:ring-violet-700/50',
   },
   queue: {
     icon: ClipboardList,
     accent: 'bg-indigo-500',
-    chip: 'bg-indigo-50 text-indigo-600 ring-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:ring-indigo-900/60',
+    surface: 'border-indigo-200/70 bg-indigo-50/95 dark:border-indigo-800/50 dark:bg-indigo-950/50',
+    chip: 'bg-white/80 text-indigo-600 ring-indigo-200/80 dark:bg-indigo-900/50 dark:text-indigo-300 dark:ring-indigo-700/50',
   },
   warning: {
     icon: AlertTriangle,
     accent: 'bg-orange-500',
-    chip: 'bg-orange-50 text-orange-600 ring-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:ring-orange-900/60',
+    surface: 'border-orange-200/70 bg-orange-50/95 dark:border-orange-800/50 dark:bg-orange-950/50',
+    chip: 'bg-white/80 text-orange-600 ring-orange-200/80 dark:bg-orange-900/50 dark:text-orange-300 dark:ring-orange-700/50',
   },
 };
 
@@ -102,7 +110,7 @@ export function Toast({ type, title, subtitle, duration = 4000, onClose }: Toast
   return (
     <div
       role="status"
-      className={`max-w-sm overflow-hidden rounded-xl border border-slate-200/80 bg-white/95 shadow-xl shadow-slate-950/10 backdrop-blur-md transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:border-slate-800 dark:bg-slate-900/95 ${
+      className={`max-w-sm overflow-hidden rounded-xl border shadow-lg shadow-slate-950/10 backdrop-blur-md transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${config.surface} ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
@@ -111,7 +119,7 @@ export function Toast({ type, title, subtitle, duration = 4000, onClose }: Toast
         <span className={`absolute inset-y-0 left-0 w-1 ${config.accent}`} aria-hidden="true" />
 
         {/* Progress bar */}
-        <div className="absolute top-0 left-0 h-1 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+        <div className="absolute top-0 left-0 h-1 w-full overflow-hidden bg-white/50 dark:bg-slate-800/60">
           <div
             className={`h-full opacity-70 transition-[width] duration-100 ease-linear ${config.accent}`}
             style={{ width: `${progress}%` }}
@@ -133,7 +141,7 @@ export function Toast({ type, title, subtitle, duration = 4000, onClose }: Toast
               setIsVisible(false);
               setTimeout(() => onCloseRef.current(), 300);
             }}
-            className="flex-shrink-0 rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 active:scale-95 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            className="flex-shrink-0 rounded-md p-1 text-slate-400 transition-colors hover:bg-white/70 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 active:scale-95 dark:text-slate-500 dark:hover:bg-slate-800/60 dark:hover:text-slate-300"
             aria-label="Close notification"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

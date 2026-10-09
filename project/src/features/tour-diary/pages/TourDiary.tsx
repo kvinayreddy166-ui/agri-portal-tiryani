@@ -381,26 +381,30 @@ function AccessibleModal({ onClose, labelledBy, className, children }: {
   );
 }
 
-const TOAST_STYLES: Record<ToastType, { icon: React.ReactNode; accent: string; chip: string }> = {
+const TOAST_STYLES: Record<ToastType, { icon: React.ReactNode; accent: string; surface: string; chip: string }> = {
   success: {
     icon: <CheckCircle className="h-4 w-4" aria-hidden="true" />,
     accent: 'bg-emerald-500',
-    chip: 'bg-emerald-50 text-emerald-600 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-900/60'
+    surface: 'border-emerald-200/70 bg-emerald-50/95 dark:border-emerald-800/50 dark:bg-emerald-950/50',
+    chip: 'bg-white/80 text-emerald-600 ring-emerald-200/80 dark:bg-emerald-900/50 dark:text-emerald-300 dark:ring-emerald-700/50'
   },
   error: {
     icon: <AlertCircle className="h-4 w-4" aria-hidden="true" />,
     accent: 'bg-red-500',
-    chip: 'bg-red-50 text-red-600 ring-red-200 dark:bg-red-950/50 dark:text-red-300 dark:ring-red-900/60'
+    surface: 'border-red-200/70 bg-red-50/95 dark:border-red-800/50 dark:bg-red-950/50',
+    chip: 'bg-white/80 text-red-600 ring-red-200/80 dark:bg-red-900/50 dark:text-red-300 dark:ring-red-700/50'
   },
   warning: {
     icon: <AlertTriangle className="h-4 w-4" aria-hidden="true" />,
     accent: 'bg-orange-500',
-    chip: 'bg-orange-50 text-orange-600 ring-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:ring-orange-900/60'
+    surface: 'border-orange-200/70 bg-orange-50/95 dark:border-orange-800/50 dark:bg-orange-950/50',
+    chip: 'bg-white/80 text-orange-600 ring-orange-200/80 dark:bg-orange-900/50 dark:text-orange-300 dark:ring-orange-700/50'
   },
   info: {
     icon: <Info className="h-4 w-4" aria-hidden="true" />,
     accent: 'bg-blue-500',
-    chip: 'bg-blue-50 text-blue-600 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-900/60'
+    surface: 'border-blue-200/70 bg-blue-50/95 dark:border-blue-800/50 dark:bg-blue-950/50',
+    chip: 'bg-white/80 text-blue-600 ring-blue-200/80 dark:bg-blue-900/50 dark:text-blue-300 dark:ring-blue-700/50'
   }
 };
 
@@ -412,7 +416,7 @@ function ToastStack({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: (id
         <div
           key={toast.id}
           role="status"
-          className={`pointer-events-auto relative flex w-full max-w-sm items-center gap-2.5 overflow-hidden rounded-xl border border-slate-200/80 bg-white/95 py-3 pl-4 pr-3 shadow-xl shadow-slate-950/10 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95`}
+          className={`pointer-events-auto relative flex w-full max-w-sm items-center gap-2.5 overflow-hidden rounded-xl border py-3 pl-4 pr-3 shadow-lg shadow-slate-950/10 backdrop-blur ${TOAST_STYLES[toast.type].surface}`}
         >
           <span className={`absolute inset-y-0 left-0 w-1 ${TOAST_STYLES[toast.type].accent}`} aria-hidden="true" />
           <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 ${TOAST_STYLES[toast.type].chip}`}>
@@ -423,7 +427,7 @@ function ToastStack({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: (id
             type="button"
             aria-label="Dismiss notification"
             onClick={() => onDismiss(toast.id)}
-            className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-white/70 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800/60 dark:hover:text-slate-300"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>

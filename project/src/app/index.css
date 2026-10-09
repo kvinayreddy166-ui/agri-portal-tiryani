@@ -168,7 +168,11 @@ body,
 #root {
   width: 100%;
   max-width: 100%;
+  /* clip, not hidden: overflow-x:hidden makes each element a scroll container,
+     which swallows wheel/touch gestures instead of chaining them to the page
+     scroller, and breaks position:sticky on descendants. clip avoids both. */
   overflow-x: hidden;
+  overflow-x: clip;
   font-family: var(--font-body);
   background: var(--agri-bg);
   color: var(--agri-text);
@@ -265,6 +269,14 @@ main,
 .min-h-screen {
   max-width: 100%;
   overflow-x: hidden;
+  overflow-x: clip;
+}
+
+/* Tailwind's overflow-x-hidden utility has the same scroll-container side
+   effect on layout wrappers — upgrade it to clip everywhere. */
+.overflow-x-hidden {
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 @layer components {
@@ -739,27 +751,31 @@ button {
   }
 }
 
-/* Force portrait: rotate the app back when a phone-sized screen is in
-   landscape. Desktop/tablet windows (taller than 600px) are unaffected. */
+/* Portrait-only on phone-sized screens: show a rotate prompt instead of
+   rotating #root — rotating the root breaks touch scrolling (the scroll
+   axes rotate with it) and overflow:hidden on html/body kills the page
+   scroller. Desktop/tablet windows (taller than 600px) are unaffected. */
 @media screen and (orientation: landscape) and (max-height: 600px) {
-  html,
-  body {
-    overflow: hidden;
-    height: 100%;
+  body::after {
+    content: 'Please rotate your device to portrait mode';
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--agri-bg, #f0fdf4);
+    color: #052e16;
+    font-family: var(--font-body, system-ui, sans-serif);
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
   }
 
-  #root {
-    position: fixed;
-    top: 100%;
-    left: 0;
-    width: 100vh;
-    height: 100vw;
-    transform: rotate(-90deg);
-    transform-origin: left top;
-    overflow-y: auto;
-    overflow-x: hidden;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
+  .dark body::after {
+    background: #020617;
+    color: #e2e8f0;
   }
 }
 
@@ -1121,14 +1137,15 @@ button {
 }
 
 /* ---- Mobile-native baseline (PWA) ---- */
+/* NOTE: no overscroll-behavior:none here — it blocks scroll chaining from
+   inner containers to the page scroller, which dead-stops wheel/touch
+   scrolling entirely. */
 html {
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
-  overscroll-behavior: none;
 }
 
 body {
-  overscroll-behavior: none;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
