@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FileChild } from 'docx';
-import { ChevronDown, Download, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Download, Edit3, FileText, FileType, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear, financialYearForDate } from '../../../shared/utils/financialYear';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
@@ -367,6 +367,10 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   const noticeTitleText = isMAO ? 'Memo' : 'Show Cause Notice';
   const divisionName = form.division.trim() || '________________';
   // ADA officers operate at division level, DAO at district level, others at mandal level
+  const inspectedByMao = form.inspectedBy === 'mao';
+  const inspectionRef = inspectedByMao
+    ? `Inspection report of the Mandal Agriculture Officer, ${mandalValue}${inspectionDate ? `, dt. ${inspectionDate}` : ''}.`
+    : `Field inspection of the dealer premises conducted${inspectionDate ? ` on ${inspectionDate}` : ''}.`;
   const officerLocation = isADA
     ? (form.division.trim() ? form.division.trim() : '________________')
     : isDAO
@@ -471,6 +475,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
           { text: '.' },
         ],
       },
+      { kind: 'labelPara', label: '2.', labelPad: 'Ref:', indent: SUBJECT_REF_INDENT, segments: [{ text: inspectionRef }] },
       { kind: 'gap', mm: 2 },
       { kind: 'center', text: '***' },
       { kind: 'gap', mm: 1 },
@@ -555,11 +560,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   // government + department heading, "Office of the ___" with address, Rc.No./Date row,
   // centred title, Sub + numbered Ref, "Whereas / And whereas" numbered paras with
   // roman-numbered violation items, addressee AFTER the signature, Copy To last.
-  const inspectedByMao = form.inspectedBy === 'mao';
   const officeLocation = isDAO ? districtDisplay : officerLocation;
-  const inspectionRef = inspectedByMao
-    ? `Inspection report of the Mandal Agriculture Officer, ${mandalValue}${inspectionDate ? `, dt. ${inspectionDate}` : ''}.`
-    : `Field inspection of the dealer premises conducted${inspectionDate ? ` on ${inspectionDate}` : ''}.`;
   const scnSectionBlocks: NoticeBlock[] = [
     ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${toRoman(index + 1)})`, labelBold: false, segments: item, indent: 8 })),
     ...(violationItems.length > 0 ? [{ kind: 'gap', mm: 2 } as NoticeBlock] : []),
@@ -613,7 +614,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
         { text: `${firmDisplay}.`, bold: true },
       ],
     },
-    { kind: 'labelPara', label: '2.', segments: [{ text: inspectionRef }], labelPad: 'Ref:', indent: SUBJECT_REF_INDENT, labelBold: false },
+    { kind: 'labelPara', label: '2.', labelPad: 'Ref:', indent: SUBJECT_REF_INDENT, segments: [{ text: inspectionRef }] },
     { kind: 'gap', mm: 2 },
     { kind: 'center', text: '***' },
     { kind: 'gap', mm: 1 },
@@ -712,41 +713,43 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
   const renderBlock = (block: NoticeBlock) => {
       switch (block.kind) {
         case 'center':
-          return `<div style="text-align:center;${block.bold ? 'font-weight:700;' : ''}${block.underline ? 'text-decoration:underline;' : ''}${block.size ? `font-size:${block.size}pt;` : ''}">${escapeHtml(block.text)}</div>`;
+          return `<div style="text-align:center;${block.bold ? 'font-weight:700;' : ''}${block.underline ? 'text-decoration:underline;' : ''}${block.size ? `font-size:${block.size}pt;` : ''}line-height:1.25;">${escapeHtml(block.text)}</div>`;
         case 'memoRow': {
           const leftLines = block.leftLines ?? (block.left ? [block.left] : []);
           const rightLines = block.rightLines ?? (block.right ? [block.right] : []);
-          const leftHtml = leftLines.map((line) => `<div>${segmentsHtml(line)}</div>`).join('');
-          const rightInner = rightLines.map((line) => `<div>${segmentsHtml(line)}</div>`).join('');
+          const leftHtml = leftLines.map((line) => `<div style="line-height:1.25;">${segmentsHtml(line)}</div>`).join('');
+          const rightInner = rightLines.map((line) => `<div style="line-height:1.25;">${segmentsHtml(line)}</div>`).join('');
           const rightHtml = block.rightLines
             ? `<span style="display:inline-block;text-align:center;">${rightInner}</span>`
             : `<span>${rightInner}</span>`;
-          return `<div style="display:flex;justify-content:space-between;gap:12pt;"><span>${leftHtml}</span>${rightHtml}</div>`;
+          return `<div style="display:flex;justify-content:space-between;gap:12pt;line-height:1.25;"><span>${leftHtml}</span>${rightHtml}</div>`;
         }
         case 'para':
-          return `<p style="margin:0 0 4pt ${block.indent || 0}mm;text-align:justify;${block.firstLineIndent ? `text-indent:${block.firstLineIndent}mm;` : ''}">${segmentsHtml(block.segments)}</p>`;
+          return `<p style="margin:0 0 4pt ${block.indent || 0}mm;text-align:justify;${block.firstLineIndent ? `text-indent:${block.firstLineIndent}mm;` : ''}line-height:1.25;">${segmentsHtml(block.segments)}</p>`;
         case 'labelPara': {
           const pad = block.labelPad ? `<strong style="flex:none;visibility:hidden;">${escapeHtml(block.labelPad)}&nbsp;</strong>` : '';
-          const labelTag = block.labelBold === false ? 'span' : 'strong';
-          const suffix = block.labelSuffix ? `<span style="flex:none;">${escapeHtml(block.labelSuffix)}&nbsp;</span>` : '';
-          return `<div style="display:flex;margin:0 0 4pt ${block.indent || 0}mm;">${pad}<${labelTag} style="flex:none;">${escapeHtml(block.label)}&nbsp;</${labelTag}>${suffix}<span style="flex:1;text-align:justify;">${segmentsHtml(block.segments)}</span></div>`;
+          const isRef = block.label === 'Ref:';
+          const isRefNumber = !isRef && !block.labelSuffix && /^\d+\.$/.test(block.label);
+          const labelTag = (block.labelBold === false || isRefNumber) ? 'span' : 'strong';
+          const suffix = block.labelSuffix ? `<span style="flex:none;${isRef ? 'font-weight:normal;' : ''}">${escapeHtml(block.labelSuffix)}&nbsp;</span>` : '';
+          return `<div style="display:flex;margin:0 0 4pt ${block.indent || 0}mm;line-height:1.25;">${pad}<${labelTag} style="flex:none;">${escapeHtml(block.label)}&nbsp;</${labelTag}>${suffix}<span style="flex:1;text-align:justify;">${segmentsHtml(block.segments)}</span></div>`;
         }
         case 'heading':
-          return `<p style="margin:6pt 0 2pt;font-weight:700;">${escapeHtml(block.text)}</p>`;
+          return `<p style="margin:6pt 0 2pt;font-weight:700;line-height:1.25;">${escapeHtml(block.text)}</p>`;
         case 'lines': {
-          const inner = block.items.map((item) => `<div>${segmentsHtml(item)}</div>`).join('');
+          const inner = block.items.map((item) => `<div style="line-height:1.25;">${segmentsHtml(item)}</div>`).join('');
           if (block.centerLines) {
-            return `<div style="margin-left:${block.indent || 0}mm;text-align:right;transform:translateX(${block.offsetX || 0}mm);"><div style="display:inline-block;text-align:center;">${inner}</div></div>`;
+            return `<div style="margin-left:${block.indent || 0}mm;text-align:right;transform:translateX(${block.offsetX || 0}mm);line-height:1.25;"><div style="display:inline-block;text-align:center;">${inner}</div></div>`;
           }
-          return `<div style="margin-left:${block.indent || 0}mm;text-align:${block.align === 'right' ? 'right' : 'left'};transform:translateX(${block.offsetX || 0}mm);">${inner}</div>`;
+          return `<div style="margin-left:${block.indent || 0}mm;text-align:${block.align === 'right' ? 'right' : 'left'};transform:translateX(${block.offsetX || 0}mm);line-height:1.25;">${inner}</div>`;
         }
         case 'table':
           return `<table style="width:92%;border-collapse:collapse;margin:2pt 0 2pt 8mm;"><thead><tr>${block.header
-            .map((cell) => `<th style="border:1pt solid #000;padding:2pt 6pt;text-align:left;font-weight:700;">${escapeHtml(cell)}</th>`)
+            .map((cell) => `<th style="border:1pt solid #000;padding:2pt 6pt;text-align:left;font-weight:700;line-height:1.25;">${escapeHtml(cell)}</th>`)
             .join('')}</tr></thead><tbody>${block.rows
             .map(
               (row) =>
-                `<tr><td style="border:1pt solid #000;padding:2pt 6pt;">${escapeHtml(row.label)}</td><td style="border:1pt solid #000;padding:2pt 6pt;font-weight:700;">${escapeHtml(row.value || '______________________________')}</td></tr>`
+                `<tr><td style="border:1pt solid #000;padding:2pt 6pt;line-height:1.25;">${escapeHtml(row.label)}</td><td style="border:1pt solid #000;padding:2pt 6pt;font-weight:700;line-height:1.25;">${escapeHtml(row.value || '______________________________')}</td></tr>`
             )
             .join('')}</tbody></table>`;
         case 'gridTable': {
@@ -756,12 +759,12 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
           const total = weights.reduce((a, b) => a + b, 0);
           const cols = weights.map((w) => `<col style="width:${(w / total) * 100}%;"/>`).join('');
           return `<table style="width:100%;border-collapse:collapse;margin:2pt 0 4pt;table-layout:fixed;font-size:10pt;">${cols}<thead><tr>${block.header
-            .map((cell) => `<th style="border:1pt solid #000;padding:2pt 4pt;text-align:center;font-weight:700;vertical-align:middle;overflow-wrap:break-word;">${escapeHtml(cell)}</th>`)
+            .map((cell) => `<th style="border:1pt solid #000;padding:2pt 4pt;text-align:center;font-weight:700;vertical-align:middle;overflow-wrap:break-word;line-height:1.25;">${escapeHtml(cell)}</th>`)
             .join('')}</tr></thead><tbody>${block.rows
             .map(
               (row) =>
                 `<tr>${row
-                  .map((cell) => `<td style="border:1pt solid #000;padding:2pt 4pt;text-align:center;vertical-align:middle;overflow-wrap:break-word;">${escapeHtml(cell) || '&nbsp;'}</td>`)
+                  .map((cell) => `<td style="border:1pt solid #000;padding:2pt 4pt;text-align:center;vertical-align:middle;overflow-wrap:break-word;line-height:1.25;">${escapeHtml(cell) || '&nbsp;'}</td>`)
                   .join('')}</tr>`
             )
             .join('')}</tbody></table>`;
@@ -796,7 +799,7 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
 }
 
 export function noticeDocumentHtml(blocks: NoticeBlock[]) {
-  return `<html><head><style>@page{size:A4;margin:18mm 15mm;}body{font-family:${NOTICE_FONT_STACK};font-size:12pt;line-height:1.5;color:#000;}</style></head><body>${noticeBlocksHtml(blocks)}</body></html>`;
+  return `<html><head><style>@page{size:A4;margin:18mm 15mm;}body{font-family:${NOTICE_FONT_STACK};font-size:12pt;line-height:1.25;color:#000;}</style></head><body>${noticeBlocksHtml(blocks)}</body></html>`;
 }
 
 export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: NoticeDocFont = 'bookAntiqua') {
@@ -823,8 +826,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
   const font = { ascii: latinFont, hAnsi: latinFont, eastAsia: latinFont, cs: DOCX_TELUGU_FONT };
   const fontSize = 24;
   const mmToTwips = (mm: number) => Math.round(mm * 56.6929);
-  const wordLine = { line: mmToTwips(5.8), lineRule: LineRuleType.AT_LEAST };
-  const wordGridLine = { line: mmToTwips((5.8 * 11) / 12), lineRule: LineRuleType.AT_LEAST };
+  const wordGridLine = { line: 250, lineRule: LineRuleType.EXACT };
   const runs = (segments: NoticeSegment[]) => segments.map((segment) => new TextRun({ text: segment.text, bold: segment.bold, underline: segment.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: fontSize }));
   const children: FileChild[] = [];
   const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
@@ -839,7 +841,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           children: [new TextRun({ text: block.text, bold: block.bold, underline: block.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: block.size ? block.size * 2 : fontSize })],
           alignment: AlignmentType.CENTER,
           keepNext: block.keepWithNext,
-          spacing: { ...wordLine, after: 0 },
+          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
         }));
         break;
       case 'memoRow':
@@ -850,7 +852,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             children: runs(line),
             alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
             keepNext: block.keepWithNext,
-            spacing: { ...wordLine, after: 0 },
+            spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
           });
           children.push(new Table({
             rows: [new TableRow({
@@ -871,7 +873,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             children: [...runs(block.left || []), new TextRun({ text: '\t', font, size: fontSize }), ...runs(block.right || [])],
             tabStops: [{ type: TabStopType.RIGHT, position: mmToTwips(165) }],
             keepNext: block.keepWithNext,
-            spacing: { ...wordLine, after: 0 },
+            spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
           }));
         }
         break;
@@ -884,23 +886,25 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             firstLine: mmToTwips(block.firstLineIndent || 0),
           },
           keepNext: block.keepWithNext,
-          spacing: { ...wordLine, after: mmToTwips(1) },
+          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
         }));
         break;
       case 'labelPara': {
         const hanging = mmToTwips(7);
         // Approximate the bold leader's width so "2." aligns under "1." after "Ref:".
         const padTwips = block.labelPad ? mmToTwips(block.labelPad.length * 2.3 + 1.4) : 0;
+        const isRef = block.label === 'Ref:';
+        const isRefNumber = !isRef && !block.labelSuffix && /^\d+\.$/.test(block.label);
         children.push(new Paragraph({
           children: [
-            new TextRun({ text: `${block.label} `, bold: block.labelBold !== false, font, size: fontSize }),
-            ...(block.labelSuffix ? [new TextRun({ text: `${block.labelSuffix} `, font, size: fontSize })] : []),
+            new TextRun({ text: `${block.label} `, bold: (block.labelBold !== false && !isRefNumber), font, size: fontSize }),
+            ...(block.labelSuffix ? [new TextRun({ text: `${block.labelSuffix} `, bold: isRef ? false : true, font, size: fontSize })] : []),
             ...runs(block.segments),
           ],
           alignment: AlignmentType.JUSTIFIED,
           indent: { left: mmToTwips(block.indent || 0) + padTwips + hanging, hanging },
           keepNext: block.keepWithNext,
-          spacing: { ...wordLine, after: mmToTwips(1) },
+          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
         }));
         break;
       }
@@ -908,7 +912,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
         children.push(new Paragraph({
           children: [new TextRun({ text: block.text, bold: true, font, size: fontSize })],
           keepNext: block.keepWithNext,
-          spacing: { ...wordLine, before: 0, after: 0 },
+          spacing: { line: 300, lineRule: LineRuleType.EXACT, before: 0, after: 0 },
         }));
         break;
       case 'lines':
@@ -921,7 +925,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
                   children: runs(item),
                   alignment: AlignmentType.CENTER,
                   keepNext: block.keepWithNext,
-                  spacing: { ...wordLine, after: 0 },
+                  spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
                 })),
                 verticalAlign: VerticalAlign.CENTER,
                 borders: noBorders,
@@ -940,14 +944,14 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             alignment: block.align === 'right' ? AlignmentType.RIGHT : AlignmentType.LEFT,
             indent: { left: mmToTwips(block.indent || 0) },
             keepNext: block.keepWithNext,
-            spacing: { ...wordLine, after: 0 },
+            spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
           })));
         }
         break;
       case 'table': {
         const cellParagraph = (text: string, bold = false) => new Paragraph({
           children: [new TextRun({ text, bold, font, size: fontSize })],
-          spacing: { ...wordLine, after: 0 },
+          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
         });
         children.push(new Table({
           rows: [
@@ -1015,7 +1019,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           children: [],
           border: { bottom: { style: BorderStyle.DASHED, size: 6, color: '000000', space: 1 } },
           keepNext: block.keepWithNext,
-          spacing: { ...wordLine, after: 0 },
+          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
         }));
         break;
       case 'gap':
@@ -1035,7 +1039,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
       default: {
         document: {
           run: { font, size: fontSize, color: '000000' },
-          paragraph: { spacing: { ...wordLine } },
+          paragraph: { spacing: { line: 300, lineRule: LineRuleType.EXACT } },
         },
       },
     },
@@ -1100,7 +1104,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
   const MT = 15;
   const MB = 18;
   const CW = PAGE_W - ML - MR;
-  const LH = 5.8;
+  const LH = 5.29;
   let y = MT;
 
   const measure = (text: string, bold: boolean, size = 12) => {
@@ -1314,7 +1318,9 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
       }
       case 'labelPara': {
         const padWidth = block.labelPad ? measure(`${block.labelPad} `, true) : 0;
-        const labelBold = block.labelBold !== false;
+        const isRef = block.label === 'Ref:';
+        const isRefNumber = !isRef && !block.labelSuffix && /^\d+\.$/.test(block.label);
+        const labelBold = (block.labelBold !== false) && !isRefNumber;
         const suffix = block.labelSuffix ? `${block.labelSuffix} ` : '';
         const indent = (block.indent || 0) + padWidth;
         const labelWidth = measure(`${block.label} `, labelBold) + measure(suffix, false);
@@ -1449,6 +1455,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const previewRef = useRef<HTMLDivElement>(null);
   const [resetSpinKey, setResetSpinKey] = useState(0);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [noticeToDelete, setNoticeToDelete] = useState<SavedNotice | null>(null);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
 
   const config = useMemo(() => getConfig(form.category), [form.category]);
@@ -1527,7 +1535,9 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     } catch {}
   }, [form]);
 
-  const updateForm = (patch: Partial<NoticeFormState>) => setForm((current) => ({ ...current, ...patch }));
+  const updateForm = (patch: Partial<NoticeFormState>) => setForm((current) => {
+    return { ...current, ...patch };
+  });
 
   const selectedEnclosures = useMemo(
     () => form.enclosures.split(',').map((item) => item.trim()).filter(Boolean),
@@ -1708,8 +1718,17 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   };
 
   const deleteSavedNotice = (notice: SavedNotice) => {
-    setSavedNotices((current) => current.filter((item) => item.id !== notice.id));
-    showDeleted('Notice deleted', notice.memoNumber || 'Untitled notice');
+    setNoticeToDelete(notice);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteNotice = () => {
+    if (noticeToDelete) {
+      setSavedNotices((current) => current.filter((item) => item.id !== noticeToDelete.id));
+      showDeleted('Notice deleted', noticeToDelete.memoNumber || 'Untitled notice');
+      setNoticeToDelete(null);
+    }
+    setDeleteConfirmOpen(false);
   };
 
   const noticeFileName = () => `${form.memoNumber || 'show-cause-notice'}.pdf`.replace(/[\\/]/g, '-');
@@ -1741,6 +1760,27 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     }
   };
 
+  const printPreview = async () => {
+    try {
+      const doc = await buildNoticePdfDoc();
+      const pdfBlob = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+          URL.revokeObjectURL(pdfUrl);
+        };
+      } else {
+        URL.revokeObjectURL(pdfUrl);
+        showWarning('Print blocked', 'Please allow popups for this site to print the document.');
+      }
+    } catch (error) {
+      console.error('Unable to generate PDF for printing:', error);
+      showWarning('Print failed', 'Please try again.');
+    }
+  };
+
   const previewNotice = () => {
     setShowNoticePreview(true);
     showInfo('Preview ready');
@@ -1756,6 +1796,13 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
         message="All entered details will be cleared."
         onConfirm={() => { setResetConfirmOpen(false); performReset(); }}
         onCancel={() => setResetConfirmOpen(false)}
+      />
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete this notice?"
+        message={`Delete "${noticeToDelete?.memoNumber || 'Untitled notice'}"? This action cannot be undone.`}
+        onConfirm={confirmDeleteNotice}
+        onCancel={() => { setDeleteConfirmOpen(false); setNoticeToDelete(null); }}
       />
       {!lockedCategory && showCompactHeader && (
         <CompactToolkitHeader
@@ -1800,7 +1847,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
             <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Officer Details</h3>
             <div className="grid gap-3 md:grid-cols-3">
               <TextInput label="Inspecting Officer" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
-              <SelectInput label="Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
+              <SelectInput label="Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value }) } options={designationOptions} />
               <SelectInput
                 label="District"
                 value={form.district}
@@ -1866,6 +1913,10 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
             <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value, dealerName: value })} />
             <label className="block md:col-span-2">
               <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
+              <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
+                {effectiveLocationValue(form.mandal, form.manualMandal) || 'Mandal'} Mandal,<br />
+                {effectiveLocationValue(form.district, form.manualDistrict) || 'District'} District. (auto-added)
+              </span>
               <textarea
                 value={form.dealerAddress}
                 onChange={(event) => updateForm({ dealerAddress: event.target.value })}
@@ -2049,6 +2100,9 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               <Save className="h-4 w-4" aria-hidden="true" />
               Save Draft
             </button>
+            <button type="button" onClick={printPreview} className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 sm:text-sm" aria-label="Print">
+              <Printer className="h-4 w-4" aria-hidden="true" />
+            </button>
             <div className="relative">
               <button
                 type="button"
@@ -2106,7 +2160,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
-            style={{ fontFamily: NOTICE_FONT_STACK, fontSize: '12pt', lineHeight: 1.5 }}
+            style={{ fontFamily: NOTICE_FONT_STACK, fontSize: '12pt', lineHeight: 1.15 }}
             dangerouslySetInnerHTML={{ __html: noticeHtml }}
           />
         </section>

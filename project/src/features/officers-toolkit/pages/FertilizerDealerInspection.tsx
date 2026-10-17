@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
+import { ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, Printer, RotateCcw, Save, Trash2 } from 'lucide-react';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
@@ -151,6 +151,7 @@ export function FertilizerDealerInspection() {
   const [error, setError] = useState('');
   const [dirty, setDirty] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
   const inputClass = useInputClass();
 
   useDirtyGuard(dirty);
@@ -246,6 +247,42 @@ export function FertilizerDealerInspection() {
     showInfo('Preview ready');
   };
 
+  const printPreview = () => {
+    const message = validate();
+    setError(message);
+    if (message) return;
+    if (previewRef.current) {
+      const printContent = previewRef.current.innerHTML;
+      const printWindow = window.open('', '', 'width=800,height=600');
+      if (printWindow) {
+        printWindow.document.title = '';
+        printWindow.document.write(`
+          <html>
+          <head>
+          <title></title>
+              <style>
+                body { font-family: 'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif; font-size: 12pt; line-height: 1.5; padding: 20px; }
+                table { border-collapse: collapse; width: 100%; }
+                th, td { border: 1px solid #64748b; padding: 2px 4px; text-align: left; font-size: 11pt; }
+                th { background-color: #f0f9ff; font-weight: bold; }
+                .signature-block { position: absolute; bottom: 20px; width: 45%; }
+                .signature-left { left: 20px; }
+                .signature-right { right: 20px; text-align: right; }
+                .signature-label { font-weight: bold; font-size: 10.5pt; }
+                .signature-name { font-style: italic; font-size: 10pt; margin-top: 4px; }
+                @media print { body { padding: 0; } }
+              </style>
+            </head>
+            <body>${printContent}</body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+      }
+    }
+  };
+
   const generateExcel = async () => {
     const message = validate();
     setError(message);
@@ -261,7 +298,6 @@ export function FertilizerDealerInspection() {
         dealerName: form.dealerName,
         inspectorLabel: 'Signature of fertilizer inspector and seal',
         inspectorLines: [
-          form.inspectorName.trim() ? `(${form.inspectorName.trim()})` : '',
           form.inspectorDesignation.split('&')[0].trim(),
           form.inspectorOffice.trim(),
         ].filter(Boolean),
@@ -634,8 +670,17 @@ export function FertilizerDealerInspection() {
       )}
 
       {showPreview && (
-        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={<ExportMenu tone="sky" onPdf={generatePdf} onExcel={generateExcel} />}>
-          <Preview form={form} stockTotal={stockTotal} />
+        <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={printPreview} className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-black text-slate-700 dark:text-slate-200 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700" aria-label="Print">
+              <Printer className="h-4 w-4" />
+            </button>
+            <ExportMenu tone="sky" onPdf={generatePdf} onExcel={generateExcel} />
+          </div>
+        }>
+          <div ref={previewRef}>
+            <Preview form={form} stockTotal={stockTotal} />
+          </div>
         </Modal>
       )}
 
@@ -765,7 +810,6 @@ async function buildPdf(form: InspectionForm) {
   doc.setFont('times', 'italic');
   if (form.dealerName.trim()) doc.text(`(${form.dealerName.trim()})`, dealerCenterX, signatureY + 5, { align: 'center' });
   [
-    form.inspectorName.trim() ? `(${form.inspectorName.trim()})` : '',
     form.inspectorDesignation.split('&')[0].trim(),
     form.inspectorOffice.trim(),
   ]
@@ -826,19 +870,18 @@ function Preview({ form, stockTotal }: { form: InspectionForm; stockTotal: numbe
           </div>
         </div>
       ))}
-      <div className="mt-8 flex justify-between text-xs font-bold">
-        <div className="text-center">
-          <p>Signature of dealer and seal</p>
-          {form.dealerName.trim() && <p className="font-normal italic">({form.dealerName.trim()})</p>}
+      <div className="mt-8 flex justify-between text-xs font-bold signature-wrapper">
+        <div className="signature-block signature-left">
+          <p className="signature-label">Signature of dealer and seal</p>
+          {form.dealerName.trim() && <p className="signature-name">({form.dealerName.trim()})</p>}
         </div>
-        <div className="text-center">
-          <p>Signature of fertilizer inspector and seal</p>
+        <div className="signature-block signature-right">
+          <p className="signature-label">Signature of fertilizer inspector and seal</p>
           {[
-            form.inspectorName.trim() ? `(${form.inspectorName.trim()})` : '',
             form.inspectorDesignation.split('&')[0].trim(),
             form.inspectorOffice.trim(),
           ].filter(Boolean).map((line) => (
-            <p key={line} className="font-normal italic">{line}</p>
+            <p key={line} className="signature-name">{line}</p>
           ))}
         </div>
       </div>

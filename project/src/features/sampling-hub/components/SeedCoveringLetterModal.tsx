@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
@@ -157,6 +158,9 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   const [isGenerating, setIsGenerating] = useState(false);
   const [, setIsPreviewing] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [sampleToDelete, setSampleToDelete] = useState<number | null>(null);
+  const [clearQueueConfirmOpen, setClearQueueConfirmOpen] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [letterType, setLetterType] = useState<'PMG' | 'BT Protein'>('PMG');
   const [isMobile, setIsMobile] = useState(false);
@@ -270,22 +274,35 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   };
 
   const handleDeleteSample = (index: number) => {
-    const updatedQueue = editedQueue.filter((_, i) => i !== index);
-    setEditedQueue(updatedQueue);
-    
-    safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
-    
-    if (validationErrors[index]) {
-      const newErrors = { ...validationErrors };
-      delete newErrors[index];
-      setValidationErrors(newErrors);
+    setSampleToDelete(index);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteSample = () => {
+    if (sampleToDelete !== null) {
+      const updatedQueue = editedQueue.filter((_, i) => i !== sampleToDelete);
+      setEditedQueue(updatedQueue);
+      safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+
+      if (validationErrors[sampleToDelete]) {
+        const newErrors = { ...validationErrors };
+        delete newErrors[sampleToDelete];
+        setValidationErrors(newErrors);
+      }
+      setSampleToDelete(null);
     }
+    setDeleteConfirmOpen(false);
   };
 
   const handleClearQueue = () => {
+    setClearQueueConfirmOpen(true);
+  };
+
+  const confirmClearQueue = () => {
     setEditedQueue([]);
+    safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify([]));
     setValidationErrors({});
-    safeStorage.removeItem(SEED_COVERING_LETTER_QUEUE_KEY);
+    setClearQueueConfirmOpen(false);
     setMessage('Queue cleared successfully.');
     setTimeout(() => setMessage(null), 3000);
   };
@@ -775,6 +792,20 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete this sample?"
+        message="This sample will be removed from the queue. This action cannot be undone."
+        onConfirm={confirmDeleteSample}
+        onCancel={() => { setDeleteConfirmOpen(false); setSampleToDelete(null); }}
+      />
+      <ConfirmDialog
+        open={clearQueueConfirmOpen}
+        title="Clear all samples?"
+        message="All samples will be removed from the queue. This action cannot be undone."
+        onConfirm={confirmClearQueue}
+        onCancel={() => setClearQueueConfirmOpen(false)}
+      />
     </div>
   );
 }

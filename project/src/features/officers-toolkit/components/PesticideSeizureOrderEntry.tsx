@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Download, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Download, Edit3, FileText, FileType, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear } from '../../../shared/utils/financialYear';
 import { withOthersOption, effectiveLocationValue } from '../../../shared/data/assistantDirectorLocation';
 import {
@@ -173,7 +173,7 @@ function buildSeizureModel(form: PestSeizureFormState): NoticeBlock[] {
   ]);
 
   return [
-    { kind: 'center', text: 'V (B): FORM OF RECEIPT FOR THE SEIZED INSECTICIDES', bold: true, size: 13 },
+    { kind: 'center', text: 'V (B): FORM OF RECEIPT FOR THE SEIZED INSECTICIDES', bold: true, underline: true, size: 13 },
     { kind: 'center', text: '[See rule 32]', bold: true },
     { kind: 'gap', mm: 4 },
     ...(form.refNumber.trim()
@@ -269,6 +269,8 @@ export function PesticideSeizureOrderEntry() {
   const previewRef = useRef<HTMLDivElement>(null);
   const [resetSpinKey, setResetSpinKey] = useState(0);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<SavedPestSeizureOrder | null>(null);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
 
   const noticeBlocks = useMemo(() => buildSeizureModel(form), [form]);
@@ -336,9 +338,18 @@ export function PesticideSeizureOrderEntry() {
   };
 
   const deleteSavedOrder = (order: SavedPestSeizureOrder) => {
-    setSavedOrders((current) => current.filter((item) => item.id !== order.id));
-    if (editingId === order.id) setEditingId(null);
-    showDeleted('Order deleted', order.refNumber || 'Untitled order');
+    setOrderToDelete(order);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteOrder = () => {
+    if (orderToDelete) {
+      setSavedOrders((current) => current.filter((item) => item.id !== orderToDelete.id));
+      if (editingId === orderToDelete.id) setEditingId(null);
+      showDeleted('Order deleted', orderToDelete.refNumber || 'Untitled order');
+      setOrderToDelete(null);
+    }
+    setDeleteConfirmOpen(false);
   };
 
   const performReset = () => {
@@ -381,6 +392,27 @@ export function PesticideSeizureOrderEntry() {
     showSuccess('PDF downloaded', `${fileBase()}.pdf`);
   };
 
+  const printPreview = async () => {
+    try {
+      const doc = await renderNoticePdfDocument(noticeBlocks, form.refNumber || 'Receipt for Seized Insecticides', 'bookAntiqua');
+      const pdfBlob = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+          URL.revokeObjectURL(pdfUrl);
+        };
+      } else {
+        URL.revokeObjectURL(pdfUrl);
+        showWarning('Print blocked', 'Please allow popups for this site to print the document.');
+      }
+    } catch (error) {
+      console.error('Unable to generate PDF for printing:', error);
+      showWarning('Print failed', 'Please try again.');
+    }
+  };
+
   const downloadWord = async () => {
     try {
       const blob = await buildNoticeWordDocument(noticeBlocks, 'bookAntiqua');
@@ -414,6 +446,13 @@ export function PesticideSeizureOrderEntry() {
         message="All entered details will be cleared."
         onConfirm={() => { setResetConfirmOpen(false); performReset(); }}
         onCancel={() => setResetConfirmOpen(false)}
+      />
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete this order?"
+        message={`Delete "${orderToDelete?.refNumber || 'Untitled order'}"? This action cannot be undone.`}
+        onConfirm={confirmDeleteOrder}
+        onCancel={() => { setDeleteConfirmOpen(false); setOrderToDelete(null); }}
       />
 
       <div className="flex flex-wrap items-center justify-end gap-2">
@@ -538,6 +577,9 @@ export function PesticideSeizureOrderEntry() {
           <Save className="h-4 w-4" aria-hidden="true" />
           Save Draft
         </button>
+        <button type="button" onClick={printPreview} className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 sm:text-sm" aria-label="Print">
+          <Printer className="h-4 w-4" aria-hidden="true" />
+        </button>
         <div className="relative">
           <button
             type="button"
@@ -595,7 +637,7 @@ export function PesticideSeizureOrderEntry() {
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
-            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.5 }}
+            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.15 }}
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
         </section>

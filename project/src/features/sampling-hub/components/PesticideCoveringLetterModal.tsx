@@ -3,6 +3,7 @@ import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isCombinationProductFromActiveIngredient } from '../lib/statutoryPesticidePdf';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
@@ -110,6 +111,9 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [sampleToDelete, setSampleToDelete] = useState<number | null>(null);
+  const [clearQueueConfirmOpen, setClearQueueConfirmOpen] = useState(false);
   const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const showMessage = (msg: string, duration: number = 3000) => {
@@ -281,17 +285,25 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   };
 
   const handleDeleteSample = (index: number) => {
-    setEditingTechnicalNames({});
-    const updatedQueue = editedQueue.filter((_, i) => i !== index);
-    setEditedQueue(updatedQueue);
-    
-    safeStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
-    
-    if (validationErrors[index]) {
-      const newErrors = { ...validationErrors };
-      delete newErrors[index];
-      setValidationErrors(newErrors);
+    setSampleToDelete(index);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteSample = () => {
+    if (sampleToDelete !== null) {
+      setEditingTechnicalNames({});
+      const updatedQueue = editedQueue.filter((_, i) => i !== sampleToDelete);
+      setEditedQueue(updatedQueue);
+      safeStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+
+      if (validationErrors[sampleToDelete]) {
+        const newErrors = { ...validationErrors };
+        delete newErrors[sampleToDelete];
+        setValidationErrors(newErrors);
+      }
+      setSampleToDelete(null);
     }
+    setDeleteConfirmOpen(false);
   };
 
   const handleAddManually = () => {
@@ -309,11 +321,16 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   };
 
   const handleClearQueue = () => {
+    setClearQueueConfirmOpen(true);
+  };
+
+  const confirmClearQueue = () => {
     setEditedQueue([]);
     setEditingTechnicalNames({});
     setValidationErrors({});
     safeStorage.removeItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY);
     showMessage('Queue cleared successfully.');
+    setClearQueueConfirmOpen(false);
   };
 
   const handlePreview = async () => {
@@ -693,6 +710,20 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete this sample?"
+        message="This sample will be removed from the queue. This action cannot be undone."
+        onConfirm={confirmDeleteSample}
+        onCancel={() => { setDeleteConfirmOpen(false); setSampleToDelete(null); }}
+      />
+      <ConfirmDialog
+        open={clearQueueConfirmOpen}
+        title="Clear all samples?"
+        message="All samples will be removed from the queue. This action cannot be undone."
+        onConfirm={confirmClearQueue}
+        onCancel={() => setClearQueueConfirmOpen(false)}
+      />
     </div>
   );
 }

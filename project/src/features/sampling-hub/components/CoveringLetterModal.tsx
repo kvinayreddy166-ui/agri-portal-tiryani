@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
@@ -165,6 +166,9 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   const [letterType, setLetterType] = useState<'quality-analysis' | 'safe-custody'>('quality-analysis');
   const [isMobile, setIsMobile] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [sampleToDelete, setSampleToDelete] = useState<number | null>(null);
+  const [clearQueueConfirmOpen, setClearQueueConfirmOpen] = useState(false);
   const lastPropagatedMetadata = useRef<CoveringLetterMetadata | null>(null);
 
   // Auto-save Covering Letter Details to localStorage
@@ -299,18 +303,24 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   };
 
   const handleDeleteSample = (index: number) => {
-    const updatedQueue = editedQueue.filter((_, i) => i !== index);
-    setEditedQueue(updatedQueue);
-    
-    // Update localStorage to maintain single source of truth
-    safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
-    
-    // Clear validation error for this index if it exists
-    if (validationErrors[index]) {
-      const newErrors = { ...validationErrors };
-      delete newErrors[index];
-      setValidationErrors(newErrors);
+    setSampleToDelete(index);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteSample = () => {
+    if (sampleToDelete !== null) {
+      const updatedQueue = editedQueue.filter((_, i) => i !== sampleToDelete);
+      setEditedQueue(updatedQueue);
+      safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+
+      if (validationErrors[sampleToDelete]) {
+        const newErrors = { ...validationErrors };
+        delete newErrors[sampleToDelete];
+        setValidationErrors(newErrors);
+      }
+      setSampleToDelete(null);
     }
+    setDeleteConfirmOpen(false);
   };
 
   const handleAddManually = () => {
@@ -326,10 +336,15 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   };
 
   const handleClearQueue = () => {
+    setClearQueueConfirmOpen(true);
+  };
+
+  const confirmClearQueue = () => {
     setEditedQueue([]);
     setValidationErrors({});
     safeStorage.removeItem(COVERING_LETTER_QUEUE_KEY);
     setMessage('Queue cleared successfully.');
+    setClearQueueConfirmOpen(false);
   };
 
   const handlePreview = async () => {
@@ -821,6 +836,20 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
           </footer>
         </div>
       )}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete this sample?"
+        message="This sample will be removed from the queue. This action cannot be undone."
+        onConfirm={confirmDeleteSample}
+        onCancel={() => { setDeleteConfirmOpen(false); setSampleToDelete(null); }}
+      />
+      <ConfirmDialog
+        open={clearQueueConfirmOpen}
+        title="Clear all samples?"
+        message="All samples will be removed from the queue. This action cannot be undone."
+        onConfirm={confirmClearQueue}
+        onCancel={() => setClearQueueConfirmOpen(false)}
+      />
     </>
   );
 }

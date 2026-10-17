@@ -4,7 +4,7 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { supabase } from '../../../shared/lib/supabase';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
-import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, Clock, ChevronRight as ArrowRight, X, ClipboardList, Download } from 'lucide-react';
+import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, Clock, ChevronRight as ArrowRight, X, ClipboardList, Download, Printer } from 'lucide-react';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
 import { statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
@@ -2028,7 +2028,7 @@ export function TourDiary() {
       const pageHeight = doc.internal.pageSize.getHeight();
       const printableBottom = pageHeight - 8;
       let abstractY = finalY + 7;
-      if (abstractY + 16 > printableBottom) {
+      if (abstractY + 19 > printableBottom) {
         doc.addPage();
         drawDiaryTitle();
         abstractY = 26;
@@ -2036,20 +2036,23 @@ export function TourDiary() {
       doc.setFontSize(7);
       doc.setFont('times', 'bold');
       doc.text('ABSTRACT', 14, abstractY);
+      doc.underline(14, abstractY, doc.getTextWidth('ABSTRACT'), 0.2);
       const drawAbstractValue = (label: string, value: string | number, x: number, y: number) => {
         doc.setFont('times', 'normal');
-        doc.text(label, x, y);
-        const valueX = x + doc.getTextWidth(label);
+        // Add extra spacing after "of " for better readability
+        const spacedLabel = label.replace(/of /g, 'of  ');
+        doc.text(spacedLabel, x, y);
+        const valueX = x + doc.getTextWidth(spacedLabel);
         doc.setFont('times', 'bold');
         doc.text(String(value), valueX, y);
       };
       drawAbstractValue('\u2022 Total No. of Working Days: ', summary.workingDays, 14, abstractY + 4);
-      drawAbstractValue('\u2022 Total No. of Days on Tour: ', summary.tourDays, 108, abstractY + 4);
-      drawAbstractValue('\u2022 No. of Villages Visited: ', summary.villagesVisited, 14, abstractY + 7);
-      drawAbstractValue('\u2022 Leaves Availed: ', summary.leavesAvailed, 108, abstractY + 7);
+      drawAbstractValue('\u2022 Total No. of Days on Tour: ', summary.tourDays, 14, abstractY + 6.5);
+      drawAbstractValue('\u2022 Leaves Availed: ', summary.leavesAvailed, 14, abstractY + 9);
+      drawAbstractValue('\u2022 No. of Villages Visited: ', summary.villagesVisited, 14, abstractY + 11.5);
 
       // Signature section - conditional based on officer designation
-      const signatureY = abstractY + 17;
+      const signatureY = abstractY + 7.5;
       const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
 
       doc.setFont('times', 'bold');
@@ -2071,12 +2074,217 @@ export function TourDiary() {
       }
 
       const fileName = `Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.pdf`;
-      
+
       // PDFs are downloaded only; My Diaries stores drafts exclusively.
       doc.save(fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);
       showToast(`Failed to generate PDF. ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  }
+
+  // Print PDF - generates PDF and prints it directly
+  async function printPDF() {
+    if (isGeneratingPDF) return;
+
+    setIsGeneratingPDF(true);
+    try {
+      const [{ jsPDF }, { autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
+      const doc = new jsPDF('l', 'mm', 'a4');
+      await setupPdfUnicodeFonts(doc);
+      const summary = calculateMonthlySummary();
+      const tableData = generateTourDiaryData();
+
+      // Validate table data before passing to autoTable
+      if (!Array.isArray(tableData)) {
+        throw new Error('Invalid table data: must be an array');
+      }
+
+      // If table is empty, generate empty rows for the month
+      if (tableData.length === 0) {
+        console.warn('Table data is empty, generating empty rows');
+        const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = formatDate(currentYear, currentMonth, day);
+          tableData.push([date, '', '', '', '', '', '', '', '', '']);
+        }
+      }
+
+      // Ensure all rows are arrays
+      const validatedTableData = tableData.map(row => {
+        if (!Array.isArray(row)) {
+          console.error('Invalid row data:', row);
+          return Array(TOUR_DIARY_COLUMN_COUNT).fill('');
+        }
+        return Array.from({ length: TOUR_DIARY_COLUMN_COUNT }, (_, index) => row[index] ?? '');
+      });
+
+      const specialPdfRowStatuses = validatedTableData.map(row => getSpecialDateStatusForRow(row));
+
+      // Header - TOUR DIARY OF format
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      const monthYear = `${MONTHS[currentMonth - 1]}-${currentYear}`;
+      const displayDesignation = statutoryDesignationDisplay(getHeaderDesignation()) || '....................';
+      const displayMandal = getHeaderMandal() || '....................';
+      const displayDivision = getHeaderDivision() || '....................';
+      const displayDistrict = getHeaderDistrict() || '....................';
+      const displayName = officerName || officerInfo?.name || '....................';
+
+      const drawDiaryTitle = () => {
+        const yPos = 12;
+        const segments: { text: string; bold: boolean }[] = [
+          { text: 'Tour Diary of ', bold: false },
+          { text: ' ' + displayName, bold: true },
+          { text: ', ', bold: false },
+          { text: displayDesignation, bold: true },
+        ];
+        if (shouldShowHeaderMandal() && displayMandal !== '....................') {
+          segments.push({ text: ', ', bold: false }, { text: displayMandal, bold: true });
+        }
+        if (shouldShowHeaderDivision() && displayDivision !== '....................') {
+          segments.push({ text: ', Division: ', bold: false }, { text: displayDivision, bold: true });
+        }
+        if (displayDistrict !== '....................') {
+          segments.push({ text: ', Dist: ', bold: false }, { text: displayDistrict, bold: true });
+        }
+        segments.push(
+          { text: ' for the Month of ', bold: false },
+          { text: monthYear, bold: true },
+          { text: '.', bold: false }
+        );
+
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+
+        const tableCenterX = 144;
+        const totalWidth = segments.reduce((sum, seg) => {
+          doc.setFont('times', seg.bold ? 'bold' : 'normal');
+          return sum + doc.getTextWidth(seg.text);
+        }, 0);
+        let xPos = Math.max(14, tableCenterX - totalWidth / 2);
+
+        for (const seg of segments) {
+          doc.setFont('times', seg.bold ? 'bold' : 'normal');
+          doc.text(seg.text, xPos, yPos);
+          xPos += doc.getTextWidth(seg.text);
+        }
+      };
+
+      drawDiaryTitle();
+
+      // Generate table with merged header cells
+      autoTable(doc, {
+        startY: 14,
+        margin: { top: 14, left: 14, right: 14, bottom: 8 },
+        rowPageBreak: 'avoid',
+        tableWidth: 'wrap',
+        head: [
+          ['Date', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE (KM)', 'PURPOSE OF VISIT'],
+          ['', 'FROM', 'TO', 'FROM', 'TO', '', 'From', 'To', '', ''],
+        ],
+        body: validatedTableData,
+        theme: 'grid',
+        styles: {
+          font: 'times',
+          fontSize: 7,
+          cellPadding: 0.5,
+          lineColor: [0, 0, 0],
+          lineWidth: 0.1,
+        },
+        headStyles: {
+          fillColor: [255, 255, 255],
+          textColor: [0, 0, 0],
+          fontStyle: 'bold',
+          fontSize: 7,
+          halign: 'center',
+          valign: 'middle',
+        },
+        columnStyles: {
+          0: { cellWidth: 18, halign: 'center' },
+          1: { cellWidth: 36, halign: 'center' },
+          2: { cellWidth: 38, halign: 'center' },
+          3: { cellWidth: 18, halign: 'center' },
+          4: { cellWidth: 18, halign: 'center' },
+          5: { cellWidth: 22, halign: 'center' },
+          6: { cellWidth: 18, halign: 'center' },
+          7: { cellWidth: 18, halign: 'center' },
+          8: { cellWidth: 18, halign: 'center' },
+          9: { cellWidth: 56, halign: 'center' }
+        },
+        didDrawPage: (data) => {
+          if (data.pageNumber > 1) drawDiaryTitle();
+        },
+      });
+
+      // Abstract section
+      const finalY = (doc as any).lastAutoTable.finalY;
+      doc.setFontSize(7);
+      doc.setFont('times', 'bold');
+      doc.text(summary.totalDistance.toFixed(0), 209, finalY + 3, { align: 'center' });
+      doc.setFont('times', 'normal');
+
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const printableBottom = pageHeight - 8;
+      let abstractY = finalY + 7;
+      if (abstractY + 19 > printableBottom) {
+        doc.addPage();
+        drawDiaryTitle();
+        abstractY = 26;
+      }
+      doc.setFontSize(7);
+      doc.setFont('times', 'bold');
+      doc.text('ABSTRACT', 14, abstractY);
+      doc.underline(14, abstractY, doc.getTextWidth('ABSTRACT'), 0.2);
+      const drawAbstractValue = (label: string, value: string | number, x: number, y: number) => {
+        doc.setFont('times', 'normal');
+        const spacedLabel = label.replace(/of /g, 'of  ');
+        doc.text(spacedLabel, x, y);
+        const valueX = x + doc.getTextWidth(spacedLabel);
+        doc.setFont('times', 'bold');
+        doc.text(String(value), valueX, y);
+      };
+      drawAbstractValue('\u2022 Total No. of Working Days: ', summary.workingDays, 14, abstractY + 4);
+      drawAbstractValue('\u2022 Total No. of Days on Tour: ', summary.tourDays, 14, abstractY + 6.5);
+      drawAbstractValue('\u2022 Leaves Availed: ', summary.leavesAvailed, 14, abstractY + 9);
+      drawAbstractValue('\u2022 No. of Villages Visited: ', summary.villagesVisited, 14, abstractY + 11.5);
+
+      // Signature section
+      const signatureY = abstractY + 7.5;
+      const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
+
+      doc.setFont('times', 'bold');
+      doc.setFontSize(8);
+
+      if (normalizedDesignation === 'mandal agriculture officer') {
+        doc.text('Mandal Agriculture Officer', 94, signatureY);
+        doc.text('Asst.Director of Agriculture', 200, signatureY);
+      } else if (normalizedDesignation === 'district agriculture officer') {
+        doc.text('District Agriculture Officer', 94, signatureY);
+      } else if (normalizedDesignation === 'asst director of agriculture' || normalizedDesignation === 'assistant director of agriculture') {
+        doc.text('Asst.Director of Agriculture (R)', 94, signatureY);
+      } else if (normalizedDesignation) {
+        doc.text('Asst.Director of Agriculture', 200, signatureY);
+      }
+
+      // Generate blob and print
+      const pdfBlob = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+          URL.revokeObjectURL(pdfUrl);
+        };
+      } else {
+        URL.revokeObjectURL(pdfUrl);
+        showToast('Print blocked. Please allow popups for this site to print the document.', 'error');
+      }
+    } catch (error) {
+      console.error('Error generating PDF for printing:', error);
+      showToast(`Failed to print. ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -2158,24 +2366,59 @@ export function TourDiary() {
       sheet.addRow([]);
       const abstractHeading = sheet.addRow(['ABSTRACT']);
       abstractHeading.getCell(1).font = { name: FONT_NAME, size: 11, bold: true, underline: true };
-      const addAbstractRow = (leftLabel: string, leftValue: string, rightLabel: string, rightValue: string) => {
-        const row = sheet.addRow([]);
+      const addAbstractRow = (label: string, value: string) => {
+        const row = sheet.addRow([label, '', value, '', '', '', '', '', '']);
         const rowNumber = row.number;
-        sheet.mergeCells(`A${rowNumber}:C${rowNumber}`);
-        sheet.mergeCells(`F${rowNumber}:H${rowNumber}`);
-        row.getCell(1).value = leftLabel;
-        row.getCell(4).value = leftValue;
-        row.getCell(6).value = rightLabel;
-        row.getCell(9).value = rightValue;
-        [1, 4, 6, 9].forEach((columnNumber) => {
+        sheet.mergeCells(`A${rowNumber}:B${rowNumber}`);
+        // Add extra spacing after "of " for better readability
+        const spacedLabel = label.replace(/of /g, 'of  ');
+        row.getCell(1).value = spacedLabel;
+        [1, 3].forEach((columnNumber) => {
           const cell = row.getCell(columnNumber);
-          const isValue = columnNumber === 4 || columnNumber === 9;
+          const isValue = columnNumber === 3;
           cell.font = { name: FONT_NAME, size: 11, bold: isValue };
           cell.alignment = { horizontal: isValue ? 'center' : 'left', vertical: 'middle' };
         });
       };
-      addAbstractRow('• Total No. of Working Days', String(summary.workingDays), '• Total No. of Days on Tour', String(summary.tourDays));
-      addAbstractRow('• No. of Villages Visited', String(summary.villagesVisited), '• Leaves Availed', String(summary.leavesAvailed));
+      addAbstractRow('• Total No. of Working Days', String(summary.workingDays));
+      addAbstractRow('• Total No. of Days on Tour', String(summary.tourDays));
+      addAbstractRow('• Leaves Availed', String(summary.leavesAvailed));
+      addAbstractRow('• No. of Villages Visited', String(summary.villagesVisited));
+
+      // Signature section
+      sheet.addRow([]);
+
+      const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
+      if (normalizedDesignation === 'mandal agriculture officer') {
+        const sigRow1 = sheet.addRow(['Mandal Agriculture Officer', '', '', '', '', 'Asst.Director of Agriculture', '', '', '', '']);
+        sheet.mergeCells(`A${sigRow1.number}:E${sigRow1.number}`);
+        sheet.mergeCells(`F${sigRow1.number}:J${sigRow1.number}`);
+        sigRow1.eachCell({ includeEmpty: true }, (cell) => {
+          cell.font = { name: FONT_NAME, size: 11 };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        });
+      } else if (normalizedDesignation === 'district agriculture officer') {
+        const sigRow1 = sheet.addRow(['District Agriculture Officer', '', '', '', '', '', '', '', '', '']);
+        sheet.mergeCells(`A${sigRow1.number}:E${sigRow1.number}`);
+        sigRow1.eachCell({ includeEmpty: true }, (cell) => {
+          cell.font = { name: FONT_NAME, size: 11 };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        });
+      } else if (normalizedDesignation === 'asst director of agriculture' || normalizedDesignation === 'assistant director of agriculture') {
+        const sigRow1 = sheet.addRow(['Asst.Director of Agriculture (R)', '', '', '', '', '', '', '', '', '']);
+        sheet.mergeCells(`A${sigRow1.number}:E${sigRow1.number}`);
+        sigRow1.eachCell({ includeEmpty: true }, (cell) => {
+          cell.font = { name: FONT_NAME, size: 11 };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        });
+      } else if (normalizedDesignation) {
+        const sigRow1 = sheet.addRow(['', '', '', '', '', 'Asst.Director of Agriculture', '', '', '', '']);
+        sheet.mergeCells(`F${sigRow1.number}:J${sigRow1.number}`);
+        sigRow1.eachCell({ includeEmpty: true }, (cell) => {
+          cell.font = { name: FONT_NAME, size: 11 };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        });
+      }
 
       sheet.pageSetup.printTitlesRow = '3:4';
 
@@ -2991,10 +3234,6 @@ export function TourDiary() {
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Working Days</p>
               <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.workingDays}</p>
             </div>
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Tour Days</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.tourDays}</p>
-            </div>
             <div className="rounded-lg bg-orange-50 p-3 dark:bg-orange-950/30 col-span-2 sm:col-span-3 lg:col-span-2">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Holidays & Non-Working Days</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -3020,10 +3259,6 @@ export function TourDiary() {
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No. of Optional Holidays Availed</p>
               <p className="text-lg font-black text-purple-700 dark:text-purple-400">{summary.optionalHolidaysAvailed}</p>
             </div>
-            <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No. of Leaves Availed</p>
-              <p className="text-lg font-black text-gray-700 dark:text-gray-400">{summary.leavesAvailed}</p>
-            </div>
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Total Distance</p>
               <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.totalDistance.toFixed(1)} km</p>
@@ -3031,6 +3266,23 @@ export function TourDiary() {
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Closing Meter</p>
               <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.closingMeter.toFixed(1)}</p>
+            </div>
+            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30 col-span-2 sm:col-span-3 lg:col-span-4">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Tour Summary</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div>
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Total No. of Days on Tour</p>
+                  <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.tourDays}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Leaves Availed</p>
+                  <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.leavesAvailed}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">No. of Villages Visited</p>
+                  <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.villagesVisited}</p>
+                </div>
+              </div>
             </div>
           </div>
           {summary.isReconciled ? (
@@ -3750,17 +4002,17 @@ export function TourDiary() {
               </div>
 
               <div className="mt-4 text-xs text-gray-900">
-                <p className="font-bold">ABSTRACT</p>
-                <div className="grid grid-cols-2 gap-x-6">
+                <p className="font-bold underline">ABSTRACT</p>
+                <div className="space-y-1 tracking-wide">
                   <p>• Total No. of Working Days: {summary.workingDays}</p>
                   <p>• Total No. of Days on Tour: {summary.tourDays}</p>
-                  <p>• No. of Villages Visited: {summary.villagesVisited}</p>
                   <p>• Leaves Availed: {summary.leavesAvailed}</p>
+                  <p>• No. of Villages Visited: {summary.villagesVisited}</p>
                 </div>
               </div>
 
               {/* Signature section - conditional based on officer designation */}
-              <div className="mt-4 flex translate-x-[7px] flex-col pl-12">
+              <div className="mt-1 flex translate-x-[7px] flex-col pl-12">
                 {(() => {
                   const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
                   if (normalizedDesignation === 'mandal agriculture officer') {
@@ -3795,6 +4047,17 @@ export function TourDiary() {
             </div>
 
             <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPreview(false);
+                  printPDF();
+                }}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-900 dark:text-slate-200"
+              >
+                <Printer className="h-4 w-4" />
+                Print
+              </button>
               <button
                 type="button"
                 onClick={() => {

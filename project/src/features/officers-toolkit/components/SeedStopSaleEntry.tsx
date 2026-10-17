@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Download, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Download, Edit3, FileText, FileType, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear } from '../../../shared/utils/financialYear';
 import { withOthersOption, effectiveLocationValue } from '../../../shared/data/assistantDirectorLocation';
 import { CROP_OPTIONS } from '../pages/SeedDealerInspection';
@@ -280,6 +280,8 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
   const previewRef = useRef<HTMLDivElement>(null);
   const [resetSpinKey, setResetSpinKey] = useState(0);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<SavedSeedStopSaleOrder | null>(null);
   const overLimitWarned = useRef(false);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
 
@@ -360,9 +362,8 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
   };
 
   const deleteSavedOrder = (order: SavedSeedStopSaleOrder) => {
-    setSavedOrders((current) => current.filter((item) => item.id !== order.id));
-    if (editingId === order.id) setEditingId(null);
-    showDeleted('Order deleted', order.orderNumber || 'Untitled order');
+    setOrderToDelete(order);
+    setDeleteConfirmOpen(true);
   };
 
   const performReset = () => {
@@ -406,6 +407,27 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
     showSuccess('PDF downloaded', `${fileBase()}.pdf`);
   };
 
+  const printOrder = async () => {
+    try {
+      const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'bookAntiqua');
+      const pdfBlob = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+          URL.revokeObjectURL(pdfUrl);
+        };
+      } else {
+        URL.revokeObjectURL(pdfUrl);
+        showWarning('Print blocked', 'Please allow popups for this site to print the document.');
+      }
+    } catch (error) {
+      console.error('Unable to generate PDF for printing:', error);
+      showWarning('Print failed', 'Please try again.');
+    }
+  };
+
   const downloadWord = async () => {
     try {
       const blob = await buildNoticeWordDocument(noticeBlocks, 'bookAntiqua');
@@ -439,6 +461,21 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
         message="All entered details will be cleared."
         onConfirm={() => { setResetConfirmOpen(false); performReset(); }}
         onCancel={() => setResetConfirmOpen(false)}
+      />
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete this order?"
+        message={`Delete "${orderToDelete?.orderNumber || 'Untitled order'}"? This action cannot be undone.`}
+        onConfirm={() => {
+          if (orderToDelete) {
+            setSavedOrders((current) => current.filter((item) => item.id !== orderToDelete.id));
+            if (editingId === orderToDelete.id) setEditingId(null);
+            showDeleted('Order deleted', orderToDelete.orderNumber || 'Untitled order');
+            setOrderToDelete(null);
+          }
+          setDeleteConfirmOpen(false);
+        }}
+        onCancel={() => { setDeleteConfirmOpen(false); setOrderToDelete(null); }}
       />
 
       <div className="flex flex-wrap items-center justify-end gap-2">
@@ -581,6 +618,9 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
           <Save className="h-4 w-4" aria-hidden="true" />
           Save Draft
         </button>
+        <button type="button" onClick={printOrder} className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 sm:text-sm" aria-label="Print">
+          <Printer className="h-4 w-4" aria-hidden="true" />
+        </button>
         <div className="relative">
           <button
             type="button"
@@ -638,7 +678,7 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
-            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.5 }}
+            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.15 }}
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
         </section>

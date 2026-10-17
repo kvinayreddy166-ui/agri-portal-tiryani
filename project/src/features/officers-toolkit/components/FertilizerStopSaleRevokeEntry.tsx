@@ -281,6 +281,8 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
   const previewRef = useRef<HTMLDivElement>(null);
   const [resetSpinKey, setResetSpinKey] = useState(0);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<SavedFertRevokeOrder | null>(null);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
 
   const noticeBlocks = useMemo(() => buildRevokeModel(form), [form]);
@@ -348,9 +350,18 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
   };
 
   const deleteSavedOrder = (order: SavedFertRevokeOrder) => {
-    setSavedOrders((current) => current.filter((item) => item.id !== order.id));
-    if (editingId === order.id) setEditingId(null);
-    showDeleted('Order deleted', order.orderNumber || 'Untitled order');
+    setOrderToDelete(order);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteOrder = () => {
+    if (orderToDelete) {
+      setSavedOrders((current) => current.filter((item) => item.id !== orderToDelete.id));
+      if (editingId === orderToDelete.id) setEditingId(null);
+      showDeleted('Order deleted', orderToDelete.orderNumber || 'Untitled order');
+      setOrderToDelete(null);
+    }
+    setDeleteConfirmOpen(false);
   };
 
   const performReset = () => {
@@ -428,6 +439,13 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
         message="All entered details will be cleared."
         onConfirm={() => { setResetConfirmOpen(false); performReset(); }}
         onCancel={() => setResetConfirmOpen(false)}
+      />
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete this order?"
+        message={`Delete "${orderToDelete?.orderNumber || 'Untitled order'}"? This action cannot be undone.`}
+        onConfirm={confirmDeleteOrder}
+        onCancel={() => { setDeleteConfirmOpen(false); setOrderToDelete(null); }}
       />
 
       <div className="flex flex-wrap items-center justify-end gap-2">
@@ -615,7 +633,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
-            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.5 }}
+            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.15 }}
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
         </section>
