@@ -5,254 +5,42 @@ import { supabase } from '../../../shared/lib/supabase';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, Clock, ChevronRight as ArrowRight, X, ClipboardList, Download, Printer } from 'lucide-react';
-import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
 import { statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
 import { getAllSavedDiaries, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft } from '../lib/diaryStorage';
-
 import { safeStorage } from '../../../shared/lib/safeStorage';
-// Types
-interface TourDiary {
-  id: string;
-  officer_id: string;
-  year: number;
-  month: number;
-  opening_meter: number;
-  closing_meter: number | null;
-  total_km: number;
-  status: string;
-  officer_name?: string;
-  designation?: string;
-  district?: string;
-  mandal?: string;
-}
-
-interface TourDiaryDraft {
-  version: number;
-  id: string;
-  officerName: string;
-  designation: string;
-  customDesignation?: string;
-  district: string;
-  customDistrict?: string;
-  mandal: string;
-  customMandal?: string;
-  division: string;
-  customDivision?: string;
-  month: number;
-  year: number;
-  journeys: TourJourney[];
-  dateStatusOverrides?: Record<string, DateStatusOverride>;
-  openingMeter: number;
-  closingMeter: number | null;
-  totalKm: number;
-  displayName?: string;
-  createdAt: string;
-  updatedAt: string;
-  dateRemarks?: Record<string, string>;
-}
-
-interface TourJourney {
-  id: string;
-  tour_diary_id: string;
-  officer_id: string;
-  journey_date: string;
-  from_place: string;
-  to_place: string;
-  time_from: string;
-  time_to: string;
-  mode: string;
-  custom_mode_of_journey: string | null;
-  meter_from: number;
-  distance_km: number;
-  meter_to: number;
-  purposes: string[];
-  custom_purpose: string | null;
-  remarks: string | null;
-}
-
-type HolidayType = 'GENERAL' | 'OPTIONAL';
-type DateStatusOverrideType = 'WORKING' | HolidayType;
-type LeaveType = 'NONE' | 'NORMAL_LEAVE' | 'OPTIONAL_HOLIDAY' | 'OPTIONAL_HOLIDAY_LEAVE';
-type SpecialDateStatusType = 'holiday' | 'sunday' | 'secondSaturday' | 'optionalHoliday' | 'leave';
-
-interface Holiday {
-  id: string;
-  year: number;
-  date: string; // DD-MM-YYYY
-  holiday_name: string;
-  holiday_type: HolidayType;
-}
-
-interface DateStatusOverride {
-  status: DateStatusOverrideType;
-  holiday_name: string;
-  holiday_type: HolidayType;
-  leave_type?: LeaveType;
-}
-
-interface SpecialDateStatus {
-  type: SpecialDateStatusType;
-  label: string;
-}
-
-interface OfficerInfo {
-  name: string;
-  designation: string;
-  office: string;
-  mandal: string;
-  division: string;
-  district: string;
-}
-
-// Constants
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
-
-
-const RECOVERY_STORAGE_KEY = 'tourDiaryRecovery';
-const DRAFT_VERSION = 1;
-const TOUR_DIARY_COLUMN_COUNT = 10;
-
-const JOURNEY_MODES = [
-  'Car', 'Govt. Vehicle', 'Hired Vehicle', 'Bus', 'Others'
-];
-
-const PURPOSES = [
-  'ADA Review Meeting', 'Aspirational Block Meeting', 'ATMA Demonstrations', 'ATMA Training Programme',
-  'Awareness Meeting on Paddy Fine Varieties', 'Awareness Meeting on Pesticide Usage', 'Cheyutha Pension Verification', 'Collector Review Meeting',
-  'Crop Booking Enhancement', 'Crop Cutting Experiments', 'DAO Review Meeting', 'DCS Monitoring',
-  'Departmental Work', 'Drone Spray Demonstration', 'Farmer Field Visit', 'Farm Pond Visit',
-  'Farm School Trainings', 'FFS App Awareness', 'Field Inspection', 'Fertilizer Distribution Monitoring',
-  'FIVES', 'Government Programme', 'GT Points Collection', 'Indiramma Illu Verification',
-  'Input Dealer Shop Inspection', 'Kisan Mela', 'License Verification', 'MCP Awareness Programme',
-  'MCP HDPS Training', 'NMNF Awareness Programme', 'NFSM Demonstration', 'Office Work',
-  'Oil Palm Extension Awareness', 'Official Departmental Training', 'Orientation Programme',
-  'Paddy Procurement Center Visit', 'Pest & Disease Surveillance', 'PM Kisan Beneficiary Verification',
-  'Prajavani Grievance', 'Rythu Nestham VC', 'Sample Collection', 'Video Conference on Govt Schemes',
-  'Attending Quality Control Cases at District Court', 'Additional duties assigned by other Depts',
-  'Others'
-];
-
-// 2026 Holidays Data
-const HOLIDAYS_2026: Omit<Holiday, 'id'>[] = [
-  // General Holidays
-  { year: 2026, date: '14-01-2026', holiday_name: 'Bhogi', holiday_type: 'GENERAL' },
-  { year: 2026, date: '15-01-2026', holiday_name: 'Sankranti / Pongal', holiday_type: 'GENERAL' },
-  { year: 2026, date: '26-01-2026', holiday_name: 'Republic Day', holiday_type: 'GENERAL' },
-  { year: 2026, date: '15-02-2026', holiday_name: 'Maha Shivaratri', holiday_type: 'GENERAL' },
-  { year: 2026, date: '03-03-2026', holiday_name: 'Holi', holiday_type: 'GENERAL' },
-  { year: 2026, date: '19-03-2026', holiday_name: 'Ugadi', holiday_type: 'GENERAL' },
-  { year: 2026, date: '21-03-2026', holiday_name: 'Eid-ul-Fitr (Ramzan)', holiday_type: 'GENERAL' },
-  { year: 2026, date: '22-03-2026', holiday_name: 'Following Day of Ramzan', holiday_type: 'GENERAL' },
-  { year: 2026, date: '27-03-2026', holiday_name: 'Sri Rama Navami', holiday_type: 'GENERAL' },
-  { year: 2026, date: '03-04-2026', holiday_name: 'Good Friday', holiday_type: 'GENERAL' },
-  { year: 2026, date: '05-04-2026', holiday_name: "Babu Jagjivan Ram's Birthday", holiday_type: 'GENERAL' },
-  { year: 2026, date: '14-04-2026', holiday_name: "Dr. B.R. Ambedkar's Birthday", holiday_type: 'GENERAL' },
-  { year: 2026, date: '27-05-2026', holiday_name: 'Eid-ul-Azha (Bakrid)', holiday_type: 'GENERAL' },
-  { year: 2026, date: '26-06-2026', holiday_name: 'Shahadat Imam Hussain (R.A.) / 10th Moharram', holiday_type: 'GENERAL' },
-  { year: 2026, date: '10-08-2026', holiday_name: 'Bonalu', holiday_type: 'GENERAL' },
-  { year: 2026, date: '15-08-2026', holiday_name: 'Independence Day', holiday_type: 'GENERAL' },
-  { year: 2026, date: '26-08-2026', holiday_name: 'Eid Milad-un-Nabi', holiday_type: 'GENERAL' },
-  { year: 2026, date: '04-09-2026', holiday_name: 'Sri Krishna Ashtami', holiday_type: 'GENERAL' },
-  { year: 2026, date: '14-09-2026', holiday_name: 'Vinayaka Chavithi', holiday_type: 'GENERAL' },
-  { year: 2026, date: '02-10-2026', holiday_name: 'Mahatma Gandhi Jayanthi', holiday_type: 'GENERAL' },
-  { year: 2026, date: '18-10-2026', holiday_name: 'Saddula Bathukamma', holiday_type: 'GENERAL' },
-  { year: 2026, date: '20-10-2026', holiday_name: 'Vijaya Dasami / Dussehra', holiday_type: 'GENERAL' },
-  { year: 2026, date: '21-10-2026', holiday_name: 'Following Day of Vijaya Dasami', holiday_type: 'GENERAL' },
-  { year: 2026, date: '08-11-2026', holiday_name: 'Deepavali', holiday_type: 'GENERAL' },
-  { year: 2026, date: '24-11-2026', holiday_name: "Karthika Purnima / Guru Nanak's Jayanthi", holiday_type: 'GENERAL' },
-  { year: 2026, date: '25-12-2026', holiday_name: 'Christmas', holiday_type: 'GENERAL' },
-  { year: 2026, date: '26-12-2026', holiday_name: 'Following Day of Christmas / Boxing Day', holiday_type: 'GENERAL' },
-  // Optional Holidays
-  { year: 2026, date: '01-01-2026', holiday_name: 'New Year Day', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '03-01-2026', holiday_name: 'Birthday of Hazrath Ali (R.A.)', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '16-01-2026', holiday_name: 'Kanumu', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '17-01-2026', holiday_name: 'Shab-e-Meraj', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '23-01-2026', holiday_name: 'Sri Panchami', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '04-02-2026', holiday_name: 'Shab-e-Barat', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '10-03-2026', holiday_name: 'Shahadat Hzt Ali (R.A.)', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '13-03-2026', holiday_name: 'Jumaatul Wada', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '17-03-2026', holiday_name: 'Shab-e-Qader', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '31-03-2026', holiday_name: 'Mahaveer Jayanthi', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '14-04-2026', holiday_name: "Tamil New Year's Day", holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '20-04-2026', holiday_name: 'Basava Jayanthi', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '01-05-2026', holiday_name: 'Buddha Purnima', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '04-06-2026', holiday_name: 'Eid-e-Ghadeer', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '25-06-2026', holiday_name: '9th Moharram', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '16-07-2026', holiday_name: 'Ratha Yathra', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '04-08-2026', holiday_name: 'Arbayeen', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '15-08-2026', holiday_name: "Parsi New Year's Day", holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '21-08-2026', holiday_name: 'Varalakshmi Vratham', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '28-08-2026', holiday_name: 'Sravana Purnima / Rakhi Purnima', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '23-09-2026', holiday_name: 'Yazdahum Shareef', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '19-10-2026', holiday_name: 'Maharnavami', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '26-10-2026', holiday_name: "Birthday of Hzt. Syed Mohammed Juvanpuri Mahdi Ma'ud (A.S.)", holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '08-11-2026', holiday_name: 'Naraka Chaturdhi', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '24-12-2026', holiday_name: 'Christmas Eve', holiday_type: 'OPTIONAL' },
-  { year: 2026, date: '26-12-2026', holiday_name: 'Birthday of Hazrath Ali', holiday_type: 'OPTIONAL' }
-];
-
-// Helper Functions
-function getDaysInMonth(year: number, month: number): number {
-  return new Date(year, month, 0).getDate();
-}
-
-function getDayName(year: number, month: number, day: number): string {
-  const date = new Date(year, month - 1, day);
-  return date.toLocaleDateString('en-US', { weekday: 'long' });
-}
-
-function isSunday(year: number, month: number, day: number): boolean {
-  const date = new Date(year, month - 1, day);
-  return date.getDay() === 0;
-}
-
-function isTuesday(year: number, month: number, day: number): boolean {
-  const date = new Date(year, month - 1, day);
-  return date.getDay() === 2;
-}
-
-function isSecondSaturday(year: number, month: number, day: number): boolean {
-  const date = new Date(year, month - 1, day);
-  if (date.getDay() !== 6) return false; // Not a Saturday
-  
-  // Check if it's the second Saturday (day 8-14)
-  return day >= 8 && day <= 14;
-}
-
-function formatDate(year: number, month: number, day: number): string {
-  return `${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}-${year}`;
-}
-
-function displayDateToHolidayDate(date: string): string {
-  const [day, month, year] = date.split('-');
-  return `${year}-${month}-${day}`;
-}
-
-function getHolidayTypeLabel(type: HolidayType): string {
-  return type === 'GENERAL' ? 'General Holiday' : 'Optional Holiday';
-}
-
-function groupHolidaysByDate(calendar: Holiday[]): Map<string, Holiday[]> {
-  const holidaysByDate = new Map<string, Holiday[]>();
-  calendar.forEach((holiday) => {
-    const existing = holidaysByDate.get(holiday.date) || [];
-    holidaysByDate.set(holiday.date, [...existing, holiday]);
-  });
-  return holidaysByDate;
-}
-
-function formatTime(time: string): string {
-  const [hours, minutes] = time.split(':');
-  const hour = parseInt(hours, 10);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const hour12 = hour % 12 || 12;
-  return `${hour12}:${minutes} ${ampm}`;
-}
+import type {
+  TourDiary,
+  TourDiaryDraft,
+  TourJourney,
+  LeaveType,
+  Holiday,
+  DateStatusOverride,
+  SpecialDateStatus,
+  OfficerInfo,
+} from '../types/tourDiaryTypes';
+import {
+  MONTHS,
+  RECOVERY_STORAGE_KEY,
+  DRAFT_VERSION,
+  TOUR_DIARY_COLUMN_COUNT,
+  JOURNEY_MODES,
+  PURPOSES,
+  HOLIDAYS_2026,
+  getDaysInMonth,
+  getDayName,
+  isSunday,
+  isTuesday,
+  isSecondSaturday,
+  formatDate,
+  displayDateToHolidayDate,
+  getHolidayTypeLabel,
+  groupHolidaysByDate,
+  formatTime,
+} from '../lib/tourDiaryData';
+import { generateTourDiaryPdf } from '../lib/tourDiaryPdf';
+import { exportTourDiaryExcel } from '../lib/tourDiaryExcel';
 
 function formatOptionalTime(time?: string | null): string {
   return time ? formatTime(time) : '';
@@ -1837,246 +1625,29 @@ export function TourDiary() {
   // Generate PDF - Match reference Excel format, fit on one page
   async function generatePDF(customTableData?: any[][]) {
     if (isGeneratingPDF) return;
-    
+
     setIsGeneratingPDF(true);
     try {
-      const [{ jsPDF }, { autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
-      const doc = new jsPDF('l', 'mm', 'a4');
-      await setupPdfUnicodeFonts(doc);
       const summary = calculateMonthlySummary();
       const tableData = customTableData || generateTourDiaryData();
+      const specialPdfRowStatuses = tableData.map(row => getSpecialDateStatusForRow(row));
 
-
-      // Validate table data before passing to autoTable
-      if (!Array.isArray(tableData)) {
-        throw new Error('Invalid table data: must be an array');
-      }
-
-      // If table is empty, generate empty rows for the month
-      if (tableData.length === 0) {
-        console.warn('Table data is empty, generating empty rows');
-        const daysInMonth = getDaysInMonth(currentYear, currentMonth);
-        for (let day = 1; day <= daysInMonth; day++) {
-          const date = formatDate(currentYear, currentMonth, day);
-          tableData.push([date, '', '', '', '', '', '', '', '', '']);
-        }
-      }
-
-      // Ensure all rows are arrays
-      const validatedTableData = tableData.map(row => {
-        if (!Array.isArray(row)) {
-          console.error('Invalid row data:', row);
-          return Array(TOUR_DIARY_COLUMN_COUNT).fill(''); // Fallback to empty row
-        }
-        return Array.from({ length: TOUR_DIARY_COLUMN_COUNT }, (_, index) => row[index] ?? '');
+      await generateTourDiaryPdf({
+        currentYear,
+        currentMonth,
+        displayName: officerName || officerInfo?.name || '....................',
+        displayDesignation: statutoryDesignationDisplay(getHeaderDesignation()) || '....................',
+        displayMandal: getHeaderMandal() || '....................',
+        displayDivision: getHeaderDivision() || '....................',
+        displayDistrict: getHeaderDistrict() || '....................',
+        shouldShowMandal: shouldShowHeaderMandal(),
+        shouldShowDivision: shouldShowHeaderDivision(),
+        normalizedDesignation: normalizeHeaderDesignation(getHeaderDesignation()),
+        tableData,
+        summary,
+        specialPdfRowStatuses,
+        forPrint: false,
       });
-
-      const specialPdfRowStatuses = validatedTableData.map(row => getSpecialDateStatusForRow(row));
-
-      // Log table data for debugging
-
-      // Header - TOUR DIARY OF format
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0); // Black
-      const monthYear = `${MONTHS[currentMonth - 1]}-${currentYear}`;
-      const displayDesignation = statutoryDesignationDisplay(getHeaderDesignation()) || '....................';
-      const displayMandal = getHeaderMandal() || '....................';
-      const displayDivision = getHeaderDivision() || '....................';
-      const displayDistrict = getHeaderDistrict() || '....................';
-      const displayName = officerName || officerInfo?.name || '....................';
-      
-      const drawDiaryTitle = () => {
-        const yPos = 12;
-        const segments: { text: string; bold: boolean }[] = [
-          { text: 'Tour Diary of ', bold: false },
-          { text: ' ' + displayName, bold: true },
-          { text: ', ', bold: false },
-          { text: displayDesignation, bold: true },
-        ];
-        if (shouldShowHeaderMandal() && displayMandal !== '....................') {
-          segments.push({ text: ', ', bold: false }, { text: displayMandal, bold: true });
-        }
-        if (shouldShowHeaderDivision() && displayDivision !== '....................') {
-          segments.push({ text: ', Division: ', bold: false }, { text: displayDivision, bold: true });
-        }
-        if (displayDistrict !== '....................') {
-          segments.push({ text: ', Dist: ', bold: false }, { text: displayDistrict, bold: true });
-        }
-        segments.push(
-          { text: ' for the Month of ', bold: false },
-          { text: monthYear, bold: true },
-          { text: '.', bold: false }
-        );
-
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-
-        // Center the full title line over the table (table spans x=14..274, center=144)
-        const tableCenterX = 144;
-        const totalWidth = segments.reduce((sum, seg) => {
-          doc.setFont('times', seg.bold ? 'bold' : 'normal');
-          return sum + doc.getTextWidth(seg.text);
-        }, 0);
-        let xPos = Math.max(14, tableCenterX - totalWidth / 2);
-
-        for (const seg of segments) {
-          doc.setFont('times', seg.bold ? 'bold' : 'normal');
-          doc.text(seg.text, xPos, yPos);
-          xPos += doc.getTextWidth(seg.text);
-        }
-      };
-
-      drawDiaryTitle();
-
-      // Generate table with merged header cells - compact for one page
-      autoTable(doc, {
-        startY: 14,
-        margin: { top: 14, left: 14, right: 14, bottom: 8 },
-        rowPageBreak: 'avoid',
-        tableWidth: 'wrap',
-        head: [
-          ['Date', 'Visiting Place', 'Visiting Place', 'Visiting Time', 'Visiting Time', 'Mode of Journey', 'Meter Reading', 'Meter Reading', 'Distance (Km)', 'Purpose of Visit'],
-          ['', 'From', 'To', 'From', 'To', '', 'From', 'To', '', '']
-        ],
-        body: validatedTableData,
-        styles: { fontSize: 7, cellPadding: 1, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0] },
-        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2, lineColor: [0, 0, 0], fontSize: 7, font: 'times', halign: 'center' },
-        alternateRowStyles: { fillColor: [255, 255, 255] },
-        tableLineColor: [0, 0, 0],
-        tableLineWidth: 0.1,
-        didParseCell: (data) => {
-          if (data.section === 'body') {
-            const specialDateStatus = specialPdfRowStatuses[data.row.index];
-            if (specialDateStatus) {
-              if (data.column.index === 0) {
-                data.cell.styles.fontStyle = 'normal';
-                data.cell.styles.halign = 'center';
-                data.cell.styles.valign = 'middle';
-              } else if (data.column.index === 1) {
-                data.cell.text = [specialDateStatus.label];
-                data.cell.colSpan = TOUR_DIARY_COLUMN_COUNT - 1;
-                data.cell.styles.fontStyle = 'bold';
-                data.cell.styles.halign = 'center';
-                data.cell.styles.valign = 'middle';
-                data.cell.styles.overflow = 'hidden';
-              } else {
-                data.cell.colSpan = 0;
-              }
-              return;
-            }
-          }
-
-          // Merge header cells for parent columns
-          if (data.section === 'head') {
-            // Column 0: Date - keep as is (single cell)
-            
-            // Columns 1-2: Visiting Place (merge row 0)
-            if (data.row.index === 0 && data.column.index === 1) {
-              data.cell.colSpan = 2;
-            }
-            if (data.row.index === 0 && data.column.index === 2) {
-              data.cell.colSpan = 0; // Hide this cell
-            }
-            
-            // Columns 3-4: Visiting Time (merge row 0)
-            if (data.row.index === 0 && data.column.index === 3) {
-              data.cell.colSpan = 2;
-            }
-            if (data.row.index === 0 && data.column.index === 4) {
-              data.cell.colSpan = 0; // Hide this cell
-            }
-            
-            // Column 5: Mode of Journey - keep as is (single cell)
-            
-            // Columns 6-7: Meter Reading (merge row 0)
-            if (data.row.index === 0 && data.column.index === 6) {
-              data.cell.colSpan = 2;
-            }
-            if (data.row.index === 0 && data.column.index === 7) {
-              data.cell.colSpan = 0; // Hide this cell
-            }
-            
-            // Columns 8-9: Distance and Purpose - keep as is (single cells)
-          }
-        },
-        didDrawPage: (data) => {
-          if (data.pageNumber > 1) drawDiaryTitle();
-        },
-        columnStyles: {
-          0: { cellWidth: 18, halign: 'center' },
-          1: { cellWidth: 36, halign: 'center' },
-          2: { cellWidth: 38, halign: 'center' },
-          3: { cellWidth: 18, halign: 'center' },
-          4: { cellWidth: 18, halign: 'center' },
-          5: { cellWidth: 22, halign: 'center' },
-          6: { cellWidth: 18, halign: 'center' },
-          7: { cellWidth: 18, halign: 'center' },
-          8: { cellWidth: 18, halign: 'center' },
-          9: { cellWidth: 56, halign: 'center' }
-        }
-      });
-
-      // Abstract section - Compact layout
-      const finalY = (doc as any).lastAutoTable.finalY;
-      doc.setFontSize(7);
-      doc.setFont('times', 'bold');
-      doc.text(summary.totalDistance.toFixed(0), 209, finalY + 3, { align: 'center' });
-      doc.setFont('times', 'normal');
-      
-      // ABSTRACT section - 2 column compact layout
-      // Keep on the same page below the table when it fits; only break when it would overflow
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const printableBottom = pageHeight - 8;
-      let abstractY = finalY + 7;
-      if (abstractY + 19 > printableBottom) {
-        doc.addPage();
-        drawDiaryTitle();
-        abstractY = 26;
-      }
-      doc.setFontSize(7);
-      doc.setFont('times', 'bold');
-      doc.text('ABSTRACT', 14, abstractY);
-      doc.underline(14, abstractY, doc.getTextWidth('ABSTRACT'), 0.2);
-      const drawAbstractValue = (label: string, value: string | number, x: number, y: number) => {
-        doc.setFont('times', 'normal');
-        // Add extra spacing after "of " for better readability
-        const spacedLabel = label.replace(/of /g, 'of  ');
-        doc.text(spacedLabel, x, y);
-        const valueX = x + doc.getTextWidth(spacedLabel);
-        doc.setFont('times', 'bold');
-        doc.text(String(value), valueX, y);
-      };
-      drawAbstractValue('\u2022 Total No. of Working Days: ', summary.workingDays, 14, abstractY + 4);
-      drawAbstractValue('\u2022 Total No. of Days on Tour: ', summary.tourDays, 14, abstractY + 6.5);
-      drawAbstractValue('\u2022 Leaves Availed: ', summary.leavesAvailed, 14, abstractY + 9);
-      drawAbstractValue('\u2022 No. of Villages Visited: ', summary.villagesVisited, 14, abstractY + 11.5);
-
-      // Signature section - conditional based on officer designation
-      const signatureY = abstractY + 7.5;
-      const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
-
-      doc.setFont('times', 'bold');
-      doc.setFontSize(8);
-
-      if (normalizedDesignation === 'mandal agriculture officer') {
-        // Show both signatures for Mandal Agriculture Officer
-        doc.text('Mandal Agriculture Officer', 94, signatureY);
-        doc.text('Asst.Director of Agriculture', 200, signatureY);
-      } else if (normalizedDesignation === 'district agriculture officer') {
-        // Show only District Agriculture Officer signature
-        doc.text('District Agriculture Officer', 94, signatureY);
-      } else if (normalizedDesignation === 'asst director of agriculture' || normalizedDesignation === 'assistant director of agriculture') {
-        // Show Asst.Director of Agriculture (R) signature in the MAO position
-        doc.text('Asst.Director of Agriculture (R)', 94, signatureY);
-      } else if (normalizedDesignation) {
-        // Show only Asst.Director of Agriculture signature for other designations
-        doc.text('Asst.Director of Agriculture', 200, signatureY);
-      }
-
-      const fileName = `Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.pdf`;
-
-      // PDFs are downloaded only; My Diaries stores drafts exclusively.
-      doc.save(fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);
       showToast(`Failed to generate PDF. ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
@@ -2091,197 +1662,26 @@ export function TourDiary() {
 
     setIsGeneratingPDF(true);
     try {
-      const [{ jsPDF }, { autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
-      const doc = new jsPDF('l', 'mm', 'a4');
-      await setupPdfUnicodeFonts(doc);
       const summary = calculateMonthlySummary();
       const tableData = generateTourDiaryData();
+      const specialPdfRowStatuses = tableData.map(row => getSpecialDateStatusForRow(row));
 
-      // Validate table data before passing to autoTable
-      if (!Array.isArray(tableData)) {
-        throw new Error('Invalid table data: must be an array');
-      }
-
-      // If table is empty, generate empty rows for the month
-      if (tableData.length === 0) {
-        console.warn('Table data is empty, generating empty rows');
-        const daysInMonth = getDaysInMonth(currentYear, currentMonth);
-        for (let day = 1; day <= daysInMonth; day++) {
-          const date = formatDate(currentYear, currentMonth, day);
-          tableData.push([date, '', '', '', '', '', '', '', '', '']);
-        }
-      }
-
-      // Ensure all rows are arrays
-      const validatedTableData = tableData.map(row => {
-        if (!Array.isArray(row)) {
-          console.error('Invalid row data:', row);
-          return Array(TOUR_DIARY_COLUMN_COUNT).fill('');
-        }
-        return Array.from({ length: TOUR_DIARY_COLUMN_COUNT }, (_, index) => row[index] ?? '');
+      await generateTourDiaryPdf({
+        currentYear,
+        currentMonth,
+        displayName: officerName || officerInfo?.name || '....................',
+        displayDesignation: statutoryDesignationDisplay(getHeaderDesignation()) || '....................',
+        displayMandal: getHeaderMandal() || '....................',
+        displayDivision: getHeaderDivision() || '....................',
+        displayDistrict: getHeaderDistrict() || '....................',
+        shouldShowMandal: shouldShowHeaderMandal(),
+        shouldShowDivision: shouldShowHeaderDivision(),
+        normalizedDesignation: normalizeHeaderDesignation(getHeaderDesignation()),
+        tableData,
+        summary,
+        specialPdfRowStatuses,
+        forPrint: true,
       });
-
-      const specialPdfRowStatuses = validatedTableData.map(row => getSpecialDateStatusForRow(row));
-
-      // Header - TOUR DIARY OF format
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      const monthYear = `${MONTHS[currentMonth - 1]}-${currentYear}`;
-      const displayDesignation = statutoryDesignationDisplay(getHeaderDesignation()) || '....................';
-      const displayMandal = getHeaderMandal() || '....................';
-      const displayDivision = getHeaderDivision() || '....................';
-      const displayDistrict = getHeaderDistrict() || '....................';
-      const displayName = officerName || officerInfo?.name || '....................';
-
-      const drawDiaryTitle = () => {
-        const yPos = 12;
-        const segments: { text: string; bold: boolean }[] = [
-          { text: 'Tour Diary of ', bold: false },
-          { text: ' ' + displayName, bold: true },
-          { text: ', ', bold: false },
-          { text: displayDesignation, bold: true },
-        ];
-        if (shouldShowHeaderMandal() && displayMandal !== '....................') {
-          segments.push({ text: ', ', bold: false }, { text: displayMandal, bold: true });
-        }
-        if (shouldShowHeaderDivision() && displayDivision !== '....................') {
-          segments.push({ text: ', Division: ', bold: false }, { text: displayDivision, bold: true });
-        }
-        if (displayDistrict !== '....................') {
-          segments.push({ text: ', Dist: ', bold: false }, { text: displayDistrict, bold: true });
-        }
-        segments.push(
-          { text: ' for the Month of ', bold: false },
-          { text: monthYear, bold: true },
-          { text: '.', bold: false }
-        );
-
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-
-        const tableCenterX = 144;
-        const totalWidth = segments.reduce((sum, seg) => {
-          doc.setFont('times', seg.bold ? 'bold' : 'normal');
-          return sum + doc.getTextWidth(seg.text);
-        }, 0);
-        let xPos = Math.max(14, tableCenterX - totalWidth / 2);
-
-        for (const seg of segments) {
-          doc.setFont('times', seg.bold ? 'bold' : 'normal');
-          doc.text(seg.text, xPos, yPos);
-          xPos += doc.getTextWidth(seg.text);
-        }
-      };
-
-      drawDiaryTitle();
-
-      // Generate table with merged header cells
-      autoTable(doc, {
-        startY: 14,
-        margin: { top: 14, left: 14, right: 14, bottom: 8 },
-        rowPageBreak: 'avoid',
-        tableWidth: 'wrap',
-        head: [
-          ['Date', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE (KM)', 'PURPOSE OF VISIT'],
-          ['', 'FROM', 'TO', 'FROM', 'TO', '', 'From', 'To', '', ''],
-        ],
-        body: validatedTableData,
-        theme: 'grid',
-        styles: {
-          font: 'times',
-          fontSize: 7,
-          cellPadding: 0.5,
-          lineColor: [0, 0, 0],
-          lineWidth: 0.1,
-        },
-        headStyles: {
-          fillColor: [255, 255, 255],
-          textColor: [0, 0, 0],
-          fontStyle: 'bold',
-          fontSize: 7,
-          halign: 'center',
-          valign: 'middle',
-        },
-        columnStyles: {
-          0: { cellWidth: 18, halign: 'center' },
-          1: { cellWidth: 36, halign: 'center' },
-          2: { cellWidth: 38, halign: 'center' },
-          3: { cellWidth: 18, halign: 'center' },
-          4: { cellWidth: 18, halign: 'center' },
-          5: { cellWidth: 22, halign: 'center' },
-          6: { cellWidth: 18, halign: 'center' },
-          7: { cellWidth: 18, halign: 'center' },
-          8: { cellWidth: 18, halign: 'center' },
-          9: { cellWidth: 56, halign: 'center' }
-        },
-        didDrawPage: (data) => {
-          if (data.pageNumber > 1) drawDiaryTitle();
-        },
-      });
-
-      // Abstract section
-      const finalY = (doc as any).lastAutoTable.finalY;
-      doc.setFontSize(7);
-      doc.setFont('times', 'bold');
-      doc.text(summary.totalDistance.toFixed(0), 209, finalY + 3, { align: 'center' });
-      doc.setFont('times', 'normal');
-
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const printableBottom = pageHeight - 8;
-      let abstractY = finalY + 7;
-      if (abstractY + 19 > printableBottom) {
-        doc.addPage();
-        drawDiaryTitle();
-        abstractY = 26;
-      }
-      doc.setFontSize(7);
-      doc.setFont('times', 'bold');
-      doc.text('ABSTRACT', 14, abstractY);
-      doc.underline(14, abstractY, doc.getTextWidth('ABSTRACT'), 0.2);
-      const drawAbstractValue = (label: string, value: string | number, x: number, y: number) => {
-        doc.setFont('times', 'normal');
-        const spacedLabel = label.replace(/of /g, 'of  ');
-        doc.text(spacedLabel, x, y);
-        const valueX = x + doc.getTextWidth(spacedLabel);
-        doc.setFont('times', 'bold');
-        doc.text(String(value), valueX, y);
-      };
-      drawAbstractValue('\u2022 Total No. of Working Days: ', summary.workingDays, 14, abstractY + 4);
-      drawAbstractValue('\u2022 Total No. of Days on Tour: ', summary.tourDays, 14, abstractY + 6.5);
-      drawAbstractValue('\u2022 Leaves Availed: ', summary.leavesAvailed, 14, abstractY + 9);
-      drawAbstractValue('\u2022 No. of Villages Visited: ', summary.villagesVisited, 14, abstractY + 11.5);
-
-      // Signature section
-      const signatureY = abstractY + 7.5;
-      const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
-
-      doc.setFont('times', 'bold');
-      doc.setFontSize(8);
-
-      if (normalizedDesignation === 'mandal agriculture officer') {
-        doc.text('Mandal Agriculture Officer', 94, signatureY);
-        doc.text('Asst.Director of Agriculture', 200, signatureY);
-      } else if (normalizedDesignation === 'district agriculture officer') {
-        doc.text('District Agriculture Officer', 94, signatureY);
-      } else if (normalizedDesignation === 'asst director of agriculture' || normalizedDesignation === 'assistant director of agriculture') {
-        doc.text('Asst.Director of Agriculture (R)', 94, signatureY);
-      } else if (normalizedDesignation) {
-        doc.text('Asst.Director of Agriculture', 200, signatureY);
-      }
-
-      // Generate blob and print
-      const pdfBlob = doc.output('blob');
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      const printWindow = window.open(pdfUrl, '_blank');
-      if (printWindow) {
-        printWindow.onload = () => {
-          printWindow.print();
-          URL.revokeObjectURL(pdfUrl);
-        };
-      } else {
-        URL.revokeObjectURL(pdfUrl);
-        showToast('Print blocked. Please allow popups for this site to print the document.', 'error');
-      }
     } catch (error) {
       console.error('Error generating PDF for printing:', error);
       showToast(`Failed to print. ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
@@ -2294,144 +1694,20 @@ export function TourDiary() {
   async function generateExcel() {
     try {
       const summary = calculateMonthlySummary();
-      const ExcelJS = (await import('exceljs')).default;
-      const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'AGRONIX';
-      const sheet = workbook.addWorksheet('Tour Diary', {
-        views: [{ showGridLines: false }],
-        pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } },
-      });
-
-      const columnWidths = [12, 18, 18, 10, 10, 16, 10, 10, 12, 38];
-      sheet.columns = columnWidths.map((width) => ({ width }));
-
-      const FONT_NAME = 'Times New Roman';
-      const thin = { style: 'thin' as const, color: { argb: 'FF000000' } };
-      const border = { top: thin, left: thin, bottom: thin, right: thin };
-      const monthYear = `${MONTHS[currentMonth - 1]}-${currentYear}`;
-
-      // Title
-      sheet.mergeCells('A1:J1');
-      const title = sheet.getCell('A1');
-      title.value = `Tour Diary of ${officerName || officerInfo?.name || ''}, ${statutoryDesignationDisplay(getHeaderDesignation())}, ${getHeaderMandal()}, Division: ${getHeaderDivision()}, Dist: ${getHeaderDistrict()} for the Month of ${monthYear}.`;
-      title.font = { name: FONT_NAME, size: 12, bold: true };
-      title.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      sheet.getRow(1).height = 36;
-      sheet.getRow(2).height = 8;
-
-      // Column headings (two rows, merged groups)
-      const headingRows: string[][] = [
-        ['Date', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE (KM)', 'PURPOSE OF VISIT'],
-        ['', 'FROM', 'TO', 'FROM', 'TO', '', 'From', 'To', '', ''],
-      ];
-      headingRows.forEach((values, rowIndex) => {
-        const row = sheet.getRow(3 + rowIndex);
-        values.forEach((value, columnIndex) => {
-          const cell = row.getCell(columnIndex + 1);
-          cell.value = value;
-        });
-        row.height = 20;
-      });
-      ['A3:A4', 'B3:C3', 'D3:E3', 'F3:F4', 'G3:H3', 'I3:I4', 'J3:J4'].forEach((range) => sheet.mergeCells(range));
-      for (let rowNumber = 3; rowNumber <= 4; rowNumber += 1) {
-        for (let columnNumber = 1; columnNumber <= 10; columnNumber += 1) {
-          const cell = sheet.getRow(rowNumber).getCell(columnNumber);
-          cell.font = { name: FONT_NAME, size: 11, bold: true };
-          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          cell.border = border;
-        }
-      }
-
-      // Data rows - same source as Preview and PDF
       const tableData = generateTourDiaryData();
-      tableData.forEach((values) => {
-        const row = sheet.addRow(values);
-        row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
-          cell.font = { name: FONT_NAME, size: 11 };
-          cell.border = border;
-          cell.alignment = { horizontal: columnNumber === 10 ? 'left' : 'center', vertical: 'middle', wrapText: true };
-        });
+
+      await exportTourDiaryExcel({
+        currentYear,
+        currentMonth,
+        displayName: officerName || officerInfo?.name || '',
+        displayDesignation: statutoryDesignationDisplay(getHeaderDesignation()),
+        displayMandal: getHeaderMandal(),
+        displayDivision: getHeaderDivision(),
+        displayDistrict: getHeaderDistrict(),
+        normalizedDesignation: normalizeHeaderDesignation(getHeaderDesignation()),
+        tableData,
+        summary,
       });
-
-      // Total distance below the distance column
-      const totalRow = sheet.addRow(['', '', '', '', '', '', '', '', summary.totalDistance.toFixed(0), '']);
-      totalRow.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
-        if (columnNumber !== 9) return;
-        cell.font = { name: FONT_NAME, size: 11, bold: true };
-        cell.border = border;
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      });
-
-      // Abstract
-      sheet.addRow([]);
-      const abstractHeading = sheet.addRow(['ABSTRACT']);
-      abstractHeading.getCell(1).font = { name: FONT_NAME, size: 11, bold: true, underline: true };
-      const addAbstractRow = (label: string, value: string) => {
-        const row = sheet.addRow([label, '', value, '', '', '', '', '', '']);
-        const rowNumber = row.number;
-        sheet.mergeCells(`A${rowNumber}:B${rowNumber}`);
-        // Add extra spacing after "of " for better readability
-        const spacedLabel = label.replace(/of /g, 'of  ');
-        row.getCell(1).value = spacedLabel;
-        [1, 3].forEach((columnNumber) => {
-          const cell = row.getCell(columnNumber);
-          const isValue = columnNumber === 3;
-          cell.font = { name: FONT_NAME, size: 11, bold: isValue };
-          cell.alignment = { horizontal: isValue ? 'center' : 'left', vertical: 'middle' };
-        });
-      };
-      addAbstractRow('• Total No. of Working Days', String(summary.workingDays));
-      addAbstractRow('• Total No. of Days on Tour', String(summary.tourDays));
-      addAbstractRow('• Leaves Availed', String(summary.leavesAvailed));
-      addAbstractRow('• No. of Villages Visited', String(summary.villagesVisited));
-
-      // Signature section
-      sheet.addRow([]);
-
-      const normalizedDesignation = normalizeHeaderDesignation(getHeaderDesignation());
-      if (normalizedDesignation === 'mandal agriculture officer') {
-        const sigRow1 = sheet.addRow(['Mandal Agriculture Officer', '', '', '', '', 'Asst.Director of Agriculture', '', '', '', '']);
-        sheet.mergeCells(`A${sigRow1.number}:E${sigRow1.number}`);
-        sheet.mergeCells(`F${sigRow1.number}:J${sigRow1.number}`);
-        sigRow1.eachCell({ includeEmpty: true }, (cell) => {
-          cell.font = { name: FONT_NAME, size: 11 };
-          cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        });
-      } else if (normalizedDesignation === 'district agriculture officer') {
-        const sigRow1 = sheet.addRow(['District Agriculture Officer', '', '', '', '', '', '', '', '', '']);
-        sheet.mergeCells(`A${sigRow1.number}:E${sigRow1.number}`);
-        sigRow1.eachCell({ includeEmpty: true }, (cell) => {
-          cell.font = { name: FONT_NAME, size: 11 };
-          cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        });
-      } else if (normalizedDesignation === 'asst director of agriculture' || normalizedDesignation === 'assistant director of agriculture') {
-        const sigRow1 = sheet.addRow(['Asst.Director of Agriculture (R)', '', '', '', '', '', '', '', '', '']);
-        sheet.mergeCells(`A${sigRow1.number}:E${sigRow1.number}`);
-        sigRow1.eachCell({ includeEmpty: true }, (cell) => {
-          cell.font = { name: FONT_NAME, size: 11 };
-          cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        });
-      } else if (normalizedDesignation) {
-        const sigRow1 = sheet.addRow(['', '', '', '', '', 'Asst.Director of Agriculture', '', '', '', '']);
-        sheet.mergeCells(`F${sigRow1.number}:J${sigRow1.number}`);
-        sigRow1.eachCell({ includeEmpty: true }, (cell) => {
-          cell.font = { name: FONT_NAME, size: 11 };
-          cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        });
-      }
-
-      sheet.pageSetup.printTitlesRow = '3:4';
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Tour_Diary_${MONTHS[currentMonth - 1]}_${currentYear}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (error) {
       console.error('Error generating Excel:', error);
       showToast('Failed to generate Excel. Please try again later.', 'error');

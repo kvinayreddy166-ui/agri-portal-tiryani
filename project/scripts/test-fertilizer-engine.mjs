@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import ts from 'typescript';
 
-const root = new URL('../src/features/fertilizerCalculator/', import.meta.url);
+const root = new URL('../src/features/calculators/engine/', import.meta.url);
 const tempDir = await mkdtemp(join(tmpdir(), 'fertilizer-engine-'));
 
 try {

@@ -172,5 +172,5 @@ export async function saveWorkbookFile(
   const bookType = fileName.toLowerCase().endsWith('.xls') ? 'xls' : 'xlsx';
   const data = XLSX.write(workbook, { bookType, type: 'array' }) as ArrayBuffer | Uint8Array;
   const mime = bookType === 'xls' ? 'application/vnd.ms-excel' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-  downloadBlobFile(new Blob([data], { type: mime }), fileName);
+  downloadBlobFile(new Blob([data as unknown as BlobPart], { type: mime }), fileName);
 }

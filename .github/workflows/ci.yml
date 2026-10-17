@@ -26,6 +26,10 @@ jobs:
         working-directory: project
         run: npm run typecheck
 
+      - name: Test
+        working-directory: project
+        run: npm test
+
       - name: Build
         working-directory: project
         run: npm run build
