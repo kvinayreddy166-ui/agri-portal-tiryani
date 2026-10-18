@@ -21,7 +21,6 @@ import {
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { WhatsAppFab } from '../../../shared/components/ui/WhatsAppFab';
-import { UpdateBanner } from '../../../shared/components/UpdateBanner';
 import { DEALER_DEFAULT_PASSWORD } from '../lib/dealerAuth';
 import { translateDealerLoginError } from '../lib/dealerLoginMessages';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -31,7 +30,8 @@ import { recordSiteHit } from '../../../shared/lib/siteHits';
 import { getMandalsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../../../shared/hooks/useBackButtonOverlay';
-import { PublicOfficerTools } from './PublicOfficerTools';
+
+const PublicOfficerTools = React.lazy(() => import('./PublicOfficerTools').then((m) => ({ default: m.PublicOfficerTools })));
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
 const TEST_EMAIL = 'test@gmail.com';
@@ -277,12 +277,15 @@ export function Login() {
 
 
   if (showStatutoryForms || showFormsLibrary || calculatorOpen || fertilizerCalculatorOpen) {
-    return <PublicOfficerTools />;
+    return (
+      <React.Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950"><div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" /></div>}>
+        <PublicOfficerTools />
+      </React.Suspense>
+    );
   }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-      <UpdateBanner />
 
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-emerald-950 p-10 text-white lg:flex xl:p-14">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950" />

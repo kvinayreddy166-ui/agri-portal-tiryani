@@ -7,19 +7,12 @@
     <link rel="preconnect" href="https://szxtfeiswxugxukztnst.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="//szxtfeiswxugxukztnst.supabase.co" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/atkinson-hyperlegible-next-latin-400-normal.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/atkinson-hyperlegible-next-latin-800-normal.woff2" crossorigin />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" /></noscript>
+    <link rel="preload" as="image" href="/images/agronix-logo-original.webp" type="image/webp" fetchpriority="high" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#f0fdf4" />
     <meta name="color-scheme" content="light dark" />
-    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="googlebot" content="index, follow" />
     <link rel="canonical" href="https://www.tiryaniagriportal.in/" />
@@ -125,7 +118,7 @@
           if (appBooted()) return;
           var loader = document.getElementById('startup-loader');
           if (!loader) return;
-          loader.innerHTML = '<img src="/images/agronix-logo-original.jpeg" alt="Agronix" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:16px;font-weight:900">New Update Available</div><div style="max-width:380px;text-align:center;font-size:13px;font-weight:600;color:#475569">A new version of Agronix is ready to install.</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px"><button type="button" onclick="(window.__TIRYANI_FORCE_REFRESH__ || function(){window.location.reload()})(\'manual\')" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Update</button><button type="button" onclick="window.location.reload()" style="border:1px solid #a7f3d0;border-radius:12px;background:white;color:#047857;padding:10px 16px;font-weight:800">Later</button></div>';
+          loader.innerHTML = '<img src="/images/agronix-logo-original.webp" alt="Agronix" width="96" height="96" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:16px;font-weight:900">New Update Available</div><div style="max-width:380px;text-align:center;font-size:13px;font-weight:600;color:#475569">A new version of Agronix is ready to install.</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px"><button type="button" onclick="(window.__TIRYANI_FORCE_REFRESH__ || function(){window.location.reload()})(\'manual\')" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Update</button><button type="button" onclick="window.location.reload()" style="border:1px solid #a7f3d0;border-radius:12px;background:white;color:#047857;padding:10px 16px;font-weight:800">Later</button></div>';
         }
 
         function recoverFromStartupFailure(reason) {
@@ -183,7 +176,7 @@
   <body>
     <div id="root">
       <div id="startup-loader" style="display:flex;min-height:100vh;flex-direction:column;gap:16px;align-items:center;justify-content:center;font-family:system-ui,sans-serif;color:#0f172a;background:#eef6f0">
-        <img src="/images/agronix-logo-original.jpeg" alt="Agronix" fetchpriority="high" decoding="async" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" />
+        <img src="/images/agronix-logo-original.webp" alt="Agronix" width="96" height="96" fetchpriority="high" decoding="async" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" />
         <div style="font-size:14px;font-weight:700">Loading Agronix...</div>
       </div>
     </div>

@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Ban, Bug, ChevronDown, ClipboardCheck, FileText, FlaskConical, PackageX, Sprout } from 'lucide-react';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
-import { ShowCauseNoticeEntry } from '../components/ShowCauseNoticeEntry';
-import { PesticideStopSaleEntry, type SavedPestStopSaleOrder } from '../components/PesticideStopSaleEntry';
-import { PesticideStopSaleRevokeEntry } from '../components/PesticideStopSaleRevokeEntry';
-import { FertilizerStopSaleEntry, type SavedFertStopSaleOrder } from '../components/FertilizerStopSaleEntry';
-import { SeedStopSaleEntry, type SavedSeedStopSaleOrder } from '../components/SeedStopSaleEntry';
-import { FertilizerStopSaleRevokeEntry } from '../components/FertilizerStopSaleRevokeEntry';
-import { FertilizerSeizureOrderEntry } from '../components/FertilizerSeizureOrderEntry';
-import { SeedSeizureOrderEntry } from '../components/SeedSeizureOrderEntry';
-import { PesticideSeizureOrderEntry } from '../components/PesticideSeizureOrderEntry';
-import { SeedStopSaleRevokeEntry } from '../components/SeedStopSaleRevokeEntry';
+import type { SavedPestStopSaleOrder } from '../components/PesticideStopSaleEntry';
+import type { SavedFertStopSaleOrder } from '../components/FertilizerStopSaleEntry';
+import type { SavedSeedStopSaleOrder } from '../components/SeedStopSaleEntry';
 import type { NoticeCategory } from '../data/showCauseViolationData';
+
+const ShowCauseNoticeEntry = lazy(() => import('../components/ShowCauseNoticeEntry').then((m) => ({ default: m.ShowCauseNoticeEntry })));
+const PesticideStopSaleEntry = lazy(() => import('../components/PesticideStopSaleEntry').then((m) => ({ default: m.PesticideStopSaleEntry })));
+const PesticideStopSaleRevokeEntry = lazy(() => import('../components/PesticideStopSaleRevokeEntry').then((m) => ({ default: m.PesticideStopSaleRevokeEntry })));
+const FertilizerStopSaleEntry = lazy(() => import('../components/FertilizerStopSaleEntry').then((m) => ({ default: m.FertilizerStopSaleEntry })));
+const SeedStopSaleEntry = lazy(() => import('../components/SeedStopSaleEntry').then((m) => ({ default: m.SeedStopSaleEntry })));
+const FertilizerStopSaleRevokeEntry = lazy(() => import('../components/FertilizerStopSaleRevokeEntry').then((m) => ({ default: m.FertilizerStopSaleRevokeEntry })));
+const FertilizerSeizureOrderEntry = lazy(() => import('../components/FertilizerSeizureOrderEntry').then((m) => ({ default: m.FertilizerSeizureOrderEntry })));
+const SeedSeizureOrderEntry = lazy(() => import('../components/SeedSeizureOrderEntry').then((m) => ({ default: m.SeedSeizureOrderEntry })));
+const PesticideSeizureOrderEntry = lazy(() => import('../components/PesticideSeizureOrderEntry').then((m) => ({ default: m.PesticideSeizureOrderEntry })));
+const SeedStopSaleRevokeEntry = lazy(() => import('../components/SeedStopSaleRevokeEntry').then((m) => ({ default: m.SeedStopSaleRevokeEntry })));
+
+const LazySubLoader = () => (
+  <div className="flex items-center justify-center p-8">
+    <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
+  </div>
+);
 
 const INSPECTION_TYPES = [
   { label: 'Seed', path: '/officer-toolkit/seed-dealer-inspection', icon: Sprout, tone: 'emerald' },
@@ -269,7 +279,9 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <ShowCauseNoticeEntry lockedCategory={selectedNoticeCategory} />
+              <Suspense fallback={<LazySubLoader />}>
+                <ShowCauseNoticeEntry lockedCategory={selectedNoticeCategory} />
+              </Suspense>
             </div>
           </section>
         </div>
@@ -317,16 +329,18 @@ export function InspectionEnforcementHub() {
                   Revocation Order
                 </button>
               </div>
-              {pestStopSaleTab === 'issue' ? (
-                <PesticideStopSaleEntry
-                  onRevoke={(order) => {
-                    setPestRevokePrefill(order);
-                    setPestStopSaleTab('revoke');
-                  }}
-                />
-              ) : (
-                <PesticideStopSaleRevokeEntry prefill={pestRevokePrefill} />
-              )}
+              <Suspense fallback={<LazySubLoader />}>
+                {pestStopSaleTab === 'issue' ? (
+                  <PesticideStopSaleEntry
+                    onRevoke={(order) => {
+                      setPestRevokePrefill(order);
+                      setPestStopSaleTab('revoke');
+                    }}
+                  />
+                ) : (
+                  <PesticideStopSaleRevokeEntry prefill={pestRevokePrefill} />
+                )}
+              </Suspense>
             </div>
           </section>
         </div>
@@ -374,16 +388,18 @@ export function InspectionEnforcementHub() {
                   Revocation Order
                 </button>
               </div>
-              {fertStopSaleTab === 'issue' ? (
-                <FertilizerStopSaleEntry
-                  onRevoke={(order) => {
-                    setFertRevokePrefill(order);
-                    setFertStopSaleTab('revoke');
-                  }}
-                />
-              ) : (
-                <FertilizerStopSaleRevokeEntry prefill={fertRevokePrefill} />
-              )}
+              <Suspense fallback={<LazySubLoader />}>
+                {fertStopSaleTab === 'issue' ? (
+                  <FertilizerStopSaleEntry
+                    onRevoke={(order) => {
+                      setFertRevokePrefill(order);
+                      setFertStopSaleTab('revoke');
+                    }}
+                  />
+                ) : (
+                  <FertilizerStopSaleRevokeEntry prefill={fertRevokePrefill} />
+                )}
+              </Suspense>
             </div>
           </section>
         </div>
@@ -431,16 +447,18 @@ export function InspectionEnforcementHub() {
                   Revocation Order
                 </button>
               </div>
-              {seedStopSaleTab === 'issue' ? (
-                <SeedStopSaleEntry
-                  onRevoke={(order) => {
-                    setSeedRevokePrefill(order);
-                    setSeedStopSaleTab('revoke');
-                  }}
-                />
-              ) : (
-                <SeedStopSaleRevokeEntry prefill={seedRevokePrefill} />
-              )}
+              <Suspense fallback={<LazySubLoader />}>
+                {seedStopSaleTab === 'issue' ? (
+                  <SeedStopSaleEntry
+                    onRevoke={(order) => {
+                      setSeedRevokePrefill(order);
+                      setSeedStopSaleTab('revoke');
+                    }}
+                  />
+                ) : (
+                  <SeedStopSaleRevokeEntry prefill={seedRevokePrefill} />
+                )}
+              </Suspense>
             </div>
           </section>
         </div>
@@ -472,7 +490,9 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <FertilizerSeizureOrderEntry />
+              <Suspense fallback={<LazySubLoader />}>
+                <FertilizerSeizureOrderEntry />
+              </Suspense>
             </div>
           </section>
         </div>
@@ -504,7 +524,9 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <SeedSeizureOrderEntry />
+              <Suspense fallback={<LazySubLoader />}>
+                <SeedSeizureOrderEntry />
+              </Suspense>
             </div>
           </section>
         </div>
@@ -536,7 +558,9 @@ export function InspectionEnforcementHub() {
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-              <PesticideSeizureOrderEntry />
+              <Suspense fallback={<LazySubLoader />}>
+                <PesticideSeizureOrderEntry />
+              </Suspense>
             </div>
           </section>
         </div>

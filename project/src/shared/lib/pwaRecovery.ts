@@ -212,11 +212,7 @@ export function initServiceWorkerLifecycle() {
   void checkForUpdates();
 
   // Periodically check for updates (every 5 minutes) - detection only, no activation
-  const updateCheckInterval = setInterval(() => {
+  setInterval(() => {
     void checkForUpdates();
   }, 5 * 60 * 1000);
-
-  window.addEventListener('beforeunload', () => {
-    clearInterval(updateCheckInterval);
-  });
 }

@@ -33,8 +33,8 @@ export default defineConfig({
       polyfill: false,
       resolveDependencies: (_filename, deps) =>
         deps.filter((dep) => {
-          // Keep PDF and chart modules preloaded for mobile compatibility
-          if (/(office|html2canvas|purify|tensorflow|vendor-xlsx)/.test(dep)) {
+          // Never preload heavy secondary libraries on initial load to keep main thread fast
+          if (/(vendor-pdf|vendor-doc|vendor-chart|vendor-xlsx|vendor-tensorflow|vendor-purify|office|html2canvas|purify|exceljs)/.test(dep)) {
             return false;
           }
           if (/page-(?!dashboard)/.test(dep)) {
@@ -47,7 +47,7 @@ export default defineConfig({
     cssCodeSplit: true,
     minify: 'esbuild',
     sourcemap: false,
-    target: 'es2020',
+    target: 'es2022',
     reportCompressedSize: false,
     chunkSizeWarningLimit: 500,
     rollupOptions: {
@@ -67,8 +67,8 @@ export default defineConfig({
           if (id.includes('jspdf')) {
             return 'vendor-pdfgen';
           }
-          // Group Excel library separately
-          if (id.includes('xlsx')) {
+          // Group Excel libraries separately
+          if (id.includes('xlsx') || id.includes('exceljs')) {
             return 'vendor-xlsx';
           }
           // Group React libraries
@@ -86,6 +86,10 @@ export default defineConfig({
           // Group TensorFlow separately (lazy loaded)
           if (id.includes('@tensorflow')) {
             return 'vendor-tensorflow';
+          }
+          // Group DOMPurify separately
+          if (id.includes('dompurify')) {
+            return 'vendor-purify';
           }
           // Group document processing libraries
           if (id.includes('docx') || id.includes('html2canvas') || id.includes('mammoth')) {

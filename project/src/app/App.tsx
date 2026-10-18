@@ -1,14 +1,15 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth, AuthProvider } from '../shared/context/AuthContext';
 import { LanguageProvider } from '../shared/context/LanguageContext';
 import { ThemeProvider } from '../shared/context/ThemeContext';
 import { AgronixBrandMark } from '../shared/components/ui/AgronixBrandMark';
-import { OfflineScreen } from '../shared/components/ui/OfflineScreen';
 import { confirmDiscardIfDirty } from '../features/officers-toolkit/inspection/useDirtyGuard';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { SEO, OrganizationSchema } from '../shared/components/seo/SEO';
-import { UpdateBanner } from '../shared/components/UpdateBanner';
+
+const OfflineScreen = lazy(() => import('../shared/components/ui/OfflineScreen').then((m) => ({ default: m.OfflineScreen })));
+const UpdateBanner = lazy(() => import('../shared/components/UpdateBanner').then((m) => ({ default: m.UpdateBanner })));
 import {
   PUBLIC_AUTH_ROUTES,
   PUBLIC_PAGES,
@@ -236,8 +237,10 @@ function App() {
             <LanguageScope>
               <SEO />
               <OrganizationSchema />
-              <OfflineScreen />
-              <UpdateBanner />
+              <Suspense fallback={null}>
+                <OfflineScreen />
+                <UpdateBanner />
+              </Suspense>
               <AppContent />
             </LanguageScope>
           </BrowserRouter>
