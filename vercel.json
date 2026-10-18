@@ -1,6 +1,6 @@
 {
-  "installCommand": "cd project && npm ci",
-  "buildCommand": "cd project && npm run build",
+  "installCommand": "if [ -d project ]; then cd project && npm ci; else npm ci; fi",
+  "buildCommand": "if [ -d project ]; then cd project && npm run build; else npm run build; fi",
   "outputDirectory": "project/dist",
   "headers": [
     {
