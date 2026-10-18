@@ -138,11 +138,11 @@
           "stage": "Tillering to grain filling",
           "severity_level": "high",
           "image_urls": [
-            "/images/crop-doctor/paddy-brown-plant-hopper.png",
-            "/images/crop-doctor/paddy-bph-nymphs-adults-base.png",
-            "/images/crop-doctor/paddy-bph-affected-tillers.png",
-            "/images/crop-doctor/paddy-bph-winged-adult.png",
-            "/images/crop-doctor/paddy-bph-adult-female.png"
+            "/images/crop-doctor/paddy-brown-plant-hopper.webp",
+            "/images/crop-doctor/paddy-bph-nymphs-adults-base.webp",
+            "/images/crop-doctor/paddy-bph-affected-tillers.webp",
+            "/images/crop-doctor/paddy-bph-winged-adult.webp",
+            "/images/crop-doctor/paddy-bph-adult-female.webp"
           ],
           "source_name": "TNAU Rice Crop Protection PWA Template",
           "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_12.html",
@@ -184,11 +184,11 @@
           "stage": "Vegetative to reproductive",
           "severity_level": "high",
           "image_urls": [
-            "/images/crop-doctor/paddy-stem-borer-dead-heart.png",
-            "/images/crop-doctor/paddy-stem-borer-eggs.png",
-            "/images/crop-doctor/paddy-stem-borer-white-ear.png",
-            "/images/crop-doctor/paddy-stem-borer-larva.png",
-            "/images/crop-doctor/paddy-yellow-stem-borer.png"
+            "/images/crop-doctor/paddy-stem-borer-dead-heart.webp",
+            "/images/crop-doctor/paddy-stem-borer-eggs.webp",
+            "/images/crop-doctor/paddy-stem-borer-white-ear.webp",
+            "/images/crop-doctor/paddy-stem-borer-larva.webp",
+            "/images/crop-doctor/paddy-yellow-stem-borer.webp"
           ],
           "source_name": "TNAU Rice Crop Protection PWA Template",
           "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m1.html",
@@ -230,7 +230,7 @@
           "stage": "Vegetative to flowering",
           "severity_level": "high",
           "image_urls": [
-            "/images/crop-doctor/paddy-leaf-folder.png"
+            "/images/crop-doctor/paddy-leaf-folder.webp"
           ],
           "source_name": "TNAU Rice Crop Protection PWA Template",
           "source_url": "https://agritech.tnau.ac.in/crop_protection/rice/crop_prot_crop_insectpest%20_cereals_paddy_m5.html",
@@ -272,7 +272,7 @@
           "stage": "Nursery to early vegetative",
           "severity_level": "medium",
           "image_urls": [
-            "/images/crop-doctor/paddy-thrips.png"
+            "/images/crop-doctor/paddy-thrips.webp"
           ],
           "source_name": "TNAU Rice Pest Index",
           "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_insectpest%20_cereals_paddymain.html",
@@ -301,7 +301,7 @@
           "stage": "Vegetative",
           "severity_level": "medium",
           "image_urls": [
-            "/images/crop-doctor/paddy-gall-midge.png"
+            "/images/crop-doctor/paddy-gall-midge.webp"
           ],
           "source_name": "TNAU Rice Pest Index",
           "source_url": "https://agritech.tnau.ac.in/crop_protection/crop_prot_crop_insectpest%20_cereals_paddymain.html",

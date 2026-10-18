@@ -31,7 +31,7 @@ export const PortalLogo = React.memo(function PortalLogo({ size = 'md', classNam
       }}
     >
       <img
-        src="/images/agronix-logo-original.jpeg"
+        src="/images/agronix-logo-original.webp"
         alt="Agronix"
         width={pixelSizeMap[size]}
         height={pixelSizeMap[size]}

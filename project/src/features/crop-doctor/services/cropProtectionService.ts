@@ -1,4 +1,4 @@
-﻿import { supabase } from '../../../shared/lib/supabase';
+import { supabase } from '../../../shared/lib/supabase';
 import { repairTeluguText } from '../../../shared/utils/textRepair';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
@@ -75,24 +75,25 @@ const LOCAL_CROP_IMAGE_URLS: Record<string, string> = {
 
 const LOCAL_CROP_DOCTOR_IMAGE_URLS: Record<string, string[]> = {
   'paddy-brown-plant-hopper': [
-    '/images/crop-doctor/paddy-brown-plant-hopper.png',
-    '/images/crop-doctor/paddy-bph-nymphs-adults-base.png',
-    '/images/crop-doctor/paddy-bph-affected-tillers.png',
-    '/images/crop-doctor/paddy-bph-winged-adult.png',
-    '/images/crop-doctor/paddy-bph-adult-female.png',
+    '/images/crop-doctor/paddy-brown-plant-hopper.webp',
+    '/images/crop-doctor/paddy-bph-nymphs-adults-base.webp',
+    '/images/crop-doctor/paddy-bph-affected-tillers.webp',
+    '/images/crop-doctor/paddy-bph-winged-adult.webp',
+    '/images/crop-doctor/paddy-bph-adult-female.webp',
   ],
   'paddy-brown-planthopper': [
-    '/images/crop-doctor/paddy-brown-plant-hopper.png',
-    '/images/crop-doctor/paddy-bph-nymphs-adults-base.png',
-    '/images/crop-doctor/paddy-bph-affected-tillers.png',
-    '/images/crop-doctor/paddy-bph-winged-adult.png',
-    '/images/crop-doctor/paddy-bph-adult-female.png',
-  ],  'paddy-stem-borer': [
-    '/images/crop-doctor/paddy-stem-borer-dead-heart.png',
-    '/images/crop-doctor/paddy-stem-borer-eggs.png',
-    '/images/crop-doctor/paddy-stem-borer-white-ear.png',
-    '/images/crop-doctor/paddy-stem-borer-larva.png',
-    '/images/crop-doctor/paddy-yellow-stem-borer.png',
+    '/images/crop-doctor/paddy-brown-plant-hopper.webp',
+    '/images/crop-doctor/paddy-bph-nymphs-adults-base.webp',
+    '/images/crop-doctor/paddy-bph-affected-tillers.webp',
+    '/images/crop-doctor/paddy-bph-winged-adult.webp',
+    '/images/crop-doctor/paddy-bph-adult-female.webp',
+  ],
+  'paddy-stem-borer': [
+    '/images/crop-doctor/paddy-stem-borer-dead-heart.webp',
+    '/images/crop-doctor/paddy-stem-borer-eggs.webp',
+    '/images/crop-doctor/paddy-stem-borer-white-ear.webp',
+    '/images/crop-doctor/paddy-stem-borer-larva.webp',
+    '/images/crop-doctor/paddy-yellow-stem-borer.webp',
   ],
 };
 

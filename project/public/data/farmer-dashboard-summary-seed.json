@@ -1,0 +1,31 @@
+{
+  "totalFarmers": 8493,
+  "totalExtent": 25995.36,
+  "cropRows": [
+    {
+      "id": "farmer-crop-cotton",
+      "crop_name": "Cotton",
+      "acreage": 23376.13
+    },
+    {
+      "id": "farmer-crop-redgram",
+      "crop_name": "Redgram",
+      "acreage": 1278.25
+    },
+    {
+      "id": "farmer-crop-paddy",
+      "crop_name": "Paddy",
+      "acreage": 1071.18
+    },
+    {
+      "id": "farmer-crop-mango",
+      "crop_name": "Mango",
+      "acreage": 88.38
+    },
+    {
+      "id": "farmer-crop-maize",
+      "crop_name": "Maize",
+      "acreage": 83.02
+    }
+  ]
+}
