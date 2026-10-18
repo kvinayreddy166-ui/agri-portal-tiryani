@@ -600,9 +600,6 @@ export function SeedSeizureOrderEntry() {
           <Save className="h-4 w-4" aria-hidden="true" />
           Save Draft
         </button>
-        <button type="button" onClick={printPreview} className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 sm:text-sm" aria-label="Print">
-          <Printer className="h-4 w-4" aria-hidden="true" />
-        </button>
         <div className="relative">
           <button
             type="button"
@@ -637,6 +634,14 @@ export function SeedSeizureOrderEntry() {
                 >
                   <FileType className="h-4 w-4" aria-hidden="true" />
                   WORD
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setExportOpen(false); void printPreview(); }}
+                  className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-left text-xs font-black text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800 sm:text-sm"
+                >
+                  <Printer className="h-4 w-4" aria-hidden="true" />
+                  PRINT
                 </button>
               </div>
             </>

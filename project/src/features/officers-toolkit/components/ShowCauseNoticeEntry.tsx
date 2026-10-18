@@ -426,7 +426,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     : [[{ text: displayDesignation, bold: true }]];
 
   // Traditional memo format (District Office Manual / drafting & noting):
-  // government + department heading, "Office of the ___" with station, Memo No./Dt. row,
+  // government + department heading, "Office of the ___" with station, No./Dt. row,
   // centred MEMORANDUM title, Sub + Ref, "***" separator, numbered paras with the
   // violation list under para 1, Encl at the left end, full designation signature,
   // addressee AFTER the signature, Copy submitted to last.
@@ -447,7 +447,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       { kind: 'gap', mm: 4 },
       {
         kind: 'memoRow',
-        left: [{ text: 'Memo No. ' }, { text: form.memoNumber || 'Draft', bold: true }],
+        left: [{ text: 'No. ' }, { text: form.memoNumber || 'Draft', bold: true }],
         right: [{ text: 'Dt.: ' }, { text: form.inspectionDate ? noticeDate : ' '.repeat(11), bold: true }],
       },
       { kind: 'gap', mm: 4 },
@@ -467,7 +467,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       {
         kind: 'labelPara',
         label: 'Ref:',
-        labelSuffix: '1.',
         indent: SUBJECT_REF_INDENT,
         segments: [
           { text: `Field inspection conducted by the ${officerDesignation}, ${mandalValue}` },
@@ -475,7 +474,6 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
           { text: '.' },
         ],
       },
-      { kind: 'labelPara', label: '2.', labelPad: 'Ref:', indent: SUBJECT_REF_INDENT, segments: [{ text: inspectionRef }] },
       { kind: 'gap', mm: 2 },
       { kind: 'center', text: '***' },
       { kind: 'gap', mm: 1 },
@@ -492,7 +490,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
           { text: ` (vide reference cited), ${memoNoticedPhrase}` },
         ],
       },
-      ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${toRoman(index + 1)})`, labelBold: false, segments: item, indent: 8 })),
+      ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${toRoman(index + 1)})`, labelBold: true, segments: item, indent: 8 })),
       ...(violationItems.length > 0 ? [{ kind: 'gap', mm: 2 } as NoticeBlock] : []),
       ...(productRows.length > 0
         ? [
@@ -557,12 +555,12 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
   }
 
   // Formal Show Cause Notice format (ADA / DAO):
-  // government + department heading, "Office of the ___" with address, Rc.No./Date row,
+  // government + department heading, "Office of the ___" with address, No./Date row,
   // centred title, Sub + numbered Ref, "Whereas / And whereas" numbered paras with
   // roman-numbered violation items, addressee AFTER the signature, Copy To last.
   const officeLocation = isDAO ? districtDisplay : officerLocation;
   const scnSectionBlocks: NoticeBlock[] = [
-    ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${toRoman(index + 1)})`, labelBold: false, segments: item, indent: 8 })),
+    ...violationItems.map((item, index): NoticeBlock => ({ kind: 'labelPara', label: `${toRoman(index + 1)})`, labelBold: true, segments: item, indent: 8 })),
     ...(violationItems.length > 0 ? [{ kind: 'gap', mm: 2 } as NoticeBlock] : []),
     ...(productRows.length > 0
       ? [
@@ -588,7 +586,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     { kind: 'gap', mm: 4 },
     {
       kind: 'memoRow',
-      left: [{ text: 'Rc.No. ' }, { text: form.memoNumber || 'Draft', bold: true }],
+      left: [{ text: 'No. ' }, { text: form.memoNumber || 'Draft', bold: true }],
       right: [{ text: 'Date: ' }, { text: form.inspectionDate ? noticeDate : ' '.repeat(11), bold: true }],
     },
     { kind: 'gap', mm: 4 },
@@ -730,10 +728,9 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
         }
         case 'labelPara': {
           const pad = block.labelPad ? `<strong style="flex:none;visibility:hidden;">${escapeHtml(block.labelPad)}&nbsp;</strong>` : '';
-          const isRef = block.label === 'Ref:';
-          const isRefNumber = !isRef && !block.labelSuffix && /^\d+\.$/.test(block.label);
-          const labelTag = (block.labelBold === false || isRefNumber) ? 'span' : 'strong';
-          const suffix = block.labelSuffix ? `<span style="flex:none;${isRef ? 'font-weight:normal;' : ''}">${escapeHtml(block.labelSuffix)}&nbsp;</span>` : '';
+          const isRefSubItem = Boolean(block.labelPad && /^\d+\.$/.test(block.label));
+          const labelTag = (block.labelBold === false || isRefSubItem) ? 'span' : 'strong';
+          const suffix = block.labelSuffix ? `<span style="flex:none;font-weight:normal;">${escapeHtml(block.labelSuffix)}&nbsp;</span>` : '';
           const bottomMargin = block.spaceAfter !== undefined ? `${(block.spaceAfter * 2.83465).toFixed(1)}pt` : '5pt';
           return `<div style="display:flex;margin:0 0 ${bottomMargin} ${block.indent || 0}mm;line-height:1.25;">${pad}<${labelTag} style="flex:none;">${escapeHtml(block.label)}&nbsp;</${labelTag}>${suffix}<span style="flex:1;text-align:justify;">${segmentsHtml(block.segments)}</span></div>`;
         }
@@ -900,13 +897,12 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
         const hanging = mmToTwips(7);
         // Approximate the bold leader's width so "2." aligns under "1." after "Ref:".
         const padTwips = block.labelPad ? mmToTwips(block.labelPad.length * 2.3 + 1.4) : 0;
-        const isRef = block.label === 'Ref:';
-        const isRefNumber = !isRef && !block.labelSuffix && /^\d+\.$/.test(block.label);
+        const isRefSubItem = Boolean(block.labelPad && /^\d+\.$/.test(block.label));
         const afterTwips = block.spaceAfter !== undefined ? mmToTwips(block.spaceAfter) : 100;
         children.push(new Paragraph({
           children: [
-            new TextRun({ text: `${block.label} `, bold: (block.labelBold !== false && !isRefNumber), font, size: fontSize }),
-            ...(block.labelSuffix ? [new TextRun({ text: `${block.labelSuffix} `, bold: isRef ? false : true, font, size: fontSize })] : []),
+            new TextRun({ text: `${block.label} `, bold: (block.labelBold !== false && !isRefSubItem), font, size: fontSize }),
+            ...(block.labelSuffix ? [new TextRun({ text: `${block.labelSuffix} `, bold: false, font, size: fontSize })] : []),
             ...runs(block.segments),
           ],
           alignment: AlignmentType.JUSTIFIED,
@@ -1222,7 +1218,8 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
       }
       case 'labelPara': {
         const padWidth = block.labelPad ? measure(`${block.labelPad} `, true) : 0;
-        const labelBold = block.labelBold !== false;
+        const isRefSubItem = Boolean(block.labelPad && /^\d+\.$/.test(block.label));
+        const labelBold = (block.labelBold !== false) && !isRefSubItem;
         const suffix = block.labelSuffix ? `${block.labelSuffix} ` : '';
         const indent = (block.indent || 0) + padWidth;
         const labelWidth = measure(`${block.label} `, labelBold) + measure(suffix, false);
@@ -1333,14 +1330,17 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
       }
       case 'labelPara': {
         const padWidth = block.labelPad ? measure(`${block.labelPad} `, true) : 0;
-        const isRef = block.label === 'Ref:';
-        const isRefNumber = !isRef && !block.labelSuffix && /^\d+\.$/.test(block.label);
-        const labelBold = (block.labelBold !== false) && !isRefNumber;
+        const isRefSubItem = Boolean(block.labelPad && /^\d+\.$/.test(block.label));
+        const labelBold = (block.labelBold !== false) && !isRefSubItem;
         const suffix = block.labelSuffix ? `${block.labelSuffix} ` : '';
         const indent = (block.indent || 0) + padWidth;
         const labelWidth = measure(`${block.label} `, labelBold) + measure(suffix, false);
         const lineWidth = CW - indent - labelWidth;
         const lines = wrapSegments(block.segments, lineWidth);
+        // Pre-compute suffix X position before any font-state changes.
+        // measure() mutates doc font state as a side-effect; computing it
+        // inside doc.text() args would clobber the 'normal' state we need.
+        const suffixX = suffix ? ML + indent + measure(`${block.label} `, labelBold) : 0;
         lines.forEach((runs, index) => {
           ensureSpace(LH);
           if (index === 0) {
@@ -1349,7 +1349,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
             doc.text(block.label, ML + indent, y);
             if (suffix) {
               doc.setFont(fontName, 'normal');
-              doc.text(suffix, ML + indent + measure(`${block.label} `, labelBold), y);
+              doc.text(suffix, suffixX, y);
             }
           }
           const isLastLine = index === lines.length - 1;
@@ -2118,9 +2118,6 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               <Save className="h-4 w-4" aria-hidden="true" />
               Save Draft
             </button>
-            <button type="button" onClick={printPreview} className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 sm:text-sm" aria-label="Print">
-              <Printer className="h-4 w-4" aria-hidden="true" />
-            </button>
             <div className="relative">
               <button
                 type="button"
@@ -2155,6 +2152,14 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                     >
                       <FileType className="h-4 w-4" aria-hidden="true" />
                       WORD
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setExportOpen(false); void printPreview(); }}
+                      className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-left text-xs font-black text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800 sm:text-sm"
+                    >
+                      <Printer className="h-4 w-4" aria-hidden="true" />
+                      PRINT
                     </button>
                   </div>
                 </>

@@ -126,18 +126,33 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
     theme: 'grid',
     styles: {
       font: 'times',
-      fontSize: 7,
+      fontSize: 8,
       cellPadding: 0.5,
       lineColor: [0, 0, 0],
       lineWidth: 0.1,
+      textColor: [0, 0, 0],
     },
     headStyles: {
       fillColor: [255, 255, 255],
       textColor: [0, 0, 0],
       fontStyle: 'bold',
-      fontSize: 7,
+      fontSize: 8,
       halign: 'center',
       valign: 'middle',
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1,
+    },
+    bodyStyles: {
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1,
+    },
+    alternateRowStyles: {
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1,
     },
     columnStyles: {
       0: { cellWidth: 18, halign: 'center' },
@@ -152,6 +167,9 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
       9: { cellWidth: 56, halign: 'center' },
     },
     didParseCell: (data) => {
+      data.cell.styles.textColor = [0, 0, 0];
+      data.cell.styles.lineColor = [0, 0, 0];
+
       if (data.section === 'body' && specialPdfRowStatuses) {
         const specialDateStatus = specialPdfRowStatuses[data.row.index];
         if (specialDateStatus) {
@@ -159,6 +177,7 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
             data.cell.styles.fontStyle = 'normal';
             data.cell.styles.halign = 'center';
             data.cell.styles.valign = 'middle';
+            data.cell.styles.textColor = [0, 0, 0];
           } else if (data.column.index === 1) {
             data.cell.text = [specialDateStatus.label];
             data.cell.colSpan = TOUR_DIARY_COLUMN_COUNT - 1;
@@ -166,6 +185,7 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
             data.cell.styles.halign = 'center';
             data.cell.styles.valign = 'middle';
             data.cell.styles.overflow = 'hidden';
+            data.cell.styles.textColor = [0, 0, 0];
           } else {
             data.cell.colSpan = 0;
           }
@@ -182,13 +202,17 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
       }
     },
     didDrawPage: (data) => {
-      if (data.pageNumber > 1) drawDiaryTitle();
+      if (data.pageNumber > 1) {
+        doc.setTextColor(0, 0, 0);
+        drawDiaryTitle();
+      }
     },
   });
 
   const finalY = (doc as any).lastAutoTable.finalY;
-  doc.setFontSize(7);
+  doc.setFontSize(8);
   doc.setFont('times', 'bold');
+  doc.setTextColor(0, 0, 0);
   doc.text(summary.totalDistance.toFixed(0), 209, finalY + 3, { align: 'center' });
   doc.setFont('times', 'normal');
 
@@ -197,22 +221,27 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
   let abstractY = finalY + 7;
   if (abstractY + 19 > printableBottom) {
     doc.addPage();
+    doc.setTextColor(0, 0, 0);
     drawDiaryTitle();
     abstractY = 26;
   }
 
-  doc.setFontSize(7);
+  doc.setFontSize(8);
   doc.setFont('times', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.setDrawColor(0, 0, 0);
   doc.text('ABSTRACT', 14, abstractY);
   const textWidth = doc.getTextWidth('ABSTRACT');
   doc.line(14, abstractY + 0.5, 14 + textWidth, abstractY + 0.5);
 
   const drawAbstractValue = (label: string, value: string | number, x: number, y: number) => {
     doc.setFont('times', 'normal');
+    doc.setTextColor(0, 0, 0);
     const spacedLabel = label.replace(/of /g, 'of  ');
     doc.text(spacedLabel, x, y);
     const valueX = x + doc.getTextWidth(spacedLabel);
     doc.setFont('times', 'bold');
+    doc.setTextColor(0, 0, 0);
     doc.text(String(value), valueX, y);
   };
 
@@ -221,10 +250,11 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
   drawAbstractValue('\u2022 Leaves Availed: ', summary.leavesAvailed, 14, abstractY + 9);
   drawAbstractValue('\u2022 No. of Villages Visited: ', summary.villagesVisited, 14, abstractY + 11.5);
 
-  // Signature section - conditional based on officer designation
-  const signatureY = abstractY + 7.5;
+  // Signature section - conditional based on officer designation (moved down by 4 pt)
+  const signatureY = abstractY + 7.5 + (4 * 25.4 / 72);
   doc.setFont('times', 'bold');
   doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
 
   if (normalizedDesignation === 'mandal agriculture officer') {
     doc.text('Mandal Agriculture Officer', 94, signatureY);

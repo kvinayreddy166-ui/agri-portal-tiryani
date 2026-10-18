@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Download, Edit3, FileText, FileType, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Download, Edit3, FileText, FileType, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear } from '../../../shared/utils/financialYear';
 import { withOthersOption, effectiveLocationValue } from '../../../shared/data/assistantDirectorLocation';
 import {
@@ -424,6 +424,27 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
     }
   };
 
+  const printOrder = async () => {
+    try {
+      const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Revoke of Stop Sale Notice', 'bookAntiqua');
+      const pdfBlob = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+          URL.revokeObjectURL(pdfUrl);
+        };
+      } else {
+        URL.revokeObjectURL(pdfUrl);
+        showWarning('Print blocked', 'Please allow popups for this site to print the document.');
+      }
+    } catch (error) {
+      console.error('Unable to generate PDF for printing:', error);
+      showWarning('Print failed', 'Please try again.');
+    }
+  };
+
   const previewOrder = () => {
     setShowPreview(true);
     showInfo('Preview ready');
@@ -610,6 +631,14 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
                 >
                   <FileType className="h-4 w-4" aria-hidden="true" />
                   WORD
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setExportOpen(false); void printOrder(); }}
+                  className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-left text-xs font-black text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800 sm:text-sm"
+                >
+                  <Printer className="h-4 w-4" aria-hidden="true" />
+                  PRINT
                 </button>
               </div>
             </>

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, Printer, RotateCcw, Save, Trash2 } from 'lucide-react';
+import { ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
@@ -137,7 +137,7 @@ function migrateForm(parsed: Partial<InspectionForm>): Partial<InspectionForm> {
 
 export function SeedDealerInspection() {
   const navigate = useNavigate();
-  const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo } = useToast();
+  const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
   const [confirmAction, setConfirmAction] = useState<{ title: string; message?: string; action: () => void } | null>(null);
   const [form, setForm] = useState<InspectionForm>(() => loadPersistedForm(FORM_KEY, initialForm, migrateForm));
   const [drafts, setDrafts] = useState<DraftRecord[]>(() => loadPersistedDrafts(DRAFTS_KEY, migrateForm));
@@ -243,39 +243,31 @@ export function SeedDealerInspection() {
     showInfo('Preview ready');
   };
 
-  const printPreview = () => {
+  const printPreview = async () => {
     const message = validate();
     setError(message);
     if (message) return;
-    if (previewRef.current) {
-      const printContent = previewRef.current.innerHTML;
-      const printWindow = window.open('', '', 'width=800,height=600');
+    try {
+      const doc = await buildPdf(form);
+      await addEmblemImageWatermark(doc);
+      doc.autoPrint();
+      const pdfBlob = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl, '_blank');
       if (printWindow) {
-        printWindow.document.title = '';
-        printWindow.document.write(`
-          <html>
-          <head>
-          <title></title>
-              <style>
-                body { font-family: 'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif; font-size: 12pt; line-height: 1.5; padding: 20px; }
-                table { border-collapse: collapse; width: 100%; }
-                th, td { border: 1px solid #64748b; padding: 2px 4px; text-align: left; font-size: 11pt; }
-                th { background-color: #f0f9ff; font-weight: bold; }
-                .signature-block { position: absolute; bottom: 20px; width: 45%; }
-                .signature-left { left: 20px; }
-                .signature-right { right: 20px; text-align: right; }
-                .signature-label { font-weight: bold; font-size: 10.5pt; }
-                .signature-name { font-style: italic; font-size: 10pt; margin-top: 4px; }
-                @media print { body { padding: 0; } }
-              </style>
-            </head>
-            <body>${printContent}</body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
+        printWindow.onload = () => {
+          try {
+            printWindow.print();
+          } catch {}
+          setTimeout(() => URL.revokeObjectURL(pdfUrl), 60000);
+        };
+      } else {
+        URL.revokeObjectURL(pdfUrl);
+        showWarning('Print blocked', 'Please allow popups for this site to print the document.');
       }
+    } catch (error) {
+      console.error('Unable to generate PDF for printing:', error);
+      showWarning('Print failed', 'Please check your connection and try again.');
     }
   };
 
@@ -600,7 +592,7 @@ export function SeedDealerInspection() {
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-emerald-100 pt-3 dark:border-emerald-900/40">
             <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
-            <ExportMenu tone="emerald" onPdf={generatePdf} onExcel={generateExcel} />
+            <ExportMenu tone="emerald" onPdf={generatePdf} onExcel={generateExcel} onPrint={printPreview} />
           </div>
         </div>
       </div>
@@ -642,10 +634,7 @@ export function SeedDealerInspection() {
       {showPreview && (
         <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={
           <div className="flex items-center gap-2">
-            <button type="button" onClick={printPreview} className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-black text-slate-700 dark:text-slate-200 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700" aria-label="Print">
-              <Printer className="h-4 w-4" />
-            </button>
-            <ExportMenu tone="emerald" onPdf={generatePdf} onExcel={generateExcel} />
+            <ExportMenu tone="emerald" onPdf={generatePdf} onExcel={generateExcel} onPrint={printPreview} />
           </div>
         }>
           <div ref={previewRef}>

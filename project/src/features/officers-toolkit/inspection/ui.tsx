@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, FileDown, FileSpreadsheet, FileText, Mic, MicOff, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, FileDown, FileSpreadsheet, FileText, Mic, MicOff, Plus, Printer, Trash2 } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useSpeechInput } from '../../../shared/hooks/useSpeechInput';
 import type { Column, Status, StatusField } from './types';
@@ -122,7 +122,7 @@ export function ActionButton({
   );
 }
 
-export function ExportMenu({ tone, onPdf, onExcel }: { tone: InspectionTone; onPdf: () => void; onExcel: () => void }) {
+export function ExportMenu({ tone, onPdf, onExcel, onPrint }: { tone: InspectionTone; onPdf: () => void; onExcel: () => void; onPrint?: () => void }) {
   const [open, setOpen] = useState(false);
   const solid: Record<InspectionTone, string> = {
     emerald: 'bg-emerald-600 text-white hover:bg-emerald-700',
@@ -131,7 +131,7 @@ export function ExportMenu({ tone, onPdf, onExcel }: { tone: InspectionTone; onP
   };
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState<{ top: number; right: number } | null>(null);
-  const MENU_HEIGHT = 96;
+  const MENU_HEIGHT = onPrint ? 136 : 96;
   const toggle = () => {
     if (open) {
       setOpen(false);
@@ -177,6 +177,12 @@ export function ExportMenu({ tone, onPdf, onExcel }: { tone: InspectionTone; onP
               <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />
               EXCEL
             </button>
+            {onPrint && (
+              <button type="button" role="menuitem" onClick={() => choose(onPrint)} className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-left text-xs font-black text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800 sm:text-sm">
+                <Printer className="h-4 w-4" aria-hidden="true" />
+                PRINT
+              </button>
+            )}
           </div>
         </>,
         document.body,
