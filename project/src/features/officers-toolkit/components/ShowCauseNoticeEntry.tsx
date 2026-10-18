@@ -293,9 +293,9 @@ export interface NoticeSegment {
 export type NoticeBlock =
   | { kind: 'center'; text: string; bold?: boolean; underline?: boolean; size?: number; keepWithNext?: boolean }
   | { kind: 'memoRow'; left?: NoticeSegment[]; right?: NoticeSegment[]; leftLines?: NoticeSegment[][]; rightLines?: NoticeSegment[][]; keepWithNext?: boolean }
-  | { kind: 'para'; segments: NoticeSegment[]; indent?: number; firstLineIndent?: number; keepWithNext?: boolean }
-  | { kind: 'labelPara'; label: string; labelSuffix?: string; segments: NoticeSegment[]; indent?: number; labelPad?: string; labelBold?: boolean; keepWithNext?: boolean }
-  | { kind: 'heading'; text: string; keepWithNext?: boolean }
+  | { kind: 'para'; segments: NoticeSegment[]; indent?: number; firstLineIndent?: number; keepWithNext?: boolean; spaceAfter?: number }
+  | { kind: 'labelPara'; label: string; labelSuffix?: string; segments: NoticeSegment[]; indent?: number; labelPad?: string; labelBold?: boolean; keepWithNext?: boolean; spaceAfter?: number }
+  | { kind: 'heading'; text: string; keepWithNext?: boolean; spaceAfter?: number }
   | { kind: 'lines'; items: NoticeSegment[][]; indent?: number; align?: 'right'; centerLines?: boolean; offsetX?: number; keepWithNext?: boolean }
   | { kind: 'table'; header: [string, string]; rows: { label: string; value: string }[]; keepWithNext?: boolean }
   | { kind: 'gridTable'; header: string[]; rows: string[][]; colWeights?: number[]; keepWithNext?: boolean }
@@ -724,18 +724,23 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
             : `<span>${rightInner}</span>`;
           return `<div style="display:flex;justify-content:space-between;gap:12pt;line-height:1.25;"><span>${leftHtml}</span>${rightHtml}</div>`;
         }
-        case 'para':
-          return `<p style="margin:0 0 4pt ${block.indent || 0}mm;text-align:justify;${block.firstLineIndent ? `text-indent:${block.firstLineIndent}mm;` : ''}line-height:1.25;">${segmentsHtml(block.segments)}</p>`;
+        case 'para': {
+          const bottomMargin = block.spaceAfter !== undefined ? `${(block.spaceAfter * 2.83465).toFixed(1)}pt` : '6.5pt';
+          return `<p style="margin:0 0 ${bottomMargin} ${block.indent || 0}mm;text-align:justify;${block.firstLineIndent ? `text-indent:${block.firstLineIndent}mm;` : ''}line-height:1.25;">${segmentsHtml(block.segments)}</p>`;
+        }
         case 'labelPara': {
           const pad = block.labelPad ? `<strong style="flex:none;visibility:hidden;">${escapeHtml(block.labelPad)}&nbsp;</strong>` : '';
           const isRef = block.label === 'Ref:';
           const isRefNumber = !isRef && !block.labelSuffix && /^\d+\.$/.test(block.label);
           const labelTag = (block.labelBold === false || isRefNumber) ? 'span' : 'strong';
           const suffix = block.labelSuffix ? `<span style="flex:none;${isRef ? 'font-weight:normal;' : ''}">${escapeHtml(block.labelSuffix)}&nbsp;</span>` : '';
-          return `<div style="display:flex;margin:0 0 4pt ${block.indent || 0}mm;line-height:1.25;">${pad}<${labelTag} style="flex:none;">${escapeHtml(block.label)}&nbsp;</${labelTag}>${suffix}<span style="flex:1;text-align:justify;">${segmentsHtml(block.segments)}</span></div>`;
+          const bottomMargin = block.spaceAfter !== undefined ? `${(block.spaceAfter * 2.83465).toFixed(1)}pt` : '5pt';
+          return `<div style="display:flex;margin:0 0 ${bottomMargin} ${block.indent || 0}mm;line-height:1.25;">${pad}<${labelTag} style="flex:none;">${escapeHtml(block.label)}&nbsp;</${labelTag}>${suffix}<span style="flex:1;text-align:justify;">${segmentsHtml(block.segments)}</span></div>`;
         }
-        case 'heading':
-          return `<p style="margin:6pt 0 2pt;font-weight:700;line-height:1.25;">${escapeHtml(block.text)}</p>`;
+        case 'heading': {
+          const bottomMargin = block.spaceAfter !== undefined ? `${(block.spaceAfter * 2.83465).toFixed(1)}pt` : '3pt';
+          return `<p style="margin:6pt 0 ${bottomMargin};font-weight:700;line-height:1.25;">${escapeHtml(block.text)}</p>`;
+        }
         case 'lines': {
           const inner = block.items.map((item) => `<div style="line-height:1.25;">${segmentsHtml(item)}</div>`).join('');
           if (block.centerLines) {
@@ -877,7 +882,8 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           }));
         }
         break;
-      case 'para':
+      case 'para': {
+        const afterTwips = block.spaceAfter !== undefined ? mmToTwips(block.spaceAfter) : 130;
         children.push(new Paragraph({
           children: runs(block.segments),
           alignment: AlignmentType.JUSTIFIED,
@@ -886,15 +892,17 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             firstLine: mmToTwips(block.firstLineIndent || 0),
           },
           keepNext: block.keepWithNext,
-          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
+          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: afterTwips },
         }));
         break;
+      }
       case 'labelPara': {
         const hanging = mmToTwips(7);
         // Approximate the bold leader's width so "2." aligns under "1." after "Ref:".
         const padTwips = block.labelPad ? mmToTwips(block.labelPad.length * 2.3 + 1.4) : 0;
         const isRef = block.label === 'Ref:';
         const isRefNumber = !isRef && !block.labelSuffix && /^\d+\.$/.test(block.label);
+        const afterTwips = block.spaceAfter !== undefined ? mmToTwips(block.spaceAfter) : 100;
         children.push(new Paragraph({
           children: [
             new TextRun({ text: `${block.label} `, bold: (block.labelBold !== false && !isRefNumber), font, size: fontSize }),
@@ -904,17 +912,19 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           alignment: AlignmentType.JUSTIFIED,
           indent: { left: mmToTwips(block.indent || 0) + padTwips + hanging, hanging },
           keepNext: block.keepWithNext,
-          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
+          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: afterTwips },
         }));
         break;
       }
-      case 'heading':
+      case 'heading': {
+        const afterTwips = block.spaceAfter !== undefined ? mmToTwips(block.spaceAfter) : 60;
         children.push(new Paragraph({
           children: [new TextRun({ text: block.text, bold: true, font, size: fontSize })],
           keepNext: block.keepWithNext,
-          spacing: { line: 300, lineRule: LineRuleType.EXACT, before: 0, after: 0 },
+          spacing: { line: 300, lineRule: LineRuleType.EXACT, before: 120, after: afterTwips },
         }));
         break;
+      }
       case 'lines':
         if (block.centerLines) {
           children.push(new Table({
@@ -1207,7 +1217,8 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
         const firstLineIndent = block.firstLineIndent || 0;
         const lineWidth = CW - indent;
         const lines = wrapSegments(block.segments, lineWidth, firstLineIndent ? lineWidth - firstLineIndent : undefined);
-        return lines.length * LH + 1;
+        const paraGap = block.spaceAfter ?? 2.8;
+        return lines.length * LH + paraGap;
       }
       case 'labelPara': {
         const padWidth = block.labelPad ? measure(`${block.labelPad} `, true) : 0;
@@ -1215,10 +1226,13 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
         const suffix = block.labelSuffix ? `${block.labelSuffix} ` : '';
         const indent = (block.indent || 0) + padWidth;
         const labelWidth = measure(`${block.label} `, labelBold) + measure(suffix, false);
-        return wrapSegments(block.segments, CW - indent - labelWidth).length * LH + 1;
+        const labelGap = block.spaceAfter ?? 2.2;
+        return wrapSegments(block.segments, CW - indent - labelWidth).length * LH + labelGap;
       }
-      case 'heading':
-        return wrapSegments([{ text: block.text, bold: true }], CW).length * LH;
+      case 'heading': {
+        const headGap = block.spaceAfter ?? 1.5;
+        return wrapSegments([{ text: block.text, bold: true }], CW).length * LH + headGap;
+      }
       case 'lines':
         return block.items.reduce((total, item) => total + wrapSegments(item, CW - (block.indent || 0)).length * LH, 0);
       case 'table': {
@@ -1313,7 +1327,8 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
           drawRuns(runs, ML + indent + offset, y, isLastLine ? undefined : lineWidth - offset);
           y += LH;
         });
-        y += 1;
+        const paraGap = block.spaceAfter ?? 2.8;
+        y += paraGap;
         break;
       }
       case 'labelPara': {
@@ -1341,7 +1356,8 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
           drawRuns(runs, ML + indent + labelWidth, y, isLastLine ? undefined : lineWidth);
           y += LH;
         });
-        y += 1;
+        const labelGap = block.spaceAfter ?? 2.2;
+        y += labelGap;
         break;
       }
       case 'heading': {
@@ -1351,6 +1367,8 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
           drawRuns(runs, ML, y);
           y += LH;
         });
+        const headGap = block.spaceAfter ?? 1.5;
+        y += headGap;
         break;
       }
       case 'lines': {
