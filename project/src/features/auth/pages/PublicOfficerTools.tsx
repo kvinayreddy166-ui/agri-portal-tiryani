@@ -5,6 +5,7 @@ import {
   Eye,
   FileText,
   FlaskConical,
+  HelpCircle,
   Loader2,
   Sprout,
 } from 'lucide-react';
@@ -69,6 +70,7 @@ export function PublicOfficerTools() {
   const [statutoryForms, setStatutoryForms] = useState<FormDownload[]>([]);
   const [formsLoading, setFormsLoading] = useState(false);
   const [pdfToolOpen, setPdfToolOpen] = useState(false);
+  const [seedInstructionOpen, setSeedInstructionOpen] = useState(true);
   const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
   const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
@@ -107,6 +109,7 @@ export function PublicOfficerTools() {
   };
 
   const openPdfTool = () => {
+    setSeedInstructionOpen(true);
     pdfToolOverlay.pushOverlay();
     setPdfToolOpen(true);
   };
@@ -519,17 +522,31 @@ export function PublicOfficerTools() {
                         <h2 className="max-w-full whitespace-normal text-base leading-tight text-slate-900 dark:text-white sm:text-lg">Generate FORM II / FORM V / FORM VI / FORM VIII</h2>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={closePdfTool}
-                      className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
-                      aria-label="Close seed PDF generator"
-                    >
-                      Close
-                    </button>
+                    <div className="relative flex shrink-0 items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setSeedInstructionOpen(true)}
+                        className="inline-flex shrink-0 items-center justify-center gap-1 rounded-lg border border-lime-200 dark:border-lime-800/60 bg-lime-50 dark:bg-lime-950/40 px-2.5 py-1.5 text-xs font-bold text-lime-700 dark:text-lime-300 shadow-sm transition hover:bg-lime-100 dark:hover:bg-lime-900/60"
+                        title="View Seed Sample Drawal Procedure"
+                      >
+                        <HelpCircle className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Procedure</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={closePdfTool}
+                        className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
+                        aria-label="Close seed PDF generator"
+                      >
+                        Close
+                      </button>
+                    </div>
                   </header>
                   <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
-                    <SeedForms />
+                    <SeedForms
+                      showInstructionModal={seedInstructionOpen}
+                      setShowInstructionModal={setSeedInstructionOpen}
+                    />
                   </div>
                 </section>
               </div>
