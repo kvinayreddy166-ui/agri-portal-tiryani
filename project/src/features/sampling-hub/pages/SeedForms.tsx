@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Eye, FileText, RotateCcw, Save } from 'lucide-react';
+import { Eye, FileText, HelpCircle, RotateCcw, Save } from 'lucide-react';
 import { SeedInstructionModal } from '../../../shared/components/ui/SeedInstructionModal';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
@@ -609,6 +609,15 @@ export function SeedForms() {
         >
           <RotateCcw className="h-4 w-4" />
           <span>Reset</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowInstructionModal(true)}
+          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-lime-700 bg-lime-700 px-2.5 py-2 text-xs font-black text-white shadow-md hover:bg-lime-800 hover:border-lime-800"
+          title="View Seed Sample Drawal Procedure"
+        >
+          <HelpCircle className="h-4 w-4" />
+          <span>Procedure</span>
         </button>
       </div>
 

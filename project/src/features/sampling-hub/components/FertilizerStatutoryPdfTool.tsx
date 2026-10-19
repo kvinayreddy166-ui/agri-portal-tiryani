@@ -3,7 +3,7 @@
 // Enable by running the app locally (npm run dev).
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Eye, FlaskConical, RotateCcw, Save, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Eye, FlaskConical, RotateCcw, Save, FileText, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
 import {
   FertilizerPdfValues,
   FertilizerStatutoryFormType,
@@ -1470,7 +1470,16 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                 <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">Generate FORM J / FORM K / FORM P</h2>
               </div>
             </div>
-            <div className="relative flex shrink-0 items-center gap-1">
+            <div className="relative flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setShowInstructionModal(true)}
+                className="inline-flex shrink-0 items-center justify-center gap-1 rounded-lg border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 shadow-sm transition hover:bg-amber-100 dark:hover:bg-amber-900/60"
+                title="View Fertilizer Drawal Procedure"
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Procedure</span>
+              </button>
               <button
                 type="button"
                 onClick={onClose}

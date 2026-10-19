@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bug, Eye, FileText, RotateCcw, Save } from 'lucide-react';
+import { Bug, Eye, FileText, HelpCircle, RotateCcw, Save } from 'lucide-react';
 import { PesticideCoveringLetterModal } from './PesticideCoveringLetterModal';
+import { PesticideInstructionModal } from '../../../shared/components/ui/PesticideInstructionModal';
 import {
   generateAllPesticideStatutoryPdf,
   generatePesticideStatutoryPdf,
@@ -180,6 +181,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  const [showInstructionModal, setShowInstructionModal] = useState(true);
   const [showCoveringLetterModal, setShowCoveringLetterModal] = useState(false);
   const [values, setValues] = useState<PesticidePdfValues>(() => {
     try {
@@ -802,7 +804,16 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 sm:text-lg">Generate FORM V(C) / V(D) / V(E) / Docket Sheet</h2>
             </div>
           </div>
-          <div className="relative flex shrink-0 items-center gap-1">
+          <div className="relative flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setShowInstructionModal(true)}
+              className="inline-flex shrink-0 items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-700 shadow-sm transition hover:bg-red-100"
+              title="View Insecticide Sample Drawal Procedure"
+            >
+              <HelpCircle className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Procedure</span>
+            </button>
             <button
               type="button"
               onClick={onClose}
@@ -1146,6 +1157,10 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             officerPhone: metadata.officePhone,
           });
         }}
+      />
+      <PesticideInstructionModal
+        isOpen={showInstructionModal}
+        onClose={() => setShowInstructionModal(false)}
       />
     </div>
       {pdfPreview && (
