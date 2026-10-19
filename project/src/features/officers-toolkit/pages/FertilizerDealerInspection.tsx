@@ -594,9 +594,9 @@ export function FertilizerDealerInspection() {
                       <td className="border border-slate-300 dark:border-slate-600 px-2 py-1"><input type="number" value={row.currentStock} onChange={(e) => set('stockRows', form.stockRows.map((r, i) => (i === index ? { ...r, currentStock: e.target.value } : r)))} className="w-full rounded border border-slate-200 dark:border-slate-700 px-1 py-0.5 text-xs" /></td>
                     </tr>
                   ))}
-                  <tr className="bg-sky-100 dark:bg-sky-900/40 font-black">
-                    <td className="border border-slate-300 dark:border-slate-600 px-2 py-1 text-center" colSpan={2}>Total</td>
-                    <td className="border border-slate-300 dark:border-slate-600 px-2 py-1">{stockTotal || ''}</td>
+                  <tr className="bg-sky-100 dark:bg-sky-900/40 font-bold">
+                    <td className="border border-slate-300 dark:border-slate-600 px-2 py-1 text-center font-bold" colSpan={2}>Total</td>
+                    <td className="border border-slate-300 dark:border-slate-600 px-2 py-1 font-bold">{stockTotal || ''}</td>
                   </tr>
                 </tbody>
               </table>
@@ -778,6 +778,15 @@ async function buildPdf(form: InspectionForm) {
       body: table.body,
       styles: { font: 'times', fontSize: 9.5, cellPadding: 1.2, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0], halign: 'center' },
       headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2 },
+      didParseCell: (data) => {
+        if (data.section === 'body') {
+          const rowData = table.body[data.row.index];
+          const isTotal = rowData && rowData.some((c) => String(c ?? '').trim().toLowerCase() === 'total');
+          if (isTotal) {
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+      },
     });
     y = (doc as any).lastAutoTable.finalY;
   }
@@ -852,9 +861,21 @@ function Preview({ form, stockTotal }: { form: InspectionForm; stockTotal: numbe
                 <tr className="bg-slate-100 dark:bg-slate-800">{table.head.map((h) => <th key={h} className="border border-slate-400 px-4 py-1 text-center font-bold">{h}</th>)}</tr>
               </thead>
               <tbody>
-                {table.body.map((row, i) => (
-                  <tr key={i}>{row.map((cell, j) => <td key={j} className="border border-slate-400 px-4 py-1 text-center">{cell || '-'}</td>)}</tr>
-                ))}
+                {table.body.map((row, i) => {
+                  const isTotal = row.some((c) => String(c ?? '').trim().toLowerCase() === 'total');
+                  return (
+                    <tr key={i} className={isTotal ? 'font-bold bg-slate-100/75 dark:bg-slate-800' : undefined}>
+                      {row.map((cell, j) => (
+                        <td
+                          key={j}
+                          className={`border border-slate-400 px-4 py-1 text-center ${isTotal ? 'font-bold' : ''}`}
+                        >
+                          {cell || (isTotal ? '' : '-')}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

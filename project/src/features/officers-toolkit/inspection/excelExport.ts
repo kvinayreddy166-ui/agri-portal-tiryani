@@ -148,7 +148,7 @@ export async function exportInspectionExcel(options: InspectionExcelOptions) {
 
     table.body.forEach((cells) => {
       const row = detail.addRow(cells.map((cell) => cell || ''));
-      const isTotal = String(cells[1] ?? '').trim().toLowerCase() === 'total';
+      const isTotal = cells.some((c) => String(c ?? '').trim().toLowerCase() === 'total');
       for (let column = 1; column <= columnCount; column += 1) {
         styleCell(row.getCell(column), { bold: isTotal, horizontal: 'center', vertical: 'middle', bordered: true });
       }

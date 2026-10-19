@@ -197,17 +197,17 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
     { text: '.', bold: false }
   );
 
-  const titleLines = splitTitleSegments(doc, segments, 260);
+  const titleLines = splitTitleSegments(doc, segments, 269);
   const isMultiLine = titleLines.length > 1;
-  const tableStartY = isMultiLine ? 16 : 14;
+  const tableStartY = isMultiLine ? 22.5 : 18;
 
   const drawDiaryTitle = () => {
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
 
-    const startTitleY = isMultiLine ? 8.0 : 12;
+    const startTitleY = 16;
     const lineSpacing = 4.2;
-    const tableCenterX = 144;
+    const tableCenterX = 148.5;
 
     titleLines.forEach((lineTokens, lineIndex) => {
       const yPos = startTitleY + lineIndex * lineSpacing;
@@ -276,7 +276,7 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
       6: { cellWidth: 18, halign: 'center' },
       7: { cellWidth: 18, halign: 'center' },
       8: { cellWidth: 18, halign: 'center' },
-      9: { cellWidth: 56, halign: 'center' },
+      9: { cellWidth: 65, halign: 'center' },
     },
     didParseCell: (data) => {
       data.cell.styles.textColor = [0, 0, 0];
@@ -335,7 +335,7 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
     doc.addPage();
     doc.setTextColor(0, 0, 0);
     drawDiaryTitle();
-    abstractY = isMultiLine ? 28 : 26;
+    abstractY = isMultiLine ? 32 : 28;
   }
 
   doc.setFontSize(8);
@@ -357,13 +357,13 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
     doc.text(String(value), valueX, y);
   };
 
-  drawAbstractValue('\u2022 Total No. of Working Days: ', summary.workingDays, 14, abstractY + 4);
-  drawAbstractValue('\u2022 Total No. of Days on Tour: ', summary.tourDays, 14, abstractY + 6.5);
-  drawAbstractValue('\u2022 Leaves Availed: ', summary.leavesAvailed, 14, abstractY + 9);
-  drawAbstractValue('\u2022 No. of Villages Visited: ', summary.villagesVisited, 14, abstractY + 11.5);
+  drawAbstractValue('\u2022 Total No. of Working Days: ', summary.workingDays, 14, abstractY + 4.2);
+  drawAbstractValue('\u2022 Total No. of Days on Tour: ', summary.tourDays, 14, abstractY + 7.4);
+  drawAbstractValue('\u2022 Leaves Availed: ', summary.leavesAvailed, 14, abstractY + 10.6);
+  drawAbstractValue('\u2022 No. of Villages Visited: ', summary.villagesVisited, 14, abstractY + 13.8);
 
-  // Signature section - conditional based on officer designation (moved down by 4 pt)
-  const signatureY = abstractY + 7.5 + (4 * 25.4 / 72);
+  // Signature section - conditional based on officer designation (moved down by 8 pt total)
+  const signatureY = abstractY + 7.5 + (8 * 25.4 / 72);
   doc.setFont('times', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(0, 0, 0);

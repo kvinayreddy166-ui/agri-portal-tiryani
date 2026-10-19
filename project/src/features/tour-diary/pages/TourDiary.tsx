@@ -3224,13 +3224,13 @@ export function TourDiary() {
                 <table className="w-full border-collapse border border-gray-900 text-xs">
                   <thead>
                     <tr className="border-b-2 border-gray-900">
-                      <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>DATE</th>
+                      <th className="border border-gray-900 px-2 py-1 text-center font-bold whitespace-nowrap" rowSpan={2}>DATE</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" colSpan={2}>VISITING PLACE</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" colSpan={2}>VISITING TIME</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>MODE OF JOURNEY</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" colSpan={2}>METER READING</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>DISTANCE (KM)</th>
-                      <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>PURPOSE OF VISIT</th>
+                      <th className="border border-gray-900 px-2 py-1 text-left font-bold min-w-[200px]" rowSpan={2}>PURPOSE OF VISIT</th>
                     </tr>
                     <tr className="border-b border-gray-900">
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold">FROM</th>
@@ -3249,7 +3249,7 @@ export function TourDiary() {
                         <tr key={rowIndex} className="border-b border-gray-300">
                           {specialDateStatus ? (
                             <>
-                              <td className="border border-gray-900 px-2 py-1 text-center align-middle">
+                              <td className="border border-gray-900 px-2 py-1 text-center align-middle whitespace-nowrap">
                                 {row[0] || ''}
                               </td>
                               <td colSpan={TOUR_DIARY_COLUMN_COUNT - 1} className="border border-gray-900 px-2 py-1 text-center align-middle font-bold">
@@ -3258,7 +3258,12 @@ export function TourDiary() {
                             </>
                           ) : (
                             row.map((cell: any, cellIndex: number) => (
-                              <td key={cellIndex} className="border border-gray-900 px-2 py-1 text-center">
+                              <td
+                                key={cellIndex}
+                                className={`border border-gray-900 px-2 py-1 text-center ${
+                                  cellIndex === 0 ? 'whitespace-nowrap' : ''
+                                }`}
+                              >
                                 {cell}
                               </td>
                             ))

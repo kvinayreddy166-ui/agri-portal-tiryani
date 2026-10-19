@@ -533,16 +533,16 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
           { text: ` without further reference to the firm for initiating/proposing appropriate action under the provisions of the ${instrument} and other applicable Act(s), Rules, and Orders.` },
         ],
       },
-      { kind: 'gap', mm: 4, keepWithNext: true },
-      ...(form.enclosures.trim()
-        ? [{ kind: 'lines', items: [[{ text: 'Encl: ', bold: true }, { text: form.enclosures.trim() }]], keepWithNext: true } as NoticeBlock]
-        : []),
-      { kind: 'gap', mm: 4, keepWithNext: true },
-      { kind: 'lines', items: memoSignatureItems, align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
-      { kind: 'gap', mm: 4, keepWithNext: true },
-      { kind: 'lines', items: [[{ text: 'To', bold: true }]], keepWithNext: true },
-      { kind: 'lines', items: dealerItems, indent: 8, keepWithNext: true },
       { kind: 'gap', mm: 3 },
+      ...(form.enclosures.trim()
+        ? [{ kind: 'lines', items: [[{ text: 'Encl: ', bold: true }, { text: form.enclosures.trim() }]] } as NoticeBlock]
+        : []),
+      { kind: 'gap', mm: 4 },
+      { kind: 'lines', items: memoSignatureItems, align: 'right', centerLines: true, offsetX: 5 },
+      { kind: 'gap', mm: 3 },
+      { kind: 'lines', items: [[{ text: 'To', bold: true }]], keepWithNext: true },
+      { kind: 'lines', items: dealerItems, indent: 8 },
+      { kind: 'gap', mm: 2 },
       { kind: 'lines', items: [[{ text: 'Copy submitted to:', bold: true }]], keepWithNext: true },
       ...memoCopyLines.map((line): NoticeBlock => {
         const keepWithNext = false;
@@ -674,15 +674,16 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
         { text: ' based on the material available on record without any further reference, and further action as deemed fit will be initiated under the provisions of the applicable Act(s), Rules, and Orders.' },
       ],
     },
-    ...(form.enclosures.trim()
-      ? [{ kind: 'lines', items: [[{ text: 'Encl: ', bold: true }, { text: form.enclosures.trim() }]], keepWithNext: true } as NoticeBlock]
-      : []),
-    { kind: 'gap', mm: 8, keepWithNext: true },
-    { kind: 'lines', items: signatureItems, align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
-    { kind: 'gap', mm: 4, keepWithNext: true },
-    { kind: 'lines', items: [[{ text: 'To', bold: true }]], keepWithNext: true },
-    { kind: 'lines', items: dealerItems, indent: 8, keepWithNext: true },
     { kind: 'gap', mm: 3 },
+    ...(form.enclosures.trim()
+      ? [{ kind: 'lines', items: [[{ text: 'Encl: ', bold: true }, { text: form.enclosures.trim() }]] } as NoticeBlock]
+      : []),
+    { kind: 'gap', mm: 5 },
+    { kind: 'lines', items: signatureItems, align: 'right', centerLines: true, offsetX: 5 },
+    { kind: 'gap', mm: 3 },
+    { kind: 'lines', items: [[{ text: 'To', bold: true }]], keepWithNext: true },
+    { kind: 'lines', items: dealerItems, indent: 8 },
+    { kind: 'gap', mm: 2 },
     { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
     ...copyLines.map((line): NoticeBlock => {
       const keepWithNext = false;
@@ -1109,7 +1110,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
   const ML = 15;
   const MR = 15;
   const MT = 15;
-  const MB = 18;
+  const MB = 15;
   const CW = PAGE_W - ML - MR;
   const LH = 4.87;
   let y = MT;
@@ -1258,7 +1259,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
   const pageBreak = () => {
     doc.setFont(fontName, 'normal');
     doc.setFontSize(10);
-    doc.text("(Cont'd...)", PAGE_W - MR, PAGE_H - MB + 6, { align: 'right' });
+    doc.text("(Cont'd...)", PAGE_W - MR, PAGE_H - MB + 5, { align: 'right' });
     doc.addPage();
     doc.setFontSize(12);
     y = MT;
@@ -1378,6 +1379,10 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
         const blockWidth = block.centerLines
           ? Math.max(...wrapped.flat().map((runs) => runsWidth(runs)))
           : 0;
+        const blockH = wrapped.reduce((sum, lines) => sum + lines.length * LH, 0);
+        if (!block.keepWithNext) {
+          ensureSpace(blockH);
+        }
         wrapped.forEach((lines) => {
           lines.forEach((runs) => {
             ensureSpace(LH);

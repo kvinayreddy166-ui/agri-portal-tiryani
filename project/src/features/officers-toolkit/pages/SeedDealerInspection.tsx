@@ -492,7 +492,7 @@ export function SeedDealerInspection() {
                 const item = form.majorDefects[index];
                 const update = (patch: Partial<MajorDefect>) => set('majorDefects', form.majorDefects.map((d, i) => (i === index ? { ...d, ...patch } : d)));
                 return (
-                  <CheckRow key={label} label={`${index + 1}. ${label}`} checked={item.checked} onToggle={(checked) => update({ checked })}>
+                  <CheckRow key={label} label={label} checked={item.checked} onToggle={(checked) => update({ checked })}>
                     <Field label="Details / description" textarea value={item.details} onChange={(v) => update({ details: v })} />
                     <div className="grid gap-2 sm:grid-cols-4">
                       <div>
@@ -657,7 +657,7 @@ function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSub
       if (!d.checked) return '';
       const cropName = d.crop === 'Other' ? d.cropOther : d.crop;
       const parts = [d.details, cropName && `Crop: ${cropName}`, d.variety && `Variety: ${d.variety}`, d.lotNo && `Lot no.: ${d.lotNo}`, d.quantity && `Qty: ${d.quantity}`].filter((p) => p && p.trim());
-      return `${i + 1}. ${MAJOR_DEFECT_LABELS[i]}${parts.length ? `\n   ${parts.join('; ')}` : ''}`;
+      return `- ${MAJOR_DEFECT_LABELS[i]}${parts.length ? `\n   ${parts.join('; ')}` : ''}`;
     })
     .filter(Boolean);
 
