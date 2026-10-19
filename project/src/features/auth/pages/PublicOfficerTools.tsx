@@ -507,7 +507,7 @@ export function PublicOfficerTools() {
             >
             {statutoryFolder === 'seed' ? (
               <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-                <section className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
+                <section className="flex max-h-[94vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
                   <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-green-100/50 dark:border-green-900/50 bg-gradient-to-r from-green-50 dark:from-green-950 via-white to-emerald-50 dark:to-emerald-950 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
                     <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-emerald-500/5 to-green-500/5 opacity-50" />
                     <div className="relative flex min-w-0 flex-1 items-start gap-3">

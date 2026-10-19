@@ -67,8 +67,8 @@ export async function exportTourDiaryExcel(options: ExportTourDiaryExcelOptions)
 
   // Column headings (two rows, merged groups)
   const headingRows: string[][] = [
-    ['Date', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE (KM)', 'PURPOSE OF VISIT'],
-    ['', 'FROM', 'TO', 'FROM', 'TO', '', 'From', 'To', '', ''],
+    ['DATE', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE (KM)', 'PURPOSE OF VISIT'],
+    ['', 'FROM', 'TO', 'FROM', 'TO', '', 'FROM', 'TO', '', ''],
   ];
   headingRows.forEach((values, rowIndex) => {
     const row = sheet.getRow(3 + rowIndex);

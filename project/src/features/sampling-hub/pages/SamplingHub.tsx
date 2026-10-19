@@ -130,7 +130,7 @@ export function SamplingHub() {
         >
           {category === 'seed' ? (
             <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-              <section className="flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
+              <section className="flex max-h-[94vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
                 <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-green-100/50 bg-gradient-to-r from-green-50 via-white to-emerald-50 px-4 py-4 backdrop-blur-sm dark:border-green-900/50 dark:from-green-950 dark:to-emerald-950 sm:px-6 sm:py-5">
                   <div className="relative flex min-w-0 flex-1 items-start gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-50 text-lime-600 ring-1 ring-lime-200/70 dark:bg-lime-950/40 dark:text-lime-300 dark:ring-lime-800/50">

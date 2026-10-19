@@ -711,20 +711,20 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
   const renderBlock = (block: NoticeBlock) => {
       switch (block.kind) {
         case 'center':
-          return `<div style="text-align:center;${block.bold ? 'font-weight:700;' : ''}${block.underline ? 'text-decoration:underline;' : ''}${block.size ? `font-size:${block.size}pt;` : ''}line-height:1.25;">${escapeHtml(block.text)}</div>`;
+          return `<div style="text-align:center;${block.bold ? 'font-weight:700;' : ''}${block.underline ? 'text-decoration:underline;' : ''}${block.size ? `font-size:${block.size}pt;` : ''}line-height:1.15;">${escapeHtml(block.text)}</div>`;
         case 'memoRow': {
           const leftLines = block.leftLines ?? (block.left ? [block.left] : []);
           const rightLines = block.rightLines ?? (block.right ? [block.right] : []);
-          const leftHtml = leftLines.map((line) => `<div style="line-height:1.25;">${segmentsHtml(line)}</div>`).join('');
-          const rightInner = rightLines.map((line) => `<div style="line-height:1.25;">${segmentsHtml(line)}</div>`).join('');
+          const leftHtml = leftLines.map((line) => `<div style="line-height:1.15;">${segmentsHtml(line)}</div>`).join('');
+          const rightInner = rightLines.map((line) => `<div style="line-height:1.15;">${segmentsHtml(line)}</div>`).join('');
           const rightHtml = block.rightLines
             ? `<span style="display:inline-block;text-align:center;">${rightInner}</span>`
             : `<span>${rightInner}</span>`;
-          return `<div style="display:flex;justify-content:space-between;gap:12pt;line-height:1.25;"><span>${leftHtml}</span>${rightHtml}</div>`;
+          return `<div style="display:flex;justify-content:space-between;gap:12pt;line-height:1.15;"><span>${leftHtml}</span>${rightHtml}</div>`;
         }
         case 'para': {
           const bottomMargin = block.spaceAfter !== undefined ? `${(block.spaceAfter * 2.83465).toFixed(1)}pt` : '6.5pt';
-          return `<p style="margin:0 0 ${bottomMargin} ${block.indent || 0}mm;text-align:justify;${block.firstLineIndent ? `text-indent:${block.firstLineIndent}mm;` : ''}line-height:1.25;">${segmentsHtml(block.segments)}</p>`;
+          return `<p style="margin:0 0 ${bottomMargin} ${block.indent || 0}mm;text-align:justify;${block.firstLineIndent ? `text-indent:${block.firstLineIndent}mm;` : ''}line-height:1.15;">${segmentsHtml(block.segments)}</p>`;
         }
         case 'labelPara': {
           const pad = block.labelPad ? `<strong style="flex:none;visibility:hidden;">${escapeHtml(block.labelPad)}&nbsp;</strong>` : '';
@@ -732,26 +732,26 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
           const labelTag = (block.labelBold === false || isRefSubItem) ? 'span' : 'strong';
           const suffix = block.labelSuffix ? `<span style="flex:none;font-weight:normal;">${escapeHtml(block.labelSuffix)}&nbsp;</span>` : '';
           const bottomMargin = block.spaceAfter !== undefined ? `${(block.spaceAfter * 2.83465).toFixed(1)}pt` : '5pt';
-          return `<div style="display:flex;margin:0 0 ${bottomMargin} ${block.indent || 0}mm;line-height:1.25;">${pad}<${labelTag} style="flex:none;">${escapeHtml(block.label)}&nbsp;</${labelTag}>${suffix}<span style="flex:1;text-align:justify;">${segmentsHtml(block.segments)}</span></div>`;
+          return `<div style="display:flex;margin:0 0 ${bottomMargin} ${block.indent || 0}mm;line-height:1.15;">${pad}<${labelTag} style="flex:none;">${escapeHtml(block.label)}&nbsp;</${labelTag}>${suffix}<span style="flex:1;text-align:justify;">${segmentsHtml(block.segments)}</span></div>`;
         }
         case 'heading': {
           const bottomMargin = block.spaceAfter !== undefined ? `${(block.spaceAfter * 2.83465).toFixed(1)}pt` : '3pt';
-          return `<p style="margin:6pt 0 ${bottomMargin};font-weight:700;line-height:1.25;">${escapeHtml(block.text)}</p>`;
+          return `<p style="margin:6pt 0 ${bottomMargin};font-weight:700;line-height:1.15;">${escapeHtml(block.text)}</p>`;
         }
         case 'lines': {
-          const inner = block.items.map((item) => `<div style="line-height:1.25;">${segmentsHtml(item)}</div>`).join('');
+          const inner = block.items.map((item) => `<div style="line-height:1.15;">${segmentsHtml(item)}</div>`).join('');
           if (block.centerLines) {
-            return `<div style="margin-left:${block.indent || 0}mm;text-align:right;transform:translateX(${block.offsetX || 0}mm);line-height:1.25;"><div style="display:inline-block;text-align:center;">${inner}</div></div>`;
+            return `<div style="margin-left:${block.indent || 0}mm;text-align:right;transform:translateX(${block.offsetX || 0}mm);line-height:1.15;"><div style="display:inline-block;text-align:center;">${inner}</div></div>`;
           }
-          return `<div style="margin-left:${block.indent || 0}mm;text-align:${block.align === 'right' ? 'right' : 'left'};transform:translateX(${block.offsetX || 0}mm);line-height:1.25;">${inner}</div>`;
+          return `<div style="margin-left:${block.indent || 0}mm;text-align:${block.align === 'right' ? 'right' : 'left'};transform:translateX(${block.offsetX || 0}mm);line-height:1.15;">${inner}</div>`;
         }
         case 'table':
           return `<table style="width:92%;border-collapse:collapse;margin:2pt 0 2pt 8mm;"><thead><tr>${block.header
-            .map((cell) => `<th style="border:1pt solid #000;padding:2pt 6pt;text-align:left;font-weight:700;line-height:1.25;">${escapeHtml(cell)}</th>`)
+            .map((cell) => `<th style="border:1pt solid #000;padding:2pt 6pt;text-align:left;font-weight:700;line-height:1.15;">${escapeHtml(cell)}</th>`)
             .join('')}</tr></thead><tbody>${block.rows
             .map(
               (row) =>
-                `<tr><td style="border:1pt solid #000;padding:2pt 6pt;line-height:1.25;">${escapeHtml(row.label)}</td><td style="border:1pt solid #000;padding:2pt 6pt;font-weight:700;line-height:1.25;">${escapeHtml(row.value || '______________________________')}</td></tr>`
+                `<tr><td style="border:1pt solid #000;padding:2pt 6pt;line-height:1.15;">${escapeHtml(row.label)}</td><td style="border:1pt solid #000;padding:2pt 6pt;font-weight:700;line-height:1.15;">${escapeHtml(row.value || '______________________________')}</td></tr>`
             )
             .join('')}</tbody></table>`;
         case 'gridTable': {
@@ -761,12 +761,12 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
           const total = weights.reduce((a, b) => a + b, 0);
           const cols = weights.map((w) => `<col style="width:${(w / total) * 100}%;"/>`).join('');
           return `<table style="width:100%;border-collapse:collapse;margin:2pt 0 4pt;table-layout:fixed;font-size:10pt;">${cols}<thead><tr>${block.header
-            .map((cell) => `<th style="border:1pt solid #000;padding:2pt 4pt;text-align:center;font-weight:700;vertical-align:middle;overflow-wrap:break-word;line-height:1.25;">${escapeHtml(cell)}</th>`)
+            .map((cell) => `<th style="border:1pt solid #000;padding:2pt 4pt;text-align:center;font-weight:700;vertical-align:middle;overflow-wrap:break-word;line-height:1.15;">${escapeHtml(cell)}</th>`)
             .join('')}</tr></thead><tbody>${block.rows
             .map(
               (row) =>
                 `<tr>${row
-                  .map((cell) => `<td style="border:1pt solid #000;padding:2pt 4pt;text-align:center;vertical-align:middle;overflow-wrap:break-word;line-height:1.25;">${escapeHtml(cell) || '&nbsp;'}</td>`)
+                  .map((cell) => `<td style="border:1pt solid #000;padding:2pt 4pt;text-align:center;vertical-align:middle;overflow-wrap:break-word;line-height:1.15;">${escapeHtml(cell) || '&nbsp;'}</td>`)
                   .join('')}</tr>`
             )
             .join('')}</tbody></table>`;
@@ -801,7 +801,7 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
 }
 
 export function noticeDocumentHtml(blocks: NoticeBlock[]) {
-  return `<html><head><style>@page{size:A4;margin:18mm 15mm;}body{font-family:${NOTICE_FONT_STACK};font-size:12pt;line-height:1.25;color:#000;}</style></head><body>${noticeBlocksHtml(blocks)}</body></html>`;
+  return `<html><head><style>@page{size:A4;margin:18mm 15mm;}body{font-family:${NOTICE_FONT_STACK};font-size:12pt;line-height:1.15;color:#000;}</style></head><body>${noticeBlocksHtml(blocks)}</body></html>`;
 }
 
 export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: NoticeDocFont = 'bookAntiqua') {
@@ -828,7 +828,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
   const font = { ascii: latinFont, hAnsi: latinFont, eastAsia: latinFont, cs: DOCX_TELUGU_FONT };
   const fontSize = 24;
   const mmToTwips = (mm: number) => Math.round(mm * 56.6929);
-  const wordGridLine = { line: 250, lineRule: LineRuleType.EXACT };
+  const wordGridLine = { line: 230, lineRule: LineRuleType.EXACT };
   const runs = (segments: NoticeSegment[]) => segments.map((segment) => new TextRun({ text: segment.text, bold: segment.bold, underline: segment.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: fontSize }));
   const children: FileChild[] = [];
   const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
@@ -843,7 +843,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           children: [new TextRun({ text: block.text, bold: block.bold, underline: block.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: block.size ? block.size * 2 : fontSize })],
           alignment: AlignmentType.CENTER,
           keepNext: block.keepWithNext,
-          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
+          spacing: { line: 276, lineRule: LineRuleType.EXACT, after: 0 },
         }));
         break;
       case 'memoRow':
@@ -854,7 +854,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             children: runs(line),
             alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
             keepNext: block.keepWithNext,
-            spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
+            spacing: { line: 276, lineRule: LineRuleType.EXACT, after: 0 },
           });
           children.push(new Table({
             rows: [new TableRow({
@@ -875,7 +875,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             children: [...runs(block.left || []), new TextRun({ text: '\t', font, size: fontSize }), ...runs(block.right || [])],
             tabStops: [{ type: TabStopType.RIGHT, position: mmToTwips(165) }],
             keepNext: block.keepWithNext,
-            spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
+            spacing: { line: 276, lineRule: LineRuleType.EXACT, after: 0 },
           }));
         }
         break;
@@ -889,7 +889,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             firstLine: mmToTwips(block.firstLineIndent || 0),
           },
           keepNext: block.keepWithNext,
-          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: afterTwips },
+          spacing: { line: 276, lineRule: LineRuleType.EXACT, after: afterTwips },
         }));
         break;
       }
@@ -908,7 +908,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           alignment: AlignmentType.JUSTIFIED,
           indent: { left: mmToTwips(block.indent || 0) + padTwips + hanging, hanging },
           keepNext: block.keepWithNext,
-          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: afterTwips },
+          spacing: { line: 276, lineRule: LineRuleType.EXACT, after: afterTwips },
         }));
         break;
       }
@@ -917,7 +917,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
         children.push(new Paragraph({
           children: [new TextRun({ text: block.text, bold: true, font, size: fontSize })],
           keepNext: block.keepWithNext,
-          spacing: { line: 300, lineRule: LineRuleType.EXACT, before: 120, after: afterTwips },
+          spacing: { line: 276, lineRule: LineRuleType.EXACT, before: 120, after: afterTwips },
         }));
         break;
       }
@@ -931,7 +931,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
                   children: runs(item),
                   alignment: AlignmentType.CENTER,
                   keepNext: block.keepWithNext,
-                  spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
+                  spacing: { line: 276, lineRule: LineRuleType.EXACT, after: 0 },
                 })),
                 verticalAlign: VerticalAlign.CENTER,
                 borders: noBorders,
@@ -950,14 +950,14 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
             alignment: block.align === 'right' ? AlignmentType.RIGHT : AlignmentType.LEFT,
             indent: { left: mmToTwips(block.indent || 0) },
             keepNext: block.keepWithNext,
-            spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
+            spacing: { line: 276, lineRule: LineRuleType.EXACT, after: 0 },
           })));
         }
         break;
       case 'table': {
         const cellParagraph = (text: string, bold = false) => new Paragraph({
           children: [new TextRun({ text, bold, font, size: fontSize })],
-          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
+          spacing: { line: 276, lineRule: LineRuleType.EXACT, after: 0 },
         });
         children.push(new Table({
           rows: [
@@ -1025,7 +1025,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           children: [],
           border: { bottom: { style: BorderStyle.DASHED, size: 6, color: '000000', space: 1 } },
           keepNext: block.keepWithNext,
-          spacing: { line: 300, lineRule: LineRuleType.EXACT, after: 0 },
+          spacing: { line: 276, lineRule: LineRuleType.EXACT, after: 0 },
         }));
         break;
       case 'gap':
@@ -1045,7 +1045,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
       default: {
         document: {
           run: { font, size: fontSize, color: '000000' },
-          paragraph: { spacing: { line: 300, lineRule: LineRuleType.EXACT } },
+          paragraph: { spacing: { line: 276, lineRule: LineRuleType.EXACT } },
         },
       },
     },
@@ -1100,6 +1100,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
   doc.setProperties({ title, subject: title, creator: 'AGRONIX' });
+  doc.setLineHeightFactor(1.15);
   const fontName = await loadNoticeFonts(doc, font);
   await setupPdfUnicodeFonts(doc);
 
@@ -1110,7 +1111,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
   const MT = 15;
   const MB = 18;
   const CW = PAGE_W - ML - MR;
-  const LH = 5.29;
+  const LH = 4.87;
   let y = MT;
 
   const measure = (text: string, bold: boolean, size = 12) => {

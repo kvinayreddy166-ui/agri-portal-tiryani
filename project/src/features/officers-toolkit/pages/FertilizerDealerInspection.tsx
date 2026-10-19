@@ -728,6 +728,7 @@ async function buildPdf(form: InspectionForm) {
   const { jsPDF } = await import('jspdf');
   const { default: autoTable } = await import('jspdf-autotable');
   const doc = new jsPDF('p', 'mm', 'a4');
+  doc.setLineHeightFactor(1.15);
   await setupPdfUnicodeFonts(doc);
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -820,7 +821,7 @@ async function buildPdf(form: InspectionForm) {
 function Preview({ form, stockTotal }: { form: InspectionForm; stockTotal: number }) {
   const { items, subTables } = buildRows(form, stockTotal);
   return (
-    <div className="text-slate-900 dark:text-white">
+    <div className="text-slate-900 dark:text-white" style={{ lineHeight: 1.15 }}>
       <h3 className="mb-3 text-center text-base font-black">Fertilizer Dealer Inspection Report</h3>
       <div className="overflow-x-auto">
         <table className="w-full table-fixed border-collapse border border-slate-400 text-xs">

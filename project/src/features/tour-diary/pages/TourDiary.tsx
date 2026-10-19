@@ -3224,12 +3224,12 @@ export function TourDiary() {
                 <table className="w-full border-collapse border border-gray-900 text-xs">
                   <thead>
                     <tr className="border-b-2 border-gray-900">
-                      <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>Date</th>
+                      <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>DATE</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" colSpan={2}>VISITING PLACE</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" colSpan={2}>VISITING TIME</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>MODE OF JOURNEY</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" colSpan={2}>METER READING</th>
-                      <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>DISTANCE (Km)</th>
+                      <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>DISTANCE (KM)</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold" rowSpan={2}>PURPOSE OF VISIT</th>
                     </tr>
                     <tr className="border-b border-gray-900">
@@ -3237,8 +3237,8 @@ export function TourDiary() {
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold">TO</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold">FROM</th>
                       <th className="border border-gray-900 px-2 py-1 text-left font-bold">TO</th>
-                      <th className="border border-gray-900 px-2 py-1 text-left font-bold">From</th>
-                      <th className="border border-gray-900 px-2 py-1 text-left font-bold">To</th>
+                      <th className="border border-gray-900 px-2 py-1 text-left font-bold">FROM</th>
+                      <th className="border border-gray-900 px-2 py-1 text-left font-bold">TO</th>
                     </tr>
                   </thead>
                   <tbody>

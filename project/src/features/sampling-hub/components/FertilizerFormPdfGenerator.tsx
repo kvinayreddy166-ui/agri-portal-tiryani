@@ -114,7 +114,7 @@ export function FertilizerFormPdfGenerator({ form, onClose }: { form: PdfFormEnt
 
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-      <section className="flex max-h-[96vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-slate-950">
+      <section className="flex max-h-[96vh] w-full max-w-7xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-slate-950">
         <header className="flex shrink-0 flex-col gap-3 border-b border-slate-200 px-3 py-2.5 dark:border-slate-800 sm:flex-row sm:items-start sm:justify-between sm:px-4">
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">{form.category ?? form.rule}</p>

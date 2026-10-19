@@ -25,6 +25,112 @@ export interface GenerateTourDiaryPdfOptions {
   forPrint?: boolean;
 }
 
+export interface TitleSegment {
+  text: string;
+  bold: boolean;
+}
+
+export interface TitleToken {
+  text: string;
+  bold: boolean;
+  width: number;
+  isSpace: boolean;
+  isCommaBreak: boolean;
+}
+
+export function splitTitleSegments(
+  doc: any,
+  segs: TitleSegment[],
+  maxWidth = 260
+): TitleToken[][] {
+  doc.setFontSize(10);
+  let totalWidth = 0;
+  for (const seg of segs) {
+    doc.setFont('times', seg.bold ? 'bold' : 'normal');
+    totalWidth += doc.getTextWidth(seg.text);
+  }
+
+  if (totalWidth <= maxWidth) {
+    return [
+      segs.map((seg) => {
+        doc.setFont('times', seg.bold ? 'bold' : 'normal');
+        return {
+          text: seg.text,
+          bold: seg.bold,
+          width: doc.getTextWidth(seg.text),
+          isSpace: /^\s+$/.test(seg.text),
+          isCommaBreak: /,\s*$/.test(seg.text),
+        };
+      }),
+    ];
+  }
+
+  const tokens: TitleToken[] = [];
+  for (const seg of segs) {
+    const parts = seg.text.split(/(\s+)/);
+    for (const part of parts) {
+      if (!part) continue;
+      doc.setFont('times', seg.bold ? 'bold' : 'normal');
+      tokens.push({
+        text: part,
+        bold: seg.bold,
+        width: doc.getTextWidth(part),
+        isSpace: /^\s+$/.test(part),
+        isCommaBreak: /,\s*$/.test(part),
+      });
+    }
+  }
+
+  let bestSplit = -1;
+  let minCost = Infinity;
+  let w1 = 0;
+  for (let i = 0; i < tokens.length - 1; i++) {
+    w1 += tokens[i].width;
+    const w2 = totalWidth - w1;
+    if (w1 <= maxWidth && w2 <= maxWidth) {
+      let cost = Math.abs(w1 - w2);
+      if (tokens[i].isCommaBreak || tokens[i].text.includes(',')) {
+        cost -= 40;
+      }
+      if (tokens[i].text === 'of' || tokens[i].text === 'Month' || tokens[i].text === 'the') {
+        cost += 30;
+      }
+      if (cost < minCost) {
+        minCost = cost;
+        bestSplit = i;
+      }
+    }
+  }
+
+  if (bestSplit !== -1) {
+    const l1 = tokens.slice(0, bestSplit + 1);
+    const l2 = tokens.slice(bestSplit + 1);
+    while (l1.length > 0 && l1[l1.length - 1].isSpace) l1.pop();
+    while (l2.length > 0 && l2[0].isSpace) l2.shift();
+    return [l1, l2];
+  }
+
+  const lines: TitleToken[][] = [];
+  let cur: TitleToken[] = [];
+  let curW = 0;
+  for (const tok of tokens) {
+    if (cur.length > 0 && curW + tok.width > maxWidth && !tok.isSpace) {
+      while (cur.length > 0 && cur[cur.length - 1].isSpace) cur.pop();
+      lines.push(cur);
+      cur = [];
+      curW = 0;
+      if (tok.isSpace) continue;
+    }
+    cur.push(tok);
+    curW += tok.width;
+  }
+  if (cur.length > 0) {
+    while (cur.length > 0 && cur[cur.length - 1].isSpace) cur.pop();
+    lines.push(cur);
+  }
+  return lines;
+}
+
 export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions): Promise<void> {
   const {
     currentYear,
@@ -70,57 +176,63 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
   doc.setTextColor(0, 0, 0);
   const monthYear = `${MONTHS[currentMonth - 1]}-${currentYear}`;
 
-  const drawDiaryTitle = () => {
-    const yPos = 12;
-    const segments: { text: string; bold: boolean }[] = [
-      { text: 'Tour Diary of ', bold: false },
-      { text: ' ' + displayName, bold: true },
-      { text: ', ', bold: false },
-      { text: displayDesignation, bold: true },
-    ];
-    if (shouldShowMandal && displayMandal !== '....................') {
-      segments.push({ text: ', ', bold: false }, { text: displayMandal, bold: true });
-    }
-    if (shouldShowDivision && displayDivision !== '....................') {
-      segments.push({ text: ', Division: ', bold: false }, { text: displayDivision, bold: true });
-    }
-    if (displayDistrict !== '....................') {
-      segments.push({ text: ', Dist: ', bold: false }, { text: displayDistrict, bold: true });
-    }
-    segments.push(
-      { text: ' for the Month of ', bold: false },
-      { text: monthYear, bold: true },
-      { text: '.', bold: false }
-    );
+  const segments: TitleSegment[] = [
+    { text: 'Tour Diary of ', bold: false },
+    { text: displayName, bold: true },
+    { text: ', ', bold: false },
+    { text: displayDesignation, bold: true },
+  ];
+  if (shouldShowMandal && displayMandal !== '....................') {
+    segments.push({ text: ', ', bold: false }, { text: displayMandal, bold: true });
+  }
+  if (shouldShowDivision && displayDivision !== '....................') {
+    segments.push({ text: ', Division: ', bold: false }, { text: displayDivision, bold: true });
+  }
+  if (displayDistrict !== '....................') {
+    segments.push({ text: ', Dist: ', bold: false }, { text: displayDistrict, bold: true });
+  }
+  segments.push(
+    { text: ' for the Month of ', bold: false },
+    { text: monthYear, bold: true },
+    { text: '.', bold: false }
+  );
 
+  const titleLines = splitTitleSegments(doc, segments, 260);
+  const isMultiLine = titleLines.length > 1;
+  const tableStartY = isMultiLine ? 16 : 14;
+
+  const drawDiaryTitle = () => {
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
 
+    const startTitleY = isMultiLine ? 8.0 : 12;
+    const lineSpacing = 4.2;
     const tableCenterX = 144;
-    const totalWidth = segments.reduce((sum, seg) => {
-      doc.setFont('times', seg.bold ? 'bold' : 'normal');
-      return sum + doc.getTextWidth(seg.text);
-    }, 0);
-    let xPos = Math.max(14, tableCenterX - totalWidth / 2);
 
-    for (const seg of segments) {
-      doc.setFont('times', seg.bold ? 'bold' : 'normal');
-      doc.text(seg.text, xPos, yPos);
-      xPos += doc.getTextWidth(seg.text);
-    }
+    titleLines.forEach((lineTokens, lineIndex) => {
+      const yPos = startTitleY + lineIndex * lineSpacing;
+      const lineWidth = lineTokens.reduce((sum, tok) => sum + tok.width, 0);
+      let xPos = Math.max(14, tableCenterX - lineWidth / 2);
+
+      for (const tok of lineTokens) {
+        doc.setFont('times', tok.bold ? 'bold' : 'normal');
+        doc.text(tok.text, xPos, yPos);
+        xPos += tok.width;
+      }
+    });
   };
 
   drawDiaryTitle();
 
   // Generate table with merged header cells
   autoTable(doc, {
-    startY: 14,
-    margin: { top: 14, left: 14, right: 14, bottom: 8 },
+    startY: tableStartY,
+    margin: { top: tableStartY, left: 14, right: 14, bottom: 8 },
     rowPageBreak: 'avoid',
     tableWidth: 'wrap',
     head: [
-      ['Date', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE (KM)', 'PURPOSE OF VISIT'],
-      ['', 'FROM', 'TO', 'FROM', 'TO', '', 'From', 'To', '', ''],
+      ['DATE', 'VISITING PLACE', '', 'VISITING TIME', '', 'MODE OF JOURNEY', 'METER READING', '', 'DISTANCE (KM)', 'PURPOSE OF VISIT'],
+      ['', 'FROM', 'TO', 'FROM', 'TO', '', 'FROM', 'TO', '', ''],
     ],
     body: validatedTableData,
     theme: 'grid',
@@ -223,7 +335,7 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
     doc.addPage();
     doc.setTextColor(0, 0, 0);
     drawDiaryTitle();
-    abstractY = 26;
+    abstractY = isMultiLine ? 28 : 26;
   }
 
   doc.setFontSize(8);
