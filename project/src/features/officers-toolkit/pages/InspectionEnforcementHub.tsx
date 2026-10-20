@@ -356,7 +356,7 @@ export function InspectionEnforcementHub() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.fertiliser.eyebrow}`}>
-                    {fertStopSaleTab === 'issue' ? 'Stop Sale Notice — Annexure-A' : 'Revoke of Stop Sale Notice — Clause 28'}
+                    {fertStopSaleTab === 'issue' ? 'Stop Sale Notice — Annexure-A' : 'Revoke of Stop Sale Order — Clause 28'}
                   </p>
                   <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
                     {fertStopSaleTab === 'issue' ? 'Fertilizer Stop Sale Notice Entry' : 'Fertilizer Stop Sale Revoke Entry'}

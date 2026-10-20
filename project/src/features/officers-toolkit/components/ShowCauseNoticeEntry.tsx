@@ -291,7 +291,7 @@ export interface NoticeSegment {
 }
 
 export type NoticeBlock =
-  | { kind: 'center'; text: string; bold?: boolean; underline?: boolean; size?: number; keepWithNext?: boolean }
+  | { kind: 'center'; text: string; bold?: boolean; underline?: boolean; size?: number; keepWithNext?: boolean; spaceAfter?: number }
   | { kind: 'memoRow'; left?: NoticeSegment[]; right?: NoticeSegment[]; leftLines?: NoticeSegment[][]; rightLines?: NoticeSegment[][]; keepWithNext?: boolean }
   | { kind: 'para'; segments: NoticeSegment[]; indent?: number; firstLineIndent?: number; keepWithNext?: boolean; spaceAfter?: number }
   | { kind: 'labelPara'; label: string; labelSuffix?: string; segments: NoticeSegment[]; indent?: number; labelPad?: string; labelBold?: boolean; keepWithNext?: boolean; spaceAfter?: number }
@@ -302,7 +302,7 @@ export type NoticeBlock =
   | { kind: 'rule'; keepWithNext?: boolean }
   | { kind: 'gap'; mm?: number; keepWithNext?: boolean };
 
-const NOTICE_FONT_STACK = `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`;
+export const NOTICE_FONT_STACK = `'Times New Roman', Times, 'Noto Serif', serif`;
 
 // One-tab indent (mm) for "Sub:"/"Ref:" label lines, per standard memo/notice format
 const SUBJECT_REF_INDENT = 10;
@@ -427,7 +427,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
 
   // Traditional memo format (District Office Manual / drafting & noting):
   // government + department heading, "Office of the ___" with station, No./Dt. row,
-  // centred MEMORANDUM title, Sub + Ref, "***" separator, numbered paras with the
+  // centred MEMORANDUM title, Sub + Ref, "******" separator, numbered paras with the
   // violation list under para 1, Encl at the left end, full designation signature,
   // addressee AFTER the signature, Copy submitted to last.
   if (isMAO) {
@@ -475,7 +475,7 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
         ],
       },
       { kind: 'gap', mm: 2 },
-      { kind: 'center', text: '***' },
+      { kind: 'center', text: '******', bold: true },
       { kind: 'gap', mm: 1 },
       {
         kind: 'labelPara',
@@ -542,13 +542,13 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       { kind: 'gap', mm: 3 },
       { kind: 'lines', items: [[{ text: 'To', bold: true }]], keepWithNext: true },
       { kind: 'lines', items: dealerItems, indent: 8 },
-      { kind: 'gap', mm: 2 },
-      { kind: 'lines', items: [[{ text: 'Copy submitted to:', bold: true }]], keepWithNext: true },
+      { kind: 'gap', mm: 3.06 },
+      { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
       ...memoCopyLines.map((line): NoticeBlock => {
         const keepWithNext = false;
         const match = line.match(/^(\d+\.)\s*(.*)$/);
         return match
-          ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
+          ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext, spaceAfter: 0 }
           : { kind: 'lines', items: [[{ text: line }]], keepWithNext };
       }),
     ];
@@ -607,14 +607,15 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
       label: 'Ref:',
       labelSuffix: '1.',
       indent: SUBJECT_REF_INDENT,
+      spaceAfter: 0,
       segments: [
         { text: `${certificateTerm} held by ` },
         { text: `${firmDisplay}.`, bold: true },
       ],
     },
-    { kind: 'labelPara', label: '2.', labelPad: 'Ref:', indent: SUBJECT_REF_INDENT, segments: [{ text: inspectionRef }] },
+    { kind: 'labelPara', label: '2.', labelPad: 'Ref:', indent: SUBJECT_REF_INDENT, spaceAfter: 0, segments: [{ text: inspectionRef }] },
     { kind: 'gap', mm: 2 },
-    { kind: 'center', text: '***' },
+    { kind: 'center', text: '******', bold: true },
     { kind: 'gap', mm: 1 },
     {
       kind: 'labelPara',
@@ -683,13 +684,13 @@ function buildNoticeModel(form: NoticeFormState, selectedViolations: ShowCauseVi
     { kind: 'gap', mm: 3 },
     { kind: 'lines', items: [[{ text: 'To', bold: true }]], keepWithNext: true },
     { kind: 'lines', items: dealerItems, indent: 8 },
-    { kind: 'gap', mm: 2 },
+    { kind: 'gap', mm: 3.06 },
     { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
     ...copyLines.map((line): NoticeBlock => {
       const keepWithNext = false;
       const match = line.match(/^(\d+\.)\s*(.*)$/);
       return match
-        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
+        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext, spaceAfter: 0 }
         : { kind: 'lines', items: [[{ text: line }]], keepWithNext };
     }),
   ];
@@ -711,8 +712,10 @@ function segmentsHtml(segments: NoticeSegment[]) {
 export function noticeBlocksHtml(blocks: NoticeBlock[]) {
   const renderBlock = (block: NoticeBlock) => {
       switch (block.kind) {
-        case 'center':
-          return `<div style="text-align:center;${block.bold ? 'font-weight:700;' : ''}${block.underline ? 'text-decoration:underline;' : ''}${block.size ? `font-size:${block.size}pt;` : ''}line-height:1.15;">${escapeHtml(block.text)}</div>`;
+        case 'center': {
+          const margin = block.spaceAfter !== undefined && block.spaceAfter < 4 ? 'margin-bottom:-1.5pt;' : '';
+          return `<div style="text-align:center;${block.bold ? 'font-weight:700;' : ''}${block.underline ? 'text-decoration:underline;' : ''}${block.size ? `font-size:${block.size}pt;` : ''}line-height:1.15;${margin}">${escapeHtml(block.text)}</div>`;
+        }
         case 'memoRow': {
           const leftLines = block.leftLines ?? (block.left ? [block.left] : []);
           const rightLines = block.rightLines ?? (block.right ? [block.right] : []);
@@ -805,7 +808,7 @@ export function noticeDocumentHtml(blocks: NoticeBlock[]) {
   return `<html><head><style>@page{size:A4;margin:18mm 15mm;}body{font-family:${NOTICE_FONT_STACK};font-size:12pt;line-height:1.15;color:#000;}</style></head><body>${noticeBlocksHtml(blocks)}</body></html>`;
 }
 
-export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: NoticeDocFont = 'bookAntiqua') {
+export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: NoticeDocFont = 'times') {
   const {
     AlignmentType,
     BorderStyle,
@@ -825,7 +828,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
     WidthType,
   } = await import('docx');
 
-  const latinFont = docFont === 'robotoSerif' ? 'Roboto Serif' : 'Book Antiqua';
+  const latinFont = docFont === 'robotoSerif' ? 'Roboto Serif' : docFont === 'bookAntiqua' ? 'Book Antiqua' : 'Times New Roman';
   const font = { ascii: latinFont, hAnsi: latinFont, eastAsia: latinFont, cs: DOCX_TELUGU_FONT };
   const fontSize = 24;
   const mmToTwips = (mm: number) => Math.round(mm * 56.6929);
@@ -844,7 +847,7 @@ export async function buildNoticeWordDocument(blocks: NoticeBlock[], docFont: No
           children: [new TextRun({ text: block.text, bold: block.bold, underline: block.underline ? { type: UnderlineType.SINGLE } : undefined, font, size: block.size ? block.size * 2 : fontSize })],
           alignment: AlignmentType.CENTER,
           keepNext: block.keepWithNext,
-          spacing: { line: 276, lineRule: LineRuleType.EXACT, after: 0 },
+          spacing: { line: 276, lineRule: LineRuleType.EXACT, after: block.spaceAfter !== undefined ? Math.round(block.spaceAfter * 56.6929) : 0 },
         }));
         break;
       case 'memoRow':
@@ -1073,9 +1076,12 @@ function arrayBufferToBase64(buffer: ArrayBuffer) {
   return btoa(binary);
 }
 
-export type NoticeDocFont = 'bookAntiqua' | 'robotoSerif';
+export type NoticeDocFont = 'times' | 'bookAntiqua' | 'robotoSerif';
 
-export async function loadNoticeFonts(doc: { addFileToVFS: (name: string, data: string) => void; addFont: (file: string, name: string, style: string) => void }, font: NoticeDocFont = 'bookAntiqua') {
+export async function loadNoticeFonts(doc: { addFileToVFS: (name: string, data: string) => void; addFont: (file: string, name: string, style: string) => void }, font: NoticeDocFont = 'times') {
+  if (font === 'times') {
+    return 'times';
+  }
   try {
     const load = async (url: string) => arrayBufferToBase64(await (await fetch(url)).arrayBuffer());
     if (font === 'robotoSerif') {
@@ -1097,7 +1103,7 @@ export async function loadNoticeFonts(doc: { addFileToVFS: (name: string, data: 
   }
 }
 
-export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title: string, font: NoticeDocFont = 'bookAntiqua') {
+export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title: string, font: NoticeDocFont = 'times') {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
   doc.setProperties({ title, subject: title, creator: 'AGRONIX' });
@@ -1201,7 +1207,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
   const measureBlock = (block: NoticeBlock): number => {
     switch (block.kind) {
       case 'center':
-        return (block.size || 12) * 0.5;
+        return block.spaceAfter !== undefined ? block.spaceAfter : (block.size || 12) * 0.5;
       case 'memoRow': {
         if (block.leftLines || block.rightLines) {
           const leftCount = block.leftLines?.length ?? (block.left ? 1 : 0);
@@ -1291,7 +1297,7 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
         const x = (PAGE_W - width) / 2;
         doc.text(block.text, x, y);
         if (block.underline) doc.line(x, y + 0.8, x + width, y + 0.8);
-        y += pt * 0.5;
+        y += block.spaceAfter !== undefined ? block.spaceAfter : pt * 0.5;
         doc.setFontSize(12);
         break;
       }
@@ -1319,6 +1325,12 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
         const firstLineIndent = block.firstLineIndent || 0;
         const lineWidth = CW - indent;
         const lines = wrapSegments(block.segments, lineWidth, firstLineIndent ? lineWidth - firstLineIndent : undefined);
+        const paraGap = block.spaceAfter ?? 2.8;
+        const fullHeight = lines.length * LH + paraGap;
+        const pageAvailable = PAGE_H - MB - MT;
+        if (fullHeight <= pageAvailable && !block.keepWithNext) {
+          ensureSpace(fullHeight);
+        }
         lines.forEach((runs, index) => {
           ensureSpace(LH);
           const isLastLine = index === lines.length - 1;
@@ -1326,7 +1338,6 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
           drawRuns(runs, ML + indent + offset, y, isLastLine ? undefined : lineWidth - offset);
           y += LH;
         });
-        const paraGap = block.spaceAfter ?? 2.8;
         y += paraGap;
         break;
       }
@@ -1343,6 +1354,12 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
         // measure() mutates doc font state as a side-effect; computing it
         // inside doc.text() args would clobber the 'normal' state we need.
         const suffixX = suffix ? ML + indent + measure(`${block.label} `, labelBold) : 0;
+        const labelGap = block.spaceAfter ?? 2.2;
+        const fullHeight = lines.length * LH + labelGap;
+        const pageAvailable = PAGE_H - MB - MT;
+        if (fullHeight <= pageAvailable && !block.keepWithNext) {
+          ensureSpace(fullHeight);
+        }
         lines.forEach((runs, index) => {
           ensureSpace(LH);
           if (index === 0) {
@@ -1358,18 +1375,22 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
           drawRuns(runs, ML + indent + labelWidth, y, isLastLine ? undefined : lineWidth);
           y += LH;
         });
-        const labelGap = block.spaceAfter ?? 2.2;
         y += labelGap;
         break;
       }
       case 'heading': {
         const lines = wrapSegments([{ text: block.text, bold: true }], CW);
+        const headGap = block.spaceAfter ?? 1.5;
+        const fullHeight = lines.length * LH + headGap;
+        const pageAvailable = PAGE_H - MB - MT;
+        if (fullHeight <= pageAvailable && !block.keepWithNext) {
+          ensureSpace(fullHeight);
+        }
         lines.forEach((runs) => {
           ensureSpace(LH);
           drawRuns(runs, ML, y);
           y += LH;
         });
-        const headGap = block.spaceAfter ?? 1.5;
         y += headGap;
         break;
       }

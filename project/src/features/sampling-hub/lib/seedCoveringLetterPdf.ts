@@ -519,7 +519,7 @@ function drawCopiesSection(cursor: PdfCursor, officerDetails?: OfficerDetails, m
   
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
-  doc.text('Copy To:', PAGE.marginLeft, cursor.y);
+  doc.text('Copy to:', PAGE.marginLeft, cursor.y);
   cursor.y += LINE_HEIGHT;
   
   doc.setFont(PDF_FONT, 'normal');

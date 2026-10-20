@@ -15,6 +15,7 @@ import {
   isAdaDesignation,
   isDaoDesignation,
   isMaoDesignation,
+  NOTICE_FONT_STACK,
   noticeBlocksHtml,
   readStatutoryDetails,
   renderNoticePdfDocument,
@@ -206,7 +207,7 @@ function buildRevokeModel(form: FertRevokeFormState): NoticeBlock[] {
   ).split('\n');
 
   return [
-    { kind: 'center', text: 'REVOKE OF STOP SALE NOTICE', bold: true, underline: true, size: 14 },
+    { kind: 'center', text: 'REVOKE OF STOP SALE ORDER', bold: true, underline: true, size: 14 },
     { kind: 'center', text: '(Order under clause 28 of the Fertilizer (Control) Order, 1985)', bold: true },
     { kind: 'gap', mm: 2 },
     {
@@ -257,13 +258,13 @@ function buildRevokeModel(form: FertRevokeFormState): NoticeBlock[] {
       rightLines: signatureItems,
       keepWithNext: true,
     },
-    { kind: 'gap', mm: 12 },
+    { kind: 'gap', mm: 13.06 },
     { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
     ...copyLines.map((line): NoticeBlock => {
       const keepWithNext = false;
       const match = line.match(/^(\d+\.)\s*(.*)$/);
       return match
-        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
+        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext, spaceAfter: 0 }
         : { kind: 'lines', items: [[{ text: line }]], keepWithNext };
     }),
   ];
@@ -339,14 +340,14 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
     };
     setSavedOrders((current) => [entry, ...current.filter((item) => item.id !== entry.id)]);
     setEditingId(entry.id);
-    showSaved('Order saved', entry.orderNumber || 'Revoke of Stop Sale Notice');
+    showSaved('Order saved', entry.orderNumber || 'Revoke of Stop Sale Order');
   };
 
   const editSavedOrder = (order: SavedFertRevokeOrder) => {
     setForm({ ...order, products: order.products.length ? order.products : [emptyProduct()] });
     setEditingId(order.id);
     setShowPreview(false);
-    showLoaded('Order loaded', order.orderNumber || 'Revoke of Stop Sale Notice');
+    showLoaded('Order loaded', order.orderNumber || 'Revoke of Stop Sale Order');
   };
 
   const deleteSavedOrder = (order: SavedFertRevokeOrder) => {
@@ -398,17 +399,17 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
     );
   }, [savedOrders, savedSearch]);
 
-  const fileBase = () => `${form.orderNumber || 'revoke-stop-sale-notice'}`.replace(/[\\/]/g, '-');
+  const fileBase = () => `${form.orderNumber || 'revoke-stop-sale-order'}`.replace(/[\\/]/g, '-');
 
   const downloadPdf = async () => {
-    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Revoke of Stop Sale Notice', 'bookAntiqua');
+    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Revoke of Stop Sale Order', 'times');
     doc.save(`${fileBase()}.pdf`);
     showSuccess('PDF downloaded', `${fileBase()}.pdf`);
   };
 
   const downloadWord = async () => {
     try {
-      const blob = await buildNoticeWordDocument(noticeBlocks, 'bookAntiqua');
+      const blob = await buildNoticeWordDocument(noticeBlocks, 'times');
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -419,14 +420,14 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
       showSuccess('Word downloaded', `${fileBase()}.docx`);
     } catch (error) {
-      console.error('Unable to generate revoke notice Word document:', error);
+      console.error('Unable to generate revoke order Word document:', error);
       showWarning('Word export failed', 'Please try again.');
     }
   };
 
   const printOrder = async () => {
     try {
-      const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Revoke of Stop Sale Notice', 'bookAntiqua');
+      const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Revoke of Stop Sale Order', 'times');
       const pdfBlob = doc.output('blob');
       const pdfUrl = URL.createObjectURL(pdfBlob);
       const printWindow = window.open(pdfUrl, '_blank');
@@ -649,7 +650,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
       {showPreview && (
         <section ref={previewRef} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-base font-black text-slate-900 dark:text-white">Revoke of Stop Sale Notice Preview</h3>
+            <h3 className="text-base font-black text-slate-900 dark:text-white">Revoke of Stop Sale Order Preview</h3>
             <button
               type="button"
               onClick={() => setShowPreview(false)}
@@ -662,7 +663,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
-            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.15 }}
+            style={{ fontFamily: NOTICE_FONT_STACK, fontSize: '12pt', lineHeight: 1.15 }}
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
         </section>

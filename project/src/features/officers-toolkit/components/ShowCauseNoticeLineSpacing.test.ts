@@ -48,4 +48,19 @@ describe('Legal Documents (Stop Sale, Seizure, SCN & Memos) 1.15 Line Spacing', 
     const doc = await renderNoticePdfDocument(sampleBlocks, 'Test Notice');
     expect(doc.getLineHeightFactor()).toBeCloseTo(1.15, 2);
   });
+
+  it('keeps multi-line numbered item together on the next page instead of splitting', async () => {
+    const blocks: NoticeBlock[] = [
+      { kind: 'gap', mm: 260 },
+      {
+        kind: 'labelPara',
+        label: '2.',
+        segments: [
+          { text: 'The Mandal Agriculture Officer concerned, for information and to serve the notice on the dealer under proper dated acknowledgement.' },
+        ],
+      },
+    ];
+    const doc = await renderNoticePdfDocument(blocks, 'Test Keep Together');
+    expect(doc.getNumberOfPages()).toBe(2);
+  });
 });

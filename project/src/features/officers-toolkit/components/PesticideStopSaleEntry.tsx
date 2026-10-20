@@ -15,6 +15,7 @@ import {
   isAdaDesignation,
   isDaoDesignation,
   isMaoDesignation,
+  NOTICE_FONT_STACK,
   noticeBlocksHtml,
   readStatutoryDetails,
   renderNoticePdfDocument,
@@ -277,13 +278,13 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
     },
     { kind: 'gap', mm: 8, keepWithNext: true },
     { kind: 'lines', items: signatureItems, align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
-    { kind: 'gap', mm: 12 },
+    { kind: 'gap', mm: 13.06 },
     { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
     ...copyLines.map((line): NoticeBlock => {
       const keepWithNext = false;
       const match = line.match(/^(\d+\.)\s*(.*)$/);
       return match
-        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
+        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext, spaceAfter: 0 }
         : { kind: 'lines', items: [[{ text: line }]], keepWithNext };
     }),
   ];
@@ -436,14 +437,14 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
   const fileBase = () => `${form.orderNumber || 'stop-sale-order'}`.replace(/[\\/]/g, '-');
 
   const downloadPdf = async () => {
-    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'bookAntiqua');
+    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'times');
     doc.save(`${fileBase()}.pdf`);
     showSuccess('PDF downloaded', `${fileBase()}.pdf`);
   };
 
   const printOrder = async () => {
     try {
-      const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'bookAntiqua');
+      const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'times');
       const pdfBlob = doc.output('blob');
       const pdfUrl = URL.createObjectURL(pdfBlob);
       const printWindow = window.open(pdfUrl, '_blank');
@@ -464,7 +465,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
 
   const downloadWord = async () => {
     try {
-      const blob = await buildNoticeWordDocument(noticeBlocks, 'bookAntiqua');
+      const blob = await buildNoticeWordDocument(noticeBlocks, 'times');
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -717,7 +718,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
-            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.15 }}
+            style={{ fontFamily: NOTICE_FONT_STACK, fontSize: '12pt', lineHeight: 1.15 }}
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
         </section>

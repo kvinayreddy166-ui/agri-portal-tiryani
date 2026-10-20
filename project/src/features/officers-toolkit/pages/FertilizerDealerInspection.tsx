@@ -170,7 +170,6 @@ export function FertilizerDealerInspection() {
 
   const validate = () => {
     if (!form.inspectionDate) return 'Please enter the date of inspection.';
-    if (!form.licenceNo.trim()) return 'Please enter the license number.';
     return '';
   };
 
@@ -830,7 +829,7 @@ async function buildPdf(form: InspectionForm) {
 function Preview({ form, stockTotal }: { form: InspectionForm; stockTotal: number }) {
   const { items, subTables } = buildRows(form, stockTotal);
   return (
-    <div className="text-slate-900 dark:text-white" style={{ lineHeight: 1.15 }}>
+    <div className="text-slate-900 dark:text-white" style={{ fontFamily: "'Times New Roman', Times, serif", lineHeight: 1.15 }}>
       <h3 className="mb-3 text-center text-base font-black">Fertilizer Dealer Inspection Report</h3>
       <div className="overflow-x-auto">
         <table className="w-full table-fixed border-collapse border border-slate-400 text-xs">

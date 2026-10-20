@@ -15,6 +15,7 @@ import {
   isAdaDesignation,
   isDaoDesignation,
   isMaoDesignation,
+  NOTICE_FONT_STACK,
   noticeBlocksHtml,
   readStatutoryDetails,
   renderNoticePdfDocument,
@@ -243,7 +244,7 @@ function buildSeizureModel(form: FertSeizureFormState): NoticeBlock[] {
     { kind: 'lines', items: [[{ text: `1. ${witness1}` }], [{ text: `2. ${witness2}` }]], indent: 8, keepWithNext: true },
     { kind: 'gap', mm: 6, keepWithNext: true },
     { kind: 'lines', items: [[{ text: 'Signature of the Dealer in token of', bold: true }], [{ text: 'receipt of this notice', bold: true }]], align: 'right', centerLines: true, offsetX: 5, keepWithNext: true },
-    { kind: 'gap', mm: 10 },
+    { kind: 'gap', mm: 11.06 },
     { kind: 'lines', items: [[{ text: 'Copy to:', bold: true }]], keepWithNext: true },
     ...(isDaoDesignation(officerDesignation)
       ? `1. The Commissioner & Director of Agriculture, Telangana State, for favour of information and necessary action.\n2. The Asst. Director of Agriculture (R) concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
@@ -254,7 +255,7 @@ function buildSeizureModel(form: FertSeizureFormState): NoticeBlock[] {
       const keepWithNext = false;
       const match = line.match(/^(\d+\.)\s*(.*)$/);
       return match
-        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext }
+        ? { kind: 'labelPara', label: match[1], labelBold: false, segments: [{ text: match[2] }], keepWithNext, spaceAfter: 0 }
         : { kind: 'lines', items: [[{ text: line }]], keepWithNext };
     }),
   ];
@@ -392,14 +393,14 @@ export function FertilizerSeizureOrderEntry() {
   const fileBase = () => `${form.orderNumber || 'seizure-of-stock-notice'}`.replace(/[\\/]/g, '-');
 
   const downloadPdf = async () => {
-    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Seizure of Stock Notice', 'bookAntiqua');
+    const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Seizure of Stock Notice', 'times');
     doc.save(`${fileBase()}.pdf`);
     showSuccess('PDF downloaded', `${fileBase()}.pdf`);
   };
 
   const printPreview = async () => {
     try {
-      const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Seizure of Stock Notice', 'bookAntiqua');
+      const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Seizure of Stock Notice', 'times');
       const pdfBlob = doc.output('blob');
       const pdfUrl = URL.createObjectURL(pdfBlob);
       const printWindow = window.open(pdfUrl, '_blank');
@@ -420,7 +421,7 @@ export function FertilizerSeizureOrderEntry() {
 
   const downloadWord = async () => {
     try {
-      const blob = await buildNoticeWordDocument(noticeBlocks, 'bookAntiqua');
+      const blob = await buildNoticeWordDocument(noticeBlocks, 'times');
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -716,7 +717,7 @@ export function FertilizerSeizureOrderEntry() {
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
-            style={{ fontFamily: `'Book Antiqua', 'Palatino Linotype', Palatino, 'Times New Roman', 'Nirmala UI', serif`, fontSize: '12pt', lineHeight: 1.15 }}
+            style={{ fontFamily: NOTICE_FONT_STACK, fontSize: '12pt', lineHeight: 1.15 }}
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
         </section>
