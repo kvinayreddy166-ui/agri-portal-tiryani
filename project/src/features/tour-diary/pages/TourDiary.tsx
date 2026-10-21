@@ -38,6 +38,7 @@ import {
   getHolidayTypeLabel,
   groupHolidaysByDate,
   formatTime,
+  resolveSpecialDateStatus,
 } from '../lib/tourDiaryData';
 import { generateTourDiaryPdf } from '../lib/tourDiaryPdf';
 import { exportTourDiaryExcel } from '../lib/tourDiaryExcel';
@@ -867,35 +868,13 @@ export function TourDiary() {
   }
 
   function getSpecialDateStatus(date: string, day: number): SpecialDateStatus | null {
-    const displayedHolidays = getDisplayedHolidaysForDate(date);
-    const leaveType = getDateLeaveType(date);
-
-    if (leaveType === 'NORMAL_LEAVE') {
-      return { type: 'leave', label: 'Leave' };
-    }
-
-    if (leaveType === 'OPTIONAL_HOLIDAY') {
-      const optionalHoliday = displayedHolidays.find(h => h.holiday_type === 'OPTIONAL');
-      return {
-        type: 'optionalHoliday',
-        label: `Optional Holiday – ${optionalHoliday?.holiday_name || 'Optional Holiday'}`
-      };
-    }
-
-    const generalHoliday = displayedHolidays.find(h => h.holiday_type === 'GENERAL');
-    if (generalHoliday) {
-      return { type: 'holiday', label: `Holiday – ${generalHoliday.holiday_name}` };
-    }
-
-    if (isSunday(currentYear, currentMonth, day)) {
-      return { type: 'sunday', label: 'Sunday' };
-    }
-
-    if (isSecondSaturday(currentYear, currentMonth, day)) {
-      return { type: 'secondSaturday', label: '2nd Saturday' };
-    }
-
-    return null;
+    return resolveSpecialDateStatus({
+      year: currentYear,
+      month: currentMonth,
+      day,
+      leaveType: getDateLeaveType(date),
+      displayedHolidays: getDisplayedHolidaysForDate(date)
+    });
   }
 
 
@@ -1241,7 +1220,7 @@ export function TourDiary() {
       
       // Count leaves and optional holidays availed
       const leaveType = getDateLeaveType(date);
-      if (leaveType === 'NORMAL_LEAVE') {
+      if (leaveType === 'NORMAL_LEAVE' || leaveType === 'OPTIONAL_HOLIDAY_LEAVE') {
         leavesAvailed++;
       } else if (leaveType === 'OPTIONAL_HOLIDAY') {
         optionalHolidaysAvailed++;
@@ -1275,7 +1254,7 @@ export function TourDiary() {
 
       // Check if this date is valid for tour activity (not a leave or optional holiday availed)
       const leaveType = getDateLeaveType(journeyDate);
-      const isLeave = leaveType === 'NORMAL_LEAVE';
+      const isLeave = leaveType === 'NORMAL_LEAVE' || leaveType === 'OPTIONAL_HOLIDAY_LEAVE';
       const isOptionalHolidayAvailed = leaveType === 'OPTIONAL_HOLIDAY';
       
       // Only count as Tour Day if not a leave or optional holiday availed

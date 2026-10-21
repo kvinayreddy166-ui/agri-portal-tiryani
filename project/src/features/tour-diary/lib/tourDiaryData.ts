@@ -1,4 +1,4 @@
-import type { Holiday, HolidayType } from '../types/tourDiaryTypes';
+import type { Holiday, HolidayType, LeaveType, SpecialDateStatus } from '../types/tourDiaryTypes';
 
 export const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -142,3 +142,41 @@ export function formatTime(time: string): string {
   const displayHours = h % 12 || 12;
   return `${displayHours}:${minutes} ${ampm}`;
 }
+
+export function resolveSpecialDateStatus(params: {
+  year: number;
+  month: number;
+  day: number;
+  leaveType: LeaveType;
+  displayedHolidays: Holiday[];
+}): SpecialDateStatus | null {
+  const { year, month, day, leaveType, displayedHolidays } = params;
+
+  if (leaveType === 'NORMAL_LEAVE' || leaveType === 'OPTIONAL_HOLIDAY_LEAVE') {
+    return { type: 'leave', label: 'Leave' };
+  }
+
+  if (leaveType === 'OPTIONAL_HOLIDAY') {
+    const optionalHoliday = displayedHolidays.find((h) => h.holiday_type === 'OPTIONAL');
+    return {
+      type: 'optionalHoliday',
+      label: `Optional Holiday – ${optionalHoliday?.holiday_name || 'Optional Holiday'}`
+    };
+  }
+
+  const generalHoliday = displayedHolidays.find((h) => h.holiday_type === 'GENERAL');
+  if (generalHoliday) {
+    return { type: 'holiday', label: `Holiday – ${generalHoliday.holiday_name}` };
+  }
+
+  if (isSunday(year, month, day)) {
+    return { type: 'sunday', label: 'Sunday' };
+  }
+
+  if (isSecondSaturday(year, month, day)) {
+    return { type: 'secondSaturday', label: '2nd Saturday' };
+  }
+
+  return null;
+}
+

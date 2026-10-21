@@ -3,6 +3,7 @@ import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { DatePicker } from '../../../shared/components/ui/DatePicker';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
@@ -580,10 +581,9 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">LETTER DATE</label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={metadata.letterDate}
-                    onChange={(e) => setMetadata({ ...metadata, letterDate: e.target.value })}
+                    onChange={(v) => setMetadata({ ...metadata, letterDate: v })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                   />
                 </div>
@@ -612,10 +612,9 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">MEMO DATE</label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={metadata.daoMemoDate}
-                    onChange={(e) => setMetadata({ ...metadata, daoMemoDate: e.target.value })}
+                    onChange={(v) => setMetadata({ ...metadata, daoMemoDate: v })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                   />
                 </div>
@@ -721,10 +720,9 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                             />
                           </td>
                           <td className="px-2 py-2 whitespace-nowrap text-xs">
-                            <input
-                              type="date"
+                            <DatePicker
                               value={item.dateOfSampling}
-                              onChange={(e) => handleDateChange(index, e.target.value)}
+                              onChange={(v) => handleDateChange(index, v)}
                               className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                             />
                           </td>

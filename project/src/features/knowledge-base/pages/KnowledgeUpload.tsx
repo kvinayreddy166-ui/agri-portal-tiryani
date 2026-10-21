@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { UploadCloud, FileText, X, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { DatePicker } from '../../../shared/components/ui/DatePicker';
 import { useToast } from '../../../shared/components/ui/Toast';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
@@ -294,8 +295,8 @@ export function KnowledgeUpload() {
               <Field label="Authority"><input className="kb-input" value={authority} onChange={(e) => setAuthority(e.target.value)} placeholder="e.g. Government of Telangana" /></Field>
               <Field label="Reference Number"><input className="kb-input" value={referenceNumber} onChange={(e) => setReferenceNumber(e.target.value)} placeholder="e.g. GO Ms No. 12" /></Field>
               <Field label="Document Number"><input className="kb-input" value={documentNumber} onChange={(e) => setDocumentNumber(e.target.value)} /></Field>
-              <Field label="Document Date"><input type="date" className="kb-input" value={documentDate} onChange={(e) => setDocumentDate(e.target.value)} /></Field>
-              <Field label="Effective Date"><input type="date" className="kb-input" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} /></Field>
+              <Field label="Document Date"><DatePicker className="kb-input" value={documentDate} onChange={(v) => setDocumentDate(v)} /></Field>
+              <Field label="Effective Date"><DatePicker className="kb-input" value={effectiveDate} onChange={(v) => setEffectiveDate(v)} /></Field>
               <Field label="State"><input className="kb-input" value={state} onChange={(e) => setState(e.target.value)} placeholder="e.g. Telangana" /></Field>
               <Field label="Version"><input className="kb-input" value={version} onChange={(e) => setVersion(e.target.value)} placeholder="e.g. 2024-amended" /></Field>
             </div>

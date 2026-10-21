@@ -7,6 +7,7 @@ import { Dealer } from '../../../shared/types/database';
 import { provisionAllDealerLogins, provisionDealerLogin } from '../../auth/lib/provisionDealerLogins';
 import { dealerEmailFromPhone, DEALER_DEFAULT_PASSWORD, normalizePhone } from '../../auth/lib/dealerAuth';
 import { cachedSupabaseRows } from '../../../shared/lib/offlineCache';
+import { DatePicker } from '../../../shared/components/ui/DatePicker';
 
 type DealerCategory = 'fertilizer' | 'seed' | 'pesticide';
 
@@ -681,10 +682,9 @@ function FormFields({
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">
               {t('Issue Date', 'జారీ తేదీ')}
             </label>
-            <input
-              type="date"
+            <DatePicker
               value={formData.issue_date}
-              onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
+              onChange={(v) => setFormData({ ...formData, issue_date: v })}
               className="w-full rounded-lg border px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
             />
           </div>
@@ -692,10 +692,9 @@ function FormFields({
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">
               {t('Expiry Date', 'గడువు')}
             </label>
-            <input
-              type="date"
+            <DatePicker
               value={formData.expiry_date}
-              onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
+              onChange={(v) => setFormData({ ...formData, expiry_date: v })}
               className="w-full rounded-lg border px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
             />
           </div>
@@ -834,10 +833,9 @@ function EditRow({
         {activeTab === 'pesticide' ? (
           <span className="text-xs font-bold text-emerald-700">Permanent</span>
         ) : (
-          <input
-            type="date"
+          <DatePicker
             value={dealer.expiry_date}
-            onChange={(e) => updateLocalDealer(dealer.id, 'expiry_date', e.target.value)}
+            onChange={(v) => updateLocalDealer(dealer.id, 'expiry_date', v)}
             className="w-full rounded border px-2 py-1 text-sm dark:bg-slate-800 dark:text-white"
           />
         )}

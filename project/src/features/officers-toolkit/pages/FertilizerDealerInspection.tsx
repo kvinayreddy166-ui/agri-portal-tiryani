@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { DatePicker } from '../../../shared/components/ui/DatePicker';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
@@ -512,7 +513,7 @@ export function FertilizerDealerInspection() {
             <StatusInput label={`${itemNo(22)}. Whether the dealer / distributor / manufacturer is submitting reports regularly to the licensing officer`} field={form.reportsSubmitted} onChange={(p) => { setStatus('reportsSubmitted', p); if (p.status && p.status !== 'no') set('formDFailedSince', ''); }} remarksWhen="no" extra={form.reportsSubmitted.status === 'no' ? (
               <label className="flex flex-col gap-1">
                 <span className="text-[10px] font-bold tracking-wide text-slate-500 dark:text-slate-400">If no, since when has the dealer failed to submit Form D</span>
-                <input type="date" value={form.formDFailedSince} onChange={(e) => set('formDFailedSince', e.target.value)} className={`${inputClass} sm:w-44`} />
+                <DatePicker value={form.formDFailedSince} onChange={(v) => set('formDFailedSince', v)} className={`${inputClass} sm:w-44`} />
               </label>
             ) : null} />
           </Section>

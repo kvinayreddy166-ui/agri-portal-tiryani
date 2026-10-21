@@ -5,6 +5,7 @@ import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
 import { SeedCoveringLetterModal } from '../components/SeedCoveringLetterModal';
+import { DatePicker } from '../../../shared/components/ui/DatePicker';
 import { 
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
@@ -926,6 +927,8 @@ function Input({ label, value, onChange, type = 'text', textarea = false, placeh
       <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">{label}</span>
       {textarea ? (
         <textarea rows={2} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
+      ) : type === 'date' ? (
+        <DatePicker value={value} onChange={onChange} placeholder={placeholder || 'dd-mm-yyyy'} className={className} />
       ) : (
         <input type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
       )}

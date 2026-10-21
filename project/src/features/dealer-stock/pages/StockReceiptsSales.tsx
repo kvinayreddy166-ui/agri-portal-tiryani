@@ -9,6 +9,7 @@ import {
   financialYearRange,
 } from '../lib/stockInventory';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
+import { DatePicker } from '../../../shared/components/ui/DatePicker';
 import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../../../shared/utils/excelTotals';
 import { createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 
@@ -241,8 +242,8 @@ export default function StockReceiptsSales() {
           <select value={financialYear} onChange={(event) => setFinancialYear(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold">
             {FINANCIAL_YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
-          <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold" aria-label="From Date" />
-          <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold" aria-label="To Date" />
+          <DatePicker value={fromDate} onChange={(v) => setFromDate(v)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold" aria-label="From Date" />
+          <DatePicker value={toDate} onChange={(v) => setToDate(v)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold" aria-label="To Date" />
           <select value={category} onChange={(event) => setCategory(event.target.value as 'all' | StockCategory)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold">
             <option value="all">All categories</option>
             <option value="fertilizer">Fertilizer</option>
