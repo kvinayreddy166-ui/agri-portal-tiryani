@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ClipboardList, Filter, PackageCheck, RefreshCw } from 'lucide-react';
+import { X, ChevronDown, ClipboardList, Filter, PackageCheck, RefreshCw } from 'lucide-react';
 import { StockManagement } from './StockManagement';
 import { StockInventory } from './StockInventory';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
@@ -83,8 +83,8 @@ export default function StockAnalytics() {
 
       <section className="overflow-hidden rounded-xl border border-indigo-200/70 bg-gradient-to-br from-indigo-50 via-indigo-50/60 to-indigo-50/25 shadow-sm shadow-indigo-100/40 dark:border-indigo-900/50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900">
         <button
-          type="button"
-          onClick={() => setDealerMonitoringOpen((value) => !value)}
+              type="button"
+              onClick={() => setDealerMonitoringOpen((value) => !value)}
           className={`flex w-full items-center justify-between gap-3 bg-indigo-100/50 px-4 py-3 text-left dark:bg-indigo-950/60 ${dealerMonitoringOpen ? 'border-b border-indigo-100 dark:border-indigo-900/50' : ''}`}
         >
           <div>
@@ -630,18 +630,19 @@ function Input({ label, type, value, onChange }: { label: string; type: string; 
               e.stopPropagation();
               onChange('');
             }}
-            className="sm:hidden shrink-0 text-xs font-semibold normal-case text-rose-600 hover:text-rose-700 dark:text-rose-400 active:opacity-70 transition-opacity"
-            aria-label="Clear date"
-          >
-            Clear
-          </button>
+              className="sm:hidden shrink-0 inline-flex items-center gap-1 rounded-full bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/60 shadow-xs transition-all active:scale-95 touch-manipulation select-none relative before:absolute before:-inset-2 before:content-['']"
+              aria-label="Clear date"
+            >
+              <X className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
+              <span>Clear</span>
+            </button>
         ) : null}
       </span>
       {type === 'date' ? (
         <div className="relative">
           <input type="date" value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" />
           {!value && (
-            <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-400 dark:text-slate-500 font-normal select-none sm:hidden">
+            <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
               dd-mm-yyyy
             </span>
           )}

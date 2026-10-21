@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bug, Eye, FileText, HelpCircle, RotateCcw, Save } from 'lucide-react';
+import { X, Bug, Eye, FileText, HelpCircle, RotateCcw, Save } from 'lucide-react';
 import { PesticideCoveringLetterModal } from './PesticideCoveringLetterModal';
 import { PesticideInstructionModal } from '../../../shared/components/ui/PesticideInstructionModal';
 import {
@@ -1241,7 +1241,7 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
     <div className="relative">
       <input type="date" value={value} onChange={(event) => onChange(event.target.value)} placeholder={field.placeholder} className={commonClass} />
       {!value && (
-        <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-slate-500 font-normal select-none sm:hidden">
+        <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
           dd-mm-yyyy
         </span>
       )}
@@ -1262,11 +1262,12 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
               e.stopPropagation();
               onChange('');
             }}
-            className="sm:hidden shrink-0 text-xs font-semibold normal-case text-rose-600 hover:text-rose-700 dark:text-rose-400 active:opacity-70 transition-opacity"
-            aria-label="Clear date"
-          >
-            Clear
-          </button>
+              className="sm:hidden shrink-0 inline-flex items-center gap-1 rounded-full bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/60 shadow-xs transition-all active:scale-95 touch-manipulation select-none relative before:absolute before:-inset-2 before:content-['']"
+              aria-label="Clear date"
+            >
+              <X className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
+              <span>Clear</span>
+            </button>
         ) : null}
       </span>
       {field.key === 'dealerAddress' && (

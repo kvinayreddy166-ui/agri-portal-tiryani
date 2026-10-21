@@ -508,7 +508,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                     />
                     {!metadata.letterDate && (
-                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-normal select-none sm:hidden">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
                         dd-mm-yyyy
                       </span>
                     )}
@@ -559,7 +559,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                     />
                     {!metadata.daoMemoDate && (
-                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-normal select-none sm:hidden">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
                         dd-mm-yyyy
                       </span>
                     )}
@@ -676,7 +676,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                                   className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
                                 />
                                 {!item.dateOfSampling && (
-                                  <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 font-normal select-none sm:hidden">
+                                  <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
                                     dd-mm-yyyy
                                   </span>
                                 )}
