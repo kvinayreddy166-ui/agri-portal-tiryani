@@ -4,7 +4,6 @@ import { isCombinationProductFromActiveIngredient } from '../lib/statutoryPestic
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
-import { DatePicker } from '../../../shared/components/ui/DatePicker';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
@@ -489,9 +488,10 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">LETTER DATE</label>
-                  <DatePicker
+                  <input
+                    type="date"
                     value={metadata.letterDate}
-                    onChange={(v) => setMetadata({ ...metadata, letterDate: v })}
+                    onChange={(e) => setMetadata({ ...metadata, letterDate: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                   />
                 </div>
@@ -520,9 +520,10 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">MEMO DATE</label>
-                  <DatePicker
+                  <input
+                    type="date"
                     value={metadata.daoMemoDate}
-                    onChange={(v) => setMetadata({ ...metadata, daoMemoDate: v })}
+                    onChange={(e) => setMetadata({ ...metadata, daoMemoDate: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                   />
                 </div>
@@ -628,9 +629,10 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                             )}
                           </td>
                           <td className="px-2 py-2">
-                            <DatePicker
+                            <input
+                              type="date"
                               value={item.dateOfSampling}
-                              onChange={(v) => handleDateChange(index, v)}
+                              onChange={(e) => handleDateChange(index, e.target.value)}
                               className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
                             />
                           </td>

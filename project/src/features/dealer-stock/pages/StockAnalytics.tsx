@@ -3,7 +3,6 @@ import { ChevronDown, ClipboardList, Filter, PackageCheck, RefreshCw } from 'luc
 import { StockManagement } from './StockManagement';
 import { StockInventory } from './StockInventory';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
-import { DatePicker } from '../../../shared/components/ui/DatePicker';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { supabase } from '../../../shared/lib/supabase';
 import {
@@ -622,11 +621,7 @@ function Input({ label, type, value, onChange }: { label: string; type: string; 
   return (
     <label className="block min-w-0">
       <span className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>
-      {type === 'date' ? (
-        <DatePicker value={value} onChange={onChange} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" />
-      ) : (
-        <input type={type} value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" />
-      )}
+      <input type={type} value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" />
     </label>
   );
 }

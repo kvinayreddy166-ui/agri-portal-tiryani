@@ -13,7 +13,6 @@ import {
   X,
 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
-import { DatePicker } from '../../../shared/components/ui/DatePicker';
 import { getContentType } from '../../../shared/lib/fileTypes';
 import { FileActionButtons } from '../../../shared/components/ui/FileActionButtons';
 import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
@@ -432,9 +431,10 @@ export function QualityControl({ category }: QualityControlProps) {
               <TextField label={t('Location', 'స్థానం')} value={sampleForm.location} onChange={(value) => setSampleForm({ ...sampleForm, location: value })} />
               <div>
                 <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('Sample Date', 'నమూనా తేదీ')}</label>
-                <DatePicker
+                <input
+                  type="date"
                   value={sampleForm.sample_date}
-                  onChange={(v) => setSampleForm({ ...sampleForm, sample_date: v })}
+                  onChange={(e) => setSampleForm({ ...sampleForm, sample_date: e.target.value })}
                   className="w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 />
               </div>

@@ -6,7 +6,6 @@ import { useLanguage } from '../../../shared/context/LanguageContext';
 import { FERTILIZER_TYPES } from '../../../shared/lib/constants';
 import { cachedSupabaseRows } from '../../../shared/lib/offlineCache';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
-import { DatePicker } from '../../../shared/components/ui/DatePicker';
 import { totalValue } from '../../../shared/utils/excelTotals';
 import { addTableSheet, createExcelWorkbook, saveStyledWorkbook, type ExcelCellValue } from '../../../shared/utils/styledExcel';
 import {
@@ -415,9 +414,10 @@ export function StockInventory() {
           {t('By month', 'By month')}
         </button>
         {viewMode === 'day' ? (
-          <DatePicker
+          <input
+            type="date"
             value={reportDate}
-            onChange={(v) => setReportDate(v)}
+            onChange={(e) => setReportDate(e.target.value)}
             className="rounded-xl border border-slate-300 px-4 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
           />
         ) : (
@@ -428,15 +428,17 @@ export function StockInventory() {
             className="rounded-xl border border-slate-300 px-4 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
           />
         )}
-        <DatePicker
+        <input
+          type="date"
           value={fromDate}
-          onChange={(v) => setFromDate(v)}
+          onChange={(e) => setFromDate(e.target.value)}
           aria-label="From Date"
           className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold dark:border-slate-600 dark:bg-slate-800 dark:text-white"
         />
-        <DatePicker
+        <input
+          type="date"
           value={toDate}
-          onChange={(v) => setToDate(v)}
+          onChange={(e) => setToDate(e.target.value)}
           aria-label="To Date"
           className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold dark:border-slate-600 dark:bg-slate-800 dark:text-white"
         />

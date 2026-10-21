@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { ChevronDown, FileDown, FileSpreadsheet, FileText, Mic, MicOff, Plus, Printer, Trash2 } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useSpeechInput } from '../../../shared/hooks/useSpeechInput';
-import { DatePicker } from '../../../shared/components/ui/DatePicker';
 import type { Column, Status, StatusField } from './types';
 
 export type InspectionTone = 'emerald' | 'sky' | 'rose';
@@ -264,11 +263,7 @@ export function Field({ label, value, onChange, type = 'text', textarea = false,
           {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
       ) : (
-        type === 'date' ? (
-        <DatePicker value={value} onChange={onChange} placeholder={placeholder || 'dd-mm-yyyy'} className={inputClass} />
-      ) : (
         <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />
-      )
       )}
       {helper && <span className="mt-0.5 block text-[10px] font-semibold text-slate-400 dark:text-slate-500">{helper}</span>}
     </label>

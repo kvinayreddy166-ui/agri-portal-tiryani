@@ -2,7 +2,6 @@ import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Calendar, ChevronDown, FileSpreadsheet, Menu, Plus, Save, Table2, Trash2, Truck, X } from 'lucide-react';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
-import { DatePicker } from '../../../shared/components/ui/DatePicker';
 import {
   CATEGORY_UNITS,
   FINANCIAL_YEARS,
@@ -787,7 +786,7 @@ function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave
           return (
             <div key={row.id} className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-emerald-50/60 dark:bg-emerald-950/60 p-2.5">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <DatePicker value={row.date} onChange={(v) => updateRow(row.id, { date: v })} className="min-w-0 rounded-lg border border-slate-300 dark:border-slate-600 px-2 py-1.5 text-xs font-bold" />
+                <input type="date" value={row.date} onChange={(event) => updateRow(row.id, { date: event.target.value })} className="min-w-0 rounded-lg border border-slate-300 dark:border-slate-600 px-2 py-1.5 text-xs font-bold" />
                 <button type="button" onClick={() => removeRow(row.id)} disabled={rows.length === 1} className="shrink-0 rounded-lg border border-red-200 dark:border-red-800/50 bg-white dark:bg-slate-900 p-2 text-red-600 dark:text-red-300 disabled:opacity-40">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -819,7 +818,7 @@ function DailyEntryCard({ category, unit, rows, setRows, records, saving, onSave
                 : computeStockRow(row.opening, row.receipts, row.sales);
               return (
                 <tr key={row.id} className="border-b border-slate-100 dark:border-slate-800">
-                  <td className="px-2 py-2"><DatePicker value={row.date} onChange={(v) => updateRow(row.id, { date: v })} className="h-9 rounded-lg border border-slate-300 dark:border-slate-600 px-2 text-xs font-bold" /></td>
+                  <td className="px-2 py-2"><input type="date" value={row.date} onChange={(event) => updateRow(row.id, { date: event.target.value })} className="h-9 rounded-lg border border-slate-300 dark:border-slate-600 px-2 text-xs font-bold" /></td>
                   <td className="px-2 py-2"><ProductInput category={category} label="" value={row.product} onChange={(value) => updateRow(row.id, { product: value })} /></td>
                   {category === 'seed' && <td className="px-2 py-2"><input value={row.variety} onChange={(event) => updateRow(row.id, { variety: event.target.value })} className="h-9 w-36 rounded-lg border border-slate-300 dark:border-slate-600 px-2 text-xs font-bold outline-none focus:border-emerald-600" placeholder="Variety" /></td>}
                   <td className="px-2 py-2"><NumberInput value={category === 'fertilizer' ? display(row.openingMt, row.product) : row.opening} onChange={(value) => category === 'fertilizer' ? updateRow(row.id, { openingMt: parse(value, row.product) }) : updateRow(row.id, { opening: value })} /></td>
@@ -1122,11 +1121,7 @@ function Field({ label, value, onChange, type = 'text' }: { label: string; value
   return (
     <label className="block min-w-0">
       {label && <span className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>}
-      {type === 'date' ? (
-        <DatePicker value={value} onChange={onChange} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600" />
-      ) : (
-        <input type={type} value={value} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.001' : undefined} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600" />
-      )}
+      <input type={type} value={value} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.001' : undefined} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600" />
     </label>
   );
 }

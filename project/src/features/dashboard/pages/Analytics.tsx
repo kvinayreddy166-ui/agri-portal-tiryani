@@ -6,7 +6,6 @@ import { savePdfDocument } from '../../documents/lib/documentActions';
 import { addTableSheet, createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { StockCategory, currentReportDate, shiftReportDate } from '../../dealer-stock/lib/stockInventory';
-import { DatePicker } from '../../../shared/components/ui/DatePicker';
 
 type ReportKey =
   | 'dealer-directory'
@@ -291,8 +290,8 @@ export function Analytics() {
               <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300">{currentReport.description}</p>
             </div>
             <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-6">
-              <FilterField label="From Date"><DatePicker value={fromDate} onChange={(v) => setFromDate(v)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" /></FilterField>
-              <FilterField label="To Date"><DatePicker value={toDate} onChange={(v) => setToDate(v)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" /></FilterField>
+              <FilterField label="From Date"><input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" /></FilterField>
+              <FilterField label="To Date"><input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" /></FilterField>
               <FilterField label="Dealer">
                 <select value={dealerId} onChange={(event) => setDealerId(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold">
                   <option value="all">All dealers</option>

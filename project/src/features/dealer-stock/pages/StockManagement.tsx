@@ -8,7 +8,6 @@ import { syncFertilizerStockTable } from '../lib/fertilizerStock';
 import { upsertDealerStockAllocation } from '../lib/dealerStockAllocation';
 import { useVirtualRows } from '../../../shared/hooks/useVirtualRows';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
-import { DatePicker } from '../../../shared/components/ui/DatePicker';
 import { appendSheetWithTotals, appendSummarySheet, totalValue, type ExcelRow } from '../../../shared/utils/excelTotals';
 import { createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 
@@ -391,15 +390,17 @@ export function StockManagement() {
                   ))}
                 </select>
               </label>
-              <DatePicker
+              <input
+                type="date"
                 value={fromDate}
-                onChange={(v) => setFromDate(v)}
+                onChange={(e) => setFromDate(e.target.value)}
                 aria-label="From Date"
                 className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               />
-              <DatePicker
+              <input
+                type="date"
                 value={toDate}
-                onChange={(v) => setToDate(v)}
+                onChange={(e) => setToDate(e.target.value)}
                 aria-label="To Date"
                 className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               />
