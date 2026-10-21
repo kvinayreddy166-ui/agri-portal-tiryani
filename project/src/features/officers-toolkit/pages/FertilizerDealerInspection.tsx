@@ -513,6 +513,19 @@ export function FertilizerDealerInspection() {
               <label className="flex flex-col gap-1">
                 <span className="text-[10px] font-bold tracking-wide text-slate-500 dark:text-slate-400">If no, since when has the dealer failed to submit Form D</span>
                 <input type="date" value={form.formDFailedSince} onChange={(e) => set('formDFailedSince', e.target.value)} className={`${inputClass} sm:w-44`} />
+                {form.formDFailedSince ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      set('formDFailedSince', '');
+                    }}
+                    className="sm:hidden shrink-0 text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400"
+                  >
+                    Clear
+                  </button>
+                ) : null}
               </label>
             ) : null} />
           </Section>

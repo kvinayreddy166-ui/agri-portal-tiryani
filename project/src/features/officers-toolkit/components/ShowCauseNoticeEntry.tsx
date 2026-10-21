@@ -2296,9 +2296,25 @@ export function SelectInput({ label, value, onChange, options }: { label: string
 export function TextInput({ label, value, onChange, type = 'text', optional = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; optional?: boolean }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">
-        {label}
-        {optional && <span className="ml-1 text-[11px] font-bold text-slate-400 dark:text-slate-500">(Optional)</span>}
+      <span className="mb-1 flex items-center justify-between gap-2 text-xs font-black text-slate-600 dark:text-slate-300">
+        <span>
+          {label}
+          {optional && <span className="ml-1 text-[11px] font-bold text-slate-400 dark:text-slate-500">(Optional)</span>}
+        </span>
+        {type === 'date' && value ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onChange('');
+            }}
+            className="sm:hidden shrink-0 text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 active:opacity-70 transition-opacity"
+            aria-label="Clear date"
+          >
+            Clear
+          </button>
+        ) : null}
       </span>
       <input
         type={type}

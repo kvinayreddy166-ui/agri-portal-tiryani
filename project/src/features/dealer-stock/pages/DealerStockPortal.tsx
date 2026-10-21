@@ -1120,7 +1120,25 @@ function ProductInput({ category, label, value, onChange }: { category: StockCat
 function Field({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (value: string) => void; type?: string }) {
   return (
     <label className="block min-w-0">
-      {label && <span className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>}
+      {label && (
+        <span className="mb-1 flex items-center justify-between gap-2 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">
+          <span>{label}</span>
+          {type === 'date' && value ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onChange('');
+              }}
+              className="sm:hidden shrink-0 text-xs font-semibold normal-case text-rose-600 hover:text-rose-700 dark:text-rose-400 active:opacity-70 transition-opacity"
+              aria-label="Clear date"
+            >
+              Clear
+            </button>
+          ) : null}
+        </span>
+      )}
       <input type={type} value={value} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.001' : undefined} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600" />
     </label>
   );

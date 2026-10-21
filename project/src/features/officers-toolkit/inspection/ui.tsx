@@ -253,7 +253,23 @@ export function Field({ label, value, onChange, type = 'text', textarea = false,
     <label className="block">
       <span className={`${labelClass} flex items-center justify-between gap-2`}>
         <span>{label}</span>
-        {textarea && <MicButton value={value} onChange={onChange} />}
+        <span className="flex shrink-0 items-center gap-2">
+          {type === 'date' && value ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onChange('');
+              }}
+              className="sm:hidden text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 active:opacity-70 transition-opacity"
+              aria-label="Clear date"
+            >
+              Clear
+            </button>
+          ) : null}
+          {textarea && <MicButton value={value} onChange={onChange} />}
+        </span>
       </span>
       {textarea ? (
         <textarea rows={2} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />

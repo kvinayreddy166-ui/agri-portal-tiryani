@@ -430,7 +430,18 @@ export function QualityControl({ category }: QualityControlProps) {
               <TextField label={t('Phone Number', 'ఫోన్ నంబర్')} value={sampleForm.phone_number} onChange={(value) => setSampleForm({ ...sampleForm, phone_number: value })} />
               <TextField label={t('Location', 'స్థానం')} value={sampleForm.location} onChange={(value) => setSampleForm({ ...sampleForm, location: value })} />
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('Sample Date', 'నమూనా తేదీ')}</label>
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <label className="text-sm font-bold text-gray-700 dark:text-slate-200">{t('Sample Date', 'నమూనా తేదీ')}</label>
+                  {sampleForm.sample_date ? (
+                    <button
+                      type="button"
+                      onClick={() => setSampleForm({ ...sampleForm, sample_date: '' })}
+                      className="sm:hidden shrink-0 text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 active:opacity-70 transition-opacity"
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
                 <input
                   type="date"
                   value={sampleForm.sample_date}

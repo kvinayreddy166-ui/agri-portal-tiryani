@@ -923,7 +923,23 @@ function Input({ label, value, onChange, type = 'text', textarea = false, placeh
   const className = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
   return (
     <label>
-      <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">{label}</span>
+      <span className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
+        <span>{label}</span>
+        {type === 'date' && value ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onChange('');
+            }}
+            className="sm:hidden shrink-0 text-xs font-semibold normal-case text-rose-600 hover:text-rose-700 dark:text-rose-400 active:opacity-70 transition-opacity"
+            aria-label="Clear date"
+          >
+            Clear
+          </button>
+        ) : null}
+      </span>
       {textarea ? (
         <textarea rows={2} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
       ) : (

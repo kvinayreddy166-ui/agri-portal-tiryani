@@ -1243,7 +1243,23 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
 
   return (
     <label className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
-      <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600">{displayLabel}</span>
+      <span className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600">
+        <span>{displayLabel}</span>
+        {field.type === 'date' && value ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onChange('');
+            }}
+            className="sm:hidden shrink-0 text-xs font-semibold normal-case text-rose-600 hover:text-rose-700 dark:text-rose-400 active:opacity-70 transition-opacity"
+            aria-label="Clear date"
+          >
+            Clear
+          </button>
+        ) : null}
+      </span>
       {field.key === 'dealerAddress' && (
         <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
           {(isAssistantDirectorOfAgriculture((values?.designation ?? "")) ? effectiveLocationValue((values?.sampleDrawingMandal ?? ""), (values?.manualPlaceOfCollection ?? "")) : effectiveLocationValue((values?.mandal ?? ""), (values?.manualMandal ?? ""))) || 'Mandal'} Mandal,<br />

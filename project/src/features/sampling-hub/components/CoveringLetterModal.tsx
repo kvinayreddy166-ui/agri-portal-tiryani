@@ -579,7 +579,19 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   )}
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-600">LETTER DATE</label>
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <label className="block text-xs font-bold text-slate-600">LETTER DATE</label>
+                    {metadata.letterDate ? (
+                      <button
+                        type="button"
+                        onClick={() => setMetadata({ ...metadata, letterDate: '' })}
+                        className="sm:hidden shrink-0 text-xs font-semibold normal-case text-rose-600 hover:text-rose-700 active:opacity-70 transition-opacity"
+                        aria-label="Clear date"
+                      >
+                        Clear
+                      </button>
+                    ) : null}
+                  </div>
                   <input
                     type="date"
                     value={metadata.letterDate}
@@ -611,7 +623,19 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-600">MEMO DATE</label>
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <label className="block text-xs font-bold text-slate-600">MEMO DATE</label>
+                    {metadata.daoMemoDate ? (
+                      <button
+                        type="button"
+                        onClick={() => setMetadata({ ...metadata, daoMemoDate: '' })}
+                        className="sm:hidden shrink-0 text-xs font-semibold normal-case text-rose-600 hover:text-rose-700 active:opacity-70 transition-opacity"
+                        aria-label="Clear date"
+                      >
+                        Clear
+                      </button>
+                    ) : null}
+                  </div>
                   <input
                     type="date"
                     value={metadata.daoMemoDate}
@@ -721,12 +745,24 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                             />
                           </td>
                           <td className="px-2 py-2 whitespace-nowrap text-xs">
-                            <input
-                              type="date"
-                              value={item.dateOfSampling}
-                              onChange={(e) => handleDateChange(index, e.target.value)}
-                              className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                            />
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="date"
+                                value={item.dateOfSampling}
+                                onChange={(e) => handleDateChange(index, e.target.value)}
+                                className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              />
+                              {item.dateOfSampling ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDateChange(index, '')}
+                                  className="sm:hidden shrink-0 text-xs font-semibold text-rose-600 hover:text-rose-700"
+                                  title="Clear date"
+                                >
+                                  Clear
+                                </button>
+                              ) : null}
+                            </div>
                           </td>
                           <td className="px-2 py-2 whitespace-nowrap text-xs">
                             <button
