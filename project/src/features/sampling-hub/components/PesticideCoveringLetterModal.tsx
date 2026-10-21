@@ -500,12 +500,19 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                       </button>
                     ) : null}
                   </div>
-                  <input
-                    type="date"
-                    value={metadata.letterDate}
-                    onChange={(e) => setMetadata({ ...metadata, letterDate: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={metadata.letterDate}
+                      onChange={(e) => setMetadata({ ...metadata, letterDate: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                    />
+                    {!metadata.letterDate && (
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-normal select-none sm:hidden">
+                        dd-mm-yyyy
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">AUTHORITY TYPE</label>
@@ -544,12 +551,19 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                       </button>
                     ) : null}
                   </div>
-                  <input
-                    type="date"
-                    value={metadata.daoMemoDate}
-                    onChange={(e) => setMetadata({ ...metadata, daoMemoDate: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={metadata.daoMemoDate}
+                      onChange={(e) => setMetadata({ ...metadata, daoMemoDate: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                    />
+                    {!metadata.daoMemoDate && (
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-normal select-none sm:hidden">
+                        dd-mm-yyyy
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {!isAssistantDirectorOfAgriculture(officerDetails?.designation || '') && (
                   <div>
@@ -654,12 +668,19 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                           </td>
                           <td className="px-2 py-2">
                             <div className="flex items-center gap-1">
-                              <input
-                                type="date"
-                                value={item.dateOfSampling}
-                                onChange={(e) => handleDateChange(index, e.target.value)}
-                                className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                              />
+                              <div className="relative flex-1">
+                                <input
+                                  type="date"
+                                  value={item.dateOfSampling}
+                                  onChange={(e) => handleDateChange(index, e.target.value)}
+                                  className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                                />
+                                {!item.dateOfSampling && (
+                                  <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 font-normal select-none sm:hidden">
+                                    dd-mm-yyyy
+                                  </span>
+                                )}
+                              </div>
                               {item.dateOfSampling ? (
                                 <button
                                   type="button"

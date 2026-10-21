@@ -2316,12 +2316,28 @@ export function TextInput({ label, value, onChange, type = 'text', optional = fa
           </button>
         ) : null}
       </span>
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-      />
+      {type === 'date' ? (
+        <div className="relative">
+          <input
+            type="date"
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+          />
+          {!value && (
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-slate-500 font-normal select-none sm:hidden">
+              dd-mm-yyyy
+            </span>
+          )}
+        </div>
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+        />
+      )}
     </label>
   );
 }

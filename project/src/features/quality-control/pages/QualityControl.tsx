@@ -442,12 +442,19 @@ export function QualityControl({ category }: QualityControlProps) {
                     </button>
                   ) : null}
                 </div>
-                <input
-                  type="date"
-                  value={sampleForm.sample_date}
-                  onChange={(e) => setSampleForm({ ...sampleForm, sample_date: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                />
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={sampleForm.sample_date}
+                    onChange={(e) => setSampleForm({ ...sampleForm, sample_date: e.target.value })}
+                    className="w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  />
+                  {!sampleForm.sample_date && (
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-slate-500 font-normal select-none sm:hidden">
+                      dd-mm-yyyy
+                    </span>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('Sample Drawn Form', 'నమూనా ఫారం')}</label>

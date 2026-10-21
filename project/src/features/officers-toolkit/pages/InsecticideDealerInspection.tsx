@@ -448,7 +448,14 @@ export function InsecticideDealerInspection() {
             <StatusInput label="17. Whether the dealer is sending stock reports regularly to the Licensing officer or not" field={form.stockReportsRegular} onChange={(p) => { setStatus('stockReportsRegular', p); if (p.status && p.status !== 'no') set('formDFailedSince', ''); }} remarksWhen="no" remarksLabel="Remarks" extra={form.stockReportsRegular.status === 'no' ? (
               <label className="flex flex-col gap-1">
                 <span className="text-[10px] font-bold tracking-wide text-slate-500 dark:text-slate-400">If no, since when has the dealer failed to submit Form D</span>
-                <input type="date" value={form.formDFailedSince} onChange={(e) => set('formDFailedSince', e.target.value)} className={`${inputClass} sm:w-44`} />
+                <div className="relative sm:w-44">
+                  <input type="date" value={form.formDFailedSince} onChange={(e) => set('formDFailedSince', e.target.value)} className={`${inputClass} w-full`} />
+                  {!form.formDFailedSince && (
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-slate-500 font-normal select-none sm:hidden">
+                      dd-mm-yyyy
+                    </span>
+                  )}
+                </div>
                 {form.formDFailedSince ? (
                   <button
                     type="button"

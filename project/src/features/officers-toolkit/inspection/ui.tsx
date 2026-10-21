@@ -278,6 +278,15 @@ export function Field({ label, value, onChange, type = 'text', textarea = false,
           <option value="">Select…</option>
           {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
+      ) : type === 'date' ? (
+        <div className="relative">
+          <input type="date" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />
+          {!value && (
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-slate-500 font-normal select-none sm:hidden">
+              dd-mm-yyyy
+            </span>
+          )}
+        </div>
       ) : (
         <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />
       )}

@@ -942,6 +942,15 @@ function Input({ label, value, onChange, type = 'text', textarea = false, placeh
       </span>
       {textarea ? (
         <textarea rows={2} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
+      ) : type === 'date' ? (
+        <div className="relative">
+          <input type="date" value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
+          {!value && (
+            <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-slate-500 font-normal select-none sm:hidden">
+              dd-mm-yyyy
+            </span>
+          )}
+        </div>
       ) : (
         <input type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
       )}

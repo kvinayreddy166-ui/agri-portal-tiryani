@@ -2446,9 +2446,25 @@ function PdfInput({
         </option>
       ))}
     </select>
+  ) : field.type === 'date' ? (
+    <div className="relative">
+      <input
+        type="date"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={field.placeholder}
+        className={commonClass}
+        disabled={isCompositionFieldDisabled}
+      />
+      {!value && (
+        <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-slate-500 font-normal select-none sm:hidden">
+          dd-mm-yyyy
+        </span>
+      )}
+    </div>
   ) : (
     <input
-      type={field.type === 'date' ? 'date' : 'text'}
+      type="text"
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={field.placeholder}

@@ -1139,7 +1139,18 @@ function Field({ label, value, onChange, type = 'text' }: { label: string; value
           ) : null}
         </span>
       )}
-      <input type={type} value={value} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.001' : undefined} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600" />
+      {type === 'date' ? (
+        <div className="relative">
+          <input type="date" value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600" />
+          {!value && (
+            <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-slate-500 font-normal select-none sm:hidden">
+              dd-mm-yyyy
+            </span>
+          )}
+        </div>
+      ) : (
+        <input type={type} value={value} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.001' : undefined} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2.5 py-2 text-sm font-bold outline-none focus:border-emerald-600" />
+      )}
     </label>
   );
 }
