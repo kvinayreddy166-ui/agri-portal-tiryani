@@ -113,7 +113,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'sampleDrawingMandal', label: 'PLACE OF COLLECTION (MANDAL)', type: 'select', options: [], condition: (values) => isAssistantDirectorOfAgriculture(values.designation) },
       { key: 'manualPlaceOfCollection', label: 'ENTER PLACE OF COLLECTION / MANDAL NAME', placeholder: 'Enter place of collection / mandal name', condition: (values) => isAssistantDirectorOfAgriculture(values.designation) && values.sampleDrawingMandal === 'Others' },
       { key: 'pincode', label: 'PIN CODE' },
-      { key: 'sampleDrawnDate', label: 'Date', type: 'date' },
+      { key: 'sampleDrawnDate', label: 'DATE', type: 'date' },
       { key: 'officerEmail', label: 'EMAIL ID' },
     ],
   },
@@ -137,8 +137,8 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'stockReceiptDate', label: 'STOCK RECEIPT DATE', type: 'date' },
       { key: 'stockPosition', label: 'STOCK POSITION OF BATCH', type: 'textarea', placeholder: 'Eg: 50 x (120 GMS) / 50 x (120 Ml)' },
       { key: 'otherInformation', label: 'ANY OTHER RELEVANT INFORMATION', type: 'textarea' },
-      { key: 'dispatchDate', label: 'Date of Dispatch', type: 'date' },
-      { key: 'ptlNameMode', label: 'Name of the P.T.L.', type: 'select', options: [{ label: 'Default', value: 'default' }, { label: 'Empty', value: 'empty' }] },
+      { key: 'dispatchDate', label: 'DATE OF DISPATCH', type: 'date' },
+      { key: 'ptlNameMode', label: 'NAME OF THE P.T.L.', type: 'select', options: [{ label: 'DEFAULT', value: 'default' }, { label: 'EMPTY', value: 'empty' }] },
     ],
   },
   {
@@ -1227,7 +1227,7 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
   const commonClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
   
   const displayLabel = field.dynamicLabel && values?.designation === 'Asst. Director of Agriculture' && field.key === 'mandal'
-    ? 'Division'
+    ? 'DIVISION'
     : field.label;
   
   const selectOptions = options || field.options || [];
