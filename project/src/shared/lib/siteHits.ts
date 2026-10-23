@@ -47,7 +47,7 @@ export async function fetchSiteHitSummary(): Promise<SiteHitSummary> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const [totalResult, todayResult, recentResult] = await Promise.all([
+  const [totalResult, todayResult, lastViewResult] = await Promise.all([
     supabase.from('site_hits').select('id', { count: 'exact', head: true }),
     supabase
       .from('site_hits')
@@ -55,22 +55,22 @@ export async function fetchSiteHitSummary(): Promise<SiteHitSummary> {
       .gte('viewed_at', today.toISOString()),
     supabase
       .from('site_hits')
-      .select('visitor_id, viewed_at')
+      .select('viewed_at')
       .order('viewed_at', { ascending: false })
-      .limit(10000),
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   if (totalResult.error) throw totalResult.error;
   if (todayResult.error) throw todayResult.error;
-  if (recentResult.error) throw recentResult.error;
+  if (lastViewResult.error) throw lastViewResult.error;
 
-  const recentRows = recentResult.data || [];
-  const uniqueVisitors = new Set(recentRows.map((row) => row.visitor_id).filter(Boolean)).size;
-  const lastViewedAt = recentRows[0]?.viewed_at || null;
+  const totalCount = totalResult.count || 0;
+  const lastViewedAt = lastViewResult.data?.viewed_at || null;
 
   return {
-    totalViews: PREVIOUS_SITE_VISIT_BASELINE + (totalResult.count || 0),
-    uniqueVisitors,
+    totalViews: PREVIOUS_SITE_VISIT_BASELINE + totalCount,
+    uniqueVisitors: totalCount,
     todayViews: todayResult.count || 0,
     lastViewedAt,
   };

@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ChevronDown, FileDown, FileSpreadsheet, FileText, Mic, MicOff, Plus, Printer, Trash2 } from 'lucide-react';
+import { ChevronDown, FileDown, FileSpreadsheet, FileText, Mic, MicOff, Plus, Printer, Trash2 } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useSpeechInput } from '../../../shared/hooks/useSpeechInput';
 import type { Column, Status, StatusField } from './types';
+import { DateClearButton } from '../../../shared/components/ui/DateInput';
 
 export type InspectionTone = 'emerald' | 'sky' | 'rose';
 
@@ -250,28 +251,16 @@ export function MicButton({ value, onChange }: { value: string; onChange: (v: st
 export function Field({ label, value, onChange, type = 'text', textarea = false, placeholder = '', options, helper = '' }: { label: string; value: string; onChange: (v: string) => void; type?: string; textarea?: boolean; placeholder?: string; options?: string[]; helper?: string }) {
   const inputClass = useInputClass();
   return (
-    <label className="block">
-      <span className={`${labelClass} flex items-center justify-between gap-2`}>
+    <div className="block">
+      <div className={`${labelClass} flex items-center justify-between gap-2`}>
         <span>{label}</span>
         <span className="flex shrink-0 items-center gap-2">
           {type === 'date' && value ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onChange('');
-              }}
-              className="sm:hidden inline-flex items-center gap-1 rounded-full bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/60 shadow-xs transition-all active:scale-95 touch-manipulation select-none relative before:absolute before:-inset-2 before:content-['']"
-              aria-label="Clear date"
-            >
-              <X className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
-              <span>Clear</span>
-            </button>
+            <DateClearButton onClick={() => onChange('')} />
           ) : null}
           {textarea && <MicButton value={value} onChange={onChange} />}
         </span>
-      </span>
+      </div>
       {textarea ? (
         <textarea rows={2} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />
       ) : options ? (
@@ -279,20 +268,11 @@ export function Field({ label, value, onChange, type = 'text', textarea = false,
           <option value="">Select…</option>
           {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
-      ) : type === 'date' ? (
-        <div className="relative">
-          <input type="date" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />
-          {!value && (
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
-              dd-mm-yyyy
-            </span>
-          )}
-        </div>
       ) : (
         <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />
       )}
       {helper && <span className="mt-0.5 block text-[10px] font-semibold text-slate-400 dark:text-slate-500">{helper}</span>}
-    </label>
+    </div>
   );
 }
 

@@ -1,3 +1,4 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CalendarDays,
@@ -16,6 +17,7 @@ import { supabase } from '../../../shared/lib/supabase';
 import { getContentType } from '../../../shared/lib/fileTypes';
 import { FileActionButtons } from '../../../shared/components/ui/FileActionButtons';
 import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
+import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { QualityControlSample, QualityControlTarget } from '../../../shared/types/database';
@@ -91,7 +93,7 @@ const emptySample = {
   license_number: '',
   phone_number: '',
   location: '',
-  sample_date: new Date().toISOString().slice(0, 10),
+  sample_date: localTodayDate(),
   remarks: '',
 };
 
@@ -433,30 +435,15 @@ export function QualityControl({ category }: QualityControlProps) {
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <label className="text-sm font-bold text-gray-700 dark:text-slate-200">{t('Sample Date', 'నమూనా తేదీ')}</label>
                   {sampleForm.sample_date ? (
-                    <button
-              type="button"
-              onClick={() => setSampleForm({ ...sampleForm, sample_date: '' })}
-              className="sm:hidden shrink-0 inline-flex items-center gap-1 rounded-full bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/60 shadow-xs transition-all active:scale-95 touch-manipulation select-none relative before:absolute before:-inset-2 before:content-['']"
-              aria-label="Clear date"
-            >
-              <X className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
-              <span>Clear</span>
-            </button>
+                    <DateClearButton onClick={() => setSampleForm({ ...sampleForm, sample_date: '' })} />
                   ) : null}
                 </div>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={sampleForm.sample_date}
-                    onChange={(e) => setSampleForm({ ...sampleForm, sample_date: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                  />
-                  {!sampleForm.sample_date && (
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
-                      dd-mm-yyyy
-                    </span>
-                  )}
-                </div>
+                <input
+                  type="date"
+                  value={sampleForm.sample_date}
+                  onChange={(e) => setSampleForm({ ...sampleForm, sample_date: e.target.value })}
+                  className="w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('Sample Drawn Form', 'నమూనా ఫారం')}</label>

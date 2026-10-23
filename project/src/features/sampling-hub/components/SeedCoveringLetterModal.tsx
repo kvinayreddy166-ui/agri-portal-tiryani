@@ -1,8 +1,10 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useState } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { DateClearButton } from '../../../shared/components/ui/DateInput';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
@@ -146,7 +148,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   const [metadata, setMetadata] = useState<SeedCoveringLetterMetadata>({
     year: coveringLetterDetails?.financialYear || financialYears[0],
     letterNumber: coveringLetterDetails?.letterNumber || '',
-    letterDate: coveringLetterDetails?.letterDate || new Date().toISOString().slice(0, 10),
+    letterDate: coveringLetterDetails?.letterDate || localTodayDate(),
     authorityType: coveringLetterDetails?.authorityType || 'DAO',
     daoMemoNumber: coveringLetterDetails?.memoNumber || '',
     daoMemoDate: coveringLetterDetails?.memoDate || '',
@@ -313,7 +315,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
       seedName: '',
       variety: '',
       quantity: '',
-      dateOfSampling: new Date().toISOString().slice(0, 10),
+      dateOfSampling: localTodayDate(),
       isCotton: false,
     };
     const updatedQueue = [...editedQueue, newSample];
@@ -506,7 +508,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                     setMetadata({
                       year: financialYears[0],
                       letterNumber: '',
-                      letterDate: new Date().toISOString().slice(0, 10),
+                      letterDate: localTodayDate(),
                       authorityType: 'DAO',
                       daoMemoNumber: '',
                       daoMemoDate: '',
@@ -551,29 +553,15 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <label className="block text-xs font-bold text-slate-600">LETTER DATE</label>
                     {metadata.letterDate ? (
-                      <button
-                        type="button"
-                        onClick={() => setMetadata({ ...metadata, letterDate: '' })}
-                        className="sm:hidden shrink-0 text-xs font-semibold normal-case text-rose-600 hover:text-rose-700 active:opacity-70 transition-opacity"
-                        aria-label="Clear date"
-                      >
-                        Clear
-                      </button>
+                      <DateClearButton onClick={() => setMetadata({ ...metadata, letterDate: '' })} />
                     ) : null}
                   </div>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      value={metadata.letterDate}
-                      onChange={(e) => setMetadata({ ...metadata, letterDate: e.target.value })}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
-                    />
-                    {!metadata.letterDate && (
-                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
-                        dd-mm-yyyy
-                      </span>
-                    )}
-                  </div>
+                  <input
+                    type="date"
+                    value={metadata.letterDate}
+                    onChange={(e) => setMetadata({ ...metadata, letterDate: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">AUTHORITY TYPE</label>
@@ -602,29 +590,15 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <label className="block text-xs font-bold text-slate-600">MEMO DATE</label>
                     {metadata.daoMemoDate ? (
-                      <button
-                        type="button"
-                        onClick={() => setMetadata({ ...metadata, daoMemoDate: '' })}
-                        className="sm:hidden shrink-0 text-xs font-semibold normal-case text-rose-600 hover:text-rose-700 active:opacity-70 transition-opacity"
-                        aria-label="Clear date"
-                      >
-                        Clear
-                      </button>
+                      <DateClearButton onClick={() => setMetadata({ ...metadata, daoMemoDate: '' })} />
                     ) : null}
                   </div>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      value={metadata.daoMemoDate}
-                      onChange={(e) => setMetadata({ ...metadata, daoMemoDate: e.target.value })}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
-                    />
-                    {!metadata.daoMemoDate && (
-                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
-                        dd-mm-yyyy
-                      </span>
-                    )}
-                  </div>
+                  <input
+                    type="date"
+                    value={metadata.daoMemoDate}
+                    onChange={(e) => setMetadata({ ...metadata, daoMemoDate: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                  />
                 </div>
                 {!isAssistantDirectorOfAgriculture(officerDetails?.designation || '') && (
                   <div>
@@ -737,30 +711,16 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                           </td>
                           <td className="px-2 py-2">
                             <div className="flex items-center gap-1">
-                              <div className="relative flex-1">
                                 <input
                                   type="date"
                                   value={item.dateOfSampling}
                                   onChange={(e) => handleDateChange(index, e.target.value)}
                                   className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
                                 />
-                                {!item.dateOfSampling && (
-                                  <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
-                                    dd-mm-yyyy
-                                  </span>
-                                )}
+                                {item.dateOfSampling ? (
+                                  <DateClearButton onClick={() => handleDateChange(index, '')} />
+                                ) : null}
                               </div>
-                              {item.dateOfSampling ? (
-                                <button
-                                  type="button"
-                                  onClick={() => handleDateChange(index, '')}
-                                  className="sm:hidden shrink-0 text-xs font-semibold text-rose-600 hover:text-rose-700"
-                                  title="Clear date"
-                                >
-                                  Clear
-                                </button>
-                              ) : null}
-                            </div>
                           </td>
                           <td className="px-2 py-2">
                             <button

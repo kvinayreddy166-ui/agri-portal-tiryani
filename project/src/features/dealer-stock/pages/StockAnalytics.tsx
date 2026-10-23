@@ -1,8 +1,10 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { X, ChevronDown, ClipboardList, Filter, PackageCheck, RefreshCw } from 'lucide-react';
+import { ChevronDown, ClipboardList, Filter, PackageCheck, RefreshCw } from 'lucide-react';
 import { StockManagement } from './StockManagement';
 import { StockInventory } from './StockInventory';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
+import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { supabase } from '../../../shared/lib/supabase';
 import {
@@ -61,7 +63,7 @@ const CATEGORY_LABELS: Record<StockCategory, string> = {
 };
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return localTodayDate();
 }
 
 export default function StockAnalytics() {
@@ -619,38 +621,20 @@ function Select({ label, value, onChange, options, display }: { label: string; v
 
 function Input({ label, type, value, onChange }: { label: string; type: string; value: string; onChange: (value: string) => void }) {
   return (
-    <label className="block min-w-0">
-      <span className="mb-1 flex items-center justify-between gap-2 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">
+    <div className="block min-w-0">
+      <div className="mb-1 flex items-center justify-between gap-2 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">
         <span>{label}</span>
         {type === 'date' && value ? (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onChange('');
-            }}
-              className="sm:hidden shrink-0 inline-flex items-center gap-1 rounded-full bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/60 shadow-xs transition-all active:scale-95 touch-manipulation select-none relative before:absolute before:-inset-2 before:content-['']"
-              aria-label="Clear date"
-            >
-              <X className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
-              <span>Clear</span>
-            </button>
+          <DateClearButton onClick={() => onChange('')} />
         ) : null}
-      </span>
-      {type === 'date' ? (
-        <div className="relative">
-          <input type="date" value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" />
-          {!value && (
-            <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
-              dd-mm-yyyy
-            </span>
-          )}
-        </div>
-      ) : (
-        <input type={type} value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" />
-      )}
-    </label>
+      </div>
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold"
+      />
+    </div>
   );
 }
 

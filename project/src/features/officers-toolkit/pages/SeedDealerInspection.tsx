@@ -1,3 +1,4 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
@@ -93,7 +94,7 @@ const emptySeizure = (): SeizureRow => ({ crop: '', variety: '', lotNo: '', quan
 const emptySample = (): SampleRow => ({ crop: '', variety: '', lotNo: '', quantity: '', sampleType: SAMPLE_TYPE_OPTIONS[0] });
 
 const initialForm = (): InspectionForm => ({
-  inspectionDate: new Date().toISOString().slice(0, 10),
+  inspectionDate: localTodayDate(),
   dealerName: '',
   storagePlace: '',
   salePlace: '',
@@ -204,7 +205,7 @@ export function SeedDealerInspection() {
   };
 
   const exportDrafts = () => {
-    exportDraftsFile('seed', drafts, `seed-inspection-drafts-${new Date().toISOString().slice(0, 10)}.json`);
+    exportDraftsFile('seed', drafts, `seed-inspection-drafts-${localTodayDate()}.json`);
     showInfo('Drafts exported');
   };
 

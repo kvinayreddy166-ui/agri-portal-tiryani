@@ -63,7 +63,6 @@ export async function recoverFromStaleAssets() {
   } finally {
     try {
       window.sessionStorage.removeItem('tiryani-startup-recovery-v4');
-      window.sessionStorage.removeItem(RECOVERY_KEY);
     } catch {
       // Startup recovery state is best-effort only.
     }

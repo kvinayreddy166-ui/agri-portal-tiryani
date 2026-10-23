@@ -1,3 +1,4 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
@@ -96,8 +97,8 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   district: '',
   mandal: '',
   place: '',
-  date: new Date().toISOString().slice(0, 10),
-  sampleDrawnDate: new Date().toISOString().slice(0, 10),
+  date: localTodayDate(),
+  sampleDrawnDate: localTodayDate(),
   sampleDrawnDay: '',
   sampleDrawnMonth: '',
   sampleDrawnYear: '',
@@ -159,7 +160,7 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   // Covering Letter Details
   financialYear: '',
   letterNumber: '',
-  letterDate: new Date().toISOString().slice(0, 10),
+  letterDate: localTodayDate(),
   authorityType: 'DAO',
   memoNumber: '',
   memoDate: '',

@@ -1,7 +1,9 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { X, Eye, FileText, RotateCcw, Save } from 'lucide-react';
+import { Eye, FileText, RotateCcw, Save } from 'lucide-react';
 import { SeedInstructionModal } from '../../../shared/components/ui/SeedInstructionModal';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
 import { SeedCoveringLetterModal } from '../components/SeedCoveringLetterModal';
@@ -68,10 +70,10 @@ const initialSeedForm = {
   designation: '',
   officeAddress: '',
   place: '',
-  date: new Date().toISOString().slice(0, 10),
+  date: localTodayDate(),
   serialNo: '',
   codeNo: '',
-  collectionDate: new Date().toISOString().slice(0, 10),
+  collectionDate: localTodayDate(),
   collectionPlace: '',
   nature: 'Seed sample',
   natureOther: '',
@@ -162,7 +164,7 @@ export function SeedForms({
       return saved ? JSON.parse(saved) : {
         financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
         letterNumber: '',
-        letterDate: new Date().toISOString().slice(0, 10),
+        letterDate: localTodayDate(),
         authorityType: 'DAO',
         memoNumber: '',
         memoDate: '',
@@ -173,7 +175,7 @@ export function SeedForms({
       return {
         financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
         letterNumber: '',
-        letterDate: new Date().toISOString().slice(0, 10),
+        letterDate: localTodayDate(),
         authorityType: 'DAO',
         memoNumber: '',
         memoDate: '',
@@ -541,7 +543,7 @@ export function SeedForms({
       ...prev,
       serialNo: '',
       codeNo: '',
-      collectionDate: new Date().toISOString().slice(0, 10),
+      collectionDate: localTodayDate(),
       collectionPlace: '',
       nature: 'Seed sample',
       natureOther: '',
@@ -922,40 +924,19 @@ function PreviewCard({ title, lines }: any) {
 function Input({ label, value, onChange, type = 'text', textarea = false, placeholder = '' }: any) {
   const className = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
   return (
-    <label>
-      <span className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
+    <div>
+      <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
         <span>{label}</span>
         {type === 'date' && value ? (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onChange('');
-            }}
-              className="sm:hidden shrink-0 inline-flex items-center gap-1 rounded-full bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/60 shadow-xs transition-all active:scale-95 touch-manipulation select-none relative before:absolute before:-inset-2 before:content-['']"
-              aria-label="Clear date"
-            >
-              <X className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
-              <span>Clear</span>
-            </button>
+          <DateClearButton onClick={() => onChange('')} />
         ) : null}
-      </span>
+      </div>
       {textarea ? (
         <textarea rows={2} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
-      ) : type === 'date' ? (
-        <div className="relative">
-          <input type="date" value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
-          {!value && (
-            <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
-              dd-mm-yyyy
-            </span>
-          )}
-        </div>
       ) : (
         <input type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={className} />
       )}
-    </label>
+    </div>
   );
 }
 

@@ -1,3 +1,4 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { BarChart3, ChevronDown, FileSpreadsheet, FolderOpen, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
@@ -55,7 +56,7 @@ const financialYearBounds = (financialYear: string) => {
 const monthEndDate = (monthValue: string) => {
   const [year, month] = monthValue.split('-').map(Number);
   if (!year || !month) return currentReportDate();
-  return new Date(year, month, 0).toISOString().slice(0, 10);
+  return localTodayDate(new Date(year, month, 0));
 };
 
 interface InventoryRow {

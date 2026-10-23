@@ -1,3 +1,4 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import type { FertilizerFormEntry } from '../data/fertilizerForms';
@@ -33,7 +34,7 @@ export const initialFertilizerFormPdfValues: FertilizerFormPdfValues = {
   batchDetails: '',
   composition: '',
   sampleCode: '',
-  date: new Date().toISOString().slice(0, 10),
+  date: localTodayDate(),
   place: '',
   remarks: '',
 };

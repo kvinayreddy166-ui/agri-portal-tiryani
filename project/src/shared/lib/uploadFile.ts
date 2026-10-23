@@ -23,19 +23,23 @@ export async function uploadPortalFile(file: File, folder: string, maxRetries = 
   const timeoutMs = Math.max(300000, 60000 * fileSizeMB + 300000); // 5 min base + 1 min per MB
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     try {
-      const { error: uploadError } = await supabase.storage
-        .from('uploads')
-        .upload(filePath, file, {
-          upsert: true,
-          contentType,
-          duplex: 'half',
-        });
-      
-      clearTimeout(timeoutId);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Upload timed out')), timeoutMs);
+      });
+
+      const { error: uploadError } = await Promise.race([
+        supabase.storage
+          .from('uploads')
+          .upload(filePath, file, {
+            upsert: true,
+            contentType,
+            duplex: 'half',
+          }),
+        timeoutPromise,
+      ]);
 
       if (uploadError) throw uploadError;
 
@@ -45,16 +49,16 @@ export async function uploadPortalFile(file: File, folder: string, maxRetries = 
         fileType: inferFileType(file),
       };
     } catch (error) {
-      clearTimeout(timeoutId);
-      
       if (attempt === maxRetries) {
         throw error;
       }
-      
+
       // Exponential backoff: wait 2^attempt seconds before retry
       const backoffMs = Math.pow(2, attempt) * 1000;
       console.warn(`Upload attempt ${attempt} failed, retrying in ${backoffMs}ms...`, error);
       await new Promise(resolve => setTimeout(resolve, backoffMs));
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
     }
   }
   

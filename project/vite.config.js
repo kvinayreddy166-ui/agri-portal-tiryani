@@ -87,10 +87,6 @@ export default defineConfig({
           if (id.includes('@tensorflow')) {
             return 'vendor-tensorflow';
           }
-          // Group DOMPurify separately
-          if (id.includes('dompurify')) {
-            return 'vendor-purify';
-          }
           // Group document processing libraries
           if (id.includes('docx') || id.includes('html2canvas') || id.includes('mammoth')) {
             return 'vendor-docs';

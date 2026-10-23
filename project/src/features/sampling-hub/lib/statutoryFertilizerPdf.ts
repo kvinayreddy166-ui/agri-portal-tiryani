@@ -1,3 +1,4 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
@@ -140,7 +141,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   premisesLocation: '',
   dealerNameAddress: '',
   authorizationNumber: '',
-  samplingDate: new Date().toISOString().slice(0, 10),
+  samplingDate: localTodayDate(),
   markings: '',
   fertilizerCategory: '',
   fertilizerTypeGrade: '',
@@ -224,7 +225,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   codeNumber: '',
   place: '',
   placeOfCollection: '',
-  date: new Date().toISOString().slice(0, 10),
+  date: localTodayDate(),
   officerName: '',
   designation: '',
   officeAddress: '',
@@ -243,7 +244,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   // LETTER DETAILS
   financialYear: calculateFinancialYear(),
   letterNumber: '',
-  letterDate: new Date().toISOString().slice(0, 10),
+  letterDate: localTodayDate(),
   authorityType: 'DAO',
   memoNumber: '',
   memoDate: '',

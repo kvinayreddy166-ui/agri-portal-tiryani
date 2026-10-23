@@ -29,9 +29,10 @@ export function GoogleMapWidget() {
 
   useEffect(() => {
     if (!apiKey || !mapRef.current) return;
+    let isMounted = true;
 
     const initMap = () => {
-      if (!window.google?.maps || !mapRef.current) return;
+      if (!isMounted || !window.google?.maps || !mapRef.current) return;
       const map = new window.google.maps.Map(mapRef.current, {
         center: TIRYANI_CENTER,
         zoom: 16,
@@ -69,9 +70,11 @@ export function GoogleMapWidget() {
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&v=weekly`;
     script.async = true;
     script.defer = true;
-    script.onload = initMap;
-    script.onerror = () => setLoadError(true);
+    script.onload = () => { if (isMounted) initMap(); };
+    script.onerror = () => { if (isMounted) setLoadError(true); };
     document.head.appendChild(script);
+
+    return () => { isMounted = false; };
   }, [apiKey]);
 
   useEffect(() => {

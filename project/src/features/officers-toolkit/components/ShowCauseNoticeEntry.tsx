@@ -1,3 +1,4 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FileChild } from 'docx';
 import { ChevronDown, Download, Edit3, FileText, FileType, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
@@ -12,6 +13,7 @@ import {
 import { setupPdfUnicodeFonts, DOCX_TELUGU_FONT } from '../../../shared/lib/pdfUnicodeFonts';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import {
   noticeCategoryConfigs,
   allShowCauseViolations,
@@ -58,7 +60,7 @@ interface SavedNotice extends NoticeFormState {
 }
 
 const STORAGE_KEY = 'agri-legal-show-cause-notices';
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localTodayDate();
 const ENCLOSURE_OPTIONS = [
   `'O' forms`,
   'Principal certificates',
@@ -2295,50 +2297,22 @@ export function SelectInput({ label, value, onChange, options }: { label: string
 
 export function TextInput({ label, value, onChange, type = 'text', optional = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; optional?: boolean }) {
   return (
-    <label className="block">
-      <span className="mb-1 flex items-center justify-between gap-2 text-xs font-black text-slate-600 dark:text-slate-300">
+    <div className="block">
+      <div className="mb-1 flex items-center justify-between gap-2 text-xs font-black text-slate-600 dark:text-slate-300">
         <span>
           {label}
           {optional && <span className="ml-1 text-[11px] font-bold text-slate-400 dark:text-slate-500">(Optional)</span>}
         </span>
         {type === 'date' && value ? (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onChange('');
-            }}
-              className="sm:hidden shrink-0 inline-flex items-center gap-1 rounded-full bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/60 shadow-xs transition-all active:scale-95 touch-manipulation select-none relative before:absolute before:-inset-2 before:content-['']"
-              aria-label="Clear date"
-            >
-              <X className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
-              <span>Clear</span>
-            </button>
+          <DateClearButton onClick={() => onChange('')} />
         ) : null}
-      </span>
-      {type === 'date' ? (
-        <div className="relative">
-          <input
-            type="date"
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
-            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-          />
-          {!value && (
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
-              dd-mm-yyyy
-            </span>
-          )}
-        </div>
-      ) : (
-        <input
-          type={type}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-        />
-      )}
-    </label>
+      </div>
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+      />
+    </div>
   );
 }

@@ -1,7 +1,9 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
+import { ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
@@ -70,7 +72,7 @@ const emptySeizure = (): SeizureRow => ({ productName: '', brandName: '', manufa
 const emptySample = (): SampleRow => ({ tradeName: '', technicalName: '', manufacturer: '', batchNumber: '', quantity: '', date: '' });
 
 const initialForm = (): InspectionForm => ({
-  inspectionDate: new Date().toISOString().slice(0, 10),
+  inspectionDate: localTodayDate(),
   dealerName: '',
   licenceHolderName: '',
   licenceNo: '',
@@ -191,7 +193,7 @@ export function InsecticideDealerInspection() {
   };
 
   const exportDrafts = () => {
-    exportDraftsFile('insecticide', drafts, `insecticide-inspection-drafts-${new Date().toISOString().slice(0, 10)}.json`);
+    exportDraftsFile('insecticide', drafts, `insecticide-inspection-drafts-${localTodayDate()}.json`);
     showInfo('Drafts exported');
   };
 
@@ -446,32 +448,17 @@ export function InsecticideDealerInspection() {
             <StatusInput label="15. Whether the pesticides are stored according to the provisions of the Insecticides Act and the Insecticides Rules" field={form.storedAsPerAct} onChange={(p) => setStatus('storedAsPerAct', p)} remarksWhen="no" />
             <StatusInput label="16. Whether expired chemicals are segregated or not" field={form.expiredSegregated} onChange={(p) => setStatus('expiredSegregated', p)} remarksWhen="no" />
             <StatusInput label="17. Whether the dealer is sending stock reports regularly to the Licensing officer or not" field={form.stockReportsRegular} onChange={(p) => { setStatus('stockReportsRegular', p); if (p.status && p.status !== 'no') set('formDFailedSince', ''); }} remarksWhen="no" remarksLabel="Remarks" extra={form.stockReportsRegular.status === 'no' ? (
-              <label className="flex flex-col gap-1">
-                <span className="text-[10px] font-bold tracking-wide text-slate-500 dark:text-slate-400">If no, since when has the dealer failed to submit Form D</span>
-                <div className="relative sm:w-44">
-                  <input type="date" value={form.formDFailedSince} onChange={(e) => set('formDFailedSince', e.target.value)} className={`${inputClass} w-full`} />
-                  {!form.formDFailedSince && (
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400/90 dark:text-slate-500/90 font-medium tracking-wide select-none sm:hidden">
-                      dd-mm-yyyy
-                    </span>
-                  )}
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-bold tracking-wide text-slate-500 dark:text-slate-400">If no, since when has the dealer failed to submit Form D</span>
+                  {form.formDFailedSince ? (
+                    <DateClearButton onClick={() => set('formDFailedSince', '')} />
+                  ) : null}
                 </div>
-                {form.formDFailedSince ? (
-                  <button
-              type="button"
-              onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      set('formDFailedSince', '');
-                    }}
-              className="sm:hidden shrink-0 inline-flex items-center gap-1 rounded-full bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/60 shadow-xs transition-all active:scale-95 touch-manipulation select-none relative before:absolute before:-inset-2 before:content-['']"
-              aria-label="Clear date"
-            >
-              <X className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
-              <span>Clear</span>
-            </button>
-                ) : null}
-              </label>
+                <div className="sm:w-44">
+                  <input type="date" value={form.formDFailedSince} onChange={(e) => set('formDFailedSince', e.target.value)} className={`${inputClass} w-full`} />
+                </div>
+              </div>
             ) : null} />
           </Section>
 

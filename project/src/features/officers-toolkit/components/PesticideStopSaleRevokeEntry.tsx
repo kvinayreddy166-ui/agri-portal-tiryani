@@ -1,3 +1,4 @@
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, Download, Edit3, FileText, FileType, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { currentFinancialYear } from '../../../shared/utils/financialYear';
@@ -65,7 +66,7 @@ interface SavedPestRevokeOrder extends PestRevokeFormState {
 }
 
 const STORAGE_KEY = 'agri-legal-pesticide-stop-sale-revoke-orders';
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localTodayDate();
 const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 const emptyProduct = (): PestRevokeProductRow => ({

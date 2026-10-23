@@ -462,15 +462,14 @@ export function FarmerDatabase() {
     setImporting(true);
     setImportMessage('Importing farmer database...');
     try {
-      const { error: deleteError } = await supabase.from('farmer_database').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      if (deleteError) throw deleteError;
+      
       for (let index = 0; index < previewRows.length; index += 500) {
       const batch = previewRows.slice(index, index + 500).map((row) => ({
           ...farmerInsertRow(row),
           created_by: user?.email || 'admin',
           updated_by: user?.email || 'admin',
         }));
-        const { error } = await supabase.from('farmer_database').insert(batch);
+        const { error } = await supabase.from('farmer_database').upsert(batch, { onConflict: 'row_hash' });
         if (error) throw error;
       }
       setImportMessage(`Imported ${previewRows.length.toLocaleString('en-IN')} rows successfully.`);
