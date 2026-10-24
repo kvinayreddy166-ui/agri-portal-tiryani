@@ -739,7 +739,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.y += 3;
   signatureLineMixed(cursor, [{ label: 'Date:', value: formatDate(values.sampleDrawnDate) }], 'Insecticide Inspector Seal');
   cursor.y += 2;
-  cursor.y += 3;
+  cursor.y += 6;
   const witness1Label = '1. Signature of witness:';
   cursor.doc.text(witness1Label, PAGE.marginX, cursor.y);
   const witness1Width = cursor.doc.getTextWidth(witness1Label);
@@ -1191,13 +1191,15 @@ function paragraphWithHangingIndentAndInlineValue(cursor: PdfCursor, value: stri
 }
 
 function renderJustifiedParagraph(cursor: PdfCursor, text: string, boldValues: string[], firstLineIndent = 12) {
+  if (!text || text.trim() === '') return;
+
   const indentWidth = firstLineIndent;
   const availableWidth = cursor.contentWidth - indentWidth;
-  
+
   // Split text into segments and identify which should be bold
   const segments: { text: string; bold: boolean }[] = [];
   let remaining = text;
-  
+
   boldValues.forEach(boldValue => {
     if (!boldValue) return;
     const parts = remaining.split(boldValue);
@@ -1207,56 +1209,111 @@ function renderJustifiedParagraph(cursor: PdfCursor, text: string, boldValues: s
       remaining = parts.slice(1).join(boldValue);
     }
   });
-  
+
   if (remaining) {
     segments.push({ text: remaining, bold: false });
   }
-  
-  // Build lines with proper wrapping
-  let lines: { text: string; bold: boolean }[][] = [];
-  let currentLine: { text: string; bold: boolean }[] = [];
-  let currentLineWidth = 0;
-  let isFirstLine = true;
-  
-  segments.forEach(segment => {
-    const words = segment.text.split(' ');
-    words.forEach((word, wordIndex) => {
-      const wordWithSpace = wordIndex === 0 ? word : ` ${word}`;
-      const wordWidth = cursor.doc.getTextWidth(wordWithSpace);
-      const maxWidth = isFirstLine ? availableWidth : cursor.contentWidth;
-      
-      if (currentLineWidth + wordWidth > maxWidth && currentLine.length > 0) {
-        lines.push(currentLine);
-        currentLine = [{ text: word, bold: segment.bold }];
-        currentLineWidth = cursor.doc.getTextWidth(word);
-        isFirstLine = false;
+
+  // Tokenize segments into words (non-whitespace sequences of fragments)
+  type WordFragment = { text: string; bold: boolean };
+  const words: WordFragment[][] = [];
+  let currentWordFragments: WordFragment[] = [];
+
+  segments.forEach(seg => {
+    const parts = seg.text.split(/(\s+)/);
+    parts.forEach(part => {
+      if (!part) return;
+      if (/^\s+$/.test(part)) {
+        if (currentWordFragments.length > 0) {
+          words.push(currentWordFragments);
+          currentWordFragments = [];
+        }
       } else {
-        currentLine.push({ text: wordWithSpace, bold: segment.bold });
-        currentLineWidth += wordWidth;
+        currentWordFragments.push({ text: part, bold: seg.bold });
       }
     });
   });
-  
-  if (currentLine.length > 0) {
-    lines.push(currentLine);
+  if (currentWordFragments.length > 0) {
+    words.push(currentWordFragments);
   }
-  
-  // Render lines with first-line indent and single line spacing
-  ensure(cursor, lines.length * LINE_HEIGHT);
-  
-  lines.forEach((line, index) => {
-    const x = index === 0 ? PAGE.marginX + indentWidth : PAGE.marginX;
-    let currentX = x;
-    
-    line.forEach(segment => {
-      cursor.doc.setFont(PDF_FONT, segment.bold ? 'bold' : 'normal');
-      cursor.doc.text(segment.text, currentX, cursor.y);
-      currentX += cursor.doc.getTextWidth(segment.text);
+
+  if (words.length === 0) return;
+
+  // Measure word width with proper font weights
+  const getWordWidth = (fragments: WordFragment[]): number => {
+    let w = 0;
+    fragments.forEach(f => {
+      cursor.doc.setFont(PDF_FONT, f.bold ? 'bold' : 'normal');
+      w += cursor.doc.getTextWidth(f.text);
     });
-    
+    return w;
+  };
+
+  cursor.doc.setFont(PDF_FONT, 'normal');
+  const normalSpaceWidth = cursor.doc.getTextWidth(' ');
+
+  // Wrap words into lines based on available widths
+  type LineItem = { words: WordFragment[][]; isFirstLine: boolean };
+  const lines: LineItem[] = [];
+  let currentLine: WordFragment[][] = [];
+  let currentLineWidth = 0;
+  let isFirstLine = true;
+
+  words.forEach(wordFragments => {
+    const wordWidth = getWordWidth(wordFragments);
+    const targetMaxWidth = isFirstLine ? availableWidth : cursor.contentWidth;
+    const spaceNeeded = currentLine.length === 0 ? 0 : normalSpaceWidth;
+
+    if (currentLineWidth + spaceNeeded + wordWidth > targetMaxWidth && currentLine.length > 0) {
+      lines.push({ words: currentLine, isFirstLine });
+      currentLine = [wordFragments];
+      currentLineWidth = wordWidth;
+      isFirstLine = false;
+    } else {
+      currentLine.push(wordFragments);
+      currentLineWidth += spaceNeeded + wordWidth;
+    }
+  });
+
+  if (currentLine.length > 0) {
+    lines.push({ words: currentLine, isFirstLine });
+  }
+
+  // Render lines with first-line indent and justified alignment
+  ensure(cursor, lines.length * LINE_HEIGHT);
+
+  lines.forEach((lineObj, lineIndex) => {
+    const isFirst = lineObj.isFirstLine;
+    const isLast = lineIndex === lines.length - 1;
+    const startX = isFirst ? PAGE.marginX + indentWidth : PAGE.marginX;
+    const targetLineWidth = isFirst ? availableWidth : cursor.contentWidth;
+
+    const lineWords = lineObj.words;
+    let totalWordWidth = 0;
+    lineWords.forEach(w => {
+      totalWordWidth += getWordWidth(w);
+    });
+
+    let spaceWidth = normalSpaceWidth;
+    if (!isLast && lineWords.length > 1) {
+      const extraSpace = targetLineWidth - totalWordWidth;
+      spaceWidth = extraSpace > 0 ? extraSpace / (lineWords.length - 1) : normalSpaceWidth;
+    }
+
+    let currentX = startX;
+    lineWords.forEach((wordFragments, wIdx) => {
+      if (wIdx > 0) currentX += spaceWidth;
+
+      wordFragments.forEach(fragment => {
+        cursor.doc.setFont(PDF_FONT, fragment.bold ? 'bold' : 'normal');
+        cursor.doc.text(fragment.text, currentX, cursor.y);
+        currentX += cursor.doc.getTextWidth(fragment.text);
+      });
+    });
+
     cursor.y += LINE_HEIGHT;
   });
-  
+
   cursor.doc.setFont(PDF_FONT, 'normal');
 }
 
