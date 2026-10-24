@@ -758,7 +758,7 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.y += 3;
   cursor.doc.setFont(PDF_FONT, 'bold');
   cursor.doc.text('Signature of the person from whom the sample is taken', PAGE.width / 2 + 23, cursor.y, { align: 'center' });
-  cursor.y += 3.1;
+  cursor.y += 3.5;
   cursor.doc.text('with date and seal', PAGE.width / 2 + 23, cursor.y, { align: 'center' });
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.doc.setLineHeightFactor(1.25);

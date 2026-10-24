@@ -308,6 +308,7 @@ function drawSubject(cursor: PdfCursor, _metadata: SeedCoveringLetterMetadata, q
   doc.setFontSize(FONT_SIZES.body);
   const labelX = PAGE.marginLeft + FIRST_LINE_INDENT;
   doc.text('Sub:', labelX, cursor.y);
+  const labelWidth = doc.getTextWidth('Sub: ');
   
   doc.setFont(PDF_FONT, 'normal');
   
@@ -319,8 +320,8 @@ function drawSubject(cursor: PdfCursor, _metadata: SeedCoveringLetterMetadata, q
     ? `Seed Act 1966 – Seed (Control) Order 1983 – EP Act – 1986 –Quality Control – 2026-27– Submission of Seed samples drawn - Request for Quality analysis – Reg.`
     : `Seed Act 1966 – Seed (Control) Order 1983 – Quality Control – 2026-27– Submission of Seed samples drawn - Request for Quality analysis – Reg.`;
   
-  const subjectX = labelX + doc.getTextWidth('Sub: ');
-  const availableWidth = PAGE.contentWidth - FIRST_LINE_INDENT - doc.getTextWidth('Sub: ');
+  const subjectX = labelX + labelWidth;
+  const availableWidth = PAGE.contentWidth - FIRST_LINE_INDENT - labelWidth;
   
   const splitSubject = doc.splitTextToSize(subject, availableWidth);
   doc.text(splitSubject, subjectX, cursor.y);
@@ -381,8 +382,7 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, queue?: Se
     { text: ' District for Quality analysis (', bold: false },
     { text: testParameter, bold: true },
     { text: ') as per the allotment given by the District Agriculture Officer, ', bold: false },
-    { text: district, bold: false },
-    { text: '.', bold: false }
+    { text: `${district.trim()}.`, bold: false }
   ];
   
   const endY = drawJustifiedBodyText(doc, segments, {

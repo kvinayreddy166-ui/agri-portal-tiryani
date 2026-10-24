@@ -350,14 +350,15 @@ function drawSubject(cursor: PdfCursor, metadata: CoveringLetterMetadata, letter
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(FONT_SIZES.body);
   const labelX = PAGE.marginLeft + FIRST_LINE_INDENT;
-  doc.text('Sub: ', labelX, cursor.y);
+  doc.text('Sub:', labelX, cursor.y);
+  const labelWidth = doc.getTextWidth('Sub: ');
 
   doc.setFont(PDF_FONT, 'normal');
   const subject = letterType === 'safe-custody'
     ? `FCO, 1985 – Quality Control – ${metadata.year || '2026-27'} – Submission of III Portion of Fertilizer Samples along with Form K for Safe Custody – Request – Reg.`
     : `FCO 1985 – Quality Control – ${metadata.year || '2026-27'} – Submission of Fertilizer Samples (Portion-I) drawn – Request for Quality Analysis – Reg.`;
-  const subjectX = labelX + doc.getTextWidth('Sub: ');
-  const availableWidth = PAGE.contentWidth - FIRST_LINE_INDENT - doc.getTextWidth('Sub: ');
+  const subjectX = labelX + labelWidth;
+  const availableWidth = PAGE.contentWidth - FIRST_LINE_INDENT - labelWidth;
   
   const splitSubject = doc.splitTextToSize(subject, availableWidth);
   doc.text(splitSubject, subjectX, cursor.y);
@@ -412,8 +413,7 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType
         { text: ' Mandal, ', bold: false },
         { text: district, bold: true },
         { text: ' District for quality analysis as per the allotment given by the District Agriculture Officer, ', bold: false },
-        { text: district, bold: false },
-        { text: '. The I Portion of the samples has already been forwarded for quality analysis. ', bold: false },
+        { text: `${district.trim()}. The I Portion of the samples has already been forwarded for quality analysis. `, bold: false },
         { text: 'I am herewith submitting the III Portion of the fertilizer samples, along with the enclosed Form K, for safe custody.', bold: false },
       ]
     : [
@@ -422,8 +422,7 @@ function drawBody(cursor: PdfCursor, officerDetails?: OfficerDetails, letterType
         { text: ' Mandal, ', bold: false },
         { text: district, bold: true },
         { text: ' District for quality analysis as per the allotment given by the District Agriculture Officer, ', bold: false },
-        { text: district, bold: false },
-        { text: '.', bold: false }
+        { text: `${district.trim()}.`, bold: false }
       ];
   
   const endY = drawJustifiedBodyText(doc, segments, {
