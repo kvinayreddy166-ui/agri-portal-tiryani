@@ -34,7 +34,6 @@ type FieldConfig = {
   type?: 'text' | 'date' | 'textarea' | 'select';
   options?: { label: string; value: string }[];
   placeholder?: string;
-  helper?: string;
   dynamicLabel?: boolean;
   condition?: (values: PesticidePdfValues) => boolean;
 };

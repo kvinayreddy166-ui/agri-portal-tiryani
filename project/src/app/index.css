@@ -1126,25 +1126,50 @@ summary:active {
   }
 }
 
-/* Replace native mobile browser chevron with desktop calendar symbol on date inputs */
+/* ==========================================================================
+   Desktop-Style Calendar Icon on Date Inputs (Replacing Mobile Chevron)
+   ========================================================================== */
+
+/* 1. Eliminate native mobile browser select/menulist chevron and render desktop calendar icon */
+input[type="date"] {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2' ry='2'/%3E%3Cline x1='16' x2='16' y1='2' y2='6'/%3E%3Cline x1='8' x2='8' y1='2' y2='6'/%3E%3Cline x1='3' x2='21' y1='10' y2='10'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 18px 18px !important;
+  padding-right: 36px !important;
+}
+
+.dark input[type="date"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2' ry='2'/%3E%3Cline x1='16' x2='16' y1='2' y2='6'/%3E%3Cline x1='8' x2='8' y1='2' y2='6'/%3E%3Cline x1='3' x2='21' y1='10' y2='10'/%3E%3C/svg%3E") !important;
+}
+
+/* 2. Hide native WebKit picker indicator and spin buttons so only the calendar icon shows */
 input[type="date"]::-webkit-calendar-picker-indicator {
-  display: block;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230f172a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2' ry='2'/%3E%3Cline x1='16' x2='16' y1='2' y2='6'/%3E%3Cline x1='8' x2='8' y1='2' y2='6'/%3E%3Cline x1='3' x2='21' y1='10' y2='10'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 16px 16px;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  opacity: 0.85;
+  opacity: 0 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background: transparent !important;
+  color: transparent !important;
+  width: 36px !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  cursor: pointer !important;
 }
 
-.dark input[type="date"]::-webkit-calendar-picker-indicator {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f8fafc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2' ry='2'/%3E%3Cline x1='16' x2='16' y1='2' y2='6'/%3E%3Cline x1='8' x2='8' y1='2' y2='6'/%3E%3Cline x1='3' x2='21' y1='10' y2='10'/%3E%3C/svg%3E");
+input[type="date"]::-webkit-inner-spin-button {
+  display: none !important;
+  -webkit-appearance: none !important;
 }
 
-/* Hide native indicator inside custom DateInput component where Lucide Calendar icon is positioned */
+/* 3. For components with dedicated Lucide Calendar button (like DateInput), avoid double icon */
+.date-input-calendar {
+  background-image: none !important;
+}
+
 .date-input-calendar::-webkit-calendar-picker-indicator {
   opacity: 0 !important;
   width: 28px !important;
@@ -1161,3 +1186,208 @@ input[type="date"][value=""]::-webkit-datetime-edit {
 .dark input[type="date"][value=""]::-webkit-datetime-edit {
   color: #94a3b8;
 }
+
+/* ==========================================================================
+   AGRONIX Modern Sprout & Leaf Loading Animations
+   ========================================================================== */
+
+/* 1. Sprout Stem Rise */
+@keyframes sproutStemGrow {
+  0% {
+    stroke-dashoffset: 42;
+    opacity: 0.2;
+  }
+  30%, 82% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* 2. Left Leaf Unfurl & Living Breathe */
+@keyframes sproutLeafLeft {
+  0% {
+    transform: scale(0) rotate(-40deg);
+    opacity: 0;
+  }
+  28% {
+    transform: scale(0.1) rotate(-30deg);
+    opacity: 0.2;
+  }
+  48% {
+    transform: scale(1.08) rotate(4deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(1.03) rotate(-2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* 3. Right Leaf Unfurl & Living Breathe (staggered) */
+@keyframes sproutLeafRight {
+  0% {
+    transform: scale(0) rotate(40deg);
+    opacity: 0;
+  }
+  36% {
+    transform: scale(0.1) rotate(30deg);
+    opacity: 0.2;
+  }
+  56% {
+    transform: scale(1.1) rotate(-4deg);
+    opacity: 1;
+  }
+  68% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  86% {
+    transform: scale(1.04) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* 4. Sprout Whole Plant Organic Wind Sway */
+@keyframes sproutWindSway {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-2.2deg) translateY(-0.5px);
+  }
+  75% {
+    transform: rotate(2.2deg) translateY(-0.5px);
+  }
+}
+
+/* 5. Photosynthetic Aura Glow */
+@keyframes sproutAuraPulse {
+  0%, 100% {
+    transform: scale(0.85);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.85;
+  }
+}
+
+/* 6. Soil Nutrient Ripple */
+@keyframes sproutSoilPulse {
+  0%, 100% {
+    transform: scaleX(0.8);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scaleX(1.1);
+    opacity: 0.75;
+  }
+}
+
+/* 7. Dewdrop Glimmer */
+@keyframes sproutDewGlimmer {
+  0%, 100% {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+    filter: drop-shadow(0 0 2px rgba(254, 240, 138, 0.8));
+  }
+}
+
+/* 8. Orbiting Dual Leaf Spinner (for compact/button loaders) */
+@keyframes leafOrbitSpin {
+  0% {
+    transform: rotate(0deg) scale(0.96);
+  }
+  50% {
+    transform: rotate(185deg) scale(1.04);
+  }
+  100% {
+    transform: rotate(360deg) scale(0.96);
+  }
+}
+
+/* Static bloom with wind sway (for calm living mode) */
+@keyframes sproutLivingBreathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+/* Animation utility classes */
+.animate-sprout-aura {
+  animation: sproutAuraPulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: 32px 30px;
+}
+
+.animate-sprout-soil {
+  animation: sproutSoilPulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: 32px 54px;
+}
+
+.animate-sprout-stem {
+  stroke-dasharray: 42;
+  stroke-dashoffset: 0;
+  animation: sproutStemGrow 2.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.animate-sprout-leaf-left {
+  animation: sproutLeafLeft 2.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.animate-sprout-leaf-right {
+  animation: sproutLeafRight 2.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.animate-sprout-sway {
+  animation: sproutWindSway 4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.animate-sprout-sparkle {
+  animation: sproutDewGlimmer 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: 51px 7px;
+}
+
+.animate-leaf-orbit {
+  animation: leafOrbitSpin 1.4s cubic-bezier(0.42, 0, 0.25, 1) infinite;
+  transform-origin: center center;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-sprout-aura,
+  .animate-sprout-soil,
+  .animate-sprout-stem,
+  .animate-sprout-leaf-left,
+  .animate-sprout-leaf-right,
+  .animate-sprout-sway,
+  .animate-sprout-sparkle,
+  .animate-leaf-orbit {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
