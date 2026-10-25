@@ -487,20 +487,18 @@ export const Dashboard = React.memo(function Dashboard() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {schemes.map((scheme, idx) => {
-            const schemeColors = [
-              'border-l-4 border-l-emerald-500',
-              'border-l-4 border-l-blue-500',
-              'border-l-4 border-l-orange-500',
-              'border-l-4 border-l-purple-500'
-            ];
+            const schemeDots = ['bg-emerald-500', 'bg-blue-500', 'bg-amber-500', 'bg-teal-500'];
             const eligibility =
               scheme.scheme_name.trim().toLowerCase() === 'rythu bhima'
                 ? 'Age between 18-59 years'
                 : scheme.eligibility;
             return (
-              <div key={scheme.id} className={`${schemeColors[idx % 4]} bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 hover:shadow-md transition group`}>
+              <div key={scheme.id} className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 group">
                 <div className="flex justify-between items-start gap-2">
-                  <h3 className="font-bold text-base text-gray-900 dark:text-white">{scheme.scheme_name}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${schemeDots[idx % 4]}`} aria-hidden="true" />
+                    <h3 className="font-bold text-base text-gray-900 dark:text-white">{scheme.scheme_name}</h3>
+                  </div>
                   {isAdminUser && (
                     <div className="flex shrink-0 gap-0.5 opacity-0 group-hover:opacity-100 transition">
                       <button

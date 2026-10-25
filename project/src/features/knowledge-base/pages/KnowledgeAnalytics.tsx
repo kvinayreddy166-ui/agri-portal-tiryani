@@ -27,7 +27,7 @@ export function KnowledgeAnalytics() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <ModernStatCard label="Total Queries" value={data?.totalQueries ?? 0} icon={BarChart3} gradient="from-indigo-500 to-blue-600" />
+            <ModernStatCard label="Total Queries" value={data?.totalQueries ?? 0} icon={BarChart3} gradient="from-sky-600 to-emerald-700" />
             <ModernStatCard label="Unanswered" value={data?.unanswered ?? 0} icon={HelpCircle} gradient="from-red-500 to-rose-600" />
             <ModernStatCard label="Partial Matches" value={data?.partial ?? 0} icon={AlertTriangle} gradient="from-amber-500 to-orange-600" />
             <ModernStatCard label="Avg Response" value={`${data?.averageResponseTime ?? 0}ms`} icon={Clock} gradient="from-emerald-500 to-emerald-600" />

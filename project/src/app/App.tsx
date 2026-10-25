@@ -3,6 +3,7 @@ import { useAuth, AuthProvider } from '../shared/context/AuthContext';
 import { LanguageProvider } from '../shared/context/LanguageContext';
 import { ThemeProvider } from '../shared/context/ThemeContext';
 import { AgronixBrandMark } from '../shared/components/ui/AgronixBrandMark';
+import { GlobalMobileDatePickerProvider } from '../shared/components/ui/DateInput';
 import { confirmDiscardIfDirty } from '../features/officers-toolkit/inspection/useDirtyGuard';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
@@ -241,6 +242,7 @@ function App() {
                 <OfflineScreen />
                 <UpdateBanner />
               </Suspense>
+              <GlobalMobileDatePickerProvider />
               <AppContent />
             </LanguageScope>
           </BrowserRouter>

@@ -58,11 +58,11 @@ const TONE_STYLES: Record<
     backBtn: 'text-lime-800 hover:text-lime-950 dark:text-lime-200 dark:hover:text-white',
   },
   indigo: {
-    container: 'border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 shadow-sm dark:border-indigo-800/50 dark:from-indigo-950/40 dark:via-slate-900 dark:to-purple-900/30',
-    iconBg: 'bg-indigo-600 text-white dark:bg-indigo-500',
-    eyebrow: 'text-indigo-800 dark:text-indigo-300',
-    title: 'text-indigo-950 dark:text-indigo-50',
-    backBtn: 'text-indigo-800 hover:text-indigo-950 dark:text-indigo-200 dark:hover:text-white',
+    container: 'border-slate-300 bg-gradient-to-r from-slate-100 to-emerald-50/40 shadow-sm dark:border-slate-700 dark:from-slate-900 dark:to-slate-800',
+    iconBg: 'bg-slate-700 text-white dark:bg-slate-600',
+    eyebrow: 'text-slate-700 dark:text-slate-300',
+    title: 'text-slate-900 dark:text-slate-50',
+    backBtn: 'text-slate-700 hover:text-slate-950 dark:text-slate-200 dark:hover:text-white',
   },
   amber: {
     container: 'border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 shadow-sm dark:border-amber-800/50 dark:from-amber-950/40 dark:via-slate-900 dark:to-orange-900/30',
@@ -113,7 +113,7 @@ const SOLID_STYLES: Record<
     backBtn: 'text-white hover:text-white/80',
   },
   indigo: {
-    container: 'border-indigo-700/40 bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 shadow-lg dark:border-indigo-800/50',
+    container: 'border-slate-700/40 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 shadow-lg dark:border-slate-800/50',
     iconBg: 'bg-white/20 text-white ring-1 ring-white/30',
     eyebrow: 'text-blue-100',
     title: 'text-white',
@@ -140,9 +140,9 @@ const BAR_STYLES: Record<ToolkitHeaderTone, string> = {
   sky: 'from-sky-400 via-blue-500 to-cyan-400',
   rose: 'from-rose-500 via-pink-500 to-rose-400',
   lime: 'from-lime-500 via-green-500 to-emerald-400',
-  indigo: 'from-indigo-500 via-purple-500 to-fuchsia-400',
+  indigo: 'from-slate-600 via-emerald-600 to-teal-500',
   amber: 'from-amber-500 via-orange-500 to-amber-400',
-  'teal-indigo': 'from-emerald-500 via-cyan-500 to-indigo-500',
+  'teal-indigo': 'from-emerald-600 via-teal-600 to-cyan-600',
 };
 
 const COMPACT_ICON_STYLES: Record<ToolkitHeaderTone, string> = {

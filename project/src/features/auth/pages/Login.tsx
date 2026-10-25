@@ -308,7 +308,7 @@ export function Login() {
           </div>
         </div>
         <div className="relative space-y-6">
-          <h1 className="max-w-md bg-gradient-to-r from-white via-emerald-50 to-emerald-100 bg-clip-text text-3xl font-bold leading-tight tracking-tight text-transparent xl:text-[2.5rem]">
+          <h1 className="max-w-md text-3xl font-bold leading-tight tracking-tight text-white xl:text-[2.5rem]">
             {t('Field-Ready Enforcement Documents', 'ఫీల్డ్-రెడీ ఎన్ఫోర్స్‌మెంట్ పత్రాలు')}
           </h1>
           <p className="max-w-md text-[15px] leading-7 text-emerald-50/95">

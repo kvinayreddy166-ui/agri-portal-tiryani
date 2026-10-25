@@ -236,7 +236,7 @@ const resultCardPalette = [
   'from-green-100 to-lime-100 border-green-200',
   'from-sky-100 to-cyan-100 border-sky-200',
   'from-amber-100 to-yellow-100 border-amber-200',
-  'from-purple-100 to-indigo-100 border-purple-200',
+  'from-teal-50 to-emerald-100 border-teal-200',
 ];
 
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {

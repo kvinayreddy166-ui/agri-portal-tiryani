@@ -1,26 +1,86 @@
-import React from 'react';
-import { X } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  ChromiumDatePickerCard,
+  MobileDatePickerModal,
+  isMobileDevice,
+  GlobalMobileDatePickerProvider,
+  openMobileDatePickerForInput,
+} from './MobileDatePicker';
 
-export function DateClearButton({
-  onClick,
-  className = '',
-}: {
-  onClick: () => void;
+export {
+  ChromiumDatePickerCard,
+  MobileDatePickerModal,
+  isMobileDevice,
+  GlobalMobileDatePickerProvider,
+  openMobileDatePickerForInput,
+};
+
+/**
+ * Formerly rendered a separate red "[✕ Clear]" pill next to labels on mobile.
+ * Now completely disabled because the Chromium DatePicker includes a native Clear action.
+ */
+export function DateClearButton(_props?: {
+  onClick?: () => void;
   className?: string;
 }) {
+  return null;
+}
+
+export interface DateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
+  value: string;
+  onChange: (value: string) => void;
+  label?: string;
+  className?: string;
+  disabled?: boolean;
+}
+
+/**
+ * Universal DateInput component that uses the custom Chromium date picker on mobiles and desktops.
+ */
+export function DateInput({
+  value,
+  onChange,
+  className = '',
+  disabled = false,
+  min,
+  max,
+  placeholder = 'YYYY-MM-DD',
+  ...props
+}: DateInputProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    if (disabled) return;
+    if (isMobileDevice()) {
+      e.preventDefault();
+      setIsOpen(true);
+    }
+  };
+
   return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onClick();
-      }}
-      className={`sm:hidden shrink-0 inline-flex items-center gap-1 rounded-full bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 px-2 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/60 shadow-xs transition-all active:scale-95 touch-manipulation select-none ${className}`}
-      aria-label="Clear date"
-    >
-      <X className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
-      <span>Clear</span>
-    </button>
+    <div className="relative inline-block w-full">
+      <input
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onClick={handleClick}
+        disabled={disabled}
+        min={min}
+        max={max}
+        placeholder={placeholder}
+        className={`w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-white ${className}`}
+        {...props}
+      />
+      {isOpen && (
+        <MobileDatePickerModal
+          isOpen={isOpen}
+          value={value}
+          onChange={onChange}
+          onClose={() => setIsOpen(false)}
+          min={typeof min === 'string' ? min : undefined}
+          max={typeof max === 'string' ? max : undefined}
+        />
+      )}
+    </div>
   );
 }

@@ -196,7 +196,7 @@ export function AcreageCalculator() {
               <ResultCard tone="from-emerald-100 to-lime-100 border-emerald-200" label={t('Acres', 'ఎకరాలు')} value={result.acresDecimal} note={result.acreGuntaNote} />
               {mode !== 'cents' && <ResultCard tone="from-yellow-100 to-amber-100 border-yellow-200" label={t('Cents', 'సెంట్లు')} value={result.cents} note={t('1 acre = 100 cents', '1 ఎకరం = 100 సెంట్లు')} />}
               {mode !== 'acres-cents' && mode !== 'cents' && mode !== 'guntas' && mode !== 'hectares' && <ResultCard tone="from-pink-100 to-rose-100 border-pink-200" label={t('Acres + Cents', 'ఎకరాలు + సెంట్లు')} value={result.acresCents} note={t('Whole acres with remaining cents', 'పూర్తి ఎకరాలు మరియు మిగిలిన సెంట్లు')} />}
-              {mode !== 'guntas' && <ResultCard tone="from-purple-100 to-indigo-100 border-purple-200" label={t('Guntas', 'గుంటలు')} value={result.guntas} note={t('1 acre = 40 guntas', '1 ఎకరం = 40 గుంటలు')} />}
+              {mode !== 'guntas' && <ResultCard tone="from-teal-50 to-emerald-100 border-teal-200" label={t('Guntas', 'గుంటలు')} value={result.guntas} note={t('1 acre = 40 guntas', '1 ఎకరం = 40 గుంటలు')} />}
               {mode !== 'hectares' && <ResultCard tone="from-sky-100 to-cyan-100 border-sky-200" label={t('Hectares', 'హెక్టార్లు')} value={result.hectares} note={t('Converted from decimal acres', 'దశాంశ ఎకరాల నుండి మార్చబడింది')} />}
             </>
           )}
