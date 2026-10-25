@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Calendar } from 'lucide-react';
 import {
   ChromiumDatePickerCard,
@@ -49,23 +49,21 @@ export function DateInput({
   placeholder = 'dd-mm-yyyy',
   ...props
 }: DateInputProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleClick = (e: React.MouseEvent<HTMLInputElement>) => {
-    if (disabled) return;
-    if (isMobileDevice()) {
-      e.preventDefault();
-      setIsOpen(true);
-    }
+  const handleOpen = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (disabled || !inputRef.current) return;
+    openMobileDatePickerForInput(inputRef.current);
   };
 
   return (
     <div className="relative inline-flex w-full items-center">
       <input
+        ref={inputRef}
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onClick={handleClick}
         disabled={disabled}
         min={min}
         max={max}
@@ -76,25 +74,13 @@ export function DateInput({
       <button
         type="button"
         tabIndex={-1}
-        onClick={(e) => {
-          e.preventDefault();
-          if (!disabled) setIsOpen(true);
-        }}
+        onClick={handleOpen}
+        disabled={disabled}
         className="pointer-events-auto absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-slate-700 transition hover:text-slate-950 active:scale-95 dark:text-slate-300 dark:hover:text-white"
         aria-label="Open calendar"
       >
         <Calendar className="h-4 w-4 stroke-[1.8]" />
       </button>
-      {isOpen && (
-        <MobileDatePickerModal
-          isOpen={isOpen}
-          value={value}
-          onChange={onChange}
-          onClose={() => setIsOpen(false)}
-          min={typeof min === 'string' ? min : undefined}
-          max={typeof max === 'string' ? max : undefined}
-        />
-      )}
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import React, { Component, Suspense, useEffect, useState } from 'react';
 import { PortalLogo } from '../../shared/components/ui/PortalLogo';
-import { SproutLoader } from '../../shared/components/ui/SproutLoader';
 import { APP_BUILD_LABEL, clearAppCacheAndReload } from '../../shared/lib/appVersion';
 import { isRecoverableChunkError, recoverFromStaleAssets } from '../../shared/lib/pwaRecovery';
 
@@ -15,7 +14,12 @@ export function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#f2f7f3] p-6 text-center dark:bg-slate-950">
       {!hideLogo && <PortalLogo size="xl" />}
-      <SproutLoader size="lg" variant="sprout" label={!hideLogo ? 'Loading AGRONIX' : undefined} />
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
+      {!hideLogo && (
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+          Loading AGRONIX...
+        </p>
+      )}
       {slow && (
         <div className="max-w-md rounded-2xl border border-amber-200 bg-white/90 p-4 shadow-sm dark:border-amber-900 dark:bg-slate-900">
           <h2 className="text-base font-black text-slate-950 dark:text-white">App is taking longer than expected.</h2>
@@ -30,15 +34,7 @@ export function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
 }
 
 export function PageLoader({ hideLogo = false }: { hideLogo?: boolean }) {
-  return (
-    <div className="flex min-h-[50vh] w-full flex-col items-center justify-center p-8">
-      <SproutLoader
-        size="lg"
-        variant="sprout"
-        label={!hideLogo ? 'Loading' : undefined}
-      />
-    </div>
-  );
+  return <GlobalAppLoader hideLogo={hideLogo} />;
 }
 
 

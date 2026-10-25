@@ -524,6 +524,7 @@ export function MobileDatePickerModal({
   min,
   max,
 }: MobileDatePickerProps) {
+  // Close on Escape key
   useEffect(() => {
     if (!isOpen) return;
 
@@ -535,14 +536,41 @@ export function MobileDatePickerModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  // Lock background body scroll completely while modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    const originalTouchAction = document.body.style.touchAction;
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.touchAction = originalTouchAction;
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/45 p-4 backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/45 p-4 backdrop-blur-xs transition-opacity animate-in fade-in duration-150 select-none"
       onClick={onClose}
+      onTouchMove={(e) => {
+        // Prevent background page from scrolling when touching backdrop
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+        }
+      }}
+      style={{ touchAction: 'none' }}
     >
-      <div onClick={(e) => e.stopPropagation()}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        style={{ overscrollBehavior: 'contain' }}
+      >
         <ChromiumDatePickerCard
           value={value}
           onChange={onChange}
@@ -589,18 +617,114 @@ export function GlobalMobileDatePickerProvider() {
     };
   }, []);
 
-  // Set up global touch/click interceptor on mobile devices
+  // Set up global touch/click interceptor that accurately distinguishes between
+  // intentional taps vs. vertical page scrolling on mobile devices.
   useEffect(() => {
-    const handleCapture = (e: MouseEvent | TouchEvent) => {
-      if (!isMobileDevice()) return;
+    if (!isMobileDevice()) return;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let isTouchScrolling = false;
+    let touchedInput: HTMLInputElement | null = null;
+    let lastScrollEndTime = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      // Multi-touch gestures (zoom/pinch) are scrolls
+      if (e.touches.length !== 1) {
+        isTouchScrolling = true;
+        touchedInput = null;
+        return;
+      }
+
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartTime = Date.now();
+      isTouchScrolling = false;
 
       const target = e.target as HTMLElement | null;
-      if (!target) return;
+      const input = target?.closest('input[type="date"]') as HTMLInputElement | null;
+      if (input && !input.disabled && !input.readOnly) {
+        touchedInput = input;
+      } else {
+        touchedInput = null;
+      }
+      // CRITICAL: Passive listener with NO e.preventDefault() allows native vertical scroll to flow freely
+    };
 
-      const input = target.closest('input[type="date"]') as HTMLInputElement | null;
+    const onTouchMove = (e: TouchEvent) => {
+      if (isTouchScrolling || !touchedInput) return;
+      const touch = e.touches[0];
+      const deltaX = Math.abs(touch.clientX - touchStartX);
+      const deltaY = Math.abs(touch.clientY - touchStartY);
+
+      // If finger moves more than 7px in any direction, user is scrolling the page!
+      if (deltaX > 7 || deltaY > 7) {
+        isTouchScrolling = true;
+        touchedInput = null;
+        lastScrollEndTime = Date.now();
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      // If user was scrolling, cancel and never open picker
+      if (isTouchScrolling) {
+        lastScrollEndTime = Date.now();
+        touchedInput = null;
+        isTouchScrolling = false;
+        return;
+      }
+
+      const duration = Date.now() - touchStartTime;
+      const input = touchedInput;
+      touchedInput = null;
+
+      // Only open on deliberate brief tap (< 450ms) on a valid date input
+      if (!input || input.disabled || input.readOnly || duration > 450) {
+        return;
+      }
+
+      // Check distance at touchend
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        const touch = e.changedTouches[0];
+        const deltaX = Math.abs(touch.clientX - touchStartX);
+        const deltaY = Math.abs(touch.clientY - touchStartY);
+        if (deltaX > 10 || deltaY > 10) {
+          return;
+        }
+      }
+
+      // Prevent native OS datepicker dialog from launching
+      e.preventDefault();
+      input.blur();
+
+      setPickerState({
+        input,
+        value: input.value || '',
+        min: input.min || undefined,
+        max: input.max || undefined,
+      });
+    };
+
+    const onTouchCancel = () => {
+      isTouchScrolling = false;
+      touchedInput = null;
+    };
+
+    const onClick = (e: MouseEvent) => {
+      // If a touch scroll ended recently (< 250ms), suppress synthesized click
+      if (Date.now() - lastScrollEndTime < 250) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
+      const target = e.target as HTMLElement | null;
+      const input = target?.closest('input[type="date"]') as HTMLInputElement | null;
       if (!input || input.disabled || input.readOnly) return;
 
-      // Prevent mobile Chromium from summoning the OS datepicker dialog
+      // Prevent native mobile OS date dialog
       e.preventDefault();
       e.stopPropagation();
       input.blur();
@@ -613,13 +737,19 @@ export function GlobalMobileDatePickerProvider() {
       });
     };
 
-    // Capture on pointerdown / touchstart / click before native browser handles it
-    document.addEventListener('click', handleCapture, true);
-    document.addEventListener('touchstart', handleCapture, { capture: true, passive: false });
+    // Attach passive touch listeners so vertical scrolling is 60fps buttery-smooth
+    document.addEventListener('touchstart', onTouchStart, { capture: true, passive: true });
+    document.addEventListener('touchmove', onTouchMove, { capture: true, passive: true });
+    document.addEventListener('touchend', onTouchEnd, { capture: true, passive: false });
+    document.addEventListener('touchcancel', onTouchCancel, { capture: true, passive: true });
+    document.addEventListener('click', onClick, { capture: true, passive: false });
 
     return () => {
-      document.removeEventListener('click', handleCapture, true);
-      document.removeEventListener('touchstart', handleCapture, true);
+      document.removeEventListener('touchstart', onTouchStart, true);
+      document.removeEventListener('touchmove', onTouchMove, true);
+      document.removeEventListener('touchend', onTouchEnd, true);
+      document.removeEventListener('touchcancel', onTouchCancel, true);
+      document.removeEventListener('click', onClick, true);
     };
   }, []);
 

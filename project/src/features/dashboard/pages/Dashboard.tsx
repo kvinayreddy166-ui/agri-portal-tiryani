@@ -9,7 +9,6 @@ import { GoogleMapWidget } from '../components/GoogleMapWidget';
 import { MandiPricesWidget } from '../components/MandiPricesWidget';
 import { WeatherWidget } from '../components/WeatherWidget';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
-import { SproutLoader } from '../../../shared/components/ui/SproutLoader';
 import { cachedSupabaseRows, cachedSupabaseValue } from '../../../shared/lib/offlineCache';
 
 type FarmerDashboardRow = {
@@ -206,7 +205,8 @@ export const Dashboard = React.memo(function Dashboard() {
     return (
       <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#f2f7f3] dark:bg-slate-950">
         <PortalLogo size="xl" />
-        <SproutLoader size="lg" variant="sprout" label={t('Loading AGRONIX...', 'AGRONIX లోడ్ అవుతోంది...')} />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">{t('Loading AGRONIX...', 'AGRONIX లోడ్ అవుతోంది...')}</p>
       </div>
     );
   }
