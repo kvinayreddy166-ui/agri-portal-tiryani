@@ -34,6 +34,7 @@ type FieldConfig = {
   type?: 'text' | 'date' | 'textarea' | 'select';
   options?: { label: string; value: string }[];
   placeholder?: string;
+  helper?: string;
   dynamicLabel?: boolean;
   condition?: (values: PesticidePdfValues) => boolean;
 };
@@ -122,11 +123,11 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
     fields: [
       { key: 'tradeName', label: 'TRADE NAME', placeholder: 'Brand Name Eg: Coragen' },
       { key: 'technicalName', label: 'TECHNICAL NAME', placeholder: 'Eg: Chlorantraniliprole' },
-      { key: 'activeIngredient', label: 'ACTIVE INGREDIENT', placeholder: 'Eg: 18% w/w or w/v only, Dont enter Formulation type' },
+      { key: 'activeIngredient', label: 'ACTIVE INGREDIENT', placeholder: 'Eg: 18% w/w or w/v' },
       { key: 'formulationType', label: 'FORMULATION TYPE', type: 'select', options: formulationTypeOptions },
       { key: 'manualFormulationType', label: 'ENTER FORMULATION TYPE', placeholder: 'Enter formulation type' },
       { key: 'batchNumber', label: 'BATCH NUMBER', placeholder: 'Enter Batch No as Per Label' },
-      { key: 'registrationNumber', label: 'REGISTRATION NUMBER', placeholder: 'CIBRC Number' },
+      { key: 'registrationNumber', label: 'REGISTRATION NUMBER', placeholder: 'CIR No' },
       { key: 'sampleSerialNumber', label: 'CODE NO. OF A.O./A.D.A./D.D.A', placeholder: 'Serial No of Sample' },
       { key: 'cdaCode', label: 'C & DA CODE', placeholder: 'Sticker No' },
       { key: 'packingCondition', label: 'PACKING CONDITION', type: 'select', options: packingOptions },
@@ -1010,7 +1011,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                                         }));
                                       }}
                                       className="min-h-11 flex-1 rounded-lg border border-amber-200 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-100 dark:border-amber-900 dark:bg-slate-950 dark:text-white dark:focus:ring-amber-900/40"
-                                      placeholder="% w/w or w/v only"
+                                      placeholder="Eg: 18% w/w or w/v"
                                     />
                                   </div>
                                 ))}

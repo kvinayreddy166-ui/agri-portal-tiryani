@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, Calendar } from 'lucide-react';
 
 export interface MobileDatePickerProps {
   value: string;
@@ -328,9 +328,10 @@ export function ChromiumDatePickerCard({
         <button
           type="button"
           onClick={() => setShowMonthYearPicker(!showMonthYearPicker)}
-          className="group inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-sm font-bold text-slate-900 transition hover:bg-slate-100 dark:text-white dark:hover:bg-slate-800"
+          className="group inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 text-sm font-bold text-slate-900 transition hover:bg-slate-100 dark:text-white dark:hover:bg-slate-800"
           aria-label="Toggle month and year selector"
         >
+          <Calendar className="h-4 w-4 text-[#0075ff]" />
           <span>
             {MONTH_NAMES[viewMonth]}, {viewYear}
           </span>
