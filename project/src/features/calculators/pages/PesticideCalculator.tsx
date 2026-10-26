@@ -40,6 +40,19 @@ const numericFieldWarnings: Partial<Record<keyof typeof initialForm, { isInvalid
   directDose: { isInvalid: (v) => v <= 0, message: ['Dose per litre must be greater than 0.', 'లీటరుకు మోతాదు 0 కంటే ఎక్కువగా ఉండాలి.'] },
 };
 
+function isIntermediateTyping(value: string): boolean {
+  const trimmed = value.trim();
+  return (
+    trimmed === '' ||
+    trimmed === '.' ||
+    trimmed === '-' ||
+    trimmed === '0' ||
+    trimmed === '0.' ||
+    /^0\.0*$/.test(trimmed) ||
+    trimmed.endsWith('.')
+  );
+}
+
 export function PesticideCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
@@ -57,8 +70,25 @@ export function PesticideCalculator() {
     [calculation, form, mode, t, unitLabels]
   );
 
+
   const updateForm = (field: keyof typeof initialForm, value: string) => {
     setCopied(false);
+    const warning = numericFieldWarnings[field];
+    if (warning && !isIntermediateTyping(value)) {
+      const parsed = Number.parseFloat(value);
+      if (Number.isFinite(parsed)) {
+        const isStrictlyInvalid = parsed < 0 || (warning.isInvalid(parsed) && parsed !== 0);
+        if (isStrictlyInvalid) {
+          showWarning(t('Invalid input', 'చెల్లని ఇన్‌పుట్'), t(warning.message[0], warning.message[1]));
+        }
+      }
+    }
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleBlur = (field: keyof typeof initialForm) => {
+    const value = form[field];
+    if (!value || value.trim() === '') return;
     const warning = numericFieldWarnings[field];
     if (warning) {
       const parsed = Number.parseFloat(value);
@@ -66,7 +96,6 @@ export function PesticideCalculator() {
         showWarning(t('Invalid input', 'చెల్లని ఇన్‌పుట్'), t(warning.message[0], warning.message[1]));
       }
     }
-    setForm((current) => ({ ...current, [field]: value }));
   };
 
   const reset = () => {
@@ -180,7 +209,7 @@ export function PesticideCalculator() {
             <FormSection title={t('Step 2: Area, Water and Tank', 'విస్తీర్ణం, నీరు మరియు ట్యాంక్')}>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label={t('Area value', 'విస్తీర్ణం')}>
-                  <input type="number" min="0" inputMode="decimal" value={form.areaValue} onChange={(event) => updateForm('areaValue', event.target.value)} className={inputClass} placeholder="2" />
+                  <input type="number" min="0" inputMode="decimal" step="any" value={form.areaValue} onChange={(event) => updateForm('areaValue', event.target.value)} onBlur={() => handleBlur('areaValue')} className={inputClass} placeholder="2" />
                 </Field>
                 <Field label={t('Area unit', 'విస్తీర్ణ యూనిట్')}>
                   <select value={form.areaUnit} onChange={(event) => updateForm('areaUnit', event.target.value)} className={inputClass}>
@@ -189,7 +218,7 @@ export function PesticideCalculator() {
                   </select>
                 </Field>
                 <Field label={t('Water volume per acre', 'ఎకరానికి నీటి పరిమాణం')}>
-                  <input type="number" min="0" inputMode="decimal" value={form.waterPerAcre} onChange={(event) => updateForm('waterPerAcre', event.target.value)} className={inputClass} placeholder="200" />
+                  <input type="number" min="0" inputMode="decimal" step="any" value={form.waterPerAcre} onChange={(event) => updateForm('waterPerAcre', event.target.value)} onBlur={() => handleBlur('waterPerAcre')} className={inputClass} placeholder="200" />
                 </Field>
                 <Field label={t('Selected spray tank size', 'ఎంచుకున్న స్ప్రే ట్యాంక్ పరిమాణం')}>
                   <select value={form.tankChoice} onChange={(event) => updateForm('tankChoice', event.target.value)} className={inputClass}>
@@ -202,7 +231,7 @@ export function PesticideCalculator() {
               {form.tankChoice === 'custom' && (
                 <div className="mt-3 max-w-xs">
                   <Field label={t('Custom tank size', 'కస్టమ్ ట్యాంక్ పరిమాణం')}>
-                    <input type="number" min="0" inputMode="decimal" value={form.customTankSize} onChange={(event) => updateForm('customTankSize', event.target.value)} className={inputClass} placeholder="15" />
+                    <input type="number" min="0" inputMode="decimal" step="any" value={form.customTankSize} onChange={(event) => updateForm('customTankSize', event.target.value)} onBlur={() => handleBlur('customTankSize')} className={inputClass} placeholder="15" />
                   </Field>
                 </div>
               )}
@@ -212,10 +241,10 @@ export function PesticideCalculator() {
               <FormSection title={t('Active Ingredient Dose', 'యాక్టివ్ ఇంగ్రిడియెంట్ మోతాదు')}>
                 <div className="grid gap-3 sm:grid-cols-3">
                 <Field label={t('Active ingredient %', 'యాక్టివ్ ఇంగ్రిడియెంట్ %')}>
-                  <input type="number" min="0" max="100" inputMode="decimal" value={form.aiPercentage} onChange={(event) => updateForm('aiPercentage', event.target.value)} className={inputClass} placeholder="17.8" />
+                  <input type="number" min="0" max="100" inputMode="decimal" step="any" value={form.aiPercentage} onChange={(event) => updateForm('aiPercentage', event.target.value)} onBlur={() => handleBlur('aiPercentage')} className={inputClass} placeholder="17.8" />
                 </Field>
                 <Field label={t('Recommended a.i. dose', 'సిఫార్సు చేసిన a.i. మోతాదు')}>
-                  <input type="number" min="0" inputMode="decimal" value={form.aiDose} onChange={(event) => updateForm('aiDose', event.target.value)} className={inputClass} placeholder="20" />
+                  <input type="number" min="0" inputMode="decimal" step="any" value={form.aiDose} onChange={(event) => updateForm('aiDose', event.target.value)} onBlur={() => handleBlur('aiDose')} className={inputClass} placeholder="20" />
                 </Field>
                 <Field label={t('Dose unit', 'మోతాదు యూనిట్')}>
                   <select value={form.aiDoseUnit} onChange={(event) => updateForm('aiDoseUnit', event.target.value)} className={inputClass}>
@@ -230,7 +259,7 @@ export function PesticideCalculator() {
             <FormSection title={t('Direct Dose', 'ప్రత్యక్ష మోతాదు')}>
               <div className="max-w-xs">
                 <Field label={`${t('Dose per litre', 'లీటరుకు మోతాదు')} (${unitLabels.perLitre})`}>
-                  <input type="number" min="0" inputMode="decimal" value={form.directDose} onChange={(event) => updateForm('directDose', event.target.value)} className={inputClass} placeholder={form.unitType === 'liquid' ? '2' : '3'} />
+                  <input type="number" min="0" inputMode="decimal" step="any" value={form.directDose} onChange={(event) => updateForm('directDose', event.target.value)} onBlur={() => handleBlur('directDose')} className={inputClass} placeholder={form.unitType === 'liquid' ? '2' : '3'} />
                 </Field>
               </div>
             </FormSection>

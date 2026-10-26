@@ -7,7 +7,6 @@ export const OfflineStatus = React.memo(function OfflineStatus() {
 
   useEffect(() => {
     let mounted = true;
-    let checkInterval: number;
 
     const checkStatus = async () => {
       if (!mounted) return;
@@ -20,7 +19,7 @@ export const OfflineStatus = React.memo(function OfflineStatus() {
     void checkStatus();
 
     // Check periodically
-    checkInterval = window.setInterval(() => {
+    const checkInterval = window.setInterval(() => {
       void checkStatus();
     }, 30000); // Check every 30 seconds
 

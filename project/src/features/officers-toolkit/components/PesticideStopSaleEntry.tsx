@@ -602,7 +602,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
           <button
             type="button"
             onClick={addProduct}
-            className="inline-flex items-center gap-1 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-sky-700"
+            className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-amber-700"
           >
             <Plus className="h-3.5 w-3.5" />
             Add Row

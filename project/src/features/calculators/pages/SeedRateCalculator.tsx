@@ -34,6 +34,19 @@ const numericFieldWarnings: Partial<Record<keyof typeof initialForm, { isInvalid
   wastagePercentage: { isInvalid: (v) => v < 0, message: ['Wastage % must be 0 or more.', 'వృథా శాతం 0 లేదా అంతకంటే ఎక్కువగా ఉండాలి.'] },
 };
 
+function isIntermediateTyping(value: string): boolean {
+  const trimmed = value.trim();
+  return (
+    trimmed === '' ||
+    trimmed === '.' ||
+    trimmed === '-' ||
+    trimmed === '0' ||
+    trimmed === '0.' ||
+    /^0\.0*$/.test(trimmed) ||
+    trimmed.endsWith('.')
+  );
+}
+
 export function SeedRateCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
@@ -48,13 +61,28 @@ export function SeedRateCalculator() {
   const updateForm = (field: keyof typeof initialForm, value: string) => {
     setCopied(false);
     const warning = numericFieldWarnings[field];
+    if (warning && !isIntermediateTyping(value)) {
+      const parsed = Number.parseFloat(value);
+      if (Number.isFinite(parsed)) {
+        const isStrictlyInvalid = parsed < 0 || (warning.isInvalid(parsed) && parsed !== 0);
+        if (isStrictlyInvalid) {
+          showWarning(t('Invalid input', 'చెల్లని ఇన్‌పుట్'), t(warning.message[0], warning.message[1]));
+        }
+      }
+    }
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleBlur = (field: keyof typeof initialForm) => {
+    const value = form[field];
+    if (!value || value.trim() === '') return;
+    const warning = numericFieldWarnings[field];
     if (warning) {
       const parsed = Number.parseFloat(value);
       if (Number.isFinite(parsed) && warning.isInvalid(parsed)) {
         showWarning(t('Invalid input', 'చెల్లని ఇన్‌పుట్'), t(warning.message[0], warning.message[1]));
       }
     }
-    setForm((current) => ({ ...current, [field]: value }));
   };
 
   const reset = () => {
@@ -139,7 +167,7 @@ export function SeedRateCalculator() {
                 <input value={form.cropName} onChange={(event) => updateForm('cropName', event.target.value)} className={inputClass} placeholder={t('Optional', 'ఐచ్ఛికం')} />
               </Field>
               <Field label={t('Area value', 'విస్తీర్ణం')}>
-                <input type="number" min="0" inputMode="decimal" value={form.areaValue} onChange={(event) => updateForm('areaValue', event.target.value)} className={inputClass} placeholder="1" />
+                <input type="number" min="0" inputMode="decimal" step="any" value={form.areaValue} onChange={(event) => updateForm('areaValue', event.target.value)} onBlur={() => handleBlur('areaValue')} className={inputClass} placeholder="1" />
               </Field>
               <Field label={t('Area unit', 'విస్తీర్ణ యూనిట్')}>
                 <select value={form.areaUnit} onChange={(event) => updateForm('areaUnit', event.target.value)} className={inputClass}>
@@ -153,7 +181,7 @@ export function SeedRateCalculator() {
           <FormSection title={t('Step 2: Seed Details', 'జనాభా మరియు విత్తన వివరాలు')}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={t('Required population', 'అవసరమైన మొక్కల జనాభా')}>
-                <input type="number" min="0" inputMode="decimal" value={form.requiredPopulation} onChange={(event) => updateForm('requiredPopulation', event.target.value)} className={inputClass} placeholder="30000" />
+                <input type="number" min="0" inputMode="decimal" step="any" value={form.requiredPopulation} onChange={(event) => updateForm('requiredPopulation', event.target.value)} onBlur={() => handleBlur('requiredPopulation')} className={inputClass} placeholder="30000" />
               </Field>
               <Field label={t('Population unit', 'జనాభా యూనిట్')}>
                 <select value={form.populationUnit} onChange={(event) => updateForm('populationUnit', event.target.value)} className={inputClass}>
@@ -163,16 +191,16 @@ export function SeedRateCalculator() {
                 </select>
               </Field>
               <Field label={t('Seeds per hill', 'ఒక్క గుంతకు విత్తనాలు')}>
-                <input type="number" min="0" inputMode="decimal" value={form.seedsPerHill} onChange={(event) => updateForm('seedsPerHill', event.target.value)} className={inputClass} placeholder="1" />
+                <input type="number" min="0" inputMode="decimal" step="any" value={form.seedsPerHill} onChange={(event) => updateForm('seedsPerHill', event.target.value)} onBlur={() => handleBlur('seedsPerHill')} className={inputClass} placeholder="1" />
               </Field>
               <Field label={t('Germination percentage', 'మొలక శాతం')}>
-                <input type="number" min="0" max="100" inputMode="decimal" value={form.germinationPercentage} onChange={(event) => updateForm('germinationPercentage', event.target.value)} className={inputClass} placeholder="85" />
+                <input type="number" min="0" max="100" inputMode="decimal" step="any" value={form.germinationPercentage} onChange={(event) => updateForm('germinationPercentage', event.target.value)} onBlur={() => handleBlur('germinationPercentage')} className={inputClass} placeholder="85" />
               </Field>
               <Field label={t('Test weight', 'టెస్ట్ వెయిట్')} hint={t('Weight of 1000 seeds in grams', '1000 విత్తనాల బరువు గ్రాముల్లో')}>
-                <input type="number" min="0" inputMode="decimal" value={form.testWeight} onChange={(event) => updateForm('testWeight', event.target.value)} className={inputClass} placeholder="8" />
+                <input type="number" min="0" inputMode="decimal" step="any" value={form.testWeight} onChange={(event) => updateForm('testWeight', event.target.value)} onBlur={() => handleBlur('testWeight')} className={inputClass} placeholder="8" />
               </Field>
               <Field label={t('Seed wastage / field loss %', 'విత్తన వృథా / పొలం నష్టం %')} optional>
-                <input type="number" min="0" inputMode="decimal" value={form.wastagePercentage} onChange={(event) => updateForm('wastagePercentage', event.target.value)} className={inputClass} placeholder="10" />
+                <input type="number" min="0" inputMode="decimal" step="any" value={form.wastagePercentage} onChange={(event) => updateForm('wastagePercentage', event.target.value)} onBlur={() => handleBlur('wastagePercentage')} className={inputClass} placeholder="10" />
               </Field>
             </div>
           </FormSection>

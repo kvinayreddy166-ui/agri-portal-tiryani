@@ -1225,6 +1225,7 @@ async function saveFertilizerGradeRecord(
   grade: FertilizerGrade
 ) {
   const serverId = grade.id && !grade.id.startsWith('local-') ? grade.id : null;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { composition: _composition, ...legacyPayload } = payload;
   const writePayload = async (record: typeof payload | typeof legacyPayload) => {
     if (serverId) {
@@ -1259,6 +1260,7 @@ async function saveCropRecommendationRecord(
   crop: CropRecommendation
 ) {
   const serverId = crop.id && !crop.id.startsWith('local-') ? crop.id : null;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { nutrients: _nutrients, ...legacyPayload } = payload;
   const writePayload = async (record: typeof payload | typeof legacyPayload) => {
     if (serverId) {

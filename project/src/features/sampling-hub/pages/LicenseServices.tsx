@@ -46,6 +46,7 @@ const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
 const DISTRICT_DDO_CODES: Record<string, string> = {
   'Adilabad': '01010102001',
   'Bhadradri Kothagudem': '09010102006',
+  'Hanamkonda': '12010102007',
   'Jagtial': '06010102005',
   'Jangaon': '19010102017',
   'Jayashankar Bhupalpally': '08010102001',
@@ -435,7 +436,7 @@ export function LicenseServices() {
         <div className="mb-6">
           <ToolkitPageHeader
             icon={ReceiptText}
-            tone="indigo"
+            tone="blue"
             variant="solid"
             eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
             title={t('License Services', 'లైసెన్స్ సేవలు')}

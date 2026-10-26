@@ -4,7 +4,7 @@ import { type LucideIcon } from 'lucide-react';
 import { BackButton } from './BackButton';
 import { useAuth } from '../../context/AuthContext';
 
-export type ToolkitHeaderTone = 'emerald' | 'sky' | 'rose' | 'lime' | 'indigo' | 'amber' | 'teal-indigo';
+export type ToolkitHeaderTone = 'emerald' | 'sky' | 'rose' | 'lime' | 'indigo' | 'amber' | 'teal-indigo' | 'blue';
 
 interface ToolkitPageHeaderProps {
   title: string | ReactNode;
@@ -78,6 +78,13 @@ const TONE_STYLES: Record<
     title: 'text-indigo-950 dark:text-indigo-50',
     backBtn: 'text-emerald-800 hover:text-indigo-950 dark:text-emerald-200 dark:hover:text-white',
   },
+  blue: {
+    container: 'border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm dark:border-blue-800/50 dark:from-blue-950/40 dark:via-slate-900 dark:to-indigo-900/30',
+    iconBg: 'bg-blue-600 text-white dark:bg-blue-500',
+    eyebrow: 'text-blue-800 dark:text-blue-300',
+    title: 'text-blue-950 dark:text-blue-50',
+    backBtn: 'text-blue-800 hover:text-blue-950 dark:text-blue-200 dark:hover:text-white',
+  },
 };
 
 const SOLID_STYLES: Record<
@@ -113,9 +120,9 @@ const SOLID_STYLES: Record<
     backBtn: 'text-white hover:text-white/80',
   },
   indigo: {
-    container: 'border-slate-700/40 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 shadow-lg dark:border-slate-800/50',
+    container: 'border-indigo-700/40 bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-800 shadow-lg dark:border-indigo-800/50',
     iconBg: 'bg-white/20 text-white ring-1 ring-white/30',
-    eyebrow: 'text-blue-100',
+    eyebrow: 'text-indigo-100',
     title: 'text-white',
     backBtn: 'text-white hover:text-white/80',
   },
@@ -133,6 +140,13 @@ const SOLID_STYLES: Record<
     title: 'text-white',
     backBtn: 'text-white hover:text-white/80',
   },
+  blue: {
+    container: 'border-blue-500/40 bg-blue-600 shadow-lg dark:border-blue-400/40',
+    iconBg: 'bg-white/20 text-white ring-1 ring-white/30 backdrop-blur-sm',
+    eyebrow: 'text-blue-100 font-bold tracking-widest',
+    title: 'text-white',
+    backBtn: 'text-white hover:text-blue-100',
+  },
 };
 
 const BAR_STYLES: Record<ToolkitHeaderTone, string> = {
@@ -140,9 +154,10 @@ const BAR_STYLES: Record<ToolkitHeaderTone, string> = {
   sky: 'from-sky-400 via-blue-500 to-cyan-400',
   rose: 'from-rose-500 via-pink-500 to-rose-400',
   lime: 'from-lime-500 via-green-500 to-emerald-400',
-  indigo: 'from-slate-600 via-emerald-600 to-teal-500',
+  indigo: 'from-indigo-600 via-blue-600 to-teal-500',
   amber: 'from-amber-500 via-orange-500 to-amber-400',
   'teal-indigo': 'from-emerald-600 via-teal-600 to-cyan-600',
+  blue: 'from-blue-500 via-blue-400 to-blue-600',
 };
 
 const COMPACT_ICON_STYLES: Record<ToolkitHeaderTone, string> = {
@@ -153,6 +168,7 @@ const COMPACT_ICON_STYLES: Record<ToolkitHeaderTone, string> = {
   indigo: 'text-indigo-600 dark:text-indigo-400',
   amber: 'text-amber-600 dark:text-amber-400',
   'teal-indigo': 'text-emerald-600 dark:text-emerald-400',
+  blue: 'text-blue-600 dark:text-blue-400',
 };
 
 export function CompactToolkitHeader({

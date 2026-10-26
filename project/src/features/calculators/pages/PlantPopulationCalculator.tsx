@@ -24,11 +24,24 @@ const initialForm = {
   plantSpacingUnit: 'cm' as SpacingUnit,
 };
 
-const numericFieldWarnings: Partial<Record<keyof typeof initialForm, [string, string]>> = {
-  areaValue: ['Area must be greater than 0.', 'విస్తీర్ణం 0 కంటే ఎక్కువగా ఉండాలి.'],
-  rowSpacing: ['Row spacing must be greater than 0.', 'వరుస దూరం 0 కంటే ఎక్కువగా ఉండాలి.'],
-  plantSpacing: ['Plant spacing must be greater than 0.', 'మొక్క దూరం 0 కంటే ఎక్కువగా ఉండాలి.'],
+const numericFieldWarnings: Partial<Record<keyof typeof initialForm, { isInvalid: (value: number) => boolean; message: [string, string] }>> = {
+  areaValue: { isInvalid: (v) => v <= 0, message: ['Area must be greater than 0.', 'విస్తీర్ణం 0 కంటే ఎక్కువగా ఉండాలి.'] },
+  rowSpacing: { isInvalid: (v) => v <= 0, message: ['Row spacing must be greater than 0.', 'వరుస దూరం 0 కంటే ఎక్కువగా ఉండాలి.'] },
+  plantSpacing: { isInvalid: (v) => v <= 0, message: ['Plant spacing must be greater than 0.', 'మొక్క దూరం 0 కంటే ఎక్కువగా ఉండాలి.'] },
 };
+
+function isIntermediateTyping(value: string): boolean {
+  const trimmed = value.trim();
+  return (
+    trimmed === '' ||
+    trimmed === '.' ||
+    trimmed === '-' ||
+    trimmed === '0' ||
+    trimmed === '0.' ||
+    /^0\.0*$/.test(trimmed) ||
+    trimmed.endsWith('.')
+  );
+}
 
 export function PlantPopulationCalculator() {
   const navigate = useNavigate();
@@ -44,13 +57,28 @@ export function PlantPopulationCalculator() {
   const updateForm = (field: keyof typeof initialForm, value: string) => {
     setCopied(false);
     const warning = numericFieldWarnings[field];
-    if (warning) {
+    if (warning && !isIntermediateTyping(value)) {
       const parsed = Number.parseFloat(value);
-      if (Number.isFinite(parsed) && parsed <= 0) {
-        showWarning(t('Invalid input', 'చెల్లని ఇన్‌పుట్'), t(warning[0], warning[1]));
+      if (Number.isFinite(parsed)) {
+        const isStrictlyInvalid = parsed < 0 || (warning.isInvalid(parsed) && parsed !== 0);
+        if (isStrictlyInvalid) {
+          showWarning(t('Invalid input', 'చెల్లని ఇన్‌పుట్'), t(warning.message[0], warning.message[1]));
+        }
       }
     }
     setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleBlur = (field: keyof typeof initialForm) => {
+    const value = form[field];
+    if (!value || value.trim() === '') return;
+    const warning = numericFieldWarnings[field];
+    if (warning) {
+      const parsed = Number.parseFloat(value);
+      if (Number.isFinite(parsed) && warning.isInvalid(parsed)) {
+        showWarning(t('Invalid input', 'చెల్లని ఇన్‌పుట్'), t(warning.message[0], warning.message[1]));
+      }
+    }
   };
 
   const reset = () => {
@@ -143,9 +171,11 @@ export function PlantPopulationCalculator() {
                   <input
                     type="number"
                     min="0"
+                    step="any"
                     inputMode="decimal"
                     value={form.areaValue}
                     onChange={(event) => updateForm('areaValue', event.target.value)}
+                    onBlur={() => handleBlur('areaValue')}
                     className={inputClass}
                     placeholder="1"
                   />
@@ -166,9 +196,11 @@ export function PlantPopulationCalculator() {
                   <input
                     type="number"
                     min="0"
+                    step="any"
                     inputMode="decimal"
                     value={form.rowSpacing}
                     onChange={(event) => updateForm('rowSpacing', event.target.value)}
+                    onBlur={() => handleBlur('rowSpacing')}
                     className={inputClass}
                     placeholder="90"
                   />
@@ -185,9 +217,11 @@ export function PlantPopulationCalculator() {
                   <input
                     type="number"
                     min="0"
+                    step="any"
                     inputMode="decimal"
                     value={form.plantSpacing}
                     onChange={(event) => updateForm('plantSpacing', event.target.value)}
+                    onBlur={() => handleBlur('plantSpacing')}
                     className={inputClass}
                     placeholder="15"
                   />

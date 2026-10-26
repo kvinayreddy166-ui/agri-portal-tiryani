@@ -19,7 +19,7 @@ export async function checkNetworkOnline(): Promise<boolean> {
       });
       window.clearTimeout(timeout);
       if (response.ok) return true;
-    } catch (error) {
+    } catch {
       // Continue to next probe URL
       continue;
     }

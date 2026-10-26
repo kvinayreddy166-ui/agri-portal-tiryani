@@ -20,6 +20,7 @@ export {
  * Formerly rendered a separate red "[✕ Clear]" pill next to labels on mobile.
  * Now completely disabled because the Chromium DatePicker includes a native Clear action.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function DateClearButton(_props?: {
   onClick?: () => void;
   className?: string;

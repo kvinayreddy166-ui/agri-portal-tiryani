@@ -1045,6 +1045,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     isSavingDraft.current = true;
     try {
       // Exclude covering letter fields from draft - they are independently persisted
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftValues } = values;
       const nextDrafts = upsertFertilizerDraft(savedDrafts, { name, values: draftValues, updatedAt: String(Date.now()) });
       safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
