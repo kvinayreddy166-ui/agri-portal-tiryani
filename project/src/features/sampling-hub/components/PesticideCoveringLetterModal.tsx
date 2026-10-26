@@ -97,15 +97,22 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
 
   const [editedQueue, setEditedQueue] = useState<PesticideCoveringLetterQueueItem[]>([]);
   const [editingTechnicalNames, setEditingTechnicalNames] = useState<Record<number, string>>({});
-  const [metadata, setMetadata] = useState<PesticideCoveringLetterMetadata>({
-    year: coveringLetterDetails?.financialYear || financialYears[0],
-    letterNumber: coveringLetterDetails?.letterNumber || '',
-    letterDate: coveringLetterDetails?.letterDate || localTodayDate(),
-    authorityType: coveringLetterDetails?.authorityType || 'DAO',
-    daoMemoNumber: coveringLetterDetails?.memoNumber || '',
-    daoMemoDate: coveringLetterDetails?.memoDate || '',
-    division: coveringLetterDetails?.division || '',
-    officePhone: coveringLetterDetails?.officerPhone || '',
+  const [metadata, setMetadata] = useState<PesticideCoveringLetterMetadata>(() => {
+    let storageData: any = null;
+    try {
+      const saved = safeStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
+      if (saved) storageData = JSON.parse(saved);
+    } catch {}
+    return {
+      year: coveringLetterDetails?.financialYear || storageData?.financialYear || storageData?.year || financialYears[0],
+      letterNumber: coveringLetterDetails?.letterNumber ?? storageData?.letterNumber ?? '',
+      letterDate: coveringLetterDetails?.letterDate || storageData?.letterDate || localTodayDate(),
+      authorityType: coveringLetterDetails?.authorityType || storageData?.authorityType || 'DAO',
+      daoMemoNumber: coveringLetterDetails?.memoNumber ?? storageData?.memoNumber ?? storageData?.daoMemoNumber ?? '',
+      daoMemoDate: coveringLetterDetails?.memoDate ?? storageData?.memoDate ?? storageData?.daoMemoDate ?? '',
+      division: coveringLetterDetails?.division ?? storageData?.division ?? '',
+      officePhone: coveringLetterDetails?.officerPhone ?? storageData?.officerPhone ?? storageData?.officePhone ?? '',
+    };
   });
   const [message, setMessage] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<number, string>>({});
@@ -117,6 +124,8 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   const [sampleToDelete, setSampleToDelete] = useState<number | null>(null);
   const [clearQueueConfirmOpen, setClearQueueConfirmOpen] = useState(false);
   const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastPropagatedMetadata = useRef<PesticideCoveringLetterMetadata | null>(null);
+  const prevIsOpenRef = useRef(isOpen);
 
   const showMessage = (msg: string, duration: number = 3000) => {
     if (messageTimeoutRef.current) {
@@ -129,32 +138,58 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     }, duration);
   };
 
-  // Auto-save Covering Letter Details to localStorage and sync with parent
+  // Auto-save Covering Letter Details to localStorage (only when modal is open to avoid overwriting on background mount)
   useEffect(() => {
-    safeStorage.setItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
-    if (onMetadataChange) {
-      onMetadataChange(metadata);
+    if (isOpen) {
+      safeStorage.setItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
     }
-  }, [metadata]);
+  }, [metadata, isOpen]);
 
-  // Load Covering Letter Details from localStorage when modal opens (if not provided via props)
+  // Propagate metadata changes to parent component (only when open and values actually change)
+  useEffect(() => {
+    if (onMetadataChange && isOpen) {
+      const hasChanged = !lastPropagatedMetadata.current ||
+        lastPropagatedMetadata.current.year !== metadata.year ||
+        lastPropagatedMetadata.current.letterNumber !== metadata.letterNumber ||
+        lastPropagatedMetadata.current.letterDate !== metadata.letterDate ||
+        lastPropagatedMetadata.current.authorityType !== metadata.authorityType ||
+        lastPropagatedMetadata.current.daoMemoNumber !== metadata.daoMemoNumber ||
+        lastPropagatedMetadata.current.daoMemoDate !== metadata.daoMemoDate ||
+        lastPropagatedMetadata.current.division !== metadata.division ||
+        lastPropagatedMetadata.current.officePhone !== metadata.officePhone;
+      
+      if (hasChanged) {
+        lastPropagatedMetadata.current = metadata;
+        onMetadataChange(metadata);
+      }
+    }
+  }, [metadata, onMetadataChange, isOpen]);
+
+  // Load / sync Covering Letter Details when modal newly transitions to open
   useEffect(() => {
     if (isOpen) {
       loadQueue();
-      // Only load from localStorage if parent didn't provide coveringLetterDetails
-      if (!coveringLetterDetails) {
-        const savedDetails = safeStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
-        if (savedDetails) {
-          try {
-            const parsedDetails = JSON.parse(savedDetails);
-            setMetadata(parsedDetails);
-          } catch (error) {
-            console.error('Error loading saved Covering Letter Details:', error);
-          }
-        }
+      if (!prevIsOpenRef.current) {
+        let storageData: any = null;
+        try {
+          const savedDetails = safeStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
+          if (savedDetails) storageData = JSON.parse(savedDetails);
+        } catch {}
+
+        setMetadata(prev => ({
+          year: coveringLetterDetails?.financialYear || storageData?.financialYear || storageData?.year || prev.year || financialYears[0],
+          letterNumber: coveringLetterDetails?.letterNumber ?? storageData?.letterNumber ?? prev.letterNumber ?? '',
+          letterDate: coveringLetterDetails?.letterDate || storageData?.letterDate || prev.letterDate || localTodayDate(),
+          authorityType: coveringLetterDetails?.authorityType || storageData?.authorityType || prev.authorityType || 'DAO',
+          daoMemoNumber: coveringLetterDetails?.memoNumber ?? storageData?.memoNumber ?? storageData?.daoMemoNumber ?? prev.daoMemoNumber ?? '',
+          daoMemoDate: coveringLetterDetails?.memoDate ?? storageData?.memoDate ?? storageData?.daoMemoDate ?? prev.daoMemoDate ?? '',
+          division: coveringLetterDetails?.division ?? storageData?.division ?? prev.division ?? '',
+          officePhone: coveringLetterDetails?.officerPhone ?? storageData?.officerPhone ?? storageData?.officePhone ?? prev.officePhone ?? '',
+        }));
       }
     }
-  }, [isOpen, coveringLetterDetails]);
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen]);
 
   useEffect(() => {
     const checkMobile = () => {

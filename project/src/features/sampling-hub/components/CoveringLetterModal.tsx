@@ -150,15 +150,22 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   }, []);
 
   const [editedQueue, setEditedQueue] = useState<CoveringLetterQueueItem[]>([]);
-  const [metadata, setMetadata] = useState<CoveringLetterMetadata>({
-    year: coveringLetterDetails?.financialYear || financialYears[0],
-    letterNumber: coveringLetterDetails?.letterNumber || '',
-    letterDate: coveringLetterDetails?.letterDate || localTodayDate(),
-    authorityType: coveringLetterDetails?.authorityType || 'DAO',
-    daoMemoNumber: coveringLetterDetails?.memoNumber || '',
-    daoMemoDate: coveringLetterDetails?.memoDate || '',
-    division: coveringLetterDetails?.division || '',
-    officePhone: coveringLetterDetails?.officerPhone || '',
+  const [metadata, setMetadata] = useState<CoveringLetterMetadata>(() => {
+    let storageData: Partial<CoveringLetterMetadata> | null = null;
+    try {
+      const saved = safeStorage.getItem(COVERING_LETTER_DETAILS_KEY);
+      if (saved) storageData = JSON.parse(saved);
+    } catch {}
+    return {
+      year: coveringLetterDetails?.financialYear || storageData?.year || financialYears[0],
+      letterNumber: coveringLetterDetails?.letterNumber ?? storageData?.letterNumber ?? '',
+      letterDate: coveringLetterDetails?.letterDate || storageData?.letterDate || localTodayDate(),
+      authorityType: coveringLetterDetails?.authorityType || storageData?.authorityType || 'DAO',
+      daoMemoNumber: coveringLetterDetails?.memoNumber ?? storageData?.daoMemoNumber ?? '',
+      daoMemoDate: coveringLetterDetails?.memoDate ?? storageData?.daoMemoDate ?? '',
+      division: coveringLetterDetails?.division ?? storageData?.division ?? '',
+      officePhone: coveringLetterDetails?.officerPhone ?? storageData?.officePhone ?? '',
+    };
   });
   const [message, setMessage] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<number, string>>({});
@@ -172,41 +179,40 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   const [sampleToDelete, setSampleToDelete] = useState<number | null>(null);
   const [clearQueueConfirmOpen, setClearQueueConfirmOpen] = useState(false);
   const lastPropagatedMetadata = useRef<CoveringLetterMetadata | null>(null);
+  const prevIsOpenRef = useRef(isOpen);
 
-  // Auto-save Covering Letter Details to localStorage
+  // Auto-save Covering Letter Details to localStorage (only when modal is open to avoid overwriting on background mount)
   useEffect(() => {
-    safeStorage.setItem(COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
-  }, [metadata]);
+    if (isOpen) {
+      safeStorage.setItem(COVERING_LETTER_DETAILS_KEY, JSON.stringify(metadata));
+    }
+  }, [metadata, isOpen]);
 
-  // Load Covering Letter Details from localStorage when modal opens (if not provided via props)
+  // Load / sync Covering Letter Details when modal newly transitions to open
   useEffect(() => {
     if (isOpen) {
       loadQueue();
-      // Try to load from localStorage first
-      const savedDetails = safeStorage.getItem(COVERING_LETTER_DETAILS_KEY);
-      if (savedDetails && !coveringLetterDetails) {
+      if (!prevIsOpenRef.current) {
+        let storageData: Partial<CoveringLetterMetadata> | null = null;
         try {
-          const parsedDetails = JSON.parse(savedDetails);
-          setMetadata(parsedDetails);
-        } catch (error) {
-          console.error('Error loading saved Covering Letter Details:', error);
-        }
-      }
-      // Update metadata from covering letter details when modal opens (if provided via props)
-      if (coveringLetterDetails) {
-        setMetadata({
-          year: coveringLetterDetails.financialYear,
-          letterNumber: coveringLetterDetails.letterNumber,
-          letterDate: coveringLetterDetails.letterDate,
-          authorityType: coveringLetterDetails.authorityType,
-          daoMemoNumber: coveringLetterDetails.memoNumber,
-          daoMemoDate: coveringLetterDetails.memoDate,
-          division: coveringLetterDetails.division,
-          officePhone: coveringLetterDetails.officerPhone,
-        });
+          const savedDetails = safeStorage.getItem(COVERING_LETTER_DETAILS_KEY);
+          if (savedDetails) storageData = JSON.parse(savedDetails);
+        } catch {}
+
+        setMetadata(prev => ({
+          year: coveringLetterDetails?.financialYear || storageData?.year || prev.year || financialYears[0],
+          letterNumber: coveringLetterDetails?.letterNumber ?? storageData?.letterNumber ?? prev.letterNumber ?? '',
+          letterDate: coveringLetterDetails?.letterDate || storageData?.letterDate || prev.letterDate || localTodayDate(),
+          authorityType: coveringLetterDetails?.authorityType || storageData?.authorityType || prev.authorityType || 'DAO',
+          daoMemoNumber: coveringLetterDetails?.memoNumber ?? storageData?.daoMemoNumber ?? prev.daoMemoNumber ?? '',
+          daoMemoDate: coveringLetterDetails?.memoDate ?? storageData?.daoMemoDate ?? prev.daoMemoDate ?? '',
+          division: coveringLetterDetails?.division ?? storageData?.division ?? prev.division ?? '',
+          officePhone: coveringLetterDetails?.officerPhone ?? storageData?.officePhone ?? prev.officePhone ?? '',
+        }));
       }
     }
-  }, [isOpen, coveringLetterDetails]);
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen]);
 
   // Propagate metadata changes to parent component (only when values actually change)
   useEffect(() => {

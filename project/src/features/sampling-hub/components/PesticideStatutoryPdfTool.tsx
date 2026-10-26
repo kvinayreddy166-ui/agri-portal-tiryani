@@ -196,28 +196,30 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const [coveringLetterDetails, setCoveringLetterDetails] = useState(() => {
     try {
       const saved = safeStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
-      return saved ? JSON.parse(saved) : {
-        financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
-        letterNumber: '',
-        letterDate: localTodayDate(),
-        authorityType: 'DAO',
-        memoNumber: '',
-        memoDate: '',
-        division: '',
-        officerPhone: '',
-      };
-    } catch {
-      return {
-        financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
-        letterNumber: '',
-        letterDate: localTodayDate(),
-        authorityType: 'DAO',
-        memoNumber: '',
-        memoDate: '',
-        division: '',
-        officerPhone: '',
-      };
-    }
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          financialYear: parsed.financialYear || parsed.year || new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
+          letterNumber: parsed.letterNumber ?? '',
+          letterDate: parsed.letterDate || localTodayDate(),
+          authorityType: parsed.authorityType || 'DAO',
+          memoNumber: parsed.memoNumber ?? parsed.daoMemoNumber ?? '',
+          memoDate: parsed.memoDate ?? parsed.daoMemoDate ?? '',
+          division: parsed.division ?? '',
+          officerPhone: parsed.officerPhone ?? parsed.officePhone ?? '',
+        };
+      }
+    } catch {}
+    return {
+      financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
+      letterNumber: '',
+      letterDate: localTodayDate(),
+      authorityType: 'DAO',
+      memoNumber: '',
+      memoDate: '',
+      division: '',
+      officerPhone: '',
+    };
   });
   const [message, setMessage] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
