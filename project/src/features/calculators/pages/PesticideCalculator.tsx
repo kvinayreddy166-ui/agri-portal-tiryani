@@ -12,7 +12,7 @@ type Mode = 'activeIngredient' | 'directDose';
 type AreaUnit = 'acres' | 'hectares';
 type UnitType = 'liquid' | 'solid';
 type TankChoice = '16' | '20' | 'custom';
-type AiDoseUnit = 'g-ai-acre' | 'kg-ai-ha';
+type AiDoseUnit = 'g-ai-ha' | 'kg-ai-ha' | 'g-ai-acre';
 
 const HECTARE_TO_ACRES = 2.471;
 const DEFAULT_WATER_PER_ACRE = '200';
@@ -27,7 +27,7 @@ const initialForm = {
   customTankSize: '',
   aiPercentage: '',
   aiDose: '',
-  aiDoseUnit: 'g-ai-acre' as AiDoseUnit,
+  aiDoseUnit: 'g-ai-ha' as AiDoseUnit,
   directDose: '',
 };
 
@@ -219,8 +219,9 @@ export function PesticideCalculator() {
                 </Field>
                 <Field label={t('Dose unit', 'మోతాదు యూనిట్')}>
                   <select value={form.aiDoseUnit} onChange={(event) => updateForm('aiDoseUnit', event.target.value)} className={inputClass}>
-                    <option value="g-ai-acre">g a.i./acre</option>
+                    <option value="g-ai-ha">g a.i./ha</option>
                     <option value="kg-ai-ha">kg a.i./ha</option>
+                    <option value="g-ai-acre">g a.i./acre</option>
                   </select>
                 </Field>
               </div>
@@ -367,7 +368,12 @@ function calculatePesticide(mode: Mode, form: typeof initialForm): { errors: str
     if (aiPercentage <= 0 || aiPercentage > 100) errors.push('Active ingredient % must be greater than 0 and up to 100.');
     if (aiDose <= 0) errors.push('Recommended a.i. dose must be greater than 0.');
     if (errors.length === 0) {
-      const aiDoseGramPerAcre = form.aiDoseUnit === 'kg-ai-ha' ? (aiDose * 1000) / HECTARE_TO_ACRES : aiDose;
+      const aiDoseGramPerAcre =
+        form.aiDoseUnit === 'kg-ai-ha'
+          ? (aiDose * 1000) / HECTARE_TO_ACRES
+          : form.aiDoseUnit === 'g-ai-ha'
+            ? aiDose / HECTARE_TO_ACRES
+            : aiDose;
       const aiFraction = aiPercentage / 100;
       const productPerAcre = aiDoseGramPerAcre / aiFraction;
       productPerLitre = productPerAcre / waterPerAcre;
