@@ -303,7 +303,7 @@ interface SeedRateResult {
   seedRateKgPerHa: number;
 }
 
-function calculateSeedRate(form: typeof initialForm): { errors: string[]; result: SeedRateResult | null } {
+export function calculateSeedRate(form: typeof initialForm): { errors: string[]; result: SeedRateResult | null } {
   const areaValue = toNumber(form.areaValue);
   const requiredPopulation = toNumber(form.requiredPopulation);
   const seedsPerHill = toNumber(form.seedsPerHill);

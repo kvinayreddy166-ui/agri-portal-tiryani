@@ -657,14 +657,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         const savedCL = safeStorage.getItem('tiryani-covering-letter-details');
         if (savedCL) {
           const parsedCL = JSON.parse(savedCL);
-          if (parsedCL.year && (!saved || !loaded.financialYear)) loaded.financialYear = parsedCL.year;
-          if (parsedCL.letterNumber && (!saved || !loaded.letterNumber)) loaded.letterNumber = parsedCL.letterNumber;
-          if (parsedCL.letterDate && (!saved || !loaded.letterDate)) loaded.letterDate = parsedCL.letterDate;
-          if (parsedCL.authorityType && (!saved || !loaded.authorityType)) loaded.authorityType = parsedCL.authorityType;
-          if (parsedCL.daoMemoNumber && (!saved || !loaded.memoNumber)) loaded.memoNumber = parsedCL.daoMemoNumber;
-          if (parsedCL.daoMemoDate && (!saved || !loaded.memoDate)) loaded.memoDate = parsedCL.daoMemoDate;
-          if (parsedCL.division && (!saved || !loaded.division)) loaded.division = parsedCL.division;
-          if (parsedCL.officePhone && (!saved || !loaded.officerPhone)) loaded.officerPhone = parsedCL.officePhone;
+          if (parsedCL.year) loaded.financialYear = parsedCL.year;
+          if (parsedCL.letterNumber) loaded.letterNumber = parsedCL.letterNumber;
+          if (parsedCL.letterDate) loaded.letterDate = parsedCL.letterDate;
+          if (parsedCL.authorityType) loaded.authorityType = parsedCL.authorityType;
+          if (parsedCL.daoMemoNumber) loaded.memoNumber = parsedCL.daoMemoNumber;
+          if (parsedCL.daoMemoDate) loaded.memoDate = parsedCL.daoMemoDate;
+          if (parsedCL.division) loaded.division = parsedCL.division;
+          if (parsedCL.officePhone) loaded.officerPhone = parsedCL.officePhone;
         }
       } catch {}
       // Only reset compositionDisplayFlags to empty for new forms (no saved data)

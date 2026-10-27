@@ -56,3 +56,48 @@ export const safeStorage = {
     }
   },
 };
+
+/**
+ * sessionStorage access that never throws.
+ *
+ * Guarded against SecurityError in strict privacy / WebView contexts.
+ */
+export const safeSessionStorage = {
+  getItem(key: string): string | null {
+    try {
+      return typeof window !== 'undefined' ? window.sessionStorage.getItem(key) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  setItem(key: string, value: string): boolean {
+    try {
+      if (typeof window === 'undefined') return false;
+      window.sessionStorage.setItem(key, value);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  removeItem(key: string): void {
+    try {
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem(key);
+      }
+    } catch {
+      // Best effort only.
+    }
+  },
+
+  clear(): void {
+    try {
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.clear();
+      }
+    } catch {
+      // Best effort only.
+    }
+  },
+};

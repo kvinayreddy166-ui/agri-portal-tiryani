@@ -380,7 +380,7 @@ interface UnitLabels {
   totalLarge: 'L' | 'kg';
 }
 
-function calculatePesticide(mode: Mode, form: typeof initialForm): { errors: string[]; result: PesticideResult | null } {
+export function calculatePesticide(mode: Mode, form: typeof initialForm): { errors: string[]; result: PesticideResult | null } {
   const areaValue = toNumber(form.areaValue);
   const waterPerAcre = toNumber(form.waterPerAcre);
   const selectedTankSize = form.tankChoice === 'custom' ? toNumber(form.customTankSize) : Number(form.tankChoice);

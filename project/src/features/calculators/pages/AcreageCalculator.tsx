@@ -6,6 +6,7 @@ import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageH
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { safeSessionStorage } from '../../../shared/lib/safeStorage';
 
 const STORAGE_KEY = 'tiryani-acreage-calculator-input';
 const MODE_STORAGE_KEY = 'tiryani-acreage-calculator-mode';
@@ -34,11 +35,11 @@ export function AcreageCalculator() {
   const { language, toggleLanguage, t } = useLanguage();
   const showCompactHeader = isAdminUser || isTestUser;
   const [mode, setMode] = useState<AcreageMode>(() => readMode());
-  const [acreInput, setAcreInput] = useState(() => window.sessionStorage.getItem(STORAGE_KEY) || '');
-  const [centInput, setCentInput] = useState(() => window.sessionStorage.getItem(CENTS_STORAGE_KEY) || '');
-  const [guntaInput, setGuntaInput] = useState(() => window.sessionStorage.getItem(GUNTAS_STORAGE_KEY) || '');
-  const [hectareInput, setHectareInput] = useState(() => window.sessionStorage.getItem(HECTARES_STORAGE_KEY) || '');
-  const [acresCentsPasteInput, setAcresCentsPasteInput] = useState(() => window.sessionStorage.getItem(ACRES_CENTS_PASTE_STORAGE_KEY) || '');
+  const [acreInput, setAcreInput] = useState(() => safeSessionStorage.getItem(STORAGE_KEY) || '');
+  const [centInput, setCentInput] = useState(() => safeSessionStorage.getItem(CENTS_STORAGE_KEY) || '');
+  const [guntaInput, setGuntaInput] = useState(() => safeSessionStorage.getItem(GUNTAS_STORAGE_KEY) || '');
+  const [hectareInput, setHectareInput] = useState(() => safeSessionStorage.getItem(HECTARES_STORAGE_KEY) || '');
+  const [acresCentsPasteInput, setAcresCentsPasteInput] = useState(() => safeSessionStorage.getItem(ACRES_CENTS_PASTE_STORAGE_KEY) || '');
   const result = useMemo(
     () => calculateAcreageResult({ mode, acreInput, centInput, guntaInput, hectareInput, acresCentsPasteInput, t }),
     [acreInput, acresCentsPasteInput, centInput, guntaInput, hectareInput, mode, t]
@@ -53,35 +54,35 @@ export function AcreageCalculator() {
     setGuntaInput('');
     setHectareInput('');
     setAcresCentsPasteInput('');
-    window.sessionStorage.removeItem(STORAGE_KEY);
-    window.sessionStorage.removeItem(CENTS_STORAGE_KEY);
-    window.sessionStorage.removeItem(GUNTAS_STORAGE_KEY);
-    window.sessionStorage.removeItem(HECTARES_STORAGE_KEY);
-    window.sessionStorage.removeItem(ACRES_CENTS_PASTE_STORAGE_KEY);
+    safeSessionStorage.removeItem(STORAGE_KEY);
+    safeSessionStorage.removeItem(CENTS_STORAGE_KEY);
+    safeSessionStorage.removeItem(GUNTAS_STORAGE_KEY);
+    safeSessionStorage.removeItem(HECTARES_STORAGE_KEY);
+    safeSessionStorage.removeItem(ACRES_CENTS_PASTE_STORAGE_KEY);
   };
 
   useEffect(() => {
-    window.sessionStorage.setItem(MODE_STORAGE_KEY, mode);
+    safeSessionStorage.setItem(MODE_STORAGE_KEY, mode);
   }, [mode]);
 
   useEffect(() => {
-    window.sessionStorage.setItem(STORAGE_KEY, acreInput);
+    safeSessionStorage.setItem(STORAGE_KEY, acreInput);
   }, [acreInput]);
 
   useEffect(() => {
-    window.sessionStorage.setItem(CENTS_STORAGE_KEY, centInput);
+    safeSessionStorage.setItem(CENTS_STORAGE_KEY, centInput);
   }, [centInput]);
 
   useEffect(() => {
-    window.sessionStorage.setItem(GUNTAS_STORAGE_KEY, guntaInput);
+    safeSessionStorage.setItem(GUNTAS_STORAGE_KEY, guntaInput);
   }, [guntaInput]);
 
   useEffect(() => {
-    window.sessionStorage.setItem(HECTARES_STORAGE_KEY, hectareInput);
+    safeSessionStorage.setItem(HECTARES_STORAGE_KEY, hectareInput);
   }, [hectareInput]);
 
   useEffect(() => {
-    window.sessionStorage.setItem(ACRES_CENTS_PASTE_STORAGE_KEY, acresCentsPasteInput);
+    safeSessionStorage.setItem(ACRES_CENTS_PASTE_STORAGE_KEY, acresCentsPasteInput);
   }, [acresCentsPasteInput]);
   return (
     <div className="space-y-4">
@@ -287,11 +288,11 @@ function ResultCard({ label, value, note, tone }: { label: string; value: string
 }
 
 function readMode(): AcreageMode {
-  const stored = window.sessionStorage.getItem(MODE_STORAGE_KEY);
+  const stored = safeSessionStorage.getItem(MODE_STORAGE_KEY);
   return modeOptions.some((option) => option.value === stored) ? stored as AcreageMode : 'acres';
 }
 
-function calculateAcreageResult({
+export function calculateAcreageResult({
   mode,
   acreInput,
   centInput,
@@ -370,7 +371,7 @@ function calculateAcreCentPasteTotal(input: string) {
   }, 0);
 }
 
-function calculateAcreValues(input: string) {
+export function calculateAcreValues(input: string) {
   const values = input.match(/\d+(?:\.\d+)?/g) || [];
   const totalGuntas = values.reduce((sum, value) => {
     const [acrePart, guntaPart = '0'] = value.split('.');

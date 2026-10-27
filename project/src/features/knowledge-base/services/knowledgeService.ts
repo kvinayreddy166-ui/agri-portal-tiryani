@@ -5,7 +5,7 @@
 // feedback, suggested questions) and to Supabase Edge Functions for
 // heavy processing (process-document), search, and RAG ask.
 // =====================================================================
-import { supabase } from '../../../shared/lib/supabase';
+import { supabase, supabaseUrl } from '../../../shared/lib/supabase';
 import type {
   AskResult,
   DashboardStats,
@@ -19,7 +19,7 @@ import type {
   SuggestedQuestion,
 } from '../types/index';
 
-const EDGE_FUNCTION_BASE = `${import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '') || ''}/functions/v1`;
+const EDGE_FUNCTION_BASE = `${supabaseUrl.replace(/\/$/, '')}/functions/v1`;
 
 function requireAuth() {
   return supabase.auth.getSession();

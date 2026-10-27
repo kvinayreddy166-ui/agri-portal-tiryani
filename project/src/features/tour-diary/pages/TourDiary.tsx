@@ -349,6 +349,19 @@ export function TourDiary() {
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [pdfPreview, setPdfPreview] = useState<{ blob: Blob; fileName: string } | null>(null);
   const [showMyDiariesDropdown, setShowMyDiariesDropdown] = useState(false);
+
+  const pdfPreviewUrl = useMemo(() => {
+    if (!pdfPreview?.blob) return null;
+    return URL.createObjectURL(pdfPreview.blob);
+  }, [pdfPreview?.blob]);
+
+  useEffect(() => {
+    return () => {
+      if (pdfPreviewUrl) {
+        URL.revokeObjectURL(pdfPreviewUrl);
+      }
+    };
+  }, [pdfPreviewUrl]);
   
   // Form state
   const holidaysByDate = useMemo(() => groupHolidaysByDate(holidays), [holidays]);
@@ -3372,7 +3385,7 @@ export function TourDiary() {
             </div>
             <div className="h-[calc(90vh-60px)] overflow-auto bg-slate-100 dark:bg-slate-950">
               <iframe
-                src={URL.createObjectURL(pdfPreview.blob)}
+                src={pdfPreviewUrl || undefined}
                 className="h-full w-full border-0"
                 title="PDF Preview"
               />

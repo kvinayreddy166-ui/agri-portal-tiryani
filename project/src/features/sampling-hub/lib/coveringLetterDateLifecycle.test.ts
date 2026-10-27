@@ -1,8 +1,9 @@
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, afterAll } from 'vitest';
 import { localTodayDate } from '../../../shared/utils/dateUtils';
 import { safeStorage } from '../../../shared/lib/safeStorage';
 
-// Setup mock localStorage in node test environment
+// Setup mock localStorage in node test environment and restore on teardown
+const originalWindow = (globalThis as any).window;
 const mockStorage: Record<string, string> = {};
 const mockLocalStorage = {
   getItem: (key: string) => mockStorage[key] ?? null,
@@ -26,6 +27,14 @@ if (typeof window === 'undefined') {
 }
 
 describe('Covering Letter Date Lifecycle & Stability', () => {
+  afterAll(() => {
+    if (originalWindow === undefined) {
+      delete (globalThis as any).window;
+    } else {
+      (globalThis as any).window = originalWindow;
+    }
+  });
+
   beforeEach(() => {
     safeStorage.clear();
   });

@@ -11,7 +11,7 @@ import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 type AreaUnit = 'acres' | 'hectares';
 type SpacingUnit = 'cm' | 'm' | 'feet' | 'inches';
 
-const SQ_METERS_PER_ACRE = 4000;
+export const SQ_METERS_PER_ACRE = 4046.86;
 const SQ_METERS_PER_HECTARE = 10000;
 
 const initialForm = {
@@ -332,7 +332,7 @@ interface PlantPopulationResult {
   plantsPerHectare: number;
 }
 
-function calculatePlantPopulation(form: typeof initialForm): { errors: string[]; result: PlantPopulationResult | null } {
+export function calculatePlantPopulation(form: typeof initialForm): { errors: string[]; result: PlantPopulationResult | null } {
   const areaValue = toNumber(form.areaValue);
   const rowSpacing = toNumber(form.rowSpacing);
   const plantSpacing = toNumber(form.plantSpacing);
