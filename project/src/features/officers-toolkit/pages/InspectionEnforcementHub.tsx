@@ -65,6 +65,7 @@ const cardThemes: Record<
     iconBg: string;
     iconShadow: string;
     borderActive: string;
+    borderIdle: string;
     borderHover: string;
     bgTint: string;
     badgeBg: string;
@@ -80,6 +81,7 @@ const cardThemes: Record<
     iconBg: 'bg-gradient-to-br from-emerald-600 to-teal-700',
     iconShadow: 'shadow-emerald-900/15',
     borderActive: 'border-emerald-500/60 ring-2 ring-emerald-500/10 dark:border-emerald-500',
+    borderIdle: 'border-emerald-200/80 dark:border-emerald-900/50',
     borderHover: 'hover:border-emerald-300 dark:hover:border-emerald-700',
     bgTint: 'from-white via-emerald-50/20 to-teal-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20',
     badgeBg: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/60',
@@ -94,6 +96,7 @@ const cardThemes: Record<
     iconBg: 'bg-gradient-to-br from-amber-500 to-orange-600',
     iconShadow: 'shadow-amber-900/15',
     borderActive: 'border-amber-500/60 ring-2 ring-amber-500/10 dark:border-amber-500',
+    borderIdle: 'border-amber-200/80 dark:border-amber-900/50',
     borderHover: 'hover:border-amber-300 dark:hover:border-amber-700',
     bgTint: 'from-white via-amber-50/20 to-orange-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-amber-950/20',
     badgeBg: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/60',
@@ -108,6 +111,7 @@ const cardThemes: Record<
     iconBg: 'bg-gradient-to-br from-rose-500 to-red-600',
     iconShadow: 'shadow-rose-900/15',
     borderActive: 'border-rose-500/60 ring-2 ring-rose-500/10 dark:border-rose-500',
+    borderIdle: 'border-rose-200/80 dark:border-rose-900/50',
     borderHover: 'hover:border-rose-300 dark:hover:border-rose-700',
     bgTint: 'from-white via-rose-50/20 to-red-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-rose-950/20',
     badgeBg: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200/80 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-800/60',
@@ -122,6 +126,7 @@ const cardThemes: Record<
     iconBg: 'bg-gradient-to-br from-indigo-600 to-violet-700',
     iconShadow: 'shadow-indigo-900/15',
     borderActive: 'border-indigo-500/60 ring-2 ring-indigo-500/10 dark:border-indigo-500',
+    borderIdle: 'border-indigo-200/80 dark:border-indigo-900/50',
     borderHover: 'hover:border-indigo-300 dark:hover:border-indigo-700',
     bgTint: 'from-white via-indigo-50/20 to-violet-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/20',
     badgeBg: 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200/80 dark:bg-indigo-950/50 dark:text-indigo-300 dark:ring-indigo-800/60',
@@ -137,6 +142,7 @@ const cardThemes: Record<
     iconBg: 'bg-gradient-to-br from-amber-500 to-orange-600',
     iconShadow: 'shadow-amber-900/15',
     borderActive: 'border-amber-500/60 ring-2 ring-amber-500/10 dark:border-amber-500',
+    borderIdle: 'border-amber-200/80 dark:border-amber-900/50',
     borderHover: 'hover:border-amber-300 dark:hover:border-amber-700',
     bgTint: 'from-white via-amber-50/20 to-orange-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-amber-950/20',
     badgeBg: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/60',
@@ -151,6 +157,7 @@ const cardThemes: Record<
     iconBg: 'bg-gradient-to-br from-rose-500 to-red-600',
     iconShadow: 'shadow-rose-900/15',
     borderActive: 'border-rose-500/60 ring-2 ring-rose-500/10 dark:border-rose-500',
+    borderIdle: 'border-rose-200/80 dark:border-rose-900/50',
     borderHover: 'hover:border-rose-300 dark:hover:border-rose-700',
     bgTint: 'from-white via-rose-50/20 to-red-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-rose-950/20',
     badgeBg: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200/80 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-800/60',
@@ -284,7 +291,7 @@ export function InspectionEnforcementHub() {
               className={`group relative overflow-hidden rounded-2xl border transition duration-300 bg-gradient-to-br ${theme.bgTint} ${
                 isOpen
                   ? `${theme.borderActive} shadow-lg shadow-slate-900/5`
-                  : `border-slate-200/80 shadow-sm hover:-translate-y-0.5 hover:shadow-md ${theme.borderHover} dark:border-slate-800`
+                  : `${theme.borderIdle} shadow-sm hover:-translate-y-0.5 hover:shadow-md ${theme.borderHover}`
               }`}
             >
               {/* Left Accent Vertical Bar */}

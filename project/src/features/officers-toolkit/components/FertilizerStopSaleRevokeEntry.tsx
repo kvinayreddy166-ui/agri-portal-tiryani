@@ -478,8 +478,8 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
         </button>
       </div>
 
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Officer Details</h3>
+      <div className="rounded-lg border border-sky-200/80 dark:border-sky-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
+        <h3 className="mb-2.5 pb-2 border-b border-sky-100 dark:border-sky-900/50 text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Officer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Fertilizer Inspector" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
           <SelectInput label="Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
@@ -513,8 +513,8 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Dealer Details</h3>
+      <div className="rounded-lg border border-sky-200/80 dark:border-sky-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
+        <h3 className="mb-2.5 pb-2 border-b border-sky-100 dark:border-sky-900/50 text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
           <TextInput label="Form A2 / Licence No." value={form.formA2Number} onChange={(value) => updateForm({ formA2Number: value })} />
@@ -535,8 +535,8 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Revocation Details</h3>
+      <div className="rounded-lg border border-sky-200/80 dark:border-sky-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
+        <h3 className="mb-2.5 pb-2 border-b border-sky-100 dark:border-sky-900/50 text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Revocation Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Stop Sale Notice No." value={form.noticeNo} onChange={(value) => updateForm({ noticeNo: value })} />
           <TextInput label="Notice Dated" type="date" value={form.noticeDate} onChange={(value) => updateForm({ noticeDate: value })} />
@@ -544,9 +544,9 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h3 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Stock Details</h3>
+      <div className="rounded-lg border border-sky-200/80 dark:border-sky-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
+        <div className="mb-3 pb-2 border-b border-sky-100 dark:border-sky-900/50 flex items-center justify-between gap-3">
+          <h3 className="text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Stock Details</h3>
           <button
             type="button"
             onClick={addProduct}

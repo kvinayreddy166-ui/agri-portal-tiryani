@@ -464,8 +464,8 @@ export function PesticideSeizureOrderEntry() {
         </button>
       </div>
 
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Officer Details</h3>
+      <div className="rounded-lg border border-amber-200/80 dark:border-amber-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
+        <h3 className="mb-2.5 pb-2 border-b border-amber-100 dark:border-amber-900/50 text-sm font-black uppercase tracking-wide text-amber-700 dark:text-amber-400 font-black">Officer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Insecticide Inspector" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
           <SelectInput label="Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
@@ -499,8 +499,8 @@ export function PesticideSeizureOrderEntry() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Dealer Details</h3>
+      <div className="rounded-lg border border-amber-200/80 dark:border-amber-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
+        <h3 className="mb-2.5 pb-2 border-b border-amber-100 dark:border-amber-900/50 text-sm font-black uppercase tracking-wide text-amber-700 dark:text-amber-400 font-black">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
           <TextInput label="Page / Folio No. of Stock Register" value={form.folioNo} onChange={(value) => updateForm({ folioNo: value })} />
@@ -521,9 +521,9 @@ export function PesticideSeizureOrderEntry() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h3 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Seized Stock Details</h3>
+      <div className="rounded-lg border border-amber-200/80 dark:border-amber-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
+        <div className="mb-3 pb-2 border-b border-amber-100 dark:border-amber-900/50 flex items-center justify-between gap-3">
+          <h3 className="text-sm font-black uppercase tracking-wide text-amber-700 dark:text-amber-400 font-black">Seized Stock Details</h3>
           <button
             type="button"
             onClick={addProduct}

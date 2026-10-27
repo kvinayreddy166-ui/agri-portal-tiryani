@@ -469,8 +469,8 @@ export function SeedSeizureOrderEntry() {
         </button>
       </div>
 
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Officer Details</h3>
+      <div className="rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
+        <h3 className="mb-2.5 pb-2 border-b border-emerald-100 dark:border-emerald-900/50 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Officer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Seed Inspector" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
           <SelectInput label="Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
@@ -504,8 +504,8 @@ export function SeedSeizureOrderEntry() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Dealer Details</h3>
+      <div className="rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
+        <h3 className="mb-2.5 pb-2 border-b border-emerald-100 dark:border-emerald-900/50 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
           <label className="block md:col-span-3">
@@ -525,8 +525,8 @@ export function SeedSeizureOrderEntry() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Details of Records Seized</h3>
+      <div className="rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
+        <h3 className="mb-2.5 pb-2 border-b border-emerald-100 dark:border-emerald-900/50 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Details of Records Seized</h3>
         <label className="block">
           <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
             One record per line — e.g., stock register, sale bills, purchase invoices
@@ -541,9 +541,9 @@ export function SeedSeizureOrderEntry() {
         </label>
       </div>
 
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h3 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">Seized Stock Details</h3>
+      <div className="rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
+        <div className="mb-3 pb-2 border-b border-emerald-100 dark:border-emerald-900/50 flex items-center justify-between gap-3">
+          <h3 className="text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Seized Stock Details</h3>
           <button
             type="button"
             onClick={addProduct}
