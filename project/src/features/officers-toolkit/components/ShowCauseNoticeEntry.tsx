@@ -1850,10 +1850,10 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
     const sectionDividerColor =
     form.category === 'seed'
-      ? 'border-emerald-100 dark:border-emerald-900/50'
+      ? 'border-emerald-200/80 dark:border-emerald-800/60'
       : form.category === 'pesticide'
-        ? 'border-amber-100 dark:border-amber-900/50'
-        : 'border-blue-100 dark:border-blue-900/50';
+        ? 'border-amber-200/80 dark:border-amber-800/60'
+        : 'border-blue-200/80 dark:border-blue-800/60';
 
   return (
     <div className="space-y-4">

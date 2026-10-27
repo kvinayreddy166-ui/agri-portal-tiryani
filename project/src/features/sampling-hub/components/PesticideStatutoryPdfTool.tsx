@@ -1182,6 +1182,14 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
 }
 
 function FieldSection({ title, children, color = 'slate', onReset }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'slate' | 'purple'; onReset?: () => void }) {
+  const dividerStyles = {
+    emerald: 'border-emerald-200 dark:border-emerald-800/60',
+    blue: 'border-blue-200 dark:border-blue-800/60',
+    amber: 'border-amber-200 dark:border-amber-800/60',
+    slate: 'border-slate-200 dark:border-slate-700',
+    purple: 'border-purple-200 dark:border-purple-800/60',
+  };
+
   const colorStyles = {
     emerald: 'border-emerald-200 bg-emerald-50/50',
     blue: 'border-blue-200 bg-blue-50/50',
@@ -1208,7 +1216,7 @@ function FieldSection({ title, children, color = 'slate', onReset }: { title: st
   
   return (
     <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>
-      <div className="flex items-center justify-between mb-2">
+      <div className={`flex items-center justify-between mb-2.5 pb-2 border-b ${dividerStyles[color]}`}>
         <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
         {onReset && (
           <button

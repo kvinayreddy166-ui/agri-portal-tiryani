@@ -488,7 +488,7 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
       </div>
 
       <div className="rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2.5 pb-2 border-b border-emerald-100 dark:border-emerald-900/50 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Officer Details</h3>
+        <h3 className="mb-2.5 pb-2 border-b border-emerald-200/80 dark:border-emerald-800/60 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Officer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Seed Inspector" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
           <SelectInput label="Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
@@ -523,7 +523,7 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
       </div>
 
       <div className="rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2.5 pb-2 border-b border-emerald-100 dark:border-emerald-900/50 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Dealer Details</h3>
+        <h3 className="mb-2.5 pb-2 border-b border-emerald-200/80 dark:border-emerald-800/60 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
           <TextInput label="Licence No." value={form.licenceNumber} onChange={(value) => updateForm({ licenceNumber: value })} />
@@ -544,7 +544,7 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
       </div>
 
       <div className="rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2.5 pb-2 border-b border-emerald-100 dark:border-emerald-900/50 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Order Details</h3>
+        <h3 className="mb-2.5 pb-2 border-b border-emerald-200/80 dark:border-emerald-800/60 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Order Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Stop Sale Period (days)" value={form.stopDays} onChange={updateStopDays} />
           <label className="block md:col-span-2">
@@ -560,7 +560,7 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
       </div>
 
       <div className="rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <div className="mb-3 pb-2 border-b border-emerald-100 dark:border-emerald-900/50 flex items-center justify-between gap-3">
+        <div className="mb-3 pb-2 border-b border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-between gap-3">
           <h3 className="text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Stock Details</h3>
           <button
             type="button"

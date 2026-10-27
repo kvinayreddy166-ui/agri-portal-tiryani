@@ -503,7 +503,7 @@ export function FertilizerSeizureOrderEntry() {
       </div>
 
       <div className="rounded-lg border border-sky-200/80 dark:border-sky-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2.5 pb-2 border-b border-sky-100 dark:border-sky-900/50 text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Officer Details</h3>
+        <h3 className="mb-2.5 pb-2 border-b border-sky-200/80 dark:border-sky-800/60 text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Officer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Fertilizer Inspector" value={form.officerName} onChange={(value) => updateForm({ officerName: value })} />
           <SelectInput label="Designation" value={form.officerDesignation} onChange={(value) => updateForm({ officerDesignation: value })} options={designationOptions} />
@@ -538,7 +538,7 @@ export function FertilizerSeizureOrderEntry() {
       </div>
 
       <div className="rounded-lg border border-sky-200/80 dark:border-sky-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2.5 pb-2 border-b border-sky-100 dark:border-sky-900/50 text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Dealer Details</h3>
+        <h3 className="mb-2.5 pb-2 border-b border-sky-200/80 dark:border-sky-800/60 text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
           <label className="block md:col-span-3">
@@ -559,7 +559,7 @@ export function FertilizerSeizureOrderEntry() {
       </div>
 
       <div className="rounded-lg border border-sky-200/80 dark:border-sky-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <h3 className="mb-2.5 pb-2 border-b border-sky-100 dark:border-sky-900/50 text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Seizure Details</h3>
+        <h3 className="mb-2.5 pb-2 border-b border-sky-200/80 dark:border-sky-800/60 text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Seizure Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Stock of Fertilizer (description)" value={form.fertilizerDesc} onChange={(value) => updateForm({ fertilizerDesc: value })} />
           <TextInput label="Contravened Clause" value={form.contravenedClause} onChange={(value) => updateForm({ contravenedClause: value })} />
@@ -598,7 +598,7 @@ export function FertilizerSeizureOrderEntry() {
       </div>
 
       <div className="rounded-lg border border-sky-200/80 dark:border-sky-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
-        <div className="mb-3 pb-2 border-b border-sky-100 dark:border-sky-900/50 flex items-center justify-between gap-3">
+        <div className="mb-3 pb-2 border-b border-sky-200/80 dark:border-sky-800/60 flex items-center justify-between gap-3">
           <h3 className="text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Seized Stock Details</h3>
           <button
             type="button"

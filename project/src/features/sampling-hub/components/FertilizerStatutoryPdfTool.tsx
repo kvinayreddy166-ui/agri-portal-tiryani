@@ -2167,6 +2167,15 @@ function buildDealerNameAddress(values: FertilizerPdfValues) {
 function FieldSection({ title, children, color = 'slate', onReset, isCollapsible = false, subtitle, isCollapsed, onToggle }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'maroon' | 'slate' | 'purple'; onReset?: () => void; isCollapsible?: boolean; subtitle?: string; isCollapsed?: boolean; onToggle?: () => void }) {
   const isCoveringLetter = title === 'COVERING LETTER DETAILS';
   
+  const dividerStyles = {
+    emerald: 'border-emerald-200 dark:border-emerald-800/60',
+    blue: 'border-blue-200 dark:border-blue-800/60',
+    amber: 'border-amber-200 dark:border-amber-800/60',
+    maroon: 'border-red-700 dark:border-red-800/60',
+    slate: 'border-slate-200 dark:border-slate-700',
+    purple: 'border-purple-200 dark:border-purple-800/60',
+  };
+
   const colorStyles = {
     emerald: 'border-emerald-200 bg-emerald-50/50',
     blue: 'border-blue-200 bg-blue-50/50',
@@ -2199,7 +2208,7 @@ function FieldSection({ title, children, color = 'slate', onReset, isCollapsible
   if (isCoveringLetter) {
     return (
       <div className={`rounded-lg border ${colorStyles[color]} p-3 shadow-sm`} style={{ backgroundColor: '#F5FAF6', borderLeft: '4px solid #2E7D32' }}>
-        <div className="flex items-center justify-between mb-2">
+        <div className={`flex items-center justify-between mb-2.5 pb-2 border-b ${dividerStyles[color]}`}>
           <div className="flex-1">
             <div className="flex items-center gap-2">
               {isCollapsible && onToggle && (
@@ -2234,7 +2243,7 @@ function FieldSection({ title, children, color = 'slate', onReset, isCollapsible
   
   return (
     <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>
-      <div className="flex items-center justify-between mb-2">
+      <div className={`flex items-center justify-between mb-2.5 pb-2 border-b ${dividerStyles[color]}`}>
         <div className="flex-1">
           <div className="flex items-center gap-2">
             {isCollapsible && onToggle && (
