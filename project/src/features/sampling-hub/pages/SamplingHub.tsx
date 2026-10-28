@@ -59,7 +59,7 @@ export function SamplingHub() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4">
+    <div className="mx-auto w-full max-w-6xl space-y-4">
       <div>
         <h1 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
           {t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్')}
@@ -72,7 +72,7 @@ export function SamplingHub() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
         {SAMPLE_CATEGORIES.map((item) => {
           const Icon = item.icon;
           const selected = category === item.id;
@@ -81,7 +81,7 @@ export function SamplingHub() {
               key={item.id}
               type="button"
               onClick={() => setCategory(item.id)}
-              className={`relative overflow-hidden rounded-xl border px-3 py-2.5 text-left transition duration-200 ${
+              className={`relative flex min-h-[48px] sm:h-[52px] items-center overflow-hidden rounded-xl border px-3.5 py-2.5 text-left transition duration-200 ${
                 selected
                   ? 'border-emerald-700 bg-gradient-to-br from-emerald-800 to-emerald-900 text-white shadow-md shadow-emerald-950/20'
                   : 'border-slate-200/90 bg-white text-slate-800 shadow-sm hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100'
@@ -90,7 +90,7 @@ export function SamplingHub() {
               {selected && (
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-gold-400 via-gold-300 to-gold-400" />
               )}
-              <div className="flex items-center gap-2.5">
+              <div className="flex w-full items-center gap-2.5">
                 <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${selected ? 'bg-white/15 text-white' : item.tile}`}>
                   <Icon className="h-4 w-4" />
                 </div>

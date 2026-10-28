@@ -231,7 +231,7 @@ export function PublicOfficerTools() {
 
     return (
       <div className="min-h-screen bg-[#eef6f0] p-2 pb-28 sm:p-3 sm:pb-24">
-        <div className="mx-auto w-full max-w-7xl space-y-4">
+        <div className="mx-auto w-full max-w-6xl space-y-4">
           {showToolPage ? (
             <div className="mb-4">
               <div className="rounded-2xl bg-gradient-to-r from-emerald-700 via-green-700 to-teal-700 p-4 shadow-lg border border-emerald-800/60">
@@ -321,46 +321,44 @@ export function PublicOfficerTools() {
             </button>
           </div>
           <div className={calculatorOpen || fertilizerCalculatorOpen ? 'hidden' : ''}>
-          <section className="rounded-xl border border-white/70 bg-gradient-to-br from-emerald-100 dark:from-emerald-900 via-lime-50 dark:via-lime-950/60 to-cyan-100 dark:to-cyan-900 p-4 shadow-md">
+          <section className="rounded-2xl border border-white/70 bg-gradient-to-br from-emerald-100 dark:from-emerald-900 via-lime-50 dark:via-lime-950/60 to-cyan-100 dark:to-cyan-900 p-4 sm:p-5 shadow-md">
               <div className="mb-4">
                 <h2 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">
                   {t('Select Category', 'వర్గాన్ని ఎంచుకోండి')}
                 </h2>
               </div>
-              <div className="grid gap-2 sm:grid-cols-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
                 {STATUTORY_FOLDERS.map((folder) => (
                   <button
                     key={folder.id}
                     type="button"
                     onClick={() => setStatutoryFolder(folder.id)}
-                    className={`rounded-lg border p-2 text-left transition ${
+                    className={`flex min-h-[48px] sm:h-[52px] items-center justify-between rounded-xl border px-4 py-2.5 text-left transition duration-200 ${
                       statutoryFolder === folder.id
-                        ? 'border-emerald-500 bg-emerald-600 text-white shadow-md'
-                        : 'border-emerald-200 bg-white text-slate-900 hover:border-emerald-300 hover:bg-emerald-50'
+                        ? 'border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-900/15'
+                        : 'border-emerald-200/90 bg-white text-slate-800 shadow-xs hover:border-emerald-400 hover:bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-slate-900 dark:text-slate-100'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-black">
-                        {language === 'te' ? folder.telugu : folder.label}
-                      </span>
-                      {statutoryFolder === folder.id && (
-                        <span className="text-emerald-200">✓</span>
-                      )}
-                    </div>
+                    <span className="text-sm font-black">
+                      {language === 'te' ? folder.telugu : folder.label}
+                    </span>
+                    {statutoryFolder === folder.id && (
+                      <span className="shrink-0 text-xs font-black text-emerald-100">✓</span>
+                    )}
                   </button>
                 ))}
               </div>
               {samplingHubOpen && (
-                <div className="mt-4">
+                <div className="mt-5 flex flex-col items-center justify-center text-center">
                   <button
                     type="button"
                     onClick={openPdfTool}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-3 text-sm font-black text-white shadow-md transition hover:from-emerald-700 hover:to-green-700 hover:shadow-lg"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-3 text-sm font-black text-white shadow-md shadow-emerald-950/15 transition hover:from-emerald-700 hover:to-green-700 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-900 sm:min-w-[280px] sm:max-w-md"
                   >
                     <FileText className="h-5 w-5" />
                     {t('Start New Sample Drawal', 'కొత్త నమూనా డ్రాయింగ్‌ను ప్రారంభించండి')}
                   </button>
-                  <p className="mt-2 text-xs font-semibold text-slate-600 dark:text-slate-300 text-center">
+                  <p className="mt-2 text-xs font-semibold text-slate-600 dark:text-slate-300 max-w-md">
                     {t('Create sample details and generate required statutory forms.', 'నమూనా వివరాలను సృష్టించండి మరియు అవసరమైన చట్టబద్ధ ఫారాలను సృష్టించండి.')}
                   </p>
                 </div>

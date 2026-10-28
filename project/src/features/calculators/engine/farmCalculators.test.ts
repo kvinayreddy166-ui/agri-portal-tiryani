@@ -164,14 +164,15 @@ describe('Farm Calculators Engine & Agronomy Formulas', () => {
 
   describe('PesticideCalculator', () => {
     it('calculates direct dose formulation requirements and knapsack tank loads', () => {
-      const { errors, result } = calculatePesticide('direct', {
+      const { errors, result } = calculatePesticide('directDose', {
+        productName: '',
+        unitType: 'liquid',
         areaValue: '2',
         areaUnit: 'acres',
         waterPerAcre: '200',
         tankChoice: '16', // standard 16L knapsack sprayer
         customTankSize: '',
         directDose: '2', // 2 ml per L
-        formulationType: 'liquid',
         aiPercentage: '',
         aiDose: '',
         aiDoseUnit: 'g-ai-acre',
@@ -194,13 +195,14 @@ describe('Farm Calculators Engine & Agronomy Formulas', () => {
 
     it('calculates active ingredient dose correctly for EC/WP products', () => {
       const { errors, result } = calculatePesticide('activeIngredient', {
+        productName: '',
+        unitType: 'solid',
         areaValue: '1',
         areaUnit: 'acres',
         waterPerAcre: '200',
         tankChoice: '16',
         customTankSize: '',
         directDose: '',
-        formulationType: 'powder',
         aiPercentage: '50', // 50% WP
         aiDose: '250', // 250 g a.i./acre
         aiDoseUnit: 'g-ai-acre',

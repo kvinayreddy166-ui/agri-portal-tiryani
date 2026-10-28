@@ -766,11 +766,11 @@ export function SeedForms({
           <PdfAction label="Information Slip" onPreview={() => preview('SLIP')} onDownload={() => generate('SLIP')} />
           <PdfAction label="All Forms" onPreview={() => preview('ALL')} onDownload={() => generate('ALL')} primary />
         </div>
-        <div className="mt-2">
+        <div className="mt-3 flex justify-center">
           <button
             type="button"
             onClick={() => setShowCoveringLetterModal(true)}
-            className="group relative w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition duration-300 ease-out hover:shadow-xl hover:-translate-y-0.5 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 active:scale-95 active:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-500/50 focus:ring-offset-2 min-h-[44px]"
+            className="group relative w-full sm:w-auto sm:min-w-[300px] sm:max-w-md inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition duration-300 ease-out hover:shadow-xl hover:-translate-y-0.5 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 active:scale-95 active:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-500/50 focus:ring-offset-2 min-h-[44px]"
           >
             <FileText className="h-5 w-5" />
             <span>Generate Official Covering Letter</span>
