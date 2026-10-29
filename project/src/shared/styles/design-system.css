@@ -3,7 +3,7 @@
 /* Typography Scale */
 :root {
   /* Font Families */
-  --font-stylish: 'Atkinson Hyperlegible Next', 'Inter', 'Georgia', serif;
+  --font-stylish: 'Atkinson Hyperlegible Next', 'Inter', 'Noto Sans Telugu', 'Nirmala UI', 'Gautami', 'Georgia', serif;
 
   /* Font Sizes */
   --text-xs: 0.75rem;      /* 12px */
@@ -307,4 +307,80 @@
 .badge-info {
   background: rgba(59, 130, 246, 0.1);
   color: var(--color-info);
+}
+
+
+/* ==========================================================================
+   Enterprise GovTech Component Enhancements (DESIGN.md)
+   ========================================================================== */
+
+/* Canonical Statutory Card System */
+.statutory-card {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
+  background: var(--bg-primary);
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.dark .statutory-card {
+  background: var(--color-slate-900);
+  border-color: var(--border-light);
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+}
+
+.statutory-card-header {
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: var(--font-bold);
+  font-size: var(--text-sm);
+  background: rgba(248, 250, 252, 0.7);
+}
+
+.dark .statutory-card-header {
+  background: rgba(15, 23, 42, 0.6);
+  border-bottom-color: var(--border-light);
+}
+
+/* Category Switcher Cards (Fertilizer, Seed, Pesticide) */
+.category-card-desktop {
+  min-height: 3rem;
+  height: 3.25rem; /* 48px - 52px */
+  display: flex;
+  align-items: center;
+  padding: 0 0.875rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-fast);
+}
+
+/* Enterprise Primary Action Button (Centered, Content-Sized) */
+.btn-action-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-bold);
+  font-size: var(--text-sm);
+  color: #ffffff;
+  background: linear-gradient(135deg, #15803d, #166534);
+  box-shadow: 0 2px 6px -1px rgba(22, 101, 52, 0.25);
+  transition: all var(--transition-fast);
+}
+
+.btn-action-primary:hover {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  box-shadow: 0 4px 12px -2px rgba(22, 101, 52, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-action-primary:active {
+  transform: scale(0.98);
 }

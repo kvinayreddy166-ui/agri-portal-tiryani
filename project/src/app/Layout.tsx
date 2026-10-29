@@ -156,7 +156,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
             <div className="flex min-w-0 items-center gap-2">
               {!hidePortalLogo && <PortalLogo size="xs" />}
               <div className="min-w-0">
-                <h1 className="truncate text-sm font-black tracking-tight sm:text-base font-[var(--font-stylish)]">
+                <h1 className="truncate text-sm font-black tracking-tight sm:text-base text-gold-300 font-[var(--font-stylish)]">
                   {t('Agronix', 'తిర్యాని వ్యవసాయ పోర్టల్')}
                 </h1>
                 <p className="truncate text-[10px] font-semibold text-gold-300">
@@ -289,7 +289,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
             <div className="flex min-w-0 items-center gap-2.5">
               <PortalLogo size="sm" />
               <div className="min-w-0">
-                <h2 className="truncate text-base font-black tracking-tight font-[var(--font-stylish)]">{t('Agronix', 'తిర్యాని')}</h2>
+                <h2 className="truncate text-base font-black tracking-tight text-gold-300 font-[var(--font-stylish)]">{t('Agronix', 'తిర్యాని')}</h2>
                 <p className="truncate text-[11px] font-semibold text-gold-300">{t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}</p>
               </div>
             </div>

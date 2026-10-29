@@ -47,8 +47,8 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/license-services',
     icon: FileCheck,
     category: 'internal',
-    gradient: 'from-indigo-600 to-blue-700',
-    bgGradient: 'from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30',
+    gradient: 'from-sky-700 to-blue-800',
+    bgGradient: 'from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30',
   },
   {
     title: 'Smart Sampling',
@@ -112,8 +112,8 @@ const toolkitItems: ToolkitItem[] = [
     path: '/officer-toolkit/acts-and-orders',
     icon: Scale,
     category: 'internal',
-    gradient: 'from-indigo-700 to-violet-800',
-    bgGradient: 'from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30',
+    gradient: 'from-slate-700 to-slate-900',
+    bgGradient: 'from-slate-50 to-slate-100 dark:from-slate-950/40 dark:to-slate-900/40',
   },
 ];
 
@@ -147,8 +147,8 @@ const externalPortals: ToolkitItem[] = [
     description: 'Integrated Fertilizer Management System',
     externalUrl: 'https://dbtfert.nic.in/mFMS/loginNew.action',
     icon: Database,
-    gradient: 'from-indigo-600 to-purple-700',
-    bgGradient: 'from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30',
+    gradient: 'from-emerald-700 to-teal-800',
+    bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
   },
   {
     title: 'Challan Generation',
@@ -179,8 +179,8 @@ const externalPortals: ToolkitItem[] = [
     description: 'Fertilizer Control Order Court Judgements',
     externalUrl: 'https://indiankanoon.org/search/?formInput=fertilizer+control+order+&filters=doctypes%3A+judgments&filters=sortby%3A+mostrecent',
     icon: Gavel,
-    gradient: 'from-violet-600 to-purple-700',
-    bgGradient: 'from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30',
+    gradient: 'from-stone-700 to-stone-900',
+    bgGradient: 'from-stone-50 to-stone-100 dark:from-stone-950/40 dark:to-stone-900/40',
   },
   {
     title: 'Rythu Bharosa',
@@ -275,8 +275,8 @@ const externalPortals: ToolkitItem[] = [
     description: 'Fungicide Resistance Action Committee',
     externalUrl: 'https://www.frac.info/',
     icon: Microscope,
-    gradient: 'from-violet-600 to-indigo-700',
-    bgGradient: 'from-violet-50 to-indigo-50 dark:from-violet-950/30 dark:to-indigo-950/30',
+    gradient: 'from-teal-700 to-emerald-800',
+    bgGradient: 'from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30',
   },
   {
     title: 'HRAC',
@@ -367,16 +367,12 @@ function translateToolkit(label?: string) {
 
 function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: number; onClick: () => void }) {
   const { t } = useLanguage();
-  const [isVisible, setIsVisible] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), index * 60);
-    return () => clearTimeout(timer);
-  }, [index]);
+  const isVisible = true;
 
   return (
     <div
       onClick={onClick}
-      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-600/40 hover:shadow-xl hover:shadow-emerald-900/10 dark:border-slate-800 dark:bg-slate-900 sm:p-5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-600/50 hover:shadow-md hover:shadow-emerald-900/10 dark:border-slate-800 dark:bg-slate-900 sm:p-5 opacity-100 translate-y-0"
     >
       <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-800 via-gold-400 to-emerald-800 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <div className="flex items-start justify-between gap-2">

@@ -9,8 +9,15 @@ const WHATSAPP_SVG = (
 );
 
 const X_TWITTER_SVG = (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" className="h-4 w-4 shrink-0" aria-hidden="true">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  <svg
+    viewBox="-2.5 -2.5 29 29"
+    fill="currentColor"
+    width="20"
+    height="20"
+    className="h-5 w-5 shrink-0 text-black dark:text-white"
+    aria-hidden="true"
+  >
+    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
   </svg>
 );
 
@@ -82,7 +89,7 @@ export function OfficialChannelsSidebar({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       aria-label={t('Official Channels', 'అధికారిక ఛానెల్స్')}
-      className="fixed right-0 top-20 sm:top-24 z-40 flex items-center select-none"
+      className="fixed right-0 bottom-20 sm:bottom-24 z-40 flex items-center select-none"
     >
       <style>{`
         @keyframes channelNudge {
@@ -106,9 +113,9 @@ export function OfficialChannelsSidebar({
             ? t('Official Channels', 'అధికారిక ఛానెల్స్')
             : t('Collapse Channels', 'ఛానెల్స్ మూసివేయండి')
         }
-        className={`group flex items-center justify-center rounded-l-2xl border-l border-y border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 py-3.5 px-2 shadow-xl shadow-slate-950/10 backdrop-blur-md transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+        className={`group flex items-center justify-center rounded-l-2xl border-l border-y border-emerald-500/40 dark:border-emerald-400/30 bg-gradient-to-b from-emerald-800 via-emerald-900 to-emerald-950 py-3.5 px-2.5 shadow-xl shadow-emerald-950/30 backdrop-blur-md transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
           isCollapsed
-            ? 'hover:bg-slate-50 hover:-translate-x-0.5 hover:shadow-emerald-500/10 dark:hover:bg-slate-800/80 cursor-pointer'
+            ? 'hover:from-emerald-700 hover:via-emerald-800 hover:to-emerald-900 hover:-translate-x-0.5 hover:shadow-emerald-900/40 cursor-pointer'
             : 'border-r-0 rounded-r-none'
         }`}
       >
@@ -123,7 +130,7 @@ export function OfficialChannelsSidebar({
           <svg
             viewBox="0 0 24 24"
             fill="none"
-            className="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110"
+            className="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110 drop-shadow-sm"
             aria-hidden="true"
           >
             <defs>
@@ -146,10 +153,10 @@ export function OfficialChannelsSidebar({
 
       {/* Expandable Channels Dock */}
       <div
-        className={`flex flex-col items-center border-y border-r border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 shadow-2xl shadow-slate-950/15 backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`flex flex-col items-center border-y border-r border-emerald-500/40 dark:border-emerald-400/30 bg-white/95 dark:bg-slate-900/95 shadow-2xl shadow-slate-950/15 backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isCollapsed
             ? 'max-w-0 opacity-0 pointer-events-none p-0 border-l-0 overflow-hidden'
-            : 'max-w-[75px] opacity-100 p-1.5 border-l border-slate-100 dark:border-slate-800/70 overflow-visible'
+            : 'max-w-[75px] opacity-100 p-1.5 border-l border-emerald-500/30 dark:border-emerald-500/20 overflow-visible'
         }`}
       >
         {/* WhatsApp Link */}
@@ -158,23 +165,23 @@ export function OfficialChannelsSidebar({
             href={whatsappLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-[#25D366] transition-all duration-200 hover:bg-emerald-50 hover:scale-105 active:scale-95 dark:hover:bg-emerald-950/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-[#25D366] transition-all duration-200 hover:bg-emerald-50 hover:scale-105 active:scale-95 dark:hover:bg-emerald-950/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             aria-label={t('WhatsApp Channel', 'వాట్సాప్ ఛానల్')}
           >
             {WHATSAPP_SVG}
           </a>
           <div
             role="tooltip"
-            className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-3 hidden group-hover/btn:flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-slate-950/95 px-3 py-1.5 text-xs font-bold text-white shadow-xl dark:bg-white dark:text-slate-950 animate-fadeIn z-50 backdrop-blur-sm"
+            className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-3 hidden group-hover/btn:flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-emerald-500/30 bg-slate-950/95 px-3 py-1.5 text-xs font-bold text-white shadow-2xl animate-fadeIn z-50 backdrop-blur-sm"
           >
             <span className="h-2 w-2 rounded-full bg-[#25D366]" />
             <span>{t('WhatsApp Channel', 'వాట్సాప్ ఛానల్')}</span>
-            <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 border-4 border-transparent border-l-slate-950 dark:border-l-white" />
+            <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 border-4 border-transparent border-l-slate-950" />
           </div>
         </div>
 
         {/* Micro-divider */}
-        <div className="my-1 h-px w-5 bg-slate-200/70 dark:bg-slate-800" />
+        <div className="my-1 h-px w-5 bg-slate-200/80 dark:bg-slate-700/60" />
 
         {/* YouTube Link */}
         <div className="relative group/btn">
@@ -182,23 +189,23 @@ export function OfficialChannelsSidebar({
             href={youtubeLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-[#FF0000] transition-all duration-200 hover:bg-red-50 hover:scale-105 active:scale-95 dark:hover:bg-red-950/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-[#FF0000] transition-all duration-200 hover:bg-red-50 hover:scale-105 active:scale-95 dark:hover:bg-red-950/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
             aria-label={t('YouTube Channel - Agriculture Department Telangana', 'తెలంగాణ వ్యవసాయ శాఖ యూట్యూబ్ ఛానల్')}
           >
             <Youtube className="h-5 w-5" />
           </a>
           <div
             role="tooltip"
-            className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-3 hidden group-hover/btn:flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-slate-950/95 px-3 py-1.5 text-xs font-bold text-white shadow-xl dark:bg-white dark:text-slate-950 animate-fadeIn z-50 backdrop-blur-sm"
+            className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-3 hidden group-hover/btn:flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-red-500/30 bg-slate-950/95 px-3 py-1.5 text-xs font-bold text-white shadow-2xl animate-fadeIn z-50 backdrop-blur-sm"
           >
             <span className="h-2 w-2 rounded-full bg-[#FF0000]" />
             <span>{t('YouTube Channel', 'యూట్యూబ్ ఛానల్')}</span>
-            <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 border-4 border-transparent border-l-slate-950 dark:border-l-white" />
+            <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 border-4 border-transparent border-l-slate-950" />
           </div>
         </div>
 
         {/* Micro-divider */}
-        <div className="my-1 h-px w-5 bg-slate-200/70 dark:bg-slate-800" />
+        <div className="my-1 h-px w-5 bg-slate-200/80 dark:bg-slate-700/60" />
 
         {/* X / Twitter Link */}
         <div className="relative group/btn">
@@ -206,18 +213,18 @@ export function OfficialChannelsSidebar({
             href={twitterLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-900 dark:text-white transition-all duration-200 hover:bg-slate-100 hover:scale-105 active:scale-95 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-black dark:text-white transition-all duration-200 hover:bg-slate-100 hover:scale-105 active:scale-95 dark:hover:bg-slate-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
             aria-label={t('X (Twitter) - @DirectorAgriTS', 'ఎక్స్ (ట్విట్టర్) - @DirectorAgriTS')}
           >
             {X_TWITTER_SVG}
           </a>
           <div
             role="tooltip"
-            className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-3 hidden group-hover/btn:flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-slate-950/95 px-3 py-1.5 text-xs font-bold text-white shadow-xl dark:bg-white dark:text-slate-950 animate-fadeIn z-50 backdrop-blur-sm"
+            className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-3 hidden group-hover/btn:flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-700 bg-slate-950/95 px-3 py-1.5 text-xs font-bold text-white shadow-2xl animate-fadeIn z-50 backdrop-blur-sm"
           >
             <span className="h-2 w-2 rounded-full bg-slate-900 dark:bg-slate-100" />
             <span>{t('X (Twitter) - @DirectorAgriTS', 'ఎక్స్ (ట్విట్టర్) - @DirectorAgriTS')}</span>
-            <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 border-4 border-transparent border-l-slate-950 dark:border-l-white" />
+            <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 border-4 border-transparent border-l-slate-950" />
           </div>
         </div>
       </div>

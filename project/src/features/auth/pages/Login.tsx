@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
-  ArrowRight,
+  ChevronRight,
   Eye,
   EyeOff,
   FileText,
@@ -302,7 +302,9 @@ export function Login() {
             <PortalLogo size="md" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight font-[var(--font-stylish)]">AGRONIX</h2>
+            <h2 className="text-2xl font-black tracking-wider text-gold-300 font-[var(--font-stylish)] drop-shadow-sm">
+              {t('AGRONIX', 'అగ్రోనిక్స్')}
+            </h2>
             <p className="text-xs text-gold-200">
               {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
             </p>
@@ -353,14 +355,14 @@ export function Login() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-lg bg-black/80 px-2.5 py-1 text-xs font-bold text-white shadow-sm transition hover:bg-black hover:shadow"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3" aria-hidden="true">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5" style={{ fill: '#ffffff' }} aria-hidden="true">
+                <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
               </svg>
               <span>{t('Twitter (X)', 'ట్విట్టర్')}</span>
             </a>
           </div>
-          <p>version-1.0.1 &middot; &copy; 2026 Agronix — Information Management System</p>
-          <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
+          <p>version-1.0.1 &middot; &copy; 2026 {t('Agronix — Information Management System', 'అగ్రోనిక్స్ — సమాచార నిర్వహణ వ్యవస్థ')}</p>
+          <p>{t('Developed and maintained by K.Vinay Reddy, MAO, Tiryani', 'రూపకల్పన & నిర్వహణ: కె.వినయ్ రెడ్డి, ఎం.ఎ.ఓ, తిర్యాని')}</p>
         </div>
       </aside>
 
@@ -381,8 +383,8 @@ export function Login() {
                 <PortalLogo size="lg" />
               </div>
               <div>
-                <h2 className="whitespace-nowrap text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl font-[var(--font-stylish)]">
-                  {t('AGRONIX', 'AGRONIX')}
+                <h2 className="whitespace-nowrap text-xl font-black tracking-wider sm:text-2xl text-amber-600 dark:text-gold-300 font-[var(--font-stylish)]">
+                  {t('AGRONIX', 'అగ్రోనిక్స్')}
                 </h2>
                 <p className="mt-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
                   {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
@@ -402,7 +404,9 @@ export function Login() {
                 <span className="block text-sm font-bold text-slate-800 dark:text-slate-100">{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
                 <span className="block text-[11px] font-medium leading-snug text-slate-500 dark:text-slate-400">{t('Inspections, notices & orders', 'తనిఖీలు, నోటీసులు & ఆర్డర్లు')}</span>
               </span>
-              <ArrowRight className="h-4 w-4 shrink-0 text-emerald-400 transition-transform group-hover:translate-x-0.5 dark:text-emerald-300" />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100/90 text-emerald-700 shadow-xs transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-emerald-700 group-hover:to-emerald-900 group-hover:text-gold-300 group-hover:translate-x-0.5 dark:bg-emerald-900/60 dark:text-emerald-300 dark:group-hover:from-emerald-600 dark:group-hover:to-emerald-800 dark:group-hover:text-white">
+                <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" strokeWidth={2.5} />
+              </span>
             </button>
 
             <div className="mb-6 grid animate-slide-up grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 text-sm font-semibold ring-1 ring-inset ring-slate-200/70 delay-100 dark:bg-slate-800 dark:ring-slate-700">
@@ -427,7 +431,7 @@ export function Login() {
                 {loginMode === 'dealer' ? t('Dealer sign in', 'డీలర్ సైన్ ఇన్') : t('Secure sign in', 'సురక్షిత సైన్ ఇన్')}
               </h3>
               <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                {t('Access Agronix with your official credentials', 'మీ అధికారిక ఆధారాలతో Agronixను యాక్సెస్ చేయండి')}
+                {t('Access Agronix with your official credentials', 'మీ అధికారిక ఆధారాలతో అగ్రోనిక్స్‌ను యాక్సెస్ చేయండి')}
               </p>
             </div>
 
@@ -443,9 +447,6 @@ export function Login() {
                 <>
                   <LoginField label={t('Registered phone (Dealers Directory)', 'నమోదైన ఫోన్ (డీలర్ల డైరెక్టరీ)')} icon={<Phone />} type="tel" inputMode="tel" autoComplete="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
                   <LoginField label={t('Guest Password', 'గెస్ట్ పాస్వర్డ్')} icon={<LockKeyhole />} type="password" autoComplete="current-password" value={dealerPassword} onChange={setDealerPassword} />
-                  <p className="-mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {t(`Guest password: ${DEALER_DEFAULT_PASSWORD}`, `గెస్ట్ పాస్వర్డ్: ${DEALER_DEFAULT_PASSWORD}`)}
-                  </p>
                 </>
               ) : (
                 <>
@@ -467,8 +468,8 @@ export function Login() {
 
         <div className="mt-5 animate-fadeIn text-center text-xs leading-5 text-slate-400 delay-300 dark:text-slate-500 lg:hidden">
           <p className="font-medium">version-1.0.1</p>
-          <p>&copy; 2026 Agronix - Information Management System</p>
-          <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
+          <p>&copy; 2026 {t('Agronix - Information Management System', 'అగ్రోనిక్స్ - సమాచార నిర్వహణ వ్యవస్థ')}</p>
+          <p>{t('Developed and maintained by K.Vinay Reddy, MAO, Tiryani', 'రూపకల్పన & నిర్వహణ: కె.వినయ్ రెడ్డి, ఎం.ఎ.ఓ, తిర్యాని')}</p>
         </div>
       </div>
       </div>
@@ -480,7 +481,7 @@ export function Login() {
         className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] items-center gap-2 rounded-full bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-emerald-900/30 ring-1 ring-white/10 backdrop-blur transition hover:-translate-y-0.5 hover:from-emerald-600 hover:via-emerald-700 hover:to-emerald-800"
       >
         <Smartphone className="h-5 w-5" />
-        Install App
+        {t('Install App', 'యాప్ ఇన్‌స్టాల్ చేయండి')}
       </button>
       {installMessage && (
         <div className="fixed bottom-20 left-4 z-50 max-w-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-950/15">
