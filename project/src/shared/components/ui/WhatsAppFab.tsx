@@ -10,7 +10,7 @@ interface WhatsAppFabProps {
   whatsappLink?: string;
 }
 
-export function WhatsAppFab({ whatsappLink = 'https://whatsapp.com/channel/your-channel-id' }: WhatsAppFabProps) {
+export function WhatsAppFab({ whatsappLink = 'https://www.whatsapp.com/channel/0029Vb61tsc59PwZEKYH3A0A' }: WhatsAppFabProps) {
   const handleClick = () => {
     window.open(whatsappLink, '_blank', 'noopener,noreferrer');
   };

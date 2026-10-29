@@ -17,10 +17,11 @@ import {
   Sprout,
   Store,
   X,
+  Youtube,
 } from 'lucide-react';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
-import { WhatsAppFab } from '../../../shared/components/ui/WhatsAppFab';
+import { OfficialChannelsSidebar } from '../../../shared/components/ui/OfficialChannelsSidebar';
 import { DEALER_DEFAULT_PASSWORD } from '../lib/dealerAuth';
 import { translateDealerLoginError } from '../lib/dealerLoginMessages';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -336,6 +337,28 @@ export function Login() {
           </ul>
         </div>
         <div className="relative border-t border-white/15 pt-4 text-xs leading-5 text-emerald-100/80">
+          <div className="mb-2.5 flex flex-wrap items-center gap-2">
+            <a
+              href="https://www.youtube.com/@AgricultureDepartmentTelangana"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/90 px-2.5 py-1 text-xs font-bold text-white shadow-sm transition hover:bg-red-600 hover:shadow"
+            >
+              <Youtube className="h-3.5 w-3.5" />
+              <span>{t('YouTube', 'యూట్యూబ్')}</span>
+            </a>
+            <a
+              href="https://x.com/DirectorAgriTS"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-black/80 px-2.5 py-1 text-xs font-bold text-white shadow-sm transition hover:bg-black hover:shadow"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3" aria-hidden="true">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              <span>{t('Twitter (X)', 'ట్విట్టర్')}</span>
+            </a>
+          </div>
           <p>version-1.0.1 &middot; &copy; 2026 Agronix — Information Management System</p>
           <p>Developed and maintained by K.Vinay Reddy, MAO, Tiryani</p>
         </div>
@@ -439,8 +462,6 @@ export function Login() {
                 {loading ? t('Signing in...', 'లాగిన్ అవుతోంది...') : loginMode === 'dealer' ? t('Dealer Sign In', 'డీలర్ లాగిన్') : t('Sign In', 'లాగిన్')}
               </button>
             </form>
-
-
           </div>
         </section>
 
@@ -467,9 +488,7 @@ export function Login() {
         </div>
       )}
 
-      <div className="fixed bottom-[4.5rem] right-4 z-50">
-        <WhatsAppFab whatsappLink="https://wa.me/918308487046" />
-      </div>
+      <OfficialChannelsSidebar />
       <button
         type="button"
         onClick={openGrievance}

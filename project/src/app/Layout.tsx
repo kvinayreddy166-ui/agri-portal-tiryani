@@ -6,6 +6,7 @@ import {
   Globe, Check,
 } from 'lucide-react';
 import { PortalLogo } from '../shared/components/ui/PortalLogo';
+import { ConfirmDialog } from '../shared/components/ui/ConfirmDialog';
 import { useAuth } from '../shared/context/AuthContext';
 import { useLanguage } from '../shared/context/LanguageContext';
 import { useTheme } from '../shared/context/ThemeContext';
@@ -50,6 +51,28 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
   const sidebarOverlay = useBackButtonOverlay('app-sidebar', () => setSidebarOpen(false));
   const profileOverlay = useBackButtonOverlay('profile-menu', () => setProfileOpen(false));
   const langOverlay = useBackButtonOverlay('lang-menu', () => setLangOpen(false));
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const signOutOverlay = useBackButtonOverlay('app-signout', () => setShowSignOutConfirm(false));
+
+  const handleOpenSignOut = () => {
+    profileOverlay.releaseOverlay();
+    setProfileOpen(false);
+    sidebarOverlay.releaseOverlay();
+    setSidebarOpen(false);
+    signOutOverlay.pushOverlay();
+    setShowSignOutConfirm(true);
+  };
+
+  const handleCancelSignOut = () => {
+    signOutOverlay.closeOverlay();
+    setShowSignOutConfirm(false);
+  };
+
+  const handleConfirmSignOut = () => {
+    signOutOverlay.releaseOverlay();
+    setShowSignOutConfirm(false);
+    void signOut();
+  };
   const { user, isAdminUser, isDealerUser, dealerName, signOut } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
@@ -234,10 +257,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                   <button
                     type="button"
                     role="menuitem"
-                    onClick={() => {
-                      profileOverlay.releaseOverlay();
-                      void signOut();
-                    }}
+                    onClick={handleOpenSignOut}
                     className="flex w-full items-center gap-2.5 border-t border-slate-100 px-3.5 py-2.5 text-left text-[13px] font-bold text-red-600 transition hover:bg-red-50 dark:border-slate-800 dark:text-red-400 dark:hover:bg-red-950/40"
                   >
                     <LogOut className="h-4 w-4 shrink-0" />
@@ -342,6 +362,15 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                     : t('View access', 'చూడే ప్రవేశం')}
               </p>
             </div>
+            <button
+              type="button"
+              onClick={handleOpenSignOut}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-500 dark:hover:bg-red-950/50 dark:hover:text-red-400"
+              title={t('Sign Out', 'సైన్ అవుట్')}
+              aria-label={t('Sign Out', 'సైన్ అవుట్')}
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </aside>
@@ -384,6 +413,20 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
           {children}
         </div>
       </main>
+
+      <ConfirmDialog
+        open={showSignOutConfirm}
+        title={t('Sign Out of Agronix?', 'అగ్రోనిక్స్ నుండి సైన్ అవుట్ చేయాలా?')}
+        message={t(
+          'Are you sure you want to sign out? You will need to sign in again to access the portal.',
+          'మీరు ఖచ్చితంగా సైన్ అవుట్ చేయాలనుకుంటున్నారా? పోర్టల్‌ను యాక్సెస్ చేయడానికి మీరు మళ్లీ సైన్ ఇన్ చేయాల్సి ఉంటుంది.'
+        )}
+        confirmLabel={t('Sign Out', 'సైన్ అవుట్')}
+        cancelLabel={t('Cancel', 'రద్దు చేయండి')}
+        icon={<LogOut className="h-5 w-5" aria-hidden="true" />}
+        onConfirm={handleConfirmSignOut}
+        onCancel={handleCancelSignOut}
+      />
     </div>
   );
 }

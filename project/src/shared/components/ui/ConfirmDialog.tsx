@@ -9,6 +9,7 @@ interface ConfirmDialogProps {
   cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
+  icon?: React.ReactNode;
 }
 
 // In-app replacement for window.confirm, which is suppressed in some
@@ -21,6 +22,7 @@ export function ConfirmDialog({
   cancelLabel = 'Cancel',
   onConfirm,
   onCancel,
+  icon,
 }: ConfirmDialogProps) {
   useEffect(() => {
     if (!open) return;
@@ -43,7 +45,7 @@ export function ConfirmDialog({
       >
         <div className="flex items-start gap-3 p-4 pb-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-300">
-            <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+            {icon || <AlertTriangle className="h-5 w-5" aria-hidden="true" />}
           </span>
           <div className="min-w-0 flex-1">
             <h3 className="text-sm font-black text-slate-950 dark:text-white">{title}</h3>
