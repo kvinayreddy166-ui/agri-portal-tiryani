@@ -374,7 +374,7 @@ export function Login() {
       <div className="relative w-full max-w-[28rem]">
         <section className="relative flex flex-col justify-start overflow-hidden rounded-[28px] border border-white/80 bg-white/90 p-6 shadow-2xl shadow-emerald-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl animate-fadeIn dark:border-slate-800 dark:bg-slate-900/85 dark:ring-white/5 sm:p-10">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-800 via-gold-400 to-emerald-800" />
-          <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
+          <div className="absolute left-4 top-4 z-10 sm:left-6 sm:top-6">
             <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
           </div>
           <div className="w-full">
@@ -383,7 +383,7 @@ export function Login() {
                 <PortalLogo size="lg" />
               </div>
               <div>
-                <h2 className="whitespace-nowrap text-xl font-black tracking-wider sm:text-2xl text-amber-600 dark:text-gold-300 font-[var(--font-stylish)]">
+                <h2 className="whitespace-nowrap text-xl font-black tracking-wider sm:text-2xl text-[#c59b27] dark:text-gold-300 font-[var(--font-stylish)] drop-shadow-[0_1px_1px_rgba(212,175,55,0.25)]">
                   {t('AGRONIX', 'అగ్రోనిక్స్')}
                 </h2>
                 <p className="mt-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
