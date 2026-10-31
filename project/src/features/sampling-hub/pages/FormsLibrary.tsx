@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Edit2, Folder, Link, Plus, Trash2, Upload, X } from 'lucide-react';
+import { Edit2, Folder, Link, Plus, Search, Trash2, Upload, X } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
@@ -27,6 +27,14 @@ const emptyForm = {
 
 const STATE_KEY = 'tiryani-statutory-forms-state';
 
+function normalizeCategory(cat: string): string {
+  const c = (cat || '').toLowerCase().trim();
+  if (c === 'fertilizer' || c === 'fertilizers') return 'fertilizers';
+  if (c === 'seed' || c === 'seeds') return 'seed';
+  if (c === 'pesticide' || c === 'pesticides') return 'pesticides';
+  return c || 'fertilizers';
+}
+
 function isNetworkError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   return /failed to fetch|network|timed?\s?out|connection/i.test(message);
@@ -45,6 +53,7 @@ async function withNetworkRetry<T>(fn: () => PromiseLike<T>, retries = 3): Promi
 
 export function FormsLibrary() {
   const { isAdminUser } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
   const { t } = useLanguage();
   const [forms, setForms] = useState<FormDownload[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,11 +114,14 @@ export function FormsLibrary() {
       const { data, error } = await withNetworkRetry(() => supabase
         .from('forms_downloads')
         .select('id, title, description, file_url, file_type, category, created_at')
-        .in('category', folders.map((folder) => folder.id))
         .order('created_at', { ascending: false }));
 
       if (error) throw error;
-      setForms(data || []);
+      const normalized = (data || []).map((row) => ({
+        ...row,
+        category: normalizeCategory(row.category),
+      }));
+      setForms(normalized);
     } catch (error) {
       console.error('Error fetching forms:', error);
       setFetchError(error instanceof Error ? error.message : 'Unable to load downloads.');
@@ -127,7 +139,15 @@ export function FormsLibrary() {
     [forms]
   );
 
-  const selectedForms = forms.filter((form) => form.category === selectedFolder);
+  const selectedForms = useMemo(() => {
+    const list = forms.filter((form) => form.category === selectedFolder);
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter((form) =>
+      (form.title || '').toLowerCase().includes(q) ||
+      (form.description || '').toLowerCase().includes(q)
+    );
+  }, [forms, selectedFolder, searchQuery]);
   const activeFolder = folders.find((folder) => folder.id === selectedFolder) || folders[0];
 
   const resetForm = () => {
@@ -177,6 +197,7 @@ export function FormsLibrary() {
 
       resetForm();
       fetchForms();
+      try { window.sessionStorage.removeItem('tiryani-public-statutory-forms-cache'); } catch {}
       showSaved(editingFormId ? 'Form updated' : 'Form uploaded', payload.title);
     } catch (error) {
       console.error('Error adding document:', error);
@@ -196,6 +217,7 @@ export function FormsLibrary() {
       const { error } = await withNetworkRetry(() => supabase.from('forms_downloads').delete().eq('id', id));
       if (error) throw error;
       fetchForms();
+      try { window.sessionStorage.removeItem('tiryani-public-statutory-forms-cache'); } catch {}
       showDeleted('Form deleted');
     } catch (error) {
       console.error('Error deleting document:', error);
@@ -394,11 +416,33 @@ export function FormsLibrary() {
       )}
 
       <section className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-4">
-          <h2 className="text-xl font-black text-slate-900 dark:text-white font-[var(--font-heading)]">{t(activeFolder.label, activeFolder.telugu)}</h2>
-          <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
-            {selectedForms.length} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
-          </p>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white font-[var(--font-heading)]">{t(activeFolder.label, activeFolder.telugu)}</h2>
+            <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
+              {selectedForms.length} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
+            </p>
+          </div>
+          <div className="relative w-full sm:w-72">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('Search forms in folder...', 'ఫారాలను వెతకండి...')}
+              className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-xs font-semibold text-slate-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
 
         {selectedForms.length > 0 ? (

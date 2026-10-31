@@ -79,7 +79,11 @@ const emptyProduct = (): SeedSeizureProductRow => ({
 function readSavedOrders(): SavedSeedSeizureOrder[] {
   try {
     const parsed = JSON.parse(safeStorage.getItem(STORAGE_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((order) => ({
+      ...order,
+      products: normalizeProducts(order.products),
+    }));
   } catch {
     return [];
   }
@@ -91,15 +95,19 @@ function writeSavedOrders(orders: SavedSeedSeizureOrder[]) {
 
 const FORM_DRAFT_KEY = `${STORAGE_KEY}-draft`;
 
-function normalizeProducts(rows: (Partial<SeedSeizureProductRow> & { name?: string; company?: string; batchNo?: string })[] | undefined): SeedSeizureProductRow[] {
+export function normalizeProducts(rows: (Partial<SeedSeizureProductRow> & { name?: string; company?: string; batchNo?: string })[] | undefined): SeedSeizureProductRow[] {
   if (!Array.isArray(rows) || rows.length === 0) return [emptyProduct()];
   return rows.map((row) => ({
     ...emptyProduct(),
     ...row,
+    id: row.id || uid(),
+    crop: row.crop ?? '',
+    cropOther: row.cropOther ?? '',
     variety: row.variety ?? row.name ?? '',
     source: row.source ?? row.company ?? '',
     lotNo: row.lotNo ?? row.batchNo ?? '',
-    id: row.id || uid(),
+    quantity: row.quantity ?? '',
+    remarks: row.remarks ?? '',
   }));
 }
 
@@ -139,7 +147,7 @@ function makeInitialForm(): SeedSeizureFormState {
 
 // Form IV — Form of Receipt of Records seized under Clause (4) of
 // Sub-section (1) of Section 14 of the Seeds Act, 1966 (No. 54 of 1966).
-function buildSeizureModel(form: SeedSeizureFormState): NoticeBlock[] {
+export function buildSeizureModel(form: SeedSeizureFormState): NoticeBlock[] {
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || '________________';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || '________________';
   const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
@@ -182,19 +190,18 @@ function buildSeizureModel(form: SeedSeizureFormState): NoticeBlock[] {
        [{ text: '2. ...................................................................................' }],
        [{ text: '3. ...................................................................................' }]];
 
-  const filledProducts = form.products.filter((item) =>
-    [item.crop, item.cropOther, item.variety, item.lotNo, item.source, item.quantity, item.remarks].some((field) => field?.trim())
-  );
-  const tableRows = filledProducts.map((item, index) => {
-    const crop = item.crop === 'Others' ? item.cropOther.trim() : item.crop;
-    const seedName = [crop, item.variety.trim()].filter(Boolean).join(' / ');
+  const productRows = form.products && form.products.length > 0 ? form.products : [emptyProduct()];
+  const tableRows = productRows.map((item, index) => {
+    const crop = item.crop === 'Others' ? (item.cropOther || '').trim() : (item.crop || '').trim();
+    const variety = (item.variety || '').trim();
+    const seedName = [crop, variety].filter(Boolean).join(' / ') || (crop || variety || '');
     return [
       String(index + 1),
       seedName,
-      item.lotNo,
-      item.source,
-      item.quantity,
-      item.remarks,
+      item.lotNo || '',
+      item.source || '',
+      item.quantity || '',
+      item.remarks || '',
     ];
   });
 
@@ -233,7 +240,7 @@ function buildSeizureModel(form: SeedSeizureFormState): NoticeBlock[] {
       kind: 'gridTable',
       header: ['S.No.', 'Name of Seed (Crop & Variety)', 'Lot / Batch No.', 'Source / Purchased from', 'Quantity', 'Remarks'],
       colWeights: [7, 28, 14, 22, 12, 17],
-      rows: tableRows.length ? tableRows : [['1', '', '', '', '', '']],
+      rows: tableRows,
     },
     { kind: 'gap', mm: 4 },
     { kind: 'lines', items: [[{ text: 'Details of records Seized', bold: true, underline: true }]] },
@@ -693,6 +700,7 @@ export function SeedSeizureOrderEntry() {
                 <th className="px-3 py-2">Notice No.</th>
                 <th className="px-3 py-2">Firm</th>
                 <th className="px-3 py-2">Date</th>
+                <th className="px-3 py-2">Items</th>
                 <th className="px-3 py-2 text-right">Action</th>
               </tr>
             </thead>
@@ -702,6 +710,7 @@ export function SeedSeizureOrderEntry() {
                   <td className="px-3 py-2 font-black">{order.refNumber}</td>
                   <td className="px-3 py-2">{order.firmName || '-'}</td>
                   <td className="px-3 py-2">{formatNoticeDate(order.seizureDate) || '-'}</td>
+                  <td className="px-3 py-2">{order.products?.length || '-'}</td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex items-center gap-1">
                       <button type="button" onClick={() => editSavedOrder(order)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50">
@@ -717,7 +726,7 @@ export function SeedSeizureOrderEntry() {
               ))}
               {filteredSaved.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-3 py-8 text-center font-semibold text-slate-500 dark:text-slate-400">No saved orders yet.</td>
+                  <td colSpan={5} className="px-3 py-8 text-center font-semibold text-slate-500 dark:text-slate-400">No saved orders yet.</td>
                 </tr>
               )}
             </tbody>

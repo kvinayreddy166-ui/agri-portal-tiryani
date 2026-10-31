@@ -36,6 +36,7 @@ interface PestSeizureProductRow {
   mfgDate: string;
   expiryDate: string;
   quantity: string;
+  folioNo: string;
   remarks: string;
 }
 
@@ -72,13 +73,35 @@ const emptyProduct = (): PestSeizureProductRow => ({
   mfgDate: '',
   expiryDate: '',
   quantity: '',
+  folioNo: '',
   remarks: '',
 });
+
+export function normalizeProducts(rows: (Partial<PestSeizureProductRow>)[] | undefined): PestSeizureProductRow[] {
+  if (!Array.isArray(rows) || rows.length === 0) return [emptyProduct()];
+  return rows.map((row) => ({
+    ...emptyProduct(),
+    ...row,
+    id: row.id || uid(),
+    name: row.name ?? '',
+    manufacturedBy: row.manufacturedBy ?? '',
+    batchNo: row.batchNo ?? '',
+    mfgDate: row.mfgDate ?? '',
+    expiryDate: row.expiryDate ?? '',
+    quantity: row.quantity ?? '',
+    folioNo: row.folioNo ?? '',
+    remarks: row.remarks ?? '',
+  }));
+}
 
 function readSavedOrders(): SavedPestSeizureOrder[] {
   try {
     const parsed = JSON.parse(safeStorage.getItem(STORAGE_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((order) => ({
+      ...order,
+      products: normalizeProducts(order.products),
+    }));
   } catch {
     return [];
   }
@@ -94,7 +117,9 @@ function readFormDraft(): PestSeizureFormState | null {
   try {
     const raw = safeStorage.getItem(FORM_DRAFT_KEY);
     if (!raw) return null;
-    return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<PestSeizureFormState>) };
+    const parsed = { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<PestSeizureFormState>) };
+    parsed.products = normalizeProducts(parsed.products);
+    return parsed;
   } catch {
     return null;
   }
@@ -125,7 +150,7 @@ function makeInitialForm(): PestSeizureFormState {
 // Form V(B) — Form of Receipt for the Seized Insecticides [See rule 32],
 // seizure under clause (d) of sub-section (1) of section 21 of the
 // Insecticides Act, 1968.
-function buildSeizureModel(form: PestSeizureFormState): NoticeBlock[] {
+export function buildSeizureModel(form: PestSeizureFormState): NoticeBlock[] {
   const officerDesignation = form.officerDesignation || 'Insecticide Inspector';
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || '________________';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || '________________';
@@ -133,7 +158,8 @@ function buildSeizureModel(form: PestSeizureFormState): NoticeBlock[] {
   const firmDisplay = form.firmName.trim() || '____________________________';
   const premisesInline = form.premisesAt.replace(/\s+/g, ' ').trim().replace(/,+$/, '');
   const premisesDisplay = `${premisesInline ? `${premisesInline}, ` : ''}${mandalValue} Mandal, ${districtDisplay} District`;
-  const folioDisplay = form.folioNo.trim() || '__________';
+  const rowFolios = form.products.map((p) => p.folioNo?.trim()).filter(Boolean);
+  const folioDisplay = (rowFolios.length > 0 ? Array.from(new Set(rowFolios)).join(', ') : form.folioNo?.trim()) || '__________';
   const divisionName = form.division.trim() || '________________';
   const dateValue = form.seizureDate ? formatNoticeDate(form.seizureDate) : '__________';
 
@@ -161,18 +187,31 @@ function buildSeizureModel(form: PestSeizureFormState): NoticeBlock[] {
       : mandalValue;
   const issuedByDisplay = `${officerDesignation}, ${issuedByPlace}`;
 
-  const filledProducts = form.products.filter((item) =>
-    [item.name, item.manufacturedBy, item.batchNo, item.mfgDate, item.expiryDate, item.quantity, item.remarks].some((field) => field.trim())
-  );
-  const tableRows = filledProducts.map((item, index) => [
-    String(index + 1),
-    item.name,
-    item.manufacturedBy,
-    item.batchNo,
-    [item.mfgDate, item.expiryDate].filter(Boolean).join(' / '),
-    item.quantity,
-    item.remarks,
-  ]);
+  const productRows = form.products && form.products.length > 0 ? form.products : [emptyProduct()];
+  const tableRows = productRows.map((item, index) => {
+    const mfgText = item.mfgDate ? (formatNoticeDate(item.mfgDate) || item.mfgDate) : '';
+    const expText = item.expiryDate ? (formatNoticeDate(item.expiryDate) || item.expiryDate) : '';
+    const dates = [
+      mfgText ? `Mfg: ${mfgText}` : '',
+      expText ? `Exp: ${expText}` : '',
+    ].filter(Boolean).join(' / ') || [item.mfgDate, item.expiryDate].filter(Boolean).join(' / ');
+
+    const remarksParts = [
+      item.folioNo?.trim() ? `Page/Folio: ${item.folioNo.trim()}` : '',
+      item.remarks?.trim() ? item.remarks.trim() : '',
+    ].filter(Boolean);
+    const remarksDisplay = remarksParts.join('; ');
+
+    return [
+      String(index + 1),
+      item.name || '',
+      item.manufacturedBy || '',
+      item.batchNo || '',
+      dates,
+      item.quantity || '',
+      remarksDisplay,
+    ];
+  });
 
   return [
     { kind: 'center', text: 'V (B): FORM OF RECEIPT FOR THE SEIZED INSECTICIDES', bold: true, underline: true, size: 13 },
@@ -212,7 +251,7 @@ function buildSeizureModel(form: PestSeizureFormState): NoticeBlock[] {
     {
       kind: 'gridTable',
       header: [
-        'S.No.',
+        'S.No',
         'Name of the insecticide with complete details, like purity, type of formulation, etc.',
         'Manufactured by',
         'Batch Number',
@@ -220,8 +259,8 @@ function buildSeizureModel(form: PestSeizureFormState): NoticeBlock[] {
         'Stock quantity as on date (indicate units also)',
         'Remarks (Mention page/folio number of the stock register)',
       ],
-      colWeights: [6, 24, 13, 11, 15, 15, 16],
-      rows: tableRows.length ? tableRows : [['1', '', '', '', '', '', '']],
+      colWeights: [7, 21, 16, 11, 15, 15, 15],
+      rows: tableRows,
     },
     { kind: 'gap', mm: 3 },
     {
@@ -333,7 +372,7 @@ export function PesticideSeizureOrderEntry() {
   };
 
   const editSavedOrder = (order: SavedPestSeizureOrder) => {
-    setForm({ ...order, products: order.products?.length ? order.products : [emptyProduct()] });
+    setForm({ ...order, products: normalizeProducts(order.products) });
     setEditingId(order.id);
     setShowPreview(false);
     showLoaded('Order loaded', order.refNumber || 'Receipt for Seized Insecticides');
@@ -501,10 +540,9 @@ export function PesticideSeizureOrderEntry() {
 
       <div className="rounded-lg border border-amber-200/80 dark:border-amber-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <h3 className="mb-2.5 pb-2 border-b border-amber-200/80 dark:border-amber-800/60 text-sm font-black uppercase tracking-wide text-amber-700 dark:text-amber-400 font-black">Dealer Details</h3>
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3">
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
-          <TextInput label="Page / Folio No. of Stock Register" value={form.folioNo} onChange={(value) => updateForm({ folioNo: value })} />
-          <label className="block md:col-span-3">
+          <label className="block">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
             <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
               {effectiveLocationValue(form.mandal, form.manualMandal) || 'Mandal'} Mandal,<br />
@@ -563,7 +601,10 @@ export function PesticideSeizureOrderEntry() {
                 <TextInput label="Date of Manufacture" type="date" value={row.mfgDate} onChange={(value) => updateProduct(row.id, { mfgDate: value })} />
                 <TextInput label="Date of Expiry" type="date" value={row.expiryDate} onChange={(value) => updateProduct(row.id, { expiryDate: value })} />
                 <TextInput label="Stock Quantity (with units)" value={row.quantity} onChange={(value) => updateProduct(row.id, { quantity: value })} />
-                <TextInput label="Remarks" value={row.remarks} onChange={(value) => updateProduct(row.id, { remarks: value })} />
+                <TextInput label="Page / Folio No. of Stock Register" value={row.folioNo} onChange={(value) => updateProduct(row.id, { folioNo: value })} />
+                <div className="md:col-span-4">
+                  <TextInput label="Remarks" value={row.remarks} onChange={(value) => updateProduct(row.id, { remarks: value })} />
+                </div>
               </div>
             </div>
           ))}
@@ -680,7 +721,7 @@ export function PesticideSeizureOrderEntry() {
                   <td className="px-3 py-2 font-black">{order.refNumber}</td>
                   <td className="px-3 py-2">{order.firmName || '-'}</td>
                   <td className="px-3 py-2">{formatNoticeDate(order.seizureDate) || '-'}</td>
-                  <td className="px-3 py-2">{order.products.filter((row) => row.name.trim()).length || '-'}</td>
+                  <td className="px-3 py-2">{order.products?.length || '-'}</td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex items-center gap-1">
                       <button type="button" onClick={() => editSavedOrder(order)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50">

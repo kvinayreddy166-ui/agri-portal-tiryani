@@ -48,6 +48,7 @@ import {
   StockReceiptsSales,
   SamplingHub,
   FormsLibrary,
+  PublicOfficerTools,
   SubsidyTracking,
   TourDiary,
 } from './lazyPages';
@@ -260,6 +261,14 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <OfficersToolkit isAdmin={false} isTestUser={false} />
+          <AgronixBrandMark />
+        </SafeSuspense>
+      );
+    case 'forms':
+    case 'forms-library':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <PublicOfficerTools />
           <AgronixBrandMark />
         </SafeSuspense>
       );

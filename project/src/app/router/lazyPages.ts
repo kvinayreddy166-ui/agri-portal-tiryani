@@ -6,6 +6,7 @@ export const Dashboard = lazy(() => import('../../features/dashboard/pages/Dashb
 export const DealerManagement = lazy(() => import('../../features/dealer-stock/pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));
 export const SamplingHub = lazy(() => import('../../features/sampling-hub/pages/SamplingHub').then((m) => ({ default: m.SamplingHub })));
 export const FormsLibrary = lazy(() => import('../../features/sampling-hub/pages/FormsLibrary').then((m) => ({ default: m.FormsLibrary })));
+export const PublicOfficerTools = lazy(() => import('../../features/auth/pages/PublicOfficerTools').then((m) => ({ default: m.PublicOfficerTools })));
 export const ExcelUploads = lazy(() => import('../../features/farmer-database/pages/ExcelUploads').then((m) => ({ default: m.ExcelUploads })));
 export const Analytics = lazy(() => import('../../features/dashboard/pages/Analytics').then((m) => ({ default: m.Analytics })));
 export const FarmerDatabase = lazy(() => import('../../features/farmer-database/pages/FarmerDatabase').then((m) => ({ default: m.FarmerDatabase })));

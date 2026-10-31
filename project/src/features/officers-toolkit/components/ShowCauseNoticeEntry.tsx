@@ -767,7 +767,7 @@ export function noticeBlocksHtml(blocks: NoticeBlock[]) {
           const total = weights.reduce((a, b) => a + b, 0);
           const cols = weights.map((w) => `<col style="width:${(w / total) * 100}%;"/>`).join('');
           return `<table style="width:100%;border-collapse:collapse;margin:2pt 0 4pt;table-layout:fixed;font-size:10pt;">${cols}<thead><tr>${block.header
-            .map((cell) => `<th style="border:1pt solid #000;padding:2pt 4pt;text-align:center;font-weight:700;vertical-align:middle;overflow-wrap:break-word;line-height:1.15;">${escapeHtml(cell)}</th>`)
+            .map((cell) => `<th style="border:1pt solid #000;padding:2pt 4pt;text-align:center;font-weight:700;vertical-align:middle;overflow-wrap:break-word;line-height:1.15;${cell === 'S.No' || cell === 'S.No.' ? 'white-space:nowrap;' : ''}">${escapeHtml(cell)}</th>`)
             .join('')}</tr></thead><tbody>${block.rows
             .map(
               (row) =>

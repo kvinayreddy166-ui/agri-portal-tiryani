@@ -77,10 +77,28 @@ const emptyProduct = (): FertSeizureProductRow => ({
   remarks: '',
 });
 
+export function normalizeProducts(rows: (Partial<FertSeizureProductRow>)[] | undefined): FertSeizureProductRow[] {
+  if (!Array.isArray(rows) || rows.length === 0) return [emptyProduct()];
+  return rows.map((row) => ({
+    ...emptyProduct(),
+    ...row,
+    id: row.id || uid(),
+    name: row.name ?? '',
+    manufacturer: row.manufacturer ?? '',
+    quantityMt: row.quantityMt ?? '',
+    batchNo: row.batchNo ?? '',
+    remarks: row.remarks ?? '',
+  }));
+}
+
 function readSavedOrders(): SavedFertSeizureOrder[] {
   try {
     const parsed = JSON.parse(safeStorage.getItem(STORAGE_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((order) => ({
+      ...order,
+      products: normalizeProducts(order.products),
+    }));
   } catch {
     return [];
   }
@@ -96,7 +114,9 @@ function readFormDraft(): FertSeizureFormState | null {
   try {
     const raw = safeStorage.getItem(FORM_DRAFT_KEY);
     if (!raw) return null;
-    return { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<FertSeizureFormState>) };
+    const parsed = { ...makeInitialForm(), ...(JSON.parse(raw) as Partial<FertSeizureFormState>) };
+    parsed.products = normalizeProducts(parsed.products);
+    return parsed;
   } catch {
     return null;
   }
@@ -131,7 +151,7 @@ function makeInitialForm(): FertSeizureFormState {
 
 // Seizure of fertilizer stock — Annexure 'AA' proforma notice issued to the
 // dealer under clause 28(1)(d) of the Fertilizer (Control) Order, 1985.
-function buildSeizureModel(form: FertSeizureFormState): NoticeBlock[] {
+export function buildSeizureModel(form: FertSeizureFormState): NoticeBlock[] {
   const officerDesignation = form.officerDesignation || 'Fertilizer Inspector';
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || '________________';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || '________________';
@@ -163,17 +183,14 @@ function buildSeizureModel(form: FertSeizureFormState): NoticeBlock[] {
     [{ text: `${districtDisplay} District.`, bold: true }],
   ];
 
-  const filledProducts = form.products.filter((item) =>
-    [item.name, item.manufacturer, item.quantityMt, item.batchNo, item.remarks].some((field) => field.trim())
-  );
-  const productRows = filledProducts.length > 0 ? filledProducts : form.products;
+  const productRows = form.products && form.products.length > 0 ? form.products : [emptyProduct()];
   const tableRows = productRows.map((item, index) => [
     String(index + 1),
-    item.name,
-    item.manufacturer,
-    item.quantityMt,
-    item.batchNo,
-    item.remarks,
+    item.name || '',
+    item.manufacturer || '',
+    item.quantityMt || '',
+    item.batchNo || '',
+    item.remarks || '',
   ]);
 
   const witness1 = form.witness1.trim() || '____________________________';
@@ -335,7 +352,7 @@ export function FertilizerSeizureOrderEntry() {
   };
 
   const editSavedOrder = (order: SavedFertSeizureOrder) => {
-    setForm({ ...order, products: order.products.length ? order.products : [emptyProduct()] });
+    setForm({ ...order, products: normalizeProducts(order.products) });
     setEditingId(order.id);
     setShowPreview(false);
     showLoaded('Order loaded', order.orderNumber || 'Seizure of Stock Notice');
@@ -754,7 +771,7 @@ export function FertilizerSeizureOrderEntry() {
                   <td className="px-3 py-2 font-black">{order.orderNumber}</td>
                   <td className="px-3 py-2">{order.firmName || '-'}</td>
                   <td className="px-3 py-2">{formatNoticeDate(order.seizureDate) || '-'}</td>
-                  <td className="px-3 py-2">{order.products.filter((row) => row.name.trim()).length || '-'}</td>
+                  <td className="px-3 py-2">{order.products?.length || '-'}</td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex items-center gap-1">
                       <button type="button" onClick={() => editSavedOrder(order)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50">

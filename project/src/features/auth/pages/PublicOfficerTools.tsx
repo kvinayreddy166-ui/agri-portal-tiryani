@@ -43,24 +43,16 @@ const STATUTORY_FOLDERS = [
   { id: 'pesticides', label: 'Pesticide', telugu: 'పురుగుమందులు' },
 ];
 
-const PUBLIC_FORM_CATEGORY_ALIASES: Record<string, string[]> = {
-  fertilizers: ['fertilizers', 'fertilizer'],
-  seed: ['seed', 'seeds'],
-  pesticides: ['pesticides', 'pesticide'],
-};
-const PUBLIC_FORM_CATEGORY_VALUES = Array.from(new Set(Object.values(PUBLIC_FORM_CATEGORY_ALIASES).flat()));
-
 const PUBLIC_TOOLKIT_STATE_KEY = 'tiryani-public-officer-toolkit-state';
 const PUBLIC_FORMS_CACHE_KEY = 'tiryani-public-statutory-forms-cache';
 const PUBLIC_FORMS_PAGE_SIZE = 20;
-const PUBLIC_FORM_COLUMNS_WITHOUT_LABEL = 'id, title, description, file_url, file_type, category, created_at';
 
 export function PublicOfficerTools() {
   const location = useLocation();
   const navigate = useNavigate();
   const { language, t } = useLanguage();
   const samplingHubOpen = location.pathname === '/officer-toolkit/smart-sampling' || location.pathname === '/officer-toolkit/sampling-hub' || location.pathname === '/officer-toolkit/statutory-forms';
-  const formsLibraryOpen = location.pathname === '/officer-toolkit/forms-library';
+  const formsLibraryOpen = location.pathname === '/officer-toolkit/forms-library' || location.pathname === '/forms' || (!samplingHubOpen && !location.pathname.includes('calculator'));
   const showToolPage = samplingHubOpen || formsLibraryOpen;
   const calculatorOpen = location.pathname === '/officer-toolkit/acreage-calculator';
   const fertilizerCalculatorOpen = location.pathname === '/officer-toolkit/fertilizer-calculator';
@@ -165,6 +157,22 @@ export function PublicOfficerTools() {
     }),
     [selectedStatutoryForms, searchQuery]
   );
+  const otherMatches = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.trim().toLowerCase();
+    return STATUTORY_FOLDERS.filter((f) => f.id !== statutoryFolder)
+      .map((f) => {
+        const matchCount = statutoryForms.filter(
+          (form) =>
+            normalizePublicFormCategory(form.category) === f.id &&
+            ((form.label || form.title || '').toLowerCase().includes(query) ||
+              (form.description || '').toLowerCase().includes(query))
+        ).length;
+        return { ...f, matchCount };
+      })
+      .filter((f) => f.matchCount > 0);
+  }, [statutoryForms, statutoryFolder, searchQuery]);
+
   const statutoryPageCount = Math.max(1, Math.ceil(filteredStatutoryForms.length / PUBLIC_FORMS_PAGE_SIZE));
   const paginatedStatutoryForms = useMemo(
     () => filteredStatutoryForms.slice(
@@ -328,25 +336,41 @@ export function PublicOfficerTools() {
                 </h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
-                {STATUTORY_FOLDERS.map((folder) => (
-                  <button
-                    key={folder.id}
-                    type="button"
-                    onClick={() => setStatutoryFolder(folder.id)}
-                    className={`flex min-h-[48px] sm:h-[52px] items-center justify-between rounded-xl border px-4 py-2.5 text-left transition duration-200 ${
-                      statutoryFolder === folder.id
-                        ? 'border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-900/15'
-                        : 'border-emerald-200/90 bg-white text-slate-800 shadow-xs hover:border-emerald-400 hover:bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-slate-900 dark:text-slate-100'
-                    }`}
-                  >
-                    <span className="text-sm font-black">
-                      {language === 'te' ? folder.telugu : folder.label}
-                    </span>
-                    {statutoryFolder === folder.id && (
-                      <span className="shrink-0 text-xs font-black text-emerald-100">✓</span>
-                    )}
-                  </button>
-                ))}
+                {STATUTORY_FOLDERS.map((folder) => {
+                  const count = statutoryForms.filter(
+                    (form) => normalizePublicFormCategory(form.category) === folder.id
+                  ).length;
+                  return (
+                    <button
+                      key={folder.id}
+                      type="button"
+                      onClick={() => setStatutoryFolder(folder.id)}
+                      className={`flex min-h-[48px] sm:h-[52px] items-center justify-between rounded-xl border px-4 py-2.5 text-left transition duration-200 ${
+                        statutoryFolder === folder.id
+                          ? 'border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-900/15'
+                          : 'border-emerald-200/90 bg-white text-slate-800 shadow-xs hover:border-emerald-400 hover:bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-slate-900 dark:text-slate-100'
+                      }`}
+                    >
+                      <span className="text-sm font-black">
+                        {language === 'te' ? folder.telugu : folder.label}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                            statutoryFolder === folder.id
+                              ? 'bg-emerald-700/80 text-emerald-100'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                          }`}
+                        >
+                          {count}
+                        </span>
+                        {statutoryFolder === folder.id && (
+                          <span className="shrink-0 text-xs font-black text-emerald-100">✓</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
               {samplingHubOpen && (
                 <div className="mt-5 flex flex-col items-center justify-center text-center">
@@ -443,8 +467,27 @@ export function PublicOfficerTools() {
                 <div className="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 p-8 text-center">
                   <FileText className="mx-auto h-12 w-12 text-slate-300" />
                   <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
-                    {t('No statutory forms uploaded yet.', 'ఇంకా చట్టబద్ధ ఫారాలు అప్‌లోడ్ చేయబడలేదు.')}
+                    {searchQuery.trim()
+                      ? t('No forms matching your search in this category.', 'ఈ వర్గంలో మీ శోధనకు సరిపోలే ఫారాలు లేవు.')
+                      : t('No statutory forms uploaded yet.', 'ఇంకా చట్టబద్ధ ఫారాలు అప్‌లోడ్ చేయబడలేదు.')}
                   </p>
+                  {otherMatches.length > 0 && (
+                    <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                        {t('Found in other categories:', 'ఇతర వర్గాలలో దొరికాయి:')}
+                      </span>
+                      {otherMatches.map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setStatutoryFolder(m.id)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700"
+                        >
+                          {language === 'te' ? m.telugu : m.label} ({m.matchCount})
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
               {filteredStatutoryForms.length > PUBLIC_FORMS_PAGE_SIZE && (
@@ -655,12 +698,29 @@ function calculateAcreValues(input: string) {
   };
 }
 
+function isNetworkError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /failed to fetch|network|timed?\s?out|connection/i.test(message);
+}
+
+async function withNetworkRetry<T>(fn: () => PromiseLike<T>, retries = 3): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt >= retries || !isNetworkError(error)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+    }
+  }
+}
+
 async function fetchPublicFormsFromDatabase() {
-  const { data, error } = await supabase
-    .from('forms_downloads')
-    .select(PUBLIC_FORM_COLUMNS_WITHOUT_LABEL)
-    .in('category', PUBLIC_FORM_CATEGORY_VALUES)
-    .order('created_at', { ascending: false });
+  const { data, error } = await withNetworkRetry(() =>
+    supabase
+      .from('forms_downloads')
+      .select('id, title, description, file_url, file_type, category, created_at')
+      .order('created_at', { ascending: false })
+  );
 
   if (error) throw error;
   return ((data || []) as FormDownload[]).map(normalizePublicFormRow);
@@ -668,8 +728,10 @@ async function fetchPublicFormsFromDatabase() {
 
 function normalizePublicFormCategory(category: string) {
   const normalized = String(category || '').trim().toLowerCase();
-  const match = Object.entries(PUBLIC_FORM_CATEGORY_ALIASES).find(([, aliases]) => aliases.includes(normalized));
-  return match?.[0] || normalized;
+  if (normalized === 'fertilizer' || normalized === 'fertilizers') return 'fertilizers';
+  if (normalized === 'seed' || normalized === 'seeds') return 'seed';
+  if (normalized === 'pesticide' || normalized === 'pesticides') return 'pesticides';
+  return normalized || 'fertilizers';
 }
 
 function normalizePublicFormRow(form: FormDownload): FormDownload {
