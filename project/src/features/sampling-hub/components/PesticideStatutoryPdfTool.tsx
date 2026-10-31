@@ -28,6 +28,7 @@ import {
 import { effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, withOthersOption, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 type FieldConfig = {
   key: keyof PesticidePdfValues;
   label: string;
@@ -228,7 +229,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
-          financialYear: parsed.financialYear || parsed.year || new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
+          financialYear: parsed.financialYear || parsed.year || getDefaultCoveringLetterFinancialYear(),
           letterNumber: parsed.letterNumber ?? '',
           letterDate: parsed.letterDate || localTodayDate(),
           authorityType: parsed.authorityType || 'DAO',
@@ -240,7 +241,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       }
     } catch {}
     return {
-      financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
+      financialYear: getDefaultCoveringLetterFinancialYear(),
       letterNumber: '',
       letterDate: localTodayDate(),
       authorityType: 'DAO',

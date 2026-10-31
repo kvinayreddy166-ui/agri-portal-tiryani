@@ -1,4 +1,5 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { PageLoader, PublicReadOnlyShell, SafeSuspense } from './loading';
 import { AgronixBrandMark } from '../../shared/components/ui/AgronixBrandMark';
 import {
@@ -164,6 +165,9 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
     case 'inspection-enforcement':
       return <InspectionEnforcementHub />;
     case 'field-diagnosis':
+      if (import.meta.env.PROD) {
+        return <Navigate to="/officer-toolkit" replace />;
+      }
       return <FieldDiagnosis />;
     case 'analytics':
       return <Analytics />;
@@ -303,6 +307,9 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
     case 'inspection-enforcement':
       return <PublicToolkitPage><InspectionEnforcementHub /></PublicToolkitPage>;
     case 'field-diagnosis':
+      if (import.meta.env.PROD) {
+        return <Navigate to="/officer-toolkit" replace />;
+      }
       return <PublicToolkitPage><FieldDiagnosis /></PublicToolkitPage>;
     default:
       return null;

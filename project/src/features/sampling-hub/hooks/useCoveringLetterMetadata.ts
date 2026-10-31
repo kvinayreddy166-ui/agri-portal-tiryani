@@ -28,12 +28,33 @@ export interface InputCoveringLetterDetails {
   officePhone?: string;
 }
 
-const currentYear = new Date().getFullYear();
-export const defaultFinancialYears = [
-  `${currentYear}-${(currentYear + 1).toString().slice(-2)}`,
-  `${currentYear - 1}-${currentYear.toString().slice(-2)}`,
-  `${currentYear + 1}-${(currentYear + 2).toString().slice(-2)}`,
-];
+export const COVERING_LETTER_FINANCIAL_YEARS = [
+  '2025-26',
+  '2026-27',
+  '2027-28',
+  '2028-29',
+  '2029-30',
+  '2030-31',
+] as const;
+
+export type CoveringLetterFinancialYear = (typeof COVERING_LETTER_FINANCIAL_YEARS)[number];
+
+export function getDefaultCoveringLetterFinancialYear(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-indexed: 0 = Jan, 3 = Apr
+  const startYear = month >= 3 ? year : year - 1;
+  const currentFy = `${startYear}-${String((startYear + 1) % 100).padStart(2, '0')}`;
+  if ((COVERING_LETTER_FINANCIAL_YEARS as readonly string[]).includes(currentFy)) {
+    return currentFy;
+  }
+  if (startYear < 2025) {
+    return COVERING_LETTER_FINANCIAL_YEARS[0];
+  }
+  return COVERING_LETTER_FINANCIAL_YEARS[COVERING_LETTER_FINANCIAL_YEARS.length - 1];
+}
+
+export const defaultFinancialYears = [...COVERING_LETTER_FINANCIAL_YEARS];
 
 export function useCoveringLetterMetadata<T extends BaseCoveringLetterMetadata = BaseCoveringLetterMetadata>(
   storageKey: string,
@@ -49,7 +70,7 @@ export function useCoveringLetterMetadata<T extends BaseCoveringLetterMetadata =
     } catch {}
 
     const resolved: BaseCoveringLetterMetadata = {
-      year: initialPropsDetails?.financialYear || initialPropsDetails?.year || storageData?.financialYear || storageData?.year || defaultFinancialYears[0],
+      year: initialPropsDetails?.financialYear || initialPropsDetails?.year || storageData?.financialYear || storageData?.year || getDefaultCoveringLetterFinancialYear(),
       letterNumber: initialPropsDetails?.letterNumber ?? storageData?.letterNumber ?? '',
       letterDate: initialPropsDetails?.letterDate || storageData?.letterDate || localTodayDate(),
       authorityType: initialPropsDetails?.authorityType || storageData?.authorityType || 'DAO',
@@ -104,7 +125,7 @@ export function useCoveringLetterMetadata<T extends BaseCoveringLetterMetadata =
 
         setMetadata(prev => {
           const resolved: BaseCoveringLetterMetadata = {
-            year: initialPropsDetails?.financialYear || initialPropsDetails?.year || storageData?.financialYear || storageData?.year || prev.year || defaultFinancialYears[0],
+            year: initialPropsDetails?.financialYear || initialPropsDetails?.year || storageData?.financialYear || storageData?.year || prev.year || getDefaultCoveringLetterFinancialYear(),
             letterNumber: initialPropsDetails?.letterNumber ?? storageData?.letterNumber ?? prev.letterNumber ?? '',
             letterDate: initialPropsDetails?.letterDate || storageData?.letterDate || prev.letterDate || localTodayDate(),
             authorityType: initialPropsDetails?.authorityType || storageData?.authorityType || prev.authorityType || 'DAO',

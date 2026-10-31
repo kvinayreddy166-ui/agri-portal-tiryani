@@ -17,6 +17,7 @@ import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgricult
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
 const LAST_GENERATED_KEY = 'tiryani-seed-forms-last-generated';
@@ -164,7 +165,7 @@ export function SeedForms({
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
-          financialYear: parsed.financialYear || parsed.year || new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
+          financialYear: parsed.financialYear || parsed.year || getDefaultCoveringLetterFinancialYear(),
           letterNumber: parsed.letterNumber ?? '',
           letterDate: parsed.letterDate || localTodayDate(),
           authorityType: parsed.authorityType || 'DAO',
@@ -176,7 +177,7 @@ export function SeedForms({
       }
     } catch {}
     return {
-      financialYear: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString().slice(-2),
+      financialYear: getDefaultCoveringLetterFinancialYear(),
       letterNumber: '',
       letterDate: localTodayDate(),
       authorityType: 'DAO',

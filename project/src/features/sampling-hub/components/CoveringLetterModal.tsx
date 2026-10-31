@@ -5,7 +5,7 @@ import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistant
 import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
-import { useCoveringLetterMetadata } from '../hooks/useCoveringLetterMetadata';
+import { useCoveringLetterMetadata, COVERING_LETTER_FINANCIAL_YEARS, getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
@@ -72,12 +72,6 @@ type CoveringLetterModalProps = {
   onMetadataChange?: (metadata: CoveringLetterMetadata) => void;
 };
 
-const currentYear = new Date().getFullYear();
-const financialYears = [
-  `${currentYear}-${(currentYear + 1).toString().slice(-2)}`,
-  `${currentYear - 1}-${currentYear.toString().slice(-2)}`,
-  `${currentYear + 1}-${(currentYear + 2).toString().slice(-2)}`,
-];
 
 function incrementSerialNumber(letterNumber: string): string {
   if (!letterNumber) return letterNumber;
@@ -484,7 +478,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   type="button"
                   onClick={() => {
                     setMetadata({
-                      year: financialYears[0],
+                      year: getDefaultCoveringLetterFinancialYear(),
                       letterNumber: '',
                       letterDate: localTodayDate(),
                       authorityType: 'DAO',
@@ -505,12 +499,20 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">FINANCIAL YEAR</label>
-                  <input
-                    type="text"
+                  <select
                     value={metadata.year}
-                    readOnly
-                    className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700"
-                  />
+                    onChange={(e) => setMetadata({ ...metadata, year: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  >
+                    {((COVERING_LETTER_FINANCIAL_YEARS as readonly string[]).includes(metadata.year)
+                      ? COVERING_LETTER_FINANCIAL_YEARS
+                      : [metadata.year, ...COVERING_LETTER_FINANCIAL_YEARS].filter(Boolean)
+                    ).map((fy) => (
+                      <option key={fy} value={fy}>
+                        {fy}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">LETTER NUMBER</label>
@@ -542,19 +544,8 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-600">AUTHORITY TYPE</label>
-                  <select
-                    value={metadata.authorityType}
-                    onChange={(e) => setMetadata({ ...metadata, authorityType: e.target.value as 'DAO' | 'ADA' })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
-                  >
-                    <option value="DAO">DAO</option>
-                    <option value="ADA">ADA</option>
-                  </select>
-                </div>
-                <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">
-                    {metadata.authorityType === 'DAO' ? 'DAO MEMO NO.' : 'ADA MEMO NO.'}
+                    DAO MEMO NO.
                   </label>
                   <input
                     type="text"

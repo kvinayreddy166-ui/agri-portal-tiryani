@@ -29,14 +29,9 @@ import {
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 const showCoveringLetter = true;
 
-const currentYear = new Date().getFullYear();
-const financialYears = [
-  `${currentYear}-${(currentYear + 1).toString().slice(-2)}`,
-  `${currentYear - 1}-${currentYear.toString().slice(-2)}`,
-  `${currentYear + 1}-${(currentYear + 2).toString().slice(-2)}`,
-];
 
 type FieldConfig = {
   key: keyof FertilizerPdfValues;
@@ -1414,7 +1409,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const resetCoveringLetterDetails = () => {
     setValues(prev => ({
       ...prev,
-      financialYear: financialYears[0],
+      financialYear: getDefaultCoveringLetterFinancialYear(),
       letterNumber: '',
       letterDate: localTodayDate(),
       authorityType: 'DAO',

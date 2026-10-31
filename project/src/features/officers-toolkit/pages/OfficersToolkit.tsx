@@ -410,7 +410,10 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
 
   const shouldHideHeader = isAdmin || isTestUser;
 
-  const sortedToolkitItems = [...toolkitItems].sort((a, b) => a.title.localeCompare(b.title));
+  const visibleToolkitItems = toolkitItems.filter(
+    (item) => !(import.meta.env.PROD && item.path === '/officer-toolkit/field-diagnosis')
+  );
+  const sortedToolkitItems = [...visibleToolkitItems].sort((a, b) => a.title.localeCompare(b.title));
   const sortedExternalPortals = [...externalPortals].sort((a, b) => a.title.localeCompare(b.title));
 
   useEffect(() => {
