@@ -6,7 +6,7 @@ const SITE_URL = 'https://www.tiryaniagriportal.in';
 const SITE_NAME = 'AGRONIX';
 const DEFAULT_TITLE = 'AGRONIX – Agriculture Information Management System';
 const DEFAULT_DESCRIPTION = 'Empowering Agriculture with Intelligence. An integrated digital platform for Agricultural Officers featuring agricultural information, statutory forms, pesticide database, FCO references, tour diaries and digital tools.';
-const DEFAULT_IMAGE = `${SITE_URL}/agronix-social-preview.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/agronix-social-preview.jpg?v=2`;
 
 interface SEOProps {
   title?: string;
@@ -205,10 +205,11 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
       <meta property="og:description" content={pageDescription} />
       <meta property="og:image" content={pageImage} />
       <meta property="og:image:secure_url" content={pageImage} />
-      <meta property="og:image:type" content="image/png" />
+      <meta property="og:image:type" content={pageImage.endsWith('.png') ? 'image/png' : 'image/jpeg'} />
       <meta property="og:image:alt" content={pageTitle} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
+      <link rel="image_src" href={pageImage} />
       
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
@@ -220,7 +221,7 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
       
       {/* Additional SEO */}
       <meta name="keywords" content="Tiryani, AGRONIX, Agriculture Department Tiryani, Kumuram Bheem Asifabad, Telangana Agriculture, Crop Advisory, Weather, Farmer Services, Agriculture Portal, Government Schemes" />
-      <meta name="author" content="Department of Agriculture, Telangana" />
+      <meta name="author" content="AGRONIX" />
       
       {/* Structured Data */}
       <script type="application/ld+json">
