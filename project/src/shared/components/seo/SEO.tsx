@@ -178,11 +178,8 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
     description: DEFAULT_DESCRIPTION,
     publisher: {
       '@type': 'Organization',
-      name: 'Mandal Agricultural Office, Tiryani',
-      areaServed: {
-        '@type': 'AdministrativeArea',
-        name: 'Tiryani Mandal, Kumram Bheem Asifabad District, Telangana'
-      }
+      name: 'AGRONIX',
+      url: SITE_URL
     },
     potentialAction: {
       '@type': 'SearchAction',
