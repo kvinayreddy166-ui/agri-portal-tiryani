@@ -365,9 +365,8 @@ function translateToolkit(label?: string) {
 
 
 
-function ToolkitCard({ item, index, onClick }: { item: ToolkitItem; index: number; onClick: () => void }) {
+function ToolkitCard({ item, onClick }: { item: ToolkitItem; onClick: () => void }) {
   const { t } = useLanguage();
-  const isVisible = true;
 
   return (
     <div
@@ -515,18 +514,17 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         >
           {activeTab === 'tools' ? (
             <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
-              {sortedToolkitItems.map((item, index) => (
+              {sortedToolkitItems.map((item) => (
                 <ToolkitCard
                   key={item.path}
                   item={item}
-                  index={index}
                   onClick={() => item.path && navigate(item.path)}
                 />
               ))}
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
-              {sortedExternalPortals.map((item, index) => (
+              {sortedExternalPortals.map((item) => (
                 <a
                   key={item.externalUrl}
                   href={item.externalUrl}
@@ -536,7 +534,6 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                 >
                   <ToolkitCard
                     item={item}
-                    index={index}
                     onClick={() => {}}
                   />
                 </a>

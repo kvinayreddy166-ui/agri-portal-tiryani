@@ -297,7 +297,7 @@ export function extractIngredientNames(technicalName: string): string[] {
   // Extract names, removing concentrations and trimming
   return parts.map(part => {
     // Remove concentration patterns like "40.1%" or "40.1" and formulation types
-    const name = part.replace(/\s+\d+(\.\d+)?%?/g, '').replace(/\s+(AE|BB|BR|CS|D|DC|DP|DS|EC|ES|EW|FS|FU|G|GL|GR|LS|ME|OD|P|PA|RB|SC|SE|SG|SL|SP|TB|TC|TK|ULV|VP|WDG|WG|WP|WS)$/i, '').trim();
+    const name = part.replace(/\s+\d+(\.\d+)?%?/g, '').replace(/\s+(MTF|PGP|PGR|RTU|ULV|WDG|WSC|WSG|WSL|WSP|AE|AF|AI|AS|BB|BR|CG|CM|CS|DC|DF|DP|DS|EC|ES|EW|FL|FS|FU|GL|GR|LC|LS|LV|ME|OD|PA|PS|RB|SC|SD|SE|SG|SL|SP|TB|TC|TK|VP|WG|WP|WS|ZC|A|B|C|D|E|F|G|L|M|P|S|W)$/i, '').trim();
     return name;
   }).filter(name => name.length > 0);
 }
@@ -310,7 +310,7 @@ export function sanitizeTechnicalName(technicalName: string): string {
   const sanitized = technicalName.replace(/\s+\d+(\.\d+)?%?/g, '').trim();
   
   // Remove formulation types if present
-  const withoutFormulation = sanitized.replace(/\s+(AE|BB|BR|CS|D|DC|DP|DS|EC|ES|EW|FS|FU|G|GL|GR|LS|ME|OD|P|PA|RB|SC|SE|SG|SL|SP|TB|TC|TK|ULV|VP|WDG|WG|WP|WS)$/i, '').trim();
+  const withoutFormulation = sanitized.replace(/\s+(MTF|PGP|PGR|RTU|ULV|WDG|WSC|WSG|WSL|WSP|AE|AF|AI|AS|BB|BR|CG|CM|CS|DC|DF|DP|DS|EC|ES|EW|FL|FS|FU|GL|GR|LC|LS|LV|ME|OD|PA|PS|RB|SC|SD|SE|SG|SL|SP|TB|TC|TK|VP|WG|WP|WS|ZC|A|B|C|D|E|F|G|L|M|P|S|W)$/i, '').trim();
   
   // Normalize & to +
   const normalized = withoutFormulation.replace(/&/g, '+');
