@@ -337,9 +337,6 @@ export function PublicOfficerTools() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
                 {STATUTORY_FOLDERS.map((folder) => {
-                  const count = statutoryForms.filter(
-                    (form) => normalizePublicFormCategory(form.category) === folder.id
-                  ).length;
                   return (
                     <button
                       key={folder.id}
@@ -354,20 +351,9 @@ export function PublicOfficerTools() {
                       <span className="text-sm font-black">
                         {language === 'te' ? folder.telugu : folder.label}
                       </span>
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                            statutoryFolder === folder.id
-                              ? 'bg-emerald-700/80 text-emerald-100'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                          }`}
-                        >
-                          {count}
-                        </span>
-                        {statutoryFolder === folder.id && (
-                          <span className="shrink-0 text-xs font-black text-emerald-100">✓</span>
-                        )}
-                      </div>
+                      {statutoryFolder === folder.id && (
+                        <span className="shrink-0 text-xs font-black text-emerald-100">✓</span>
+                      )}
                     </button>
                   );
                 })}
