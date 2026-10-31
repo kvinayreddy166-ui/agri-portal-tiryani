@@ -4,7 +4,9 @@ import { useLocation } from 'react-router-dom';
 
 const SITE_URL = 'https://www.tiryaniagriportal.in';
 const SITE_NAME = 'AGRONIX';
-const DEFAULT_DESCRIPTION = 'AGRONIX - Agriculture Intelligence Platform';
+const DEFAULT_TITLE = 'AGRONIX – Agriculture Information Management System';
+const DEFAULT_DESCRIPTION = 'Empowering Agriculture with Intelligence. An integrated digital platform for Agricultural Officers featuring agricultural information, statutory forms, pesticide database, FCO references, tour diaries and digital tools.';
+const DEFAULT_IMAGE = `${SITE_URL}/agronix-social-preview.png`;
 
 interface SEOProps {
   title?: string;
@@ -16,8 +18,8 @@ interface SEOProps {
 
 const PAGE_SEO: Record<string, { title: string; description: string }> = {
   '/': {
-    title: 'AGRONIX',
-    description: 'AGRONIX - Agriculture Intelligence Platform. Farmer database, crop advisory, fertilizer calculator, dealer monitoring, statutory forms, and government schemes.',
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
   },
   '/dashboard': {
     title: 'Dashboard | AGRONIX',
@@ -162,9 +164,9 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
   const currentPath = location.pathname;
   
   const pageSEO = PAGE_SEO[currentPath] || {};
-  const pageTitle = title || pageSEO.title || SITE_NAME;
+  const pageTitle = title || pageSEO.title || DEFAULT_TITLE;
   const pageDescription = description || pageSEO.description || DEFAULT_DESCRIPTION;
-  const pageImage = image || `${SITE_URL}/images/agri-emerald-512.webp`;
+  const pageImage = image || DEFAULT_IMAGE;
   const canonicalUrl = `${SITE_URL}${currentPath}`;
 
   const jsonLd = structuredData || {
@@ -175,8 +177,8 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
     url: SITE_URL,
     description: DEFAULT_DESCRIPTION,
     publisher: {
-      '@type': 'GovernmentOrganization',
-      name: 'Department of Agriculture, Telangana',
+      '@type': 'Organization',
+      name: 'Mandal Agricultural Office, Tiryani',
       areaServed: {
         '@type': 'AdministrativeArea',
         name: 'Tiryani Mandal, Kumram Bheem Asifabad District, Telangana'
@@ -200,19 +202,24 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
       {/* Open Graph */}
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:locale" content="en_IN" />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={pageTitle} />
       <meta property="og:description" content={pageDescription} />
       <meta property="og:image" content={pageImage} />
-      <meta property="og:image:alt" content={`${SITE_NAME} logo`} />
-      <meta property="og:image:width" content="512" />
-      <meta property="og:image:height" content="512" />
+      <meta property="og:image:secure_url" content={pageImage} />
+      <meta property="og:image:type" content="image/png" />
+      <meta property="og:image:alt" content={pageTitle} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
       
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:url" content={canonicalUrl} />
       <meta name="twitter:title" content={pageTitle} />
       <meta name="twitter:description" content={pageDescription} />
       <meta name="twitter:image" content={pageImage} />
+      <meta name="twitter:image:alt" content={pageTitle} />
       
       {/* Additional SEO */}
       <meta name="keywords" content="Tiryani, AGRONIX, Agriculture Department Tiryani, Kumuram Bheem Asifabad, Telangana Agriculture, Crop Advisory, Weather, Farmer Services, Agriculture Portal, Government Schemes" />

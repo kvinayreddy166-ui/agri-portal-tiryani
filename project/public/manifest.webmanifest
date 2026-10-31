@@ -1,8 +1,8 @@
 {
-  "name": "AGRONIX",
+  "name": "AGRONIX – Agriculture Information Management System",
   "short_name": "AGRONIX",
   "id": "/",
-  "description": "AGRONIX - Agriculture Intelligence Platform",
+  "description": "Empowering Agriculture with Intelligence.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
