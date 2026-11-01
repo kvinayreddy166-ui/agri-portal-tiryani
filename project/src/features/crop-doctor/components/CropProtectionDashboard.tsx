@@ -119,8 +119,8 @@ export function CropProtectionDashboard({
           <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
             <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="mt-1 shrink-0" />
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
                   <Stethoscope className="h-6 w-6 text-white" aria-hidden="true" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -130,11 +130,11 @@ export function CropProtectionDashboard({
                   <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
                     {label('Crop Doctor', language)}
                   </h1>
+                  <p className="mt-0.5 text-xs sm:text-sm font-medium text-emerald-50 leading-snug max-w-3xl">
+                    {label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
+                  </p>
                 </div>
               </div>
-              <p className="mt-2 text-xs sm:text-sm font-medium text-emerald-50 leading-relaxed max-w-3xl">
-                {label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
-              </p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2 self-end sm:self-start pt-1">

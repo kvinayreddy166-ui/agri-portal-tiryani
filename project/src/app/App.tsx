@@ -147,6 +147,7 @@ function AppContent() {
       user ||
       currentPage === 'dashboard' ||
       PUBLIC_VIEW_PAGES.has(currentPage) ||
+      PUBLIC_PAGES.has(currentPage) ||
       location.pathname === '/officer-toolkit' ||
       PUBLIC_AUTH_ROUTES.has(location.pathname) ||
       location.pathname.startsWith('/officer-toolkit/')

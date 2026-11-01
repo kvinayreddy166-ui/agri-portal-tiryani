@@ -101,6 +101,14 @@ const PAGE_SEO: Record<string, { title: string; description: string }> = {
     title: 'Officer Toolkit | AGRONIX',
     description: 'Tools for agriculture officers including calculators, statutory forms, and acts & orders.',
   },
+  '/agrochemicals': {
+    title: 'Agrochemicals Database | AGRONIX',
+    description: 'Search registered insecticides, fungicides, weedicides, and fertilizers with IRAC, FRAC, and HRAC Mode of Action classifications.',
+  },
+  '/officer-toolkit/agrochemicals': {
+    title: 'Agrochemicals Database | AGRONIX',
+    description: 'Search registered insecticides, fungicides, weedicides, and fertilizers with IRAC, FRAC, and HRAC Mode of Action classifications.',
+  },
   '/officer-toolkit/farm-calculators': {
     title: 'Farm Calculators | AGRONIX',
     description: 'Acreage calculator, seed rate calculator, plant population calculator for Tiryani farmers.',
@@ -124,6 +132,10 @@ const PAGE_SEO: Record<string, { title: string; description: string }> = {
   '/officer-toolkit/seed-rate-calculator': {
     title: 'Seed Rate Calculator | AGRONIX',
     description: 'Calculate seed requirements based on area and crop variety for Tiryani farmers.',
+  },
+  '/officer-toolkit/irrigation-calculator': {
+    title: 'Water & Irrigation Requirement Calculator | AGRONIX',
+    description: 'Calculate pump run hours, discharge rates, and water volumes for drip and sprinkler irrigation.',
   },
   '/officer-toolkit/seed-dealer-inspection': {
     title: 'Inspections | AGRONIX',

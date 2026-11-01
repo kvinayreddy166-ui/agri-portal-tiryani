@@ -1,9 +1,10 @@
 import React from 'react';
-import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, TrendingUp, Wheat } from 'lucide-react';
+import { Bug, Droplets, FlaskConical, PackageCheck, Ruler, Sprout, TrendingUp, Wheat } from 'lucide-react';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
+import { useAuth } from '../../../shared/context/AuthContext';
 
 
 const calculatorItems = [
@@ -20,30 +21,6 @@ const calculatorItems = [
     text: 'text-sky-800 dark:text-sky-200',
   },
   {
-    title: 'Plant Population Calculator',
-    titleTe: 'మొక్కల జనాభా కాలిక్యులేటర్',
-    description: 'Enter spacing and get plants per field.',
-    descriptionTe: 'వరుస మరియు మొక్కల మధ్య దూరంతో మొక్కల సంఖ్యను లెక్కించండి.',
-    path: '/officer-toolkit/plant-population-calculator',
-    icon: Sprout,
-    accent: 'from-green-600 to-emerald-700',
-    panel: 'from-green-100 via-green-50 to-emerald-100 dark:from-green-950/40 dark:via-slate-900 dark:to-emerald-950/40',
-    border: 'border-green-300 dark:border-green-800/60',
-    text: 'text-green-800 dark:text-green-200',
-  },
-  {
-    title: 'Seed Rate Calculator',
-    titleTe: 'విత్తన మోతాదు కాలిక్యులేటర్',
-    description: 'Enter population and seed label details.',
-    descriptionTe: 'టెస్ట్ వెయిట్, మొలక శాతం మరియు మొక్కల సంఖ్యతో విత్తన అవసరాన్ని లెక్కించండి.',
-    path: '/officer-toolkit/seed-rate-calculator',
-    icon: Wheat,
-    accent: 'from-lime-600 to-emerald-700',
-    panel: 'from-lime-100 via-lime-50 to-emerald-100 dark:from-lime-950/40 dark:via-slate-900 dark:to-emerald-950/40',
-    border: 'border-lime-300 dark:border-lime-800/60',
-    text: 'text-lime-800 dark:text-lime-200',
-  },
-  {
     title: 'Fertilizer Calculator',
     titleTe: 'ఎరువుల కాలిక్యులేటర్',
     description: 'Use crop recommendation or manual nutrients.',
@@ -54,6 +31,18 @@ const calculatorItems = [
     panel: 'from-emerald-100 via-emerald-50 to-green-100 dark:from-emerald-950/40 dark:via-slate-900 dark:to-green-950/40',
     border: 'border-emerald-300 dark:border-emerald-800/60',
     text: 'text-emerald-800 dark:text-emerald-200',
+  },
+  {
+    title: 'Irrigation Calculator',
+    titleTe: 'నీటిపారుదల కాలిక్యులేటర్',
+    description: 'Calculate pump run hours for drip & sprinkler.',
+    descriptionTe: 'బిందు మరియు తుంపర సేద్యానికి పంపు పనివేళలను లెక్కించండి.',
+    path: '/officer-toolkit/irrigation-calculator',
+    icon: Droplets,
+    accent: 'from-cyan-600 to-blue-700',
+    panel: 'from-cyan-100 via-sky-50 to-blue-100 dark:from-cyan-950/40 dark:via-slate-900 dark:to-blue-950/40',
+    border: 'border-cyan-300 dark:border-cyan-800/60',
+    text: 'text-cyan-800 dark:text-cyan-200',
   },
   {
     title: 'Pesticide Calculator',
@@ -68,7 +57,19 @@ const calculatorItems = [
     text: 'text-red-800 dark:text-red-200',
   },
   {
-    title: 'Profitability Calculator',
+    title: 'Plant Population Calculator',
+    titleTe: 'మొక్కల జనాభా కాలిక్యులేటర్',
+    description: 'Enter spacing and get plants per field.',
+    descriptionTe: 'వరుస మరియు మొక్కల మధ్య దూరంతో మొక్కల సంఖ్యను లెక్కించండి.',
+    path: '/officer-toolkit/plant-population-calculator',
+    icon: Sprout,
+    accent: 'from-green-600 to-emerald-700',
+    panel: 'from-green-100 via-green-50 to-emerald-100 dark:from-green-950/40 dark:via-slate-900 dark:to-emerald-950/40',
+    border: 'border-green-300 dark:border-green-800/60',
+    text: 'text-green-800 dark:text-green-200',
+  },
+  {
+    title: 'Profit Calculator',
     titleTe: 'లాభదాయకత కాలిక్యులేటర్',
     description: 'Calculate cost of cultivation, yield and net profit.',
     descriptionTe: 'సాగు ఖర్చు, దిగుబడి మరియు నికర లాభాన్ని లెక్కించండి.',
@@ -79,11 +80,25 @@ const calculatorItems = [
     border: 'border-amber-300 dark:border-amber-800/60',
     text: 'text-amber-800 dark:text-amber-200',
   },
+  {
+    title: 'Seed Rate Calculator',
+    titleTe: 'విత్తన మోతాదు కాలిక్యులేటర్',
+    description: 'Enter population and seed label details.',
+    descriptionTe: 'టెస్ట్ వెయిట్, మొలక శాతం మరియు మొక్కల సంఖ్యతో విత్తన అవసరాన్ని లెక్కించండి.',
+    path: '/officer-toolkit/seed-rate-calculator',
+    icon: Wheat,
+    accent: 'from-lime-600 to-emerald-700',
+    panel: 'from-lime-100 via-lime-50 to-emerald-100 dark:from-lime-950/40 dark:via-slate-900 dark:to-emerald-950/40',
+    border: 'border-lime-300 dark:border-lime-800/60',
+    text: 'text-lime-800 dark:text-lime-200',
+  },
 ];
 
 export function FarmCalculators() {
   const navigate = useNavigate();
   const { t, language, toggleLanguage } = useLanguage();
+  const { isAdminUser, isTestUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
 
   return (
     <div className="space-y-4">
@@ -97,15 +112,20 @@ export function FarmCalculators() {
           subtitle={t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
           fallbackPath="/officer-toolkit"
           onBack={() => navigate('/officer-toolkit')}
+          actions={
+            <LanguageToggle
+              language={language}
+              onClick={toggleLanguage}
+              tone={showCompactHeader ? 'light' : 'solid'}
+              accent="emerald"
+            />
+          }
           className="mb-0"
         />
-        <div className="mt-2 flex items-center justify-end">
-          <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
-        </div>
       </div>
 
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {calculatorItems.map((item) => (
             <article
               key={item.path}

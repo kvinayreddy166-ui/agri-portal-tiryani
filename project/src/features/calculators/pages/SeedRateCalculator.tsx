@@ -36,9 +36,8 @@ const initialForm = {
 };
 
 const POPULAR_SEED_PRESETS = [
-  { name: 'HDPS Cotton (90×15cm)', nameTe: 'HDPS పత్తి (90×15)', pop: '30000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '75', testWeight: '90', wastage: '5', icon: '🌱' },
-  { name: 'CS Cotton (90×30cm)', nameTe: 'సాధారణ పత్తి (90×30)', pop: '15000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '75', testWeight: '90', wastage: '5', icon: '🌱' },
-  { name: 'Bengal Gram (30×15cm)', nameTe: 'శనగ (30×15)', pop: '90000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '85', testWeight: '200', wastage: '5', icon: '🫘' },
+  { name: 'Bt Cotton', nameTe: 'బిటి పత్తి', pop: '7400', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '75', testWeight: '90', wastage: '5', icon: '🌱' },
+  { name: 'Bengal Gram', nameTe: 'శనగ', pop: '90000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '85', testWeight: '200', wastage: '5', icon: '🫘' },
   { name: 'Paddy (Transplanted)', nameTe: 'వరి (నాట్లు)', pop: '133000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '2', germ: '85', testWeight: '24', wastage: '5', icon: '🌾' },
   { name: 'Maize (Hybrid)', nameTe: 'మొక్కజొన్న', pop: '33000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '90', testWeight: '280', wastage: '5', icon: '🌽' },
   { name: 'Redgram', nameTe: 'కందులు', pop: '22000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '85', testWeight: '75', wastage: '5', icon: '🌿' },
@@ -167,16 +166,18 @@ export function SeedRateCalculator() {
               'జనాభా, మొలక శాతం మరియు టెస్ట్ వెయిట్ ఆధారంగా విత్తన అవసరాన్ని లెక్కించండి.'
             )}
             onBack={() => navigate('/officer-toolkit/farm-calculators')}
+            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
             className="mb-1"
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-lime-300/60 bg-gradient-to-br from-lime-600 via-green-600 to-emerald-700 p-3.5 sm:p-4 text-white shadow-md dark:border-lime-700/60">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
-            <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
               <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-1 shrink-0" />
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
                     <Scale className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-label="Seed Rate Calculator" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -186,23 +187,24 @@ export function SeedRateCalculator() {
                     <h1 className="text-base sm:text-lg md:text-xl font-black text-white leading-snug tracking-tight">
                       {t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్')}
                     </h1>
+                    <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
+                      {t(
+                        'Calculate seed quantity requirement in kg from label details.',
+                        'జనాభా, మొలక శాతం మరియు టెస్ట్ వెయిట్ ఆధారంగా విత్తన అవసరాన్ని లెక్కించండి.'
+                      )}
+                    </p>
                   </div>
                 </div>
-                <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
-                  {t(
-                    'Calculate seed quantity requirement in kg from label details.',
-                    'జనాభా, మొలక శాతం మరియు టెస్ట్ వెయిట్ ఆధారంగా విత్తన అవసరాన్ని లెక్కించండి.'
-                  )}
-                </p>
+              </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2 self-start pt-1">
+                <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
               </div>
             </div>
           </section>
         )}
 
-        {/* Separate Compact Language Toggle below title card */}
-        <div className="mt-2 flex items-center justify-end">
-          <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
-        </div>
+
       </div>
 
       <div className="mx-auto max-w-7xl space-y-4 px-4 pb-8 sm:px-6 lg:px-8">

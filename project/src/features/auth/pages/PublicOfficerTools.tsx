@@ -624,8 +624,8 @@ export function PublicOfficerTools() {
                 <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
                   <BackButton onClick={closeToolPage} tone="solid" label={t('Back', 'వెనుకకు')} className="mt-1 shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2.5 sm:gap-3">
-                      <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                    <div className="flex items-start gap-2.5 sm:gap-3">
+                      <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
                         <FileText className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-white" aria-label={samplingHubOpen ? 'Smart Sampling' : 'Forms & Library'} />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -635,13 +635,13 @@ export function PublicOfficerTools() {
                         <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
                           {samplingHubOpen ? t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్') : t('Forms & Library', 'ఫారాలు & లైబ్రరీ')}
                         </h1>
+                        <p className="mt-0.5 text-xs sm:text-sm font-medium text-emerald-50 leading-snug max-w-3xl">
+                          {samplingHubOpen
+                            ? t('Create sample drawal forms for seed, fertilizer & pesticide', 'విత్తనం, ఎరువు & పురుగుమందు నమూనా డ్రాయింగ్ ఫారాలను సృష్టించండి')
+                            : t('Download statutory forms, proformas and official documents', 'చట్టబద్ధ ఫారాలు, ప్రొఫార్మాలు మరియు అధికారిక పత్రాలను డౌన్‌లోడ్ చేయండి')}
+                        </p>
                       </div>
                     </div>
-                    <p className="mt-2 text-xs sm:text-sm font-medium text-emerald-50 leading-relaxed max-w-3xl">
-                      {samplingHubOpen
-                        ? t('Create sample drawal forms for seed, fertilizer & pesticide', 'విత్తనం, ఎరువు & పురుగుమందు నమూనా డ్రాయింగ్ ఫారాలను సృష్టించండి')
-                        : t('Download statutory forms, proformas and official documents', 'చట్టబద్ధ ఫారాలు, ప్రొఫార్మాలు మరియు అధికారిక పత్రాలను డౌన్‌లోడ్ చేయండి')}
-                    </p>
                   </div>
                 </div>
               </div>

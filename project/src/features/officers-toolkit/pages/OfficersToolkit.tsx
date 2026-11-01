@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, ShieldCheck, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, FolderOpen, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, Microscope, type LucideIcon } from 'lucide-react';
+import { Calculator, ShieldCheck, FlaskConical, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, FolderOpen, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, Microscope, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
@@ -78,6 +78,15 @@ const toolkitItems: ToolkitItem[] = [
     bgGradient: 'from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30',
   },
   {
+    title: 'Agrochemicals Database',
+    description: 'A–Z registered chemical database for fertilizers, insecticides, fungicides & weedicides with IRAC/FRAC/HRAC MoA.',
+    path: '/officer-toolkit/agrochemicals',
+    icon: FlaskConical,
+    category: 'internal',
+    gradient: 'from-teal-600 to-emerald-700',
+    bgGradient: 'from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30',
+  },
+{
     title: 'Farm Calculators',
     description: 'Crop, seed, fertilizer and pesticide calculations.',
     path: '/officer-toolkit/farm-calculators',
@@ -435,7 +444,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
           <div className={`mb-5 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="relative overflow-hidden rounded-2xl border border-emerald-800/60 bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-900 p-4 shadow-lg shadow-emerald-900/25 backdrop-blur-sm">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 via-gold-400 to-emerald-700" />
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
                   <BackButton
                     onClick={() => navigate('/login')}
@@ -443,8 +452,8 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                     className="mt-1 shrink-0"
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2.5 sm:gap-3">
-                      <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-gold-300 shadow-sm ring-1 ring-white/25 backdrop-blur-xs">
+                    <div className="flex items-start gap-2.5 sm:gap-3">
+                      <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-gold-300 shadow-sm ring-1 ring-white/25 backdrop-blur-xs mt-0.5">
                         <ShieldCheck className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-gold-300" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -454,18 +463,19 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                         <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
                           {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                         </h1>
+                        <p className="mt-0.5 text-xs sm:text-sm font-semibold text-gold-200 leading-snug max-w-3xl">
+                          {t('Field Tools & Government Portals', 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు')}
+                        </p>
                       </div>
                     </div>
-                    <p className="mt-2 text-xs sm:text-sm font-semibold text-gold-200 leading-relaxed max-w-3xl">
-                      {t('Field Tools & Government Portals', 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు')}
-                    </p>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-2 self-end sm:self-start pt-1">
+                <div className="flex shrink-0 items-center gap-2 self-start pt-1">
                   <LanguageToggle
                     language={language}
                     onClick={toggleLanguage}
-                    className="h-9 shrink-0 rounded-xl !border-white/25 !bg-white/10 !text-white shadow-sm backdrop-blur px-3 hover:!bg-white/20"
+                    tone="solid"
+                    className="shrink-0 shadow-sm backdrop-blur"
                   />
                 </div>
               </div>

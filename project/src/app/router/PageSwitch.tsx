@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { PageLoader, PublicReadOnlyShell, SafeSuspense } from './loading';
 import { AgronixBrandMark } from '../../shared/components/ui/AgronixBrandMark';
 import {
+  AgrochemicalDatabase,
   ActsAndOrders,
   AcreageCalculator,
   Analytics,
@@ -24,6 +25,7 @@ import {
   GosCirculars,
   InsecticideDealerInspection,
   InspectionEnforcementHub,
+  IrrigationCalculator,
   KnowledgeAnalytics,
   KnowledgeAssistant,
   KnowledgeCategories,
@@ -129,6 +131,8 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} />;
     case 'license-services':
       return <LicenseServices />;
+    case 'agrochemicals':
+      return <AgrochemicalDatabase />;
     case 'farm-calculators':
       return <FarmCalculators />;
     case 'acreage-calculator':
@@ -143,6 +147,8 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       return <PlantPopulationCalculator />;
     case 'seed-rate-calculator':
       return <SeedRateCalculator />;
+    case 'irrigation-calculator':
+      return <IrrigationCalculator />;
     case 'profitability-calculator':
       return <ProfitabilityCalculator />;
     case 'acts-and-orders':
@@ -281,6 +287,8 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       );
     case 'license-services':
       return <PublicToolkitPage><LicenseServices /></PublicToolkitPage>;
+    case 'agrochemicals':
+      return <PublicToolkitPage><AgrochemicalDatabase /></PublicToolkitPage>;
     case 'farm-calculators':
       return <PublicToolkitPage><FarmCalculators /></PublicToolkitPage>;
     case 'acreage-calculator':
@@ -295,6 +303,8 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return <PublicToolkitPage><PlantPopulationCalculator /></PublicToolkitPage>;
     case 'seed-rate-calculator':
       return <PublicToolkitPage><SeedRateCalculator /></PublicToolkitPage>;
+    case 'irrigation-calculator':
+      return <PublicToolkitPage><IrrigationCalculator /></PublicToolkitPage>;
     case 'profitability-calculator':
       return <PublicToolkitPage><ProfitabilityCalculator /></PublicToolkitPage>;
     case 'acts-and-orders':

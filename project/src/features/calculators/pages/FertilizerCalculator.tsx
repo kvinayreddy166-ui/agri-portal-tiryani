@@ -1899,16 +1899,18 @@ export function FertilizerCalculator() {
             title={language === 'te' ? 'ఎరువుల కాలిక్యులేటర్' : 'Fertilizer Calculator'}
             subtitle={language === 'te' ? 'పంటకు అవసరమైన ఎరువుల లెక్కింపు' : 'Calculate crop fertilizer requirements'}
             onBack={() => navigate('/officer-toolkit/farm-calculators')}
+            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
             className="mb-1"
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 p-3.5 sm:p-4 text-white shadow-md dark:border-emerald-700/60">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
-            <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
               <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-1 shrink-0" />
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
                     <FlaskConical className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -1918,20 +1920,21 @@ export function FertilizerCalculator() {
                     <h1 className="text-base sm:text-lg md:text-xl font-black text-white leading-snug tracking-tight">
                       {language === 'te' ? 'ఎరువుల కాలిక్యులేటర్' : 'Fertilizer Calculator'}
                     </h1>
+                    <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
+                      {language === 'te' ? 'పంటకు అవసరమైన ఎరువుల లెక్కింపు' : 'Calculate crop fertilizer requirements'}
+                    </p>
                   </div>
                 </div>
-                <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
-                  {language === 'te' ? 'పంటకు అవసరమైన ఎరువుల లెక్కింపు' : 'Calculate crop fertilizer requirements'}
-                </p>
+              </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2 self-start pt-1">
+                <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
               </div>
             </div>
           </section>
         )}
 
-        {/* Separate Compact Language Toggle below title card */}
-        <div className="mt-2 flex items-center justify-end">
-          <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
-        </div>
+
       </div>
 
       <div className="mx-auto max-w-7xl space-y-4 px-4 pb-6 sm:px-6 sm:pb-8 lg:px-8">

@@ -9,11 +9,14 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/statutory-forms',
   '/officer-toolkit/acreage-calculator',
   '/officer-toolkit/farm-calculators',
+  '/agrochemicals',
+  '/officer-toolkit/agrochemicals',
   '/officer-toolkit/fertilizer-calculator',
   '/officer-toolkit/crop-doctor',
   '/officer-toolkit/pesticide-calculator',
   '/officer-toolkit/plant-population-calculator',
   '/officer-toolkit/seed-rate-calculator',
+  '/officer-toolkit/irrigation-calculator',
   '/officer-toolkit/profitability-calculator',
   '/officer-toolkit/acts-and-orders',
   '/officer-toolkit/officer-contacts',
@@ -32,12 +35,14 @@ export const PUBLIC_PAGES = new Set([
   'forms-library',
   'license-services',
   'farm-calculators',
+  'agrochemicals',
   'acreage-calculator',
   'fertilizer-calculator',
   'crop-doctor',
   'pesticide-calculator',
   'plant-population-calculator',
   'seed-rate-calculator',
+  'irrigation-calculator',
   'profitability-calculator',
   'acts-and-orders',
   'officer-contacts',
@@ -73,11 +78,14 @@ export const PAGE_PATHS: Record<string, string> = {
   'license-services': '/officer-toolkit/license-services',
   'acreage-calculator': '/acreage-calculator',
   'farm-calculators': '/officer-toolkit/farm-calculators',
+  agrochemicals: '/officer-toolkit/agrochemicals',
+  'agrochemical-database': '/officer-toolkit/agrochemicals',
   'fertilizer-calculator': '/officer-toolkit/fertilizer-calculator',
   'crop-doctor': '/officer-toolkit/crop-doctor',
   'pesticide-calculator': '/officer-toolkit/pesticide-calculator',
   'plant-population-calculator': '/officer-toolkit/plant-population-calculator',
   'seed-rate-calculator': '/officer-toolkit/seed-rate-calculator',
+  'irrigation-calculator': '/officer-toolkit/irrigation-calculator',
   'profitability-calculator': '/officer-toolkit/profitability-calculator',
   'acts-and-orders': '/officer-toolkit/acts-and-orders',
   'officer-contacts': '/officer-toolkit/officer-contacts',
@@ -123,6 +131,7 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
     pathname === '/officer-toolkit/pesticide-calculator' ||
     pathname === '/officer-toolkit/plant-population-calculator' ||
     pathname === '/officer-toolkit/seed-rate-calculator' ||
+    pathname === '/officer-toolkit/irrigation-calculator' ||
     pathname === '/officer-toolkit/profitability-calculator'
   ) {
     return '/officer-toolkit/farm-calculators';
@@ -134,7 +143,9 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
     pathname === '/officer-toolkit/statutory-forms' ||
     pathname === '/officer-toolkit/acreage-calculator' ||
     pathname === '/officer-toolkit/farm-calculators' ||
-    pathname === '/officer-toolkit/crop-doctor'
+    pathname === '/officer-toolkit/crop-doctor' ||
+    pathname === '/agrochemicals' ||
+    pathname === '/officer-toolkit/agrochemicals'
   ) {
     return '/officer-toolkit';
   }
@@ -154,7 +165,8 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
   if (page === 'forms' || page === 'forms-library' || page === 'acreage-calculator' || page === 'crop-doctor') return '/officer-toolkit';
   if (page === 'license-services') return '/officer-toolkit';
   if (page === 'farm-calculators') return '/officer-toolkit';
-  if (page === 'fertilizer-calculator' || page === 'pesticide-calculator' || page === 'plant-population-calculator' || page === 'seed-rate-calculator' || page === 'profitability-calculator') return '/officer-toolkit/farm-calculators';
+  if (page === 'agrochemicals') return '/officer-toolkit';
+  if (page === 'fertilizer-calculator' || page === 'pesticide-calculator' || page === 'plant-population-calculator' || page === 'seed-rate-calculator' || page === 'irrigation-calculator' || page === 'profitability-calculator') return '/officer-toolkit/farm-calculators';
   if (page === 'acts-and-orders') return '/officer-toolkit';
   if (page.startsWith('knowledge-')) return '/knowledge';
   if (page === 'knowledge') return '/dashboard';
@@ -189,12 +201,14 @@ export const VALID_PAGES = new Set([
   'forms-library',
   'license-services',
   'farm-calculators',
+  'agrochemicals',
   'acreage-calculator',
   'fertilizer-calculator',
   'crop-doctor',
   'pesticide-calculator',
   'plant-population-calculator',
   'seed-rate-calculator',
+  'irrigation-calculator',
   'profitability-calculator',
   'acts-and-orders',
   'officer-contacts',
@@ -222,6 +236,8 @@ export const VALID_PAGES = new Set([
 const OFFICER_TOOLKIT_PAGE_PREFIX = 'officer-toolkit/';
 const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'farm-calculators',
+  'agrochemicals',
+  'agrochemical-database',
   'acreage-calculator',
   'smart-sampling',
   'sampling-hub',
@@ -236,6 +252,7 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'pesticide-calculator',
   'plant-population-calculator',
   'seed-rate-calculator',
+  'irrigation-calculator',
   'profitability-calculator',
   'acts-and-orders',
   'legal-ready-reckoner',
@@ -247,7 +264,7 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'inspection-enforcement',
   'field-diagnosis',
 ]);
-const SUBPAGE_ALIASES: Record<string, string> = { 'smart-sampling': 'forms', 'sampling-hub': 'forms', 'statutory-forms': 'forms', 'legal-ready-reckoner': 'acts-and-orders', 'license-application-generator': 'license-services', 'crop-protection': 'crop-doctor' };
+const SUBPAGE_ALIASES: Record<string, string> = { 'smart-sampling': 'forms', 'sampling-hub': 'forms', 'statutory-forms': 'forms', 'legal-ready-reckoner': 'acts-and-orders', 'license-application-generator': 'license-services', 'crop-protection': 'crop-doctor', 'agrochemical-database': 'agrochemicals' };
 
 export function resolvePageFromLocation(location: { pathname: string; search: string; hash: string }): string {
   try {

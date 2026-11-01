@@ -38,14 +38,14 @@ export function LanguageToggle({ language, onClick, tone = 'light', accent = 'vi
       aria-label={label}
       title={label}
       className={[
-        'inline-flex h-8 min-w-[72px] items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-bold transition duration-200 active:scale-95 focus:outline-none focus:ring-4',
+        'inline-flex h-7 min-w-[60px] items-center justify-center gap-1.5 rounded-full border px-2.5 text-[11px] font-bold transition duration-200 active:scale-95 focus:outline-none focus:ring-4',
         accentFocusClass[accent],
         tone === 'solid' ? 'border-white/25 bg-white/15 text-white hover:bg-white/25' : lightAccentClass[accent],
         className,
       ].join(' ')}
     >
-      <Languages className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-      <span className="h-3.5 w-px shrink-0 bg-current opacity-30" aria-hidden="true" />
+      <Languages className="h-3 w-3 shrink-0" aria-hidden="true" />
+      <span className="h-3 w-px shrink-0 bg-current opacity-30" aria-hidden="true" />
       <span className="leading-none">{language === 'en' ? 'EN' : 'తె'}</span>
     </button>
   );

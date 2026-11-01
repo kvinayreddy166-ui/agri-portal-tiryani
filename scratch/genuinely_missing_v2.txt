@@ -1,0 +1,323 @@
+SINGLE	4	Acephate 97% DF
+SINGLE	8	Allerthrin 0.02% Coil
+SINGLE	9	Allerthrin 0.05% Coil
+SINGLE	10	Allerthrin 0.2% Coil
+SINGLE	11	Allerthrin 0.5% Aerosol
+SINGLE	12	Allerthrin 0.5% Coil
+SINGLE	13	Allerthrin 3.6% LV
+SINGLE	14	Allerthrin 4%Mat
+SINGLE	15	Alphacypermethrin 0.1% RTU
+SINGLE	16	Alphacypermethrin 0.5% Chalk
+SINGLE	17	Alphacypermethrin 0.667% LLIN
+SINGLE	18	Alphacypermethrin 05% WP
+SINGLE	21	Aluminiumphosphide15% Tab (12gm)
+SINGLE	22	Aluminium phosphide 56% Powder
+SINGLE	29	Benzoate00.10 %w/w Gel
+SINGLE	34	Bifenthrin 0.05% MC(8hrs)
+SINGLE	39	Bifenthrin 10% WP
+SINGLE	40	Bistrifluron 1% Bait
+SINGLE	44	Bromadiolone 00.005% RB
+SINGLE	45	Bromadiolone 00.25% CB
+SINGLE	56	Chlorantraniliprole 0.53% w/w GR
+SINGLE	62	Chlorfenapyr 240 g/l SC
+SINGLE	65	Chlorpyrifos 10% Granules
+SINGLE	68	Chlorpyriphos 02 %w/w EC
+SINGLE	69	Chlorpyriphos 75 %w/w WG
+SINGLE	70	Chlorpyrifos 19% ME
+SINGLE	73	Clothianidin 0.5% GR
+SINGLE	75	Coumatetralyl 0.037% Bait
+SINGLE	78	Cyantraniliprole 28.30% OD
+SINGLE	81	Cyclaniliprole 100 DC
+SINGLE	82	Cyclaniliprole 7.4 % SL
+SINGLE	85	Cyfluthrin 05% EW
+SINGLE	87	Cypermethrin 0.1% Aqueous
+SINGLE	88	Cypermethrin 0.25% DP
+SINGLE	89	Cypermethrin 03% Smoke Generator
+SINGLE	90	Cypermethrin 1% Chalk
+SINGLE	91	Cypermethrin 1% Dust
+SINGLE	94	Cyphenothrin 7.2% VP w/w (For use by pest control operators only)
+SINGLE	96	DDT 75% WP
+SINGLE	97	Deltamethrin 00.50% w/w Chalk
+SINGLE	98	Deltamethrin 1.0 % SB Anti Insect Enamel
+SINGLE	99	Deltamethrin 01 % RTU
+SINGLE	100	Deltamethrin 01.25% w/w (01.00% w/v) EC
+SINGLE	101	Deltamethrin 01.80% EC
+SINGLE	102	Deltamethrin 02.50%Flow
+SINGLE	105	Deltamethrin 1.25% ULV
+SINGLE	106	Deltamethrin 11%w/w EC
+SINGLE	107	Deltamethrin 25 % Tablet
+SINGLE	108	Deltamethrin 55% mg/m2 (impregnated bed net)
+SINGLE	109	Deltamethrin 25% WG
+SINGLE	110	Diafenthiuron 47.80% SC
+SINGLE	112	Diflubenzuron 0.1% w/w Termite bait
+SINGLE	113	Diflubenzuron 02% GR
+SINGLE	114	Diflubenzuron 02% Tablets
+SINGLE	118	Dinotefuran 0.5% RB Gel
+SINGLE	121	D-transallethrin 0.1% Coil
+SINGLE	122	D-transallethrin 2% Mat
+SINGLE	123	D-transallethrin 21.97% Mos.Mat
+SINGLE	124	Emamectinbenzoate 01.90% EC
+SINGLE	128	Ethylene Dichloride and Carbon Tetra chloride mixture (EDCT mixture3:1)
+SINGLE	131	Fenazaquin18.3% SC
+SINGLE	133	Fenmezoditiaz 10% WG
+SINGLE	134	Fenitrothion 2% Spray
+SINGLE	135	Fenitrothion 20% OL
+SINGLE	138	Fenpropathrin 10% EC
+SINGLE	139	Fenpropathrin 10% EW
+SINGLE	142	Fenpyroximate 05% SC
+SINGLE	143	Fenvalerate 00.40% DP
+SINGLE	144	Fenvalerate 02% Conc.
+SINGLE	146	Fipronil 0.03% Gel
+SINGLE	147	Fipronil 0.05% GEL
+SINGLE	150	Fipronil 0.6% WG
+SINGLE	151	Fipronil 0.8% WG
+SINGLE	152	Fipronil 2.92% EC
+SINGLE	154	Fipronil 18.87% w/w SC
+SINGLE	156	Flocoumafen 0.005% Block Bait
+SINGLE	157	Flometoquin 10% SC
+SINGLE	159	Fluazandolizine 41.15 % SC
+SINGLE	160	Flubendiamide 00.70% GR
+SINGLE	161	Flubendiamide 20%WG
+SINGLE	163	Flufenoxuron 10% DC
+SINGLE	164	Flumite 20% SC/ Flufenzine 20% SC
+SINGLE	168	Flupyrimin 41.32% FS
+SINGLE	171	Gossyplure wax formulation-1
+SINGLE	173	Imidacloprid 0.03% w/w Gel
+SINGLE	174	Imidacloprid 0.30% GR
+SINGLE	175	Imidacloprid 2.15% w/w Gel
+SINGLE	176	Imidacloprid 17.1%w/w SL
+SINGLE	178	Imidacloprid 30.50% m/m SC
+SINGLE	181	Imidacloprid 70% WS
+SINGLE	183	Indoxacarb 15.80 % EC
+SINGLE	184	Isocycloseram 9.2% w/w DC (Isocycloseram 10% DC)
+SINGLE	186	Lambda-cyhalothrin 0.50% Chalk
+SINGLE	187	Lambda-cyhalothrin 22.8% CS
+SINGLE	188	Lambda cyhalothrin 24% WDG
+SINGLE	189	Lambda-cyhalothrin 2.43% CS
+SINGLE	190	Lambda-cyhalothrin 2.50% EC
+SINGLE	192	Lambda-cyhalothrin 5% EC
+SINGLE	193	Lambda-cyhalothrin 10% WP
+SINGLE	194	Lambda-cyhalothrin 9.7 % CS
+SINGLE	195	Malathion 02% House Hold Spray
+SINGLE	196	Malathion 05%DP
+SINGLE	197	Malathion 25 %WP
+SINGLE	199	Malathion 96%ULV
+SINGLE	203	Methyl Bromide 98%w/w
+SINGLE	204	Metofluthrin 0.005% Mosquito coil (12 Hrs)
+SINGLE	205	Metofluthrin 0.005% Mosquito coil (7 Hrs)
+SINGLE	206	Metofluthrin 0.14% w/w Aerosol
+SINGLE	207	Metofluthrin 0.32%LV
+SINGLE	210	Nitepyram 25% SP
+SINGLE	211	Novaluron 08.80 %SC
+SINGLE	215	Permethrin 2.0% Aerosol
+SINGLE	217	Phenthoate 2% DP
+SINGLE	219	Phosalone 04 % DP
+SINGLE	223	Pirimiphos-methyl 01% Spray
+SINGLE	224	Prallethrin 0.04% Mosquito coil (11 Hrs)
+SINGLE	225	Prallethrin 0.04%Mosquitocoil(12Hrs)
+SINGLE	226	Prallethrin 0.04%Mosquitocoil(6Hrs)
+SINGLE	227	Prallethrin 0.5% Mosquitocoil
+SINGLE	228	Prallethrin 0.8% Redmosquitomat
+SINGLE	229	Prallethrin 0.8% Vaporizer
+SINGLE	230	Prallethrin 1.2% Mat
+SINGLE	231	Prallethrin 19% w/w VP
+SINGLE	234	Propetamphos 1% Spray
+SINGLE	235	Propoxur 01% Spray
+SINGLE	236	Propoxur 02% Bait
+SINGLE	237	Propoxur 20% EC
+SINGLE	239	Pyrethrin 0.20% Spray
+SINGLE	240	Pyribenzoxim 05 % w/w EC
+SINGLE	243	Pyrifluinazon 20% WG
+SINGLE	244	Pyriproxyfen 0.50% GR
+SINGLE	246	Pyriproxyfen 10% EW
+SINGLE	247	Quinalphos 01.50% DP
+SINGLE	248	Quinalphos 5 % Granules
+SINGLE	249	Quinalphos 20 % AF
+SINGLE	251	Quinalphos25 % Gel
+SINGLE	252	Renofluthrin 0.025% w/w Mosquito Coil
+SINGLE	253	Renofluthrin 1.5% w/w Liquid Vaporiser
+SINGLE	254	Renofluthrin 5% MUP
+SINGLE	255	S-Bioallethrin 2.4% Mat
+SINGLE	256	Spinetoram 0.1% RB
+SINGLE	258	Spinosad 2.50% SC
+SINGLE	259	Spinosad 2.50% w/w GR
+SINGLE	260	Spinosad 20.62% w/w EC
+SINGLE	264	Sulfoxaflor 11.4%w/w SC
+SINGLE	266	Sulfoxaflor 50% WG
+SINGLE	269	Tebufenozide 22.64% w/w (24% w/v) SC
+SINGLE	270	Temephos 50 % EC
+SINGLE	272	Tetraniliprole 40.34%FS
+SINGLE	274	Thiamethoxam 0.01%w/w Gel Bait
+SINGLE	277	Thiamethoxam 70% WS
+SINGLE	278	Thiamethoxam 75 % w/w SG
+SINGLE	279	Thiamethoxam 1.2% GR
+SINGLE	283	Transfluthrin 0.15% Mosquito coil
+SINGLE	284	Transfluthrin 0.03% Mos.Coil
+SINGLE	285	Transfluthrin 0.08% Aerosol
+SINGLE	286	Transfluthrin 0.88% Liquid Vaporiser
+SINGLE	287	Transfluthrin 1%EU
+SINGLE	288	Transfluthrin 1.2%LV
+SINGLE	289	Transfluthrin 1.6%LV
+SINGLE	290	Transfluthrin 12.0%AE
+SINGLE	291	Transfluthrin 20% MV Gel (30 days mat tray)
+SINGLE	292	Triflumezopyrim 10.6% SC
+SINGLE	293	Triflumezopyrim 20% WG
+SINGLE	294	Zinc Phosphide 01%bait (Household Product)
+COMBO	683	Acephate 25%+ Fenvalerate 3% EC
+COMBO	686	Acephate 50%+ Fiproni l5% WDG
+COMBO	688	Acephate 50% + Imidacloprid 5% WG
+COMBO	690	Acetamiprid 1.1%+ Cypermethrin 5.5% EC
+COMBO	693	Acetamiprid 19.5% + Chlorantraniliprole 19.5% FS
+COMBO	694	Afidopyropen 50 g/l + Abamectin 25 g/l DC
+COMBO	695	Alphacypermethrin 75 g/l + Teflubenzuron 75 g/l SC
+COMBO	696	Benzpyrimoxan 10% + Pymetrozine 20% WG
+COMBO	697	Benzpyrimoxan 15% + Fipronil 10% SC
+COMBO	698	Benzpyrimoxan 10.0 % + Thiamethoxam 3.3 % SC
+COMBO	700	Bifenthrin 2.5% + Acetamiprid 2.1% ME
+COMBO	701	Bifenthrin 10% + Thiamethoxam 5% SC
+COMBO	702	Bifenthrin 3% + Chlorpyriphos 30% EC
+COMBO	703	Bifenthrin 8%+ Clothianidin 10% SC
+COMBO	705	Bifenthrin 32 % + Chlorantraniliprole 12% WG
+COMBO	706	Buprofezin 20%+ Acephate 50% WP
+COMBO	707	Buprofezin 20%+ Acetamiprid 2% WP
+COMBO	708	Buprofezin 22.0%+ Fipronil 3.0% SC
+COMBO	709	Buprofezin 22.5% + Diafenthiuron 27% w/v SC
+COMBO	710	Buprofezin 23.1%+ Fipronil 3.85% SC
+COMBO	711	Buprofezin 9.0%+ Acephate 24.0% WP
+COMBO	713	Cartap hydrochloride 25% + Emamectin benzoate 1% SG
+COMBO	714	CartapHydrochloride 4.0%+ Fipronil 0.50% GC
+COMBO	715	Cartaphydrochloride 50%+ Buprofezin 10% WP
+COMBO	718	Chlorantraniliprole 0.35% + Fipronil 0.35% GR
+COMBO	720	Chlorantraniliprole 0.53% w/w + Fipronil 0.8% w/w GR
+COMBO	722	Chlorantraniliprole 12% + Fipronil 30% w/w WG
+COMBO	724	Chlorantraniliprole 4.5% + Novaluron 11.5% + Emamectin Benzoate 1.5% SE
+COMBO	725	Chlorantraniliprole 5.2% + Novaluron 8.5% SC
+COMBO	726	Chlorantraniliprole 7.5% w/w + Thiamethoxam 7.5% w/w OD
+COMBO	727	Chlorantraniliprole 8.8% + Thiamethoxam 17.5% SC
+COMBO	729	Chloropyriphos 16% + Alphacypermethrin 1% EC
+COMBO	730	Chlorantraniliprole 15% + Emamectin benzoate 7.5% SC
+COMBO	731	Chlorantraniliprole 24% + Emamectin Benzoate 8.8% WG
+COMBO	732	Chlorantraniliprole 0.4% + Fipronil 0.6% GR
+COMBO	733	Chlorantraniliprole 10% + Novaluron 20% SC
+COMBO	734	Chlorantraniliprorle 0.45% + Fipronil 0.5% + Emamectin benzoate 0.18% GR
+COMBO	735	Chlorantraniliporle 0.4% + Fipronil 0.6% + Clothianidin 1.0% GR
+COMBO	736	Chlorantraniliprole 6.5% + Lufenuron 5% + Emamectin benzoate 2% SC
+COMBO	737	Clothianidin 10% + Chlorantraniliprole 6% WG
+COMBO	739	Chlorpyriphos 50% + Cypermethrin 5% WG
+COMBO	740	Clothianidin 3.5% + Pyriproxyfen 8% SE
+COMBO	741	Cyantraniliprole 16.9% + Lufenuron 16.9% SC
+COMBO	742	Cyantraniliprole 7.3% + Diafenthiuron 36.4% SC
+COMBO	744	Cyantraniliprole 19.8% + Thiamethoxam 19.8% FS
+COMBO	745	Cyclanilide 2.10% + MepiquatChloride 8.40% SC
+COMBO	746	Cyfluthrin 0.025% + Tranfluthrin 0.04% Aerosol
+COMBO	748	Cypermethrin 3% + Quinalphos 20% EC
+COMBO	749	Deltamethrin 0.02% + Allethrin 0.13% EC
+COMBO	750	Deltamethrin 0.05% + Allethrin 0.04% EC
+COMBO	751	Deltamethrin 0.15% + Piperonyl 0.55% EC
+COMBO	752	Deltamethrin 0.15%+Fipronil 0.55% EC
+COMBO	753	Deltamethrin 0.72% + Buprofezin 5.65% EC
+COMBO	754	Deltamethrin 2.5% + D-trans-allethrin 2.0% EC
+COMBO	755	Diafenthiuron 30% + Pyriproxyfen 8% SE
+COMBO	756	Diafenthiuron 40% + Spinetoram 5% SC
+COMBO	758	Diafenthiuron 48.0% + Dinotefuran 8.0% WG
+COMBO	759	Diafenthiuron 18% + Fipronil 8% + Dinotefuran 5% SC
+COMBO	760	Diafenthiuron 12% + Fipronil 8% + Tolfenpyrad 5% SC
+COMBO	761	Diflubenzuron 20% + Deltamethrin 2% SC
+COMBO	762	Dimethoate 20% + Cypermethrin 3% EC
+COMBO	763	Dinotefuran 11% + Pymetrozine 36% WG
+COMBO	764	Dinotefuran 15% + Pymetrozine 45% WG
+COMBO	765	Dinotefuran 4% + Acephate 50% SG
+COMBO	766	Dinotefuran 5% + Ethion 50% EC
+COMBO	767	Didinotefuran 12% + Thiamethoxam 22.5% + Pymetrozine 30% WG
+COMBO	768	D-trans-allethrin 0.1% + Permethrin 0.03% + Imiprothroin 0.02% Aerosol
+COMBO	769	Emamectin benzoate 1.1% + Diafenthiuron 30% SC
+COMBO	771	EmamectinBenzoate1.5% + Profenofos 35% WDG
+COMBO	772	Emamectin benzoate 2.2% + Permethrin 15.3% SC
+COMBO	774	Emamectin benzoate 3.5% + Lambda cyhalothrin 5% WP
+COMBO	774	Emamectin benzoate 3.8% + Thiamethoxam 20% WDG
+COMBO	775	Emamectin Benzoate 1.25% + Lambda Cyhalothrin 1.5% + Bifenthrin 4.5% EC
+COMBO	777	Emamectin benzoate 1.9% + Chlorantraniliprole 5% + Deltamethrin 1% EC
+COMBO	778	Emamectin Benzoate 1.1% + Deltamethrin 1.5% + Lambda Cyhalothrin 1.5% ME
+COMBO	779	Ethion 40% + Cypermethrin 5% EC
+COMBO	780	Ethiprole 10.7% + Pymetrozine 40% WG
+COMBO	782	Etofenprox 6% + Diafenthiuron 25% WG
+COMBO	783	Etoxazole 6 % + Abamectin 1.5 % SC
+COMBO	785	Fenobucarb 20% + Buprofezin 5% SE
+COMBO	786	Fenobucarb 22.5% + Buprofezin 11.25% + Acephate 2.5% ME
+COMBO	787	Fipronil 10% + Diafenthiuron 30% WG
+COMBO	788	Fipronil 12.5% + Lambda-cyhalothrin 5% ZC
+COMBO	789	Fipronil 15% + Deltamethrin 2.5% SC
+COMBO	790	Fipronil 15%+ Flonicamid 15% WDG
+COMBO	791	Fipronil 2.50% + Propargite 35.00% SE
+COMBO	793	Fipronil 4%+ Thiamethoxam 4%w/w SC
+COMBO	795	Fipronil 15 % + Imidacloprid 5 % SC
+COMBO	796	Fipronil 5% + Buprofenzin 20% SC
+COMBO	797	Fipronil 15 % + Chlorantraniliprole 5 % SC
+COMBO	798	Fipronil 7% + Hexythiazox 2%w/w SC
+COMBO	799	Fipronil 8% + Pymetrozine 35% WG
+COMBO	801	Flonicamid 20% + Fipronil 8% SC
+COMBO	802	Flonicamid 18% + Spirotetramat 13.5% SC
+COMBO	803	Flonicamid 20% + Chlorantraniliprole 8% + Abamectin 2% SC
+COMBO	804	Flonicamid 15% + Pyrirpoxyfen 12% + Acetamiprid 2% ME
+COMBO	806	Flubendiamide 3.50% + Hexaconazole 5% WG
+COMBO	807	Flubendiamide 4%+ Buprofezin 20%SC
+COMBO	808	Flubendiamide 7.5%+ Kresoximmethyl 37.5% SC
+COMBO	809	Flubendiamide 8.33%+ Deltamethrin 5.56% SC
+COMBO	810	Fluxametamide 3.8%+ Pyridaben 9.5% SC
+COMBO	812	Hexythiazox 3.5 + Diafenthiuron 42% WDG
+COMBO	813	Imidacloprid 18.50% + Hexaconazole1.50% FS
+COMBO	814	Imidacloprid 20%+ Bifenthrin 8% SL
+COMBO	816	Imidacloprid 6.0% + Lambdacyhalothrin 4.0% SL
+COMBO	817	Imiprothrin 0.05% + Cypermethrin 1.0% CL
+COMBO	818	Imiprothrin 0.07% + Cypermethrin 0.20% Aerosol
+COMBO	819	Imiprothrin 0.1% + Cyphenothrin 0.15%
+COMBO	820	Indoxacarb 10% + Thiamethoxam 10% WG
+COMBO	821	Indoxacarb 14.5% + Acetamiprid 7.7% SC
+COMBO	822	Indoxacarb 5% + Fipronil 5% SC
+COMBO	823	Indoxacarb 12% (12% S-Isomer, 4% R-Isomer) + Chlorantraniliprole 12% OD
+COMBO	824	Indoxacarb 20% + Emamectin benzoate 4% EC
+COMBO	825	Isoprothiolane 28% + Fipronil 5% EC
+COMBO	826	Lambda-Cyhalothrin 5% + Clothianidin 5% + Carbendazim 37% SC
+COMBO	828	Lufenuron 4% + Emamectin Benzoate 1.5% EC
+COMBO	829	Lufenuron 20% + Chlorantraniliprole 10% + Pyriproxyfen 5% WG
+COMBO	830	Methoxyfenozide 18% + Emamectin benzoate 1.8% SC
+COMBO	831	Methoxyfenozide 20 % + Chlorantraniliprole 5 % SC
+COMBO	832	Methoxyfenozide 5% + Chlorpyriphos 25% SE
+COMBO	833	Nitenpyram 15.0% + Fipronil 20.0% WP
+COMBO	834	Novaluron 5.25% + Emamectin benzoate 0.9%w/w SC
+COMBO	837	Phenthoate 45% + Cypermethrin 6% EC
+COMBO	838	Phenthoate 35% + Emamectin benzoate 3.5% EC
+COMBO	840	Profenofos 40% + Cypermethrin 4% w/v EW
+COMBO	841	Profenofos 50% + Cypermethrin 5% WDG
+COMBO	842	Profenofos 50 % + Fenpropathrin 5 % EC
+COMBO	843	Profenofos 40 % + Fenpyroximate2.50 % EC
+COMBO	844	Profenofos 40% + Lambda cyhalothrin 1.5% EC
+COMBO	845	Propargite 42% + Hexythiazox 2%EC
+COMBO	846	Propargite 50% + Bifenthrin 5%SE
+COMBO	847	Propoxur 0.5% + Cyfluthrin 0.025% Spray
+COMBO	848	Propoxur 0.75% + Cyfluthrin 0.025% Aerosol
+COMBO	849	Pyrethrin 0.05% + Malathion 1% Household
+COMBO	851	Pyriproxyfen 5% + Fenpropathrin 15%EC
+COMBO	852	Pyriproxyfen 5.0% + Diafenthiuron 25%SE
+COMBO	853	Pyriproxyfen 8% + Dinotefuran5% + Diafenthiuron18%SC
+COMBO	854	Pymetrozine 14.8% + Fipronil 7.5% + Dinotefuran 4.8% SC
+COMBO	855	Pymetrozine 29.2% w/w + Dinotefuran 11.7% w/w WDG
+COMBO	856	Pymetrozine 11.3% + Triflumezopyrim 1.9% SC
+COMBO	857	Pyridalyl 7% + Emamectin benzoate 1% EC
+COMBO	858	Sedaxane 12.61% + Azoxystrobin 3.15% + Thiamethoxam 22.6% FS
+COMBO	859	Spinoteram 5.66% + Methoxyfenozide 28.3% SC
+COMBO	860	Spiropidion 9.6% + Abamectin 1.4% SC u/s
+COMBO	861	Spiropidion 30% w/w + Acetamiprid 24% w/w WG
+COMBO	862	Spiromesifen 15% + Hexythiazox 2.2% + Abamectin 1.15% SC
+COMBO	865	Sulphur 75% + Chlorantraniliprole 0.85% WDG
+COMBO	866	Tetraniliprole 10.08 % + Thiacloprid 30.25 % SC
+COMBO	867	Tetraniliprole 10.81% + Spirotetramat 21.62% SC
+COMBO	868	Tetraniliprole 16% + Lambda-Cyhalothrin 10% OD
+COMBO	870	Thiamethoxam 0.9% + Fipronil 0.2%GR
+COMBO	871	Thiamethoxam 1.0% + Chlorantraniliprole 0.5% GR
+COMBO	872	Thiamethoxam 1.25% + Fipronil 1.25% + Chlorantraniliprole 0.6% GR
+COMBO	874	Thiamethoxam 1.25% + Fipronil 1.25% + Chlorantraniliprole 0.6% GR
+COMBO	875	Tolfenpyrad 15% + Bifenthrin 7.5% SE
+COMBO	876	Tolfenpyrad 30% + Pyriproxyfen 10% + Acetamiprid 4% EC
+COMBO	877	Transfluthrin1.0% + Cypermethrin 0.25% Spray
+COMBO	878	Triflumezopyrim 0.45% + Chlorantraniliprole 0.5% GR

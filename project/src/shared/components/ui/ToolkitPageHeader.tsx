@@ -196,13 +196,13 @@ export function CompactToolkitHeader({
 
   return (
     <header className={`mb-4 ${className}`}>
-      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+      <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 items-start gap-2.5 sm:gap-3.5">
           {onBack && <BackButton onClick={onBack} className="mt-1 shrink-0" />}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex items-start gap-2.5 sm:gap-3">
               {Icon && (
-                <div className={`flex ${iconBoxClass} shrink-0 items-center justify-center bg-slate-100 dark:bg-slate-800/80 ring-1 ring-slate-200/80 dark:ring-slate-700/80 shadow-xs ${COMPACT_ICON_STYLES[tone] || COMPACT_ICON_STYLES.emerald}`}>
+                <div className={`flex ${iconBoxClass} shrink-0 items-center justify-center bg-slate-100 dark:bg-slate-800/80 ring-1 ring-slate-200/80 dark:ring-slate-700/80 shadow-xs ${COMPACT_ICON_STYLES[tone] || COMPACT_ICON_STYLES.emerald} mt-0.5`}>
                   <Icon className={iconSvgClass} />
                 </div>
               )}
@@ -215,13 +215,13 @@ export function CompactToolkitHeader({
                 <h1 className="text-lg sm:text-xl font-black leading-tight text-slate-950 dark:text-white sm:text-2xl">
                   {title}
                 </h1>
+                {subtitle && (
+                  <p className="mt-0.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 leading-snug max-w-3xl">
+                    {subtitle}
+                  </p>
+                )}
               </div>
             </div>
-            {subtitle && (
-              <p className="mt-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl">
-                {subtitle}
-              </p>
-            )}
           </div>
         </div>
         {actions && <div className="flex shrink-0 items-center gap-2 self-start pt-1">{actions}</div>}
@@ -290,13 +290,13 @@ export function ToolkitPageHeader({
   return (
     <div className={`relative mb-5 overflow-hidden rounded-2xl border p-4 ${theme.container} ${className}`}>
       <div className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${variant === 'solid' ? 'from-white/70 via-white/50 to-white/70' : BAR_STYLES[tone]}`} />
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
           <BackButton onClick={handleBack} colors={theme.backBtn} className="mt-1 shrink-0" />
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex items-start gap-2.5 sm:gap-3">
               {Icon && (
-                <div className={`flex ${iconBoxClass} shrink-0 items-center justify-center shadow-sm ring-1 ring-white/25 backdrop-blur-xs ${theme.iconBg}`}>
+                <div className={`flex ${iconBoxClass} shrink-0 items-center justify-center shadow-sm ring-1 ring-white/25 backdrop-blur-xs ${theme.iconBg} mt-0.5`}>
                   <Icon className={iconSvgClass} />
                 </div>
               )}
@@ -309,16 +309,16 @@ export function ToolkitPageHeader({
                 <h1 className={`text-lg sm:text-xl md:text-2xl font-black leading-snug tracking-tight ${theme.title}`}>
                   {title}
                 </h1>
+                {subtitle && (
+                  <p className={`mt-0.5 text-xs sm:text-sm font-medium leading-snug max-w-3xl ${variant === 'solid' ? 'text-white/90' : 'text-slate-600 dark:text-slate-300'}`}>
+                    {subtitle}
+                  </p>
+                )}
               </div>
             </div>
-            {subtitle && (
-              <p className={`mt-2 text-xs sm:text-sm font-medium leading-relaxed max-w-3xl ${variant === 'solid' ? 'text-white/90' : 'text-slate-600 dark:text-slate-300'}`}>
-                {subtitle}
-              </p>
-            )}
           </div>
         </div>
-        {actions && <div className="flex shrink-0 items-center gap-2 self-end sm:self-start pt-1">{actions}</div>}
+        {actions && <div className="flex shrink-0 items-center gap-2 self-start pt-1">{actions}</div>}
       </div>
     </div>
   );

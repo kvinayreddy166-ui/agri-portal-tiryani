@@ -47,6 +47,8 @@ import { InsecticideExplorer, type InsecticideExplorerSection } from '../compone
 import { FcoImplementationModal } from '../../../shared/components/ui/FcoImplementationModal';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { useAuth } from '../../../shared/context/AuthContext';
+import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 type ReckonerView = 'powers' | 'notice';
 type MainLegalArea = 'fertilizer' | 'seed' | 'insecticide';
 type FertilizerSection = 'clauses' | 'forms' | 'schedules' | 'duties';
@@ -358,13 +360,13 @@ function readBookmarks() {
   }
 }
 
-function renderHeadingTitle(title: string) {
+function renderHeadingTitle(title: string, isWhite = true) {
   const match = title.match(/^(.*?)\s*(\([^)]*\))\s*$/);
   if (match) {
     return (
       <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
         <span>{match[1]}</span>
-        <span className="text-sm sm:text-base md:text-lg font-bold text-white/90 whitespace-nowrap">
+        <span className={`text-sm sm:text-base md:text-lg font-bold whitespace-nowrap ${isWhite ? 'text-white/90' : 'text-slate-600 dark:text-slate-400'}`}>
           {match[2]}
         </span>
       </span>
@@ -376,6 +378,8 @@ function renderHeadingTitle(title: string) {
 export function ActsAndOrders() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAdminUser, isTestUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
   const [view, setView] = useState<ReckonerView>('powers');
   const [selectedLegalArea, setSelectedLegalArea] = useState<MainLegalArea | null>(null);
   const [query, setQuery] = useState('');
@@ -618,57 +622,57 @@ export function ActsAndOrders() {
   return (
     <div className="mx-auto max-w-7xl space-y-4 px-4 pb-6 pt-4 sm:px-6 sm:pb-8 lg:px-8">
       {!selectedFcoCardId && (
-        <section className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 text-white shadow-lg ${
-          activeAreaCard
-            ? `border-white/20 bg-gradient-to-br ${activeAreaCard.color}`
-            : selectedLegalArea === 'fertilizer'
-            ? 'border-indigo-400/40 bg-gradient-to-br from-indigo-700 via-indigo-800 to-violet-950'
-            : selectedLegalArea === 'insecticide'
-            ? 'border-amber-400/40 bg-gradient-to-br from-amber-600 via-orange-700 to-red-800'
-            : 'border-emerald-300/60 bg-gradient-to-br from-emerald-700 via-teal-700 to-emerald-900'
-        }`}>
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
-              <BackButton onClick={handleBack} tone="solid" className="mt-1 shrink-0" />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
-                    <CurrentIcon className="h-6 w-6 text-white" aria-hidden="true" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    {currentMeta.eyebrow && (
-                      <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-white/80 mb-0.5">
-                        {currentMeta.eyebrow}
-                      </p>
-                    )}
-                    <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
-                      {renderHeadingTitle(currentMeta.title)}
-                    </h1>
+        showCompactHeader ? (
+          <CompactToolkitHeader
+            icon={CurrentIcon}
+            eyebrow={currentMeta.eyebrow}
+            title={renderHeadingTitle(currentMeta.title, false)}
+            subtitle={currentMeta.subtitle}
+            tone={selectedLegalArea === 'fertilizer' ? 'indigo' : selectedLegalArea === 'insecticide' ? 'amber' : 'emerald'}
+            onBack={handleBack}
+            className="mb-1"
+          />
+        ) : (
+          <section className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 text-white shadow-lg ${
+            activeAreaCard
+              ? `border-white/20 bg-gradient-to-br ${activeAreaCard.color}`
+              : selectedLegalArea === 'fertilizer'
+              ? 'border-indigo-400/40 bg-gradient-to-br from-indigo-700 via-indigo-800 to-violet-950'
+              : selectedLegalArea === 'insecticide'
+              ? 'border-amber-400/40 bg-gradient-to-br from-amber-600 via-orange-700 to-red-800'
+              : 'border-emerald-300/60 bg-gradient-to-br from-emerald-700 via-teal-700 to-emerald-900'
+          }`}>
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
+                <BackButton onClick={handleBack} tone="solid" className="mt-1 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
+                      <CurrentIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      {currentMeta.eyebrow && (
+                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-white/80 mb-0.5">
+                          {currentMeta.eyebrow}
+                        </p>
+                      )}
+                      <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                        {renderHeadingTitle(currentMeta.title)}
+                      </h1>
+                      {currentMeta.subtitle && (
+                        <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
+                          {currentMeta.subtitle}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-                {currentMeta.subtitle && (
-                  <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
-                    {currentMeta.subtitle}
-                  </p>
-                )}
               </div>
-            </div>
 
-            {selectedLegalArea && (
-              <div className="flex shrink-0 items-center gap-2 self-end sm:self-center pt-1 sm:pt-0">
-                <button
-                  type="button"
-                  onClick={closeLegalArea}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/30 bg-white/15 px-3 py-1.5 text-xs font-black text-white backdrop-blur-sm transition hover:bg-white/25 active:scale-95"
-                >
-                  <Scale className="h-3.5 w-3.5" />
-                  <span>All Categories</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </section>
+            </div>
+          </section>
+        )
       )}
       {!selectedLegalArea && (
         <LegalAreaOpeningScreen onOpen={openLegalArea} />
@@ -1357,45 +1361,64 @@ function FcoCardDetailPage({
   onOpenRelated: (target: { clauseId: string; cardId: string }) => void;
   onTabChange: (tab: FcoTabId) => void;
 }) {
+  const { isAdminUser, isTestUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser;
   const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
   const t = fcoAccentThemes[accent];
 
   return (
     <section className="space-y-3">
-      <div className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 text-white shadow-lg ${
-        accent === 'amber'
-          ? 'border-amber-300/60 bg-gradient-to-br from-amber-600 via-orange-600 to-red-700 dark:border-amber-700/60'
-          : 'border-indigo-300/60 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 dark:border-indigo-700/60'
-      }`}>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
-            <BackButton onClick={onBack} tone="solid" label="Back to cards" className="mt-1 shrink-0" />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
-                  <Icon className="h-6 w-6 text-white" aria-hidden="true" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
-                    {card.cardTitle}
-                  </h1>
-                </div>
-              </div>
-              {card.summary && (
-                <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
-                  {card.summary}
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex shrink-0 items-center gap-2 self-end sm:self-center pt-1 sm:pt-0">
-            <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white ring-1 ring-white/30 backdrop-blur-xs">
+      {showCompactHeader ? (
+        <CompactToolkitHeader
+          icon={Icon}
+          eyebrow={`${badgeLabel} ${card.cardNo} • ${card.clauseRange}`}
+          title={card.cardTitle}
+          subtitle={card.summary}
+          tone={accent === 'amber' ? 'amber' : 'indigo'}
+          onBack={onBack}
+          actions={
+            <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
               {badgeLabel} {card.cardNo} ({card.clauseRange})
             </span>
+          }
+          className="mb-1"
+        />
+      ) : (
+        <div className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 text-white shadow-lg ${
+          accent === 'amber'
+            ? 'border-amber-300/60 bg-gradient-to-br from-amber-600 via-orange-600 to-red-700 dark:border-amber-700/60'
+            : 'border-indigo-300/60 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 dark:border-indigo-700/60'
+        }`}>
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
+              <BackButton onClick={onBack} tone="solid" label="Back to cards" className="mt-1 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
+                    <Icon className="h-6 w-6 text-white" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                      {card.cardTitle}
+                    </h1>
+                    {card.summary && (
+                      <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
+                        {card.summary}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2 self-end sm:self-center pt-1 sm:pt-0">
+              <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white ring-1 ring-white/30 backdrop-blur-xs">
+                {badgeLabel} {card.cardNo} ({card.clauseRange})
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
 
       <div className={`flex gap-1 overflow-x-auto bg-white px-2 py-2 dark:bg-slate-950 ${bare ? 'rounded-xl border border-slate-200 dark:border-slate-800' : 'border-b border-slate-100 dark:border-slate-800'}`}>

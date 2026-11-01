@@ -1,6 +1,6 @@
 import React, { useMemo, useState, ReactNode } from 'react';
 import {
-  ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
+  ChevronLeft, FlaskConical, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
   Archive, BarChart3, Settings, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen, LogOut,
   Globe, Check,
@@ -34,6 +34,7 @@ const adminMenuItems = [
     label: 'Quality Control',
     icon: ShieldCheck,
   },
+  { id: 'agrochemicals', label: 'Agrochemicals', icon: FlaskConical },
   { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor },
   { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true },
   { id: 'analytics', label: 'Reports', icon: BarChart3 },
@@ -439,7 +440,7 @@ type BreadcrumbItem = {
 function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: string) => string) {
   const sections = [
     { title: t('Overview', 'అవలోకనం'), ids: ['dashboard', 'stock-analytics', 'analytics'] },
-    { title: t('Field Operations', 'ఫీల్డ్ ఆపరేషన్స్'), ids: ['dealers', 'farmer-database', 'subsidy', 'farm-mechanization', 'quality'] },
+    { title: t('Field Operations', 'ఫీల్డ్ ఆపరేషన్స్'), ids: ['dealers', 'farmer-database', 'subsidy', 'farm-mechanization', 'quality', 'agrochemicals'] },
     { title: t('Knowledge', 'జ్ఞానం'), ids: ['officer-toolkit', 'gos-circulars', 'knowledge'] },
     { title: t('Records', 'రికార్డులు'), ids: ['file-directory', 'excel', 'settings'] },
   ];
@@ -512,13 +513,15 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     forms: { title: t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్'), breadcrumbs: [dashboard, toolkit] },
     'forms-library': { title: t('Forms & Library', 'ఫారాలు & లైబ్రరీ'), breadcrumbs: [dashboard, toolkit] },
     'acreage-calculator': { title: t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
+    agrochemicals: { title: t('Agrochemicals Database', 'వ్యవసాయ రసాయనాల భాండాగారం'), breadcrumbs: [dashboard] },
     'farm-calculators': { title: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), breadcrumbs: [dashboard, toolkit] },
     'crop-doctor': { title: t('Crop Doctor', 'పంట డాక్టర్'), breadcrumbs: [dashboard, toolkit] },
     'fertilizer-calculator': { title: t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'pesticide-calculator': { title: t('Pesticide Calculator', 'పురుగుమందుల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'plant-population-calculator': { title: t('Plant Population Calculator', 'మొక్కల జనాభా కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'seed-rate-calculator': { title: t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    'profitability-calculator': { title: t('Profitability Calculator', 'లాభదాయకత కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
+    'irrigation-calculator': { title: t('Irrigation Calculator', 'నీటిపారుదల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
+    'profitability-calculator': { title: t('Profit Calculator', 'లాభదాయకత కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'acts-and-orders': { title: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు'), breadcrumbs: [dashboard, toolkit] },
     'seed-dealer-inspection': { title: t('Seed Dealer Inspection', 'విత్తన డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
     'fertilizer-dealer-inspection': { title: t('Fertilizer Dealer Inspection', 'ఎరువుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
@@ -581,6 +584,7 @@ function translateMenu(label: string) {
     'Area Calculator': 'ఎకరాల కాలిక్యులేటర్',
     'GOs & Circulars': 'జి.ఓ.లు & సర్క్యులర్లు',
     'Quality Control': 'నాణ్యత నియంత్రణ',
+    'Agrochemicals': 'వ్యవసాయ రసాయనాలు',
     'Farm Mechanization': 'వ్యవసాయ యాంత్రీకరణ',
     'Office Records': 'కార్యాలయ రికార్డులు',
     'Document Repository': 'పత్రాల భాండాగారం',

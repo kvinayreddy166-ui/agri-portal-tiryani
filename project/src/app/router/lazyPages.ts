@@ -23,11 +23,13 @@ export const FertilizerCalculator = lazy(() => import('../../features/calculator
 export const OfficersToolkit = lazy(() => import('../../features/officers-toolkit/pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
 export const LicenseServices = lazy(() => import('../../features/sampling-hub/pages/LicenseServices').then((m) => ({ default: m.LicenseServices })));
 export const FarmCalculators = lazy(() => import('../../features/calculators/pages/FarmCalculators').then((m) => ({ default: m.FarmCalculators })));
+export const AgrochemicalDatabase = lazy(() => import('../../features/agrochemicals/pages/AgrochemicalDatabase').then((m) => ({ default: m.AgrochemicalDatabase })));
 export const CropProtectionTool = lazy(() => import('../../features/crop-doctor/pages/CropProtectionTool').then((m) => ({ default: m.CropProtectionTool })));
 export const PesticideCalculator = lazy(() => import('../../features/calculators/pages/PesticideCalculator').then((m) => ({ default: m.PesticideCalculator })));
 export const PlantPopulationCalculator = lazy(() => import('../../features/calculators/pages/PlantPopulationCalculator').then((m) => ({ default: m.PlantPopulationCalculator })));
 export const SeedRateCalculator = lazy(() => import('../../features/calculators/pages/SeedRateCalculator').then((m) => ({ default: m.SeedRateCalculator })));
 export const ProfitabilityCalculator = lazy(() => import('../../features/calculators/pages/ProfitabilityCalculator').then((m) => ({ default: m.ProfitabilityCalculator })));
+export const IrrigationCalculator = lazy(() => import('../../features/calculators/pages/IrrigationCalculator').then((m) => ({ default: m.IrrigationCalculator })));
 export const ActsAndOrders = lazy(() => import('../../features/officers-toolkit/pages/ActsAndOrders').then((m) => ({ default: m.ActsAndOrders })));
 export const StockAnalytics = lazy(() => import('../../features/dealer-stock/pages/StockAnalytics'));
 export const StockReceiptsSales = lazy(() => import('../../features/dealer-stock/pages/StockReceiptsSales'));

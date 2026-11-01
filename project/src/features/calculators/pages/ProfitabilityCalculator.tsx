@@ -573,22 +573,24 @@ export function ProfitabilityCalculator() {
           <CompactToolkitHeader
             icon={CircleDollarSign}
             eyebrow={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
-            title={t('Profitability Calculator', 'లాభదాయకత కాలిక్యులేటర్')}
+            title={t('Profit Calculator', 'లాభదాయకత కాలిక్యులేటర్')}
             subtitle={t(
               'Comprehensive cost of cultivation, yield economics and net profit assessment.',
               'సమగ్ర సాగు ఖర్చు, దిగుబడి ఆదాయం మరియు నికర లాభాల విశ్లేషణ.'
             )}
             onBack={() => navigate('/officer-toolkit/farm-calculators')}
+            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
             className="mb-1"
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 p-3.5 sm:p-4 text-white shadow-md dark:border-emerald-700/60">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
-            <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
               <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-1 shrink-0" />
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
                     <CircleDollarSign className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -596,25 +598,26 @@ export function ProfitabilityCalculator() {
                       {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
                     </p>
                     <h1 className="text-base sm:text-lg md:text-xl font-black text-white leading-snug tracking-tight">
-                      {t('Profitability Calculator', 'లాభదాయకత కాలిక్యులేటర్')}
+                      {t('Profit Calculator', 'లాభదాయకత కాలిక్యులేటర్')}
                     </h1>
+                    <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
+                      {t(
+                        'Cost of cultivation, operational expenses, yield & net profit per acre.',
+                        'సాగు ఖర్చు, దిగుబడి, విక్రయ ధర మరియు నికర లాభాల సమగ్ర గణన.'
+                      )}
+                    </p>
                   </div>
                 </div>
-                <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
-                  {t(
-                    'Cost of cultivation, operational expenses, yield & net profit per acre.',
-                    'సాగు ఖర్చు, దిగుబడి, విక్రయ ధర మరియు నికర లాభాల సమగ్ర గణన.'
-                  )}
-                </p>
+              </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2 self-start pt-1">
+                <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
               </div>
             </div>
           </section>
         )}
 
-        {/* Separate Compact Language Toggle below title card */}
-        <div className="mt-2 flex items-center justify-end">
-          <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
-        </div>
+
       </div>
 
       {/* Printable Heading (Only visible in Print) */}
@@ -645,7 +648,7 @@ export function ProfitabilityCalculator() {
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
             {CROP_PRESETS.map((preset) => {
               const isSelected = selectedCropId === preset.id;
               return (
@@ -653,15 +656,16 @@ export function ProfitabilityCalculator() {
                   key={preset.id}
                   type="button"
                   onClick={() => applyPreset(preset)}
-                  className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-black transition ${
+                  title={t(preset.name, preset.nameTe)}
+                  className={`flex w-full min-w-0 items-center justify-start gap-2 rounded-xl border px-2.5 sm:px-3 py-2 text-xs font-black transition ${
                     isSelected
                       ? 'border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-950/20'
                       : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
-                  <span className="text-base">{preset.icon}</span>
-                  <span>{t(preset.name, preset.nameTe)}</span>
-                  {isSelected && <Check className="h-3.5 w-3.5 shrink-0" />}
+                  <span className="text-base shrink-0">{preset.icon}</span>
+                  <span className="truncate text-left">{t(preset.name, preset.nameTe)}</span>
+                  {isSelected && <Check className="ml-auto h-3.5 w-3.5 shrink-0" />}
                 </button>
               );
             })}

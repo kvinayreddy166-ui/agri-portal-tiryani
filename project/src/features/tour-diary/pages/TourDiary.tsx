@@ -1823,8 +1823,8 @@ export function TourDiary() {
                 <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
                   <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="mt-1 shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
                         <NotebookPen className="h-6 w-6 text-white" aria-label="Tour Diary" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -1834,11 +1834,11 @@ export function TourDiary() {
                         <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
                           Tour Diary
                         </h1>
+                        <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
+                          Manage your monthly tour diaries
+                        </p>
                       </div>
                     </div>
-                    <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
-                      Manage your monthly tour diaries
-                    </p>
                   </div>
                 </div>
               </div>
@@ -2227,8 +2227,8 @@ export function TourDiary() {
               <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
                 <BackButton onClick={() => setShowLandingPage(true)} tone="solid" className="mt-1 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
                       <NotebookPen className="h-6 w-6 text-white" aria-label="Tour Diary" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -2238,11 +2238,11 @@ export function TourDiary() {
                       <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
                         Tour Diary
                       </h1>
+                      <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
+                        Monthly Tour Diary with Journey Tracking
+                      </p>
                     </div>
                   </div>
-                  <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
-                    Monthly Tour Diary with Journey Tracking
-                  </p>
                 </div>
               </div>
             </div>
