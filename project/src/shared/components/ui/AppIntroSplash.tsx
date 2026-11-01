@@ -85,7 +85,10 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
             if (videoRef.current) {
               videoRef.current.muted = true;
               setIsMuted(true);
-              void videoRef.current.play();
+              const fallbackPlay = videoRef.current.play();
+              if (fallbackPlay !== undefined) {
+                fallbackPlay.catch(() => {});
+              }
             }
           });
         }

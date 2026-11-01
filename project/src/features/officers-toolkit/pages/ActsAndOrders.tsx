@@ -23,6 +23,7 @@ import {
   Scale,
   Search,
   Share2,
+  Sparkles,
   ShieldAlert,
   ShieldCheck,
   SprayCan,
@@ -40,7 +41,7 @@ import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizu
 import { enforcementDeadlines, enforcementMindMap, type EnforcementDeadline, type MindMapNode } from '../data/fcoEnforcementMindMap';
 import { insecticideDeadlines, insecticideMindMap, insecticideOffenceEntries } from '../data/insecticideEnforcement';
 import { BackButton } from '../../../shared/components/ui/BackButton';
-import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { CompactToolkitHeader, type ToolkitHeaderTone } from '../../../shared/components/ui/ToolkitPageHeader';
 import { FertilizerFormPdfGenerator } from '../../sampling-hub/components/FertilizerFormPdfGenerator';
 import { FcoExplorer, type FcoExplorerSection } from '../components/FcoExplorer';
 import { InsecticideExplorer, type InsecticideExplorerSection } from '../components/InsecticideExplorer';
@@ -165,10 +166,62 @@ const legalAreaCards: Array<{
   accent: string;
   chip: string;
   hover: string;
+  statute: string;
+  statuteShort: string;
+  tags: string[];
+  stats: string;
 }> = [
-  { id: 'fertilizer', title: 'Fertilizer', description: 'FCO 1985, ECA, seizure, samples and prosecution references.', icon: PackageCheck, category: 'Fertiliser', color: 'from-indigo-500 via-indigo-600 to-violet-700', panel: 'from-indigo-50 via-white to-violet-50 dark:from-indigo-950/40 dark:via-slate-900 dark:to-violet-950/40', border: 'border-indigo-200/80 dark:border-indigo-800/60', accent: 'text-indigo-700 dark:text-indigo-300', chip: 'bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-700 ring-indigo-200 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-300 dark:ring-indigo-800/60', hover: 'hover:border-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-indigo-950/30' },
-  { id: 'seed', title: 'Seed', description: 'Seed Act, Rules, labelling, sampling and penalty actions.', icon: Sprout, category: 'Seeds', color: 'from-emerald-500 via-emerald-600 to-teal-700', panel: 'from-emerald-50 via-white to-teal-50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-teal-950/40', border: 'border-emerald-200/80 dark:border-emerald-800/60', accent: 'text-emerald-700 dark:text-emerald-300', chip: 'bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-700 ring-emerald-200 dark:from-emerald-950/40 dark:to-teal-950/30 dark:text-emerald-300 dark:ring-emerald-800/60', hover: 'hover:border-emerald-400 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30' },
-  { id: 'insecticide', title: 'Insecticide', description: 'Insecticides Act, Rules, stop-sale, seizure and records.', icon: SprayCan, category: 'Insecticides', color: 'from-orange-500 via-amber-500 to-amber-600', panel: 'from-orange-50 via-white to-amber-50 dark:from-orange-950/40 dark:via-slate-900 dark:to-amber-950/40', border: 'border-orange-200/80 dark:border-orange-800/60', accent: 'text-orange-700 dark:text-orange-300', chip: 'bg-gradient-to-br from-orange-50 to-amber-50 text-orange-800 ring-orange-200 dark:from-orange-950/40 dark:to-amber-950/30 dark:text-orange-200 dark:ring-orange-800/60', hover: 'hover:border-orange-400 hover:bg-orange-50/60 dark:hover:bg-orange-950/30' },
+  {
+    id: 'fertilizer',
+    title: 'Fertilizer Control Order',
+    description: 'Statutory framework for dealer registration, quality standards, inspection powers, sampling, seizure & penalties under ECA 1955.',
+    icon: PackageCheck,
+    category: 'Fertiliser',
+    statute: 'Fertiliser (Inorganic, Organic or Mixed) (Control) Order, 1985 & ECA, 1955',
+    statuteShort: 'FCO 1985 & ECA',
+    tags: ['38 Clauses', 'Forms A to P', 'Schedules I–IV', 'Seizure & Stop Sale'],
+    stats: '38 Clauses • 18 Forms',
+    color: 'from-indigo-600 via-indigo-700 to-violet-800',
+    panel: 'from-indigo-50/90 via-white to-violet-50/80 dark:from-indigo-950/30 dark:via-slate-900 dark:to-violet-950/30',
+    border: 'border-indigo-200/90 dark:border-indigo-800/60',
+    accent: 'text-indigo-700 dark:text-indigo-300',
+    chip: 'bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-700 ring-indigo-200 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-300 dark:ring-indigo-800/60',
+    hover: 'hover:border-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-indigo-950/30',
+  },
+  {
+    id: 'seed',
+    title: 'Seed Law & Regulations',
+    description: 'Statutory controls under Seeds Act, Rules and Seed (Control) Order covering truth-in-labelling, certification, inspector duties and penalties.',
+    icon: Sprout,
+    category: 'Seeds',
+    statute: 'The Seeds Act, 1966, Seeds Rules, 1968 & Seed (Control) Order, 1983',
+    statuteShort: 'Seeds Act 1966 & Rules',
+    tags: ['Stop Sale & Seizure', 'Sampling Protocols', 'Inspector Duties', 'Penalties'],
+    stats: '25 Sections • Inspection Protocols',
+    color: 'from-emerald-600 via-teal-700 to-emerald-800',
+    panel: 'from-emerald-50/90 via-white to-teal-50/80 dark:from-emerald-950/30 dark:via-slate-900 dark:to-teal-950/30',
+    border: 'border-emerald-200/90 dark:border-emerald-800/60',
+    accent: 'text-emerald-700 dark:text-emerald-300',
+    chip: 'bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-700 ring-emerald-200 dark:from-emerald-950/40 dark:to-teal-950/30 dark:text-emerald-300 dark:ring-emerald-800/60',
+    hover: 'hover:border-emerald-400 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30',
+  },
+  {
+    id: 'insecticide',
+    title: 'Insecticides Act & Rules',
+    description: 'Comprehensive regulatory system for pesticide manufacture, licensing, distribution, packaging, labelling, enforcement and court procedures.',
+    icon: SprayCan,
+    category: 'Insecticides',
+    statute: 'The Insecticides Act, 1968 & The Insecticides Rules, 1971',
+    statuteShort: 'Insecticides Act 1968',
+    tags: ['Sections 1–38', 'Rules 1–46', 'Forms I to XXI', 'Analyst & Enforcement'],
+    stats: '38 Sections • 46 Rules • 21 Forms',
+    color: 'from-amber-600 via-orange-600 to-red-700',
+    panel: 'from-amber-50/90 via-white to-orange-50/80 dark:from-amber-950/30 dark:via-slate-900 dark:to-orange-950/30',
+    border: 'border-amber-200/90 dark:border-amber-800/60',
+    accent: 'text-amber-700 dark:text-amber-300',
+    chip: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-800 ring-orange-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-orange-200 dark:ring-orange-800/60',
+    hover: 'hover:border-amber-400 hover:bg-orange-50/60 dark:hover:bg-amber-950/30',
+  },
 ];
 
 const legalTopicCards: Record<MainLegalArea, Array<{
@@ -448,39 +501,165 @@ export function ActsAndOrders() {
   };
 
   const activeAreaCard = selectedLegalArea ? legalAreaCards.find((item) => item.id === selectedLegalArea) : null;
-  const ActiveAreaIcon = activeAreaCard?.icon || Scale;
+  const currentTone: ToolkitHeaderTone = selectedLegalArea === 'fertilizer' ? 'indigo' : selectedLegalArea === 'insecticide' ? 'amber' : 'emerald';
+
+  const currentMeta = useMemo(() => {
+    if (!selectedLegalArea) {
+      return {
+        eyebrow: 'Officer Toolkit • Legal Ready Reckoner',
+        title: 'Acts & Orders (Legal Ready Reckoner)',
+        subtitle: 'Agriculture laws, rules, and official procedures for Fertilizer, Seed, and Insecticide.',
+        icon: Scale,
+      };
+    }
+
+    if (selectedLegalArea === 'fertilizer') {
+      if (fertilizerSection === 'clauses') {
+        return {
+          eyebrow: 'FCO 1985 • Statutory Clauses',
+          title: 'FCO 1985 Clauses & Provisions',
+          subtitle: 'Browse and search the 39 clauses of the Fertilizer (Control) Order, 1985.',
+          icon: BookOpen,
+        };
+      }
+      if (fertilizerSection === 'forms') {
+        return {
+          eyebrow: 'FCO 1985 • Statutory Forms',
+          title: 'FCO 1985 Statutory Forms',
+          subtitle: 'Official application, memorandum, inspection, stop-sale, and certificate forms.',
+          icon: FileText,
+        };
+      }
+      if (fertilizerSection === 'schedules') {
+        return {
+          eyebrow: 'FCO 1985 • Specifications & Schedules',
+          title: 'FCO 1985 Schedules & Specifications',
+          subtitle: 'Specifications of fertilizers, tolerance limits, and official sampling methods.',
+          icon: ClipboardList,
+        };
+      }
+      if (fertilizerSection === 'duties') {
+        return {
+          eyebrow: 'FCO 1985 • Enforcement & Powers',
+          title: 'FCO Inspector Powers & Enforcement',
+          subtitle: 'Mind maps, legal timelines, stop-sale powers, and penal provisions under ECA 1955.',
+          icon: Network,
+        };
+      }
+      return {
+        eyebrow: 'Acts & Orders • FCO 1985',
+        title: 'Fertilizer Control Order (FCO 1985)',
+        subtitle: activeAreaCard?.description || 'Clauses, schedules, forms, sampling procedures, dealer requirements, and non-standard prosecution paths under FCO 1985 and ECA 1955.',
+        icon: activeAreaCard?.icon || PackageCheck,
+      };
+    }
+
+    if (selectedLegalArea === 'insecticide') {
+      if (insecticideSection === 'sections') {
+        return {
+          eyebrow: 'Insecticides Act, 1968 • Act Sections',
+          title: 'Insecticides Act Sections',
+          subtitle: 'Browse all 38 statutory sections, offences, penalties, and inspector powers.',
+          icon: BookOpen,
+        };
+      }
+      if (insecticideSection === 'rules') {
+        return {
+          eyebrow: 'Insecticides Rules, 1971',
+          title: 'Insecticides Rules & Schedules',
+          subtitle: '46 statutory rules, labelling mandates, safety guidelines, and schedule standards.',
+          icon: SprayCan,
+        };
+      }
+      if (insecticideSection === 'forms') {
+        return {
+          eyebrow: 'Insecticides Act • Statutory Forms',
+          title: 'Insecticide Regulatory Forms',
+          subtitle: 'Statutory forms for licensing, inspection, sampling, and analyst reports.',
+          icon: FileText,
+        };
+      }
+      if (insecticideSection === 'duties') {
+        return {
+          eyebrow: 'Insecticides Act • Enforcement & Powers',
+          title: 'Insecticide Inspector Powers & Duties',
+          subtitle: 'Statutory deadlines, seizure workflows, stop sale, and penal provisions.',
+          icon: Network,
+        };
+      }
+      return {
+        eyebrow: 'Acts & Orders • Insecticides',
+        title: 'Insecticides Act, 1968 & Rules, 1971',
+        subtitle: activeAreaCard?.description || 'Statutory sections, insecticidal rules, forms, quality standards, and enforcement powers under the Insecticides Act, 1968.',
+        icon: activeAreaCard?.icon || SprayCan,
+      };
+    }
+
+    return {
+      eyebrow: 'Acts & Orders • Seeds',
+      title: activeAreaCard?.title || 'Seeds Act & Control Orders',
+      subtitle: activeAreaCard?.description || 'Seeds Act 1966, Seeds Rules 1968, and Seeds (Control) Order 1983.',
+      icon: activeAreaCard?.icon || Sprout,
+    };
+  }, [selectedLegalArea, fertilizerSection, insecticideSection, activeAreaCard]);
+
+  const CurrentIcon = currentMeta.icon;
 
   return (
     <div className="mx-auto max-w-7xl space-y-4 px-4 pb-6 pt-4 sm:px-6 sm:pb-8 lg:px-8">
       {!selectedFcoCardId && showCompactHeader && (
         <CompactToolkitHeader
           className="mb-1"
-          title={activeAreaCard?.title || 'Acts & Orders'}
-          subtitle={activeAreaCard?.description || 'Agriculture laws, rules, and official procedures for Fertilizer, Seed, and Insecticide.'}
+          eyebrow={currentMeta.eyebrow}
+          title={currentMeta.title}
+          subtitle={currentMeta.subtitle}
+          icon={currentMeta.icon}
+          tone={currentTone}
           onBack={handleBack}
+          actions={selectedLegalArea ? (
+            <button
+              type="button"
+              onClick={closeLegalArea}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-black text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            >
+              <Scale className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>All Categories</span>
+            </button>
+          ) : undefined}
         />
       )}
       {!selectedFcoCardId && !showCompactHeader && (
-      <section className={`relative overflow-hidden rounded-2xl border px-4 py-3 text-white shadow-md ${
+        <section className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 text-white shadow-lg ${
           activeAreaCard
             ? `border-white/20 bg-gradient-to-br ${activeAreaCard.color}`
-            : 'border-emerald-700/40 bg-gradient-to-br from-emerald-600 via-green-600 to-emerald-700 dark:border-emerald-800/50'
+            : 'border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 dark:border-emerald-700/60'
         }`}>
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
-          <div className="flex items-center gap-3">
-            <BackButton onClick={handleBack} tone="solid" className="self-center" />
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/20 shadow-sm ring-1 ring-white/30">
-                <ActiveAreaIcon className="h-5 w-5" />
-              </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3.5 min-w-0">
+              <BackButton onClick={handleBack} tone="solid" className="mt-0.5 shrink-0" />
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/80">{activeAreaCard ? 'Acts & Orders' : 'Officer Toolkit'}</p>
-                <h1 className="text-lg font-black leading-tight sm:text-xl">{activeAreaCard?.title || 'Acts & Orders'}</h1>
-                <p className="text-xs font-semibold text-white/90">
-                  {activeAreaCard?.description || 'Search Acts, Rules, Orders, clauses, penal provisions, stop sale, seizure, sampling and notice workflows.'}
+                <h1 className="flex items-center gap-2 text-lg font-black text-white sm:text-xl">
+                  <CurrentIcon className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" aria-hidden="true" />
+                  <span>{currentMeta.title}</span>
+                </h1>
+                <p className="mt-1 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-2xl">
+                  {currentMeta.subtitle}
                 </p>
               </div>
             </div>
+
+            {selectedLegalArea && (
+              <div className="flex shrink-0 items-center gap-2 self-end sm:self-center pt-1 sm:pt-0">
+                <button
+                  type="button"
+                  onClick={closeLegalArea}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/30 bg-white/15 px-3 py-1.5 text-xs font-black text-white backdrop-blur-sm transition hover:bg-white/25 active:scale-95"
+                >
+                  <Scale className="h-3.5 w-3.5" />
+                  <span>All Categories</span>
+                </button>
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -680,21 +859,29 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
 
   return (
     <section className="space-y-3">
-      <FertilizerSectionBadge icon={FileText} label="Forms" meta="First Schedule" accent={accent} />
-      <div className={`rounded-lg border ${t.border} bg-white p-3 shadow-sm dark:bg-slate-900`}>
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+              <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              <span>Insecticide Regulatory Forms</span>
+            </h2>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Statutory forms under Insecticides Rules (First Schedule) for licensing, inspection, sampling, and reports.
+            </p>
+          </div>
+          <span className="self-start sm:self-auto rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-black text-orange-800 ring-1 ring-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:ring-orange-800">
+            {visibleForms.length} Forms
+          </span>
+        </div>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search Form III, Form V(A), Appendix B, licence, seizure, register..."
-            className={`w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
+            className={`w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
           />
-        </div>
-        <div className="mt-2.5 flex justify-end">
-          <span className={`rounded-full ${t.chipAlt} px-3 py-1 text-[11px] font-black ring-1`}>
-            {visibleForms.length} forms
-          </span>
         </div>
       </div>
       <div className="grid gap-2 md:grid-cols-2">
@@ -731,21 +918,6 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
         )}
       </div>
     </section>
-  );
-}
-
-function FertilizerSectionBadge({ icon: Icon, label, meta, tone = 'gradient', accent = 'sky' }: { icon: React.ElementType; label: string; meta?: string; tone?: 'gradient' | 'onGradient'; accent?: FcoAccent }) {
-  const t = fcoAccentThemes[accent];
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide shadow-md ${
-      tone === 'gradient'
-        ? `${t.iconTile}`
-        : 'bg-white/20 text-white ring-1 ring-white/30 shadow-none'
-    }`}>
-      <Icon className="h-3.5 w-3.5" />
-      {label}
-      {meta && <span className="rounded-full bg-white/25 px-1.5 py-px text-[9px] normal-case tracking-normal">{meta}</span>}
-    </span>
   );
 }
 
@@ -810,15 +982,32 @@ function FertilizerClausesPanel({
 
   return (
     <section className="space-y-3">
-      <FertilizerSectionBadge icon={BookOpen} label={badgeLabel} accent={accent} />
-      <div className={`rounded-lg border ${t.border} bg-white p-3 shadow-sm dark:bg-slate-900`}>
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+              <BookOpen className={`h-4 w-4 ${accent === 'amber' ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
+              <span>{badgeLabel} Directory</span>
+            </h2>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Search by clause number, keyword, schedule reference, or officer powers.
+            </p>
+          </div>
+          <span className={`self-start sm:self-auto rounded-full px-2.5 py-1 text-[11px] font-black ${
+            accent === 'amber'
+              ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800'
+              : 'bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800'
+          }`}>
+            {cards.length} Cards Available
+          </span>
+        </div>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder={searchPlaceholder}
-            className={`w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
+            className={`w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
           />
         </div>
       </div>
@@ -848,21 +1037,29 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
 
   return (
     <section className="space-y-3">
-      <FertilizerSectionBadge icon={ClipboardList} label="Schedules" />
-      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+              <ClipboardList className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <span>Fertilizer Specifications &amp; Schedules</span>
+            </h2>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Chemical specifications, tolerance limits, and official sampling methods under FCO 1985.
+            </p>
+          </div>
+          <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800">
+            {visibleSchedules.length} Schedules
+          </span>
+        </div>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search schedule, part, sampling, tolerance, biofertiliser..."
-            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           />
-        </div>
-        <div className="mt-2.5 flex justify-end">
-          <span className="rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 px-3 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200/80 dark:from-indigo-950/30 dark:to-violet-950/20 dark:text-indigo-200 dark:ring-indigo-900">
-            {visibleSchedules.length} schedules
-          </span>
         </div>
       </div>
       <div className="grid gap-2 md:grid-cols-2">
@@ -969,31 +1166,86 @@ async function exportOffencesPdf(entries: FcoOffenceEntry[], meta: { filename: s
 
 function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => void }) {
   return (
-    <section>
-      <h2 className="text-base font-black text-slate-900 dark:text-white">Select category</h2>
-      <div className="mt-2.5 space-y-2">
+    <div className="space-y-4">
+      {/* Category Overview Banner */}
+      <section className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 print:hidden">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-emerald-600" />
+              <span>Statutory Acts, Rules & Legal Ready Reckoner</span>
+            </h2>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Select an agricultural domain to access legal clauses, statutory forms, inspection powers, stop-sale procedures, and penal provisions.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300 self-start sm:self-auto">
+            <Scale className="h-3.5 w-3.5" />
+            <span>3 Regulatory Domains</span>
+          </span>
+        </div>
+      </section>
+
+      {/* 3 Domain Cards Grid */}
+      <div className="grid gap-4 md:grid-cols-3">
         {legalAreaCards.map((card) => {
           const Icon = card.icon;
           return (
-            <button
+            <div
               key={card.id}
-              type="button"
               onClick={() => onOpen(card.id)}
-              className={`group flex w-full items-center gap-3 rounded-xl border ${card.border} bg-gradient-to-r ${card.panel} px-3.5 py-2.5 text-left shadow-sm transition duration-300 hover:shadow-md ${card.hover} focus-visible:outline-violet-700 active:scale-[0.99]`}
+              className={`group relative flex flex-col justify-between rounded-2xl border ${card.border} bg-gradient-to-br ${card.panel} p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer`}
             >
-              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${card.color} text-white shadow-md`}>
-                <Icon className="h-5 w-5" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-base font-bold leading-snug text-slate-900 dark:text-white">{card.title}</span>
-                <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.description}</span>
-              </span>
-              <ChevronRight className={`h-4 w-4 shrink-0 ${card.accent}`} />
-            </button>
+              <div>
+                <div className="flex items-start justify-between gap-3">
+                  <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${card.color} text-white shadow-md transition-transform duration-300 group-hover:scale-105`}>
+                    <Icon className="h-6 w-6" />
+                  </span>
+                  <span className={`rounded-full ${card.chip} px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ring-1`}>
+                    {card.statuteShort}
+                  </span>
+                </div>
+
+                <div className="mt-4">
+                  <h3 className="text-base font-black text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    {card.title}
+                  </h3>
+                  <p className="mt-0.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    {card.statute}
+                  </p>
+                  <p className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {card.description}
+                  </p>
+                </div>
+
+                {/* Quick Tags */}
+                <div className="mt-3.5 flex flex-wrap gap-1.5">
+                  {card.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-lg bg-white/80 px-2 py-0.5 text-[10px] font-bold text-slate-700 shadow-2xs border border-slate-200/80 dark:bg-slate-800/90 dark:border-slate-700 dark:text-slate-300"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bottom Action Bar */}
+              <div className="mt-5 flex items-center justify-between border-t border-slate-200/70 pt-3 dark:border-slate-800">
+                <span className="text-[11px] font-black text-slate-500 dark:text-slate-400">
+                  {card.stats}
+                </span>
+                <span className={`inline-flex items-center gap-1 text-xs font-black ${card.accent} group-hover:translate-x-0.5 transition-transform`}>
+                  <span>Explore</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </div>
+            </div>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -1009,19 +1261,19 @@ function LegalTopicScreen({
   const topics = legalTopicCards[area];
 
   return (
-    <section className={`rounded-lg border ${areaCard.border} bg-white p-4 shadow-sm dark:bg-slate-900`}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <section className={`rounded-2xl border ${areaCard.border} bg-white p-4 shadow-sm dark:bg-slate-900 sm:p-5`}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3.5 dark:border-slate-800">
         <div className="flex items-center gap-3">
-          <div className={`flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br ${areaCard.color} text-white shadow-sm`}>
+          <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${areaCard.color} text-white shadow-md`}>
             <AreaIcon className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-lg font-black text-slate-950 dark:text-white">{areaCard.title} legal topics</h2>
-            <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Tap a topic card, then use search and filters below.</p>
+            <h2 className="text-base font-black text-slate-950 dark:text-white sm:text-lg">{areaCard.title} Legal Topics</h2>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Select a topic below to review powers, notices, and procedural guidelines.</p>
           </div>
         </div>
       </div>
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {topics.map((topic) => {
           const Icon = topic.icon;
           return (
@@ -1029,16 +1281,16 @@ function LegalTopicScreen({
               key={topic.title}
               type="button"
               onClick={() => onOpenTopic(topic)}
-              className={`group flex w-full items-center gap-3.5 rounded-xl border ${areaCard.border} bg-gradient-to-r ${areaCard.panel} px-4 py-3 text-left shadow-sm transition duration-300 ${areaCard.hover} hover:shadow-md active:scale-[0.99]`}
+              className={`group flex items-center gap-3.5 rounded-2xl border ${areaCard.border} bg-gradient-to-br ${areaCard.panel} p-4 text-left shadow-sm transition duration-300 ${areaCard.hover} hover:shadow-md active:scale-[0.99]`}
             >
-              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${areaCard.color} text-white shadow-sm transition group-hover:scale-105`}>
+              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${areaCard.color} text-white shadow-sm transition group-hover:scale-105`}>
                 <Icon className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-black text-slate-950 dark:text-white">{topic.title}</span>
-                <span className="mt-0.5 block text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{topic.description}</span>
+                <span className="mt-0.5 block text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-300">{topic.description}</span>
               </span>
-              <ChevronRight className={`h-4 w-4 shrink-0 ${areaCard.accent}`} />
+              <ChevronRight className={`h-4 w-4 shrink-0 ${areaCard.accent} group-hover:translate-x-0.5 transition-transform`} />
             </button>
           );
         })}
@@ -1080,7 +1332,7 @@ function FcoCardDetailPage({
   badgeLabel = 'Clauses',
   accent = 'sky',
   bare = false,
-  simpleHeader = false,
+  simpleHeader: _simpleHeader = false,
   onBack,
   onToggleBookmark,
   onOpenRelated,
@@ -1102,41 +1354,32 @@ function FcoCardDetailPage({
   const t = fcoAccentThemes[accent];
 
   return (
-    <section className={bare ? 'space-y-2' : `overflow-hidden rounded-2xl border ${t.borderSoft} bg-white shadow-md dark:bg-slate-950`}>
-      {simpleHeader ? (
-        <div className="flex items-start gap-2.5">
-          <BackButton onClick={onBack} label="Back to cards" className="mt-0.5" />
-          <div className="flex min-w-0 items-start gap-2.5">
-            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${card.gradient} text-white shadow-sm`}>
-              <Icon className="h-4 w-4" />
-            </div>
+    <section className="space-y-3">
+      <div className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 text-white shadow-lg ${
+        accent === 'amber'
+          ? 'border-amber-300/60 bg-gradient-to-br from-amber-600 via-orange-600 to-red-700 dark:border-amber-700/60'
+          : 'border-indigo-300/60 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 dark:border-indigo-700/60'
+      }`}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3.5 min-w-0">
+            <BackButton onClick={onBack} tone="solid" label="Back to cards" className="mt-0.5 shrink-0" />
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{badgeLabel} {card.cardNo} - {card.clauseRange}</p>
-              <h2 className="mt-0.5 text-lg font-black leading-tight text-slate-950 dark:text-white sm:text-xl">{card.cardTitle}</h2>
-              <p className="mt-0.5 max-w-3xl text-xs font-semibold text-slate-600 dark:text-slate-400">{card.summary}</p>
+              <h1 className="flex items-center gap-2 text-lg font-black text-white sm:text-xl">
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" aria-hidden="true" />
+                <span>{card.cardTitle}</span>
+              </h1>
+              <p className="mt-1 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
+                {card.summary}
+              </p>
             </div>
           </div>
-        </div>
-      ) : (
-      <div className={`bg-gradient-to-br ${card.gradient} p-3 text-white ${bare ? 'rounded-2xl' : ''}`}>
-        <div className="mb-2">
-          <FertilizerSectionBadge icon={BookOpen} label={badgeLabel} tone="onGradient" accent={accent} />
-        </div>
-        <div className="flex items-start gap-2.5">
-          <BackButton onClick={onBack} tone="solid" label="Back to cards" className="mt-0.5" />
-          <div className="flex items-start gap-2.5">
-            <div className="rounded-lg bg-white/20 p-2 ring-1 ring-white/25">
-              <Icon className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-wide text-white/80">Card {card.cardNo} - {card.clauseRange}</p>
-              <h2 className="mt-0.5 text-lg font-black leading-tight">{card.cardTitle}</h2>
-              <p className="mt-1 max-w-3xl text-xs font-bold leading-5 text-white/90">{card.summary}</p>
-            </div>
+          <div className="flex shrink-0 items-center gap-2 self-end sm:self-center pt-1 sm:pt-0">
+            <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white ring-1 ring-white/30 backdrop-blur-xs">
+              {badgeLabel} {card.cardNo} ({card.clauseRange})
+            </span>
           </div>
         </div>
       </div>
-      )}
 
 
       <div className={`flex gap-1 overflow-x-auto bg-white px-2 py-2 dark:bg-slate-950 ${bare ? 'rounded-xl border border-slate-200 dark:border-slate-800' : 'border-b border-slate-100 dark:border-slate-800'}`}>
@@ -1501,18 +1744,31 @@ function FertilizerFormsPanel({
 
   return (
     <section className="space-y-3">
-      <FertilizerSectionBadge icon={FileText} label="Forms" />
-      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800/50 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+              <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <span>FCO Statutory Forms</span>
+            </h2>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Inspection forms, dealer applications, compliance certificates &amp; notices.
+            </p>
+          </div>
+          <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800">
+            {visibleForms.length} Forms
+          </span>
+        </div>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search form number, title, clause, category..."
-            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           />
         </div>
-        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
           {fertilizerFormCategories.map((item) => (
             <button
               key={item}
@@ -1785,21 +2041,28 @@ function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig })
 
   return (
     <div className="space-y-3">
-      <FertilizerSectionBadge icon={Network} label={config.badgeLabel} accent={config.accent} />
-      <section className={`rounded-lg border ${t.border} bg-white p-3 shadow-sm dark:bg-slate-900`}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className={`text-[11px] font-black uppercase tracking-wide ${t.labelText}`}>Key deadlines</p>
+      <section className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+              <Network className={`h-4 w-4 ${config.accent === 'amber' ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
+              <span>{config.badgeLabel}</span>
+            </h2>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Statutory deadlines, procedural mind-maps, and inspection requirements.
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => setCollapsed(allExpanded ? new Set(allNodeIds) : new Set())}
-            className={`rounded-full border ${t.tabOff} px-3 py-1 text-[11px] font-black transition`}
+            className={`self-start sm:self-auto rounded-full border ${t.tabOff} px-3 py-1 text-[11px] font-black transition`}
           >
             {allExpanded ? 'Collapse all' : 'Expand all'}
           </button>
         </div>
-        <div className="mt-2 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {config.deadlines.map((item) => (
-            <div key={item.action} className={`flex items-start gap-2 rounded-lg border ${t.borderSoft} bg-gradient-to-br ${t.panelBox} px-2.5 py-2`}>
+            <div key={item.action} className={`flex items-start gap-2 rounded-xl border ${t.borderSoft} bg-gradient-to-br ${t.panelBox} px-2.5 py-2`}>
               <Clock className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${t.iconText}`} />
               <div>
                 <p className="text-[11px] font-black leading-4 text-slate-800 dark:text-slate-100">{item.limit}</p>

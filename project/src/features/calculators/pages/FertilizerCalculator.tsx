@@ -1,15 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Check,
+  ChevronDown,
+  ChevronUp,
   Copy,
   FileText,
   Leaf,
   Plus,
+  Printer,
   RefreshCw,
+  RotateCcw,
   Save,
+  Sparkles,
   Trash2,
-  ChevronDown,
-  ChevronUp,
   User,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -1557,8 +1560,17 @@ export function FertilizerCalculator() {
     setSelectedSeason('Vanakalam');
     setSelectedVariety('Hybrid');
     setArea({ value: 1, unit: 'acres' });
+    setFarmerDetails({
+      farmerName: '',
+      village: '',
+      ppbNumber: '',
+      surveyNumber: '',
+      mobileNumber: '',
+      acreage: '',
+    });
+    setCopied(false);
     // Small delay to show spinning animation
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 350));
     setIsResetting(false);
   };
 
@@ -1876,454 +1888,624 @@ export function FertilizerCalculator() {
   };
 
   return (
-    <div className="space-y-2 sm:space-y-3">
-      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+    <div className="space-y-4 print:space-y-2">
+      {/* Header */}
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 print:hidden">
         {showCompactHeader ? (
           <CompactToolkitHeader
-            eyebrow="Farm Calculators"
-            title={language === 'te' ? 'ఎరువుల క్యాలిక్యులేటర్' : 'Fertilizer Calculator'}
+            eyebrow={language === 'te' ? 'వ్యవసాయ కాలిక్యులేటర్లు' : 'Farm Calculators'}
+            title={language === 'te' ? 'ఎరువుల కాలిక్యులేటర్' : 'Fertilizer Calculator'}
             subtitle={language === 'te' ? 'పంటకు అవసరమైన ఎరువుల లెక్కింపు' : 'Calculate crop fertilizer requirements'}
+            onBack={() => navigate('/officer-toolkit/farm-calculators')}
+            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
           />
         ) : (
-        <section className="overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-green-600 to-emerald-700 p-4 text-white shadow-lg dark:border-emerald-800/50 sm:p-5">
-          <div className="flex items-start gap-3">
-            <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-0.5" />
-            <div>
-              <h1 className="flex items-center gap-2 text-xl font-black text-white">
-                <FileText className="h-6 w-6" aria-label="Fertilizer Calculator" />
-                {language === 'te' ? '\u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C15\u0C3E\u0C32\u0C3F\u0C15\u0C4D\u0C2F\u0C41\u0C32\u0C47\u0C1F\u0C30\u0C4D' : 'Fertilizer Calculator'}
-              </h1>
-              <p className="text-sm font-semibold text-white/90">
-                {language === 'te' ? '\u0C2A\u0C02\u0C1F\u0C15\u0C01 \u0C05\u0C35\u0C38\u0C30\u0C2E\u0C48\u0C28 \u0C0E\u0C30\u0C41\u0C35\u0C41\u0C32 \u0C32\u0C46\u0C15\u0C4D\u0C15\u0C3F\u0C02\u0C2A\u0C01' : 'Calculate crop fertilizer requirements'}
-              </p>
+          <section className="relative overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 p-4 shadow-lg dark:border-emerald-700/60 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3.5 min-w-0">
+                <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <h1 className="flex items-center gap-2 text-lg font-black text-white sm:text-xl">
+                    <FileText className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" aria-hidden="true" />
+                    <span>{language === 'te' ? 'ఎరువుల కాలిక్యులేటర్' : 'Fertilizer Calculator'}</span>
+                  </h1>
+                  <p className="mt-1 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-2xl">
+                    {language === 'te' ? 'పంటకు అవసరమైన ఎరువుల లెక్కింపు' : 'Calculate crop fertilizer requirements'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center justify-end self-end sm:self-center pt-1 sm:pt-0">
+                <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
+              </div>
             </div>
-          </div>
-          <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
-          </div>
-        </section>
+          </section>
         )}
       </div>
 
-      <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
-        <section className="rounded-xl border border-lime-300 dark:border-lime-800/50 bg-gradient-to-br from-lime-100 dark:from-lime-900 to-emerald-100 dark:to-emerald-900 p-4 text-sm font-semibold text-emerald-950 dark:text-emerald-100 shadow-md">
-          <div className="grid gap-2 sm:grid-cols-3">
-            <p><span className="font-black">1.</span> {language === 'te' ? 'పంట సిఫార్సును ఎంచుకోండి లేదా పోషకాలను మాన్యువల్‌గా నమోదు చేయండి.' : 'Select crop recommendation or enter nutrients manually.'}</p>
-            <p><span className="font-black">2.</span> {language === 'te' ? 'విస్తీర్ణం నమోదు చేసి అందుబాటులో ఉన్న ఎరువులను ఎంచుకోండి.' : 'Enter area and choose available fertilizers.'}</p>
-            <p><span className="font-black">3.</span> {language === 'te' ? 'ఎరువుల సంచులు మరియు విడత మోతాదులను వెంటనే చూడండి.' : 'See fertilizer bags and split doses instantly.'}</p>
+      <div className="mx-auto max-w-7xl space-y-4 px-4 pb-6 sm:px-6 sm:pb-8 lg:px-8">
+        {/* Step Guide Banner with Reset All */}
+        <section className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 print:hidden">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-emerald-600" />
+                {language === 'te' ? 'ఎరువుల లెక్కింపు మార్గదర్శి' : 'Fertilizer Calculation Guide'}
+              </h2>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {language === 'te'
+                  ? 'సిఫార్సు చేసిన మోతాదు లేదా మాన్యువల్ N-P-K ఆధారంగా ఎరువుల సంచులను లెక్కించండి.'
+                  : 'Calculate required fertilizer bags based on crop recommendations or manual N-P-K.'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={resetCalculator}
+                disabled={isResetting}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              >
+                <RotateCcw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
+                {language === 'te' ? 'అన్నీ రీసెట్' : 'Reset All'}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3.5 grid gap-2 sm:grid-cols-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+            <div className="flex items-start gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-black text-white">1</span>
+              <span>{language === 'te' ? 'పంట సిఫార్సును ఎంచుకోండి లేదా పోషకాలను మాన్యువల్‌గా నమోదు చేయండి.' : 'Select crop recommendation or enter nutrients manually.'}</span>
+            </div>
+            <div className="flex items-start gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-black text-white">2</span>
+              <span>{language === 'te' ? 'విస్తీర్ణం నమోదు చేసి అందుబాటులో ఉన్న ఎరువులను ఎంచుకోండి.' : 'Enter area and choose available fertilizers.'}</span>
+            </div>
+            <div className="flex items-start gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-black text-white">3</span>
+              <span>{language === 'te' ? 'ఎరువుల సంచులు మరియు విడత మోతాదులను వెంటనే చూడండి.' : 'See fertilizer bags and split doses instantly.'}</span>
+            </div>
           </div>
         </section>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-300 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-3 shadow-md dark:border-emerald-900/60 dark:from-slate-900 dark:via-emerald-950/30 dark:to-lime-950/20">
-          <button type="button" onClick={copyResult} disabled={!activeCalculation?.results?.length} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
-            <Copy className="h-4 w-4" />
-            {copied ? (language === 'te' ? 'కాపీ అయింది' : 'Copied') : (language === 'te' ? 'టెక్స్ట్ కాపీ' : 'Copy Result')}
-          </button>
-          <button type="button" onClick={exportPdf} disabled={!activeCalculation?.results?.length} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-600 text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700" aria-label="Export PDF" title="PDF">
-            <FileText className="h-4 w-4" />
-          </button>
-          <button type="button" onClick={shareWhatsApp} disabled={!activeCalculation?.results?.length} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-green-600 text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700" aria-label="WhatsApp" title="WhatsApp">
-            <WhatsAppIcon className="h-4 w-4" />
-          </button>
-          <button type="button" onClick={resetCalculator} disabled={isResetting} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
-            <RefreshCw className={`h-4 w-4 ${isResetting ? 'animate-spin' : ''}`} />
-            {language === 'te' ? 'రీసెట్' : 'Reset'}
-          </button>
-        </div>
-
         {/* Farmer Details Section */}
-        <section className="rounded-xl border border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-100 dark:from-emerald-900 via-lime-50 dark:via-lime-950/60 to-cyan-100 dark:to-cyan-900 p-3 shadow-md sm:p-4">
+        <section className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
           <div className="flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={() => setShowFarmerDetails(!showFarmerDetails)}
-            className="flex flex-1 items-center justify-between rounded-lg bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 text-sm font-black text-emerald-800 dark:text-emerald-300"
-          >
-            <span className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              {uiLabels.farmerDetails}
-            </span>
-            {showFarmerDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
-          {showFarmerDetails && (
             <button
               type="button"
-              onClick={resetFarmerDetails}
-              disabled={isResettingFarmer}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-black text-slate-700 dark:text-slate-200 disabled:opacity-50"
-              title={language === 'te' ? 'రైతు వివరాలను రీసెట్ చేయండి' : 'Reset Farmer Details'}
+              onClick={() => setShowFarmerDetails(!showFarmerDetails)}
+              className="flex flex-1 items-center justify-between rounded-xl bg-slate-50 px-3.5 py-2.5 text-sm font-black text-slate-800 transition hover:bg-slate-100 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:bg-slate-800"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${isResettingFarmer ? 'animate-spin' : ''}`} />
+              <span className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                  <User className="h-4 w-4" />
+                </span>
+                <span>{uiLabels.farmerDetails}</span>
+              </span>
+              {showFarmerDetails ? <ChevronUp className="h-4 w-4 text-slate-500" /> : <ChevronDown className="h-4 w-4 text-slate-500" />}
             </button>
-          )}
-        </div>
-        {showFarmerDetails && (
-          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            <label className="block rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.farmerName}</span>
-              <input
-                type="text"
-                value={farmerDetails.farmerName}
-                onChange={(e) => setFarmerDetails(prev => ({ ...prev, farmerName: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                placeholder={uiLabels.optional}
-              />
-            </label>
-            <label className="block rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.village}</span>
-              <input
-                type="text"
-                value={farmerDetails.village}
-                onChange={(e) => setFarmerDetails(prev => ({ ...prev, village: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                placeholder={uiLabels.optional}
-              />
-            </label>
-            <label className="block rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.ppbNumber}</span>
-              <input
-                type="text"
-                value={farmerDetails.ppbNumber}
-                onChange={(e) => setFarmerDetails(prev => ({ ...prev, ppbNumber: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                placeholder={uiLabels.optional}
-              />
-            </label>
-            <label className="block rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.surveyNumber}</span>
-              <input
-                type="text"
-                value={farmerDetails.surveyNumber}
-                onChange={(e) => setFarmerDetails(prev => ({ ...prev, surveyNumber: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                placeholder={uiLabels.optional}
-              />
-            </label>
-            <label className="block rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.mobileNumber}</span>
-              <input
-                type="tel"
-                value={farmerDetails.mobileNumber}
-                onChange={(e) => handleMobileNumberChange(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                placeholder={uiLabels.optional}
-              />
-            </label>
-            <label className="block rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
-              <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.acreage}</span>
-              <input
-                type="number"
-                value={farmerDetails.acreage}
-                onChange={(e) => handleFarmerAcreageChange(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-sm font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                placeholder={uiLabels.syncsWithCalculator}
-              />
-            </label>
+            {showFarmerDetails && (
+              <button
+                type="button"
+                onClick={resetFarmerDetails}
+                disabled={isResettingFarmer}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                title={language === 'te' ? 'రైతు వివరాలను రీసెట్ చేయండి' : 'Reset Farmer Details'}
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isResettingFarmer ? 'animate-spin' : ''}`} />
+              </button>
+            )}
           </div>
-        )}
-      </section>
+          {showFarmerDetails && (
+            <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+              <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.farmerName}</span>
+                <input
+                  type="text"
+                  value={farmerDetails.farmerName}
+                  onChange={(e) => setFarmerDetails(prev => ({ ...prev, farmerName: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                  placeholder={uiLabels.optional}
+                />
+              </label>
+              <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.village}</span>
+                <input
+                  type="text"
+                  value={farmerDetails.village}
+                  onChange={(e) => setFarmerDetails(prev => ({ ...prev, village: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                  placeholder={uiLabels.optional}
+                />
+              </label>
+              <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.ppbNumber}</span>
+                <input
+                  type="text"
+                  value={farmerDetails.ppbNumber}
+                  onChange={(e) => setFarmerDetails(prev => ({ ...prev, ppbNumber: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                  placeholder={uiLabels.optional}
+                />
+              </label>
+              <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.surveyNumber}</span>
+                <input
+                  type="text"
+                  value={farmerDetails.surveyNumber}
+                  onChange={(e) => setFarmerDetails(prev => ({ ...prev, surveyNumber: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                  placeholder={uiLabels.optional}
+                />
+              </label>
+              <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.mobileNumber}</span>
+                <input
+                  type="tel"
+                  value={farmerDetails.mobileNumber}
+                  onChange={(e) => handleMobileNumberChange(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                  placeholder={uiLabels.optional}
+                />
+              </label>
+              <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.acreage}</span>
+                <input
+                  type="number"
+                  value={farmerDetails.acreage}
+                  onChange={(e) => handleFarmerAcreageChange(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                  placeholder={uiLabels.syncsWithCalculator}
+                />
+              </label>
+            </div>
+          )}
+        </section>
 
-      <section className="grid gap-2 sm:gap-3 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="rounded-xl border border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white via-emerald-50 dark:via-emerald-950/60 to-lime-100 dark:to-lime-900 p-3 shadow-md sm:p-4">
-          <div className="mb-2 grid grid-cols-2 rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-xs font-black sm:mb-3 sm:text-sm">
-            <button type="button" onClick={() => setMode('simple')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${mode === 'simple' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}>
-              <span className="inline-flex items-center justify-center gap-1">
+        {/* 2-Column Main Section: Calculation Inputs (Left) and Available Fertilizers (Right) */}
+        <section className="grid gap-3 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            {/* Mode Switcher */}
+            <div className="mb-3 grid grid-cols-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+              <button
+                type="button"
+                onClick={() => setMode('simple')}
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-black transition ${mode === 'simple' ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-900 dark:text-emerald-300' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+              >
                 {mode === 'simple' && <Check className="h-3.5 w-3.5" />}
                 {language === 'te' ? repairTeluguText(uiLabels.mode1Simple) : 'Manual nutrients'}
-              </span>
-            </button>
-            <button type="button" onClick={() => setMode('crop')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${mode === 'crop' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600'}`}>
-              <span className="inline-flex items-center justify-center gap-1">
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('crop')}
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-black transition ${mode === 'crop' ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-900 dark:text-emerald-300' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+              >
                 {mode === 'crop' && <Check className="h-3.5 w-3.5" />}
                 {language === 'te' ? repairTeluguText(uiLabels.mode2Crop) : 'Crop recommendation'}
-              </span>
-            </button>
-          </div>
+              </button>
+            </div>
 
-          {mode === 'simple' ? (
-            <div className="space-y-2 sm:space-y-3">
-              <div className="grid grid-cols-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 p-1 text-xs font-black sm:text-sm">
-                <button type="button" onClick={() => setSimpleTab('forward')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${simpleTab === 'forward' ? 'bg-white text-emerald-800 shadow-sm' : 'text-emerald-700'}`}>
-                  <span className="inline-flex items-center justify-center gap-1">
+            {mode === 'simple' ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 rounded-xl bg-emerald-50/70 p-1 text-xs font-black dark:bg-emerald-950/40">
+                  <button
+                    type="button"
+                    onClick={() => setSimpleTab('forward')}
+                    className={`flex items-center justify-center gap-1 rounded-lg py-1.5 transition sm:py-2 ${simpleTab === 'forward' ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-900 dark:text-emerald-300' : 'text-emerald-700 dark:text-emerald-400'}`}
+                  >
                     {simpleTab === 'forward' && <Check className="h-3.5 w-3.5" />}
                     {uiLabels.requiredToFertilizer}
-                  </span>
-                </button>
-                <button type="button" onClick={() => setSimpleTab('reverse')} className={`rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 ${simpleTab === 'reverse' ? 'bg-white text-emerald-800 shadow-sm' : 'text-emerald-700'}`}>
-                  <span className="inline-flex items-center justify-center gap-1">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSimpleTab('reverse')}
+                    className={`flex items-center justify-center gap-1 rounded-lg py-1.5 transition sm:py-2 ${simpleTab === 'reverse' ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-900 dark:text-emerald-300' : 'text-emerald-700 dark:text-emerald-400'}`}
+                  >
                     {simpleTab === 'reverse' && <Check className="h-3.5 w-3.5" />}
                     {uiLabels.bagsToNutrients}
-                  </span>
-                </button>
-              </div>
+                  </button>
+                </div>
 
-              {simpleTab === 'forward' ? (
-                <>
-                  <div className="grid gap-1.5 sm:grid-cols-3 sm:gap-2">
-                    {(['n', 'p', 'k'] as const).map((key) => (
-                      <label key={key} className="block rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
-                        <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{key === 'n' ? uiLabels.nitrogen : key === 'p' ? uiLabels.phosphorus : uiLabels.potash}</span>
+                {simpleTab === 'forward' ? (
+                  <>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      {(['n', 'p', 'k'] as const).map((key) => (
+                        <label key={key} className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40 sm:p-3">
+                          <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{key === 'n' ? uiLabels.nitrogen : key === 'p' ? uiLabels.phosphorus : uiLabels.potash}</span>
+                          <input
+                            type="number"
+                            value={required[key]}
+                            onChange={(event) => setRequired((current) => ({ ...current, [key]: numberValue(event.target.value) }))}
+                            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-base font-black text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white sm:text-lg"
+                          />
+                        </label>
+                      ))}
+                    </div>
+                    <div>
+                      <span className="mb-1.5 block text-[11px] font-bold text-slate-500 dark:text-slate-400">Quick N-P-K Presets:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {PRESETS.map((preset) => (
+                          <button
+                            key={preset.label}
+                            type="button"
+                            onClick={() => applyPreset(preset)}
+                            className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-950/40"
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {grades.map((grade) => (
+                      <label key={gradeKey(grade)} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                        <span className="min-w-0">
+                          <span className="block text-xs font-black text-slate-900 dark:text-white">{grade.name}</span>
+                          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{grade.bag_kg} {uiLabels.kgBag}</span>
+                        </span>
                         <input
                           type="number"
-                          value={required[key]}
-                          onChange={(event) => setRequired((current) => ({ ...current, [key]: numberValue(event.target.value) }))}
-                          className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-2 py-1.5 text-base font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 sm:px-3 sm:py-2 sm:text-lg"
+                          min="0"
+                          value={reverseBags[gradeKey(grade)] || ''}
+                          onChange={(event) => setReverseBags((current) => ({ ...current, [gradeKey(grade)]: numberValue(event.target.value) }))}
+                          placeholder={uiLabels.bags}
+                          className="w-24 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-right text-sm font-black text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                         />
                       </label>
                     ))}
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {PRESETS.map((preset) => (
-                      <button key={preset.label} type="button" onClick={() => applyPreset(preset)} className="rounded-full border border-emerald-300 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 text-xs font-black text-emerald-800 dark:text-emerald-300">
-                        {preset.label}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {grades.map((grade) => (
-                    <label key={gradeKey(grade)} className="flex items-center justify-between gap-3 rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-3 shadow-sm">
-                      <span className="min-w-0">
-                        <span className="block text-sm font-black">{grade.name}</span>
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{grade.bag_kg} {uiLabels.kgBag}</span>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.crop}</span>
+                    <select
+                      value={selectedCrop}
+                      onChange={(event) => setSelectedCrop(event.target.value)}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                    >
+                      {cropOptions.map((crop) => <option key={crop} value={crop}>{crop}</option>)}
+                    </select>
+                  </label>
+                  <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.zone}</span>
+                    <select
+                      value={selectedZone}
+                      onChange={(event) => setSelectedZone(event.target.value)}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                    >
+                      {zoneOptions.map((zone) => <option key={zone} value={zone}>{zone}</option>)}
+                    </select>
+                  </label>
+                  <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.season}</span>
+                    <select
+                      value={selectedSeason}
+                      onChange={(event) => setSelectedSeason(event.target.value)}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                    >
+                      {seasonOptions.map((season) => <option key={season} value={season}>{season}</option>)}
+                    </select>
+                  </label>
+                  <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.variety}</span>
+                    <select
+                      value={selectedVariety}
+                      onChange={(event) => setSelectedVariety(event.target.value)}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                    >
+                      {varietyOptions.map((variety) => <option key={variety} value={variety}>{variety}</option>)}
+                    </select>
+                  </label>
+                  <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.area}</span>
+                    <input
+                      type="number"
+                      value={area.value}
+                      onChange={(event) => setArea((current) => ({ ...current, value: numberValue(event.target.value) }))}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                    />
+                  </label>
+                  <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.unit}</span>
+                    <select
+                      value={area.unit}
+                      onChange={(event) => setArea((current) => ({ ...current, unit: event.target.value }))}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                    >
+                      <option value="acres">{uiLabels.acres}</option>
+                      <option value="hectares">{uiLabels.hectares}</option>
+                      <option value="guntas">{uiLabels.guntas}</option>
+                    </select>
+                  </label>
+                </div>
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs font-bold text-emerald-950 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-100">
+                  {uiLabels.agricultureUniversityRecommendation} {recommendationLabel(selectedRecommendation)}: {recommendationNpkLabel(selectedRecommendation)} {uiLabels.perAcre} {formatNutrients(recommendationNutrients)}.
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Available Fertilizers */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300">
+                  <Leaf className="h-4 w-4" />
+                </span>
+                <div>
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white">{uiLabels.availableFertilizers}</h2>
+                  <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Select sources to fulfill requirements</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedKeys(getInitialSelected(grades))}
+                className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              >
+                <RefreshCw className="h-3 w-3" /> {uiLabels.default}
+              </button>
+            </div>
+            <div className="grid max-h-[19rem] gap-2 overflow-y-auto pr-1 sm:max-h-[23rem] sm:grid-cols-2">
+              {grades.map((grade) => {
+                const isSelected = selectedKeys.includes(gradeKey(grade));
+                return (
+                  <button
+                    key={gradeKey(grade)}
+                    type="button"
+                    onClick={() => toggleGrade(gradeKey(grade))}
+                    className={`relative rounded-xl border p-2.5 text-left transition ${
+                      isSelected
+                        ? 'border-emerald-500 bg-emerald-50/70 text-emerald-950 dark:border-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-100 shadow-2xs'
+                        : 'border-slate-200 bg-slate-50/60 text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300'
+                    }`}
+                  >
+                    {isSelected && (
+                      <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-white">
+                        <Check className="h-2.5 w-2.5" />
                       </span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={reverseBags[gradeKey(grade)] || ''}
-                        onChange={(event) => setReverseBags((current) => ({ ...current, [gradeKey(grade)]: numberValue(event.target.value) }))}
-                        placeholder={uiLabels.bags}
-                        className="w-24 rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-right font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                      />
-                    </label>
+                    )}
+                    <span className="block text-xs font-black">{grade.name}</span>
+                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{getGradeLabel(grade)} | {grade.bag_kg} {uiLabels.kgBag}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Live Gauges (Left) and Fertilizer Quantity Breakdown (Right) */}
+        <section className="grid gap-3 lg:grid-cols-[0.8fr_1.2fr]">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+                <FileText className="h-4 w-4" />
+              </span>
+              <div>
+                <h2 className="text-sm font-black text-slate-900 dark:text-white">
+                  {simpleTab === 'reverse' && mode === 'simple' ? uiLabels.reverseCalculation : uiLabels.liveCalculation}
+                </h2>
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Nutrient supply status</p>
+              </div>
+            </div>
+            {simpleTab === 'reverse' && mode === 'simple' ? (
+              <div className="grid gap-2.5 sm:grid-cols-3 lg:grid-cols-1">
+                <NutrientGauge label={uiLabels.nitrogenSupplied} value={reverseTotals.n} max={Math.max(reverseTotals.n, 1)} color="emerald" />
+                <NutrientGauge label={uiLabels.phosphorusSupplied} value={reverseTotals.p} max={Math.max(reverseTotals.p, 1)} color="sky" />
+                <NutrientGauge label={uiLabels.potashSupplied} value={reverseTotals.k} max={Math.max(reverseTotals.k, 1)} color="amber" />
+              </div>
+            ) : (
+              <div className="grid gap-2.5 sm:grid-cols-3 lg:grid-cols-1">
+                <NutrientGauge label={uiLabels.nSupplied} value={activeCalculation.supplied.n} max={Math.max(activeRequired.n, activeCalculation.supplied.n, 1)} color="emerald" />
+                <NutrientGauge label={uiLabels.pSupplied} value={activeCalculation.supplied.p} max={Math.max(activeRequired.p, activeCalculation.supplied.p, 1)} color="sky" />
+                <NutrientGauge label={uiLabels.kSupplied} value={activeCalculation.supplied.k} max={Math.max(activeRequired.k, activeCalculation.supplied.k, 1)} color="amber" />
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                <FileText className="h-4 w-4" />
+              </span>
+              <div>
+                <h2 className="text-sm font-black text-slate-900 dark:text-white">{uiLabels.fertilizerQuantityBreakdown}</h2>
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Total bags & nutrients supplied</p>
+              </div>
+            </div>
+            <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+              <div className="table-scroll overflow-x-auto">
+                <table className="w-full min-w-[580px] text-left text-xs">
+                  <thead className="bg-slate-900 text-white dark:bg-slate-950">
+                    <tr>
+                      <th className="px-3 py-2.5 font-black">{uiLabels.fertilizer}</th>
+                      <th className="px-3 py-2.5 text-right font-black">{uiLabels.kg}</th>
+                      <th className="px-3 py-2.5 text-right font-black">{uiLabels.bags}</th>
+                      <th className="px-3 py-2.5 text-right font-black">N</th>
+                      <th className="px-3 py-2.5 text-right font-black">P</th>
+                      <th className="px-3 py-2.5 text-right font-black">K</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {activeCalculation.results.map((row) => (
+                      <tr key={gradeKey(row.grade)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 font-bold">
+                        <td className="px-3 py-2.5 font-black text-slate-900 dark:text-white">{row.grade.name}</td>
+                        <td className="px-3 py-2.5 text-right">{round(row.kg)}</td>
+                        <td className="px-3 py-2.5 text-right font-black text-emerald-700 dark:text-emerald-400">{round(row.bags)}</td>
+                        <td className="px-3 py-2.5 text-right text-slate-600 dark:text-slate-300">{round(row.supplied.n)}</td>
+                        <td className="px-3 py-2.5 text-right text-slate-600 dark:text-slate-300">{round(row.supplied.p)}</td>
+                        <td className="px-3 py-2.5 text-right text-slate-600 dark:text-slate-300">{round(row.supplied.k)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              <SummaryTile title={uiLabels.balance} values={activeCalculation.balance} tone="bg-rose-50 text-rose-900 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-900" />
+              <SummaryTile title={uiLabels.excess} values={activeCalculation.excess} tone="bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-900" />
+              <SummaryTile title={uiLabels.supplied} values={activeCalculation.supplied} tone="bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-900" />
+            </div>
+            {activeCalculation.remarks.length > 0 && (
+              <div className="mt-2.5 rounded-xl border border-amber-200 bg-amber-50/80 p-2.5 text-xs font-bold text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
+                {activeCalculation.remarks.map((remark) => <p key={remark}>{remark}</p>)}
+              </div>
+            )}
+
+            {/* Quick Action Buttons like other calculators */}
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 dark:border-slate-800 print:hidden">
+              <button
+                type="button"
+                onClick={copyResult}
+                disabled={!activeCalculation?.results?.length}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-slate-800 active:scale-95 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white dark:disabled:bg-slate-700"
+              >
+                <Copy className="h-4 w-4" />
+                {copied ? (language === 'te' ? 'కాపీ అయింది' : 'Copied') : (language === 'te' ? 'ఫలితం కాపీ' : 'Copy Result')}
+              </button>
+
+              <button
+                type="button"
+                onClick={shareWhatsApp}
+                disabled={!activeCalculation?.results?.length}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-emerald-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                title="Share on WhatsApp"
+              >
+                <WhatsAppIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">WhatsApp</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={exportPdf}
+                disabled={!activeCalculation?.results?.length}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                title="Export PDF"
+              >
+                <FileText className="h-4 w-4 text-rose-500" />
+                <span className="hidden sm:inline">PDF</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.print()}
+                disabled={!activeCalculation?.results?.length}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                title="Print Report"
+              >
+                <Printer className="h-4 w-4" />
+                <span className="hidden sm:inline">Print</span>
+              </button>
+
+            </div>
+          </div>
+        </section>
+
+        {/* Smart Split Dose Planner */}
+        {mode === 'crop' && (
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300">
+                <Leaf className="h-4 w-4" />
+              </span>
+              <div>
+                <h2 className="text-sm font-black text-slate-900 dark:text-white">{uiLabels.smartSplitDosePlanner}</h2>
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Application timings and stage-wise split</p>
+              </div>
+            </div>
+            <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+              {splitFertilizerPlan.map(({ dose, nutrients, calculation: doseCalculation }) => (
+                <div key={dose.stage} className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-950/50">
+                  <p className="text-xs font-black text-slate-900 dark:text-white">{dose.stage}</p>
+                  <p className="mt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    {uiLabels.target}: N {round(nutrients.n)} | P {round(nutrients.p)} | K {round(nutrients.k)}
+                  </p>
+                  {dose.notes && (
+                    <p className="mt-1 text-[10px] font-bold text-amber-700 dark:text-amber-300">{dose.notes}</p>
+                  )}
+                  {dose.top_dressing_n_kg && (
+                    <p className="mt-1 text-[10px] font-bold text-blue-700 dark:text-blue-300">Top dressing: {dose.top_dressing_n_kg} kg N</p>
+                  )}
+                  {dose.gypsum_kg && (
+                    <p className="mt-1 text-[10px] font-bold text-purple-700 dark:text-purple-300">Gypsum: {dose.gypsum_kg} kg</p>
+                  )}
+                  <div className="mt-2.5 space-y-1.5">
+                    {doseCalculation.results.filter((row) => row.kg > 0.01).length > 0 ? (
+                      doseCalculation.results.filter((row) => row.kg > 0.01).map((row) => (
+                        <div key={gradeKey(row.grade)} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200/80 bg-white px-2.5 py-1.5 text-xs font-black shadow-2xs dark:border-slate-700 dark:bg-slate-900">
+                          <span className="truncate text-slate-800 dark:text-slate-200">{row.grade.name}</span>
+                          <span className="shrink-0 text-emerald-700 dark:text-emerald-400">{round(row.kg)} {uiLabels.kg} / {round(row.bags)} {uiLabels.bags}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="rounded-lg bg-white px-2.5 py-1.5 text-xs font-bold text-slate-400 dark:bg-slate-900 dark:text-slate-500">{uiLabels.noFertilizerRequired}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Agronomic Notes */}
+        <section className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-amber-950 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
+          <h2 className="mb-2 flex items-center gap-2 text-sm font-black"><Leaf className="h-4 w-4 text-amber-600 dark:text-amber-400" /> {uiLabels.importantAgronomicNote}</h2>
+          <ul className="space-y-1 text-xs font-bold">
+            {visibleAgronomicNotes.map((note) => (
+              <li key={note} className="flex items-start gap-1.5">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400" />
+                <span>{note}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Admin Panel */}
+        {isAdminUser && (
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
+            <h2 className="mb-3 text-base font-black text-slate-900 dark:text-white">{uiLabels.adminPanel}</h2>
+            {saveNotice && (
+              <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50/80 p-3 text-emerald-950 shadow-2xs dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+                <p className="text-xs font-black">{uiLabels.savedSuccessfully}</p>
+                <p className="mt-0.5 text-xs font-bold">{saveNotice.label}</p>
+                <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">{saveNotice.details}</p>
+              </div>
+            )}
+            <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-black text-slate-900 dark:text-white">{uiLabels.saveCurrentCalculation}</p>
+                  <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{uiLabels.storesCompleteInput}</p>
+                </div>
+                <button type="button" onClick={saveCalculation} className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-500">
+                  <Save className="h-3.5 w-3.5" /> {uiLabels.saveCalculation}
+                </button>
+              </div>
+              {savedCalculations.length > 0 && (
+                <div className="mt-2.5 grid gap-1.5">
+                  {savedCalculations.map((entry) => (
+                    <div key={entry.id} className="rounded-lg border border-slate-200 bg-white p-2 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                      {uiLabels.saved} {new Date(entry.created_at).toLocaleString()}
+                    </div>
                   ))}
                 </div>
               )}
             </div>
-          ) : (
-            <div className="space-y-2 sm:space-y-3">
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.crop}</span>
-                  <select
-                    value={selectedCrop}
-                    onChange={(event) => setSelectedCrop(event.target.value)}
-                    className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                  >
-                    {cropOptions.map((crop) => <option key={crop} value={crop}>{crop}</option>)}
-                  </select>
-                </label>
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.zone}</span>
-                  <select value={selectedZone} onChange={(event) => setSelectedZone(event.target.value)} className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
-                    {zoneOptions.map((zone) => <option key={zone} value={zone}>{zone}</option>)}
-                  </select>
-                </label>
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.season}</span>
-                  <select value={selectedSeason} onChange={(event) => setSelectedSeason(event.target.value)} className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
-                    {seasonOptions.map((season) => <option key={season} value={season}>{season}</option>)}
-                  </select>
-                </label>
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.variety}</span>
-                  <select value={selectedVariety} onChange={(event) => setSelectedVariety(event.target.value)} className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
-                    {varietyOptions.map((variety) => <option key={variety} value={variety}>{variety}</option>)}
-                  </select>
-                </label>
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.area}</span>
-                  <input type="number" value={area.value} onChange={(event) => setArea((current) => ({ ...current, value: numberValue(event.target.value) }))} className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" />
-                </label>
-                <label className="flex-shrink-0 block w-36 rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm sm:p-3">
-                  <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{uiLabels.unit}</span>
-                  <select value={area.unit} onChange={(event) => setArea((current) => ({ ...current, unit: event.target.value }))} className="mt-1 w-full rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 font-black outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
-                    <option value="acres">{uiLabels.acres}</option>
-                    <option value="hectares">{uiLabels.hectares}</option>
-                    <option value="guntas">{uiLabels.guntas}</option>
-                  </select>
-                </label>
-              </div>
-              <div className="rounded-lg border border-lime-300 dark:border-lime-800/50 bg-gradient-to-br from-lime-100 dark:from-lime-900 to-emerald-100 dark:to-emerald-900 p-3 text-sm font-bold text-emerald-950 dark:text-emerald-100 shadow-sm">
-                {uiLabels.agricultureUniversityRecommendation} {recommendationLabel(selectedRecommendation)}: {recommendationNpkLabel(selectedRecommendation)} {uiLabels.perAcre} {formatNutrients(recommendationNutrients)}.
-              </div>
+            <div className="grid gap-3 lg:grid-cols-2">
+              <AdminGradeEditor grades={grades} draft={gradeDraft} onDraftChange={setGradeDraft} onSave={saveGrade} onDelete={deleteGrade} loading={loadingData} />
+              <AdminCropEditor
+                crops={recommendations}
+                draft={cropDraft}
+                onDraftChange={setCropDraft}
+                onSave={saveCrop}
+                onDelete={deleteCrop}
+                options={{ crops: adminCropOptions, zones: adminZoneOptions, seasons: adminSeasonOptions, varieties: adminVarietyOptions }}
+              />
             </div>
-          )}
-        </div>
-
-        <div className="rounded-xl border border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white via-emerald-50 dark:via-emerald-950/60 to-lime-100 dark:to-lime-900 p-3 shadow-md sm:p-4">
-          <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
-            <h2 className="text-base font-black">{uiLabels.availableFertilizers}</h2>
-            <button type="button" onClick={() => setSelectedKeys(getInitialSelected(grades))} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 text-xs font-black text-slate-600 dark:text-slate-300">
-              <RefreshCw className="h-3.5 w-3.5" /> {uiLabels.default}
-            </button>
-          </div>
-          <div className="grid max-h-[18rem] gap-1.5 overflow-y-auto pr-1 sm:max-h-[23rem] sm:grid-cols-2 sm:gap-2">
-            {grades.map((grade) => (
-              <button
-                key={gradeKey(grade)}
-                type="button"
-                onClick={() => toggleGrade(gradeKey(grade))}
-                className={`relative rounded-lg border p-2.5 text-left transition ${selectedKeys.includes(gradeKey(grade)) ? 'border-emerald-600 bg-emerald-50 text-emerald-950' : 'border-slate-200 bg-slate-50 text-slate-700'}`}
-              >
-                {selectedKeys.includes(gradeKey(grade)) && <Check className="absolute right-1.5 top-1.5 h-4 w-4 text-emerald-600 dark:text-emerald-300" />}
-                <span className="block text-sm font-black">{grade.name}</span>
-                <span className="text-xs font-bold">{getGradeLabel(grade)} | {grade.bag_kg} {uiLabels.kgBag}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-2 sm:gap-3 lg:grid-cols-[0.8fr_1.2fr]">
-        <div className="rounded-xl border border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white via-emerald-50 dark:via-emerald-950/60 to-lime-100 dark:to-lime-900 p-3 shadow-md sm:p-4">
-          <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">{simpleTab === 'reverse' && mode === 'simple' ? uiLabels.reverseCalculation : uiLabels.liveCalculation}</h2>
-          {simpleTab === 'reverse' && mode === 'simple' ? (
-            <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
-              <NutrientGauge label={uiLabels.nitrogenSupplied} value={reverseTotals.n} max={Math.max(reverseTotals.n, 1)} color="emerald" />
-              <NutrientGauge label={uiLabels.phosphorusSupplied} value={reverseTotals.p} max={Math.max(reverseTotals.p, 1)} color="sky" />
-              <NutrientGauge label={uiLabels.potashSupplied} value={reverseTotals.k} max={Math.max(reverseTotals.k, 1)} color="amber" />
-            </div>
-          ) : (
-            <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
-              <NutrientGauge label={uiLabels.nSupplied} value={activeCalculation.supplied.n} max={Math.max(activeRequired.n, activeCalculation.supplied.n, 1)} color="emerald" />
-              <NutrientGauge label={uiLabels.pSupplied} value={activeCalculation.supplied.p} max={Math.max(activeRequired.p, activeCalculation.supplied.p, 1)} color="sky" />
-              <NutrientGauge label={uiLabels.kSupplied} value={activeCalculation.supplied.k} max={Math.max(activeRequired.k, activeCalculation.supplied.k, 1)} color="amber" />
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-xl border border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white via-emerald-50 dark:via-emerald-950/60 to-lime-100 dark:to-lime-900 p-3 shadow-md sm:p-4">
-          <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">{uiLabels.fertilizerQuantityBreakdown}</h2>
-          <div className="table-scroll overflow-x-auto rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 shadow-sm">
-            <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="bg-slate-900 text-xs font-black text-white">
-                <tr>
-                  <th className="px-3 py-2">{uiLabels.fertilizer}</th>
-                  <th className="px-3 py-2 text-right">{uiLabels.kg}</th>
-                  <th className="px-3 py-2 text-right">{uiLabels.bags}</th>
-                  <th className="px-3 py-2 text-right">N</th>
-                  <th className="px-3 py-2 text-right">P</th>
-                  <th className="px-3 py-2 text-right">K</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {activeCalculation.results.map((row) => (
-                  <tr key={gradeKey(row.grade)} className="hover:bg-emerald-50/60">
-                    <td className="px-3 py-2 font-black">{row.grade.name}</td>
-                    <td className="px-3 py-2 text-right font-bold">{round(row.kg)}</td>
-                    <td className="px-3 py-2 text-right font-bold">{round(row.bags)}</td>
-                    <td className="px-3 py-2 text-right">{round(row.supplied.n)}</td>
-                    <td className="px-3 py-2 text-right">{round(row.supplied.p)}</td>
-                    <td className="px-3 py-2 text-right">{round(row.supplied.k)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-2 grid gap-1.5 sm:mt-3 sm:grid-cols-3 sm:gap-2">
-            <SummaryTile title={uiLabels.balance} values={activeCalculation.balance} tone="bg-red-50 text-red-900 border-red-100" />
-            <SummaryTile title={uiLabels.excess} values={activeCalculation.excess} tone="bg-amber-50 text-amber-900 border-amber-100" />
-            <SummaryTile title={uiLabels.supplied} values={activeCalculation.supplied} tone="bg-emerald-50 text-emerald-900 border-emerald-100" />
-          </div>
-          {activeCalculation.remarks.length > 0 && (
-            <div className="mt-2 rounded-lg border border-amber-300 dark:border-amber-800/50 bg-gradient-to-br from-amber-100 dark:from-amber-900 to-orange-100 dark:to-orange-900 p-2 text-xs font-bold text-amber-950 dark:text-amber-100 shadow-sm">
-              {activeCalculation.remarks.map((remark) => <p key={remark}>{remark}</p>)}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {mode === 'crop' && (
-        <section className="rounded-xl border border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white via-emerald-50 dark:via-emerald-950/60 to-lime-100 dark:to-lime-900 p-3 shadow-md sm:p-4">
-          <h2 className="mb-2 text-sm font-black sm:mb-3 sm:text-base">{uiLabels.smartSplitDosePlanner}</h2>
-          <div className="grid gap-1.5 sm:gap-2 md:grid-cols-2 xl:grid-cols-4">
-            {splitFertilizerPlan.map(({ dose, nutrients, calculation: doseCalculation }) => (
-              <div key={dose.stage} className="rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white to-emerald-50 dark:to-emerald-950 p-2 shadow-sm sm:p-3">
-                <p className="text-sm font-black text-slate-950 dark:text-white">{dose.stage}</p>
-                <p className="mt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                  {uiLabels.target}: N {round(nutrients.n)} | P {round(nutrients.p)} | K {round(nutrients.k)}
-                </p>
-                {dose.notes && (
-                  <p className="mt-1 text-[10px] font-semibold text-amber-700 dark:text-amber-300">{dose.notes}</p>
-                )}
-                {dose.top_dressing_n_kg && (
-                  <p className="mt-1 text-[10px] font-semibold text-blue-700 dark:text-blue-300">Top dressing: {dose.top_dressing_n_kg} kg N</p>
-                )}
-                {dose.gypsum_kg && (
-                  <p className="mt-1 text-[10px] font-semibold text-purple-700 dark:text-purple-300">Gypsum: {dose.gypsum_kg} kg</p>
-                )}
-                <div className="mt-2 space-y-1.5">
-                  {doseCalculation.results.filter((row) => row.kg > 0.01).length > 0 ? (
-                    doseCalculation.results.filter((row) => row.kg > 0.01).map((row) => (
-                      <div key={gradeKey(row.grade)} className="flex items-center justify-between gap-2 rounded-md bg-white/85 dark:bg-slate-900/85 px-2 py-1 text-xs font-black shadow-sm">
-                        <span className="truncate">{row.grade.name}</span>
-                        <span className="shrink-0 text-emerald-800 dark:text-emerald-300">{round(row.kg)} {uiLabels.kg} / {round(row.bags)} {uiLabels.bags}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="rounded-md bg-white/85 dark:bg-slate-900/85 px-2 py-1 text-xs font-bold text-slate-500 dark:text-slate-400 shadow-sm">{uiLabels.noFertilizerRequired}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="rounded-xl border border-amber-300 dark:border-amber-800/50 bg-gradient-to-br from-amber-100 dark:from-amber-900 to-orange-100 dark:to-orange-900 p-3 text-amber-950 dark:text-amber-100 shadow-md sm:p-4">
-        <h2 className="mb-2 flex items-center gap-2 text-sm font-black sm:text-base"><Leaf className="h-5 w-5" /> {uiLabels.importantAgronomicNote}</h2>
-        <ul className="space-y-1 text-sm font-bold">
-          {visibleAgronomicNotes.map((note) => (
-            <li key={note}>{note}</li>
-          ))}
-        </ul>
-      </section>
-
-      {isAdminUser && (
-        <section className="rounded-xl border border-sky-300 dark:border-sky-800/50 bg-gradient-to-br from-sky-100 dark:from-sky-900 to-cyan-100 dark:to-cyan-900 p-4 shadow-md sm:p-5">
-          <h2 className="mb-3 text-base font-black text-emerald-950 dark:text-emerald-100">{uiLabels.adminPanel}</h2>
-          {saveNotice && (
-            <div className="mb-3 rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-50 dark:from-emerald-950 to-lime-100 dark:to-lime-900 p-3 text-emerald-950 dark:text-emerald-100 shadow-sm">
-              <p className="text-sm font-black">{uiLabels.savedSuccessfully}</p>
-              <p className="mt-1 text-sm font-bold">{saveNotice.label}</p>
-              <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">{saveNotice.details}</p>
-            </div>
-          )}
-          <div className="mb-3 rounded-lg border border-cyan-300 dark:border-cyan-800/50 bg-gradient-to-br from-cyan-50 dark:from-cyan-950 to-sky-100 dark:to-sky-900 p-3 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="text-sm font-black text-slate-950 dark:text-white">{uiLabels.saveCurrentCalculation}</p>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{uiLabels.storesCompleteInput}</p>
-              </div>
-              <button type="button" onClick={saveCalculation} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white">
-                <Save className="h-4 w-4" /> {uiLabels.saveCalculation}
-              </button>
-            </div>
-            {savedCalculations.length > 0 && (
-              <div className="mt-3 grid gap-2">
-                {savedCalculations.map((entry) => (
-                  <div key={entry.id} className="rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-2 text-xs font-bold text-slate-700 dark:text-slate-200">
-                    {uiLabels.saved} {new Date(entry.created_at).toLocaleString()}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="grid gap-3 lg:grid-cols-2">
-            <AdminGradeEditor grades={grades} draft={gradeDraft} onDraftChange={setGradeDraft} onSave={saveGrade} onDelete={deleteGrade} loading={loadingData} />
-            <AdminCropEditor
-              crops={recommendations}
-              draft={cropDraft}
-              onDraftChange={setCropDraft}
-              onSave={saveCrop}
-              onDelete={deleteCrop}
-              options={{ crops: adminCropOptions, zones: adminZoneOptions, seasons: adminSeasonOptions, varieties: adminVarietyOptions }}
-            />
-          </div>
-        </section>
-      )}
+          </section>
+        )}
       </div>
     </div>
   );
@@ -2331,15 +2513,16 @@ export function FertilizerCalculator() {
 
 function NutrientGauge({ label, value, max, color }: { label: string; value: number; max: number; color: 'emerald' | 'sky' | 'amber' }) {
   const width = Math.min(100, Math.max(0, (value / max) * 100));
-  const colorClass = color === 'emerald' ? 'bg-emerald-600 text-emerald-900' : color === 'sky' ? 'bg-sky-600 text-sky-900' : 'bg-amber-500 text-amber-900';
+  const barColors = color === 'emerald' ? 'bg-emerald-600' : color === 'sky' ? 'bg-sky-600' : 'bg-amber-500';
+  const badgeColors = color === 'emerald' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : color === 'sky' ? 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
   return (
-    <div className="rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-gradient-to-br from-white to-emerald-50 dark:to-emerald-950 p-3 shadow-sm">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{label}</span>
-        <span className={`rounded-full bg-white px-2 py-0.5 text-xs font-black ${colorClass.split(' ')[1]}`}>{round(value)} kg</span>
+    <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>
+        <span className={`rounded-full px-2 py-0.5 text-xs font-black ${badgeColors}`}>{round(value)} kg</span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-white dark:bg-slate-900">
-        <div className={`h-full rounded-full ${colorClass.split(' ')[0]}`} style={{ width: `${width}%` }} />
+      <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+        <div className={`h-full rounded-full transition-all duration-300 ${barColors}`} style={{ width: `${width}%` }} />
       </div>
     </div>
   );
@@ -2347,9 +2530,9 @@ function NutrientGauge({ label, value, max, color }: { label: string; value: num
 
 function SummaryTile({ title, values, tone }: { title: string; values: Nutrients; tone: string }) {
   return (
-    <div className={`rounded-lg border p-3 ${tone}`}>
-      <p className="text-xs font-black uppercase">{title}</p>
-      <p className="mt-1 text-xs font-bold">
+    <div className={`rounded-xl border p-2.5 ${tone}`}>
+      <p className="text-[11px] font-black uppercase">{title}</p>
+      <p className="mt-1 text-xs font-black">
         {visibleNutrientKeys(values)
           .filter((nutrient) => numberValue(values[nutrient]) > 0 || ['n', 'p', 'k'].includes(nutrient))
           .map((nutrient) => `${nutrient.toUpperCase()} ${round(numberValue(values[nutrient]))}`)
@@ -2375,12 +2558,12 @@ function AdminGradeEditor({
   loading: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-cyan-300 dark:border-cyan-800/50 bg-gradient-to-br from-white via-cyan-50 dark:via-cyan-950/60 to-sky-100 dark:to-sky-900 p-3 shadow-md">
-      <h3 className="mb-2 text-sm font-black">Fertilizer Grades</h3>
+    <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+      <h3 className="mb-2 text-xs font-black text-slate-900 dark:text-white">Fertilizer Grades</h3>
       <div className="grid gap-2">
         <EditorInputs value={draft} onChange={onDraftChange} />
-        <button type="button" onClick={() => onSave(draft)} disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white disabled:opacity-50">
-          <Plus className="h-4 w-4" /> Add Fertilizer
+        <button type="button" onClick={() => onSave(draft)} disabled={loading} className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-500 disabled:opacity-50">
+          <Plus className="h-3.5 w-3.5" /> Add Fertilizer
         </button>
       </div>
       <div className="mt-3 max-h-64 space-y-2 overflow-y-auto">
@@ -2395,13 +2578,13 @@ function AdminGradeEditor({
 function EditableGradeRow({ grade, onSave, onDelete }: { grade: FertilizerGrade; onSave: (grade: FertilizerGrade) => void; onDelete: (grade: FertilizerGrade) => void }) {
   const [value, setValue] = useState(grade);
   return (
-    <div className="rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-white p-2 shadow-2xs dark:border-slate-700 dark:bg-slate-900">
       <EditorInputs value={value} onChange={setValue} />
       <div className="mt-2 flex flex-wrap gap-2">
-        <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-black text-white">
+        <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-black text-white dark:bg-slate-800">
           <Save className="h-3.5 w-3.5" /> Save
         </button>
-        <button type="button" onClick={() => onDelete(grade)} className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-black text-white">
+        <button type="button" onClick={() => onDelete(grade)} className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1 text-xs font-black text-white hover:bg-rose-700">
           <Trash2 className="h-3.5 w-3.5" /> Delete
         </button>
       </div>
@@ -2412,16 +2595,16 @@ function EditableGradeRow({ grade, onSave, onDelete }: { grade: FertilizerGrade;
 function EditorInputs({ value, onChange }: { value: FertilizerGrade; onChange: (grade: FertilizerGrade) => void }) {
   return (
     <div className="grid grid-cols-6 gap-1.5">
-      <input value={value.name} onChange={(event) => onChange({ ...value, name: event.target.value })} placeholder="Name" className="col-span-2 rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold" />
+      <input value={value.name} onChange={(event) => onChange({ ...value, name: event.target.value })} placeholder="Name" className="col-span-2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-bold dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
       {(['n', 'p', 'k', 's'] as const).map((key) => (
-        <input key={key} type="number" value={value[key]} onChange={(event) => onChange({ ...value, [key]: numberValue(event.target.value) })} placeholder={key.toUpperCase()} className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold" />
+        <input key={key} type="number" value={value[key]} onChange={(event) => onChange({ ...value, [key]: numberValue(event.target.value) })} placeholder={key.toUpperCase()} className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-bold dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
       ))}
-      <input type="number" value={value.bag_kg} onChange={(event) => onChange({ ...value, bag_kg: numberValue(event.target.value) })} placeholder="Bag" className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold" />
+      <input type="number" value={value.bag_kg} onChange={(event) => onChange({ ...value, bag_kg: numberValue(event.target.value) })} placeholder="Bag" className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-bold dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
       <input
         defaultValue={compositionToText(value.composition)}
         onChange={(event) => onChange({ ...value, composition: parseCompositionText(event.target.value) })}
         placeholder="Extra nutrients Zn:1, B:0.5"
-        className="col-span-6 rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold"
+        className="col-span-6 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-bold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
       />
     </div>
   );
@@ -2443,11 +2626,11 @@ function AdminCropEditor({
   options: CropInputOptions;
 }) {
   return (
-    <div className="rounded-xl border border-cyan-300 dark:border-cyan-800/50 bg-gradient-to-br from-white via-cyan-50 dark:via-cyan-950/60 to-sky-100 dark:to-sky-900 p-3 shadow-md">
-      <h3 className="mb-2 text-sm font-black">Crop Recommendations</h3>
+    <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
+      <h3 className="mb-2 text-xs font-black text-slate-900 dark:text-white">Crop Recommendations</h3>
       <CropInputs value={draft} onChange={onDraftChange} options={options} />
-      <button type="button" onClick={() => onSave(draft)} className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white">
-        <Plus className="h-4 w-4" /> Add Crop
+      <button type="button" onClick={() => onSave(draft)} className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-500">
+        <Plus className="h-3.5 w-3.5" /> Add Crop
       </button>
       <div className="mt-3 max-h-64 space-y-2 overflow-y-auto">
         {crops.map((crop) => (
@@ -2461,13 +2644,13 @@ function AdminCropEditor({
 function EditableCropRow({ crop, onSave, onDelete, options }: { crop: CropRecommendation; onSave: (crop: CropRecommendation) => void; onDelete: (crop: CropRecommendation) => void; options: CropInputOptions }) {
   const [value, setValue] = useState(crop);
   return (
-    <div className="rounded-lg border border-emerald-300 dark:border-emerald-800/50 bg-white/80 dark:bg-slate-900/80 p-2 shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-white p-2 shadow-2xs dark:border-slate-700 dark:bg-slate-900">
       <CropInputs value={value} onChange={setValue} options={options} />
       <div className="mt-2 flex flex-wrap gap-2">
-        <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-black text-white">
+        <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-black text-white dark:bg-slate-800">
           <Save className="h-3.5 w-3.5" /> Save
         </button>
-        <button type="button" onClick={() => onDelete(crop)} className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-black text-white">
+        <button type="button" onClick={() => onDelete(crop)} className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1 text-xs font-black text-white hover:bg-rose-700">
           <Trash2 className="h-3.5 w-3.5" /> Delete
         </button>
       </div>
@@ -2485,13 +2668,13 @@ type CropInputOptions = {
 function CropInputs({ value, onChange, options }: { value: CropRecommendation; onChange: (crop: CropRecommendation) => void; options: CropInputOptions }) {
   return (
     <div className="grid grid-cols-6 gap-1.5">
-      <input value={value.crop_name} onChange={(event) => onChange({ ...value, crop_name: event.target.value })} placeholder="Title" className="col-span-2 rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold" />
+      <input value={value.crop_name} onChange={(event) => onChange({ ...value, crop_name: event.target.value })} placeholder="Title" className="col-span-2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-bold dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
       <AdminSelect value={value.crop || ''} options={options.crops} placeholder="Crop" onChange={(crop) => onChange({ ...value, crop })} />
       <AdminSelect value={value.zone || ''} options={options.zones} placeholder="Zone" onChange={(zone) => onChange({ ...value, zone })} />
       <AdminSelect value={value.season || ''} options={options.seasons} placeholder="Season" onChange={(season) => onChange({ ...value, season })} />
       <AdminSelect value={value.variety || ''} options={options.varieties} placeholder="Variety" onChange={(variety) => onChange({ ...value, variety })} />
       {(['n', 'p', 'k'] as const).map((key) => (
-        <input key={key} type="number" value={value[key]} onChange={(event) => onChange({ ...value, [key]: numberValue(event.target.value) })} placeholder={key.toUpperCase()} className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-bold" />
+        <input key={key} type="number" value={value[key]} onChange={(event) => onChange({ ...value, [key]: numberValue(event.target.value) })} placeholder={key.toUpperCase()} className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-bold dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
       ))}
     </div>
   );
@@ -2500,7 +2683,7 @@ function CropInputs({ value, onChange, options }: { value: CropRecommendation; o
 function AdminSelect({ value, options, placeholder, onChange }: { value: string; options: string[]; placeholder: string; onChange: (value: string) => void }) {
   const selectOptions = value && !options.includes(value) ? [value, ...options] : options;
   return (
-    <select value={value} onChange={(event) => onChange(event.target.value)} className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-xs font-bold">
+    <select value={value} onChange={(event) => onChange(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-bold dark:border-slate-700 dark:bg-slate-900 dark:text-white">
       <option value="">{placeholder}</option>
       {selectOptions.map((option) => <option key={option} value={option}>{option}</option>)}
     </select>
@@ -2508,3 +2691,4 @@ function AdminSelect({ value, options, placeholder, onChange }: { value: string;
 }
 
 export default FertilizerCalculator;
+

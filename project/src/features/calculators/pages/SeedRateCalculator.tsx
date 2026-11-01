@@ -1,5 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Copy, RotateCcw, Scale, ShieldAlert } from 'lucide-react';
+import {
+  Check,
+  Copy,
+  Layers,
+  Printer,
+  RotateCcw,
+  Scale,
+  ShieldAlert,
+  Sparkles,
+  Wheat,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
@@ -15,15 +25,25 @@ const HECTARE_TO_ACRES = 2.471;
 
 const initialForm = {
   cropName: '',
-  areaValue: '',
+  areaValue: '1',
   areaUnit: 'acres' as AreaUnit,
-  requiredPopulation: '',
+  requiredPopulation: '7400',
   populationUnit: 'plants-acre' as PopulationUnit,
   seedsPerHill: '1',
-  germinationPercentage: '',
-  testWeight: '',
-  wastagePercentage: '',
+  germinationPercentage: '75',
+  testWeight: '90',
+  wastagePercentage: '5',
 };
+
+const POPULAR_SEED_PRESETS = [
+  { name: 'HDPS Cotton (90×15cm)', nameTe: 'HDPS పత్తి (90×15)', pop: '30000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '75', testWeight: '90', wastage: '5', icon: '🌱' },
+  { name: 'CS Cotton (90×30cm)', nameTe: 'సాధారణ పత్తి (90×30)', pop: '15000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '75', testWeight: '90', wastage: '5', icon: '🌱' },
+  { name: 'Bengal Gram (30×15cm)', nameTe: 'శనగ (30×15)', pop: '90000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '85', testWeight: '200', wastage: '5', icon: '🫘' },
+  { name: 'Paddy (Transplanted)', nameTe: 'వరి (నాట్లు)', pop: '133000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '2', germ: '85', testWeight: '24', wastage: '5', icon: '🌾' },
+  { name: 'Maize (Hybrid)', nameTe: 'మొక్కజొన్న', pop: '33000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '90', testWeight: '280', wastage: '5', icon: '🌽' },
+  { name: 'Redgram', nameTe: 'కందులు', pop: '22000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '85', testWeight: '75', wastage: '5', icon: '🌿' },
+  { name: 'Soybean', nameTe: 'సోయాబీన్', pop: '160000', popUnit: 'plants-acre' as PopulationUnit, seedsPerHill: '1', germ: '70', testWeight: '120', wastage: '5', icon: '🍃' },
+];
 
 const numericFieldWarnings: Partial<Record<keyof typeof initialForm, { isInvalid: (value: number) => boolean; message: [string, string] }>> = {
   areaValue: { isInvalid: (v) => v <= 0, message: ['Area must be greater than 0.', 'విస్తీర్ణం 0 కంటే ఎక్కువగా ఉండాలి.'] },
@@ -47,6 +67,14 @@ function isIntermediateTyping(value: string): boolean {
   );
 }
 
+function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+    </svg>
+  );
+}
+
 export function SeedRateCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
@@ -54,7 +82,7 @@ export function SeedRateCalculator() {
   const showCompactHeader = isAdminUser || isTestUser;
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
-  const { toasts, removeToast, showWarning } = useToast();
+  const { toasts, removeToast, showWarning, showSuccess } = useToast();
   const calculation = useMemo(() => calculateSeedRate(form), [form]);
   const shareText = useMemo(() => buildShareText(form, calculation.result, t), [calculation.result, form, t]);
 
@@ -85,6 +113,23 @@ export function SeedRateCalculator() {
     }
   };
 
+  const applySeedPreset = (preset: typeof POPULAR_SEED_PRESETS[0]) => {
+    setForm((prev) => ({
+      ...prev,
+      cropName: preset.name,
+      requiredPopulation: preset.pop,
+      populationUnit: preset.popUnit,
+      seedsPerHill: preset.seedsPerHill,
+      germinationPercentage: preset.germ,
+      testWeight: preset.testWeight,
+      wastagePercentage: preset.wastage,
+    }));
+    showSuccess(
+      t('Preset Loaded', 'ప్రిసెట్ లోడ్ అయింది'),
+      t(`Loaded seed parameters for ${preset.name}.`, `${preset.nameTe} విత్తన వివరాలు లోడ్ చేయబడ్డాయి.`)
+    );
+  };
+
   const reset = () => {
     setCopied(false);
     setForm(initialForm);
@@ -95,6 +140,7 @@ export function SeedRateCalculator() {
     try {
       await navigator.clipboard.writeText(shareText);
       setCopied(true);
+      showSuccess(t('Result Copied', 'ఫలితం కాపీ అయింది'), t('Summary copied to clipboard.', 'సారాంశం క్లిప్‌బోర్డ్‌కు కాపీ చేయబడింది.'));
     } catch {
       setCopied(false);
     }
@@ -106,189 +152,436 @@ export function SeedRateCalculator() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 print:space-y-2">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+
+      {/* Header */}
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 print:hidden">
         {showCompactHeader ? (
           <CompactToolkitHeader
-            eyebrow="Farm Calculators"
+            eyebrow={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
             title={t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్')}
-            subtitle={t('Calculate seed requirement from population, germination and test weight.', 'జనాభా, మొలక శాతం మరియు టెస్ట్ వెయిట్ ఆధారంగా విత్తన అవసరాన్ని లెక్కించండి.')}
+            subtitle={t(
+              'Calculate precise seed weight requirement from plant population, germination % and test weight.',
+              'జనాభా, మొలక శాతం మరియు టెస్ట్ వెయిట్ ఆధారంగా విత్తన అవసరాన్ని లెక్కించండి.'
+            )}
+            onBack={() => navigate('/officer-toolkit/farm-calculators')}
+            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
           />
         ) : (
-        <section className="relative rounded-2xl border border-lime-300/60 bg-gradient-to-br from-lime-600 via-green-600 to-emerald-700 p-4 shadow-lg dark:border-lime-700/60 sm:p-4">
-          <div className="flex items-center gap-4">
-            <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
-            <div>
-              <h1 className="flex items-center gap-2 text-xl font-black text-white">
-                <Scale className="h-6 w-6" aria-label="Seed Rate Calculator" />
-                {t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్')}
-              </h1>
-              <p className="text-sm font-semibold text-white/90">
-                {t('Calculate seed requirement from population, germination and test weight.', 'జనాభా, మొలక శాతం మరియు టెస్ట్ వెయిట్ ఆధారంగా విత్తన అవసరాన్ని లెక్కించండి.')}
-              </p>
-            </div>
-          </div>
-          <div className="absolute bottom-3 right-4">
-            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
-          </div>
-        </section>
-        )}
-      </div>
-
-      <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
-        <section className="rounded-xl border border-lime-300 bg-gradient-to-br from-lime-100 to-emerald-100 p-4 text-sm font-semibold text-emerald-950 shadow-md dark:border-emerald-900 dark:from-emerald-950/50 dark:to-lime-950/30 dark:text-emerald-100">
-          <div className="grid gap-2 sm:grid-cols-3">
-            <p><span className="font-black">1.</span> {t('Enter crop area and required population.', 'పంట విస్తీర్ణం మరియు అవసరమైన మొక్కల జనాభా నమోదు చేయండి.')}</p>
-            <p><span className="font-black">2.</span> {t('Add germination and test weight from seed label.', 'విత్తన లేబుల్ నుండి మొలక శాతం మరియు టెస్ట్ వెయిట్ జోడించండి.')}</p>
-            <p><span className="font-black">3.</span> {t('Get seed required in kg.', 'అవసరమైన విత్తనాన్ని కిలోల్లో పొందండి.')}</p>
-          </div>
-        </section>
-
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-300 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-3 shadow-md dark:border-emerald-900/60 dark:from-slate-900 dark:via-emerald-950/30 dark:to-lime-950/20">
-          <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
-            <Copy className="h-4 w-4" />
-            {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'టెక్స్ట్ కాపీ')}
-          </button>
-          <button type="button" onClick={shareWhatsApp} disabled={!calculation.result} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-green-600 text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700" aria-label="WhatsApp" title="WhatsApp">
-            <WhatsAppIcon className="h-4 w-4" />
-          </button>
-          <button type="button" onClick={reset} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
-            <RotateCcw className="h-4 w-4" />
-            {t('Reset', 'రీసెట్')}
-          </button>
-        </div>
-
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="space-y-3">
-            <FormSection title={t('Step 1: Crop and Area', 'పంట మరియు విస్తీర్ణం')}>
-              <div className="grid gap-3 sm:grid-cols-2">
-              <Field label={t('Crop name', 'పంట పేరు')} optional>
-                <input value={form.cropName} onChange={(event) => updateForm('cropName', event.target.value)} className={inputClass} placeholder={t('Optional', 'ఐచ్ఛికం')} />
-              </Field>
-              <Field label={t('Area value', 'విస్తీర్ణం')}>
-                <input type="number" min="0" inputMode="decimal" step="any" value={form.areaValue} onChange={(event) => updateForm('areaValue', event.target.value)} onBlur={() => handleBlur('areaValue')} className={inputClass} placeholder="1" />
-              </Field>
-              <Field label={t('Area unit', 'విస్తీర్ణ యూనిట్')}>
-                <select value={form.areaUnit} onChange={(event) => updateForm('areaUnit', event.target.value)} className={inputClass}>
-                  <option value="acres">{t('Acres', 'ఎకరాలు')}</option>
-                  <option value="hectares">{t('Hectares', 'హెక్టార్లు')}</option>
-                </select>
-              </Field>
-            </div>
-          </FormSection>
-
-          <FormSection title={t('Step 2: Seed Details', 'జనాభా మరియు విత్తన వివరాలు')}>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label={t('Required population', 'అవసరమైన మొక్కల జనాభా')}>
-                <input type="number" min="0" inputMode="decimal" step="any" value={form.requiredPopulation} onChange={(event) => updateForm('requiredPopulation', event.target.value)} onBlur={() => handleBlur('requiredPopulation')} className={inputClass} placeholder="30000" />
-              </Field>
-              <Field label={t('Population unit', 'జనాభా యూనిట్')}>
-                <select value={form.populationUnit} onChange={(event) => updateForm('populationUnit', event.target.value)} className={inputClass}>
-                  <option value="plants-acre">{t('Plants per acre', 'ఎకరానికి మొక్కలు')}</option>
-                  <option value="plants-ha">{t('Plants per hectare', 'హెక్టారుకు మొక్కలు')}</option>
-                  <option value="total-plants">{t('Total plants', 'మొత్తం మొక్కలు')}</option>
-                </select>
-              </Field>
-              <Field label={t('Seeds per hill', 'ఒక్క గుంతకు విత్తనాలు')}>
-                <input type="number" min="0" inputMode="decimal" step="any" value={form.seedsPerHill} onChange={(event) => updateForm('seedsPerHill', event.target.value)} onBlur={() => handleBlur('seedsPerHill')} className={inputClass} placeholder="1" />
-              </Field>
-              <Field label={t('Germination percentage', 'మొలక శాతం')}>
-                <input type="number" min="0" max="100" inputMode="decimal" step="any" value={form.germinationPercentage} onChange={(event) => updateForm('germinationPercentage', event.target.value)} onBlur={() => handleBlur('germinationPercentage')} className={inputClass} placeholder="85" />
-              </Field>
-              <Field label={t('Test weight', 'టెస్ట్ వెయిట్')} hint={t('Weight of 1000 seeds in grams', '1000 విత్తనాల బరువు గ్రాముల్లో')}>
-                <input type="number" min="0" inputMode="decimal" step="any" value={form.testWeight} onChange={(event) => updateForm('testWeight', event.target.value)} onBlur={() => handleBlur('testWeight')} className={inputClass} placeholder="8" />
-              </Field>
-              <Field label={t('Seed wastage / field loss %', 'విత్తన వృథా / పొలం నష్టం %')} optional>
-                <input type="number" min="0" inputMode="decimal" step="any" value={form.wastagePercentage} onChange={(event) => updateForm('wastagePercentage', event.target.value)} onBlur={() => handleBlur('wastagePercentage')} className={inputClass} placeholder="10" />
-              </Field>
-            </div>
-          </FormSection>
-        </div>
-
-        <aside className="space-y-3">
-          {calculation.result && (
-            <>
-              <ResultGrid areaUnit={form.areaUnit} result={calculation.result} t={t} />
-              <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
-                <div className="flex gap-3">
-                  <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-300" />
-                  <p className="text-sm font-bold text-amber-900 dark:text-amber-100">
-                    {t('Actual seed rate may vary depending on seed size, germination, purity, sowing method, gap filling and field conditions.', 'విత్తన పరిమాణం, మొలక, స్వచ్ఛత, విత్తే విధానం, గ్యాప్ ఫిల్లింగ్ మరియు పొలం పరిస్థితులపై వాస్తవ విత్తన మోతాదు మారవచ్చు.')}
+          <section className="relative overflow-hidden rounded-2xl border border-lime-300/60 bg-gradient-to-br from-lime-600 via-green-600 to-emerald-700 p-4 shadow-lg dark:border-lime-700/60 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3.5 min-w-0">
+                <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <h1 className="flex items-center gap-2 text-lg font-black text-white sm:text-xl">
+                    <Scale className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" aria-label="Seed Rate Calculator" />
+                    <span>{t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్')}</span>
+                  </h1>
+                  <p className="mt-1 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-2xl">
+                    {t(
+                      'Calculate seed quantity requirement in kg from label details.',
+                      'జనాభా, మొలక శాతం మరియు టెస్ట్ వెయిట్ ఆధారంగా విత్తన అవసరాన్ని లెక్కించండి.'
+                    )}
                   </p>
                 </div>
               </div>
-            </>
-          )}
-        </aside>
-      </section>
+              <div className="flex shrink-0 items-center justify-end self-end sm:self-center pt-1 sm:pt-0">
+                <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
+
+      <div className="mx-auto max-w-7xl space-y-4 px-4 pb-8 sm:px-6 lg:px-8">
+        {/* Step 1: Quick Crop Seed Label Presets */}
+        <section className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 print:hidden">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-emerald-600" />
+                {t('Crop Seed Label Presets', 'పంట విత్తన లేబుల్ ప్రిసెట్లు')}
+              </h2>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {t('Tap a crop to auto-fill standard test weight, germination % and plant density.', 'సిఫార్సు చేయబడిన టెస్ట్ వెయిట్, మొలక శాతం పూరించడానికి ఒక పంటను ఎంచుకోండి.')}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={reset}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              {t('Reset', 'రీసెట్')}
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {POPULAR_SEED_PRESETS.map((preset) => {
+              const isActive = form.cropName === preset.name && form.testWeight === preset.testWeight && form.germinationPercentage === preset.germ;
+              return (
+                <button
+                  key={preset.name}
+                  type="button"
+                  onClick={() => applySeedPreset(preset)}
+                  className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-black transition ${
+                    isActive
+                      ? 'border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-950/20'
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                  }`}
+                >
+                  <span>{preset.icon}</span>
+                  <span>{t(preset.name, preset.nameTe)}</span>
+                  <span className="text-[10px] font-semibold opacity-75">
+                    (TW: {preset.testWeight}g · {preset.germ}%)
+                  </span>
+                  {isActive && <Check className="h-3.5 w-3.5 shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* 2-Column Responsive Layout */}
+        <div className="grid gap-5 lg:grid-cols-12 items-start">
+          {/* LEFT: Inputs Form (7 cols) */}
+          <div className="space-y-4 lg:col-span-7">
+            {/* Step 1: Crop and Extent */}
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                  <Wheat className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    {t('1. Crop & Field Area', '1. పంట & పొలం విస్తీర్ణం')}
+                  </h3>
+                  <p className="text-[11px] font-medium text-slate-500">
+                    {t('Target extent and seeds per sowing hill / dibble point', 'సాగు విస్తీర్ణం మరియు ఒక గుంతకు విత్తనాల సంఖ్య')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="sm:col-span-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Crop Name', 'పంట పేరు')}
+                    <span className="ml-1 text-[11px] font-normal text-slate-400">({t('Optional', 'ఐచ్ఛికం')})</span>
+                  </label>
+                  <input
+                    value={form.cropName}
+                    onChange={(event) => updateForm('cropName', event.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    placeholder="e.g. Cotton"
+                  />
+                </div>
+
+                <div className="sm:col-span-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Cultivated Area', 'సాగు విస్తీర్ణం')}
+                  </label>
+                  <div className="mt-1 flex gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      inputMode="decimal"
+                      value={form.areaValue}
+                      onChange={(event) => updateForm('areaValue', event.target.value)}
+                      onBlur={() => handleBlur('areaValue')}
+                      className="w-1/2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      placeholder="1"
+                    />
+                    <select
+                      value={form.areaUnit}
+                      onChange={(event) => updateForm('areaUnit', event.target.value as AreaUnit)}
+                      className="w-1/2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                    >
+                      <option value="acres">{t('Acres', 'ఎకరాలు')}</option>
+                      <option value="hectares">{t('Hectares', 'హెక్టార్లు')}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="sm:col-span-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Seeds per Hill', 'గుంతకు విత్తనాలు')}
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    inputMode="numeric"
+                    value={form.seedsPerHill}
+                    onChange={(event) => updateForm('seedsPerHill', event.target.value)}
+                    onBlur={() => handleBlur('seedsPerHill')}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    placeholder="1"
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Step 2: Seed Label Quality Specs */}
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300">
+                  <Scale className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    {t('2. Seed Label Quality Details', '2. విత్తన లేబుల్ నాణ్యతా వివరాలు')}
+                  </h3>
+                  <p className="text-[11px] font-medium text-slate-500">
+                    {t('Test weight (g per 1000 seeds) and germination % printed on bag tag', 'బ్యాగ్‌పై ముద్రించిన టెస్ట్ వెయిట్ మరియు మొలక శాతం')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Germination Percentage', 'మొలక శాతం')}
+                  </label>
+                  <div className="mt-1 relative">
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      inputMode="decimal"
+                      value={form.germinationPercentage}
+                      onChange={(event) => updateForm('germinationPercentage', event.target.value)}
+                      onBlur={() => handleBlur('germinationPercentage')}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 pr-7 text-sm font-black text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      placeholder="85"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Test Weight (1000 seeds)', 'టెస్ట్ వెయిట్ (1000 విత్తనాలు)')}
+                  </label>
+                  <div className="mt-1 relative">
+                    <input
+                      type="number"
+                      min="0.1"
+                      step="any"
+                      inputMode="decimal"
+                      value={form.testWeight}
+                      onChange={(event) => updateForm('testWeight', event.target.value)}
+                      onBlur={() => handleBlur('testWeight')}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 pr-8 text-sm font-black text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      placeholder="90"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">g</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Wastage / Gap-fill Buffer', 'వృథా / గ్యాప్-ఫిల్లింగ్ శాతం')}
+                  </label>
+                  <div className="mt-1 relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      inputMode="decimal"
+                      value={form.wastagePercentage}
+                      onChange={(event) => updateForm('wastagePercentage', event.target.value)}
+                      onBlur={() => handleBlur('wastagePercentage')}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 pr-7 text-sm font-black text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      placeholder="5"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Step 3: Required Population Target */}
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                  <Layers className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    {t('3. Plant Population Target', '3. లక్ష్యిత మొక్కల జనాభా')}
+                  </h3>
+                  <p className="text-[11px] font-medium text-slate-500">
+                    {t('Target plant stand per acre or per hectare according to agronomic package', 'సాగు సిఫార్సుల ప్రకారం ఎకరా లేదా హెక్టారుకు అవసరమైన మొక్కల సంఖ్య')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Target Population Count', 'లక్ష్యిత మొక్కల సంఖ్య')}
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="any"
+                    inputMode="numeric"
+                    value={form.requiredPopulation}
+                    onChange={(event) => updateForm('requiredPopulation', event.target.value)}
+                    onBlur={() => handleBlur('requiredPopulation')}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    placeholder="7400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Population Metric Unit', 'జనాభా కొలత యూనిట్')}
+                  </label>
+                  <select
+                    value={form.populationUnit}
+                    onChange={(event) => updateForm('populationUnit', event.target.value as PopulationUnit)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 outline-none transition focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                  >
+                    <option value="plants-acre">{t('Plants per Acre', 'ఎకరానికి మొక్కలు')}</option>
+                    <option value="plants-ha">{t('Plants per Hectare', 'హెక్టారుకు మొక్కలు')}</option>
+                    <option value="total-plants">{t('Total Field Plants', 'మొత్తం పొలం మొక్కలు')}</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          {/* RIGHT: Live Results & Seed Weight Hero Card (Sticky 5 cols) */}
+          <div className="space-y-4 lg:col-span-5 lg:sticky lg:top-4">
+            {calculation.result ? (
+              <>
+                {/* Hero Seed Rate Card */}
+                <div className="relative overflow-hidden rounded-2xl border border-emerald-500/60 bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-900 p-5 shadow-lg text-white">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-black backdrop-blur-sm">
+                      <Scale className="h-3.5 w-3.5 text-emerald-300" />
+                      {t('RECOMMENDED SEED QUANTITY', 'సిఫార్సు చేయబడిన విత్తన పరిమాణం')}
+                    </span>
+                    <span className="text-xs font-bold text-emerald-200">
+                      {form.areaValue} {t(form.areaUnit, form.areaUnit)}
+                    </span>
+                  </div>
+
+                  <div className="mt-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-white/80">
+                      {t('Total Seed Required', 'మొత్తం అవసరమైన విత్తనం')}
+                    </p>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <span className="text-3xl sm:text-4xl font-black tracking-tight">
+                        {formatDecimal(calculation.result.seedWeightKg)}
+                      </span>
+                      <span className="text-sm font-bold text-emerald-200">
+                        kg ({formatDecimal(calculation.result.seedWeightGrams)} g)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Sub-metrics Grid */}
+                  <div className="mt-5 grid grid-cols-2 gap-2.5 border-t border-white/15 pt-4">
+                    <div className="rounded-xl bg-white/10 p-2.5 backdrop-blur-xs">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-white/70">
+                        {t('Seed Rate / Acre', 'ఎకరానికి విత్తన మోతాదు')}
+                      </span>
+                      <span className="text-base font-black text-white">
+                        {formatDecimal(calculation.result.seedRateKgPerAcre)} kg/ac
+                      </span>
+                    </div>
+
+                    <div className="rounded-xl bg-white/10 p-2.5 backdrop-blur-xs">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-white/70">
+                        {t('Seed Rate / Hectare', 'హెక్టారుకు విత్తన మోతాదు')}
+                      </span>
+                      <span className="text-base font-black text-white">
+                        {formatDecimal(calculation.result.seedRateKgPerHa)} kg/ha
+                      </span>
+                    </div>
+
+                    <div className="rounded-xl bg-white/10 p-2.5 backdrop-blur-xs">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-white/70">
+                        {t('Target Plant Stand', 'లక్ష్యిత మొక్కల సంఖ్య')}
+                      </span>
+                      <span className="text-base font-black text-white">
+                        {formatWhole(calculation.result.requiredPlants)}
+                      </span>
+                    </div>
+
+                    <div className="rounded-xl bg-white/10 p-2.5 backdrop-blur-xs">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-white/70">
+                        {t('Adjusted Seed Count', 'సరిచేసిన విత్తనాల సంఖ్య')}
+                      </span>
+                      <span className="text-base font-black text-white">
+                        {formatWhole(calculation.result.finalSeeds)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Seed Quality Advisory Note */}
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                  <div className="flex gap-2.5 items-start">
+                    <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <p className="font-semibold leading-relaxed">
+                      {t(
+                        'Actual requirement varies with seed purity, grade size, seedbed moisture, and mechanical sowing calibration.',
+                        'విత్తన స్వచ్ఛత, పరిమాణం, తేమ మరియు విత్తే యంత్రాల అమరికపై వాస్తవ విత్తన మోతాదు మారవచ్చు.'
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap items-center gap-2 print:hidden">
+                  <button
+                    type="button"
+                    onClick={copyResult}
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-slate-800 active:scale-95 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
+                  >
+                    <Copy className="h-4 w-4" />
+                    {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'ఫలితం కాపీ')}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={shareWhatsApp}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-emerald-700 active:scale-95"
+                    title="Share on WhatsApp"
+                  >
+                    <WhatsAppIcon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{t('WhatsApp', 'వాట్సాప్')}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    title="Print"
+                  >
+                    <Printer className="h-4 w-4" />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900">
+                <Scale className="mx-auto mb-2 h-8 w-8 text-slate-300" />
+                <p className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                  {t('Enter valid area, population and test weight to calculate seed rate.', 'విత్తన మోతాదును లెక్కించడానికి విస్తీర్ణం, జనాభా మరియు టెస్ట్ వెయిట్‌ను నమోదు చేయండి.')}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
-function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M12.04 2C6.58 2 2.14 6.43 2.14 11.87c0 1.74.46 3.44 1.33 4.93L2 22l5.33-1.4a9.88 9.88 0 0 0 4.71 1.2h.01c5.45 0 9.89-4.43 9.89-9.87C21.94 6.43 17.5 2 12.04 2Zm0 18.13h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.16.83.84-3.08-.2-.32a8.18 8.18 0 1 1 7.01 3.89Zm4.49-6.14c-.25-.12-1.46-.72-1.68-.8-.23-.08-.39-.12-.56.12-.16.25-.64.8-.78.96-.14.17-.29.19-.53.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.23-1.46-1.37-1.7-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.35-.76-1.85-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.07s.89 2.4 1.01 2.56c.12.17 1.75 2.67 4.24 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.17.21-.58.21-1.07.14-1.17-.06-.11-.22-.17-.47-.29Z" />
-    </svg>
-  );
-}
-
-const resultCardPalette = [
-  'from-emerald-100 to-lime-100 border-emerald-200',
-  'from-sky-100 to-cyan-100 border-sky-200',
-  'from-amber-100 to-orange-100 border-amber-200',
-];
-
-function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-xl border border-emerald-300 bg-gradient-to-br from-white via-emerald-50 to-lime-100 p-4 shadow-md dark:border-emerald-900/60 dark:from-slate-900 dark:via-emerald-950/30 dark:to-lime-950/20">
-      <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-function Field({ label, optional, hint, children }: { label: string; optional?: boolean; hint?: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-1 flex items-center justify-between gap-2 text-sm font-black text-slate-700 dark:text-slate-200">
-        <span>{label}</span>
-        {optional && <span className="text-[11px] font-bold text-slate-400">Optional</span>}
-      </span>
-      {children}
-      {hint && <span className="mt-1 block text-[11px] font-semibold text-slate-500 dark:text-slate-400">{hint}</span>}
-    </label>
-  );
-}
-
-function ResultGrid({ areaUnit, result, t }: { areaUnit: AreaUnit; result: SeedRateResult; t: (english: string, telugu: string) => string }) {
-  const seedRateValue = areaUnit === 'hectares'
-    ? `${formatDecimal(result.seedRateKgPerHa)} kg/ha`
-    : `${formatDecimal(result.seedRateKgPerAcre)} kg/acre`;
-  const seedRateLabel = areaUnit === 'hectares' ? t('Seed rate kg/hectare', 'హెక్టారుకు విత్తన మోతాదు kg') : t('Seed rate kg/acre', 'ఎకరానికి విత్తన మోతాదు kg');
-
-  const cards = [
-    { label: seedRateLabel, value: seedRateValue, note: t('Recommended seed rate', 'సిఫార్సు చేసిన విత్తన మోతాదు') },
-    { label: t('Total seed required', 'అవసరమైన మొత్తం విత్తనం'), value: `${formatDecimal(result.seedWeightKg)} kg`, note: `${formatWhole(result.finalSeeds)} ${t('seeds', 'విత్తనాలు')}` },
-    { label: t('Plant population', 'మొక్కల జనాభా'), value: `${formatWhole(result.requiredPlants)} ${t('plants', 'మొక్కలు')}`, note: t('Required plants for selected area', 'ఎంచుకున్న విస్తీర్ణానికి అవసరమైన మొక్కలు') },
-  ];
-
-  return (
-    <div className="grid gap-3">
-      {cards.map((card, index) => (
-        <article key={card.label} className={`rounded-xl border bg-gradient-to-br ${resultCardPalette[index % resultCardPalette.length]} p-4 shadow-md dark:border-slate-700 dark:from-slate-900 dark:to-slate-800`}>
-          <p className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{card.label}</p>
-          <p className="mt-1 break-words text-2xl font-black text-slate-950 dark:text-white">{card.value}</p>
-          <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-300">{card.note}</p>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-const inputClass = 'min-h-11 w-full rounded-lg border border-emerald-300 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:border-emerald-900 dark:bg-slate-950 dark:text-white dark:focus:ring-emerald-900/40';
 
 interface SeedRateResult {
   totalAcres: number;

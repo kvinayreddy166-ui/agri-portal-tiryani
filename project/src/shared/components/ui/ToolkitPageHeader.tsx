@@ -183,7 +183,7 @@ export function CompactToolkitHeader({
 }: Pick<ToolkitPageHeaderProps, 'title' | 'eyebrow' | 'subtitle' | 'icon' | 'tone' | 'actions' | 'onBack' | 'className'>) {
   return (
     <header className={`mb-4 ${className}`}>
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 sm:items-center">
         <div className="flex min-w-0 items-start gap-1">
           {onBack && <BackButton onClick={onBack} className="mt-0.5" />}
           <div className="min-w-0">

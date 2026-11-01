@@ -248,12 +248,32 @@ export function MicButton({ value, onChange }: { value: string; onChange: (v: st
   );
 }
 
-export function Field({ label, value, onChange, type = 'text', textarea = false, placeholder = '', options, helper = '' }: { label: string; value: string; onChange: (v: string) => void; type?: string; textarea?: boolean; placeholder?: string; options?: string[]; helper?: string }) {
+export function Field({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  textarea = false,
+  placeholder = '',
+  options,
+  helper = '',
+  required = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  textarea?: boolean;
+  placeholder?: string;
+  options?: string[];
+  helper?: string;
+  required?: boolean;
+}) {
   const inputClass = useInputClass();
   return (
     <div className="block">
       <div className={`${labelClass} flex items-center justify-between gap-2`}>
-        <span>{label}</span>
+        <span>{label}{required && <span className="ml-1 text-red-500 font-bold" aria-hidden="true">*</span>}</span>
         <span className="flex shrink-0 items-center gap-2">
           {type === 'date' && value ? (
             <DateClearButton onClick={() => onChange('')} />
@@ -262,9 +282,9 @@ export function Field({ label, value, onChange, type = 'text', textarea = false,
         </span>
       </div>
       {textarea ? (
-        <textarea rows={2} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />
+        <textarea rows={2} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} required={required} />
       ) : options ? (
-        <select value={value} onChange={(e) => onChange(e.target.value)} className={inputClass}>
+        <select value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} required={required}>
           <option value="">Select…</option>
           {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>

@@ -1,5 +1,16 @@
 import React, { useMemo, useState } from 'react';
-import { Bug, Check, Copy, RotateCcw, ShieldAlert } from 'lucide-react';
+import {
+  Bug,
+  Check,
+  Copy,
+  Droplet,
+  FlaskConical,
+  Layers,
+  Printer,
+  RotateCcw,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
@@ -10,34 +21,48 @@ import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
 type Mode = 'activeIngredient' | 'directDose';
 type AreaUnit = 'acres' | 'hectares';
-type UnitType = 'liquid' | 'solid';
-type TankChoice = '16' | '20' | 'custom';
-type AiDoseUnit = 'g-ai-ha' | 'kg-ai-ha' | 'g-ai-acre';
+type UnitType = 'liquid' | 'powder' | 'solid';
+type AiDoseUnit = 'g-ai-acre' | 'kg-ai-ha' | 'g-ai-ha';
+type TankChoice = '15' | '16' | '20' | 'custom';
+
+interface UnitLabels {
+  base: 'mL' | 'g';
+  perLitre: 'mL/L' | 'g/L';
+  perTank: 'mL/tank' | 'g/tank';
+  totalLarge: 'L' | 'kg';
+}
 
 const HECTARE_TO_ACRES = 2.471;
-const DEFAULT_WATER_PER_ACRE = '200';
 
 const initialForm = {
   productName: '',
-  unitType: 'liquid' as UnitType,
-  areaValue: '',
+  areaValue: '1',
   areaUnit: 'acres' as AreaUnit,
-  waterPerAcre: DEFAULT_WATER_PER_ACRE,
+  unitType: 'liquid' as UnitType,
+  waterPerAcre: '200',
   tankChoice: '16' as TankChoice,
   customTankSize: '',
-  aiPercentage: '',
-  aiDose: '',
-  aiDoseUnit: 'g-ai-ha' as AiDoseUnit,
-  directDose: '',
+  aiPercentage: '18.5',
+  aiDose: '30',
+  aiDoseUnit: 'g-ai-acre' as AiDoseUnit,
+  directDose: '0.4',
 };
+
+const POPULAR_PESTICIDE_PRESETS = [
+  { name: 'Chlorantraniliprole 18.5% SC', nameTe: 'కోరాజెన్ (18.5% SC)', mode: 'directDose' as Mode, dose: '0.4', unitType: 'liquid' as UnitType, water: '200', icon: '🐛' },
+  { name: 'Emamectin Benzoate 5% SG', nameTe: 'ప్రోక్లెయిమ్ (5% SG)', mode: 'directDose' as Mode, dose: '0.5', unitType: 'powder' as UnitType, water: '200', icon: '🦗' },
+  { name: 'Acephate 75% SP', nameTe: 'ఎసిఫేట్ 75% SP', mode: 'directDose' as Mode, dose: '1.5', unitType: 'powder' as UnitType, water: '200', icon: '🪲' },
+  { name: 'Mancozeb 75% WP', nameTe: 'డైథేన్ M-45 (75% WP)', mode: 'directDose' as Mode, dose: '2.5', unitType: 'powder' as UnitType, water: '200', icon: '🍄' },
+  { name: 'Glyphosate 41% SL', nameTe: 'రౌండప్ (41% SL)', mode: 'directDose' as Mode, dose: '10', unitType: 'liquid' as UnitType, water: '200', icon: '🌿' },
+];
 
 const numericFieldWarnings: Partial<Record<keyof typeof initialForm, { isInvalid: (value: number) => boolean; message: [string, string] }>> = {
   areaValue: { isInvalid: (v) => v <= 0, message: ['Area must be greater than 0.', 'విస్తీర్ణం 0 కంటే ఎక్కువగా ఉండాలి.'] },
-  waterPerAcre: { isInvalid: (v) => v <= 0, message: ['Water volume per acre must be greater than 0.', 'ఎకరానికి నీటి పరిమాణం 0 కంటే ఎక్కువగా ఉండాలి.'] },
-  customTankSize: { isInvalid: (v) => v <= 0, message: ['Tank size must be greater than 0.', 'ట్యాంక్ పరిమాణం 0 కంటే ఎక్కువగా ఉండాలి.'] },
-  aiPercentage: { isInvalid: (v) => v <= 0 || v > 100, message: ['Active ingredient % must be greater than 0 and up to 100.', 'యాక్టివ్ ఇంగ్రిడియెంట్ % 0 కంటే ఎక్కువగా మరియు 100 వరకు ఉండాలి.'] },
-  aiDose: { isInvalid: (v) => v <= 0, message: ['Recommended a.i. dose must be greater than 0.', 'సిఫార్సు చేసిన a.i. మోతాదు 0 కంటే ఎక్కువగా ఉండాలి.'] },
-  directDose: { isInvalid: (v) => v <= 0, message: ['Dose per litre must be greater than 0.', 'లీటరుకు మోతాదు 0 కంటే ఎక్కువగా ఉండాలి.'] },
+  waterPerAcre: { isInvalid: (v) => v <= 0, message: ['Water volume must be greater than 0.', 'నీటి పరిమాణం 0 కంటే ఎక్కువగా ఉండాలి.'] },
+  customTankSize: { isInvalid: (v) => v <= 0, message: ['Custom tank size must be greater than 0.', 'ట్యాంక్ పరిమాణం 0 కంటే ఎక్కువగా ఉండాలి.'] },
+  aiPercentage: { isInvalid: (v) => v <= 0 || v > 100, message: ['Active ingredient % must be between 0 and 100.', 'యాక్టివ్ ఇంగ్రిడియెంట్ % 0 మరియు 100 మధ్య ఉండాలి.'] },
+  aiDose: { isInvalid: (v) => v <= 0, message: ['AI dose must be greater than 0.', 'మోతాదు 0 కంటే ఎక్కువగా ఉండాలి.'] },
+  directDose: { isInvalid: (v) => v <= 0, message: ['Dose must be greater than 0.', 'మోతాదు 0 కంటే ఎక్కువగా ఉండాలి.'] },
 };
 
 function isIntermediateTyping(value: string): boolean {
@@ -53,6 +78,14 @@ function isIntermediateTyping(value: string): boolean {
   );
 }
 
+function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+    </svg>
+  );
+}
+
 export function PesticideCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
@@ -61,15 +94,10 @@ export function PesticideCalculator() {
   const [mode, setMode] = useState<Mode>('activeIngredient');
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
-  const { toasts, removeToast, showWarning } = useToast();
-
-  const calculation = useMemo(() => calculatePesticide(mode, form), [form, mode]);
-  const unitLabels = getUnitLabels(form.unitType);
-  const shareText = useMemo(
-    () => buildShareText({ mode, form, calculation, unitLabels, t }),
-    [calculation, form, mode, t, unitLabels]
-  );
-
+  const { toasts, removeToast, showWarning, showSuccess } = useToast();
+  const unitLabels = useMemo(() => getUnitLabels(form.unitType), [form.unitType]);
+  const calculation = useMemo(() => calculatePesticide(mode, form), [mode, form]);
+  const shareText = useMemo(() => buildShareText({ mode, form, calculation, unitLabels, t }), [calculation, form, mode, t, unitLabels]);
 
   const updateForm = (field: keyof typeof initialForm, value: string) => {
     setCopied(false);
@@ -98,6 +126,21 @@ export function PesticideCalculator() {
     }
   };
 
+  const applyPesticidePreset = (preset: typeof POPULAR_PESTICIDE_PRESETS[0]) => {
+    setMode(preset.mode);
+    setForm((prev) => ({
+      ...prev,
+      productName: preset.name,
+      unitType: preset.unitType,
+      waterPerAcre: preset.water,
+      directDose: preset.dose,
+    }));
+    showSuccess(
+      t('Preset Loaded', 'ప్రిసెట్ లోడ్ అయింది'),
+      t(`Loaded formulation for ${preset.name} (${preset.dose} ${preset.unitType === 'liquid' ? 'mL' : 'g'}/L).`, `${preset.nameTe} వివరాలు లోడ్ చేయబడ్డాయి.`)
+    );
+  };
+
   const reset = () => {
     setCopied(false);
     setMode('activeIngredient');
@@ -109,6 +152,7 @@ export function PesticideCalculator() {
     try {
       await navigator.clipboard.writeText(shareText);
       setCopied(true);
+      showSuccess(t('Result Copied', 'ఫలితం కాపీ అయింది'), t('Summary copied to clipboard.', 'సారాంశం క్లిప్‌బోర్డ్‌కు కాపీ చేయబడింది.'));
     } catch {
       setCopied(false);
     }
@@ -120,246 +164,523 @@ export function PesticideCalculator() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 print:space-y-2">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+
+      {/* Header */}
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 print:hidden">
         {showCompactHeader ? (
           <CompactToolkitHeader
-            eyebrow="Farm Calculators"
+            eyebrow={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
             title={t('Pesticide Calculator', 'పురుగుమందు కాలిక్యులేటర్')}
-            subtitle={t('Selected tank dose, total water and total product.', 'ఎంచుకున్న ట్యాంక్ మోతాదు, మొత్తం నీరు మరియు మొత్తం ఉత్పత్తి.')}
+            subtitle={t(
+              'Calculate commercial pesticide quantity, tank-wise spray solution and water calibration.',
+              'స్ప్రే ట్యాంక్ మోతాదు, మొత్తం నీరు మరియు పురుగుమందు పరిమాణాన్ని ఖచ్చితంగా లెక్కించండి.'
+            )}
+            onBack={() => navigate('/officer-toolkit/farm-calculators')}
+            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
           />
         ) : (
-        <section className="relative rounded-2xl border border-rose-300/60 bg-gradient-to-br from-rose-400 via-rose-500 to-red-600 p-4 shadow-lg dark:border-rose-800/60 sm:p-4">
-          <div className="flex items-center gap-4">
-            <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" />
-            <div>
-              <h1 className="flex items-center gap-2 text-xl font-black text-white">
-                <Bug className="h-6 w-6" aria-label="Pesticide Calculator" />
-                {t('Pesticide Calculator', 'పురుగుమందు కాలిక్యులేటర్')}
-              </h1>
-              <p className="text-sm font-semibold text-white/90">
-                {t('Selected tank dose, total water and total product.', 'ఎంచుకున్న ట్యాంక్ మోతాదు, మొత్తం నీరు మరియు మొత్తం ఉత్పత్తి.')}
-              </p>
-            </div>
-          </div>
-          <div className="absolute bottom-3 right-4">
-            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
-          </div>
-        </section>
-        )}
-      </div>
-
-      <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
-        <section className="rounded-xl border border-rose-200 bg-gradient-to-br from-rose-50 via-white to-red-50 p-4 text-sm font-semibold text-slate-900 shadow-sm dark:border-rose-900 dark:from-rose-950/40 dark:via-slate-900 dark:to-red-950/30 dark:text-rose-100">
-          <div className="grid gap-2 sm:grid-cols-3">
-            <p><span className="font-black">1.</span> {t('Choose active ingredient or direct dose mode.', 'క్రియాశీల పదార్థం లేదా ప్రత్యక్ష మోతాదు మోడ్‌ను ఎంచుకోండి.')}</p>
-            <p><span className="font-black">2.</span> {t('Enter area, water and tank size.', 'విస్తీర్ణం, నీరు మరియు ట్యాంక్ పరిమాణం నమోదు చేయండి.')}</p>
-            <p><span className="font-black">3.</span> {t('Copy or share the final spray quantity.', 'తుది స్ప్రే పరిమాణాన్ని కాపీ చేయండి లేదా షేర్ చేయండి.')}</p>
-          </div>
-        </section>
-
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-rose-200/80 bg-gradient-to-br from-rose-50/80 via-white to-red-50/60 p-3 shadow-sm dark:border-rose-900/60 dark:from-rose-950/25 dark:via-slate-900 dark:to-red-950/20">
-          <button type="button" onClick={copyResult} disabled={!calculation.result} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-rose-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-rose-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700">
-            <Copy className="h-4 w-4" />
-            {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'టెక్స్ట్ కాపీ')}
-          </button>
-          <button type="button" onClick={shareWhatsApp} disabled={!calculation.result} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-green-600 text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700" aria-label="WhatsApp" title="WhatsApp">
-            <WhatsAppIcon className="h-4 w-4" />
-          </button>
-          <button type="button" onClick={reset} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">
-            <RotateCcw className="h-4 w-4" />
-            {t('Reset', 'రీసెట్')}
-          </button>
-        </div>
-
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="space-y-3">
-            <div className="rounded-xl border border-rose-200/80 bg-gradient-to-br from-rose-50/80 via-white to-red-50/60 p-3 shadow-sm dark:border-rose-900/60 dark:from-rose-950/25 dark:via-slate-900 dark:to-red-950/20">
-              <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
-                <ModeButton active={mode === 'activeIngredient'} onClick={() => setMode('activeIngredient')} label={t('Active Ingredient', 'యాక్టివ్ ఇంగ్రిడియెంట్')} />
-                <ModeButton active={mode === 'directDose'} onClick={() => setMode('directDose')} label={t('Direct Dose', 'ప్రత్యక్ష మోతాదు')} />
-              </div>
-            </div>
-
-            <FormSection title={t('Step 1: Product Details', 'ఉత్పత్తి వివరాలు')}>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label={t('Product name', 'ఉత్పత్తి పేరు')} optional>
-                  <input value={form.productName} onChange={(event) => updateForm('productName', event.target.value)} className={inputClass} placeholder={t('Optional', 'ఐచ్ఛికం')} />
-                </Field>
-                <Field label={t('Unit type', 'యూనిట్ రకం')}>
-                  <div className="grid grid-cols-2 gap-2">
-                    <label className={radioCardClass(form.unitType === 'liquid')}>
-                      <input type="radio" className="sr-only" checked={form.unitType === 'liquid'} onChange={() => updateForm('unitType', 'liquid')} />
-                      {form.unitType === 'liquid' && <Check className="absolute right-2 top-2 h-4 w-4 text-rose-600 dark:text-rose-400" />}
-                      <span className="text-sm font-black">{t('Liquid', 'ద్రవం')}</span>
-                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">mL, mL/L</span>
-                    </label>
-                    <label className={radioCardClass(form.unitType === 'solid')}>
-                      <input type="radio" className="sr-only" checked={form.unitType === 'solid'} onChange={() => updateForm('unitType', 'solid')} />
-                      {form.unitType === 'solid' && <Check className="absolute right-2 top-2 h-4 w-4 text-rose-600 dark:text-rose-400" />}
-                      <span className="text-sm font-black">{t('Solid', 'ఘన పదార్థం')}</span>
-                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">g, g/L</span>
-                    </label>
-                  </div>
-                </Field>
-              </div>
-            </FormSection>
-
-            <FormSection title={t('Step 2: Area, Water and Tank', 'విస్తీర్ణం, నీరు మరియు ట్యాంక్')}>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label={t('Area value', 'విస్తీర్ణం')}>
-                  <input type="number" min="0" inputMode="decimal" step="any" value={form.areaValue} onChange={(event) => updateForm('areaValue', event.target.value)} onBlur={() => handleBlur('areaValue')} className={inputClass} placeholder="2" />
-                </Field>
-                <Field label={t('Area unit', 'విస్తీర్ణ యూనిట్')}>
-                  <select value={form.areaUnit} onChange={(event) => updateForm('areaUnit', event.target.value)} className={inputClass}>
-                    <option value="acres">{t('Acres', 'ఎకరాలు')}</option>
-                    <option value="hectares">{t('Hectares', 'హెక్టార్లు')}</option>
-                  </select>
-                </Field>
-                <Field label={t('Water volume per acre', 'ఎకరానికి నీటి పరిమాణం')}>
-                  <input type="number" min="0" inputMode="decimal" step="any" value={form.waterPerAcre} onChange={(event) => updateForm('waterPerAcre', event.target.value)} onBlur={() => handleBlur('waterPerAcre')} className={inputClass} placeholder="200" />
-                </Field>
-                <Field label={t('Selected spray tank size', 'ఎంచుకున్న స్ప్రే ట్యాంక్ పరిమాణం')}>
-                  <select value={form.tankChoice} onChange={(event) => updateForm('tankChoice', event.target.value)} className={inputClass}>
-                    <option value="16">16 L</option>
-                    <option value="20">20 L</option>
-                    <option value="custom">{t('Custom', 'కస్టమ్')}</option>
-                  </select>
-                </Field>
-              </div>
-              {form.tankChoice === 'custom' && (
-                <div className="mt-3 max-w-xs">
-                  <Field label={t('Custom tank size', 'కస్టమ్ ట్యాంక్ పరిమాణం')}>
-                    <input type="number" min="0" inputMode="decimal" step="any" value={form.customTankSize} onChange={(event) => updateForm('customTankSize', event.target.value)} onBlur={() => handleBlur('customTankSize')} className={inputClass} placeholder="15" />
-                  </Field>
-                </div>
-              )}
-            </FormSection>
-
-            {mode === 'activeIngredient' ? (
-              <FormSection title={t('Active Ingredient Dose', 'యాక్టివ్ ఇంగ్రిడియెంట్ మోతాదు')}>
-                <div className="grid gap-3 sm:grid-cols-3">
-                <Field label={t('Active ingredient %', 'యాక్టివ్ ఇంగ్రిడియెంట్ %')}>
-                  <input type="number" min="0" max="100" inputMode="decimal" step="any" value={form.aiPercentage} onChange={(event) => updateForm('aiPercentage', event.target.value)} onBlur={() => handleBlur('aiPercentage')} className={inputClass} placeholder="17.8" />
-                </Field>
-                <Field label={t('Recommended a.i. dose', 'సిఫార్సు చేసిన a.i. మోతాదు')}>
-                  <input type="number" min="0" inputMode="decimal" step="any" value={form.aiDose} onChange={(event) => updateForm('aiDose', event.target.value)} onBlur={() => handleBlur('aiDose')} className={inputClass} placeholder="20" />
-                </Field>
-                <Field label={t('Dose unit', 'మోతాదు యూనిట్')}>
-                  <select value={form.aiDoseUnit} onChange={(event) => updateForm('aiDoseUnit', event.target.value)} className={inputClass}>
-                    <option value="g-ai-ha">g a.i./ha</option>
-                    <option value="kg-ai-ha">kg a.i./ha</option>
-                    <option value="g-ai-acre">g a.i./acre</option>
-                  </select>
-                </Field>
-              </div>
-            </FormSection>
-          ) : (
-            <FormSection title={t('Direct Dose', 'ప్రత్యక్ష మోతాదు')}>
-              <div className="max-w-xs">
-                <Field label={`${t('Dose per litre', 'లీటరుకు మోతాదు')} (${unitLabels.perLitre})`}>
-                  <input type="number" min="0" inputMode="decimal" step="any" value={form.directDose} onChange={(event) => updateForm('directDose', event.target.value)} onBlur={() => handleBlur('directDose')} className={inputClass} placeholder={form.unitType === 'liquid' ? '2' : '3'} />
-                </Field>
-              </div>
-            </FormSection>
-          )}
-        </div>
-
-        <aside className="space-y-3">
-          {calculation.result && (
-            <>
-              <ResultGrid result={calculation.result} unitLabels={unitLabels} t={t} />
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
-                <div className="flex gap-3">
-                  <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-rose-700 dark:text-rose-300" />
-                  <p className="text-sm font-bold text-amber-900 dark:text-amber-100">
-                    {t('Always verify pesticide label recommendation, crop, pest stage, waiting period and local agriculture officer advisory before spraying.', 'స్ప్రే చేసే ముందు పురుగుమందు లేబుల్ సిఫార్సు, పంట, పురుగు దశ, వెయిటింగ్ పీరియడ్ మరియు స్థానిక వ్యవసాయ అధికారి సూచనను తప్పనిసరిగా ధృవీకరించండి.')}
+          <section className="relative overflow-hidden rounded-2xl border border-rose-300/60 bg-gradient-to-br from-rose-600 via-rose-500 to-red-700 p-4 shadow-lg dark:border-rose-800/60 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3.5 min-w-0">
+                <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <h1 className="flex items-center gap-2 text-lg font-black text-white sm:text-xl">
+                    <Bug className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" aria-label="Pesticide Calculator" />
+                    <span>{t('Pesticide Calculator', 'పురుగుమందు కాలిక్యులేటర్')}</span>
+                  </h1>
+                  <p className="mt-1 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-2xl">
+                    {t(
+                      'Selected tank dose, spray volume and commercial formulation quantity.',
+                      'ట్యాంక్ మోతాదు, మొత్తం నీరు మరియు అవసరమైన మందు పరిమాణాన్ని లెక్కించండి.'
+                    )}
                   </p>
                 </div>
               </div>
-            </>
-          )}
-        </aside>
-      </section>
+              <div className="flex shrink-0 items-center justify-end self-end sm:self-center pt-1 sm:pt-0">
+                <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
+
+      <div className="mx-auto max-w-7xl space-y-4 px-4 pb-8 sm:px-6 lg:px-8">
+        {/* Step 1: Quick Common Chemical Formulations Bar */}
+        <section className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 print:hidden">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-rose-500" />
+                {t('Common Chemical Presets', 'సాధారణ మందుల ప్రిసెట్లు')}
+              </h2>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {t('Tap to auto-fill commercial dose per litre and formulation type.', 'లీటరు మోతాదు మరియు ఫార్ములేషన్ రకాన్ని పూరించడానికి ఎంచుకోండి.')}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={reset}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              {t('Reset', 'రీసెట్')}
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {POPULAR_PESTICIDE_PRESETS.map((preset) => {
+              const isActive = form.productName === preset.name && form.directDose === preset.dose;
+              return (
+                <button
+                  key={preset.name}
+                  type="button"
+                  onClick={() => applyPesticidePreset(preset)}
+                  className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-black transition ${
+                    isActive
+                      ? 'border-rose-600 bg-rose-600 text-white shadow-md shadow-rose-950/20'
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-rose-300 hover:bg-rose-50/50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                  }`}
+                >
+                  <span>{preset.icon}</span>
+                  <span>{t(preset.name, preset.nameTe)}</span>
+                  <span className="text-[10px] font-semibold opacity-75">
+                    ({preset.dose} {preset.unitType === 'liquid' ? 'mL' : 'g'}/L)
+                  </span>
+                  {isActive && <Check className="h-3.5 w-3.5 shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* 2-Column Responsive Layout */}
+        <div className="grid gap-5 lg:grid-cols-12 items-start">
+          {/* LEFT: Inputs Form (7 cols) */}
+          <div className="space-y-4 lg:col-span-7">
+            {/* Calculation Mode Selector */}
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
+                  <FlaskConical className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    {t('1. Dosage Calculation Mode', '1. మోతాదు లెక్కించే విధానం')}
+                  </h3>
+                  <p className="text-[11px] font-medium text-slate-500">
+                    {t('Choose active ingredient % formula or direct commercial label recommendation', 'యాక్టివ్ ఇంగ్రిడియెంట్ % లేదా ప్రత్యక్ష లేబుల్ సిఫార్సు ఎంచుకోండి')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setMode('activeIngredient')}
+                  className={`rounded-lg py-2 text-xs font-bold transition ${
+                    mode === 'activeIngredient'
+                      ? 'bg-white text-rose-800 shadow-sm dark:bg-slate-700 dark:text-white'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                  }`}
+                >
+                  {t('Active Ingredient (a.i. %)', 'యాక్టివ్ ఇంగ్రిడియెంట్ (a.i.)')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode('directDose')}
+                  className={`rounded-lg py-2 text-xs font-bold transition ${
+                    mode === 'directDose'
+                      ? 'bg-white text-rose-800 shadow-sm dark:bg-slate-700 dark:text-white'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                  }`}
+                >
+                  {t('Direct Dose (mL or g per Litre)', 'ప్రత్యక్ష మోతాదు (లీటరుకు)')}
+                </button>
+              </div>
+            </section>
+
+            {/* Step 2: Area & Spray Solution Calibration */}
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
+                  <Droplet className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    {t('2. Spray Extent & Tank Capacity', '2. స్ప్రే విస్తీర్ణం & ట్యాంక్ పరిమాణం')}
+                  </h3>
+                  <p className="text-[11px] font-medium text-slate-500">
+                    {t('Field size, water volume per acre and sprayer tank size', 'విస్తీర్ణం, ఎకరాకు నీరు మరియు స్ప్రేయర్ ట్యాంక్ పరిమాణం')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Spray Field Area', 'స్ప్రే విస్తీర్ణం')}
+                  </label>
+                  <div className="mt-1 flex gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      inputMode="decimal"
+                      value={form.areaValue}
+                      onChange={(event) => updateForm('areaValue', event.target.value)}
+                      onBlur={() => handleBlur('areaValue')}
+                      className="w-1/2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-900 outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      placeholder="1"
+                    />
+                    <select
+                      value={form.areaUnit}
+                      onChange={(event) => updateForm('areaUnit', event.target.value as AreaUnit)}
+                      className="w-1/2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 outline-none transition focus:border-rose-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                    >
+                      <option value="acres">{t('Acres', 'ఎకరాలు')}</option>
+                      <option value="hectares">{t('Hectares', 'హెక్టార్లు')}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Water Volume per Acre', 'ఎకరాకు నీటి పరిమాణం')}
+                  </label>
+                  <div className="mt-1 relative">
+                    <input
+                      type="number"
+                      min="1"
+                      step="any"
+                      inputMode="decimal"
+                      value={form.waterPerAcre}
+                      onChange={(event) => updateForm('waterPerAcre', event.target.value)}
+                      onBlur={() => handleBlur('waterPerAcre')}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 pr-14 text-sm font-black text-slate-900 outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      placeholder="200"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                      L/acre
+                    </span>
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Knapsack Sprayer Tank Capacity', 'స్ప్రేయర్ ట్యాంక్ పరిమాణం')}
+                  </label>
+                  <div className="mt-1.5 flex flex-wrap gap-2">
+                    {(['15', '16', '20'] as TankChoice[]).map((tank) => (
+                      <button
+                        key={tank}
+                        type="button"
+                        onClick={() => updateForm('tankChoice', tank)}
+                        className={`rounded-xl border px-3 py-1.5 text-xs font-black transition ${
+                          form.tankChoice === tank
+                            ? 'border-rose-600 bg-rose-600 text-white shadow-sm'
+                            : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                        }`}
+                      >
+                        {tank} Litres
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => updateForm('tankChoice', 'custom')}
+                      className={`rounded-xl border px-3 py-1.5 text-xs font-black transition ${
+                        form.tankChoice === 'custom'
+                          ? 'border-rose-600 bg-rose-600 text-white shadow-sm'
+                          : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                      }`}
+                    >
+                      {t('Custom...', 'ఇతర పరిమాణం')}
+                    </button>
+                    {form.tankChoice === 'custom' && (
+                      <div className="relative inline-block w-28">
+                        <input
+                          type="number"
+                          min="1"
+                          step="any"
+                          value={form.customTankSize}
+                          onChange={(e) => updateForm('customTankSize', e.target.value)}
+                          placeholder="e.g. 18"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 pr-8 text-xs font-black text-slate-900 outline-none transition focus:border-rose-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                        />
+                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">L</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Step 3: Chemical Formulation & Dose */}
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                  <Layers className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    {t('3. Chemical Formulation & Dose', '3. మందు ఫార్ములేషన్ & మోతాదు')}
+                  </h3>
+                  <p className="text-[11px] font-medium text-slate-500">
+                    {t('Enter product name, formulation state (liquid vs powder) and recommended rate', 'ఉత్పత్తి పేరు, ద్రవ/పొడి రకం మరియు మోతాదును నమోదు చేయండి')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Pesticide Name', 'పురుగుమందు పేరు')}
+                    <span className="ml-1 text-[11px] font-normal text-slate-400">({t('Optional', 'ఐచ్ఛికం')})</span>
+                  </label>
+                  <input
+                    value={form.productName}
+                    onChange={(event) => updateForm('productName', event.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-900 outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    placeholder="e.g. Chlorantraniliprole"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t('Formulation Type', 'ఫార్ములేషన్ రకం')}
+                  </label>
+                  <div className="mt-1 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => updateForm('unitType', 'liquid')}
+                      className={`rounded-lg py-1.5 text-xs font-bold transition ${
+                        form.unitType === 'liquid'
+                          ? 'bg-white text-rose-800 shadow-sm dark:bg-slate-700 dark:text-white'
+                          : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                      }`}
+                    >
+                      {t('Liquid (EC/SC/SL)', 'ద్రవ (mL)')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateForm('unitType', 'powder')}
+                      className={`rounded-lg py-1.5 text-xs font-bold transition ${
+                        form.unitType === 'powder'
+                          ? 'bg-white text-rose-800 shadow-sm dark:bg-slate-700 dark:text-white'
+                          : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                      }`}
+                    >
+                      {t('Powder (WP/SP/SG)', 'పొడి (g)')}
+                    </button>
+                  </div>
+                </div>
+
+                {mode === 'activeIngredient' ? (
+                  <>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {t('Active Ingredient (a.i.) %', 'యాక్టివ్ ఇంగ్రిడియెంట్ %')}
+                      </label>
+                      <div className="mt-1 relative">
+                        <input
+                          type="number"
+                          min="0.1"
+                          max="100"
+                          step="any"
+                          inputMode="decimal"
+                          value={form.aiPercentage}
+                          onChange={(event) => updateForm('aiPercentage', event.target.value)}
+                          onBlur={() => handleBlur('aiPercentage')}
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 pr-7 text-sm font-black text-slate-900 outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                          placeholder="18.5"
+                        />
+                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {t('Recommended a.i. Dose', 'సిఫార్సు చేసిన a.i. మోతాదు')}
+                      </label>
+                      <div className="mt-1 flex gap-2">
+                        <input
+                          type="number"
+                          min="0.1"
+                          step="any"
+                          inputMode="decimal"
+                          value={form.aiDose}
+                          onChange={(event) => updateForm('aiDose', event.target.value)}
+                          onBlur={() => handleBlur('aiDose')}
+                          className="w-1/2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-900 outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                          placeholder="30"
+                        />
+                        <select
+                          value={form.aiDoseUnit}
+                          onChange={(event) => updateForm('aiDoseUnit', event.target.value as AiDoseUnit)}
+                          className="w-1/2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 outline-none transition focus:border-rose-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                        >
+                          <option value="g-ai-acre">g a.i./acre</option>
+                          <option value="kg-ai-ha">kg a.i./ha</option>
+                          <option value="g-ai-ha">g a.i./ha</option>
+                        </select>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                      {t('Direct Commercial Dose per Litre of Water', 'ఒక్క లీటరు నీటికి వాణిజ్య మోతాదు')}
+                    </label>
+                    <div className="mt-1 relative max-w-xs">
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="any"
+                        inputMode="decimal"
+                        value={form.directDose}
+                        onChange={(event) => updateForm('directDose', event.target.value)}
+                        onBlur={() => handleBlur('directDose')}
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 pr-16 text-sm font-black text-slate-900 outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                        placeholder="0.4"
+                      />
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        {unitLabels.perLitre}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* RIGHT: Live Spray Results Hero Card (5 cols) */}
+          <div className="space-y-4 lg:col-span-5 lg:sticky lg:top-4">
+            {calculation.result ? (
+              <>
+                {/* Hero Spray Card */}
+                <div className="relative overflow-hidden rounded-2xl border border-rose-500/60 bg-gradient-to-br from-rose-950 via-rose-900 to-red-900 p-5 shadow-lg text-white">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-black backdrop-blur-sm">
+                      <Bug className="h-3.5 w-3.5 text-rose-300" />
+                      {t('RECOMMENDED SPRAY CALCULATION', 'సిఫార్సు చేసిన స్ప్రే మోతాదు')}
+                    </span>
+                    <span className="text-xs font-bold text-rose-200">
+                      {form.areaValue} {t(form.areaUnit, form.areaUnit)}
+                    </span>
+                  </div>
+
+                  <div className="mt-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-white/80">
+                      {t('Total Product to Procure', 'మొత్తం అవసరమైన మందు')}
+                    </p>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <span className="text-3xl sm:text-4xl font-black tracking-tight">
+                        {formatTotalProduct(calculation.result.totalProduct, unitLabels)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Sub-metrics Grid */}
+                  <div className="mt-5 grid grid-cols-2 gap-2.5 border-t border-white/15 pt-4">
+                    <div className="rounded-xl bg-white/10 p-2.5 backdrop-blur-xs">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-white/70">
+                        {t('Dose per Tank', 'ట్యాంక్‌కు మోతాదు')} ({calculation.result.selectedTankSize}L)
+                      </span>
+                      <span className="text-base font-black text-white">
+                        {formatNumber(calculation.result.productPerSelectedTank)} {unitLabels.base}
+                      </span>
+                    </div>
+
+                    <div className="rounded-xl bg-white/10 p-2.5 backdrop-blur-xs">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-white/70">
+                        {t('Spray Tanks Required', 'అవసరమైన స్ప్రే ట్యాంకులు')}
+                      </span>
+                      <span className="text-base font-black text-white">
+                        {calculation.result.tanksRequired} {t('tanks', 'ట్యాంకులు')}
+                        <span className="text-[10px] font-semibold text-rose-200 ml-1">
+                          ({calculation.result.exactTanks.toFixed(1)})
+                        </span>
+                      </span>
+                    </div>
+
+                    <div className="rounded-xl bg-white/10 p-2.5 backdrop-blur-xs">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-white/70">
+                        {t('Total Water Volume', 'మొత్తం స్ప్రే నీరు')}
+                      </span>
+                      <span className="text-base font-black text-white">
+                        {formatNumber(calculation.result.totalWater)} Litres
+                      </span>
+                    </div>
+
+                    <div className="rounded-xl bg-white/10 p-2.5 backdrop-blur-xs">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-white/70">
+                        {t('Dose per Litre', 'లీటరుకు మోతాదు')}
+                      </span>
+                      <span className="text-base font-black text-white">
+                        {formatNumber(calculation.result.productPerLitre)} {unitLabels.perLitre}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Spray Safety Advisory */}
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                  <div className="flex gap-2.5 items-start">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <p className="font-semibold leading-relaxed">
+                      {t(
+                        'Always wear masks and gloves. Spray early morning or late evening in wind direction. Follow waiting periods printed on the label.',
+                        'ఎల్లప్పుడూ మాస్క్ మరియు చేతి తొడుగులు ధరించండి. ఉదయం లేదా సాయంత్రం గాలి వీచే దిశలోనే స్ప్రే చేయండి.'
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap items-center gap-2 print:hidden">
+                  <button
+                    type="button"
+                    onClick={copyResult}
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-slate-800 active:scale-95 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
+                  >
+                    <Copy className="h-4 w-4" />
+                    {copied ? t('Copied', 'కాపీ అయింది') : t('Copy Result', 'ఫలితం కాపీ')}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={shareWhatsApp}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-emerald-700 active:scale-95"
+                    title="Share on WhatsApp"
+                  >
+                    <WhatsAppIcon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{t('WhatsApp', 'వాట్సాప్')}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    title="Print"
+                  >
+                    <Printer className="h-4 w-4" />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900">
+                <Bug className="mx-auto mb-2 h-8 w-8 text-slate-300" />
+                <p className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                  {t('Enter valid area, water and dose values to calculate pesticide quantity.', 'పురుగుమందు పరిమాణాన్ని లెక్కించడానికి విస్తీర్ణం, నీరు మరియు మోతాదును నమోదు చేయండి.')}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
-}
-
-function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M12.04 2C6.58 2 2.14 6.43 2.14 11.87c0 1.74.46 3.44 1.33 4.93L2 22l5.33-1.4a9.88 9.88 0 0 0 4.71 1.2h.01c5.45 0 9.89-4.43 9.89-9.87C21.94 6.43 17.5 2 12.04 2Zm0 18.13h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.16.83.84-3.08-.2-.32a8.18 8.18 0 1 1 7.01 3.89Zm4.49-6.14c-.25-.12-1.46-.72-1.68-.8-.23-.08-.39-.12-.56.12-.16.25-.64.8-.78.96-.14.17-.29.19-.53.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.23-1.46-1.37-1.7-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.35-.76-1.85-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.07s.89 2.4 1.01 2.56c.12.17 1.75 2.67 4.24 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.17.21-.58.21-1.07.14-1.17-.06-.11-.22-.17-.47-.29Z" />
-    </svg>
-  );
-}
-
-function ModeButton({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick} className={`min-h-10 rounded-md px-3 py-2 text-sm font-black transition ${active ? 'bg-white text-rose-800 shadow-sm dark:bg-slate-950 dark:text-rose-300' : 'text-slate-600 hover:bg-white/70 dark:text-slate-300 dark:hover:bg-slate-950/70'}`}>
-      <span className="inline-flex items-center justify-center gap-1.5">
-        {active && <Check className="h-4 w-4" />}
-        {label}
-      </span>
-    </button>
-  );
-}
-
-const resultCardPalette = [
-  'from-rose-50 to-red-50 border-rose-200',
-  'from-sky-50 to-cyan-50 border-sky-200',
-  'from-emerald-50 to-teal-50 border-emerald-200',
-  'from-red-50 to-rose-50 border-red-200',
-];
-
-function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-xl border border-rose-200/80 bg-gradient-to-br from-rose-50/80 via-white to-red-50/60 p-4 shadow-sm dark:border-rose-900/60 dark:from-rose-950/25 dark:via-slate-900 dark:to-red-950/20">
-      <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-function Field({ label, optional, children }: { label: string; optional?: boolean; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-1 flex items-center justify-between gap-2 text-sm font-black text-slate-700 dark:text-slate-200">
-        <span>{label}</span>
-        {optional && <span className="text-[11px] font-bold text-slate-400">Optional</span>}
-      </span>
-      {children}
-    </label>
-  );
-}
-
-function ResultGrid({ result, unitLabels, t }: { result: PesticideResult; unitLabels: UnitLabels; t: (english: string, telugu: string) => string }) {
-  const cards = [
-    { label: t('Total water required', 'అవసరమైన మొత్తం నీరు'), value: `${formatNumber(result.totalWater)} L`, note: `${formatNumber(result.totalAcres)} acres` },
-    { label: t('Product per litre of water', 'లీటరు నీటికి ఉత్పత్తి'), value: `${formatNumber(result.productPerLitre)} ${unitLabels.perLitre}`, note: t('Calculated dose concentration', 'లెక్కించిన మోతాదు సాంద్రత') },
-    { label: t('Selected tank dose', 'ఎంచుకున్న ట్యాంక్ మోతాదు'), value: `${formatNumber(result.productPerSelectedTank)} ${unitLabels.perTank}`, note: `${formatNumber(result.selectedTankSize)} L tank` },
-    { label: t('Spray tanks required', 'అవసరమైన స్ప్రే ట్యాంకులు'), value: `${result.tanksRequired} ${t('tanks', 'ట్యాంకులు')}`, note: `${t('Exact tanks', 'ఖచ్చితమైన ట్యాంకులు')}: ${formatNumber(result.exactTanks)}` },
-    { label: t('Total product required', 'అవసరమైన మొత్తం ఉత్పత్తి'), value: formatTotalProduct(result.totalProduct, unitLabels), note: t('For total spray solution', 'మొత్తం స్ప్రే ద్రావణానికి') },
-  ];
-
-  return (
-    <div className="grid gap-3">
-      {cards.map((card, index) => (
-        <article key={card.label} className={`rounded-xl border bg-gradient-to-br ${resultCardPalette[index % resultCardPalette.length]} p-4 shadow-md dark:border-slate-700 dark:from-slate-900 dark:to-slate-800`}>
-          <p className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">{card.label}</p>
-          <p className="mt-1 break-words text-2xl font-black text-slate-950 dark:text-white">{card.value}</p>
-          <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-300">{card.note}</p>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-const inputClass = 'min-h-11 w-full rounded-lg border border-rose-300 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-rose-500 focus:bg-white focus:ring-4 focus:ring-rose-100 dark:border-rose-900 dark:bg-slate-950 dark:text-white dark:focus:ring-rose-900/40';
-
-function radioCardClass(active: boolean) {
-  return `relative flex min-h-16 cursor-pointer flex-col justify-center rounded-lg border p-3 transition ${active ? 'border-rose-500 bg-rose-50 text-rose-900 dark:bg-rose-950/40 dark:text-rose-100' : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'}`;
 }
 
 interface PesticideResult {
@@ -371,13 +692,6 @@ interface PesticideResult {
   productPerLitre: number;
   productPerSelectedTank: number;
   totalProduct: number;
-}
-
-interface UnitLabels {
-  base: 'mL' | 'g';
-  perLitre: 'mL/L' | 'g/L';
-  perTank: 'mL/tank' | 'g/tank';
-  totalLarge: 'L' | 'kg';
 }
 
 export function calculatePesticide(mode: Mode, form: typeof initialForm): { errors: string[]; result: PesticideResult | null } {

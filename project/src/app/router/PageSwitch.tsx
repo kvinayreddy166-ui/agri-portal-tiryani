@@ -40,6 +40,7 @@ import {
   OfficersToolkit,
   PesticideCalculator,
   PlantPopulationCalculator,
+  ProfitabilityCalculator,
   QualityControl,
   QualityControlHub,
   SeedDealerInspection,
@@ -142,6 +143,8 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       return <PlantPopulationCalculator />;
     case 'seed-rate-calculator':
       return <SeedRateCalculator />;
+    case 'profitability-calculator':
+      return <ProfitabilityCalculator />;
     case 'acts-and-orders':
       return <ActsAndOrders />;
     case 'officer-contacts':
@@ -292,6 +295,8 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return <PublicToolkitPage><PlantPopulationCalculator /></PublicToolkitPage>;
     case 'seed-rate-calculator':
       return <PublicToolkitPage><SeedRateCalculator /></PublicToolkitPage>;
+    case 'profitability-calculator':
+      return <PublicToolkitPage><ProfitabilityCalculator /></PublicToolkitPage>;
     case 'acts-and-orders':
       return <PublicToolkitPage><ActsAndOrders /></PublicToolkitPage>;
     case 'officer-contacts':

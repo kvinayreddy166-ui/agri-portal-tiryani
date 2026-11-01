@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, Wheat } from 'lucide-react';
+import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, TrendingUp, Wheat } from 'lucide-react';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
@@ -68,6 +68,18 @@ const calculatorItems = [
     border: 'border-red-300 dark:border-red-800/60',
     text: 'text-red-800 dark:text-red-200',
   },
+  {
+    title: 'Profitability Calculator',
+    titleTe: 'లాభదాయకత కాలిక్యులేటర్',
+    description: 'Calculate cost of cultivation, yield and net profit.',
+    descriptionTe: 'సాగు ఖర్చు, దిగుబడి మరియు నికర లాభాన్ని లెక్కించండి.',
+    path: '/officer-toolkit/profitability-calculator',
+    icon: TrendingUp,
+    accent: 'from-amber-600 to-emerald-700',
+    panel: 'from-amber-100 via-amber-50 to-emerald-100 dark:from-amber-950/40 dark:via-slate-900 dark:to-emerald-950/40',
+    border: 'border-amber-300 dark:border-amber-800/60',
+    text: 'text-amber-800 dark:text-amber-200',
+  },
 ];
 
 export function FarmCalculators() {
@@ -99,7 +111,7 @@ export function FarmCalculators() {
       </div>
 
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6">
           {calculatorItems.map((item) => (
             <article
               key={item.path}

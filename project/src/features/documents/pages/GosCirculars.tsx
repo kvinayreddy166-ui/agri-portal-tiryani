@@ -11,6 +11,7 @@ import { useLanguage } from '../../../shared/context/LanguageContext';
 import { uploadPortalFile } from '../../../shared/lib/uploadFile';
 import { GosCircular } from '../../../shared/types/database';
 import { FileActionButtons } from '../../../shared/components/ui/FileActionButtons';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 
 const emptyForm = {
   title: '',
@@ -28,6 +29,8 @@ export function GosCirculars() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newDoc, setNewDoc] = useState(emptyForm);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [docToDelete, setDocToDelete] = useState<GosCircular | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchDocuments();
@@ -105,16 +108,20 @@ export function GosCirculars() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t('Delete this document?', 'ఈ పత్రాన్ని తొలగించాలా?'))) return;
-
+  const handleConfirmDelete = async () => {
+    if (!docToDelete) return;
+    const target = docToDelete;
+    setIsDeleting(true);
     try {
-      const { error } = await supabase.from('gos_circulars').delete().eq('id', id);
+      const { error } = await supabase.from('gos_circulars').delete().eq('id', target.id);
       if (error) throw error;
       fetchDocuments();
+      setDocToDelete(null);
     } catch (error) {
       console.error('Error deleting document:', error);
       alert(t('Failed to delete document', 'పత్రాన్ని తొలగించడం విఫలమైంది'));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -128,6 +135,24 @@ export function GosCirculars() {
 
   return (
     <div className="space-y-3">
+      <ConfirmDialog
+        open={Boolean(docToDelete)}
+        title={t('Delete Document?', 'పత్రాన్ని తొలగించాలా?')}
+        message={
+          docToDelete
+            ? t(
+                `Are you sure you want to delete "${docToDelete.title}"? This action cannot be undone.`,
+                `మీరు "${docToDelete.title}" పత్రాన్ని ఖచ్చితంగా తొలగించాలనుకుంటున్నారా? ఈ చర్యను రద్దు చేయలేము.`
+              )
+            : undefined
+        }
+        confirmLabel={isDeleting ? t('Deleting...', 'తొలగిస్తోంది...') : t('Delete', 'తొలగించు')}
+        cancelLabel={t('Cancel', 'రద్దు చేయి')}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          if (!isDeleting) setDocToDelete(null);
+        }}
+      />
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
@@ -258,9 +283,11 @@ export function GosCirculars() {
                 <FileActionButtons fileUrl={doc.file_url} fileName={doc.title} fileType={doc.file_type} size="sm" />
                 {isAdminUser && (
                   <button
-                    onClick={() => handleDelete(doc.id)}
-                    className="rounded-md p-1 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/40"
-                    aria-label="Delete document"
+                    type="button"
+                    onClick={() => setDocToDelete(doc)}
+                    className="rounded-md p-1 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                    aria-label={t('Delete document', 'పత్రాన్ని తొలగించు')}
+                    title={t('Delete document', 'పత్రాన్ని తొలగించు')}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

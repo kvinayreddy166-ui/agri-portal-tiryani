@@ -13,8 +13,10 @@ declare global {
   }
 }
 
-installPwaRecovery();
+// Immediately signal to index.html pre-boot watchdog that main script is executing
+window.__TIRYANI_APP_BOOTED__ = true;
 
+installPwaRecovery();
 
 try {
   window.sessionStorage.removeItem('tiryani-startup-recovery-v1');
@@ -41,7 +43,8 @@ if (!rootEl) {
   throw new Error('Root element #root not found');
 }
 
-window.__TIRYANI_APP_BOOTED__ = false;
+window.__TIRYANI_APP_BOOTED__ = true;
+window.__TIRYANI_REACT_MOUNTED__ = true;
 createRoot(rootEl).render(
   <StrictMode>
     <ErrorBoundary>

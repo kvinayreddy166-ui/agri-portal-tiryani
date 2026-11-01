@@ -162,7 +162,7 @@ export function FertilizerDealerInspection() {
     savePersistedForm(FORM_KEY, form);
   }, [form]);
 
-  const set = <K extends keyof InspectionForm>(key: K, value: InspectionForm[K]) => { setDirty(true); setForm((current) => ({ ...current, [key]: value })); };
+  const set = <K extends keyof InspectionForm>(key: K, value: InspectionForm[K]) => { setDirty(true); if (error) setError(''); setForm((current) => ({ ...current, [key]: value })); };
   const setStatus = (key: keyof InspectionForm, patch: Partial<StatusField>) => {
     setDirty(true);
     setForm((current) => ({ ...current, [key]: { ...(current[key] as StatusField), ...patch } }));
@@ -171,12 +171,13 @@ export function FertilizerDealerInspection() {
   const itemNo = (n: number) => (form.includeMfmsDetails ? n : n - 5);
 
   const validate = () => {
-    if (!form.inspectionDate) return 'Please enter the date of inspection.';
+    if (!form.inspectionDate?.trim()) return 'Please enter the date of inspection.';
+    if (!form.dealerName?.trim()) return 'Please enter the name of the dealer / distributor.';
     return '';
   };
 
   const saveDraft = () => {
-    const name = `${form.dealerName.trim() || 'Untitled dealer'} - ${formatDate(form.inspectionDate)}`;
+    const name = `${form.dealerName.trim() || 'Untitled dealer'} - ${formatDate(form.inspectionDate) || 'No date'}`;
     const record: DraftRecord = { id: activeDraftId ?? `${Date.now()}`, name, savedAt: new Date().toISOString(), form };
     const next = activeDraftId ? drafts.map((d) => (d.id === activeDraftId ? record : d)) : [record, ...drafts];
     setDrafts(next);
@@ -243,7 +244,10 @@ export function FertilizerDealerInspection() {
   const openPreview = () => {
     const message = validate();
     setError(message);
-    if (message) return;
+    if (message) {
+      setOpenSections((current) => ({ ...current, 1: true }));
+      return;
+    }
     setShowPreview(true);
     showInfo('Preview ready');
   };
@@ -251,7 +255,10 @@ export function FertilizerDealerInspection() {
   const printPreview = async () => {
     const message = validate();
     setError(message);
-    if (message) return;
+    if (message) {
+      setOpenSections((current) => ({ ...current, 1: true }));
+      return;
+    }
     try {
       const doc = await buildPdf(form);
       await addEmblemImageWatermark(doc);
@@ -279,7 +286,10 @@ export function FertilizerDealerInspection() {
   const generateExcel = async () => {
     const message = validate();
     setError(message);
-    if (message) return;
+    if (message) {
+      setOpenSections((current) => ({ ...current, 1: true }));
+      return;
+    }
     try {
       const { exportInspectionExcel } = await import('../inspection/excelExport');
       const { items, subTables } = buildRows(form, stockTotal);
@@ -294,7 +304,7 @@ export function FertilizerDealerInspection() {
           form.inspectorDesignation.split('&')[0].trim(),
           form.inspectorOffice.trim(),
         ].filter(Boolean),
-        fileName: `Fertilizer_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.xlsx`,
+        fileName: `Fertilizer_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate || localTodayDate()}.xlsx`,
       });
       showSuccess('Excel downloaded');
     } catch (error) {
@@ -306,11 +316,14 @@ export function FertilizerDealerInspection() {
   const generatePdf = async () => {
     const message = validate();
     setError(message);
-    if (message) return;
+    if (message) {
+      setOpenSections((current) => ({ ...current, 1: true }));
+      return;
+    }
     try {
       const doc = await buildPdf(form);
       await addEmblemImageWatermark(doc);
-      doc.save(`Fertilizer_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate}.pdf`);
+      doc.save(`Fertilizer_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate || localTodayDate()}.pdf`);
       showSuccess('PDF downloaded');
     } catch (error) {
       console.error('PDF generation failed:', error);
@@ -401,8 +414,8 @@ export function FertilizerDealerInspection() {
         <div className="space-y-4">
           <Section id={1} title="Dealer Details and Premises" subtitle="Items 1 to 4" open={openSections[1]} onToggle={toggleSection} progress={sectionProgress[1]}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="1. Date of inspection" type="date" value={form.inspectionDate} onChange={(v) => set('inspectionDate', v)} />
-              <Field label="2. Name of the Dealer/Distributor" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Firm / dealer name" />
+              <Field label="1. Date of inspection" type="date" value={form.inspectionDate} onChange={(v) => set('inspectionDate', v)} required />
+              <Field label="2. Name of the Dealer/Distributor" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Firm / dealer name" required />
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
               <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">3. License Details</p>

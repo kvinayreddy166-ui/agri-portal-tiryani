@@ -9,6 +9,7 @@ import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { inferFileTypeFromName } from '../../../shared/lib/fileTypes';
 import { uploadPortalFile } from '../../../shared/lib/uploadFile';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 const folders = [
@@ -72,6 +73,8 @@ export function FormsLibrary() {
   const [newForm, setNewForm] = useState(emptyForm);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const { toasts, removeToast, showSaved, showDeleted, showWarning } = useToast();
+  const [formToDelete, setFormToDelete] = useState<FormDownload | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchForms();
@@ -212,16 +215,27 @@ export function FormsLibrary() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleConfirmDelete = async () => {
+    if (!formToDelete) return;
+    const target = formToDelete;
+    setIsDeleting(true);
     try {
-      const { error } = await withNetworkRetry(() => supabase.from('forms_downloads').delete().eq('id', id));
+      const { error } = await withNetworkRetry(() => supabase.from('forms_downloads').delete().eq('id', target.id));
       if (error) throw error;
       fetchForms();
       try { window.sessionStorage.removeItem('tiryani-public-statutory-forms-cache'); } catch {}
-      showDeleted('Form deleted');
+      showDeleted(t('Form deleted', 'ఫారం తొలగించబడింది'), target.title);
+      setFormToDelete(null);
     } catch (error) {
       console.error('Error deleting document:', error);
-      showWarning('Delete failed', isNetworkError(error) ? 'Network error — could not reach the server. Please try again.' : 'Failed to delete item');
+      showWarning(
+        t('Delete failed', 'తొలగించడం విఫలమైంది'),
+        isNetworkError(error)
+          ? t('Network error — could not reach the server. Please try again.', 'నెట్‌వర్క్ లోపం — సర్వర్‌ను చేరుకోలేకపోయాము. దయచేసి మళ్లీ ప్రయత్నించండి.')
+          : error instanceof Error ? error.message : t('Failed to delete item', 'ఐటమ్‌ను తొలగించడం విఫలమైంది')
+      );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -256,6 +270,24 @@ export function FormsLibrary() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-4">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <ConfirmDialog
+        open={Boolean(formToDelete)}
+        title={t('Delete Form?', 'ఫారం తొలగించాలా?')}
+        message={
+          formToDelete
+            ? t(
+                `Are you sure you want to delete "${formToDelete.title}"? This action cannot be undone and will remove it from both the portal and public library.`,
+                `మీరు "${formToDelete.title}" ఫారాన్ని ఖచ్చితంగా తొలగించాలనుకుంటున్నారా? ఇది పోర్టల్ మరియు పబ్లిక్ లైబ్రరీ రెండింటి నుండి శాశ్వతంగా తొలగించబడుతుంది.`
+              )
+            : undefined
+        }
+        confirmLabel={isDeleting ? t('Deleting...', 'తొలగిస్తోంది...') : t('Delete Form', 'ఫారం తొలగించు')}
+        cancelLabel={t('Cancel', 'రద్దు చేయి')}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          if (!isDeleting) setFormToDelete(null);
+        }}
+      />
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
@@ -479,7 +511,13 @@ export function FormsLibrary() {
                             <button onClick={() => openEditForm(form)} className="rounded-md p-1 text-blue-600 dark:text-blue-300 transition hover:bg-blue-50" aria-label="Edit item">
                               <Edit2 className="h-4 w-4" />
                             </button>
-                            <button onClick={() => handleDelete(form.id)} className="rounded-md p-1 text-red-500 transition hover:bg-red-50" aria-label="Delete item">
+                            <button
+                              type="button"
+                              onClick={() => setFormToDelete(form)}
+                              className="rounded-md p-1 text-red-500 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                              aria-label={t('Delete form', 'ఫారం తొలగించు')}
+                              title={t('Delete form', 'ఫారం తొలగించు')}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </>

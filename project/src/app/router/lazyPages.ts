@@ -27,6 +27,7 @@ export const CropProtectionTool = lazy(() => import('../../features/crop-doctor/
 export const PesticideCalculator = lazy(() => import('../../features/calculators/pages/PesticideCalculator').then((m) => ({ default: m.PesticideCalculator })));
 export const PlantPopulationCalculator = lazy(() => import('../../features/calculators/pages/PlantPopulationCalculator').then((m) => ({ default: m.PlantPopulationCalculator })));
 export const SeedRateCalculator = lazy(() => import('../../features/calculators/pages/SeedRateCalculator').then((m) => ({ default: m.SeedRateCalculator })));
+export const ProfitabilityCalculator = lazy(() => import('../../features/calculators/pages/ProfitabilityCalculator').then((m) => ({ default: m.ProfitabilityCalculator })));
 export const ActsAndOrders = lazy(() => import('../../features/officers-toolkit/pages/ActsAndOrders').then((m) => ({ default: m.ActsAndOrders })));
 export const StockAnalytics = lazy(() => import('../../features/dealer-stock/pages/StockAnalytics'));
 export const StockReceiptsSales = lazy(() => import('../../features/dealer-stock/pages/StockReceiptsSales'));

@@ -9,6 +9,7 @@ import {
   PackageCheck,
   Search,
   ShieldCheck,
+  Sparkles,
   Store,
   X,
 } from 'lucide-react';
@@ -160,22 +161,42 @@ export function FcoExplorer({
 
   return (
     <section className="space-y-4">
-      {/* Hero + search */}
-      <div className="rounded-2xl border border-indigo-200/70 bg-gradient-to-b from-white to-indigo-50/40 p-4 shadow-sm sm:p-5 dark:border-indigo-800/50 dark:from-slate-900 dark:to-indigo-950/20">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-300">Acts • Rules • Orders • Compliance</p>
-        <h2 className="mt-1 text-lg font-black leading-tight text-slate-950 sm:text-xl dark:text-white">Fertilizer (Control) Order, 1985</h2>
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-          <button type="button" onClick={() => onOpenSection('clauses')} className="rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 px-2.5 py-1 text-[10px] font-black text-indigo-800 ring-1 ring-indigo-200 transition hover:from-indigo-100 hover:to-violet-100 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-200 dark:ring-indigo-800/60">
-            39 Clauses
-          </button>
-          <button type="button" onClick={() => onOpenSection('forms')} className="rounded-full bg-gradient-to-br from-violet-50 to-indigo-50 px-2.5 py-1 text-[10px] font-black text-violet-800 ring-1 ring-violet-200 transition hover:from-violet-100 hover:to-indigo-100 dark:from-violet-950/40 dark:to-indigo-950/30 dark:text-violet-200 dark:ring-violet-800/60">
-            27 Forms
-          </button>
-          <button type="button" onClick={() => onOpenSection('schedules')} className="rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 px-2.5 py-1 text-[10px] font-black text-indigo-800 ring-1 ring-indigo-200 transition hover:from-indigo-100 hover:to-violet-100 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-200 dark:ring-indigo-800/60">
-            8 Schedules
-          </button>
+      {/* Search & Quick Access Guide */}
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+              <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <span>FCO Quick Search &amp; Navigator</span>
+            </h2>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Instantly find statutory clauses, specifications, official forms, and inspection duties.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => onOpenSection('clauses')}
+              className="rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-700 ring-1 ring-indigo-200 transition hover:bg-indigo-100 dark:bg-indigo-950/50 dark:text-indigo-300 dark:ring-indigo-800"
+            >
+              39 Clauses
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenSection('forms')}
+              className="rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-black text-violet-700 ring-1 ring-violet-200 transition hover:bg-violet-100 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-800"
+            >
+              27 Forms
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenSection('schedules')}
+              className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-black text-blue-700 ring-1 ring-blue-200 transition hover:bg-blue-100 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-800"
+            >
+              8 Schedules
+            </button>
+          </div>
         </div>
-        <p className="mt-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">Understand the law • Find the provision • Take action</p>
 
         <div className="relative mt-3">
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:focus-within:ring-indigo-950/40">

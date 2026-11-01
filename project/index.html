@@ -72,16 +72,14 @@
           try { sessionStorage.setItem(key, value); } catch (error) {}
         }
 
-        function clearAppBuildMetadata(resetStartupRecovery) {
+        function clearAppBuildMetadata() {
           try { localStorage.removeItem('tiryani-app-build-version'); } catch (error) {}
           try {
             sessionStorage.removeItem('tiryani-startup-recovery-v1');
             sessionStorage.removeItem('tiryani-startup-recovery-v2');
             sessionStorage.removeItem('tiryani-startup-recovery-v3');
-            if (resetStartupRecovery) {
-              sessionStorage.removeItem(recoveryKey);
-              sessionStorage.removeItem('tiryani-pwa-recovery-attempted-at');
-            }
+            sessionStorage.removeItem(recoveryKey);
+            sessionStorage.removeItem('tiryani-pwa-recovery-attempted-at');
           } catch (error) {}
         }
 
@@ -99,48 +97,64 @@
           }).catch(function () {});
         }
 
-        function reloadWithBust(reason, forceRoot) {
-          var currentPath = window.location.pathname;
-          var isPublicRoute = currentPath.startsWith('/officer-toolkit/') || currentPath === '/officer-toolkit';
-          var targetPath = (forceRoot && !isPublicRoute) ? '/' : window.location.href;
-          var url = new URL(targetPath, window.location.origin);
-          url.searchParams.set('refresh', String(Date.now()));
-          if (reason) url.searchParams.set('reason', reason);
-          window.location.replace(url.toString());
-        }
-
         function hardRefresh(reason) {
-          var manualReset = reason === 'manual' || reason === 'cache-reset';
           var finished = false;
           var finish = function () {
             if (finished) return;
             finished = true;
             try {
-              reloadWithBust(reason || 'cache-reset', manualReset);
+              var currentPath = window.location.pathname;
+              var isPublicRoute = currentPath.startsWith('/officer-toolkit/') || currentPath === '/officer-toolkit';
+              var targetPath = isPublicRoute ? currentPath : '/';
+              var url = new URL(targetPath, window.location.origin);
+              url.searchParams.set('refresh', String(Date.now()));
+              window.location.replace(url.toString());
             } catch (error) {
               window.location.reload();
             }
           };
-          // Never let a hung service-worker/cache promise block the reload —
-          // cap cleanup at 3s then force navigation regardless.
           window.setTimeout(finish, 3000);
           Promise.resolve()
-            .then(function () { clearAppBuildMetadata(manualReset); })
+            .then(clearAppBuildMetadata)
             .then(unregisterServiceWorkers)
             .then(clearCachesOnly)
             .then(finish, finish);
-          return;
+        }
+
+        function dismissRecoveryAndContinue() {
+          safeSessionSet('tiryani-skip-watchdog', '1');
+          clearAppBuildMetadata();
+          var loader = document.getElementById('startup-loader');
+          if (loader) {
+            loader.innerHTML = '<img src="/images/agronix-logo-original.webp" alt="Agronix" width="96" height="96" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:14px;font-weight:700">Loading Agronix...</div>';
+          }
+          if (!appBooted()) {
+            window.location.href = window.location.pathname;
+          }
         }
 
         function showRecoveryOptions() {
-          if (appBooted()) return;
+          if (appBooted() || safeSessionGet('tiryani-skip-watchdog') === '1') return;
           var loader = document.getElementById('startup-loader');
           if (!loader) return;
-          loader.innerHTML = '<img src="/images/agronix-logo-original.webp" alt="Agronix" width="96" height="96" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:16px;font-weight:900">New Update Available</div><div style="max-width:380px;text-align:center;font-size:13px;font-weight:600;color:#475569">A new version of Agronix is ready to install.</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px"><button type="button" onclick="try{sessionStorage.removeItem(\'' + recoveryKey + '\');}catch(e){};(window.__TIRYANI_FORCE_REFRESH__ || function(){window.location.reload()})(\'manual\')" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Update</button><button type="button" onclick="try{sessionStorage.removeItem(\'' + recoveryKey + '\');}catch(e){};window.location.reload()" style="border:1px solid #a7f3d0;border-radius:12px;background:white;color:#047857;padding:10px 16px;font-weight:800">Later</button></div>';
+          loader.innerHTML = '<img src="/images/agronix-logo-original.webp" alt="Agronix" width="96" height="96" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:16px;font-weight:900">New Update Available</div><div style="max-width:380px;text-align:center;font-size:13px;font-weight:600;color:#475569">A new version of Agronix is ready to install.</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px"><button type="button" id="btn-update-agronix" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800;cursor:pointer">Update</button><button type="button" id="btn-later-agronix" style="border:1px solid #a7f3d0;border-radius:12px;background:white;color:#047857;padding:10px 16px;font-weight:800;cursor:pointer">Later</button></div>';
+
+          var btnUpdate = document.getElementById('btn-update-agronix');
+          var btnLater = document.getElementById('btn-later-agronix');
+          if (btnUpdate) {
+            btnUpdate.onclick = function () {
+              hardRefresh('manual');
+            };
+          }
+          if (btnLater) {
+            btnLater.onclick = function () {
+              dismissRecoveryAndContinue();
+            };
+          }
         }
 
         function recoverFromStartupFailure(reason) {
-          if (appBooted()) return;
+          if (appBooted() || safeSessionGet('tiryani-skip-watchdog') === '1') return;
           var attempts = Number(safeSessionGet(recoveryKey) || 0);
           if (attempts >= 2) {
             showRecoveryOptions();
@@ -156,29 +170,22 @@
         if (isDevHost) unregisterServiceWorkers();
 
         window.__TIRYANI_FORCE_REFRESH__ = hardRefresh;
+
+        // Generous 35s timeout only if bundle completely failed to boot on slow mobile connections
         window.setTimeout(function () {
-          if (!appBooted()) recoverFromStartupFailure('timeout');
-        }, 12000);
+          if (!appBooted() && safeSessionGet('tiryani-skip-watchdog') !== '1') {
+            recoverFromStartupFailure('timeout');
+          }
+        }, 35000);
 
-        // Once the app has booted, chunk/script errors are pwaRecovery.ts's job.
+        // Only listen for fatal script tag load failures before React mounts.
         window.addEventListener('error', function (event) {
-          if (appBooted()) return;
+          if (appBooted() || safeSessionGet('tiryani-skip-watchdog') === '1') return;
           var target = event && event.target;
-          if (target && target !== window && target.tagName !== 'SCRIPT') {
-            return;
+          if (target && target.tagName === 'SCRIPT') {
+            recoverFromStartupFailure('script-load-error');
           }
-          recoverFromStartupFailure('error');
         }, true);
-
-        window.addEventListener('unhandledrejection', function (event) {
-          if (appBooted()) return;
-          var reason = event && event.reason;
-          var name = reason && (reason.name || (reason.constructor && reason.constructor.name));
-          if (name === 'NotAllowedError' || name === 'AbortError') {
-            return;
-          }
-          recoverFromStartupFailure('promise');
-        });
       })();
     </script>
     <script type="application/ld+json">

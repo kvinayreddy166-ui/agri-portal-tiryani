@@ -72,6 +72,53 @@ describe('Farm Calculators Engine & Agronomy Formulas', () => {
       expect(errors).toContain('Area must be greater than 0.');
       expect(errors).toContain('Row spacing must be greater than 0.');
     });
+
+    it('accurately calculates HDPS Cotton (90x15 cm), CS Cotton (90x30 cm), and Bengal Gram (30x15 cm)', () => {
+      // HDPS Cotton: 90 cm x 15 cm -> 0.135 m² -> 4046.86 / 0.135 ≈ 29,977 plants/acre
+      const hdps = calculatePlantPopulation({
+        cropName: 'HDPS Cotton',
+        areaValue: '1',
+        areaUnit: 'acres',
+        rowSpacing: '90',
+        rowSpacingUnit: 'cm',
+        plantSpacing: '15',
+        plantSpacingUnit: 'cm',
+      });
+      expect(hdps.errors).toHaveLength(0);
+      expect(hdps.result).not.toBeNull();
+      expect(hdps.result!.areaPerPlant).toBeCloseTo(0.135, 3);
+      expect(Math.round(hdps.result!.plantsPerAcre)).toBe(29977);
+
+      // CS Cotton: 90 cm x 30 cm -> 0.27 m² -> 4046.86 / 0.27 ≈ 14,988 plants/acre
+      const cs = calculatePlantPopulation({
+        cropName: 'CS Cotton',
+        areaValue: '1',
+        areaUnit: 'acres',
+        rowSpacing: '90',
+        rowSpacingUnit: 'cm',
+        plantSpacing: '30',
+        plantSpacingUnit: 'cm',
+      });
+      expect(cs.errors).toHaveLength(0);
+      expect(cs.result).not.toBeNull();
+      expect(cs.result!.areaPerPlant).toBeCloseTo(0.27, 2);
+      expect(Math.round(cs.result!.plantsPerAcre)).toBe(14988);
+
+      // Bengal Gram: 30 cm x 15 cm -> 0.045 m² -> 4046.86 / 0.045 ≈ 89,930 plants/acre
+      const bengalGram = calculatePlantPopulation({
+        cropName: 'Bengal Gram',
+        areaValue: '1',
+        areaUnit: 'acres',
+        rowSpacing: '30',
+        rowSpacingUnit: 'cm',
+        plantSpacing: '15',
+        plantSpacingUnit: 'cm',
+      });
+      expect(bengalGram.errors).toHaveLength(0);
+      expect(bengalGram.result).not.toBeNull();
+      expect(bengalGram.result!.areaPerPlant).toBeCloseTo(0.045, 3);
+      expect(Math.round(bengalGram.result!.plantsPerAcre)).toBe(89930);
+    });
   });
 
   describe('AcreageCalculator', () => {
