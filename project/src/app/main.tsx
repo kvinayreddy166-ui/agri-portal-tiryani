@@ -20,6 +20,7 @@ try {
   window.sessionStorage.removeItem('tiryani-startup-recovery-v1');
   window.sessionStorage.removeItem('tiryani-startup-recovery-v2');
   window.sessionStorage.removeItem('tiryani-startup-recovery-v3');
+  window.sessionStorage.removeItem('tiryani-startup-recovery-v4');
 } catch {
   // Startup recovery state is best-effort only.
 }

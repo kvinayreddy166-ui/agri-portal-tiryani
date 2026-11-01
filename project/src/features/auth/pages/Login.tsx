@@ -17,7 +17,6 @@ import {
   Sprout,
   Store,
   X,
-  Youtube,
 } from 'lucide-react';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
@@ -339,28 +338,6 @@ export function Login() {
           </ul>
         </div>
         <div className="relative border-t border-white/15 pt-4 text-xs leading-5 text-emerald-100/80">
-          <div className="mb-2.5 flex flex-wrap items-center gap-2">
-            <a
-              href="https://www.youtube.com/@AgricultureDepartmentTelangana"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/90 px-2.5 py-1 text-xs font-bold text-white shadow-sm transition hover:bg-red-600 hover:shadow"
-            >
-              <Youtube className="h-3.5 w-3.5" />
-              <span>{t('YouTube', 'యూట్యూబ్')}</span>
-            </a>
-            <a
-              href="https://x.com/DirectorAgriTS"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-black/80 px-2.5 py-1 text-xs font-bold text-white shadow-sm transition hover:bg-black hover:shadow"
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5" style={{ fill: '#ffffff' }} aria-hidden="true">
-                <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
-              </svg>
-              <span>{t('Twitter (X)', 'ట్విట్టర్')}</span>
-            </a>
-          </div>
           <p>version-1.0.1 &middot; &copy; 2026 {t('Agronix — Information Management System', 'అగ్రోనిక్స్ — సమాచార నిర్వహణ వ్యవస్థ')}</p>
           <p>{t('Developed and maintained by K.Vinay Reddy, MAO, Tiryani', 'రూపకల్పన & నిర్వహణ: కె.వినయ్ రెడ్డి, ఎం.ఎ.ఓ, తిర్యాని')}</p>
         </div>

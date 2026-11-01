@@ -1,22 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX, ChevronRight } from 'lucide-react';
-import { AGRONIX_INTRO_DISABLED_KEY, AGRONIX_PLAY_INTRO_EVENT } from './appIntroState';
+import {
+  AGRONIX_PLAY_INTRO_EVENT,
+  shouldPlayOnInitialOpen,
+} from './appIntroState';
 
 interface AppIntroSplashProps {
   onFinish?: () => void;
 }
 
 export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
-  const [isVisible, setIsVisible] = useState(() => {
-    try {
-      if (localStorage.getItem(AGRONIX_INTRO_DISABLED_KEY) === 'true') {
-        return false;
-      }
-    } catch {
-      // Storage access error fallback
-    }
-    return true;
-  });
+  const [isVisible, setIsVisible] = useState(() => shouldPlayOnInitialOpen());
 
   const [isFading, setIsFading] = useState(false);
   // Default sound is ON
@@ -143,6 +137,16 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
       }
     }, 10000);
 
+    // Handler to immediately unmute as soon as the user touches/clicks anywhere
+    const enableSoundOnUserAction = () => {
+      if (videoRef.current) {
+        videoRef.current.muted = false;
+        setIsMuted(false);
+      }
+      window.removeEventListener('pointerdown', enableSoundOnUserAction);
+      window.removeEventListener('keydown', enableSoundOnUserAction);
+    };
+
     const playPromise = video.play();
     if (playPromise !== undefined) {
       playPromise
@@ -177,16 +181,6 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
                 });
             }
 
-            // Immediately unmute as soon as the user touches/clicks anywhere
-            const enableSoundOnUserAction = () => {
-              if (videoRef.current) {
-                videoRef.current.muted = false;
-                setIsMuted(false);
-              }
-              window.removeEventListener('pointerdown', enableSoundOnUserAction);
-              window.removeEventListener('keydown', enableSoundOnUserAction);
-            };
-
             window.addEventListener('pointerdown', enableSoundOnUserAction, { once: true });
             window.addEventListener('keydown', enableSoundOnUserAction, { once: true });
           }
@@ -195,6 +189,8 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
 
     return () => {
       clearAllTimers();
+      window.removeEventListener('pointerdown', enableSoundOnUserAction);
+      window.removeEventListener('keydown', enableSoundOnUserAction);
     };
   }, [isVisible, handleDismiss, clearAllTimers]);
 

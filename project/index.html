@@ -40,7 +40,6 @@
     <link rel="preload" as="font" type="font/woff2" href="/fonts/atkinson-hyperlegible-next-latin-400-normal.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/atkinson-hyperlegible-next-latin-800-normal.woff2" crossorigin />
     <link rel="preload" as="image" href="/images/agronix-logo-original.webp" type="image/webp" fetchpriority="high" />
-    <link rel="preload" as="video" href="/agronix-intro.mp4" type="video/mp4" />
     <meta name="theme-color" content="#065f46" />
     <meta name="color-scheme" content="light dark" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
@@ -137,7 +136,7 @@
           if (appBooted()) return;
           var loader = document.getElementById('startup-loader');
           if (!loader) return;
-          loader.innerHTML = '<img src="/images/agronix-logo-original.webp" alt="Agronix" width="96" height="96" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:16px;font-weight:900">New Update Available</div><div style="max-width:380px;text-align:center;font-size:13px;font-weight:600;color:#475569">A new version of Agronix is ready to install.</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px"><button type="button" onclick="(window.__TIRYANI_FORCE_REFRESH__ || function(){window.location.reload()})(\'manual\')" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Update</button><button type="button" onclick="window.location.reload()" style="border:1px solid #a7f3d0;border-radius:12px;background:white;color:#047857;padding:10px 16px;font-weight:800">Later</button></div>';
+          loader.innerHTML = '<img src="/images/agronix-logo-original.webp" alt="Agronix" width="96" height="96" style="height:96px;width:96px;border-radius:50%;object-fit:cover;background:white;box-shadow:0 18px 40px rgba(15,23,42,.16)" /><div style="font-size:16px;font-weight:900">New Update Available</div><div style="max-width:380px;text-align:center;font-size:13px;font-weight:600;color:#475569">A new version of Agronix is ready to install.</div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px"><button type="button" onclick="try{sessionStorage.removeItem(\'' + recoveryKey + '\');}catch(e){};(window.__TIRYANI_FORCE_REFRESH__ || function(){window.location.reload()})(\'manual\')" style="border:0;border-radius:12px;background:#047857;color:white;padding:10px 16px;font-weight:800">Update</button><button type="button" onclick="try{sessionStorage.removeItem(\'' + recoveryKey + '\');}catch(e){};window.location.reload()" style="border:1px solid #a7f3d0;border-radius:12px;background:white;color:#047857;padding:10px 16px;font-weight:800">Later</button></div>';
         }
 
         function recoverFromStartupFailure(reason) {
@@ -153,7 +152,7 @@
 
         // Dev server: never allow a SW — it serves stale Vite modules. Must run
         // before main.tsx because a controlled page can be served stale bundles.
-        var isDevHost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
+        var isDevHost = /^(localhost|127\.0\.0\.1|\[::1\]|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$/.test(window.location.hostname) || window.location.port === '5173';
         if (isDevHost) unregisterServiceWorkers();
 
         window.__TIRYANI_FORCE_REFRESH__ = hardRefresh;
@@ -162,12 +161,23 @@
         }, 12000);
 
         // Once the app has booted, chunk/script errors are pwaRecovery.ts's job.
-        window.addEventListener('error', function () {
-          if (!appBooted()) recoverFromStartupFailure('error');
+        window.addEventListener('error', function (event) {
+          if (appBooted()) return;
+          var target = event && event.target;
+          if (target && target !== window && target.tagName !== 'SCRIPT') {
+            return;
+          }
+          recoverFromStartupFailure('error');
         }, true);
 
-        window.addEventListener('unhandledrejection', function () {
-          if (!appBooted()) recoverFromStartupFailure('promise');
+        window.addEventListener('unhandledrejection', function (event) {
+          if (appBooted()) return;
+          var reason = event && event.reason;
+          var name = reason && (reason.name || (reason.constructor && reason.constructor.name));
+          if (name === 'NotAllowedError' || name === 'AbortError') {
+            return;
+          }
+          recoverFromStartupFailure('promise');
         });
       })();
     </script>
