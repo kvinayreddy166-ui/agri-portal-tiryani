@@ -543,9 +543,9 @@ export function PublicOfficerTools() {
     return (
       <div
         key={form.id}
-        className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 sm:p-3.5 transition duration-150 hover:border-emerald-300 hover:shadow-sm dark:hover:border-emerald-700/60"
+        className="group flex items-center justify-between gap-2.5 sm:gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2.5 sm:p-3.5 transition duration-150 hover:border-emerald-300 hover:shadow-sm dark:hover:border-emerald-700/60"
       >
-        <div className="flex items-start gap-3 min-w-0 flex-1">
+        <div className="flex items-start gap-2.5 sm:gap-3 min-w-0 flex-1">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200/50 dark:ring-slate-700/50">
             <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
           </div>
@@ -566,12 +566,12 @@ export function PublicOfficerTools() {
           </div>
         </div>
         {form.file_url && (
-          <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-1.5 shrink-0 justify-end">
             <button
               type="button"
               onClick={() => void openPublicPreview(form)}
               disabled={previewLoadingId === form.id}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 px-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 disabled:opacity-50"
+              className="inline-flex h-9 w-9 sm:w-auto items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 px-0 sm:px-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 disabled:opacity-50"
               aria-label={t('Preview file', 'ఫైల్‌ను ప్రివ్యూ చేయండి')}
               title={t('Preview', 'ప్రివ్యూ')}
             >
@@ -586,7 +586,7 @@ export function PublicOfficerTools() {
               type="button"
               onClick={() => handlePublicDownload(form)}
               disabled={downloadingFormId === form.id}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 disabled:opacity-50"
+              className="inline-flex h-9 w-9 sm:w-auto items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-0 sm:px-3 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 disabled:opacity-50"
               aria-label={t('Download file', 'ఫైల్‌ను డౌన్‌లోడ్ చేయండి')}
               title={t('Download', 'డౌన్‌లోడ్')}
             >
@@ -595,7 +595,7 @@ export function PublicOfficerTools() {
               ) : (
                 <Download className="h-4 w-4" />
               )}
-              <span>{t('Download', 'డౌన్‌లోడ్')}</span>
+              <span className="hidden sm:inline">{t('Download', 'డౌన్‌లోడ్')}</span>
             </button>
           </div>
         )}
