@@ -74,13 +74,14 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
         video.currentTime = 0;
         video.muted = false;
         video.defaultMuted = false;
+        video.volume = 1.0;
         setIsMuted(false);
         const p = video.play();
         if (p) {
           p.then(() => {
             hasStartedRef.current = true;
           }).catch((err) => {
-            console.warn('Replay play error:', err);
+            console.warn('Replay unmuted play error:', err);
             if (videoRef.current) {
               videoRef.current.muted = true;
               setIsMuted(true);
@@ -127,6 +128,7 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
     // Default sound ON: Attempt unmuted playback
     video.muted = false;
     video.defaultMuted = false;
+    video.volume = 1.0;
     setIsMuted(false);
 
     // 10s fallback watchdog only if video completely fails to play
@@ -136,16 +138,6 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
         handleDismiss();
       }
     }, 10000);
-
-    // Handler to immediately unmute as soon as the user touches/clicks anywhere
-    const enableSoundOnUserAction = () => {
-      if (videoRef.current) {
-        videoRef.current.muted = false;
-        setIsMuted(false);
-      }
-      window.removeEventListener('pointerdown', enableSoundOnUserAction);
-      window.removeEventListener('keydown', enableSoundOnUserAction);
-    };
 
     const playPromise = video.play();
     if (playPromise !== undefined) {
@@ -161,12 +153,14 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
         })
         .catch((err) => {
           console.warn('Browser autoplay policy blocked unmuted sound on cold start:', err);
-          // If browser strictly blocks unmuted audio on cold start, play muted first so video is not blocked
+          // If browser strictly blocks unmuted audio on cold start (common on mobile),
+          // continue playing muted so the video starts, and allow instant one-tap unmute.
           if (videoRef.current) {
             videoRef.current.muted = true;
+            videoRef.current.defaultMuted = true;
             setIsMuted(true);
             const mutedPromise = videoRef.current.play();
-            if (mutedPromise) {
+            if (mutedPromise !== undefined) {
               mutedPromise
                 .then(() => {
                   hasStartedRef.current = true;
@@ -180,27 +174,54 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
                   handleDismiss();
                 });
             }
-
-            window.addEventListener('pointerdown', enableSoundOnUserAction, { once: true });
-            window.addEventListener('keydown', enableSoundOnUserAction, { once: true });
           }
         });
     }
 
     return () => {
       clearAllTimers();
-      window.removeEventListener('pointerdown', enableSoundOnUserAction);
-      window.removeEventListener('keydown', enableSoundOnUserAction);
     };
   }, [isVisible, handleDismiss, clearAllTimers]);
 
-  const toggleSound = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+  // Dedicated sound toggle: ALWAYS ensures video continues playing without pausing
+  const toggleSound = (e?: React.SyntheticEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     const video = videoRef.current;
     if (!video) return;
+
     const nextMuted = !video.muted;
     video.muted = nextMuted;
+    video.defaultMuted = nextMuted;
+    if (!nextMuted) {
+      video.volume = 1.0;
+    }
     setIsMuted(nextMuted);
+
+    // Crucial for mobile browser: explicitly call play() on user gesture so video never pauses
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((err) => console.warn('Play after unmute error:', err));
+    }
+  };
+
+  // Tapping the screen/video while muted turns on audio and keeps playback active
+  const handleBackdropTap = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.muted) {
+      video.muted = false;
+      video.defaultMuted = false;
+      video.volume = 1.0;
+      setIsMuted(false);
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    }
   };
 
   const handleTimeUpdate = () => {
@@ -251,8 +272,11 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
         }}
       />
 
-      {/* Main Video Element Container */}
-      <div className="relative z-10 w-full h-full flex items-center justify-center p-0 md:p-6">
+      {/* Main Video Element Container (tapping anywhere while muted un-mutes) */}
+      <div
+        className="relative z-10 w-full h-full flex items-center justify-center p-0 md:p-6 cursor-pointer"
+        onClick={handleBackdropTap}
+      >
         <video
           ref={videoRef}
           src="/agronix-intro.mp4"
@@ -267,7 +291,7 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
             console.warn('Intro video error event fired; dismissing.');
             handleDismiss();
           }}
-          className="max-h-full max-w-full w-auto h-auto object-contain rounded-none md:rounded-2xl shadow-2xl"
+          className="max-h-full max-w-full w-auto h-auto object-contain rounded-none md:rounded-2xl shadow-2xl pointer-events-none"
           style={{ willChange: 'transform' }}
         />
 
@@ -278,6 +302,7 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
             top: 'max(1rem, env(safe-area-inset-top, 1rem))',
             right: 'max(1rem, env(safe-area-inset-right, 1rem))',
           }}
+          onClick={(e) => e.stopPropagation()}
         >
           <button
             type="button"
@@ -297,33 +322,34 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
             bottom: 'max(1.25rem, env(safe-area-inset-bottom, 1.25rem))',
             left: 'max(1rem, env(safe-area-inset-left, 1rem))',
           }}
+          onClick={(e) => e.stopPropagation()}
         >
           <button
             type="button"
             onClick={toggleSound}
             aria-label={isMuted ? 'Unmute video audio' : 'Mute video audio'}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs md:text-sm font-medium backdrop-blur-md border shadow-lg transition-all active:scale-95 cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs md:text-sm font-semibold backdrop-blur-md border shadow-xl transition-all active:scale-95 cursor-pointer ${
               !isMuted
-                ? 'bg-emerald-600/90 hover:bg-emerald-600 text-white border-emerald-400/40 shadow-emerald-900/50'
-                : 'bg-emerald-950/85 hover:bg-emerald-900 text-emerald-200 border-emerald-500/50'
+                ? 'bg-emerald-600/90 hover:bg-emerald-600 text-white border-emerald-400/50 shadow-emerald-950/50'
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white border-white/30 animate-pulse'
             }`}
           >
             {!isMuted ? (
               <>
                 <Volume2 className="w-4 h-4 text-white" />
-                <span className="font-semibold">Sound On</span>
+                <span>Sound On</span>
               </>
             ) : (
               <>
-                <VolumeX className="w-4 h-4 text-emerald-400 animate-pulse" />
-                <span className="font-semibold">Tap for Sound</span>
+                <VolumeX className="w-4 h-4 text-white" />
+                <span>Tap for Sound</span>
               </>
             )}
           </button>
         </div>
 
         {/* Sleek Progress Indicator at the bottom edge */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-20">
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-20 pointer-events-none">
           <div
             className="h-full bg-emerald-500 transition-all duration-100 ease-linear"
             style={{ width: `${progress}%` }}
