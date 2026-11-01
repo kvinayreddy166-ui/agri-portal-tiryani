@@ -1,12 +1,15 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
+  BookOpen,
   Calculator,
   Download,
   Eye,
   FileText,
   FlaskConical,
   HelpCircle,
+  Layers,
   Loader2,
+  Scale,
   Sprout,
 } from 'lucide-react';
 import { BackButton } from '../../../shared/components/ui/BackButton';
@@ -45,7 +48,217 @@ const STATUTORY_FOLDERS = [
 
 const PUBLIC_TOOLKIT_STATE_KEY = 'tiryani-public-officer-toolkit-state';
 const PUBLIC_FORMS_CACHE_KEY = 'tiryani-public-statutory-forms-cache';
-const PUBLIC_FORMS_PAGE_SIZE = 20;
+const PUBLIC_FORMS_PAGE_SIZE = 100;
+
+export type PublicFormSubGroup = 'sampling' | 'enforcement' | 'reference';
+
+export interface PublicFormGroupMeta {
+  id: PublicFormSubGroup;
+  label: string;
+  telugu: string;
+  badge: string;
+  badgeTelugu: string;
+  description: string;
+  descriptionTelugu: string;
+}
+
+export const PUBLIC_FORM_SUBGROUPS: Record<PublicFormSubGroup, PublicFormGroupMeta> = {
+  sampling: {
+    id: 'sampling',
+    label: 'Statutory & Sampling Forms',
+    telugu: 'నమూనా సేకరణ & చట్టబద్ధ ఫారాలు',
+    badge: 'Sampling Form',
+    badgeTelugu: 'శాంప్లింగ్ ఫారం',
+    description: 'Sampling memorandums, proformas and testing request forms',
+    descriptionTelugu: 'నమూనా డ్రాయింగ్ ప్రొఫార్మాలు, మెమోరాండమ్లు మరియు పరీక్ష అభ్యర్థనలు',
+  },
+  enforcement: {
+    id: 'enforcement',
+    label: 'Inspection, Stop-Sale & Seizure Orders',
+    telugu: 'తనిఖీ, స్టాప్-సేల్ & జబ్తు ఉత్తర్వులు',
+    badge: 'Enforcement Order',
+    badgeTelugu: 'ఎన్ఫోర్స్‌మెంట్ ఉత్తర్వు',
+    description: 'Stop sale orders, seizure memos, panchanama, and revocations',
+    descriptionTelugu: 'స్టాప్-సేల్ ఆర్డర్లు, జబ్తు మెమోలు, పంచనామా మరియు ఉపసంహరణలు',
+  },
+  reference: {
+    id: 'reference',
+    label: 'Acts, Rules & Reference Material',
+    telugu: 'చట్టాలు, నిబంధనలు & మార్గదర్శకాలు',
+    badge: 'Acts & Reference',
+    badgeTelugu: 'చట్టం / మార్గదర్శకం',
+    description: 'Acts, official statutory rules, procedure manuals, and lists',
+    descriptionTelugu: 'శాసన చట్టాలు, అధికారిక నిబంధనలు, విధాన మార్గదర్శకాలు మరియు జాబితాలు',
+  },
+};
+
+export function classifyPublicForm(form: FormDownload): PublicFormSubGroup {
+  const text = `${form.title || ''} ${form.label || ''} ${form.description || ''}`.toLowerCase();
+
+  // 1. Enforcement (Stop-Sale, Seizure, Panchanama, Custody, Revocation, Chargesheet)
+  // Checked first so orders mentioning an Act ("Stop Sale Order under Insecticides Act") stay under Enforcement.
+  if (
+    text.includes('stop sale') ||
+    text.includes('stop-sale') ||
+    text.includes('seizure') ||
+    text.includes('seized') ||
+    text.includes('panchanama') ||
+    text.includes('panchanam') ||
+    text.includes('chargesheet') ||
+    text.includes('charge-sheet') ||
+    text.includes('charge sheet') ||
+    text.includes('annexure -a') ||
+    text.includes('annexure-a') ||
+    text.includes('annexure - a') ||
+    text.includes('annexure i(') ||
+    text.includes('annexure- i') ||
+    text.includes('annexure-i(') ||
+    text.includes('annexure ii') ||
+    text.includes('annexure-ii') ||
+    text.includes('form – iii') ||
+    text.includes('form iii') ||
+    text.includes('form-iii') ||
+    text.includes('form iv') ||
+    text.includes('form-iv') ||
+    text.includes('form va') ||
+    text.includes('form-va') ||
+    text.includes('form v-b') ||
+    text.includes('form vb') ||
+    text.includes('form-vb') ||
+    text.includes('custody') ||
+    text.includes('revocation')
+  ) {
+    return 'enforcement';
+  }
+
+  // 2. Acts, Rules, Reference & Technical Manuals
+  if (
+    text.includes('act ') ||
+    text.includes('act,') ||
+    text.includes('act 19') ||
+    text.includes('rules 19') ||
+    text.includes('rules,') ||
+    text.includes('control order') ||
+    text.includes('(control) order') ||
+    text.includes('order, 19') ||
+    text.includes('order 19') ||
+    text.includes('quarantine order') ||
+    text.includes('handbook') ||
+    text.includes('salient features') ||
+    text.includes('drawal procedure') ||
+    text.includes('sampling procedure') ||
+    text.includes('procedure manual') ||
+    text.includes('standard operating procedure') ||
+    text.includes('sop') ||
+    text.includes('procedure') ||
+    text.includes('banned') ||
+    text.includes('restricted') ||
+    text.includes('major use') ||
+    text.includes('registered pesticide') ||
+    text.includes('formulations') ||
+    text.includes('guidelines') ||
+    text.includes('follow up actions')
+  ) {
+    return 'reference';
+  }
+
+  // 3. Default: Statutory & Sampling Forms
+  return 'sampling';
+}
+
+export function getPublicFormWorkflowRank(form: FormDownload): number {
+  const text = `${form.title || ''} ${form.label || ''}`.toLowerCase();
+  const subGroup = classifyPublicForm(form);
+
+  if (subGroup === 'sampling') {
+    if (text === 'form i' || text.startsWith('form i ') || text.includes('form i(') || text.includes('form 1(') || text === 'form 1') return 10;
+    if (
+      (text === 'form ii' || text.startsWith('form ii ') || text.includes('form ii(') || text.includes('form 2')) &&
+      !text.includes('iii')
+    ) return 20;
+    if (
+      text.includes('form v(') ||
+      text === 'form v' ||
+      (text.includes('form v') &&
+        !text.includes('vi') &&
+        !text.includes('viii') &&
+        !text.includes('va') &&
+        !text.includes('vb'))
+    ) return 30;
+    if (text.includes('form vi') && !text.includes('viii')) return 40;
+    if (text.includes('form viii')) return 50;
+    if (text.includes('form j')) return 60;
+    if (text.includes('form k')) return 70;
+    if (text.includes('form p')) return 80;
+    if (text.includes('covering letter')) return 90;
+    if (text.includes('information slip') || text.includes('docket sheet')) return 100;
+    if (text.includes('pesticide forms') || text.includes('pesticide pdf forms')) return 110;
+    return 150;
+  }
+
+  if (subGroup === 'enforcement') {
+    // Stop Sale orders first, immediately followed by their revocations
+    if (
+      text.includes('annexure -a(') ||
+      text.includes('annexure-a(') ||
+      text.includes('form – iii') ||
+      text.includes('form iii') ||
+      text.includes('form va') ||
+      (text.includes('stop sale') && !text.includes('revocation'))
+    ) return 210;
+    if (
+      text.includes('stop sale revocation') ||
+      text.includes('revocation of stop sale') ||
+      text.includes('annexure- i') ||
+      text.includes('annexure i(')
+    ) return 220;
+
+    // Seizure memos next, followed immediately by custody bond, panchanama, and seizure revocation
+    if (
+      text.includes('annexure-aa') ||
+      text.includes('annexure - aa') ||
+      text.includes('form iv(') ||
+      text.includes('form v-b') ||
+      text.includes('form vb') ||
+      (text.includes('seizure') && !text.includes('revocation') && !text.includes('panchanama') && !text.includes('custody'))
+    ) return 230;
+    if (text.includes('custody') || text.includes('bond')) return 240;
+    if (text.includes('panchanama') || text.includes('panchanam')) return 250;
+    if (text.includes('annexure ii') || text.includes('revocation of seizure') || (text.includes('revocation') && text.includes('seiz'))) return 260;
+
+    if (text.includes('chargesheet') || text.includes('charge sheet')) return 270;
+    return 290;
+  }
+
+  if (subGroup === 'reference') {
+    if (text.includes('act 19') || text.includes('act,') || text.includes('act ')) return 310;
+    if (text.includes('rules 19') || text.includes('rules,') || text.includes('rules ')) return 320;
+    if (text.includes('control order') || text.includes('quarantine order') || text.includes('salient features') || text.includes('follow up')) return 330;
+    if (text.includes('handbook') || text.includes('drawal procedure') || text.includes('sampling procedure') || text.includes('procedure') || text.includes('sop')) return 340;
+    if (text.includes('banned') || text.includes('restricted')) return 350;
+    if (text.includes('registered pesticide') || text.includes('formulations')) return 360;
+    if (text.includes('major use of insecticides')) return 370;
+    if (text.includes('major use of fungicides')) return 372;
+    if (text.includes('major use of herbicides')) return 374;
+    if (text.includes('major use of bio-insecticides')) return 376;
+    if (text.includes('major use of pgrs')) return 378;
+    return 390;
+  }
+
+  return 500;
+}
+
+export function comparePublicForms(a: FormDownload, b: FormDownload): number {
+  const gA = classifyPublicForm(a);
+  const gB = classifyPublicForm(b);
+  const groupOrder: Record<PublicFormSubGroup, number> = { sampling: 1, enforcement: 2, reference: 3 };
+  if (groupOrder[gA] !== groupOrder[gB]) {
+    return groupOrder[gA] - groupOrder[gB];
+  }
+  const rankDiff = getPublicFormWorkflowRank(a) - getPublicFormWorkflowRank(b);
+  if (rankDiff !== 0) return rankDiff;
+  return (a.title || a.label || '').localeCompare(b.title || b.label || '');
+}
 
 export function PublicOfficerTools() {
   const location = useLocation();
@@ -69,6 +282,7 @@ export function PublicOfficerTools() {
   const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [subGroupFilter, setSubGroupFilter] = useState<'all' | PublicFormSubGroup>('all');
   const pdfToolOverlay = useBackButtonOverlay('public-pdf-tool', () => setPdfToolOpen(false));
 
   useEffect(() => {
@@ -143,20 +357,96 @@ export function PublicOfficerTools() {
     };
   }, [formsLibraryOpen]);
 
-  const selectedStatutoryForms = useMemo(
-    () => statutoryForms.filter((form) => normalizePublicFormCategory(form.category) === statutoryFolder),
-    [statutoryForms, statutoryFolder]
-  );
+  const selectedStatutoryForms = useMemo(() => {
+    const list = statutoryForms.filter((form) => normalizePublicFormCategory(form.category) === statutoryFolder);
+    return [...list].sort(comparePublicForms);
+  }, [statutoryForms, statutoryFolder]);
 
-  const filteredStatutoryForms = useMemo(
-    () => selectedStatutoryForms.filter((form) => {
-      const query = searchQuery.toLowerCase();
+  const subGroupCounts = useMemo(() => {
+    const counts: Record<'all' | PublicFormSubGroup, number> = {
+      all: selectedStatutoryForms.length,
+      sampling: 0,
+      enforcement: 0,
+      reference: 0,
+    };
+    for (const form of selectedStatutoryForms) {
+      const g = classifyPublicForm(form);
+      counts[g] = (counts[g] || 0) + 1;
+    }
+    return counts;
+  }, [selectedStatutoryForms]);
+
+  const filteredStatutoryForms = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return selectedStatutoryForms.filter((form) => {
+      if (subGroupFilter !== 'all' && classifyPublicForm(form) !== subGroupFilter) {
+        return false;
+      }
+      if (!query) return true;
       const title = (form.label || form.title || '').toLowerCase();
       const description = (form.description || '').toLowerCase();
       return title.includes(query) || description.includes(query);
-    }),
-    [selectedStatutoryForms, searchQuery]
-  );
+    });
+  }, [selectedStatutoryForms, subGroupFilter, searchQuery]);
+
+  const groupedForms = useMemo(() => {
+    const groups: {
+      meta: PublicFormGroupMeta;
+      icon: typeof FileText;
+      colorClasses: {
+        badge: string;
+        headerBg: string;
+        headerBorder: string;
+        headerText: string;
+      };
+      forms: FormDownload[];
+    }[] = [
+      {
+        meta: PUBLIC_FORM_SUBGROUPS.sampling,
+        icon: FileText,
+        colorClasses: {
+          badge: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300',
+          headerBg: 'bg-emerald-100/60 dark:bg-emerald-950/40',
+          headerBorder: 'border-emerald-200/80 dark:border-emerald-900/60',
+          headerText: 'text-emerald-900 dark:text-emerald-200',
+        },
+        forms: [],
+      },
+      {
+        meta: PUBLIC_FORM_SUBGROUPS.enforcement,
+        icon: Scale,
+        colorClasses: {
+          badge: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300',
+          headerBg: 'bg-amber-100/60 dark:bg-amber-950/40',
+          headerBorder: 'border-amber-200/80 dark:border-amber-900/60',
+          headerText: 'text-amber-900 dark:text-amber-200',
+        },
+        forms: [],
+      },
+      {
+        meta: PUBLIC_FORM_SUBGROUPS.reference,
+        icon: BookOpen,
+        colorClasses: {
+          badge: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300',
+          headerBg: 'bg-sky-100/60 dark:bg-sky-950/40',
+          headerBorder: 'border-sky-200/80 dark:border-sky-900/60',
+          headerText: 'text-sky-900 dark:text-sky-200',
+        },
+        forms: [],
+      },
+    ];
+
+    for (const form of filteredStatutoryForms) {
+      const g = classifyPublicForm(form);
+      const target = groups.find((item) => item.meta.id === g);
+      if (target) {
+        target.forms.push(form);
+      }
+    }
+
+    return groups.filter((g) => g.forms.length > 0);
+  }, [filteredStatutoryForms]);
+
   const otherMatches = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const query = searchQuery.trim().toLowerCase();
@@ -183,11 +473,16 @@ export function PublicOfficerTools() {
   );
 
   useEffect(() => {
+    setSubGroupFilter('all');
     setStatutoryPage(0);
     if (statutoryFolder === 'pesticides') {
       setPdfToolOpen(false);
     }
-  }, [statutoryFolder, searchQuery]);
+  }, [statutoryFolder]);
+
+  useEffect(() => {
+    setStatutoryPage(0);
+  }, [searchQuery, subGroupFilter]);
 
   const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -233,6 +528,79 @@ export function PublicOfficerTools() {
     } finally {
       setDownloadingFormId(null);
     }
+  };
+
+  const renderPublicFormCard = (form: FormDownload) => {
+    const subGroup = classifyPublicForm(form);
+    const meta = PUBLIC_FORM_SUBGROUPS[subGroup];
+    const badgeClasses =
+      subGroup === 'sampling'
+        ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300'
+        : subGroup === 'enforcement'
+        ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300'
+        : 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300';
+
+    return (
+      <div
+        key={form.id}
+        className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 sm:p-3.5 transition duration-150 hover:border-emerald-300 hover:shadow-sm dark:hover:border-emerald-700/60"
+      >
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200/50 dark:ring-slate-700/50">
+            <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5 mb-1">
+              <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${badgeClasses}`}>
+                {language === 'te' ? meta.badgeTelugu : meta.badge}
+              </span>
+            </div>
+            <h3 className="text-sm font-black text-slate-900 dark:text-white leading-snug break-words">
+              {form.label || form.title}
+            </h3>
+            {form.description && (
+              <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400 line-clamp-2">
+                {form.description}
+              </p>
+            )}
+          </div>
+        </div>
+        {form.file_url && (
+          <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 w-full sm:w-auto justify-end">
+            <button
+              type="button"
+              onClick={() => void openPublicPreview(form)}
+              disabled={previewLoadingId === form.id}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 px-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 disabled:opacity-50"
+              aria-label={t('Preview file', 'ఫైల్‌ను ప్రివ్యూ చేయండి')}
+              title={t('Preview', 'ప్రివ్యూ')}
+            >
+              {previewLoadingId === form.id ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Eye className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              )}
+              <span className="hidden sm:inline">{t('Preview', 'ప్రివ్యూ')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handlePublicDownload(form)}
+              disabled={downloadingFormId === form.id}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 disabled:opacity-50"
+              aria-label={t('Download file', 'ఫైల్‌ను డౌన్‌లోడ్ చేయండి')}
+              title={t('Download', 'డౌన్‌లోడ్')}
+            >
+              {downloadingFormId === form.id ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              <span>{t('Download', 'డౌన్‌లోడ్')}</span>
+            </button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const acreCalculation = useMemo(() => calculateAcreValues(acreInput), [acreInput]);
@@ -376,86 +744,131 @@ export function PublicOfficerTools() {
             </section>
 
           {formsLibraryOpen && (
-            <div className="mt-4">
-              <div className="mb-3">
+            <div className="mt-4 space-y-3">
+              <div>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t('🔍 Search forms...', '🔍 ఫారాలను వెతకండి...')}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-950 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  placeholder={t('🔍 Search forms, acts, orders & manuals...', '🔍 ఫారాలు, చట్టాలు, ఆర్డర్లు & మాన్యువల్స్ వెతకండి...')}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-950 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 />
               </div>
-              
-              <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">
-                  {t('Available Forms', 'అందుబాటులో ఉన్న ఫారాలు')}
+
+              {/* Sub-group filter tabs */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                <button
+                  type="button"
+                  onClick={() => setSubGroupFilter('all')}
+                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black transition ${
+                    subGroupFilter === 'all'
+                      ? 'bg-slate-900 text-white shadow-xs dark:bg-emerald-600'
+                      : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <Layers className="h-3.5 w-3.5" />
+                  <span>{t('All', 'అన్నీ')}</span>
+                  <span
+                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                      subGroupFilter === 'all'
+                        ? 'bg-white/20 text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    {subGroupCounts.all}
+                  </span>
+                </button>
+
+                {(['sampling', 'enforcement', 'reference'] as PublicFormSubGroup[]).map((groupKey) => {
+                  const meta = PUBLIC_FORM_SUBGROUPS[groupKey];
+                  const count = subGroupCounts[groupKey];
+                  const isSelected = subGroupFilter === groupKey;
+                  const GroupIcon = groupKey === 'sampling' ? FileText : groupKey === 'enforcement' ? Scale : BookOpen;
+
+                  return (
+                    <button
+                      key={groupKey}
+                      type="button"
+                      onClick={() => setSubGroupFilter(groupKey)}
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black transition ${
+                        isSelected
+                          ? groupKey === 'sampling'
+                            ? 'bg-emerald-700 text-white shadow-xs'
+                            : groupKey === 'enforcement'
+                            ? 'bg-amber-700 text-white shadow-xs'
+                            : 'bg-sky-700 text-white shadow-xs'
+                          : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <GroupIcon className="h-3.5 w-3.5" />
+                      <span>{language === 'te' ? meta.telugu : meta.label}</span>
+                      <span
+                        className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                          isSelected
+                            ? 'bg-white/20 text-white'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  {subGroupFilter === 'all'
+                    ? t('Related Forms & Reference Materials', 'సంబంధిత ఫారాలు & మార్గదర్శక పత్రాలు')
+                    : language === 'te'
+                    ? PUBLIC_FORM_SUBGROUPS[subGroupFilter].telugu
+                    : PUBLIC_FORM_SUBGROUPS[subGroupFilter].label}
                 </h2>
                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                  {filteredStatutoryForms.length} {t('Forms', 'ఫారాలు')}
+                  {filteredStatutoryForms.length} {t(filteredStatutoryForms.length === 1 ? 'Form' : 'Forms', filteredStatutoryForms.length === 1 ? 'ఫారం' : 'ఫారాలు')}
                 </span>
               </div>
 
               {formsLoading ? (
-                <div className="flex items-center justify-center py-8">
+                <div className="flex items-center justify-center py-10">
                   <Loader2 className="h-6 w-6 animate-spin text-emerald-600 dark:text-emerald-300" />
                 </div>
               ) : filteredStatutoryForms.length > 0 ? (
-                <div className="grid gap-2">
-                  {paginatedStatutoryForms.map((form) => (
-                    <div
-                      key={form.id}
-                      className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 transition hover:border-emerald-300 hover:bg-emerald-50"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-                        <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">{form.label || form.title}</h3>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">{form.description || ''}</p>
-                      </div>
-                      {form.file_url && (
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => void openPublicPreview(form)}
-                            disabled={previewLoadingId === form.id}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-emerald-700 dark:text-emerald-300 transition hover:bg-emerald-100 disabled:opacity-50"
-                            aria-label={t('Preview file', 'ఫైల్‌ను ప్రివ్యూ చేయండి')}
-                            title={t('Preview', 'ప్రివ్యూ')}
-                          >
-                            {previewLoadingId === form.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handlePublicDownload(form)}
-                            disabled={downloadingFormId === form.id}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-sky-700 dark:text-sky-300 transition hover:bg-sky-100 disabled:opacity-50"
-                            aria-label={t('Download file', 'ఫైల్‌ను డౌన్‌లోడ్ చేయండి')}
-                            title={t('Download', 'డౌన్‌లోడ్')}
-                          >
-                            {downloadingFormId === form.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Download className="h-4 w-4" />
-                            )}
-                          </button>
+                subGroupFilter === 'all' ? (
+                  <div className="space-y-5">
+                    {groupedForms.map((group) => (
+                      <div key={group.meta.id} className="space-y-2">
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-1.5 pt-1">
+                          <div className="flex items-center gap-2">
+                            <div className={`flex h-6 w-6 items-center justify-center rounded-md border ${group.colorClasses.badge}`}>
+                              <group.icon className="h-3.5 w-3.5" />
+                            </div>
+                            <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                              {language === 'te' ? group.meta.telugu : group.meta.label}
+                            </h3>
+                          </div>
+                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                            {group.forms.length} {t(group.forms.length === 1 ? 'item' : 'items', group.forms.length === 1 ? 'అంశం' : 'అంశాలు')}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                        <div className="grid gap-2">
+                          {group.forms.map(renderPublicFormCard)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid gap-2">
+                    {paginatedStatutoryForms.map(renderPublicFormCard)}
+                  </div>
+                )
               ) : (
-                <div className="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 p-8 text-center">
-                  <FileText className="mx-auto h-12 w-12 text-slate-300" />
+                <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-8 text-center">
+                  <FileText className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600" />
                   <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
                     {searchQuery.trim()
-                      ? t('No forms matching your search in this category.', 'ఈ వర్గంలో మీ శోధనకు సరిపోలే ఫారాలు లేవు.')
-                      : t('No statutory forms uploaded yet.', 'ఇంకా చట్టబద్ధ ఫారాలు అప్‌లోడ్ చేయబడలేదు.')}
+                      ? t('No forms matching your search in this group.', 'ఈ విభాగంలో మీ శోధనకు సరిపోలే ఫారాలు లేవు.')
+                      : t('No statutory forms found in this group.', 'ఈ విభాగంలో చట్టబద్ధ ఫారాలు లేవు.')}
                   </p>
                   {otherMatches.length > 0 && (
                     <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
@@ -705,11 +1118,11 @@ async function fetchPublicFormsFromDatabase() {
     supabase
       .from('forms_downloads')
       .select('id, title, description, file_url, file_type, category, created_at')
-      .order('created_at', { ascending: false })
   );
 
   if (error) throw error;
-  return ((data || []) as FormDownload[]).map(normalizePublicFormRow);
+  const list = ((data || []) as FormDownload[]).map(normalizePublicFormRow);
+  return list.sort(comparePublicForms);
 }
 
 function normalizePublicFormCategory(category: string) {
@@ -727,7 +1140,8 @@ function normalizePublicFormRow(form: FormDownload): FormDownload {
 function readCachedPublicForms() {
   try {
     const cached = JSON.parse(window.sessionStorage.getItem(PUBLIC_FORMS_CACHE_KEY) || '[]') as FormDownload[];
-    return Array.isArray(cached) ? cached.map(normalizePublicFormRow) : [];
+    if (!Array.isArray(cached)) return [];
+    return cached.map(normalizePublicFormRow).sort(comparePublicForms);
   } catch {
     return [];
   }
